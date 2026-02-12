@@ -246,8 +246,8 @@ fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
     if !stage_requires_banks(stage_id) {
         return Ok(());
     }
-    let hpc_root = std::env::var("BIJUX_HPC_ROOT")
-        .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+    let hpc_root = crate::commands::hpc::load_hpc_config()
+        .map_or_else(|_| PathBuf::from("bijux"), |cfg| cfg.resolve_paths().root);
     let candidates = [
         hpc_root.join("bijux-dna-data").join("banks"),
         cwd.join("bijux-dna-data").join("banks"),
@@ -568,9 +568,8 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
         return Ok(());
     }
     if args.hpc {
-        let root = std::env::var("BIJUX_HPC_ROOT")
-            .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
-        let layout = hpc::HpcLayout::from_root(&root);
+        let cfg = hpc::load_hpc_config()?;
+        let layout = hpc::HpcLayout::from_resolved(&cfg.resolve_paths());
         let report = hpc::validate_hpc_status(&layout);
         cli::render::json::print_pretty(&report)?;
         if !report.ok {
@@ -889,8 +888,10 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             print_env_export_json(&registry_path)?;
         }
         cli::EnvCommand::ExportHpc { json, hpc_root } => {
-            let root =
-                std::env::var("BIJUX_HPC_ROOT").map_or_else(|_| hpc_root.clone(), PathBuf::from);
+            let root = hpc_root.clone().map_or_else(
+                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
+                Ok,
+            )?;
             let layout = hpc::HpcLayout::from_root(&root);
             let export = hpc::export_hpc_env_json(&layout)?;
             if *json {
@@ -901,7 +902,11 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             }
         }
         cli::EnvCommand::SifInventory { hpc_root, json } => {
-            let report = sif_inventory(hpc_root)?;
+            let root = hpc_root.clone().map_or_else(
+                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
+                Ok,
+            )?;
+            let report = sif_inventory(&root)?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -911,9 +916,13 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
         }
         cli::EnvCommand::Ensure(args) => {
             let domain = parse_stage_domain(&args.stage)?;
+            let hpc_root = args.hpc_root.clone().map_or_else(
+                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
+                Ok,
+            )?;
             let report = ensure_apptainer_images(
                 &cwd.join("configs").join("tool_registry.toml"),
-                &args.hpc_root,
+                &hpc_root,
                 &domain,
                 &args.stage,
                 args.force_smoke,
@@ -931,7 +940,11 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             }
         }
         cli::EnvCommand::ApptainerQaMatrix { hpc_root, out } => {
-            let markdown = generate_apptainer_qa_matrix_markdown(hpc_root)?;
+            let root = hpc_root.clone().map_or_else(
+                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
+                Ok,
+            )?;
+            let markdown = generate_apptainer_qa_matrix_markdown(&root)?;
             if let Some(parent) = out.parent() {
                 bijux_dna_infra::ensure_dir(parent)?;
             }
@@ -940,9 +953,13 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
         }
         cli::EnvCommand::EnsureImages(args) => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
+            let hpc_root = args.hpc_root.clone().map_or_else(
+                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
+                Ok,
+            )?;
             let report = ensure_apptainer_images(
                 &registry_path,
-                &args.hpc_root,
+                &hpc_root,
                 &args.domain,
                 &args.stages,
                 args.force_smoke,
@@ -1007,7 +1024,19 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::ConfigCommand::InitHpc { root } => {
-            let layout = hpc::HpcLayout::from_root(root);
+            let cfg = root.clone().map_or_else(
+                || {
+                    hpc::load_hpc_config().unwrap_or_else(|_| {
+                        hpc::HpcConfig::from_root(std::env::var_os("HOME").map_or_else(
+                            || PathBuf::from("bijux"),
+                            |h| PathBuf::from(h).join("bijux"),
+                        ))
+                    })
+                },
+                hpc::HpcConfig::from_root,
+            );
+            let resolved = cfg.resolve_paths();
+            let layout = hpc::HpcLayout::from_resolved(&resolved);
             layout.ensure_dirs()?;
             let configs_dir = cwd.join("configs");
             bijux_dna_infra::ensure_dir(&configs_dir)?;
@@ -1016,9 +1045,18 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
                 &profile_path,
                 layout.profile_hpc_toml().as_bytes(),
             )?;
+            let config_path = hpc::write_hpc_config(&cfg)?;
             let lock_path = hpc::write_site_lock(&layout)?;
             println!("written={}", profile_path.display());
+            println!("hpc_config={}", config_path.display());
             println!("site_lock={}", lock_path.display());
+        }
+        cli::ConfigCommand::Doctor => {
+            let report = hpc::config_doctor()?;
+            cli::render::json::print_pretty(&report)?;
+            if !report.ok {
+                return Err(anyhow!("config doctor failed"));
+            }
         }
     }
     Ok(())

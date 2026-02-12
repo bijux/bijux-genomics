@@ -273,13 +273,13 @@ pub enum EnvCommand {
     ExportHpc {
         #[arg(long, default_value_t = false)]
         json: bool,
-        #[arg(long, default_value = "/home/bijan/bijux")]
-        hpc_root: PathBuf,
+        #[arg(long)]
+        hpc_root: Option<PathBuf>,
     },
     #[command(name = "sif-inventory")]
     SifInventory {
-        #[arg(long, default_value = "/home/bijan/bijux")]
-        hpc_root: PathBuf,
+        #[arg(long)]
+        hpc_root: Option<PathBuf>,
         #[arg(long, default_value_t = false)]
         json: bool,
     },
@@ -287,8 +287,8 @@ pub enum EnvCommand {
     Ensure(EnsureStageArgs),
     #[command(name = "apptainer-qa-matrix")]
     ApptainerQaMatrix {
-        #[arg(long, default_value = "/home/bijan/bijux")]
-        hpc_root: PathBuf,
+        #[arg(long)]
+        hpc_root: Option<PathBuf>,
         #[arg(long, default_value = "docs/30-operations/APPTAINER_QA_MATRIX.md")]
         out: PathBuf,
     },
@@ -300,8 +300,8 @@ pub enum EnvCommand {
 
 #[derive(Debug, Args, Clone)]
 pub struct EnsureImagesArgs {
-    #[arg(long, default_value = "/home/bijan/bijux")]
-    pub hpc_root: PathBuf,
+    #[arg(long)]
+    pub hpc_root: Option<PathBuf>,
     #[arg(long)]
     pub domain: String,
     #[arg(long, help = "Comma-separated stage ids or short stage names")]
@@ -316,8 +316,8 @@ pub struct EnsureImagesArgs {
 
 #[derive(Debug, Args, Clone)]
 pub struct EnsureStageArgs {
-    #[arg(long, default_value = "/home/bijan/bijux")]
-    pub hpc_root: PathBuf,
+    #[arg(long)]
+    pub hpc_root: Option<PathBuf>,
     #[arg(long, help = "Stage id like fastq.trim")]
     pub stage: String,
     #[arg(long, default_value_t = false)]
@@ -332,9 +332,10 @@ pub struct EnsureStageArgs {
 pub enum ConfigCommand {
     #[command(name = "init-hpc")]
     InitHpc {
-        #[arg(long, default_value = "/home/bijan/bijux")]
-        root: PathBuf,
+        #[arg(long)]
+        root: Option<PathBuf>,
     },
+    Doctor,
 }
 
 #[derive(Debug, Subcommand)]

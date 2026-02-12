@@ -1057,8 +1057,9 @@ fn command_output(cmd: &str, args: &[&str]) -> Option<String> {
 }
 
 fn load_site_lock(cwd: &Path) -> serde_json::Value {
-    let hpc_root = std::env::var("BIJUX_HPC_ROOT")
-        .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+    let hpc_root = crate::commands::hpc::load_hpc_config()
+        .map(|cfg| cfg.resolve_paths().root)
+        .unwrap_or(PathBuf::from("bijux"));
     let candidates = [
         hpc_root.join("bijux-dna-results").join("site_lock.json"),
         cwd.join("bijux-dna-results").join("site_lock.json"),

@@ -543,8 +543,13 @@ pub(crate) fn handle_meta_commands(
                     print_env_export_json(&registry_path)?;
                 }
                 EnvCommand::ExportHpc { json, hpc_root } => {
-                    let root = std::env::var("BIJUX_HPC_ROOT")
-                        .map_or_else(|_| hpc_root.clone(), std::path::PathBuf::from);
+                    let root = hpc_root.clone().map_or_else(
+                        || {
+                            crate::commands::hpc::load_hpc_config()
+                                .map(|cfg| cfg.resolve_paths().root)
+                        },
+                        Ok,
+                    )?;
                     let layout = crate::commands::hpc::HpcLayout::from_root(&root);
                     let export = crate::commands::hpc::export_hpc_env_json(&layout)?;
                     if *json {
@@ -557,9 +562,16 @@ pub(crate) fn handle_meta_commands(
                 EnvCommand::EnsureImages(args) => {
                     let cwd = std::env::current_dir()?;
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let hpc_root = args.hpc_root.clone().map_or_else(
+                        || {
+                            crate::commands::hpc::load_hpc_config()
+                                .map(|cfg| cfg.resolve_paths().root)
+                        },
+                        Ok,
+                    )?;
                     let report = crate::commands::cli::env::ensure_apptainer_images(
                         &registry_path,
-                        &args.hpc_root,
+                        &hpc_root,
                         &args.domain,
                         &args.stages,
                         args.force_smoke,
@@ -577,7 +589,14 @@ pub(crate) fn handle_meta_commands(
                     }
                 }
                 EnvCommand::SifInventory { hpc_root, json } => {
-                    let report = crate::commands::cli::env::sif_inventory(hpc_root)?;
+                    let root = hpc_root.clone().map_or_else(
+                        || {
+                            crate::commands::hpc::load_hpc_config()
+                                .map(|cfg| cfg.resolve_paths().root)
+                        },
+                        Ok,
+                    )?;
+                    let report = crate::commands::cli::env::sif_inventory(&root)?;
                     if *json {
                         render::json::print_pretty(&report)?;
                     } else {
@@ -589,9 +608,16 @@ pub(crate) fn handle_meta_commands(
                     let cwd = std::env::current_dir()?;
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
                     let domain = crate::commands::cli::env::parse_stage_domain(&args.stage)?;
+                    let hpc_root = args.hpc_root.clone().map_or_else(
+                        || {
+                            crate::commands::hpc::load_hpc_config()
+                                .map(|cfg| cfg.resolve_paths().root)
+                        },
+                        Ok,
+                    )?;
                     let report = crate::commands::cli::env::ensure_apptainer_images(
                         &registry_path,
-                        &args.hpc_root,
+                        &hpc_root,
                         &domain,
                         &args.stage,
                         args.force_smoke,
@@ -609,8 +635,15 @@ pub(crate) fn handle_meta_commands(
                     }
                 }
                 EnvCommand::ApptainerQaMatrix { hpc_root, out } => {
+                    let root = hpc_root.clone().map_or_else(
+                        || {
+                            crate::commands::hpc::load_hpc_config()
+                                .map(|cfg| cfg.resolve_paths().root)
+                        },
+                        Ok,
+                    )?;
                     let markdown =
-                        crate::commands::cli::env::generate_apptainer_qa_matrix_markdown(hpc_root)?;
+                        crate::commands::cli::env::generate_apptainer_qa_matrix_markdown(&root)?;
                     if let Some(parent) = out.parent() {
                         bijux_dna_infra::ensure_dir(parent)?;
                     }
