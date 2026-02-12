@@ -252,8 +252,8 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::Doctor { domain } => {
             print_registry_doctor(&registry_path, domain.as_deref())?;
         }
-        cli::RegistryCommand::Promote { id } => {
-            promote_registry_tool(&registry_path, cwd, id)?;
+        cli::RegistryCommand::Promote { tool } => {
+            promote_registry_tool(&registry_path, cwd, tool)?;
         }
         cli::RegistryCommand::Lint {
             hpc,

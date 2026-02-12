@@ -417,7 +417,10 @@ pub enum RegistryCommand {
         domain: Option<String>,
     },
     #[command(name = "promote")]
-    Promote { id: String },
+    Promote {
+        #[arg(long = "tool")]
+        tool: String,
+    },
     #[command(name = "lint")]
     Lint {
         #[arg(long, default_value_t = false)]
