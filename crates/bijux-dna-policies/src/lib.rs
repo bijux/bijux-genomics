@@ -144,11 +144,6 @@ impl GuardrailConfig {
         }
         if name == "bijux-dna-domain-fastq" {
             config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
-            config.max_modules_per_dir = 16;
-            config.max_rs_files_per_dir = 16;
-        }
-        if name == "bijux-dna-api" {
-            config.max_loc = 1200;
         }
         if name == "bijux-dna-pipelines" {
             config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];

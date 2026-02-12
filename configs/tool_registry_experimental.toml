@@ -310,40 +310,6 @@ apptainer_def = "containers/apptainer/bijux/fastq_screen.def"
 require_labels = true
 
 [[tools]]
-id = "fastqvalidator"
-tool_id = "fastqvalidator"
-domain = "fastq"
-domains = ["fastq"]
-status = "supported"
-stage_ids = ["fastq.validate_pre"]
-bindings = ["fastq.validate_pre"]
-tool_role = "validator"
-version = "v0.1.1"
-default_version = "v0.1.1"
-upstream = "https://github.com/fastqvalidator/fastqvalidator"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/fastqvalidator/fastqvalidator"
-pinned_commit = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/fastqvalidator@sha256:0000000000000000000000000000000000000000000000000000000000000000"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "fastqvalidator --version"
-help_cmd = "fastqvalidator --help"
-smoke_version_cmd = "fastqvalidator --version"
-smoke_help_cmd = "fastqvalidator --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "fastqvalidator --help"
-expected_bin = "fastqvalidator"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
-apptainer_def = "containers/apptainer/bijux/fastqvalidator.def"
-require_labels = true
-
-[[tools]]
 id = "flash2"
 tool_id = "flash2"
 domain = "fastq"
@@ -852,4 +818,3 @@ comparability_notes = "Comparable only within same stage contract and input cons
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
 apptainer_def = "containers/apptainer/bijux/yleaf.def"
 require_labels = true
-
