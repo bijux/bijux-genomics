@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0
 # Copyright (C) 2026 Bijan Mousavi
 #
 # Container definition license: GPL-3.0.

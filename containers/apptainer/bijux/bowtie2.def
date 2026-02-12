@@ -1,0 +1,64 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Bowtie2-v2.5.4
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool bowtie2
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        perl \
+        curl \
+        wget \
+        unzip \
+        ca-certificates \
+        make \
+        gcc && \
+
+    curl -L https://cpanmin.us | perl - --self-upgrade && \
+    cpanm Sys::Hostname && \
+
+    VERSION=2.5.4 && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        SUFFIX=linux-x86_64; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        SUFFIX=linux-aarch64; \
+    else \
+        echo "Unsupported architecture: $ARCH" >&2; \
+        exit 1; \
+    fi && \
+    wget -q https://github.com/BenLangmead/bowtie2/releases/download/v${VERSION}/bowtie2-${VERSION}-${SUFFIX}.zip -O /tmp/bowtie2.zip && \
+    unzip -q /tmp/bowtie2.zip -d /opt && \
+    cp /opt/bowtie2-${VERSION}-${SUFFIX}/bowtie2* /usr/local/bin/ && \
+    rm -rf /tmp/bowtie2.zip /opt/bowtie2-${VERSION}-${SUFFIX} && \
+
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/bowtie2 --help
+    else
+        exec /usr/local/bin/bowtie2 "$@"
+    fi
+
+%help
+    This Apptainer image provides Bowtie2 version 2.5.4 with precompiled binaries matching the build host architecture (x86_64 or aarch64).
+    Run with arguments to execute bowtie2, or without arguments to display detailed help.

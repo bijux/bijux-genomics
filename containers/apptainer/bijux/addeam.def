@@ -1,0 +1,61 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version latest-pinned
+    org.opencontainers.image.tool addeam
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y --no-install-recommends \
+        git python3 python3-pip ca-certificates && \
+        rm -rf /var/lib/apt/lists/*
+
+    git clone --depth 1 https://github.com/LouisPwr/AdDeam.git /opt/AdDeam
+    cd /opt/AdDeam
+    git checkout f1dd2a5e530975cab1df48e47a1d51ea76bf183a
+    cat > /usr/local/bin/addeam <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  (cd /opt/AdDeam && git rev-parse --short=12 HEAD) || echo "unknown"
+  exit 0
+fi
+entry=""
+for candidate in \
+  /opt/AdDeam/AdDeam.py \
+  /opt/AdDeam/addeam.py \
+  /opt/AdDeam/src/AdDeam.py \
+  /opt/AdDeam/src/addeam.py
+do
+  if [ -f "$candidate" ]; then
+    entry="$candidate"
+    break
+  fi
+done
+if [ -z "$entry" ]; then
+  entry="$(find /opt/AdDeam -maxdepth 3 -type f \( -name '*deam*.py' -o -name '*Deam*.py' \) | head -n 1 || true)"
+fi
+[ -n "$entry" ] || { echo "AdDeam entry script not found" >&2; exit 127; }
+exec python3 "$entry" "$@"
+SH
+    chmod +x /usr/local/bin/addeam
+
+%runscript
+    exec /usr/local/bin/addeam "$@"
+
+%help
+    Apptainer image for AdDeam.
+    Default runscript forwards arguments to addeam.

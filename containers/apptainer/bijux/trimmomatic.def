@@ -1,0 +1,86 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION trimmomatic-0.39
+    org.opencontainers.image.source http://www.usadellab.org/cms/?page=trimmomatic
+    org.opencontainers.image.title Trimmomatic
+    org.opencontainers.image.licenses Apache-2.0
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool trimmomatic
+%environment
+    DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    VERSION_TRIMMOMATIC=0.39
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        wget \
+        ca-certificates \
+        unzip \
+        openjdk-11-jre-headless
+
+    # Fetch + install jar
+    cd /tmp
+    wget -q -O trimmomatic.zip \
+      "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip"
+
+    mkdir -p /opt
+    unzip -q trimmomatic.zip -d /opt
+
+    # Normalize jar path
+    mv "/opt/Trimmomatic-0.39/trimmomatic-0.39.jar" /opt/trimmomatic.jar
+
+    rm -f /tmp/trimmomatic.zip
+
+    # Wrapper: unified execution; map --version to -version; normalize --help exit
+    cat > /usr/local/bin/trimmomatic <<'EOF'
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+  --version)
+    exec java -jar /opt/trimmomatic.jar -version
+    ;;
+  --help|-h|"")
+    # Trimmomatic prints help via different modes depending on args; keep it stable.
+    java -jar /opt/trimmomatic.jar --help || true
+    exit 0
+    ;;
+esac
+
+exec java -jar /opt/trimmomatic.jar "$@"
+EOF
+    chmod 0755 /usr/local/bin/trimmomatic
+
+    # Clean up.
+    rm -rf /opt/Trimmomatic-0.39
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec trimmomatic --help
+    else
+        exec trimmomatic "$@"
+    fi
+
+%help
+    This Apptainer image provides Trimmomatic v0.39 (Java jar).
+    Executable: trimmomatic
+    Jar path: /opt/trimmomatic.jar
+    --version is mapped to: java -jar /opt/trimmomatic.jar -version

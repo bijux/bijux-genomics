@@ -1,0 +1,107 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION spades-4.2.0
+    org.opencontainers.image.source https://github.com/ablab/spades
+    org.opencontainers.image.title SPAdes
+    org.opencontainers.image.licenses Apache-2.0
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool spades
+%environment
+    DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    VERSION_SPADES=4.2.0
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Section 1: Install build and runtime dependencies.
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        g++ \
+        wget \
+        zlib1g-dev \
+        libbz2-dev \
+        libboost-all-dev \
+        libgomp1 \
+        python3 \
+        python3-setuptools \
+        ca-certificates \
+        grep
+
+    # Section 2: Fetch and compile SPAdes.
+    cd /tmp
+    wget -q -O spades.tar.gz \
+      "https://github.com/ablab/spades/archive/refs/tags/v4.2.0.tar.gz"
+
+    mkdir -p /opt
+    tar -xzf spades.tar.gz -C /opt
+    cd /opt/spades-4.2.0
+
+    ./spades_compile.sh
+
+    # Section 3: Install binaries and shared assets.
+    cp -r bin/* /usr/local/bin/
+    ln -sf spades.py /usr/local/bin/spades
+    mkdir -p /usr/local/share
+    cp -r share/spades /usr/local/share/
+
+    # Section 4: Run sanity checks and fail on version mismatch.
+    /usr/local/bin/spades --version | grep -q "4.2.0"
+
+    # Section 5: Create a BayesHammer wrapper with a uniform CLI.
+    cat > /usr/local/bin/bayeshammer <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+  --version)
+    exec spades --version
+    ;;
+  --help|-h|"")
+    exec spades --only-error-correction --help
+    ;;
+esac
+
+exec spades --only-error-correction "$@"
+EOF
+    chmod 0755 /usr/local/bin/bayeshammer
+
+    # Section 6: Clean up build tree.
+    cd /
+    rm -rf /opt/spades-4.2.0 /tmp/spades.tar.gz
+
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec spades.py --help
+    else
+        exec spades.py "$@"
+    fi
+
+%help
+    This Apptainer image provides SPAdes v4.2.0 built from source on Ubuntu 24.04.
+
+    Main entry:
+      - spades.py  (also symlinked as 'spades')
+
+    Extra wrapper:
+      - bayeshammer  (runs: spades --only-error-correction)
+
+    Installs SPAdes helpers from bin/ and data assets under /usr/local/share/spades.

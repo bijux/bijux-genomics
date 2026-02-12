@@ -1355,7 +1355,7 @@ fn build_tool_registries_toml(
     let mut production_tool_ids = BTreeSet::new();
     for tool in tools.values() {
         let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
-        let apptainer_def_rel = format!("containers/apptainer/{}.def", tool.id);
+        let apptainer_def_rel = format!("containers/apptainer/bijux/{}.def", tool.id);
         let dockerfile_path = Path::new(&dockerfile_rel);
         let apptainer_def_path = Path::new(&apptainer_def_rel);
         let docker_exists = dockerfile_path.exists();
@@ -1979,7 +1979,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             );
             let _ = writeln!(
                 tools_vcf_toml,
-                "apptainer_def = \"containers/apptainer/bcftools.def\""
+                "apptainer_def = \"containers/apptainer/non-bijux/bcftools.def\""
             );
             let _ = writeln!(tools_vcf_toml, "require_labels = true\n");
         }
