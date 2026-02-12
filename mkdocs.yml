@@ -134,6 +134,8 @@ nav:
       - Doc Promises: 00-intro/DOC_PROMISES.md
       - Scope: 00-intro/SCOPE.md
       - Refusals: 00-intro/REFUSALS.md
+  - CLI:
+      - Overview: cli/index.md
   - Architecture:
       - Overview: 10-architecture/ARCHITECTURE_OVERVIEW.md
       - Architecture Litmus: 10-architecture/ARCHITECTURE_LITMUS.md

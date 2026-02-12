@@ -14,6 +14,7 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
 
 ## Policy checks
+- [CLI conventions and snapshot](cli/index.md)
 - `api_boundaries.rs`
 - `architecture_pointer_policy.rs`
 - `benchmark_dependency_policy.rs`
