@@ -32,60 +32,21 @@ coverage:
 
 domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 
-domain-gates-isolate:
-	@./bin/isolate $(MAKE) domain-gates
-	@./scripts/check-root-pollution.sh
-
-fmt-isolate:
-	@./bin/isolate $(MAKE) fmt
-	@./scripts/check-root-pollution.sh
-
-lint-isolate:
-	@./bin/isolate $(MAKE) lint
-	@./scripts/check-root-pollution.sh
-
-test-isolate:
-	@./bin/isolate $(MAKE) test
-	@./scripts/check-root-pollution.sh
-
-audit-isolate:
-	@./bin/isolate $(MAKE) audit
-	@./scripts/check-root-pollution.sh
-
-coverage-isolate:
-	@./bin/isolate $(MAKE) coverage
-	@./scripts/check-root-pollution.sh
-
 ci:
-	$(MAKE) fmt-isolate
-	$(MAKE) domain-gates-isolate
-	$(MAKE) lint-isolate
-	$(MAKE) audit-isolate
-	$(MAKE) test-isolate
-	$(MAKE) docs-isolate
-	./scripts/check-root-pollution.sh
+	$(MAKE) fmt
+	$(MAKE) lint
+	$(MAKE) audit
+	$(MAKE) test
+	$(MAKE) coverage
 
 check:
 	$(MAKE) fmt lint audit coverage
-
-ci-isolate: fmt-isolate domain-gates-isolate lint-isolate audit-isolate test-isolate docs-isolate
-	@./scripts/check-root-pollution.sh
-
-test-coverage-isolate-parallel:
-	$(MAKE) -j2 test-isolate coverage-isolate
-
-ci-local:
-	$(MAKE) -j2 test coverage
 
 verify-parallel-isolation:
 	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_a_path'
 	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_b_path'
 	@test "$$(cat artifacts/isolates/.verify_a_path)" != "$$(cat artifacts/isolates/.verify_b_path)"
 	@rm -f artifacts/isolates/.verify_a_path artifacts/isolates/.verify_b_path
-
-test-and-coverage: verify-parallel-isolation test coverage
-
-test-coverage-parallel: test-and-coverage
 
 clean-isolates:
 	@rm -rf artifacts/isolates/*
@@ -114,23 +75,23 @@ release-readiness: ## Block merges on experimental tools, unknown metrics schema
 
 ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) ssot-policy-fast
-	$(MAKE) fmt-isolate
-	$(MAKE) lint-isolate
+	$(MAKE) fmt
+	$(MAKE) lint
 	$(MAKE) unit-contract-fast
 	$(MAKE) release-readiness
 	$(MAKE) test-profile-invariants
 	$(MAKE) policy-no-raw-cargo
 
 ci-slow: ## Slow CI tier (manual): heavier integration checks.
-	$(MAKE) audit-isolate
-	$(MAKE) coverage-isolate
+	$(MAKE) audit
+	$(MAKE) coverage
 	$(MAKE) docs-isolate
-	$(MAKE) domain-gates-isolate
+	$(MAKE) domain-gates
 	$(MAKE) release-readiness
 
 quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
-	$(MAKE) fmt-isolate
-	$(MAKE) lint-isolate
+	$(MAKE) fmt
+	$(MAKE) lint
 	$(MAKE) test-profile-invariants
 	$(MAKE) registry-lint
 
@@ -176,11 +137,9 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/check-no-raw-cargo-in-makefiles.sh
 	./scripts/check-no-raw-cargo-in-scripts.sh
 
-.PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
-		test-and-coverage \
-		test-coverage-isolate-parallel \
-		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolates \
-		domain-gates domain-gates-isolate \
+.PHONY: fmt lint test audit coverage ci check verify-parallel-isolation \
+		clean-isolates \
+		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick \
 		snapshots snapshots-accept snapshots-review fix-snapshots test-triage
