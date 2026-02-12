@@ -203,7 +203,7 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool) -> Result<ExampleP
         )
     };
     let corpus_root = data_root
-        .join(normalize_species_id_for_path(&spec.species)?)
+        .join(normalize_species_id_for_path(cwd, &spec.species)?)
         .join(&spec.ena_project)
         .join(&spec.corpus_id);
     Ok(ExamplePlan {
@@ -230,8 +230,9 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool) -> Result<ExampleP
     })
 }
 
-fn normalize_species_id_for_path(raw: &str) -> Result<String> {
-    let words = raw
+fn normalize_species_id_for_path(cwd: &Path, raw: &str) -> Result<String> {
+    let resolved = resolve_species_alias(cwd, raw)?;
+    let words = resolved
         .split_whitespace()
         .map(|s| s.trim().to_ascii_lowercase())
         .filter(|s| !s.is_empty())
@@ -249,6 +250,23 @@ fn normalize_species_id_for_path(raw: &str) -> Result<String> {
     Err(anyhow!(
         "example species must be latin binomial or canonical species_id, got `{raw}`"
     ))
+}
+
+fn resolve_species_alias(cwd: &Path, raw: &str) -> Result<String> {
+    let path = cwd.join("configs").join("species_aliases.toml");
+    let input = raw.trim();
+    let input_key = input.to_ascii_lowercase();
+    let raw_toml = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let value: toml::Value =
+        toml::from_str(&raw_toml).with_context(|| format!("parse {}", path.display()))?;
+    let table = value
+        .get("aliases")
+        .and_then(toml::Value::as_table)
+        .ok_or_else(|| anyhow!("{} missing [aliases] table", path.display()))?;
+    Ok(table
+        .get(&input_key)
+        .and_then(toml::Value::as_str)
+        .map_or_else(|| input.to_string(), str::to_string))
 }
 
 fn load_example(cwd: &Path, id: &str) -> Result<(ExampleSpec, PathBuf)> {
