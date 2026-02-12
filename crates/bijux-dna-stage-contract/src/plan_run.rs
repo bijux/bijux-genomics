@@ -41,6 +41,7 @@ impl Executor for DryRunExecutor {
 
 /// # Errors
 /// Returns an error if the registry is missing the requested stage or tool.
+#[allow(clippy::too_many_lines)]
 pub fn build_run_execution_plan(
     run_spec: &RunSpec,
     registry: &ToolRegistry,

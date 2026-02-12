@@ -7,6 +7,10 @@ pub mod fixtures {
 
     use serde_json::Value;
 
+    /// Load a UTF-8 fixture file.
+    ///
+    /// # Panics
+    /// Panics if the file cannot be read.
     #[must_use]
     pub fn load_fixture_text(path: impl AsRef<Path>) -> String {
         fs::read_to_string(path.as_ref()).unwrap_or_else(|err| {
@@ -14,20 +18,27 @@ pub mod fixtures {
         })
     }
 
+    /// Load and parse a JSON fixture file.
+    ///
+    /// # Panics
+    /// Panics if the file cannot be read or parsed as JSON.
     #[must_use]
     pub fn load_fixture_json(path: impl AsRef<Path>) -> Value {
         let raw = load_fixture_text(path);
-        serde_json::from_str(&raw).expect("fixture JSON must parse")
+        serde_json::from_str(&raw).unwrap_or_else(|err| panic!("fixture JSON must parse: {err}"))
     }
 
+    /// Assert that `value` contains all top-level keys present in `schema_like`.
+    ///
+    /// # Panics
+    /// Panics if `schema_like` is not a JSON object or if any expected key is missing.
     pub fn assert_json_schema_like(value: &Value, schema_like: &Value) {
         match (value, schema_like) {
             (Value::Object(actual), Value::Object(schema)) => {
                 for key in schema.keys() {
                     assert!(
                         actual.contains_key(key),
-                        "missing expected key '{}' in json payload",
-                        key
+                        "missing expected key '{key}' in json payload"
                     );
                 }
             }
@@ -64,12 +75,20 @@ pub mod determinism {
         }
     }
 
+    /// Assert a slice is already sorted in deterministic order.
+    ///
+    /// # Panics
+    /// Panics if `items` are not sorted.
     pub fn assert_stable_ordering<T: Ord + std::fmt::Debug + Clone>(items: &[T]) {
         let mut sorted = items.to_vec();
         sorted.sort();
         assert_eq!(items, sorted, "items must be sorted deterministically");
     }
 
+    /// Assert two JSON values are equal after stable ordering normalization.
+    ///
+    /// # Panics
+    /// Panics if normalized JSON values differ.
     pub fn assert_json_stable(expected: &Value, actual: &Value) {
         assert_eq!(
             stable_json(expected),
@@ -88,6 +107,11 @@ pub mod temp {
         std::env::var("TEST_TMP_DIR").ok().map(PathBuf::from)
     }
 
+    /// Create a test temp directory rooted under `TEST_TMP_DIR` when available.
+    ///
+    /// # Panics
+    /// Panics if the temporary directory cannot be created.
+    #[must_use]
     pub fn tempdir_for(test_name: &str) -> TempDir {
         let prefix = format!("bijux-dna-{test_name}-");
         if let Some(root) = test_tmp_root() {
@@ -104,6 +128,7 @@ pub mod temp {
             .unwrap_or_else(|err| panic!("tempdir: {err}"))
     }
 
+    #[must_use]
     pub fn temp_path_for(test_name: &str) -> PathBuf {
         tempdir_for(test_name).keep()
     }

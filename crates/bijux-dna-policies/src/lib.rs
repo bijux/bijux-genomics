@@ -17,13 +17,7 @@ pub mod policy_diagnostics {
     pub const MORE: &str = "crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md";
 
     pub fn message(what: impl Display) -> String {
-        format!(
-            "WHAT: {what}\nWHY: {WHY}\nHOW: {HOW}\nMORE: {MORE}",
-            what = what,
-            WHY = WHY,
-            HOW = HOW,
-            MORE = MORE
-        )
+        format!("WHAT: {what}\nWHY: {WHY}\nHOW: {HOW}\nMORE: {MORE}")
     }
 }
 
@@ -153,6 +147,10 @@ impl GuardrailConfig {
     }
 }
 
+/// Run guardrail checks for a crate source tree.
+///
+/// # Errors
+/// Returns an error when any configured guardrail is violated or file traversal fails.
 pub fn check(crate_root: &Path, config: &GuardrailConfig) -> Result<()> {
     let src_dir = crate_root.join("src");
     let files = collect_rs_files(&src_dir)?;

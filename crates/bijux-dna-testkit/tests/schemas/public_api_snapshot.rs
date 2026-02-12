@@ -6,7 +6,8 @@ fn public_api_snapshot() {
     let lib_rs = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("lib.rs");
-    let content = fs::read_to_string(&lib_rs).expect("read lib.rs");
+    let content =
+        fs::read_to_string(&lib_rs).unwrap_or_else(|err| panic!("read lib.rs failed: {err}"));
     let mut exports = collect_pub_uses(&content);
     exports.sort();
     let snapshot = exports.join("\n") + "\n";
@@ -15,7 +16,8 @@ fn public_api_snapshot() {
         .join("tests")
         .join("snapshots")
         .join("bijux-dna-testkit__schemas__public_api.txt");
-    let expected = fs::read_to_string(&snapshot_path).expect("read public_api.txt snapshot");
+    let expected = fs::read_to_string(&snapshot_path)
+        .unwrap_or_else(|err| panic!("read public_api.txt snapshot failed: {err}"));
     assert_eq!(snapshot, expected, "public API snapshot must match");
 }
 
