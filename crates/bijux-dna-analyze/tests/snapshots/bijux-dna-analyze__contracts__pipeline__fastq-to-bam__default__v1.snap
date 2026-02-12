@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+assertion_line: 163
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -1171,6 +1172,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
+          "bam.kinship": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
           "bam.length_filter": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -1449,6 +1462,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "min_length": 30,
             "remove_duplicates": false
           },
+          "bam.kinship": {
+            "min_overlap_snps": 200,
+            "reference_panel": "panel.vcf"
+          },
           "bam.length_filter": {
             "base_quality_threshold": 20,
             "exclude_flags": [],
@@ -1649,6 +1666,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "rationale": "pipeline default"
           },
           "bam.filter": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.kinship": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1886,6 +1915,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bam.duplication_metrics": "samtools",
           "bam.endogenous_content": "samtools",
           "bam.filter": "samtools",
+          "bam.kinship": "king",
           "bam.length_filter": "samtools",
           "bam.mapping_summary": "samtools",
           "bam.mapq_filter": "samtools",
@@ -2431,6 +2461,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.qc_pre/telemetry/events.jsonl",
       "core.prepare_reference/telemetry/events.jsonl",
       "fastq.preprocess/telemetry/events.jsonl"
-    ]
+    ],
+    "timeline": []
   }
 }

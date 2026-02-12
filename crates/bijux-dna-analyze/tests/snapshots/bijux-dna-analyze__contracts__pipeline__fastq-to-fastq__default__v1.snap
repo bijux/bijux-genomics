@@ -1645,6 +1645,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.stats_neutral/telemetry/events.jsonl",
       "fastq.trim/telemetry/events.jsonl",
       "fastq.validate_pre/telemetry/events.jsonl"
-    ]
+    ],
+    "timeline": []
   }
 }

@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 175
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -28,10 +29,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "report.json",
       "run_manifest.json",
       "tool_provenance.json",
-      "invariants_report.json"
+      "invariants_report.json",
+      "vcf.tbi"
     ],
     "required_inputs": [
-      "vcf"
+      "vcf",
+      "sample_name"
     ],
     "required_metrics": [
       "vcf.metrics"
@@ -56,15 +59,23 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "caller": "bcftools",
         "min_base_quality": 20,
         "min_mapping_quality": 20,
+        "reference_fasta": "reference.fa",
+        "sample_name": "reference_sample",
         "schema_version": "bijux.vcf.params.v1"
       },
       "vcf.filter": {
         "min_qual": 30.0,
+        "normalize": true,
+        "production_profile": true,
+        "require_bgzip_tabix": true,
         "require_pass": true,
+        "sample_name": "sample",
         "schema_version": "bijux.vcf.params.v1"
       },
       "vcf.stats": {
+        "collect_depth_distribution": true,
         "compute_titv": true,
+        "sample_name": "sample",
         "schema_version": "bijux.vcf.params.v1"
       }
     },
@@ -95,5 +106,5 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "output_domains": [
     "Vcf"
   ],
-  "stability": "Beta"
+  "stability": "Stable"
 }
