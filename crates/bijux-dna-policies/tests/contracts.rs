@@ -98,6 +98,8 @@ mod mod_contracts_tooling_root_pollution_policy_rs;
 mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
+#[path = "contracts/tooling/smoke_probe_policy.rs"]
+mod mod_contracts_tooling_smoke_probe_policy_rs;
 #[path = "contracts/tooling/snapshot_hygiene_policy.rs"]
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
 #[path = "contracts/tooling/stage_id_symmetry_policy.rs"]
