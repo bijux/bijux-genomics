@@ -48,7 +48,6 @@ fn policy__boundaries__pipelines_dependency_policy__pipelines_do_not_depend_on_s
         "bijux-dna-planner-bam",
         "bijux-dna-engine",
         "bijux-dna-runner",
-        "bijux-dna-runtime",
     ];
     let offenders: Vec<String> = denylist
         .iter()

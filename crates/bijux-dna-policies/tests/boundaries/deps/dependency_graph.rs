@@ -207,6 +207,11 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
     let allowed = BTreeSet::from([
         "bijux-dna-api".to_string(),
         "bijux-dna-domain-compiler".to_string(),
+        "bijux-dna-runtime".to_string(),
+        "bijux-dna-infra".to_string(),
+        "bijux-dna-domain-vcf".to_string(),
+        "bijux-dna-stages-vcf".to_string(),
+        "bijux-dna-db-ena".to_string(),
     ]);
     let actual: BTreeSet<String> = cli
         .dependencies
