@@ -101,7 +101,10 @@ fn write_repro_bundle(bundle_path: &Path, run_dir: &Path) -> Result<()> {
 }
 
 fn validate_scientific_defaults_doc(cwd: &Path) -> Result<ScientificDefaultsStatus> {
-    let path = cwd.join("docs").join("SCIENTIFIC_DEFAULTS.md");
+    let path = cwd
+        .join("docs")
+        .join("20-science")
+        .join("SCIENTIFIC_DEFAULTS.md");
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let mut checked_rows = 0usize;
     for line in raw.lines() {

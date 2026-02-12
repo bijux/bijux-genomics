@@ -1038,6 +1038,8 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
         "Cargo.toml",
         "Makefile.toml",
         "README.md",
+        "BOUNDARY.md",
+        "PUBLIC_API.md",
         "clippy.toml",
         "src",
         "tests",

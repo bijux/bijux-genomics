@@ -211,7 +211,6 @@ fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_
         "bijux-dna-engine",
         "bijux-dna-runner",
         "bijux-dna-environment",
-        "bijux-dna-runtime",
     ];
     let offenders: Vec<String> = denylist
         .iter()

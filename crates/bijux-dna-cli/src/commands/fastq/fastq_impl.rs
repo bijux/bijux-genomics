@@ -187,7 +187,7 @@ pub(crate) fn handle_meta_commands(
                     "effective_tools": profile.defaults.tools,
                     "default_rationale": profile.defaults.rationales,
                     "rationale_links": [
-                        "docs/SCIENTIFIC_DEFAULTS.md",
+                        "docs/20-science/SCIENTIFIC_DEFAULTS.md",
                         "docs/20-science/SCIENTIFIC_DECISIONS.md",
                         "crates/bijux-dna-pipelines/docs/PROFILE_RATIONALE.md"
                     ],

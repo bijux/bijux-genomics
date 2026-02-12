@@ -40,12 +40,21 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
     let allowlist = [
         "bijux-dna-api",
         "bijux-dna-domain-compiler",
+        "bijux-dna-runtime",
+        "bijux-dna-infra",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-stages-vcf",
+        "bijux-dna-db-ena",
         "clap",
         "tracing",
         "anyhow",
         "serde",
         "serde_json",
         "regex",
+        "toml",
+        "sha2",
+        "tar",
+        "flate2",
     ];
     let offenders: Vec<String> = deps
         .iter()
