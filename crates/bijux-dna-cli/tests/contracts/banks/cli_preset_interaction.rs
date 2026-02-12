@@ -14,7 +14,6 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
         common: CommonArgs::default(),
         list_adapter_presets: false,
         list_adapters: false,
-        env: None,
         sample_id: Some("s1".to_string()),
         r1: Some(PathBuf::from("reads.fastq.gz")),
         out: Some(PathBuf::from("out")),
@@ -47,7 +46,6 @@ fn cli_preprocess_args_require_required_fields() -> Result<()> {
     let args = FastqPreprocessArgs {
         common: CommonArgs::default(),
         pipeline_profile: None,
-        env: None,
         sample_id: Some("s1".to_string()),
         r1: Some(PathBuf::from("reads.fastq.gz")),
         r2: None,
