@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.example.provenance_stamp.v1",
+  "commit": "9858ca6e223a6270c29a29c9e6fa26b4cc46dab9",
+  "registry_hash": "sha256:59bc9c879a71abc014f5ec89de083c3075dcc57bd05aaf5e1b49d8431f5833dc"
+}

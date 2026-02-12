@@ -72,3 +72,7 @@ jobs:
           cargo run -p bijux-dna -- dna example plan example-103
           cargo run -p bijux-dna -- dna example validate example-201
           cargo run -p bijux-dna -- dna example plan example-201
+          cargo run -p bijux-dna -- dna example validate example-202
+          cargo run -p bijux-dna -- dna example plan example-202
+          cargo run -p bijux-dna -- dna example validate example-203
+          cargo run -p bijux-dna -- dna example plan example-203
