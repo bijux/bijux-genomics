@@ -152,16 +152,6 @@ pub struct FastqPreprocessArgs {
 }
 
 #[derive(Debug, Args, Clone)]
-pub struct FastqBenchmarkArgs {
-    #[arg(long, default_value = "runs")]
-    pub runs: PathBuf,
-    #[arg(long)]
-    pub stage: String,
-    #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
-    pub objective: ObjectiveArg,
-}
-
-#[derive(Debug, Args, Clone)]
 pub struct FastqRunArgs {
     #[command(flatten)]
     pub args: FastqPreprocessArgs,
@@ -240,10 +230,6 @@ pub enum FastqCommand {
         after_help = "Examples:\n  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux dna fastq validate-pre --list-tools"
     )]
     ValidatePre(FastqValidateArgs),
-    #[command(about = "Benchmark existing FASTQ runs without re-execution.")]
-    Benchmark(FastqBenchmarkArgs),
-    #[command(about = "Analyze FASTQ runs without re-execution.")]
-    Analyze(FastqBenchmarkArgs),
     #[command(about = "Compare two FASTQ runs.")]
     Compare(FastqCompareArgs),
     Align(CommonArgs),

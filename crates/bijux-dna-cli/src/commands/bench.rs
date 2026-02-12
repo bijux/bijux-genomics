@@ -1,10 +1,10 @@
 use crate::commands::command_prelude::{
     anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
-    bench_fastq_trim, bench_fastq_validate_pre, benchmark_runs, cli, compare_runs,
+    bench_fastq_trim, bench_fastq_validate_pre, cli, compare_runs,
     compare_runs_with_baseline, env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim,
     is_bench_requested_validate, load_image_catalog, load_platform, normalize_fastq_stage_id,
     objective_spec, preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
-    resolve_effective_adapters, write_benchmark_exports, write_trim_report, write_validate_report,
+    resolve_effective_adapters, write_trim_report, write_validate_report,
     AdapterPresetsV1, AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, PathBuf,
     Result, StageId,
 };
@@ -150,17 +150,6 @@ pub(crate) fn handle_fastq_bench(
             let runner = None;
             let bench_args = preprocess_args_from_cli(&args.args)?;
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
-            Ok(true)
-        }
-        FastqCommand::Benchmark(args) | FastqCommand::Analyze(args) => {
-            let stage_id = normalize_fastq_stage_id(&args.stage);
-            let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
-            let (json_path, csv_path) = write_benchmark_exports(&args.runs, &summary)?;
-            let html_path = args.runs.join(format!("benchmark_{}.html", summary.stage));
-            render::json::print_pretty(&summary)?;
-            println!("benchmark_json: {}", json_path.display());
-            println!("benchmark_csv: {}", csv_path.display());
-            println!("benchmark_html: {}", html_path.display());
             Ok(true)
         }
         FastqCommand::Compare(args) => {
