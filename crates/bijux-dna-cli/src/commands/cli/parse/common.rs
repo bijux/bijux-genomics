@@ -300,6 +300,8 @@ pub enum EnvCommand {
     },
     #[command(name = "ensure-images")]
     EnsureImages(EnsureImagesArgs),
+    #[command(name = "lint-apptainer-defs")]
+    LintApptainerDefs,
     Smoke(EnvRunArgs),
     Prep(EnvRunArgs),
 }
@@ -310,8 +312,10 @@ pub struct EnsureImagesArgs {
     pub hpc_root: Option<PathBuf>,
     #[arg(long)]
     pub domain: String,
+    #[arg(long, help = "Single stage id like fastq.trim", conflicts_with = "stages")]
+    pub stage: Option<String>,
     #[arg(long, help = "Comma-separated stage ids or short stage names")]
-    pub stages: String,
+    pub stages: Option<String>,
     #[arg(long, default_value_t = false)]
     pub force_smoke: bool,
     #[arg(long, default_value_t = false)]

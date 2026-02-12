@@ -165,6 +165,8 @@ struct RegistryRow {
     smoke_version_cmd: Option<String>,
     smoke_help_cmd: Option<String>,
     smoke_require_help: Option<bool>,
+    smoke_probes: Vec<String>,
+    java_heap_mb: Option<u64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -221,6 +223,10 @@ struct SmokeManifest {
     version_output_first_line: String,
     help_ok: bool,
     quick_smoke: bool,
+    probe_commands: Vec<String>,
+    java_heap_mb: Option<u64>,
+    upstream: String,
+    image_build_timestamp_unix_s: u64,
     checked_at_unix_s: u64,
 }
 
@@ -285,6 +291,10 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
             row.smoke_help_cmd = Some(value);
         } else if let Some(value) = parse_toml_bool(trimmed, "smoke_require_help") {
             row.smoke_require_help = Some(value);
+        } else if let Some(values) = parse_toml_array(trimmed, "smoke_probes") {
+            row.smoke_probes = values;
+        } else if let Some(value) = parse_toml_u64(trimmed, "java_heap_mb") {
+            row.java_heap_mb = Some(value);
         } else if let Some(values) = parse_toml_array(trimmed, "runtimes") {
             row.runtimes = values;
         }
@@ -747,10 +757,7 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
         ));
     }
 
-    println!(
-        "registry promote tool {}: checks passed (policy-clean + smoke probes + suite reference)",
-        id
-    );
+    println!("registry promote tool {id}: checks passed (policy-clean + smoke probes + suite reference)");
     Ok(())
 }
 

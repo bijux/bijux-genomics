@@ -2,9 +2,9 @@
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         ensure_apptainer_images, env_doctor, generate_apptainer_qa_matrix_markdown,
-        parse_stage_domain, print_env_export_json, print_env_images, print_env_info,
-        print_env_registry_list, run_env_prep, run_env_smoke, run_env_smoke_for_stage,
-        sif_inventory,
+        lint_apptainer_defs, parse_stage_domain, print_env_export_json, print_env_images,
+        print_env_info, print_env_registry_list, run_env_prep, run_env_smoke,
+        run_env_smoke_for_stage, sif_inventory,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
@@ -86,11 +86,20 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
             )?;
+            let stages = match (&args.stage, &args.stages) {
+                (Some(stage), None) => stage.clone(),
+                (None, Some(stages)) => stages.clone(),
+                _ => {
+                    return Err(anyhow!(
+                        "environment ensure-images requires exactly one of --stage or --stages"
+                    ));
+                }
+            };
             let report = ensure_apptainer_images(
                 &registry_path,
                 &hpc_root,
                 &args.domain,
-                &args.stages,
+                &stages,
                 args.force_smoke,
                 args.repair_mismatch,
             )?;
@@ -104,6 +113,9 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 println!("quick_smoked={}", report.quick_smoked);
                 println!("failed={}", report.failed);
             }
+        }
+        cli::EnvCommand::LintApptainerDefs => {
+            lint_apptainer_defs(cwd)?;
         }
         cli::EnvCommand::Smoke(args) => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
@@ -142,6 +154,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 | cli::EnvCommand::Ensure(_)
                 | cli::EnvCommand::ApptainerQaMatrix { .. }
                 | cli::EnvCommand::EnsureImages(_)
+                | cli::EnvCommand::LintApptainerDefs
                 | cli::EnvCommand::Smoke(_)
                 | cli::EnvCommand::Prep(_) => {}
             }

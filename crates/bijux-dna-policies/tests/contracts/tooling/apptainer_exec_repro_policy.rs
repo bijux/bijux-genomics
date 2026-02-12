@@ -6,7 +6,7 @@ mod support;
 fn policy__contracts__apptainer_exec_repro_policy__ensure_images_enforces_clean_exec_and_explicit_binds(
 ) {
     let root = support::workspace_root();
-    let path = root.join("crates/bijux-dna-cli/src/commands/cli/env.rs");
+    let path = root.join("crates/bijux-dna-cli/src/commands/cli/env/env_part3.inc");
     let raw = std::fs::read_to_string(&path).expect("read cli env command source");
 
     let required = [

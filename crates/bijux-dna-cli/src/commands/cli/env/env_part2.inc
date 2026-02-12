@@ -123,6 +123,11 @@ pub fn ensure_apptainer_images(
                 .or_else(|| Some(format!("{tool_id} --help")))
                 .unwrap_or_else(|| format!("{tool_id} --help"));
             let require_help = tool.smoke_require_help.unwrap_or(true);
+            let probe_commands = if tool.smoke_probes.is_empty() {
+                Vec::new()
+            } else {
+                tool.smoke_probes.clone()
+            };
             let mut status = "ok".to_string();
             if do_quick_smoke {
                 quick_smoked += 1;
@@ -135,9 +140,12 @@ pub fn ensure_apptainer_images(
                     &version_cmd,
                     &help_cmd,
                     require_help,
+                    &probe_commands,
+                    tool.java_heap_mb,
+                    tool.upstream.as_deref().unwrap_or("unknown"),
                     &data_root,
                     &results_root,
-                )?;
+                );
                 if smoke.status != "ok" {
                     status = "wrapper_failed_auto_demoted".to_string();
                     failed += 1;
@@ -349,6 +357,100 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
     }
     lines.push(String::new());
     Ok(lines.join("\n"))
+}
+
+/// # Errors
+/// Returns an error if Apptainer definition lint contracts fail.
+pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
+    let defs_root = cwd.join("containers").join("apptainer");
+    let mut offenders = Vec::new();
+    let mut stack = vec![defs_root.clone()];
+    while let Some(dir) = stack.pop() {
+        if !dir.exists() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).with_context(|| format!("read {}", dir.display()))? {
+            let path = entry?.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.extension().and_then(|v| v.to_str()) != Some("def") {
+                continue;
+            }
+            let raw =
+                std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+            let lowered = raw.to_ascii_lowercase();
+            for banned in ["apt-get purge", "apt purge", "apt-get autoremove", "apt autoremove"] {
+                if lowered.contains(banned) {
+                    offenders.push(format!("{}: contains banned `{banned}`", path.display()));
+                }
+            }
+            let labels = raw.lines().position(|line| line.trim() == "%labels");
+            let env = raw.lines().position(|line| line.trim() == "%environment");
+            let post = raw.lines().position(|line| line.trim() == "%post");
+            let runscript = raw.lines().position(|line| line.trim() == "%runscript");
+            let help = raw.lines().position(|line| line.trim() == "%help");
+            match (labels, env, post, runscript, help) {
+                (
+                    Some(labels_index),
+                    Some(env_index),
+                    Some(post_index),
+                    Some(runscript_index),
+                    Some(help_index),
+                ) => {
+                    if !(labels_index < env_index
+                        && env_index < post_index
+                        && post_index < runscript_index
+                        && runscript_index < help_index)
+                    {
+                        offenders.push(format!(
+                            "{}: section order must be %labels -> %environment -> %post -> %runscript -> %help",
+                            path.display()
+                        ));
+                    }
+                }
+                _ => offenders.push(format!(
+                    "{}: missing required sections (%labels,%environment,%post,%runscript,%help)",
+                    path.display()
+                )),
+            }
+            let runscript_chunk = raw
+                .split("%runscript")
+                .nth(1)
+                .and_then(|chunk| chunk.split("\n%").next())
+                .unwrap_or("");
+            if !runscript_chunk.contains("exec ") {
+                offenders.push(format!("{}: %runscript must use exec", path.display()));
+            }
+            if !runscript_chunk.contains("\"$@\"") {
+                offenders.push(format!(
+                    "{}: %runscript must pass through \"$@\"",
+                    path.display()
+                ));
+            }
+        }
+    }
+
+    let env_src =
+        std::fs::read_to_string(cwd.join("crates/bijux-dna-cli/src/commands/cli/env/env_part3.inc"))
+            .context("read env_part3.inc for apptainer runtime policy")?;
+    for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
+        if !env_src.contains(required) {
+            offenders.push(format!(
+                "runtime policy missing required apptainer flag marker `{required}` in env_part3.inc"
+            ));
+        }
+    }
+
+    if offenders.is_empty() {
+        println!("env lint-apptainer-defs: ok");
+        return Ok(());
+    }
+    Err(anyhow!(
+        "env lint-apptainer-defs failed:\n{}",
+        offenders.join("\n")
+    ))
 }
 
 /// # Errors
@@ -681,4 +783,3 @@ pub fn print_env_export_json(registry_path: &Path) -> Result<()> {
     }))?;
     Ok(())
 }
-

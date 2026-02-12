@@ -94,11 +94,12 @@ check_apptainer() {
   env_line=$(grep -n '^%environment' "$file" | head -n1 | cut -d: -f1 || true)
   post_line=$(grep -n '^%post' "$file" | head -n1 | cut -d: -f1 || true)
   run_line=$(grep -n '^%runscript' "$file" | head -n1 | cut -d: -f1 || true)
-  if [ -z "$labels_line" ] || [ -z "$env_line" ] || [ -z "$post_line" ] || [ -z "$run_line" ]; then
-    record "$file: required sections missing (need %labels, %environment, %post, %runscript)"
+  help_line=$(grep -n '^%help' "$file" | head -n1 | cut -d: -f1 || true)
+  if [ -z "$labels_line" ] || [ -z "$env_line" ] || [ -z "$post_line" ] || [ -z "$run_line" ] || [ -z "$help_line" ]; then
+    record "$file: required sections missing (need %labels, %environment, %post, %runscript, %help)"
   else
-    if [ "$labels_line" -gt "$env_line" ] || [ "$env_line" -gt "$post_line" ] || [ "$post_line" -gt "$run_line" ]; then
-      record "$file: section order must be %labels -> %environment -> %post -> %runscript"
+    if [ "$labels_line" -gt "$env_line" ] || [ "$env_line" -gt "$post_line" ] || [ "$post_line" -gt "$run_line" ] || [ "$run_line" -gt "$help_line" ]; then
+      record "$file: section order must be %labels -> %environment -> %post -> %runscript -> %help"
     fi
   fi
 
