@@ -1,7 +1,6 @@
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -800,15 +799,10 @@ fn enforce_bam_handoff_for_run(cwd: &Path, spec: &ExampleSpec) -> Result<()> {
 }
 
 fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
-    let commit = Command::new("git")
-        .arg("rev-parse")
-        .arg("HEAD")
-        .current_dir(cwd)
-        .output()
+    let command = format!("cd {} && git rev-parse HEAD", shell_escape_path(cwd));
+    let commit = bijux_dna_api::v1::api::env::run_shell_capture(&command)
         .ok()
-        .filter(|out| out.status.success())
-        .and_then(|out| String::from_utf8(out.stdout).ok())
-        .map(|s| s.trim().to_string())
+        .map(|raw| raw.trim().to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "unknown".to_string());
 
@@ -825,6 +819,12 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
     });
     bijux_dna_infra::atomic_write_json(&root.join("golden").join("provenance_stamp.json"), &stamp)?;
     Ok(())
+}
+
+fn shell_escape_path(path: &Path) -> String {
+    let raw = path.display().to_string();
+    let escaped = raw.replace('\'', "'\"'\"'");
+    format!("'{escaped}'")
 }
 
 fn ensure_workspace_corpus_binding(cwd: &Path, corpus_name: &str, corpus_root: &Path) -> Result<()> {

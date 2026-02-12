@@ -318,6 +318,68 @@ fn handle_dev_dna(command: &cli::DevCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
+fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
+    #[derive(serde::Serialize)]
+    struct Check {
+        name: &'static str,
+        ok: bool,
+        detail: String,
+    }
+    #[derive(serde::Serialize)]
+    struct Summary {
+        schema_version: &'static str,
+        ok: bool,
+        checks: Vec<Check>,
+    }
+
+    let mut checks = Vec::new();
+
+    let workspace_out = cwd.join("artifacts").join("workspace");
+    let workspace_ok = crate::commands::workspace_audit(&workspace_out).is_ok();
+    checks.push(Check {
+        name: "workspace_audit",
+        ok: workspace_ok,
+        detail: workspace_out.display().to_string(),
+    });
+
+    let registry_path = cwd.join("configs").join("tool_registry.toml");
+    let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
+        .map(|report| report.ok)
+        .unwrap_or(false);
+    checks.push(Check {
+        name: "registry_policy_clean_fastq",
+        ok: policy_ok,
+        detail: registry_path.display().to_string(),
+    });
+
+    let lint_ok = crate::commands::cli::env::lint_apptainer_defs(cwd).is_ok();
+    checks.push(Check {
+        name: "lint_apptainer_defs",
+        ok: lint_ok,
+        detail: "containers/apptainer".to_string(),
+    });
+
+    let ok = checks.iter().all(|check| check.ok);
+    let summary = Summary {
+        schema_version: "bijux.ci.verify.v1",
+        ok,
+        checks,
+    };
+    match command {
+        cli::CiCommand::Verify { out } => {
+            if let Some(parent) = out.parent() {
+                bijux_dna_infra::ensure_dir(parent)?;
+            }
+            bijux_dna_infra::atomic_write_json(out, &summary)?;
+            println!("ci_verify_summary={}", out.display());
+            if !ok {
+                return Err(anyhow!("ci verify failed; see {}", out.display()));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::verify_registry_tool;
     let registry_path = cwd.join("configs").join("tool_registry.toml");

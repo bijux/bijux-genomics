@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Read;
 use std::path::Path;
-use std::process::Command;
 use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};

@@ -32,7 +32,7 @@ fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
     if let Some(parent) = sif_path.parent() {
         bijux_dna_api::v1::api::run::ensure_dir(parent)?;
     }
-    let output = Command::new("apptainer")
+    let output = std::process::Command::new("apptainer")
         .arg("build")
         .arg("--force")
         .arg(sif_path)
@@ -185,7 +185,7 @@ fn run_apptainer_exec(
     let input_bind = format!("{}:/bijux/input:ro", data_root.display());
     let output_bind = format!("{}:/bijux/output:rw", results_root.display());
     let db_bind = format!("{}:/bijux/db:ro", banks_root.display());
-    let output = Command::new("apptainer")
+    let output = std::process::Command::new("apptainer")
         .arg("exec")
         .arg("--containall")
         .arg("--cleanenv")

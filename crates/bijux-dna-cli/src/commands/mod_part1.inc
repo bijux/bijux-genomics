@@ -90,6 +90,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::DnaCommand::Lab { command } => return handle_lab_root(command, cwd),
         cli::DnaCommand::Config { command } => return handle_config_root(command, cwd),
         cli::DnaCommand::Status(args) => return handle_status_root(args, cwd),
+        cli::DnaCommand::Ci { command } => return handle_ci_root(command, cwd),
         _ => {}
     }
 
