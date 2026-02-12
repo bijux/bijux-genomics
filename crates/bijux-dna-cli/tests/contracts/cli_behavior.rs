@@ -3,7 +3,6 @@ use std::path::{Path, PathBuf};
 
 use bijux_dna::commands::run_with_args;
 use gag::BufferRedirect;
-use serde_json::Value;
 
 struct CliWorkspace {
     root: tempfile::TempDir,
@@ -64,24 +63,6 @@ arch = "x86_64"
         .expect("write platforms");
         std::fs::write(configs_dir.join("images.toml"), images).expect("write images");
     }
-
-    #[cfg(unix)]
-    fn link_repo_dir(&self, name: &str) {
-        let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap();
-        let source = repo_root.join(name);
-        let target = self.path().join(name);
-        if target.exists() {
-            return;
-        }
-        std::os::unix::fs::symlink(&source, &target).expect("symlink repo dir");
-    }
-
-    #[cfg(not(unix))]
-    fn link_repo_dir(&self, _name: &str) {}
 }
 
 fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, String> {
@@ -103,64 +84,6 @@ fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str
         err.contains("unrecognized subcommand") && err.contains(name),
         "expected removed subcommand `{name}` error, got: {err}"
     );
-}
-
-fn scrub_paths(value: &mut Value, root: &str) {
-    match value {
-        Value::String(s) => {
-            if s.contains(root) {
-                *s = s.replace(root, "<temp>");
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                scrub_paths(item, root);
-            }
-        }
-        Value::Object(map) => {
-            for value in map.values_mut() {
-                scrub_paths(value, root);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn prepare_fastq_preprocess(workspace: &CliWorkspace, out_dir: &Path) -> PathBuf {
-    let input = workspace.path().join("reads.fastq");
-    std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");
-
-    let defaults_dir = out_dir
-        .join("bench")
-        .join("preprocess")
-        .join("sample")
-        .join("tools");
-    std::fs::create_dir_all(&defaults_dir).expect("create defaults dir");
-    let defaults = serde_json::json!({
-        "pipeline_id": "fastq-to-fastq__default__v1",
-        "tools": {},
-        "params": {},
-        "thresholds": {},
-        "tool_provenance": {},
-        "param_provenance": {},
-        "assumptions": [],
-        "citations": {},
-    });
-    std::fs::write(
-        defaults_dir.join("defaults_ledger.json"),
-        serde_json::to_vec_pretty(&defaults).expect("serialize defaults"),
-    )
-    .expect("write defaults ledger");
-    std::fs::write(
-        out_dir.join("defaults_ledger.json"),
-        serde_json::to_vec_pretty(&defaults).expect("serialize defaults"),
-    )
-    .expect("write root defaults ledger");
-
-    workspace.link_repo_dir("domain");
-    workspace.link_repo_dir("assets");
-
-    input
 }
 
 #[test]
@@ -269,7 +192,11 @@ fn cli_pipelines_explain_returns_profile_payload() {
 #[test]
 fn cli_pipelines_explain_unknown_pipeline_fails() {
     let workspace = CliWorkspace::new();
-    assert_removed_subcommand(&workspace, &["dna", "pipelines", "explain", "nope"], "pipelines");
+    assert_removed_subcommand(
+        &workspace,
+        &["dna", "pipelines", "explain", "nope"],
+        "pipelines",
+    );
 }
 
 #[test]
@@ -317,7 +244,14 @@ fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+        ],
         "fastq",
     );
 }
@@ -327,7 +261,14 @@ fn cli_fastq_preprocess_dry_run_reports_manifests() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+        ],
         "fastq",
     );
 }
@@ -337,7 +278,14 @@ fn cli_fastq_preprocess_plan_falls_back_to_dry_run() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+        ],
         "fastq",
     );
 }
@@ -347,7 +295,14 @@ fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+        ],
         "fastq",
     );
 }
