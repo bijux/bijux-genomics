@@ -9,7 +9,8 @@ fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writ
 {
     let root = workspace_root();
     let path = root.join("scripts/containers/apptainer_build_all.sh");
-    let content = std::fs::read_to_string(&path).expect("read scripts/containers/apptainer_build_all.sh");
+    let content =
+        std::fs::read_to_string(&path).expect("read scripts/containers/apptainer_build_all.sh");
 
     let required = [
         "VM_OUT_DIR",

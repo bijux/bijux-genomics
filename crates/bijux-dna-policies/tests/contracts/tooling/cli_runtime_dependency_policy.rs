@@ -29,7 +29,10 @@ fn policy__contracts__cli_runtime_dependency_policy__cli_source_does_not_spawn_p
     let src = root.join("crates/bijux-dna-cli/src");
     let mut offenders = Vec::new();
 
-    for entry in walkdir::WalkDir::new(&src).into_iter().filter_map(Result::ok) {
+    for entry in walkdir::WalkDir::new(&src)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }

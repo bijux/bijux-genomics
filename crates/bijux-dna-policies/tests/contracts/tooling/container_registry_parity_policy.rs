@@ -54,7 +54,7 @@ fn load_registry_tool_ids_for_runtime(runtime: &str) -> BTreeSet<String> {
                         .collect::<Vec<_>>()
                 })
                 .unwrap_or_default();
-            if runtimes.iter().any(|item| *item == runtime) {
+            if runtimes.contains(&runtime) {
                 ids.insert(id.to_string());
             }
         }
@@ -102,7 +102,8 @@ fn apptainer_defs() -> BTreeSet<String> {
 }
 
 #[test]
-fn policy__contracts__container_registry_parity_policy__registry_runtime_tools_have_container_defs() {
+fn policy__contracts__container_registry_parity_policy__registry_runtime_tools_have_container_defs()
+{
     let registry_docker = load_registry_tool_ids_for_runtime("docker");
     let registry_apptainer = load_registry_tool_ids_for_runtime("apptainer");
     let defs_docker = docker_defs();
@@ -110,7 +111,9 @@ fn policy__contracts__container_registry_parity_policy__registry_runtime_tools_h
 
     let mut missing = Vec::new();
     for tool in registry_docker.difference(&defs_docker) {
-        missing.push(format!("missing docker container def for registry tool: {tool}"));
+        missing.push(format!(
+            "missing docker container def for registry tool: {tool}"
+        ));
     }
     for tool in registry_apptainer.difference(&defs_apptainer) {
         missing.push(format!(
@@ -134,10 +137,14 @@ fn policy__contracts__container_registry_parity_policy__container_defs_are_regis
 
     let mut orphan = Vec::new();
     for tool in defs_docker.difference(&registry_docker) {
-        orphan.push(format!("orphan docker container def not in registry: {tool}"));
+        orphan.push(format!(
+            "orphan docker container def not in registry: {tool}"
+        ));
     }
     for tool in defs_apptainer.difference(&registry_apptainer) {
-        orphan.push(format!("orphan apptainer container def not in registry: {tool}"));
+        orphan.push(format!(
+            "orphan apptainer container def not in registry: {tool}"
+        ));
     }
 
     bijux_dna_policies::policy_assert!(
@@ -146,4 +153,3 @@ fn policy__contracts__container_registry_parity_policy__container_defs_are_regis
         orphan.join("\n")
     );
 }
-

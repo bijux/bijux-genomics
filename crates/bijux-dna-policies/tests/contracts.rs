@@ -62,6 +62,8 @@ mod mod_contracts_tooling_cli_sql_policy_rs;
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/container_label_policy.rs"]
 mod mod_contracts_tooling_container_label_policy_rs;
+#[path = "contracts/tooling/container_manifest_snapshot_policy.rs"]
+mod mod_contracts_tooling_container_manifest_snapshot_policy_rs;
 #[path = "contracts/tooling/container_registry_parity_policy.rs"]
 mod mod_contracts_tooling_container_registry_parity_policy_rs;
 #[path = "contracts/tooling/container_runtime_invocation_policy.rs"]
@@ -70,8 +72,6 @@ mod mod_contracts_tooling_container_runtime_invocation_policy_rs;
 mod mod_contracts_tooling_container_smoke_registry_driven_policy_rs;
 #[path = "contracts/tooling/container_version_variable_policy.rs"]
 mod mod_contracts_tooling_container_version_variable_policy_rs;
-#[path = "contracts/tooling/container_manifest_snapshot_policy.rs"]
-mod mod_contracts_tooling_container_manifest_snapshot_policy_rs;
 #[path = "contracts/tooling/container_versions_policy.rs"]
 mod mod_contracts_tooling_container_versions_policy_rs;
 #[path = "contracts/tooling/contract_authority_policy.rs"]
@@ -86,10 +86,10 @@ mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
 #[path = "contracts/tooling/error_boundary_policy.rs"]
 mod mod_contracts_tooling_error_boundary_policy_rs;
-#[path = "contracts/tooling/examples_golden_hygiene_policy.rs"]
-mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
 #[path = "contracts/tooling/examples_cli_command_policy.rs"]
 mod mod_contracts_tooling_examples_cli_command_policy_rs;
+#[path = "contracts/tooling/examples_golden_hygiene_policy.rs"]
+mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
 #[path = "contracts/tooling/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
 #[path = "contracts/tooling/generated_configs_policy.rs"]
@@ -104,10 +104,10 @@ mod mod_contracts_tooling_makefile_policies_rs;
 mod mod_contracts_tooling_nextest_determinism_policy_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
-#[path = "contracts/tooling/no_runtime_escape_hatch_policy.rs"]
-mod mod_contracts_tooling_no_runtime_escape_hatch_policy_rs;
 #[path = "contracts/tooling/no_placeholders_code_policy.rs"]
 mod mod_contracts_tooling_no_placeholders_code_policy_rs;
+#[path = "contracts/tooling/no_runtime_escape_hatch_policy.rs"]
+mod mod_contracts_tooling_no_runtime_escape_hatch_policy_rs;
 #[path = "contracts/tooling/opentelemetry_version_policy.rs"]
 mod mod_contracts_tooling_opentelemetry_version_policy_rs;
 #[path = "contracts/tooling/planner_data_driven_catalog_policy.rs"]
@@ -124,10 +124,10 @@ mod mod_contracts_tooling_profiles_runtime_policy_rs;
 mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 #[path = "contracts/tooling/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
-#[path = "contracts/tooling/root_pollution_policy.rs"]
-mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
+#[path = "contracts/tooling/root_pollution_policy.rs"]
+mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
 mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]

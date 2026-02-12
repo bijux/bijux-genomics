@@ -23,12 +23,12 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
             .or_insert_with(|| serde_json::json!({}))
             .as_object_mut()
         {
-            sections
-                .entry("fastq".to_string())
-                .or_insert_with(|| serde_json::json!({
+            sections.entry("fastq".to_string()).or_insert_with(|| {
+                serde_json::json!({
                     "schema_version": "bijux.report.section.fastq.v1",
                     "stages": report.stages.len(),
-                }));
+                })
+            });
             if let Some(run_provenance) = sections
                 .entry("run_provenance".to_string())
                 .or_insert_with(|| serde_json::json!({}))

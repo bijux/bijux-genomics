@@ -300,7 +300,10 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
             .unwrap_or(file.as_path())
             .to_string_lossy()
             .replace('\\', "/");
-        if allowlisted_files.iter().any(|allowed| rel.ends_with(allowed)) {
+        if allowlisted_files
+            .iter()
+            .any(|allowed| rel.ends_with(allowed))
+        {
             continue;
         }
         let content = std::fs::read_to_string(&file).expect("read source");

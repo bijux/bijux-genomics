@@ -110,9 +110,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
             ));
         }
     }
-    if profile.stability == StabilityTier::Stable
-        && !stages.contains(id_catalog::VCF_FILTER)
-    {
+    if profile.stability == StabilityTier::Stable && !stages.contains(id_catalog::VCF_FILTER) {
         violations.push(violation(
             "production_filter_required",
             Some(id_catalog::VCF_FILTER),
@@ -215,7 +213,8 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
                 "production VCF profile cannot disable pass-filtering",
             ));
         }
-        if filter.require_bgzip_tabix && !profile.capabilities.required_artifacts.contains(&"vcf.tbi")
+        if filter.require_bgzip_tabix
+            && !profile.capabilities.required_artifacts.contains(&"vcf.tbi")
         {
             violations.push(violation(
                 "artifact_correctness_missing",

@@ -13,12 +13,18 @@ fn policy__contracts__examples_cli_command_policy__examples_use_existing_cli_com
     ];
 
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(&examples).into_iter().filter_map(Result::ok) {
+    for entry in walkdir::WalkDir::new(&examples)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
         let path = entry.path();
-        let ext = path.extension().and_then(|s| s.to_str()).unwrap_or_default();
+        let ext = path
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default();
         if !matches!(ext, "sh" | "md" | "txt") {
             continue;
         }

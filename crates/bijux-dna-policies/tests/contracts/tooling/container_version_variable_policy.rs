@@ -59,4 +59,3 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
         offenders.join("\n")
     );
 }
-
