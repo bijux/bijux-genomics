@@ -186,6 +186,8 @@ pub enum AnalyzeCommand {
 pub struct AnalyzeBenchArgs {
     #[arg(long)]
     pub suite: String,
+    #[arg(long, default_value = "json")]
+    pub report: String,
 }
 
 #[derive(Debug, Args)]

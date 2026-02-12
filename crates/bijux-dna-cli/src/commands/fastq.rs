@@ -511,9 +511,19 @@ pub(crate) fn handle_meta_commands(
                     render::json::print_pretty(&summary)?;
                 }
                 AnalyzeCommand::Bench(args) => {
-                    let report_path = crate::commands::bench_suite::analyze_suite(
+                    let format = match args.report.as_str() {
+                        "json" => crate::commands::bench_suite::BenchReportFormat::Json,
+                        "html" => crate::commands::bench_suite::BenchReportFormat::Html,
+                        other => {
+                            return Err(anyhow!(
+                                "unsupported --report `{other}` (expected json|html)"
+                            ));
+                        }
+                    };
+                    let report_path = crate::commands::bench_suite::analyze_suite_with_format(
                         &std::env::current_dir()?,
                         &args.suite,
+                        format,
                     )?;
                     println!("suite_analysis_report={}", report_path.display());
                 }
