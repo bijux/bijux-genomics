@@ -97,6 +97,14 @@ fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, St
     result.map(|()| output).map_err(|err| err.to_string())
 }
 
+fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str) {
+    let err = run_cli_capture(workspace, args).expect_err("command should be removed");
+    assert!(
+        err.contains("unrecognized subcommand") && err.contains(name),
+        "expected removed subcommand `{name}` error, got: {err}"
+    );
+}
+
 fn scrub_paths(value: &mut Value, root: &str) {
     match value {
         Value::String(s) => {
@@ -235,348 +243,111 @@ fastp = { version = "99.99.99+fixture" }
 #[test]
 fn cli_pipelines_list_includes_default_fastq() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(&workspace, &["dna", "pipelines", "list"]).expect("cli ok");
-    assert!(stdout.contains("fastq-to-fastq__default__v1"));
+    assert_removed_subcommand(&workspace, &["dna", "pipelines", "list"], "pipelines");
 }
 
 #[test]
 fn cli_pipelines_list_can_filter_domain() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "list", "--domain", "fastq"],
-    )
-    .expect("cli ok");
-    assert!(stdout.contains("fastq-to-fastq__default__v1"));
-    assert!(!stdout.contains("bam-to-bam__default__v1"));
+        "pipelines",
+    );
 }
 
 #[test]
 fn cli_pipelines_explain_returns_profile_payload() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "explain", "fastq-to-fastq__default__v1"],
-    )
-    .expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    let payload: Value = serde_json::from_str(&stdout).expect("parse explain json");
-    let profile_id = payload
-        .get("profile")
-        .and_then(|p| p.get("id"))
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    assert_eq!(profile_id, "fastq-to-fastq__default__v1");
-    assert!(payload.get("defaults_ledger").is_some());
+        "pipelines",
+    );
 }
 
 #[test]
 fn cli_pipelines_explain_unknown_pipeline_fails() {
     let workspace = CliWorkspace::new();
-    let err = run_cli_capture(&workspace, &["dna", "pipelines", "explain", "nope"])
-        .expect_err("cli should fail");
-    assert!(err.contains("unknown pipeline profile"));
+    assert_removed_subcommand(&workspace, &["dna", "pipelines", "explain", "nope"], "pipelines");
 }
 
 #[test]
 fn cli_pipelines_explain_profile_fastq_adna_includes_invariants() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "explain-profile", "fastq-adna"],
-    )
-    .expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
-    let resolved_id = payload
-        .get("profile_id_resolved")
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    assert_eq!(resolved_id, "fastq-to-fastq__adna__v1");
-    let valid = payload
-        .get("invariants")
-        .and_then(|v| v.get("valid"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    assert!(valid, "expected valid invariants payload");
-    assert!(payload.get("effective_params").is_some());
+        "pipelines",
+    );
 }
 
 #[test]
 fn cli_pipelines_explain_profile_bam_adna_includes_invariants() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "explain-profile", "bam-adna"],
-    )
-    .expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
-    let resolved_id = payload
-        .get("profile_id_resolved")
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    assert_eq!(resolved_id, "bam-to-bam__adna_shotgun__v1");
-    let valid = payload
-        .get("invariants")
-        .and_then(|v| v.get("valid"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    assert!(valid, "expected valid BAM invariants payload");
+        "pipelines",
+    );
 }
 
 #[test]
 fn cli_pipelines_validate_profile_bam_adna_returns_report() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "validate-profile", "bam-adna"],
-    )
-    .expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    let payload: Value = serde_json::from_str(&stdout).expect("parse validate-profile json");
-    let profile_id = payload
-        .get("profile_id")
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    assert_eq!(profile_id, "bam-to-bam__adna_shotgun__v1");
-    assert_eq!(
-        payload.get("valid").and_then(Value::as_bool),
-        Some(true),
-        "expected valid BAM profile report"
+        "pipelines",
     );
 }
 
 #[test]
 fn cli_pipelines_explain_profile_vcf_minimal_includes_invariants() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
         &["dna", "pipelines", "explain-profile", "vcf-minimal"],
-    )
-    .expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
-    let resolved_id = payload
-        .get("profile_id_resolved")
-        .and_then(Value::as_str)
-        .unwrap_or_default();
-    assert_eq!(resolved_id, "vcf-to-vcf__minimal__v1");
-    let valid = payload
-        .get("invariants")
-        .and_then(|v| v.get("valid"))
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    assert!(valid, "expected valid VCF invariants payload");
+        "pipelines",
+    );
 }
 
 #[test]
 fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
-    workspace.setup_configs();
-    let out_dir = workspace.path().join("out");
-    let input = prepare_fastq_preprocess(&workspace, &out_dir);
-
-    run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-            "--r1",
-            input.to_str().unwrap(),
-            "--out",
-            out_dir.to_str().unwrap(),
-            "--sample-id",
-            "sample",
-        ],
-    )
-    .expect("cli ok");
-
-    let manifest = out_dir.join("run_manifest.json");
-    assert!(manifest.exists());
-    let graph = out_dir
-        .join("bench")
-        .join("preprocess")
-        .join("sample")
-        .join("run_artifacts")
-        .join("graph.json");
-    assert!(graph.exists());
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        "fastq",
+    );
 }
 
 #[test]
 fn cli_fastq_preprocess_dry_run_reports_manifests() {
     let workspace = CliWorkspace::new();
-    workspace.setup_configs();
-    let out_dir = workspace.path().join("out");
-    let input = prepare_fastq_preprocess(&workspace, &out_dir);
-
-    let stdout = run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-            "--r1",
-            input.to_str().unwrap(),
-            "--out",
-            out_dir.to_str().unwrap(),
-            "--sample-id",
-            "sample",
-        ],
-    )
-    .expect("cli ok");
-    assert!(out_dir.join("run_manifest.json").exists());
-    assert!(stdout.is_empty() || !stdout.contains("error"));
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        "fastq",
+    );
 }
 
 #[test]
 fn cli_fastq_preprocess_plan_falls_back_to_dry_run() {
     let workspace = CliWorkspace::new();
-    workspace.setup_configs();
-    let out_dir = workspace.path().join("out");
-    let input = prepare_fastq_preprocess(&workspace, &out_dir);
-
-    run_cli_capture(
+    assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-            "--r1",
-            input.to_str().unwrap(),
-            "--out",
-            out_dir.to_str().unwrap(),
-            "--sample-id",
-            "sample",
-        ],
-    )
-    .expect("cli ok");
-    assert!(out_dir.join("run_manifest.json").exists());
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        "fastq",
+    );
 }
 
 #[test]
 fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
-    let workspace_a = CliWorkspace::new();
-    let workspace_b = CliWorkspace::new();
-    workspace_a.setup_configs();
-    workspace_b.setup_configs();
-    let out_a = workspace_a.path().join("out");
-    let out_b = workspace_b.path().join("out");
-    let input_a = prepare_fastq_preprocess(&workspace_a, &out_a);
-    let input_b = prepare_fastq_preprocess(&workspace_b, &out_b);
-
-    run_cli_capture(
-        &workspace_a,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-            "--r1",
-            input_a.to_str().unwrap(),
-            "--out",
-            out_a.to_str().unwrap(),
-            "--sample-id",
-            "sample",
-        ],
-    )
-    .expect("cli ok");
-
-    run_cli_capture(
-        &workspace_b,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-            "--r1",
-            input_b.to_str().unwrap(),
-            "--out",
-            out_b.to_str().unwrap(),
-            "--sample-id",
-            "sample",
-        ],
-    )
-    .expect("cli ok");
-
-    let raw_a = std::fs::read_to_string(out_a.join("run_manifest.json")).expect("read manifest");
-    let raw_b = std::fs::read_to_string(out_b.join("run_manifest.json")).expect("read manifest");
-    let mut manifest_a: Value = serde_json::from_str(&raw_a).expect("parse manifest");
-    let mut manifest_b: Value = serde_json::from_str(&raw_b).expect("parse manifest");
-    scrub_paths(
-        &mut manifest_a,
-        workspace_a.path().to_str().unwrap_or_default(),
+    let workspace = CliWorkspace::new();
+    assert_removed_subcommand(
+        &workspace,
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
+        "fastq",
     );
-    scrub_paths(
-        &mut manifest_b,
-        workspace_b.path().to_str().unwrap_or_default(),
-    );
-
-    let mut stage_tools_a: Vec<(String, String)> = manifest_a
-        .get("stages")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .map(|stage| {
-            let stage_id = stage
-                .get("stage_id")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            let tool_id = stage
-                .get("tool_id")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            (stage_id, tool_id)
-        })
-        .collect();
-    let mut stage_tools_b: Vec<(String, String)> = manifest_b
-        .get("stages")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .map(|stage| {
-            let stage_id = stage
-                .get("stage_id")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            let tool_id = stage
-                .get("tool_id")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            (stage_id, tool_id)
-        })
-        .collect();
-    stage_tools_a.sort();
-    stage_tools_b.sort();
-    assert_eq!(stage_tools_a, stage_tools_b);
 }

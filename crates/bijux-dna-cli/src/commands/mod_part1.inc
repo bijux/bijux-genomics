@@ -63,7 +63,7 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
         }
         args_with_bin.extend(normalized_args[insert_at..].iter().copied());
     }
-    let cli = cli::Cli::parse_from(args_with_bin);
+    let cli = cli::Cli::try_parse_from(args_with_bin).map_err(|err| anyhow!("{err}"))?;
     run_with_cli(&cli, cwd)
 }
 

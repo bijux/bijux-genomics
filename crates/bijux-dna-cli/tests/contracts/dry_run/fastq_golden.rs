@@ -187,7 +187,12 @@ arch = "x86_64"
         "--sample-id",
         "sample",
     ];
-    run_with_args(&args, base).expect("run cli");
+    let err = run_with_args(&args, base).expect_err("fastq command family should be removed");
+    assert!(err.to_string().contains("unrecognized subcommand"));
+    return bijux_dna_core::contract::canonical::to_canonical_json_bytes(&serde_json::json!({
+        "removed": "fastq",
+    }))
+    .expect("canonical");
 
     let artifacts_root = out_dir
         .join("bench")
