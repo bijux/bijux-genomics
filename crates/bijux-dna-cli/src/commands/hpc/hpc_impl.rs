@@ -415,18 +415,14 @@ pub fn export_hpc_env_json(layout: &HpcLayout) -> Result<HpcEnvExport> {
 /// Returns an error if `site_lock.json` cannot be written.
 pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
     let lock_path = layout.results_dir.join("site_lock.json");
-    let apptainer_version = std::process::Command::new("apptainer")
-        .arg("--version")
-        .output()
+    let apptainer_version = bijux_dna_api::v1::api::env::run_shell_capture("apptainer --version")
         .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
-    let kernel = std::process::Command::new("uname")
-        .arg("-r")
-        .output()
+        .map(|raw| raw.trim().to_string())
+        .filter(|v| !v.is_empty());
+    let kernel = bijux_dna_api::v1::api::env::run_shell_capture("uname -r")
         .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+        .map(|raw| raw.trim().to_string())
+        .filter(|v| !v.is_empty());
     let cpu_model = std::fs::read_to_string("/proc/cpuinfo")
         .ok()
         .and_then(|raw| {

@@ -128,6 +128,10 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: PoliciesCommand,
     },
+    Ci {
+        #[command(subcommand)]
+        command: CiCommand,
+    },
     Debug(DebugArgs),
     Collect(CollectArgs),
 }
@@ -156,6 +160,14 @@ pub enum PoliciesCommand {
     #[command(about = "Audit workspace boundaries and output a DOT graph.")]
     Audit {
         #[arg(long, default_value = "artifacts/workspace")]
+        out: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum CiCommand {
+    Verify {
+        #[arg(long, default_value = "artifacts/ci/verify_summary.json")]
         out: PathBuf,
     },
 }

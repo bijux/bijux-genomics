@@ -9,7 +9,6 @@ use crate::commands::cli::render;
 use crate::commands::command_prelude::{anyhow, Cli, Context, DnaCommand, Path, PathBuf, Result};
 use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
 use std::collections::BTreeMap;
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn run_plan(
@@ -196,16 +195,11 @@ fn write_plan_artifacts(
 }
 
 fn write_policy_snapshot(artifacts_dir: &Path) -> Result<()> {
-    let commit_hash = Command::new("git")
-        .arg("rev-parse")
-        .arg("HEAD")
-        .output()
+    let commit_hash = bijux_dna_api::v1::api::env::run_shell_capture("git rev-parse HEAD")
         .ok()
-        .filter(|out| out.status.success())
-        .map_or_else(
-            || "unknown".to_string(),
-            |out| String::from_utf8_lossy(&out.stdout).trim().to_string(),
-        );
+        .map(|raw| raw.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| "unknown".to_string());
     let checks: serde_json::Value = std::env::var("BIJUX_POLICY_CLEAN_REPORT_JSON")
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())

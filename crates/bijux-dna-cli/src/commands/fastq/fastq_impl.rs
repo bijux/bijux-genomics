@@ -894,6 +894,7 @@ pub(crate) fn handle_meta_commands(
         | DnaCommand::Lab { .. }
         | DnaCommand::Config { .. }
         | DnaCommand::Status(_)
+        | DnaCommand::Ci { .. }
         | DnaCommand::Dev { .. }
         | DnaCommand::Debug(_)
         | DnaCommand::Collect(_) => Ok(false),
