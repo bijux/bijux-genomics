@@ -407,6 +407,7 @@ name = "bijux-dna-db-ena"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-policies",
  "clap",
  "rayon",
  "reqwest",

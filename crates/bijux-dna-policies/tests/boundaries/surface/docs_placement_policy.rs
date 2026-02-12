@@ -41,7 +41,7 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
         if path.to_string_lossy().contains("/tests/support/README.md") {
             continue;
         }
-        if is_readme {
+        if is_readme || file_name == "BOUNDARY.md" || file_name == "PUBLIC_API.md" {
             if let Some(parent) = path.parent() {
                 if let Some(grandparent) = parent.parent() {
                     if grandparent.ends_with("crates") {
