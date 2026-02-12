@@ -1,0 +1,19 @@
+{
+  "schema_version": "bijux.example.plan.v1",
+  "id": "example-01",
+  "hpc_root": "/home/bijan/bijux",
+  "source_project": "PRJEB44430",
+  "selection": {
+    "target_se": 10,
+    "target_pe": 10
+  },
+  "runtime": "apptainer",
+  "stage_1": "fastq.validate_pre",
+  "benchmark_suite": "fastq_stage01_validate_pre",
+  "paths": {
+    "snapshot": "/home/bijan/bijux/bijux-dna-data/example-01/ENA_METADATA.snapshot.json",
+    "raw_out": "/home/bijan/bijux/bijux-dna-data/example-01/raw",
+    "corpus_root": "/home/bijan/bijux/bijux-dna-data/example-01",
+    "results_root": "/home/bijan/bijux/bijux-dna-results"
+  }
+}

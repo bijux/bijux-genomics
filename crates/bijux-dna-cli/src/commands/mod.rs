@@ -25,6 +25,7 @@ pub mod cli;
 pub(crate) mod command_prelude;
 pub(crate) mod corpus;
 pub(crate) mod ena;
+pub(crate) mod example;
 pub(crate) mod fastq;
 pub mod hpc;
 pub(crate) mod report_inputs;
@@ -80,6 +81,12 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Corpus { command } = &cli.command {
         return handle_corpus_root(command, cwd);
     }
+    if let cli::RootCommand::Example { command } = &cli.command {
+        return handle_example_root(command, cwd);
+    }
+    if let cli::RootCommand::Plan(args) = &cli.command {
+        return example::print_example_plan(cwd, &args.id);
+    }
     if let cli::RootCommand::Tool { command } = &cli.command {
         return handle_tool_root(command, cwd);
     }
@@ -101,6 +108,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         | cli::RootCommand::Registry { .. }
         | cli::RootCommand::Ena { .. }
         | cli::RootCommand::Corpus { .. }
+        | cli::RootCommand::Example { .. }
+        | cli::RootCommand::Plan(_)
         | cli::RootCommand::Tool { .. }
         | cli::RootCommand::Domain { .. }
         | cli::RootCommand::Lab { .. }
@@ -1088,6 +1097,14 @@ fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
                 corpus::diff_manifests_text(cwd, left, right)?;
             }
         }
+    }
+    Ok(())
+}
+
+fn handle_example_root(command: &cli::ExampleCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::ExampleCommand::Run(args) => example::run_example(cwd, &args.id, args.hpc)?,
+        cli::ExampleCommand::Validate(args) => example::validate_example(cwd, &args.id)?,
     }
     Ok(())
 }
