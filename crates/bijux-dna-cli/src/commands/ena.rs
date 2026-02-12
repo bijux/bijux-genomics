@@ -24,7 +24,10 @@ enum LayoutKind {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MetadataSnapshot {
     schema_version: String,
+    species_id: String,
+    species_display: String,
     project: String,
+    corpus_id: String,
     target_se: usize,
     target_pe: usize,
     selected: Vec<SelectionRow>,
@@ -48,13 +51,30 @@ pub struct SelectionRow {
 #[derive(Debug, Serialize)]
 struct CorpusManifest {
     schema_version: &'static str,
+    species_id: String,
+    species_display: String,
+    project: String,
+    corpus_id: String,
     files: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone)]
+struct SpeciesIdentity {
+    species_id: String,
+    species_display: String,
 }
 
 /// # Errors
 /// Returns an error if ENA query, filtering, or snapshot write fails.
 pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
-    let out_path = resolve_path(cwd, &args.out);
+    let species = normalize_species(cwd, &args.species)?;
+    let out_path = args.out.clone().map_or_else(
+        || {
+            default_corpus_root(cwd, &species.species_id, &args.project, &args.corpus_id)
+                .join("ENA_METADATA.snapshot.json")
+        },
+        |p| resolve_path(cwd, &p),
+    );
     let query = EnaQuery {
         projects: vec![args.project.clone()],
         samples: Vec::new(),
@@ -118,8 +138,11 @@ pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
     }
 
     let snapshot = MetadataSnapshot {
-        schema_version: "bijux.ena_metadata_snapshot.v2".to_string(),
+        schema_version: "bijux.ena_metadata_snapshot.v3".to_string(),
+        species_id: species.species_id,
+        species_display: species.species_display,
         project: args.project.clone(),
+        corpus_id: args.corpus_id.clone(),
         target_se: args.target_se,
         target_pe: args.target_pe,
         selected,
@@ -137,12 +160,31 @@ pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
 /// # Errors
 /// Returns an error if snapshot cannot be loaded, downloads fail, or manifest write fails.
 pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
+    let species = normalize_species(cwd, &args.species)?;
     let snapshot_path = resolve_path(cwd, &args.snapshot);
-    let out_dir = resolve_path(cwd, &args.out);
     let raw = fs::read_to_string(&snapshot_path)
         .with_context(|| format!("read {}", snapshot_path.display()))?;
     let snapshot: MetadataSnapshot =
         serde_json::from_str(&raw).with_context(|| format!("parse {}", snapshot_path.display()))?;
+    if snapshot.species_id != species.species_id {
+        return Err(anyhow!(
+            "--species mismatch: snapshot has `{}`, input resolved to `{}`",
+            snapshot.species_id,
+            species.species_id
+        ));
+    }
+    let out_dir = args.out.clone().map_or_else(
+        || {
+            default_corpus_root(
+                cwd,
+                &snapshot.species_id,
+                &snapshot.project,
+                &snapshot.corpus_id,
+            )
+            .join("raw")
+        },
+        |p| resolve_path(cwd, &p),
+    );
     if snapshot.selected.is_empty() {
         return Err(anyhow!("snapshot has zero selected runs"));
     }
@@ -185,7 +227,7 @@ pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
         .parent()
         .map(Path::to_path_buf)
         .ok_or_else(|| anyhow!("--out must point to a corpus raw directory"))?;
-    write_manifest(&corpus_root)?;
+    write_manifest(&corpus_root, &snapshot)?;
     set_raw_readonly(&out_dir)?;
     println!("raw_dir={}", out_dir.display());
     println!("downloaded={}", report.downloaded);
@@ -303,7 +345,7 @@ fn detect_layout(record: &EnaRecord) -> Option<LayoutKind> {
     }
 }
 
-fn write_manifest(corpus_root: &Path) -> Result<()> {
+fn write_manifest(corpus_root: &Path, snapshot: &MetadataSnapshot) -> Result<()> {
     let mut files = BTreeMap::new();
     let mut stack = vec![corpus_root.to_path_buf()];
     while let Some(dir) = stack.pop() {
@@ -331,6 +373,10 @@ fn write_manifest(corpus_root: &Path) -> Result<()> {
     }
     let manifest = CorpusManifest {
         schema_version: "bijux.corpus_manifest.v1",
+        species_id: snapshot.species_id.clone(),
+        species_display: snapshot.species_display.clone(),
+        project: snapshot.project.clone(),
+        corpus_id: snapshot.corpus_id.clone(),
         files,
     };
     let path = corpus_root.join("MANIFEST.json");
@@ -364,4 +410,73 @@ fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
     } else {
         cwd.join(path)
     }
+}
+
+fn default_corpus_root(cwd: &Path, species_id: &str, project: &str, corpus_id: &str) -> PathBuf {
+    cwd.join("bijux-dna-data")
+        .join(species_id)
+        .join(project)
+        .join(corpus_id)
+}
+
+fn normalize_species(cwd: &Path, raw: &str) -> Result<SpeciesIdentity> {
+    let aliases = load_species_aliases(cwd)?;
+    let input = raw.trim();
+    if input.is_empty() {
+        return Err(anyhow!("species must not be empty"));
+    }
+    let lowered = input.to_ascii_lowercase();
+    let resolved = aliases
+        .get(&lowered)
+        .cloned()
+        .unwrap_or_else(|| input.to_string());
+    let tokens = resolved
+        .split_whitespace()
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .collect::<Vec<_>>();
+    if tokens.len() != 2
+        || tokens
+            .iter()
+            .any(|t| !t.chars().all(|c| c.is_ascii_alphabetic()))
+    {
+        return Err(anyhow!(
+            "ambiguous species `{raw}`: provide mapped alias or latin binomial `Genus species`"
+        ));
+    }
+    let genus = tokens[0].to_ascii_lowercase();
+    let epithet = tokens[1].to_ascii_lowercase();
+    Ok(SpeciesIdentity {
+        species_id: format!("{genus}_{epithet}"),
+        species_display: format!("{} {}", titlecase(&genus), epithet),
+    })
+}
+
+fn load_species_aliases(cwd: &Path) -> Result<BTreeMap<String, String>> {
+    let path = cwd.join("configs").join("species_aliases.toml");
+    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let toml_value: toml::Value =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let mut out = BTreeMap::new();
+    let Some(table) = toml_value.get("aliases").and_then(toml::Value::as_table) else {
+        return Err(anyhow!("{} missing [aliases] table", path.display()));
+    };
+    for (k, v) in table {
+        let Some(species) = v.as_str() else {
+            continue;
+        };
+        out.insert(k.to_ascii_lowercase(), species.to_string());
+    }
+    Ok(out)
+}
+
+fn titlecase(value: &str) -> String {
+    let mut chars = value.chars();
+    let Some(first) = chars.next() else {
+        return String::new();
+    };
+    let mut out = String::new();
+    out.push(first.to_ascii_uppercase());
+    out.push_str(chars.as_str().to_ascii_lowercase().as_str());
+    out
 }
