@@ -52,3 +52,17 @@ jobs:
           LC_ALL: C
         run: |
           make ci-slow
+
+  example-dry-run:
+    runs-on: ubuntu-latest
+    needs: fast-tier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-build
+      - name: Example schema + dry plan
+        run: |
+          cargo run -p bijux-dna -- example validate example-01
+          cargo run -p bijux-dna -- plan example-01
