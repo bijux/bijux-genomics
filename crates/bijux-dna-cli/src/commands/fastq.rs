@@ -532,11 +532,9 @@ pub(crate) fn handle_meta_commands(
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
                     print_env_export_json(&registry_path)?;
                 }
-                EnvCommand::ExportHpc { json } => {
-                    let root = std::env::var("BIJUX_HPC_ROOT").map_or_else(
-                        |_| std::path::PathBuf::from("/home/bijan/bijux"),
-                        std::path::PathBuf::from,
-                    );
+                EnvCommand::ExportHpc { json, hpc_root } => {
+                    let root = std::env::var("BIJUX_HPC_ROOT")
+                        .map_or_else(|_| hpc_root.clone(), std::path::PathBuf::from);
                     let layout = crate::commands::hpc::HpcLayout::from_root(&root);
                     let export = crate::commands::hpc::export_hpc_env_json(&layout)?;
                     if *json {
@@ -551,9 +549,11 @@ pub(crate) fn handle_meta_commands(
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
                     let report = crate::commands::cli::env::ensure_apptainer_images(
                         &registry_path,
+                        &args.hpc_root,
                         &args.domain,
                         &args.stages,
                         args.force_smoke,
+                        args.repair_mismatch,
                     )?;
                     if args.json {
                         render::json::print_pretty(&report)?;
@@ -565,6 +565,47 @@ pub(crate) fn handle_meta_commands(
                         println!("quick_smoked={}", report.quick_smoked);
                         println!("failed={}", report.failed);
                     }
+                }
+                EnvCommand::SifInventory { hpc_root, json } => {
+                    let report = crate::commands::cli::env::sif_inventory(hpc_root)?;
+                    if *json {
+                        render::json::print_pretty(&report)?;
+                    } else {
+                        println!("containers_dir={}", report.containers_dir);
+                        println!("sif_count={}", report.entries.len());
+                    }
+                }
+                EnvCommand::Ensure(args) => {
+                    let cwd = std::env::current_dir()?;
+                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let domain = crate::commands::cli::env::parse_stage_domain(&args.stage)?;
+                    let report = crate::commands::cli::env::ensure_apptainer_images(
+                        &registry_path,
+                        &args.hpc_root,
+                        &domain,
+                        &args.stage,
+                        args.force_smoke,
+                        args.repair_mismatch,
+                    )?;
+                    if args.json {
+                        render::json::print_pretty(&report)?;
+                    } else {
+                        println!("schema_version={}", report.schema_version);
+                        println!("requested_tools={}", report.tools.len());
+                        println!("built={}", report.built);
+                        println!("reused={}", report.reused);
+                        println!("quick_smoked={}", report.quick_smoked);
+                        println!("failed={}", report.failed);
+                    }
+                }
+                EnvCommand::ApptainerQaMatrix { hpc_root, out } => {
+                    let markdown =
+                        crate::commands::cli::env::generate_apptainer_qa_matrix_markdown(hpc_root)?;
+                    if let Some(parent) = out.parent() {
+                        bijux_dna_infra::ensure_dir(parent)?;
+                    }
+                    bijux_dna_api::v1::api::run::atomic_write_bytes(out, markdown.as_bytes())?;
+                    println!("qa_matrix={}", out.display());
                 }
                 EnvCommand::Smoke(args) => {
                     let cwd = std::env::current_dir()?;

@@ -160,6 +160,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::DnaCommand::Fastq { .. } | cli::DnaCommand::Bam { .. } | cli::DnaCommand::Vcf { .. }
     ) {
         let (stage, _, _) = cli::resolve_stage_tool(dna_command);
+        enforce_offline_runtime_policy()?;
+        ensure_stage_bank_requirements(cwd, stage.as_str())?;
         let run_domain = stage
             .as_str()
             .split('.')
@@ -216,6 +218,59 @@ where
         std::env::set_var("BIJUX_RUN_CONTEXT", "local");
     }
     Ok(())
+}
+
+fn enforce_offline_runtime_policy() -> Result<()> {
+    let allow_network = std::env::var("BIJUX_ALLOW_NETWORK")
+        .unwrap_or_else(|_| "0".to_string())
+        .to_ascii_lowercase();
+    if matches!(allow_network.as_str(), "1" | "true" | "yes") {
+        return Err(anyhow!(
+            "production run blocked: BIJUX_ALLOW_NETWORK must be disabled (offline policy)"
+        ));
+    }
+    std::env::set_var("BIJUX_ALLOW_NETWORK", "0");
+    Ok(())
+}
+
+fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
+    if !stage_requires_banks(stage_id) {
+        return Ok(());
+    }
+    let hpc_root = std::env::var("BIJUX_HPC_ROOT")
+        .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+    let candidates = [
+        hpc_root.join("bijux-dna-data").join("banks"),
+        cwd.join("bijux-dna-data").join("banks"),
+        cwd.join("assets"),
+    ];
+    let mut found = None;
+    for path in candidates {
+        if path.exists() && path.is_dir() {
+            let has_files = std::fs::read_dir(&path)
+                .ok()
+                .and_then(|mut iter| iter.next().map(|_| true))
+                .unwrap_or(false);
+            if has_files {
+                found = Some(path);
+                break;
+            }
+        }
+    }
+    if found.is_none() {
+        return Err(anyhow!(
+            "stage `{stage_id}` requires DB/banks but no non-empty banks directory was found"
+        ));
+    }
+    Ok(())
+}
+
+fn stage_requires_banks(stage_id: &str) -> bool {
+    let key = stage_id.to_ascii_lowercase();
+    key.contains("screen")
+        || key.contains("host_depletion")
+        || key.contains("prepare_reference")
+        || key.contains("detect_adapters")
 }
 
 fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
@@ -808,11 +863,13 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        ensure_apptainer_images, env_doctor, print_env_export_json, print_env_images,
-        print_env_info, print_env_registry_list, run_env_prep, run_env_smoke,
-        run_env_smoke_for_stage,
+        ensure_apptainer_images, env_doctor, generate_apptainer_qa_matrix_markdown,
+        parse_stage_domain, print_env_export_json, print_env_images, print_env_info,
+        print_env_registry_list, run_env_prep, run_env_smoke, run_env_smoke_for_stage,
+        sif_inventory,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
@@ -824,9 +881,9 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             print_env_export_json(&registry_path)?;
         }
-        cli::EnvCommand::ExportHpc { json } => {
-            let root = std::env::var("BIJUX_HPC_ROOT")
-                .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+        cli::EnvCommand::ExportHpc { json, hpc_root } => {
+            let root =
+                std::env::var("BIJUX_HPC_ROOT").map_or_else(|_| hpc_root.clone(), PathBuf::from);
             let layout = hpc::HpcLayout::from_root(&root);
             let export = hpc::export_hpc_env_json(&layout)?;
             if *json {
@@ -836,13 +893,53 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 println!("sif_count={}", export.sifs.len());
             }
         }
+        cli::EnvCommand::SifInventory { hpc_root, json } => {
+            let report = sif_inventory(hpc_root)?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("containers_dir={}", report.containers_dir);
+                println!("sif_count={}", report.entries.len());
+            }
+        }
+        cli::EnvCommand::Ensure(args) => {
+            let domain = parse_stage_domain(&args.stage)?;
+            let report = ensure_apptainer_images(
+                &cwd.join("configs").join("tool_registry.toml"),
+                &args.hpc_root,
+                &domain,
+                &args.stage,
+                args.force_smoke,
+                args.repair_mismatch,
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("requested_tools={}", report.tools.len());
+                println!("built={}", report.built);
+                println!("reused={}", report.reused);
+                println!("quick_smoked={}", report.quick_smoked);
+                println!("failed={}", report.failed);
+            }
+        }
+        cli::EnvCommand::ApptainerQaMatrix { hpc_root, out } => {
+            let markdown = generate_apptainer_qa_matrix_markdown(hpc_root)?;
+            if let Some(parent) = out.parent() {
+                bijux_dna_infra::ensure_dir(parent)?;
+            }
+            bijux_dna_api::v1::api::run::atomic_write_bytes(out, markdown.as_bytes())?;
+            println!("qa_matrix={}", out.display());
+        }
         cli::EnvCommand::EnsureImages(args) => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             let report = ensure_apptainer_images(
                 &registry_path,
+                &args.hpc_root,
                 &args.domain,
                 &args.stages,
                 args.force_smoke,
+                args.repair_mismatch,
             )?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
@@ -888,6 +985,9 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::List
                 | cli::EnvCommand::ExportJson
                 | cli::EnvCommand::ExportHpc { .. }
+                | cli::EnvCommand::SifInventory { .. }
+                | cli::EnvCommand::Ensure(_)
+                | cli::EnvCommand::ApptainerQaMatrix { .. }
                 | cli::EnvCommand::EnsureImages(_)
                 | cli::EnvCommand::Smoke(_)
                 | cli::EnvCommand::Prep(_) => {}
