@@ -81,8 +81,6 @@ pub struct FastqPreprocessArgs {
     pub list_adapter_presets: bool,
     #[arg(long)]
     pub list_adapters: bool,
-    #[arg(long)]
-    pub env: Option<String>,
     #[arg(long, alias = "sample")]
     pub sample_id: Option<String>,
     #[arg(long)]
@@ -259,8 +257,6 @@ pub struct FastqTrimArgs {
     pub list_adapter_presets: bool,
     #[arg(long)]
     pub list_adapters: bool,
-    #[arg(long)]
-    pub env: Option<String>,
     #[arg(long, alias = "sample")]
     pub sample_id: Option<String>,
     #[arg(long)]
@@ -292,8 +288,6 @@ pub struct FastqTrimArgs {
 pub struct FastqFilterArgs {
     #[command(flatten)]
     pub common: CommonArgs,
-    #[arg(long)]
-    pub env: Option<String>,
     #[arg(long, alias = "sample")]
     pub sample_id: Option<String>,
     #[arg(long)]
@@ -314,8 +308,6 @@ pub struct FastqFilterArgs {
 pub struct FastqValidateArgs {
     #[command(flatten)]
     pub common: CommonArgs,
-    #[arg(long)]
-    pub env: Option<String>,
     #[arg(long, alias = "sample")]
     pub sample_id: Option<String>,
     #[arg(long)]

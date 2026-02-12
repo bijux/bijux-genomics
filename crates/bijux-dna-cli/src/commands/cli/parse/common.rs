@@ -65,11 +65,6 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: CorpusCommand,
     },
-    Example {
-        #[command(subcommand)]
-        command: ExampleCommand,
-    },
-    Plan(PlanArgs),
     Tool {
         #[command(subcommand)]
         command: ToolCommand,
@@ -87,10 +82,6 @@ pub enum DnaCommand {
         command: ConfigCommand,
     },
     Status(StatusArgs),
-    Dev {
-        #[command(subcommand)]
-        command: DevCommand,
-    },
     Fastq {
         #[command(subcommand)]
         command: FastqCommand,
@@ -453,15 +444,6 @@ pub enum CorpusCommand {
     },
 }
 
-#[derive(Debug, Subcommand)]
-pub enum ExampleCommand {
-    Run(ExampleRunArgs),
-    Validate(ExampleValidateArgs),
-    Plan(ExamplePlanArgs),
-    List(ExampleListArgs),
-    Chain(ExampleChainArgs),
-}
-
 include!("common_example_args.rs");
 include!("common_root_args.rs");
 
@@ -491,19 +473,6 @@ pub enum LabCommand {
         #[command(subcommand)]
         command: LabCorpusCommand,
     },
-}
-
-#[derive(Debug, Subcommand)]
-pub enum DevCommand {
-    Examples {
-        #[command(subcommand)]
-        command: DevExamplesCommand,
-    },
-}
-
-#[derive(Debug, Subcommand)]
-pub enum DevExamplesCommand {
-    Scaffold(DevExamplesScaffoldArgs),
 }
 
 #[derive(Debug, Subcommand)]

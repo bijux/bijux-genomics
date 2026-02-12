@@ -41,7 +41,7 @@ pub(crate) fn handle_fastq_bench(
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            let runner = cli::parse_runner_override(args.env.as_deref())?;
+            let runner = None;
             let bench_args = bench_args_from_trim(args)?;
             let outcome = bench_fastq_trim(&catalog, &platform, runner, &bench_args)?;
             write_trim_report(
@@ -61,7 +61,7 @@ pub(crate) fn handle_fastq_bench(
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            let runner = cli::parse_runner_override(args.env.as_deref())?;
+            let runner = None;
             let bench_args = bench_args_from_validate(args)?;
             let outcome = bench_fastq_validate_pre(&catalog, &platform, runner, &bench_args)?;
             let qc_class = qc_class_label("fastq.validate_pre");
@@ -89,7 +89,7 @@ pub(crate) fn handle_fastq_bench(
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
                     let catalog = load_image_catalog()
                         .map_err(|err| anyhow!("failed to load images: {err}"))?;
-                    let runner = cli::parse_runner_override(args.env.as_deref())?;
+                    let runner = None;
                     let bench_args = preprocess_args_from_cli(args)?;
                     let cross_args = fastq_cross_args_from_cli(args);
                     bijux_dna_api::v1::api::run::run_fastq_to_bam_profile(
@@ -108,7 +108,7 @@ pub(crate) fn handle_fastq_bench(
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            let runner = cli::parse_runner_override(args.env.as_deref())?;
+            let runner = None;
             let bench_args = preprocess_args_from_cli(args)?;
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
             Ok(true)
@@ -128,7 +128,7 @@ pub(crate) fn handle_fastq_bench(
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
                     let catalog = load_image_catalog()
                         .map_err(|err| anyhow!("failed to load images: {err}"))?;
-                    let runner = cli::parse_runner_override(args.args.env.as_deref())?;
+                    let runner = None;
                     let bench_args = preprocess_args_from_cli(&args.args)?;
                     let cross_args = fastq_cross_args_from_cli(&args.args);
                     bijux_dna_api::v1::api::run::run_fastq_to_bam_profile(
@@ -147,7 +147,7 @@ pub(crate) fn handle_fastq_bench(
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            let runner = cli::parse_runner_override(args.args.env.as_deref())?;
+            let runner = None;
             let bench_args = preprocess_args_from_cli(&args.args)?;
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
             Ok(true)
