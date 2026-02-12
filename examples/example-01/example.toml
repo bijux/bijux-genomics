@@ -1,9 +1,10 @@
 schema_version = "bijux.example.v1"
 id = "example-01"
 ena_project = "PRJEB44430"
+species = "human"
+corpus_id = "example-01"
 target_se = 10
 target_pe = 10
-corpus_rel_hpc_data_root = "example-01"
 benchmark_suite = "fastq_stage01_validate_pre"
 runtime = "apptainer"
 stage_1 = "fastq.validate_pre"

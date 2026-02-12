@@ -16,9 +16,10 @@ struct ExampleSpec {
     schema_version: String,
     id: String,
     ena_project: String,
+    species: String,
+    corpus_id: String,
     target_se: usize,
     target_pe: usize,
-    corpus_rel_hpc_data_root: String,
     benchmark_suite: String,
     runtime: String,
     stage_1: String,
@@ -123,16 +124,19 @@ pub fn run_example(cwd: &Path, id: &str, hpc_mode: bool) -> Result<()> {
         cwd,
         &cli::EnaSelectArgs {
             project: spec.ena_project.clone(),
+            species: spec.species.clone(),
+            corpus_id: spec.corpus_id.clone(),
             target_se: spec.target_se,
             target_pe: spec.target_pe,
-            out: snapshot.clone(),
+            out: Some(snapshot.clone()),
         },
     )?;
     ena::fetch_from_snapshot(
         cwd,
         &cli::EnaFetchArgs {
+            species: spec.species.clone(),
             snapshot,
-            out: raw_out,
+            out: Some(raw_out),
         },
     )?;
 
@@ -198,12 +202,10 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool) -> Result<ExampleP
             cwd.join("bijux-dna-results"),
         )
     };
-    let corpus_root = data_root.join(&spec.corpus_rel_hpc_data_root);
-    if spec.corpus_rel_hpc_data_root.starts_with('/') {
-        return Err(anyhow!(
-            "corpus_rel_hpc_data_root must be relative to HPC data root"
-        ));
-    }
+    let corpus_root = data_root
+        .join(normalize_species_id_for_path(&spec.species)?)
+        .join(&spec.ena_project)
+        .join(&spec.corpus_id);
     Ok(ExamplePlan {
         schema_version: "bijux.example.plan.v1",
         id: spec.id.clone(),
@@ -226,6 +228,27 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool) -> Result<ExampleP
             results_root: results_root.display().to_string(),
         },
     })
+}
+
+fn normalize_species_id_for_path(raw: &str) -> Result<String> {
+    let words = raw
+        .split_whitespace()
+        .map(|s| s.trim().to_ascii_lowercase())
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>();
+    if words.len() == 2 {
+        return Ok(format!("{}_{}", words[0], words[1]));
+    }
+    if raw
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+        && raw.contains('_')
+    {
+        return Ok(raw.to_string());
+    }
+    Err(anyhow!(
+        "example species must be latin binomial or canonical species_id, got `{raw}`"
+    ))
 }
 
 fn load_example(cwd: &Path, id: &str) -> Result<(ExampleSpec, PathBuf)> {
