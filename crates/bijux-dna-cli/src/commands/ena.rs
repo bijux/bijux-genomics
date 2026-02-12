@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -8,9 +8,9 @@ use bijux_dna_db_ena::download::{build_download_tasks, download_tasks, DownloadC
 use bijux_dna_db_ena::model::{
     EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaRunManifest, EnaSourcePreference,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use crate::commands::cli::EnaFetchArgs;
+use crate::commands::cli::{EnaFetchArgs, EnaSelectArgs};
 
 const MIN_FASTQ_BYTES: u64 = 1_000_000;
 const MAX_FASTQ_BYTES: u64 = 200_000_000_000;
@@ -21,17 +21,19 @@ enum LayoutKind {
     Pe,
 }
 
-#[derive(Debug, Serialize)]
-struct MetadataSnapshot {
-    schema_version: &'static str,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MetadataSnapshot {
+    schema_version: String,
     project: String,
-    selected: Vec<MetadataRow>,
-    rejected: Vec<RejectedRow>,
+    target_se: usize,
+    target_pe: usize,
+    selected: Vec<SelectionRow>,
+    rejected: Vec<SelectionRow>,
 }
 
-#[derive(Debug, Serialize)]
-struct MetadataRow {
-    run_accession: String,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionRow {
+    accession: String,
     sample_accession: Option<String>,
     read_layout: String,
     library_type: String,
@@ -40,11 +42,6 @@ struct MetadataRow {
     read_count: u64,
     fastq_ftp: Vec<String>,
     fastq_bytes: Vec<u64>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct RejectedRow {
-    accession: String,
     reason: String,
 }
 
@@ -55,46 +52,39 @@ struct CorpusManifest {
 }
 
 /// # Errors
-/// Returns an error if ENA fetch, filtering, download, or corpus materialization fails.
-pub fn fetch_corpus(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
-    let limits = parse_limits(&args.limits)?;
-    let out_dir = resolve_path(cwd, &args.out);
-    let raw_dir = out_dir.clone();
-    let corpus_root = raw_dir
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow!("--out must point to a corpus raw directory"))?;
-    let normalized_dir = corpus_root.join("normalized");
-    if normalized_dir.starts_with(&raw_dir) || raw_dir.starts_with(&normalized_dir) {
-        return Err(anyhow!(
-            "invalid corpus layout: raw and normalized must be separate directories"
-        ));
-    }
-    fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
-    fs::create_dir_all(&normalized_dir)
-        .with_context(|| format!("create {}", normalized_dir.display()))?;
-
+/// Returns an error if ENA query, filtering, or snapshot write fails.
+pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
+    let out_path = resolve_path(cwd, &args.out);
     let query = EnaQuery {
         projects: vec![args.project.clone()],
         samples: Vec::new(),
         extra_accessions: Vec::new(),
         result: EnaResultKind::ReadRun,
     };
-    let client = EnaClient::new("bijux-dna/ena-fetch").context("create ena client")?;
+    let client = EnaClient::new("bijux-dna/ena-select").context("create ena client")?;
     let records = client.fetch_records(&query).context("fetch ENA records")?;
 
     let mut selected = Vec::new();
     let mut rejected = Vec::new();
-    let mut se_count = 0_usize;
-    let mut pe_count = 0_usize;
+    let mut se_count = 0usize;
+    let mut pe_count = 0usize;
+
     for record in records {
-        let accession = record.accession_label();
+        let row_base = snapshot_row_from_record(&record);
         match validate_record(&record) {
             Ok(layout) => {
-                if layout == LayoutKind::Se && se_count >= limits.se {
+                if layout == LayoutKind::Se && se_count >= args.target_se {
+                    rejected.push(SelectionRow {
+                        reason: "rejected: se target already satisfied".to_string(),
+                        ..row_base
+                    });
                     continue;
                 }
-                if layout == LayoutKind::Pe && pe_count >= limits.pe {
+                if layout == LayoutKind::Pe && pe_count >= args.target_pe {
+                    rejected.push(SelectionRow {
+                        reason: "rejected: pe target already satisfied".to_string(),
+                        ..row_base
+                    });
                     continue;
                 }
                 if layout == LayoutKind::Se {
@@ -102,32 +92,80 @@ pub fn fetch_corpus(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
                 } else {
                     pe_count += 1;
                 }
-                selected.push(record);
+                selected.push(SelectionRow {
+                    reason: "accepted: metadata + scope checks passed".to_string(),
+                    ..row_base
+                });
             }
-            Err(reason) => rejected.push(RejectedRow { accession, reason }),
+            Err(reason) => rejected.push(SelectionRow {
+                reason: format!("rejected: {reason}"),
+                ..row_base
+            }),
         }
-        if se_count >= limits.se && pe_count >= limits.pe {
+        if se_count >= args.target_se && pe_count >= args.target_pe {
             break;
         }
     }
-    if se_count < limits.se || pe_count < limits.pe {
+
+    if se_count < args.target_se || pe_count < args.target_pe {
         return Err(anyhow!(
             "insufficient accepted records: wanted {} SE + {} PE, got {} SE + {} PE",
-            limits.se,
-            limits.pe,
+            args.target_se,
+            args.target_pe,
             se_count,
             pe_count
         ));
     }
 
+    let snapshot = MetadataSnapshot {
+        schema_version: "bijux.ena_metadata_snapshot.v2".to_string(),
+        project: args.project.clone(),
+        target_se: args.target_se,
+        target_pe: args.target_pe,
+        selected,
+        rejected,
+    };
+    if let Some(parent) = out_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    bijux_dna_infra::atomic_write_json(&out_path, &snapshot)
+        .with_context(|| format!("write {}", out_path.display()))?;
+    println!("snapshot={}", out_path.display());
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if snapshot cannot be loaded, downloads fail, or manifest write fails.
+pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
+    let snapshot_path = resolve_path(cwd, &args.snapshot);
+    let out_dir = resolve_path(cwd, &args.out);
+    let raw = fs::read_to_string(&snapshot_path)
+        .with_context(|| format!("read {}", snapshot_path.display()))?;
+    let snapshot: MetadataSnapshot =
+        serde_json::from_str(&raw).with_context(|| format!("parse {}", snapshot_path.display()))?;
+    if snapshot.selected.is_empty() {
+        return Err(anyhow!("snapshot has zero selected runs"));
+    }
+    let records = snapshot
+        .selected
+        .iter()
+        .map(record_from_snapshot_row)
+        .collect::<Vec<_>>();
+
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let manifest = EnaRunManifest {
-        query,
+        query: EnaQuery {
+            projects: vec![snapshot.project.clone()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        },
         source: EnaFileSource::FastqFtp,
         preference: EnaSourcePreference::Https,
-        records: selected.clone(),
+        records: records.clone(),
     };
     let dl_cfg = DownloadConfig {
-        output_dir: raw_dir.clone(),
+        output_dir: out_dir.clone(),
         jobs: 4,
         retries: 2,
         source: EnaFileSource::FastqFtp,
@@ -143,42 +181,63 @@ pub fn fetch_corpus(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
         ));
     }
 
-    materialize_normalized(&selected, &raw_dir, &normalized_dir)?;
-    write_metadata_snapshot(&corpus_root, &args.project, &selected, &rejected)?;
+    let corpus_root = out_dir
+        .parent()
+        .map(Path::to_path_buf)
+        .ok_or_else(|| anyhow!("--out must point to a corpus raw directory"))?;
     write_manifest(&corpus_root)?;
-    println!("corpus_root={}", corpus_root.display());
-    println!("selected_se={se_count}");
-    println!("selected_pe={pe_count}");
+    set_raw_readonly(&out_dir)?;
+    println!("raw_dir={}", out_dir.display());
+    println!("downloaded={}", report.downloaded);
+    println!("manifest={}", corpus_root.join("MANIFEST.json").display());
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy)]
-struct LayoutLimits {
-    se: usize,
-    pe: usize,
+fn snapshot_row_from_record(record: &EnaRecord) -> SelectionRow {
+    SelectionRow {
+        accession: record.accession_label(),
+        sample_accession: record.sample_accession.clone(),
+        read_layout: record
+            .library_layout
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string()),
+        library_type: record
+            .library_strategy
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string()),
+        instrument: record
+            .instrument_model
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string()),
+        base_count: record.base_count.unwrap_or(0),
+        read_count: record.read_count.unwrap_or(0),
+        fastq_ftp: record.fastq_ftp.clone(),
+        fastq_bytes: record.fastq_bytes.clone(),
+        reason: String::new(),
+    }
 }
 
-fn parse_limits(items: &[String]) -> Result<LayoutLimits> {
-    let mut limits = LayoutLimits { se: 0, pe: 0 };
-    for item in items {
-        let (count_raw, layout_raw) = item
-            .split_once('-')
-            .ok_or_else(|| anyhow!("invalid --limit `{item}` expected <count>-se|pe"))?;
-        let count = count_raw
-            .parse::<usize>()
-            .with_context(|| format!("invalid --limit count in `{item}`"))?;
-        match layout_raw.to_ascii_lowercase().as_str() {
-            "se" => limits.se = count,
-            "pe" => limits.pe = count,
-            _ => return Err(anyhow!("invalid --limit layout in `{item}` expected se|pe")),
-        }
+fn record_from_snapshot_row(row: &SelectionRow) -> EnaRecord {
+    EnaRecord {
+        study_accession: None,
+        sample_accession: row.sample_accession.clone(),
+        experiment_accession: None,
+        run_accession: Some(row.accession.clone()),
+        analysis_accession: None,
+        tax_id: None,
+        scientific_name: None,
+        library_layout: Some(row.read_layout.clone()),
+        library_source: None,
+        library_strategy: Some(row.library_type.clone()),
+        instrument_model: Some(row.instrument.clone()),
+        base_count: Some(row.base_count),
+        read_count: Some(row.read_count),
+        fastq_bytes: row.fastq_bytes.clone(),
+        fastq_ftp: row.fastq_ftp.clone(),
+        submitted_ftp: Vec::new(),
+        sra_ftp: Vec::new(),
+        bam_ftp: Vec::new(),
     }
-    if limits.se == 0 || limits.pe == 0 {
-        return Err(anyhow!(
-            "--limit must include both se and pe, e.g. --limit 10-se --limit 10-pe"
-        ));
-    }
-    Ok(limits)
 }
 
 fn validate_record(record: &EnaRecord) -> Result<LayoutKind, String> {
@@ -215,6 +274,15 @@ fn validate_record(record: &EnaRecord) -> Result<LayoutKind, String> {
     {
         return Err("fastq_bytes outside expected scope".to_string());
     }
+    match layout {
+        LayoutKind::Se if record.fastq_ftp.len() != 1 => {
+            return Err("SE layout must have exactly one FASTQ".to_string());
+        }
+        LayoutKind::Pe if record.fastq_ftp.len() != 2 => {
+            return Err("PE layout must have exactly two FASTQ".to_string());
+        }
+        _ => {}
+    }
     Ok(layout)
 }
 
@@ -233,96 +301,6 @@ fn detect_layout(record: &EnaRecord) -> Option<LayoutKind> {
         2 => Some(LayoutKind::Pe),
         _ => None,
     }
-}
-
-fn materialize_normalized(
-    records: &[EnaRecord],
-    raw_dir: &Path,
-    normalized_dir: &Path,
-) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for record in records {
-        let Some(layout) = detect_layout(record) else {
-            return Err(anyhow!(
-                "record {} has unknown layout",
-                record.accession_label()
-            ));
-        };
-        let accession = record.accession_label();
-        let sample_id = accession.replace('-', "_");
-        if !seen.insert(sample_id.clone()) {
-            return Err(anyhow!("duplicate normalized sample id: {sample_id}"));
-        }
-        let src_dir = raw_dir.join(&accession);
-        let mut files = fs::read_dir(&src_dir)
-            .with_context(|| format!("read {}", src_dir.display()))?
-            .filter_map(|entry| entry.ok().map(|e| e.path()))
-            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("gz"))
-            .collect::<Vec<_>>();
-        files.sort();
-        match layout {
-            LayoutKind::Se if files.len() != 1 => {
-                return Err(anyhow!(
-                    "SE accession {accession} must have exactly one FASTQ"
-                ));
-            }
-            LayoutKind::Pe if files.len() != 2 => {
-                return Err(anyhow!(
-                    "PE accession {accession} must have exactly two FASTQ"
-                ));
-            }
-            _ => {}
-        }
-        let r1 = normalized_dir.join(format!("sample_{sample_id}_R1.fastq.gz"));
-        fs::copy(&files[0], &r1)
-            .with_context(|| format!("copy {} -> {}", files[0].display(), r1.display()))?;
-        if layout == LayoutKind::Pe {
-            let r2 = normalized_dir.join(format!("sample_{sample_id}_R2.fastq.gz"));
-            fs::copy(&files[1], &r2)
-                .with_context(|| format!("copy {} -> {}", files[1].display(), r2.display()))?;
-        }
-    }
-    Ok(())
-}
-
-fn write_metadata_snapshot(
-    corpus_root: &Path,
-    project: &str,
-    selected: &[EnaRecord],
-    rejected: &[RejectedRow],
-) -> Result<()> {
-    let selected_rows = selected
-        .iter()
-        .map(|record| MetadataRow {
-            run_accession: record.accession_label(),
-            sample_accession: record.sample_accession.clone(),
-            read_layout: record
-                .library_layout
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
-            library_type: record
-                .library_strategy
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
-            instrument: record
-                .instrument_model
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
-            base_count: record.base_count.unwrap_or(0),
-            read_count: record.read_count.unwrap_or(0),
-            fastq_ftp: record.fastq_ftp.clone(),
-            fastq_bytes: record.fastq_bytes.clone(),
-        })
-        .collect::<Vec<_>>();
-    let snapshot = MetadataSnapshot {
-        schema_version: "bijux.ena_metadata_snapshot.v1",
-        project: project.to_string(),
-        selected: selected_rows,
-        rejected: rejected.to_vec(),
-    };
-    let path = corpus_root.join("ENA_METADATA.snapshot.json");
-    bijux_dna_infra::atomic_write_json(&path, &snapshot)
-        .with_context(|| format!("write {}", path.display()))
 }
 
 fn write_manifest(corpus_root: &Path) -> Result<()> {
@@ -358,6 +336,26 @@ fn write_manifest(corpus_root: &Path) -> Result<()> {
     let path = corpus_root.join("MANIFEST.json");
     bijux_dna_infra::atomic_write_json(&path, &manifest)
         .with_context(|| format!("write {}", path.display()))
+}
+
+fn set_raw_readonly(raw_dir: &Path) -> Result<()> {
+    let mut stack = vec![raw_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in fs::read_dir(&dir).with_context(|| format!("read {}", dir.display()))? {
+            let path = entry?.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            let mut perms = fs::metadata(&path)
+                .with_context(|| format!("stat {}", path.display()))?
+                .permissions();
+            perms.set_readonly(true);
+            fs::set_permissions(&path, perms)
+                .with_context(|| format!("chmod readonly {}", path.display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
