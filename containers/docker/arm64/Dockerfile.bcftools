@@ -15,6 +15,7 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.version="${TOOL_VERSION}" \
       org.opencontainers.image.upstream="${OCI_UPSTREAM}"
 LABEL org.opencontainers.image.tool="bcftools"
+LABEL org.opencontainers.image.title="bcftools"
 LABEL org.opencontainers.image.base.name="quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 LABEL org.opencontainers.image.base.digest="sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 
