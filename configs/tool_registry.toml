@@ -1197,7 +1197,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.coverage"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["mosdepth"]
 optional_alternatives = ["samtools"]
 validation_tools = []
@@ -1221,7 +1221,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.duplication_metrics"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1233,7 +1233,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.endogenous_content"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1245,7 +1245,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["aligner", "filter"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bedtools", "samtools"]
 validation_tools = []
@@ -1257,7 +1257,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.haplogroups"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1281,7 +1281,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.length_filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["aligner", "filter"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1293,7 +1293,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.mapping_summary"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1305,7 +1305,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.mapq_filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["aligner", "filter"]
 primary_tools = ["samtools"]
 optional_alternatives = ["samtools"]
 validation_tools = []
@@ -1317,7 +1317,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.markdup"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1329,7 +1329,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.overlap_correction"
-required_tool_roles = ["corrector"]
+required_tool_roles = ["aligner", "corrector"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1341,7 +1341,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.qc_pre"
-required_tool_roles = ["qc"]
+required_tool_roles = ["aligner", "qc"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1365,7 +1365,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.validate"
-required_tool_roles = ["validator"]
+required_tool_roles = ["aligner", "filter", "validator"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bedtools", "samtools"]
 validation_tools = []
@@ -1377,7 +1377,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.contaminant_screen"
-required_tool_roles = ["screen"]
+required_tool_roles = ["screen", "transform"]
 primary_tools = ["bbduk"]
 optional_alternatives = []
 validation_tools = []
@@ -1401,7 +1401,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.detect_adapters"
-required_tool_roles = ["trimmer"]
+required_tool_roles = ["filter", "trimmer"]
 primary_tools = ["fastp"]
 optional_alternatives = []
 validation_tools = []
@@ -1437,7 +1437,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.length_distribution_pre"
-required_tool_roles = ["transform"]
+required_tool_roles = ["qc", "transform"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["seqkit_stats"]
 validation_tools = []
@@ -1473,7 +1473,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.overrepresented_sequences"
-required_tool_roles = ["transform"]
+required_tool_roles = ["filter", "transform", "trimmer"]
 primary_tools = ["fastqc"]
 optional_alternatives = ["seqkit"]
 validation_tools = []
@@ -1485,7 +1485,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.polyg_tailing"
-required_tool_roles = ["transform"]
+required_tool_roles = ["filter", "transform"]
 primary_tools = ["fastp"]
 optional_alternatives = ["fastp"]
 validation_tools = []
@@ -1509,7 +1509,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.qc_post"
-required_tool_roles = ["qc"]
+required_tool_roles = ["aligner", "qc"]
 primary_tools = ["multiqc"]
 optional_alternatives = ["multiqc", "samtools"]
 validation_tools = []
@@ -1521,7 +1521,7 @@ requires_reporting = true
 
 [[stages]]
 id = "fastq.rrna"
-required_tool_roles = ["transform"]
+required_tool_roles = ["filter", "transform"]
 primary_tools = ["sortmerna"]
 optional_alternatives = []
 validation_tools = []
@@ -1557,7 +1557,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.trim"
-required_tool_roles = ["trimmer"]
+required_tool_roles = ["filter", "transform", "trimmer"]
 primary_tools = ["fastp"]
 optional_alternatives = ["bbduk", "fastp", "fastx_clipper", "seqkit"]
 validation_tools = []

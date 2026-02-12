@@ -376,6 +376,13 @@ pub enum RegistryCommand {
         #[arg(long, default_value_t = false)]
         fix_hints: bool,
     },
+    #[command(name = "doctor")]
+    Doctor {
+        #[arg(long)]
+        domain: Option<String>,
+    },
+    #[command(name = "promote")]
+    Promote { id: String },
     #[command(name = "lint")]
     Lint {
         #[arg(long, default_value_t = false)]

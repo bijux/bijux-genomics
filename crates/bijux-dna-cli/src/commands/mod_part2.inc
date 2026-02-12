@@ -194,9 +194,10 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_binding_violations,
-        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages,
-        print_registry_show, print_registry_show_stage, print_registry_show_tool,
-        print_registry_tools, verify_registry_tool,
+        print_registry_coverage_matrix, print_registry_doctor, print_registry_export_json,
+        print_registry_list_stages, print_registry_show, print_registry_show_stage,
+        print_registry_show_tool, print_registry_tools, promote_registry_tool,
+        verify_registry_tool,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -222,6 +223,12 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
             } else {
                 print_registry_export_json(&registry_path)?;
             }
+        }
+        cli::RegistryCommand::Doctor { domain } => {
+            print_registry_doctor(&registry_path, domain.as_deref())?;
+        }
+        cli::RegistryCommand::Promote { id } => {
+            promote_registry_tool(&registry_path, cwd, id)?;
         }
         cli::RegistryCommand::Lint {
             hpc,

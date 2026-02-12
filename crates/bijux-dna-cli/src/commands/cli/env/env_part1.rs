@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Read;
 use std::path::Path;
 use std::process::Command;
@@ -649,6 +649,132 @@ pub fn lint_registry_hpc(
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if registry policy checks fail.
+pub fn print_registry_doctor(registry_path: &Path, domain: Option<&str>) -> Result<()> {
+    let domain = domain.unwrap_or("fastq");
+    let report = policy_clean_report(registry_path, domain)?;
+    println!("registry doctor domain={domain}");
+    for check in &report.checks {
+        let status = if check.ok { "ok" } else { "failed" };
+        println!("- {}: {status}", check.name);
+        if !check.ok {
+            println!("  detail: {}", check.detail);
+        }
+    }
+    if report.ok {
+        println!("registry doctor: policy-clean");
+        Ok(())
+    } else {
+        Err(anyhow!("registry doctor failed for domain={domain}"))
+    }
+}
+
+/// # Errors
+/// Returns an error if a tool cannot be promoted under registry contracts.
+pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let tools = parse_tools_registry_rows(&raw)?;
+    let Some(tool) = tools.into_iter().find(|tool| tool.id == id) else {
+        return Err(anyhow!("tool `{id}` not found in {}", registry_path.display()));
+    };
+
+    let mut domains = BTreeSet::new();
+    for binding in tool.bindings.iter().chain(tool.stage_ids.iter()) {
+        if let Some((domain, _)) = binding.split_once('.') {
+            domains.insert(domain.to_string());
+        }
+    }
+    if domains.is_empty() {
+        return Err(anyhow!("tool `{id}` has no stage bindings/domains"));
+    }
+
+    let mut failures = Vec::new();
+    for domain in &domains {
+        let report = policy_clean_report(registry_path, domain)?;
+        if !report.ok {
+            failures.push(format!("domain={domain}: registry not policy-clean"));
+        }
+    }
+
+    let version_cmd = tool
+        .smoke_version_cmd
+        .as_deref()
+        .or(tool.version_cmd.as_deref())
+        .unwrap_or("")
+        .trim();
+    let help_cmd = tool
+        .smoke_help_cmd
+        .as_deref()
+        .or(tool.help_cmd.as_deref())
+        .unwrap_or("")
+        .trim();
+    if version_cmd.is_empty() || (tool.smoke_require_help.unwrap_or(true) && help_cmd.is_empty()) {
+        failures.push("tool has smoke warnings/errors (missing smoke version/help probe)".to_string());
+    }
+
+    let mut referenced_in_suite = false;
+    for rel in ["bench-suites", "examples"] {
+        let root = cwd.join(rel);
+        if !root.exists() {
+            continue;
+        }
+        for file in collect_toml_files(&root) {
+            let Ok(content) = std::fs::read_to_string(&file) else {
+                continue;
+            };
+            if content.contains(&format!("\"{id}\"")) {
+                referenced_in_suite = true;
+                break;
+            }
+        }
+        if referenced_in_suite {
+            break;
+        }
+    }
+    if !referenced_in_suite {
+        failures.push(format!(
+            "tool `{id}` not referenced by any benchmark suite (bench-suites/*.toml or examples/**/bench-suite.toml)"
+        ));
+    }
+
+    if !failures.is_empty() {
+        return Err(anyhow!(
+            "registry promote tool {} refused:\n{}",
+            id,
+            failures.join("\n")
+        ));
+    }
+
+    println!(
+        "registry promote tool {}: checks passed (policy-clean + smoke probes + suite reference)",
+        id
+    );
+    Ok(())
+}
+
+fn collect_toml_files(root: &Path) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.extension().and_then(std::ffi::OsStr::to_str) == Some("toml") {
+                out.push(path);
+            }
+        }
+    }
+    out
+}
+
 fn toml_array_inline(values: &[String]) -> String {
     format!(
         "[{}]",
@@ -659,4 +785,3 @@ fn toml_array_inline(values: &[String]) -> String {
             .join(", ")
     )
 }
-

@@ -6,7 +6,7 @@
 [[stages]]
 id = "vcf.filter"
 status = "supported"
-experimental = true
+experimental = false
 metrics_schema = "bijux.vcf.filter.v1"
 smoke_required = true
 tools = ["bcftools"]
@@ -14,7 +14,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.call"
 status = "supported"
-experimental = true
+experimental = false
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
 tools = ["bcftools"]
@@ -22,8 +22,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.stats"
 status = "supported"
-experimental = true
+experimental = false
 metrics_schema = "bijux.vcf.stats.v1"
 smoke_required = true
 tools = ["bcftools"]
-
