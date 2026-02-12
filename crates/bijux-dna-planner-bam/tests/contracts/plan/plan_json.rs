@@ -55,6 +55,10 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
     })
 }
 
+fn has_tool_candidates(stage: BamStage) -> bool {
+    !bijux_dna_planner_bam::stage_api::allowed_tools_for_stage(stage).is_empty()
+}
+
 fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
     let mut payload = serde_json::to_string_pretty(&plan)?;
     let crate_root = format!("{}/", PathBuf::from(env!("CARGO_MANIFEST_DIR")).display());
@@ -107,7 +111,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = plan_for_stage(BamStage::Sex)?;
     assert_snapshot("stage__bam__bam.sex", &plan)?;
 
-    if cfg!(feature = "bam_downstream") {
+    if cfg!(feature = "bam_downstream") && has_tool_candidates(BamStage::BiasMitigation) {
         let plan = plan_for_stage(BamStage::BiasMitigation)?;
         assert_snapshot("stage__bam__bam.bias_mitigation", &plan)?;
     }
@@ -115,13 +119,17 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = plan_for_stage(BamStage::Recalibration)?;
     assert_snapshot("stage__bam__bam.recalibration", &plan)?;
 
-    if cfg!(feature = "bam_downstream") {
+    if cfg!(feature = "bam_downstream") && has_tool_candidates(BamStage::Haplogroups) {
         let plan = plan_for_stage(BamStage::Haplogroups)?;
         assert_snapshot("stage__bam__bam.haplogroups", &plan)?;
+    }
 
+    if cfg!(feature = "bam_downstream") && has_tool_candidates(BamStage::Genotyping) {
         let plan = plan_for_stage(BamStage::Genotyping)?;
         assert_snapshot("stage__bam__bam.genotyping", &plan)?;
+    }
 
+    if cfg!(feature = "bam_downstream") && has_tool_candidates(BamStage::Kinship) {
         let plan = plan_for_stage(BamStage::Kinship)?;
         assert_snapshot("stage__bam__bam.kinship", &plan)?;
     }
