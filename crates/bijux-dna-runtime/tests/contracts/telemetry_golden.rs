@@ -37,7 +37,9 @@ fn telemetry_jsonl_golden_for_toy_run_is_stable() -> anyhow::Result<()> {
     };
 
     let rendered = [serde_json::to_string(&start)?, serde_json::to_string(&end)?].join("\n") + "\n";
-    let expected = include_str!("../fixtures/telemetry_toy_run.jsonl");
+    let expected = include_str!(
+        "../fixtures/runtime_schema/telemetry_toy_run/telemetry_toy_run.jsonl"
+    );
     assert_eq!(rendered, expected);
     Ok(())
 }

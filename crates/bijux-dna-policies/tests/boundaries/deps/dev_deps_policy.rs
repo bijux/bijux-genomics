@@ -66,6 +66,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "bijux-dna-planner-fastq",
         "bijux-dna-policies",
         "bijux-dna-policies.workspace",
+        "bijux-dna-runtime",
         "bijux-dna-testkit",
         "cargo_metadata",
         "gag",

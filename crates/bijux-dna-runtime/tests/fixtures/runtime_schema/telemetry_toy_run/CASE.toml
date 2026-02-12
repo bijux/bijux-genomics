@@ -1,0 +1,3 @@
+name = "telemetry_toy_run"
+kind = "golden"
+description = "Toy runtime telemetry JSONL fixture used by contract tests."

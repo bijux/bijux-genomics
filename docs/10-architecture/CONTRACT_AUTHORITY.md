@@ -2,6 +2,20 @@
 
 This document defines the authoritative contract source for each category.
 
+## What
+Defines the single source of truth for stage/tool/param/profile contract artifacts.
+
+## Why
+Prevents contract drift between generated registries, pipeline profiles, and policy checks.
+
+## Non-goals
+- Repeating full schema definitions.
+- Replacing domain-level scientific docs.
+
+## Contracts
+- Stage/tool/param/profile authority must resolve to exactly one canonical source.
+- Generated artifacts and snapshots must track authority changes.
+
 ## Stages
 - Authoritative source:
   - `configs/stages.toml` (FASTQ/BAM)
@@ -39,3 +53,11 @@ This document defines the authoritative contract source for each category.
   - migration note in changelog/docs
   - snapshot updates where schema is serialized
   - compatibility decision (breaking vs non-breaking) documented in PR.
+
+## Examples
+- Stage authority: `configs/stages.toml`.
+- Tool authority: `configs/tool_registry.toml`.
+
+## Failure modes
+- Registry/profile snapshots diverge when authority source changes without regeneration.
+- Conflicting parallel authorities create non-deterministic policy results.

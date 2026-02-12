@@ -1,0 +1,3 @@
+name = "vcf_default"
+kind = "input"
+description = "Default VCF fixture for parser and stage contract tests."

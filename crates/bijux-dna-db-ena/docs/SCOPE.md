@@ -11,3 +11,6 @@ Provide deterministic ENA selection/fetch primitives used by higher-level orches
 ## Out of scope
 - Pipeline execution.
 - Scientific stage semantics.
+
+## Policy reference
+- Workspace style and boundary policy: `docs/40-policies/STYLE.md`.

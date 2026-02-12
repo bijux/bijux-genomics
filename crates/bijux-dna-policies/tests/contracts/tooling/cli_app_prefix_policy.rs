@@ -17,10 +17,21 @@ fn policy__contracts__cli_app_prefix_policy__root_cli_requires_app_prefix() {
         .and_then(|s| s.split("}\n\n#[derive").next())
         .unwrap_or("");
 
-    let has_non_dna_root_variant = root_enum
-        .lines()
-        .map(str::trim)
-        .any(|line| line.ends_with('{') && !line.starts_with("Dna "));
+    let has_non_dna_root_variant = root_enum.lines().map(str::trim).any(|line| {
+        if line.starts_with("pub enum ")
+            || line.starts_with("#[")
+            || line.is_empty()
+            || line == "{"
+            || line == "}"
+            || !line
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_ascii_uppercase())
+        {
+            return false;
+        }
+        line.ends_with('{') && !line.starts_with("Dna ")
+    });
 
     bijux_dna_policies::policy_assert!(
         !has_non_dna_root_variant,
