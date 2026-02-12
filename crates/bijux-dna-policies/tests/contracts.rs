@@ -66,6 +66,10 @@ mod mod_contracts_tooling_container_label_policy_rs;
 mod mod_contracts_tooling_container_registry_parity_policy_rs;
 #[path = "contracts/tooling/container_runtime_invocation_policy.rs"]
 mod mod_contracts_tooling_container_runtime_invocation_policy_rs;
+#[path = "contracts/tooling/container_smoke_registry_driven_policy.rs"]
+mod mod_contracts_tooling_container_smoke_registry_driven_policy_rs;
+#[path = "contracts/tooling/container_version_variable_policy.rs"]
+mod mod_contracts_tooling_container_version_variable_policy_rs;
 #[path = "contracts/tooling/container_manifest_snapshot_policy.rs"]
 mod mod_contracts_tooling_container_manifest_snapshot_policy_rs;
 #[path = "contracts/tooling/container_versions_policy.rs"]
@@ -112,6 +116,8 @@ mod mod_contracts_tooling_planner_data_driven_catalog_policy_rs;
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
 #[path = "contracts/tooling/policies.rs"]
 mod mod_contracts_tooling_policies_rs;
+#[path = "contracts/tooling/production_container_policy.rs"]
+mod mod_contracts_tooling_production_container_policy_rs;
 #[path = "contracts/tooling/profiles_runtime_policy.rs"]
 mod mod_contracts_tooling_profiles_runtime_policy_rs;
 #[path = "contracts/tooling/purity_effects_responsibility_policy.rs"]
