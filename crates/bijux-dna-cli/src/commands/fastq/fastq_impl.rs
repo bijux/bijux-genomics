@@ -1,5 +1,3 @@
-#![allow(clippy::too_many_lines)]
-
 use crate::commands::command_prelude::{
     anyhow, atomic_write_bytes, bench_args_correct, bench_args_filter, bench_args_merge,
     bench_args_preprocess, bench_args_qc_post, bench_args_screen, bench_args_stats,
