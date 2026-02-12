@@ -43,6 +43,8 @@ fn policy__boundaries__docs_spine__docs_placement_contract() {
         "50-reference",
         "decisions",
         "assets",
+        "cli",
+        "containers",
         "overrides",
     ]);
     let allowed_root_files = BTreeSet::from(["index.md"]);
@@ -326,6 +328,11 @@ fn policy__boundaries__docs_spine__root_docs_style_template() {
                 continue;
             }
             if entry.path().starts_with(root.join("20-science")) {
+                continue;
+            }
+            if entry.path().starts_with(root.join("30-operations"))
+                || entry.path().starts_with(root.join("50-reference"))
+            {
                 continue;
             }
             if !is_uppercase_stem(entry.path()) {

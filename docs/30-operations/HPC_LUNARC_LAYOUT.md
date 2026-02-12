@@ -29,3 +29,26 @@ This project uses a fixed four-directory HPC layout rooted under `/home/bijan/bi
   - `bijux status --hpc`
 - Export HPC SIF inventory and digests:
   - `bijux environment export-hpc --json`
+
+## What
+Defines the fixed HPC directory layout and invariants for deterministic `bijux-dna` execution at Lunarc.
+
+## Why
+Separating code, data, containers, and results avoids cross-contamination and improves reproducibility.
+
+## Non-goals
+- Describe non-Lunarc cluster layouts.
+- Replace per-pipeline runbooks.
+
+## Contracts
+- Runs use only the declared four roots.
+- Reproducibility metadata is written for each run.
+- Result paths remain run-scoped and timestamped.
+
+## Examples
+- `bijux config init-hpc --root /home/bijan/bijux`
+- `bijux status --hpc`
+
+## Failure modes
+- Missing one of the required roots causes profile validation failures.
+- Shared temp/output paths can break reproducibility guarantees.
