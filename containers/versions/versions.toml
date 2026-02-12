@@ -1,0 +1,299 @@
+[adapterremoval]
+version = "0.0.0"
+source = "https://github.com/MikkelSchubert/adapterremoval"
+date_pinned = "2026-02-12"
+
+[addeam]
+version = "0.0.0"
+source = "https://github.com/LouisPwr/AdDeam"
+date_pinned = "2026-02-12"
+
+[alientrimmer]
+version = "0.4.0"
+source = "https://gite.lirmm.fr/clegrand/AlienTrimmer"
+date_pinned = "2026-02-12"
+
+[angsd]
+version = "0.0.0"
+source = "https://github.com/ANGSD/angsd"
+date_pinned = "2026-02-12"
+
+[atropos]
+version = "1.1.31"
+source = "https://github.com/jdidion/atropos"
+date_pinned = "2026-02-12"
+
+[authenticct]
+version = "1.0.0"
+source = "https://github.com/StephanePeyregne/AuthentiCT"
+date_pinned = "2026-02-12"
+
+[bamtools]
+version = "2.5.2"
+source = "https://github.com/pezmaster31/bamtools"
+date_pinned = "2026-02-12"
+
+[bayeshammer]
+version = "0.0.0"
+source = "https://github.com/ablab/spades"
+date_pinned = "2026-02-12"
+
+[bbduk]
+version = "0.0.0"
+source = "https://sourceforge.net/projects/bbmap/"
+date_pinned = "2026-02-12"
+
+[bbmerge]
+version = "0.0.0"
+source = "https://sourceforge.net/projects/bbmap/"
+date_pinned = "2026-02-12"
+
+[bcftools]
+version = "0.0.0"
+source = "https://github.com/samtools/bcftools"
+date_pinned = "2026-02-12"
+
+[bedtools]
+version = "2.31.1"
+source = "https://github.com/arq5x/bedtools2"
+date_pinned = "2026-02-12"
+
+[bowtie2]
+version = "2.5.4"
+source = "https://github.com/BenLangmead/bowtie2"
+date_pinned = "2026-02-12"
+
+[bracken]
+version = "0.0.0"
+source = "https://github.com/jenniferlu717/Bracken"
+date_pinned = "2026-02-12"
+
+[bwa]
+version = "0.7.17"
+source = "https://github.com/lh3/bwa"
+date_pinned = "2026-02-12"
+
+[centrifuge]
+version = "1.0.4"
+source = "https://github.com/DaehwanKimLab/centrifuge"
+date_pinned = "2026-02-12"
+
+[contammix]
+version = "1.0.11"
+source = "https://bioconductor.org/packages/contamMix"
+date_pinned = "2026-02-12"
+
+[cutadapt]
+version = "0.0.0"
+source = "https://github.com/cutadapt/cutadapt"
+date_pinned = "2026-02-12"
+
+[damageprofiler]
+version = "0.0.0"
+source = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
+date_pinned = "2026-02-12"
+
+[fastp]
+version = "0.23.4"
+source = "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz"
+date_pinned = "2026-02-12"
+
+[fastq_screen]
+version = "0.15.3"
+source = "https://github.com/fastq_screen/fastq_screen"
+date_pinned = "2026-02-12"
+
+[fastqc]
+version = "0.12.1"
+source = "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip"
+date_pinned = "2026-02-12"
+
+[fastqvalidator]
+version = "0.0.0"
+source = "https://github.com/fastqvalidator/fastqvalidator"
+date_pinned = "2026-02-12"
+
+[fastqvalidator_official]
+version = "0.0.0"
+source = "https://github.com/fastqvalidator_official/fastqvalidator_official"
+date_pinned = "2026-02-12"
+
+[fastx_clipper]
+version = "0.0.14"
+source = "https://github.com/agordon/fastx_toolkit"
+date_pinned = "2026-02-12"
+
+[flash2]
+version = "2.2.00"
+source = "https://github.com/dstreett/FLASH2"
+date_pinned = "2026-02-12"
+
+[fqtools]
+version = "0.0.0"
+source = "https://github.com/alastair-droop/fqtools"
+date_pinned = "2026-02-12"
+
+[kaiju]
+version = "1.10.0"
+source = "https://github.com/bioinformatics-centre/kaiju"
+date_pinned = "2026-02-12"
+
+[king]
+version = "2.3.0"
+source = "https://www.kingrelatedness.com/"
+date_pinned = "2026-02-12"
+
+[kraken2]
+version = "2.1.3"
+source = "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz"
+date_pinned = "2026-02-12"
+
+[krakenuniq]
+version = "1.0.4"
+source = "https://github.com/fbreitwieser/krakenuniq"
+date_pinned = "2026-02-12"
+
+[leehom]
+version = "0.0.0"
+source = "https://github.com/grenaud/leeHom"
+date_pinned = "2026-02-12"
+
+[lighter]
+version = "0.0.0"
+source = "https://github.com/mourisl/Lighter"
+date_pinned = "2026-02-12"
+
+[mapdamage2]
+version = "2.2.2"
+source = "https://github.com/ginolhac/mapDamage"
+date_pinned = "2026-02-12"
+
+[metaphlan]
+version = "4.1.1"
+source = "https://github.com/biobakery/MetaPhlAn"
+date_pinned = "2026-02-12"
+
+[mosdepth]
+version = "0.3.10"
+source = "https://github.com/brentp/mosdepth"
+date_pinned = "2026-02-12"
+
+[multiqc]
+version = "0.0.0"
+source = "https://github.com/multiqc/multiqc"
+date_pinned = "2026-02-12"
+
+[musket]
+version = "0.0.0"
+source = "https://github.com/alexdobin/musket"
+date_pinned = "2026-02-12"
+
+[pear]
+version = "0.9.6"
+source = "https://github.com/xflouris/PEAR"
+date_pinned = "2026-02-12"
+
+[pmdtools]
+version = "0.0.0"
+source = "https://github.com/pontussk/PMDtools"
+date_pinned = "2026-02-12"
+
+[prinseq]
+version = "1.2.4"
+source = "https://github.com/uwb-linux/prinseq"
+date_pinned = "2026-02-12"
+
+[pydamage]
+version = "1.0.0"
+source = "https://github.com/maxibor/pydamage"
+date_pinned = "2026-02-12"
+
+[qualimap]
+version = "0.0.0"
+source = "http://qualimap.conesalab.org/"
+date_pinned = "2026-02-12"
+
+[rcorrector]
+version = "1.0.7"
+source = "https://github.com/mourisl/Rcorrector"
+date_pinned = "2026-02-12"
+
+[rxy]
+version = "1.0.0"
+source = "https://github.com/bijux/bijux-dna"
+date_pinned = "2026-02-12"
+
+[samtools]
+version = "0.0.0"
+source = "https://github.com/samtools/samtools"
+date_pinned = "2026-02-12"
+
+[schmutzi]
+version = "1.5.4"
+source = "https://github.com/grenaud/schmutzi"
+date_pinned = "2026-02-12"
+
+[seqkit]
+version = "2.8.2"
+source = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
+date_pinned = "2026-02-12"
+
+[seqkit_stats]
+version = "2.7.0"
+source = "https://github.com/seqkit_stats/seqkit_stats"
+date_pinned = "2026-02-12"
+
+[seqtk]
+version = "0.0.0"
+source = "https://github.com/lh3/seqtk.git"
+date_pinned = "2026-02-12"
+
+[skewer]
+version = "0.0.0"
+source = "https://github.com/relipmoc/skewer"
+date_pinned = "2026-02-12"
+
+[sortmerna]
+version = "4.3.7"
+source = "https://github.com/biocore/sortmerna"
+date_pinned = "2026-02-12"
+
+[spades]
+version = "0.0.0"
+source = "https://github.com/ablab/spades"
+date_pinned = "2026-02-12"
+
+[star]
+version = "0.0.0"
+source = "https://github.com/alexdobin/STAR"
+date_pinned = "2026-02-12"
+
+[trim_galore]
+version = "0.6.10"
+source = "https://github.com/FelixKrueger/TrimGalore"
+date_pinned = "2026-02-12"
+
+[trimmomatic]
+version = "0.0.0"
+source = "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip"
+date_pinned = "2026-02-12"
+
+[umi_tools]
+version = "1.1.6"
+source = "https://github.com/umi_tools/umi_tools"
+date_pinned = "2026-02-12"
+
+[verifybamid2]
+version = "2.0.1"
+source = "https://github.com/Griffan/VerifyBamID"
+date_pinned = "2026-02-12"
+
+[vsearch]
+version = "0.0.0"
+source = "tag:vsearch"
+date_pinned = "2026-02-12"
+
+[yleaf]
+version = "3.0.3"
+source = "https://github.com/genid/Yleaf"
+date_pinned = "2026-02-12"
