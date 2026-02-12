@@ -528,7 +528,7 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Env { command } => {
+        DnaCommand::Environment { command } => {
             match command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
@@ -883,7 +883,6 @@ pub(crate) fn handle_meta_commands(
         DnaCommand::Fastq { .. }
         | DnaCommand::Bam { .. }
         | DnaCommand::Vcf { .. }
-        | DnaCommand::Environment { .. }
         | DnaCommand::Registry { .. }
         | DnaCommand::Ena { .. }
         | DnaCommand::Corpus { .. }
