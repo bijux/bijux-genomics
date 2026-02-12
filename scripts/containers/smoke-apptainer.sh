@@ -409,7 +409,24 @@ fi
 
 LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-defs.XXXXXX")
 trap 'rm -f "$LIST_FILE"' EXIT INT TERM
-find "$DEFS_DIR" -maxdepth 1 -type f -name '*.def' | sort > "$LIST_FILE"
+RUNTIME_TOOLS=$("$ROOT_DIR/scripts/containers/registry-tools.sh" tools-by-runtime apptainer)
+if [ -z "${RUNTIME_TOOLS:-}" ]; then
+  echo "ERROR: no apptainer runtime tools found in registry" >&2
+  exit 2
+fi
+printf '%s\n' "$RUNTIME_TOOLS" \
+  | tr ',' '\n' \
+  | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+  | grep -v '^$' \
+  | while IFS= read -r tool; do
+      if [ -f "$DEFS_DIR/bijux/$tool.def" ]; then
+        printf '%s\n' "$DEFS_DIR/bijux/$tool.def"
+      elif [ -f "$DEFS_DIR/non-bijux/$tool.def" ]; then
+        printf '%s\n' "$DEFS_DIR/non-bijux/$tool.def"
+      else
+        printf '%s\n' "$DEFS_DIR/$tool.def"
+      fi
+    done | sort > "$LIST_FILE"
 
 if [ -n "$TOOLS" ]; then
   TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-tools.XXXXXX")
@@ -428,8 +445,22 @@ if [ -n "$TOOLS" ]; then
   rm -f "$TOOLS_FILE"
 fi
 
+MISSING_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-registry-missing.XXXXXX")
+awk '
+  {
+    if (system("[ -f \"" $0 "\" ]") != 0) print $0
+  }
+' "$LIST_FILE" > "$MISSING_FILE"
+if [ -s "$MISSING_FILE" ]; then
+  echo "ERROR: registry tool apptainer defs missing under $DEFS_DIR:" >&2
+  cat "$MISSING_FILE" >&2
+  rm -f "$MISSING_FILE"
+  exit 2
+fi
+rm -f "$MISSING_FILE"
+
 if [ ! -s "$LIST_FILE" ]; then
-  echo "ERROR: no .def files found in $DEFS_DIR" >&2
+  echo "ERROR: no registry-driven .def list for $DEFS_DIR" >&2
   exit 2
 fi
 

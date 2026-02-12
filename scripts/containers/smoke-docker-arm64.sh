@@ -335,7 +335,18 @@ fi
 LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles.XXXXXX")
 trap cleanup_files EXIT
 trap handle_interrupt INT TERM
-find "$DOCKER_DIR" -maxdepth 1 -type f -name 'Dockerfile.*' | sort > "$LIST_FILE"
+RUNTIME_TOOLS=$("$ROOT_DIR/scripts/containers/registry-tools.sh" tools-by-runtime docker)
+if [ -z "${RUNTIME_TOOLS:-}" ]; then
+  echo "ERROR: no docker runtime tools found in registry" >&2
+  exit 2
+fi
+printf '%s\n' "$RUNTIME_TOOLS" \
+  | tr ',' '\n' \
+  | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+  | grep -v '^$' \
+  | while IFS= read -r tool; do
+      printf '%s/Dockerfile.%s\n' "$DOCKER_DIR" "$tool"
+    done | sort > "$LIST_FILE"
 
 if [ -n "$TOOLS" ]; then
   TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools.XXXXXX")
@@ -374,8 +385,22 @@ if [ -n "$TOOLS" ]; then
   rm -f "$TOOLS_FILE"
 fi
 
+MISSING_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-registry-missing.XXXXXX")
+awk '
+  {
+    if (system("[ -f \"" $0 "\" ]") != 0) print $0
+  }
+' "$LIST_FILE" > "$MISSING_FILE"
+if [ -s "$MISSING_FILE" ]; then
+  echo "ERROR: registry tool dockerfiles missing under $DOCKER_DIR:" >&2
+  cat "$MISSING_FILE" >&2
+  rm -f "$MISSING_FILE"
+  exit 2
+fi
+rm -f "$MISSING_FILE"
+
 if [ ! -s "$LIST_FILE" ]; then
-  echo "ERROR: no Dockerfile.* found in $DOCKER_DIR" >&2
+  echo "ERROR: no registry-driven dockerfile list for $DOCKER_DIR" >&2
   exit 2
 fi
 

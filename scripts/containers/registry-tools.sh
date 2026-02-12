@@ -8,6 +8,14 @@ if ! ./bin/require-isolate >/dev/null 2>&1; then
   exec ./bin/isolate "$0" "$@"
 fi
 
+require_cmd() {
+  name="$1"
+  if ! command -v "$name" >/dev/null 2>&1; then
+    echo "ERROR: required command '$name' not found in PATH" >&2
+    exit 127
+  fi
+}
+
 cmd="${1:-}"
 case "$cmd" in
   list-tools)
@@ -47,7 +55,16 @@ case "$cmd" in
         exit 2
         ;;
     esac
-    cargo run --bin bijux-dna -- registry list-tools | paste -sd, -
+    require_cmd jq
+    cargo run --bin bijux-dna -- registry export-containers --json \
+      | jq -r --arg runtime "$runtime" '
+          .containers
+          | map(select((.runtimes // []) | index($runtime)))
+          | map(.tool_id)
+          | unique
+          | .[]
+        ' \
+      | paste -sd, -
     ;;
   *)
     echo "unknown command: $cmd" >&2
