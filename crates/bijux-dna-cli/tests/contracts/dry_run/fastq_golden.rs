@@ -1,62 +1,4 @@
 use bijux_dna::commands::run_with_args;
-use serde_json::Value;
-
-fn scrub_paths(value: &mut Value, root: &str) {
-    match value {
-        Value::String(s) => {
-            if s.contains(root) {
-                *s = s.replace(root, "<temp>");
-            }
-            if let Some(idx) = s.find("bench/") {
-                *s = s[idx..].to_string();
-            } else if let Some(idx) = s.find("run_artifacts/") {
-                *s = s[idx..].to_string();
-            }
-            if s.contains("artifacts/isolates/") && s.contains('/') {
-                let trimmed = s.trim_end_matches('/');
-                if let Some(name) = trimmed.rsplit('/').next() {
-                    *s = name.to_string();
-                }
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                scrub_paths(item, root);
-            }
-        }
-        Value::Object(map) => {
-            for value in map.values_mut() {
-                scrub_paths(value, root);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn normalize_json(value: &mut Value) {
-    match value {
-        Value::Array(items) => {
-            for item in items.iter_mut() {
-                normalize_json(item);
-            }
-            items.sort_by(|a, b| {
-                serde_json::to_string(a)
-                    .expect("serialize")
-                    .cmp(&serde_json::to_string(b).expect("serialize"))
-            });
-            items.dedup_by(|a, b| {
-                serde_json::to_string(a).expect("serialize")
-                    == serde_json::to_string(b).expect("serialize")
-            });
-        }
-        Value::Object(map) => {
-            for value in map.values_mut() {
-                normalize_json(value);
-            }
-        }
-        _ => {}
-    }
-}
 
 #[allow(clippy::too_many_lines)]
 fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
@@ -189,31 +131,10 @@ arch = "x86_64"
     ];
     let err = run_with_args(&args, base).expect_err("fastq command family should be removed");
     assert!(err.to_string().contains("unrecognized subcommand"));
-    return bijux_dna_core::contract::canonical::to_canonical_json_bytes(&serde_json::json!({
+    bijux_dna_core::contract::canonical::to_canonical_json_bytes(&serde_json::json!({
         "removed": "fastq",
     }))
-    .expect("canonical");
-
-    let artifacts_root = out_dir
-        .join("bench")
-        .join("preprocess")
-        .join("sample")
-        .join("run_artifacts");
-    let graph_raw = std::fs::read_to_string(artifacts_root.join("graph.json")).expect("read graph");
-    let manifest_raw =
-        std::fs::read_to_string(out_dir.join("run_manifest.json")).expect("read manifest");
-    let mut graph: Value = serde_json::from_str(&graph_raw).expect("parse graph");
-    let mut manifest: Value = serde_json::from_str(&manifest_raw).expect("parse manifest");
-    let root_str = base.to_str().unwrap_or_default();
-    scrub_paths(&mut graph, root_str);
-    scrub_paths(&mut manifest, root_str);
-    normalize_json(&mut graph);
-    normalize_json(&mut manifest);
-    let payload = serde_json::json!({
-        "graph": graph,
-        "manifest": manifest,
-    });
-    bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical")
+    .expect("canonical")
 }
 
 #[test]
@@ -228,29 +149,5 @@ fn cli_dry_run_output_is_deterministic() {
 
     let payload_a = run_dry_run(&base_a, &out_a);
     let payload_b = run_dry_run(&base_b, &out_b);
-
-    let json_a: Value = serde_json::from_slice(&payload_a).expect("parse payload a");
-    let json_b: Value = serde_json::from_slice(&payload_b).expect("parse payload b");
-
-    let pipeline_a = json_a["graph"]["pipeline_id"].as_str().unwrap_or_default();
-    let pipeline_b = json_b["graph"]["pipeline_id"].as_str().unwrap_or_default();
-    assert_eq!(pipeline_a, pipeline_b);
-
-    let mut steps_a: Vec<String> = json_a["graph"]["steps"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|item| item["step_id"].as_str().map(ToOwned::to_owned))
-        .collect();
-    let mut steps_b: Vec<String> = json_b["graph"]["steps"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|item| item["step_id"].as_str().map(ToOwned::to_owned))
-        .collect();
-    steps_a.sort();
-    steps_b.sort();
-    assert_eq!(steps_a, steps_b);
+    assert_eq!(payload_a, payload_b);
 }
