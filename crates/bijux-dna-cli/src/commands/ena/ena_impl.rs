@@ -413,7 +413,7 @@ fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 fn default_corpus_root(cwd: &Path, species_id: &str, project: &str, corpus_id: &str) -> PathBuf {
-    cwd.join("bijux-dna-data")
+    cwd.join("examples").join("bijux-dna-data")
         .join(species_id)
         .join(project)
         .join(corpus_id)

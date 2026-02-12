@@ -23,7 +23,7 @@ pub fn ensure_apptainer_images(
 
     let root = hpc_root.to_path_buf();
     let containers_root = root.join("bijux-dna-containers");
-    let data_root = root.join("bijux-dna-data");
+    let data_root = root.join("examples").join("bijux-dna-data");
     let results_root = root.join("bijux-dna-results");
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
