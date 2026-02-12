@@ -64,5 +64,5 @@ jobs:
           shared-key: ci-build
       - name: Example schema + dry plan
         run: |
-          cargo run -p bijux-dna -- example validate example-01
-          cargo run -p bijux-dna -- plan example-01
+          cargo run -p bijux-dna -- example validate example-101
+          cargo run -p bijux-dna -- plan example-101

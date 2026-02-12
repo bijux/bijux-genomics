@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.example.plan.v1",
+  "id": "example-XYZ",
+  "deterministic": true
+}
