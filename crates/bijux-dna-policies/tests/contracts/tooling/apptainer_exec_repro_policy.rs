@@ -11,10 +11,10 @@ fn policy__contracts__apptainer_exec_repro_policy__ensure_images_enforces_clean_
 
     let required = [
         "fn run_apptainer_exec(",
-        ".arg(\"exec\")",
-        ".arg(\"--containall\")",
-        ".arg(\"--cleanenv\")",
-        ".arg(\"--bind\")",
+        "apptainer exec",
+        "--containall",
+        "--cleanenv",
+        "--bind",
         "/bijux/input:ro",
         "/bijux/output:rw",
         "/bijux/db:ro",
