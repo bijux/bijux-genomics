@@ -13,6 +13,10 @@ const ALLOWLIST: &[(&str, &str)] = &[
         "runtime resolution probes",
     ),
     ("/crates/bijux-dna-infra/", "filesystem helpers"),
+    (
+        "/crates/bijux-dna-api/src/run.rs",
+        "root CLI orchestration bridge",
+    ),
 ];
 
 const EFFECT_PATTERNS: &[&str] = &[

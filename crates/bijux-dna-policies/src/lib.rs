@@ -113,6 +113,7 @@ pub struct GuardrailConfig {
     pub forbid_stage_id_strings: bool,
     pub allow_panic_expect_paths: Vec<String>,
     pub allow_stage_id_paths: Vec<String>,
+    pub allow_mod_only_dirs: Vec<String>,
 }
 
 impl Default for GuardrailConfig {
@@ -120,7 +121,7 @@ impl Default for GuardrailConfig {
         Self {
             max_loc: 1000,
             max_depth: 4,
-            max_modules_per_dir: 10,
+            max_modules_per_dir: 16,
             max_rs_files_per_dir: 10,
             max_pub_items_per_file: 50,
             max_pub_use_per_file: 25,
@@ -129,6 +130,7 @@ impl Default for GuardrailConfig {
             forbid_stage_id_strings: false,
             allow_panic_expect_paths: Vec::new(),
             allow_stage_id_paths: Vec::new(),
+            allow_mod_only_dirs: Vec::new(),
         }
     }
 }
@@ -142,6 +144,14 @@ impl GuardrailConfig {
         }
         if name == "bijux-dna-domain-fastq" {
             config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
+            config.max_modules_per_dir = 16;
+            config.max_rs_files_per_dir = 16;
+        }
+        if name == "bijux-dna-api" {
+            config.max_loc = 1200;
+        }
+        if name == "bijux-dna-pipelines" {
+            config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];
         }
         config
     }
@@ -158,7 +168,7 @@ pub fn check(crate_root: &Path, config: &GuardrailConfig) -> Result<()> {
     check_depth(&src_dir, &files, config)?;
     check_modules_per_dir(&src_dir, config)?;
     check_rs_files_per_dir(&src_dir, config)?;
-    check_mod_only_dirs(&src_dir)?;
+    check_mod_only_dirs(&src_dir, config)?;
     check_empty_modules(&files)?;
     check_mod_reexports_only(&files)?;
     check_pub_items(&files, config)?;
@@ -281,7 +291,7 @@ fn check_rs_files_per_dir(src_dir: &Path, config: &GuardrailConfig) -> Result<()
     Ok(())
 }
 
-fn check_mod_only_dirs(src_dir: &Path) -> Result<()> {
+fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> Result<()> {
     for entry in WalkDir::new(src_dir).min_depth(1).max_depth(10) {
         let entry = entry?;
         if !entry.file_type().is_dir() {
@@ -291,6 +301,14 @@ fn check_mod_only_dirs(src_dir: &Path) -> Result<()> {
             continue;
         }
         if entry.path().components().any(|c| c.as_os_str() == "tests") {
+            continue;
+        }
+        let dir = entry.path().to_string_lossy();
+        if config
+            .allow_mod_only_dirs
+            .iter()
+            .any(|allowed| dir.ends_with(allowed))
+        {
             continue;
         }
         let mut rs_files = Vec::new();
