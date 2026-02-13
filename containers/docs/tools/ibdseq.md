@@ -4,7 +4,7 @@
 
 Purpose: generated per-tool container contract summary.
 
-- Version: `planned`
+- Version: `3.0`
 - License: `unknown`
 - Runtime support: `none`
 - Smoke status: `unknown`

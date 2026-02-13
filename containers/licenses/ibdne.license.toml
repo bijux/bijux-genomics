@@ -2,8 +2,6 @@
 # owner = bijux-dna-platform
 tool_id = "ibdne"
 container_kind = "bijux"
-spdx = "GPL-3.0"
-upstream_url = "https://faculty.washington.edu/browning/ibdne.shtml"
-redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
-citation = "ibdne upstream project (see upstream_url)."
+license = "GPL-3.0"
+upstream_source = "https://faculty.washington.edu/browning/ibdne.shtml"
 version = "1.0-planned"
