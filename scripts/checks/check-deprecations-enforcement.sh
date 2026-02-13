@@ -58,6 +58,9 @@ today = dt.date.today()
 for row in rows:
     tool = str(row.get("tool_id", "")).strip()
     stage = str(row.get("stage", "")).strip()
+    replacement = str(row.get("replacement", "")).strip()
+    if not replacement:
+        errors.append(f"{dep_path.relative_to(root)}: deprecation entry for tool '{tool}' missing replacement")
     removal_after = parse_date(str(row.get("removal_after", "")).strip())
     if today <= removal_after:
         continue

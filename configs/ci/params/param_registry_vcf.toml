@@ -11,13 +11,46 @@
 stage_id = "vcf.call"
 param_type_id = "bijux.vcf.call.params"
 schema_version = "bijux.vcf.params.v1"
+params = []
 
 [[params]]
 stage_id = "vcf.filter"
 param_type_id = "bijux.vcf.filter.params"
 schema_version = "bijux.vcf.params.v1"
+params = []
 
 [[params]]
 stage_id = "vcf.stats"
 param_type_id = "bijux.vcf.stats.params"
 schema_version = "bijux.vcf.params.v1"
+params = []
+
+[[params]]
+stage_id = "vcf.call_gl"
+param_type_id = "bijux.vcf.call_gl.params"
+schema_version = "bijux.vcf.params.v1"
+params = []
+
+[[params]]
+stage_id = "vcf.call_diploid"
+param_type_id = "bijux.vcf.call_diploid.params"
+schema_version = "bijux.vcf.params.v1"
+params = []
+
+[[params]]
+stage_id = "vcf.call_pseudohaploid"
+param_type_id = "bijux.vcf.call_pseudohaploid.params"
+schema_version = "bijux.vcf.params.v1"
+params = []
+
+[[params]]
+stage_id = "vcf.damage_filter"
+param_type_id = "bijux.vcf.damage_filter.params"
+schema_version = "bijux.vcf.params.v1"
+params = []
+
+[[params]]
+stage_id = "vcf.gl_propagation"
+param_type_id = "bijux.vcf.gl_propagation.params"
+schema_version = "bijux.vcf.params.v1"
+params = []
