@@ -6,7 +6,10 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../../" && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-OUT="${1:-$ROOT_DIR/docs/00-intro/REPO_ROOT_MAP.md}"
+OUT="${1:-$ROOT_DIR/docs/00-intro/REPO_ROOT_MAP.generated.md}"
+
+# Enforce script intent contracts before generating the map.
+./scripts/run.sh checks tree-intent >/dev/null
 
 python3 - <<'PY' "$ROOT_DIR" "$OUT"
 from pathlib import Path
@@ -57,6 +60,19 @@ for p in sorted(root.iterdir()):
                 break
     rows.append((rel, kind, owner_for(f'{rel}/' if kind=='dir' else rel), purpose))
 
+script_rows = []
+scripts_dir = root / "scripts"
+if scripts_dir.exists():
+    for d in sorted(p for p in scripts_dir.iterdir() if p.is_dir()):
+        readme = d / "README.md"
+        purpose = "-"
+        if readme.exists():
+            for line in readme.read_text(encoding="utf-8").splitlines():
+                if line.startswith("Purpose:"):
+                    purpose = line.split(":", 1)[1].strip()
+                    break
+        script_rows.append((d.relative_to(root).as_posix(), purpose))
+
 lines = [
     '<!-- GENERATED FILE - DO NOT EDIT -->',
     '<!-- Regenerate with: scripts/tooling/generate-repo-root-map.sh -->',
@@ -74,13 +90,22 @@ lines = [
     '',
     '## Contracts',
     '- Ownership for config paths is sourced from `configs/OWNERS.toml`.',
-    '- Script subtree intent is validated by `scripts/checks/tree-intent.sh`.',
+    '- Script subtree intent is sourced from README `Purpose:` lines validated by `scripts/checks/tree-intent.sh`.',
     '',
     '| Path | Kind | Owner | Purpose |',
     '|---|---|---|---|',
 ]
 for rel, kind, owner, purpose in rows:
     lines.append(f'| `{rel}` | `{kind}` | `{owner}` | {purpose} |')
+
+lines.extend([
+    '',
+    '## Script Intent',
+    '| Script Path | Purpose |',
+    '|---|---|',
+])
+for rel, purpose in script_rows:
+    lines.append(f'| `{rel}` | {purpose} |')
 
 out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
 print(f'generated {out}')
