@@ -20,6 +20,7 @@ lint:
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
 	./scripts/run.sh checks check-config-headers
+	./scripts/run.sh checks check-config-schema
 	./scripts/run.sh checks check-config-owners
 	./scripts/run.sh checks check-species-aliases
 	./scripts/run.sh checks check-bench-knobs

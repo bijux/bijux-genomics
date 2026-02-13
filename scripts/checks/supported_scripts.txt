@@ -13,6 +13,7 @@ scripts/checks/check-config-filenames.sh
 scripts/checks/check-config-headers.sh
 scripts/checks/check-config-layout.sh
 scripts/checks/check-config-owners.sh
+scripts/checks/check-config-schema.sh
 scripts/checks/check-exit-codes.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
