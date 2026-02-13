@@ -1055,3 +1055,43 @@ purpose = "domain script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "examples_generate_index"
+path = "scripts/examples/generate-index.sh"
+purpose = "examples script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "examples_check_index"
+path = "scripts/examples/check-index.sh"
+purpose = "examples script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "examples_run"
+path = "scripts/examples/run.sh"
+purpose = "examples script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_examples_structure"
+path = "scripts/checks/check-examples-structure.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_examples_corpus_manifests"
+path = "scripts/checks/check-examples-corpus-manifests.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true

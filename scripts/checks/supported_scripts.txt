@@ -18,6 +18,8 @@ scripts/checks/check-config-layout.sh
 scripts/checks/check-config-owners.sh
 scripts/checks/check-config-schema.sh
 scripts/checks/check-exit-codes.sh
+scripts/checks/check-examples-corpus-manifests.sh
+scripts/checks/check-examples-structure.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
 scripts/checks/check-hpc-safety.sh
@@ -66,6 +68,9 @@ scripts/docs/check-root-pollution.sh
 scripts/domain/inventory-drift.sh
 scripts/domain/lock-registry.sh
 scripts/domain/validate.sh
+scripts/examples/check-index.sh
+scripts/examples/generate-index.sh
+scripts/examples/run.sh
 scripts/hpc/lunarc/pull.sh
 scripts/hpc/lunarc/push.sh
 scripts/lab/run_bench.sh

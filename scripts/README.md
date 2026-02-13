@@ -7,6 +7,7 @@ Allowed subdirectories:
 - `scripts/containers`: Docker/Apptainer build, lint, and smoke operations.
 - `scripts/docs`: docs validation/generation entrypoints.
 - `scripts/domain`: domain validation and drift checks.
+- `scripts/examples`: examples index, checks, and runner entrypoints.
 - `scripts/hpc`: cluster-specific operational helpers.
 - `scripts/lab`: manual lab workflow entrypoints.
 - `scripts/smoke`: local smoke entrypoints via `scripts/smoke/run.sh`.
