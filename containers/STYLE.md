@@ -39,3 +39,11 @@ Use this section order:
 - Pin all fetched sources to immutable commits/digests.
 - Do not rely on floating branches/tags at build time.
 - Keep build metadata in labels, not only comments.
+
+## Docker Base Image Policy
+Allowed base repositories (must still be digest pinned):
+- `ubuntu` for general compiled-tool images.
+- `python` for Python-first toolchains.
+- `quay.io/biocontainers/bcftools` for the bcftools compatibility path.
+
+Any other Docker base requires policy update in this file and matching lint update in `scripts/containers/lint.sh`.
