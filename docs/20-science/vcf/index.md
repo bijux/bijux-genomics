@@ -2,3 +2,4 @@
 
 - `ROADMAP.md`
 - `IMPUTATION_SCOPE.md`
+- `IMPUTATION_METHODS.md`
