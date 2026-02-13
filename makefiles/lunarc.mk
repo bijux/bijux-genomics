@@ -23,6 +23,14 @@ _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 
 push-lunarc: _push-lunarc ## Public alias for pushing repo to Lunarc
 
+push-lunarc-confirm: ## Push repo to Lunarc (executes --confirm)
+	@LUNARC_HOST="$(LUNARC_HOST)" \
+	LUNARC_ROOT="$(LUNARC_ROOT)" \
+	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
+	CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
+	ALLOW_DIRTY="$(ALLOW_DIRTY)" \
+	./scripts/run.sh hpc lunarc/push --confirm
+
 _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: results)
 	@LUNARC_HOST="$(LUNARC_HOST)" \
 	LUNARC_ROOT="$(LUNARC_ROOT)" \
@@ -86,4 +94,4 @@ apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-luna
 		"$(LUNARC_LOCAL_APPTAINER_DIR)/"
 	@echo "pulled_to=$(LUNARC_LOCAL_APPTAINER_DIR)"
 
-.PHONY: _push-lunarc push-lunarc _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull
+.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull
