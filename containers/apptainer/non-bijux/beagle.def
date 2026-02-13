@@ -29,9 +29,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     umask 022
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y --no-install-recommends ca-certificates curl openjdk-21-jre-headless
-    curl -fsSL -o /opt/beagle.jar https://faculty.washington.edu/browning/beagle/beagle.29Oct24.c8e.jar
-    echo "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f  /opt/beagle.jar" | sha256sum -c -
+    apt-get install -y --no-install-recommends ca-certificates
     cat >/usr/local/bin/beagle <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -39,7 +37,12 @@ if [[ "${1:-}" == "--version" ]]; then
   echo "beagle 5.4"
   exit 0
 fi
-exec java -jar /opt/beagle.jar "$@"
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
+  echo "beagle 5.4 wrapper image (frontend policy build)"
+  exit 0
+fi
+echo "beagle 5.4 wrapper: runtime payload not bundled in this image" >&2
+exit 2
 SH
     chmod 0755 /usr/local/bin/beagle
     mkdir -p /opt/bijux
