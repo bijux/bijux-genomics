@@ -18,6 +18,11 @@ Fields:
 - `platforms.<id>.default`: optional boolean; at most one platform can be marked default.
 - `platforms.<id>.notes`: optional human-readable rationale for platform selection constraints.
 
+## Files
+- `configs/runtime/platforms.toml`
+- `configs/runtime/species_aliases.toml`
+- `configs/runtime/profiles/index.md`
+
 ## profiles/ Layout
 - Path: `configs/runtime/profiles/<profile>.toml`
 - Purpose: composable runtime execution profiles selected by profile name (for example `local`, `hpc`).

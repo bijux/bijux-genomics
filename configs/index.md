@@ -11,6 +11,13 @@
 - `configs/bench/`: benchmark suite and benchmark profile configuration.
 - `configs/runtime/`: runtime defaults and platform/local runtime knobs.
 - `configs/schema/`: schema-oriented config docs or schema descriptors.
+- `configs/domain/`: domain policy/config mappings.
+- `configs/docs/`: docs toolchain pins.
+- `configs/hpc/`: HPC sync and transfer profiles.
+- `configs/lab/`: local-lab contract examples.
+
+## Root Files
+- `configs/OWNERS.toml`
 
 ## Rules
 - No random config files are allowed directly under `configs/`.

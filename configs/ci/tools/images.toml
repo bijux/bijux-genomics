@@ -4,6 +4,10 @@
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
+# purpose = Contract config for configs/ci/tools/images.toml
+# authority = bijux-dna-domain-compiler
+# stability = stable
+# last_updated = 2026-02-13
 
 [adapterremoval]
 version = "latest-pinned"

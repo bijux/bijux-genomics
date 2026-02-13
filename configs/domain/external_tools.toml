@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
+# purpose = Contract config for configs/domain/external_tools.toml
+# authority = bijux-dna-domain-compiler
+# stability = stable
+# last_updated = 2026-02-13
 
 [non_container_tools]
 gatk = "planned external tool; unshipped in current container policy"

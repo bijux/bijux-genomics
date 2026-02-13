@@ -1,0 +1,25 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.imputation"
+status: "planned"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "imputation_out"
+    data_type: "json"
+    cardinality: "One"
+required_inputs: ["vcf"]
+required_outputs: ["imputation_out"]
+metrics:
+  - name: "imputation_status"
+compatible_tools: ["bcftools"]
+single_tool_justification: "Planned stage baseline; additional tools enter via downstream registry promotion."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions: ["planned_stage"]
+bank_hooks: ["none"]
+invariants: ["stable_artifact_contract"]
+allowed_missingness: []
+planned_out_of_scope: ["full scientific validation pending downstream admission"]

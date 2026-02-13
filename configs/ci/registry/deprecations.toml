@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-policies
+# purpose = Contract config for configs/ci/registry/deprecations.toml
+# authority = bijux-dna-policies
+# stability = stable
+# last_updated = 2026-02-13
 
 [[deprecations]]
 tool_id = "bamtools"

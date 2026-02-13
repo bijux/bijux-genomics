@@ -4,6 +4,10 @@
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
+# purpose = Contract config for configs/ci/stages/stages.toml
+# authority = bijux-dna-domain-compiler
+# stability = stable
+# last_updated = 2026-02-13
 
 [[stages]]
 id = "bam.align"
@@ -625,4 +629,3 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
-
