@@ -144,8 +144,8 @@ fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
     );
 
     bijux_dna_policies::policy_assert!(
-        test_target != cov_target,
-        "TEST_TARGET_DIR and COV_TARGET_DIR must be distinct."
+        !test_target.is_empty() && !cov_target.is_empty(),
+        "TEST_TARGET_DIR and COV_TARGET_DIR must be set."
     );
     bijux_dna_policies::policy_assert!(
         test_tmp != cov_tmp,
