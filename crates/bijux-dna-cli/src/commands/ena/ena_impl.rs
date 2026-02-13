@@ -453,7 +453,7 @@ fn normalize_species(cwd: &Path, raw: &str) -> Result<SpeciesIdentity> {
 }
 
 fn load_species_aliases(cwd: &Path) -> Result<BTreeMap<String, String>> {
-    let path = cwd.join("configs").join("species_aliases.toml");
+    let path = bijux_dna_infra::configs_file(&cwd, "runtime/species_aliases.toml");
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let toml_value: toml::Value =
         toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;

@@ -149,7 +149,7 @@ pub fn run_example(cwd: &Path, id: &str, hpc_mode: bool) -> Result<()> {
 
     let stage_domain = spec.stage_1.split('.').next().unwrap_or("fastq").to_string();
     let _ensure_report = crate::commands::cli::env::ensure_apptainer_images(
-        &cwd.join("configs").join("tool_registry.toml"),
+        &bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"),
         &hpc_root,
         &stage_domain,
         &spec.stage_1,
@@ -668,7 +668,7 @@ fn normalize_species_id_for_path(cwd: &Path, raw: &str) -> Result<String> {
 }
 
 fn resolve_species_alias(cwd: &Path, raw: &str) -> Result<String> {
-    let path = cwd.join("configs").join("species_aliases.toml");
+    let path = bijux_dna_infra::configs_file(&cwd, "runtime/species_aliases.toml");
     let input = raw.trim();
     let input_key = input.to_ascii_lowercase();
     let raw_toml = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -694,7 +694,7 @@ fn load_example(cwd: &Path, id: &str) -> Result<(ExampleSpec, PathBuf)> {
 }
 
 fn stage_exists_in_registry(cwd: &Path, stage_id: &str) -> Result<bool> {
-    let raw = fs::read_to_string(cwd.join("configs").join("tool_registry.toml"))?;
+    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"))?;
     let doc: toml::Value = toml::from_str(&raw)?;
     let Some(stages) = doc.get("stages").and_then(toml::Value::as_array) else {
         return Ok(false);
@@ -707,7 +707,7 @@ fn stage_exists_in_registry(cwd: &Path, stage_id: &str) -> Result<bool> {
 }
 
 fn primary_tool_for_stage(cwd: &Path, stage_id: &str) -> Option<String> {
-    let raw = fs::read_to_string(cwd.join("configs").join("tool_registry.toml")).ok()?;
+    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml")).ok()?;
     let doc: toml::Value = toml::from_str(&raw).ok()?;
     let stages = doc.get("stages")?.as_array()?;
     let row = stages.iter().find(|row| {
@@ -806,7 +806,7 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "unknown".to_string());
 
-    let registry_raw = fs::read_to_string(cwd.join("configs").join("tool_registry.toml"))
+    let registry_raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"))
         .unwrap_or_else(|_| String::new());
     let mut hasher = sha2::Sha256::new();
     hasher.update(registry_raw.as_bytes());

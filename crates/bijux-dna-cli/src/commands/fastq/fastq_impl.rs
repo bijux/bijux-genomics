@@ -539,12 +539,12 @@ pub(crate) fn handle_meta_commands(
             match command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     print_env_registry_list(&registry_path)?;
                 }
                 EnvCommand::ExportJson => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     print_env_export_json(&registry_path)?;
                 }
                 EnvCommand::ExportContainers { json } => {
@@ -552,7 +552,7 @@ pub(crate) fn handle_meta_commands(
                         return Err(anyhow!("environment export-containers requires --json"));
                     }
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     crate::commands::cli::env::print_registry_export_containers_json(
                         &registry_path,
                     )?;
@@ -576,7 +576,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 EnvCommand::EnsureImages(args) => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     let hpc_root = args.hpc_root.clone().map_or_else(
                         || {
                             crate::commands::hpc::load_hpc_config()
@@ -634,7 +634,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 EnvCommand::Ensure(args) => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     let domain = crate::commands::cli::env::parse_stage_domain(&args.stage)?;
                     let hpc_root = args.hpc_root.clone().map_or_else(
                         || {
@@ -680,7 +680,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 EnvCommand::Smoke(args) => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     if let Some(stage) = args.stage.as_deref() {
                         run_env_smoke_for_stage(&registry_path, &args.runtime, stage)?;
                     } else if let Some(tool) = args.tool.as_deref() {
@@ -693,7 +693,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 EnvCommand::Prep(args) => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
                     run_env_prep(
                         &registry_path,
                         &args.runtime,
