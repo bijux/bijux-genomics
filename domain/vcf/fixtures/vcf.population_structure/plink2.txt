@@ -2,8 +2,8 @@ tool=plink2
 tool_version=pinned
 stage=vcf.population_structure
 domain=vcf
-fixture_kind=planned
+fixture_kind=parity
 command=plink2
 args=--pca approx --vcf cohort.vcf.gz --out pop_struct
-expected_outputs=population_structure_report
-expected_stdout_patterns=plink2
+expected_outputs=population_structure_report,metrics.json
+expected_stdout_patterns=plink2,metrics_schema=bijux.vcf.population_structure.v1
