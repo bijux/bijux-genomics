@@ -1983,3 +1983,19 @@ purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "run_apptainer_frontend_security"
+path = "scripts/containers/run-apptainer-frontend-security.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/apptainer_security_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/vuln_allowlist.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_frontend_security"
+path = "scripts/containers/check-apptainer-frontend-security.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/apptainer_security_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
