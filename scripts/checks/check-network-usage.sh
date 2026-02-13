@@ -45,6 +45,18 @@ while IFS=$'\t' read -r rel net; do
   fi
 done < <(parse_network_allowed "$SPEC")
 
+# Also enforce for script files not listed in SUPPORTED (except experimental).
+while IFS= read -r abs; do
+  [[ -n "$abs" ]] || continue
+  rel="${abs#$ROOT_DIR/}"
+  [[ "$rel" == scripts/experimental/* ]] && continue
+  if ! rg -n "^path = \"$rel\"$" "$SPEC" >/dev/null 2>&1; then
+    if rg -n '\bcurl\b|\bwget\b|git[[:space:]]+clone\b' "$abs" >/dev/null 2>&1; then
+      viol+=("$rel uses network command(s) but is not declared in scripts/SUPPORTED.toml with network_allowed=true")
+    fi
+  fi
+done < <(find "$ROOT_DIR/scripts" -type f -name '*.sh' | sort)
+
 if [[ ${#viol[@]} -gt 0 ]]; then
   echo "check-network-usage: violations found:" >&2
   printf '%s\n' "${viol[@]}" >&2
