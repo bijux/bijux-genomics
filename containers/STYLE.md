@@ -21,6 +21,17 @@ Use this section order, with section comments in this sequence:
 5. Runtime wrapper or entrypoint
 6. Smoke/default command (`CMD` or documented equivalent)
 
+## Docker Security And Repro Policy
+- Forbidden: `curl | bash`, `wget | sh`, or equivalent pipe-to-shell installers.
+- Require digest-pinned `FROM` base image.
+- APT strategy:
+  - Prefer pinned package versions where practical.
+  - At minimum, base image digest pinning is mandatory and package installation must be explicit.
+- Prefer non-root runtime (`USER` non-root). If not feasible, document in `containers/docker/NONROOT_EXCEPTIONS.md`.
+- Prefer JSON `ENTRYPOINT` to the tool binary and JSON `CMD` defaulting to `--help` or `--version`.
+  - Temporary exceptions must be documented in `containers/docker/ENTRYPOINT_EXCEPTIONS.md`.
+- Healthcheck is optional. If present, it must be deterministic and lightweight (typically `--version`), with explicit `--interval` and `--timeout`.
+
 ## Apptainer Definition Section Order
 Use this section order:
 1. Header comment + `Bootstrap`/`From`
