@@ -48,6 +48,7 @@ Top-level workspace paths only.
 | `scripts/containers` | container runtime build/lint/smoke entrypoints. |
 | `scripts/docs` | docs checks and documentation tooling entrypoints. |
 | `scripts/domain` | domain schema validation and drift detection. |
+| `scripts/examples` | generate, validate, and run curated repository examples. |
 | `scripts/experimental` | quarantined non-supported scripts not called from make/CI. |
 | `scripts/hpc` | HPC-specific operational scripts. |
 | `scripts/lab` | manual lab runs and benchmark orchestration. |

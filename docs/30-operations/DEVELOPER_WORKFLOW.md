@@ -17,9 +17,10 @@ CI enforces these commands via `make` and policy tests.
 ```bash
 ./bin/isolate make fmt
 ./bin/isolate make lint
+./bin/isolate make audit
 ./bin/isolate make test
-./bin/isolate make policy-fast
-./bin/isolate make policy-full
+./bin/isolate make coverage
+./bin/isolate make ci
 ```
 
 Outputs:

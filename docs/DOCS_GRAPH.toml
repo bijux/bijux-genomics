@@ -24,7 +24,6 @@ children = [
   "docs/00-intro/QUICKSTART.md",
   "docs/00-intro/REFUSALS.md",
   "docs/00-intro/REPO_ROOT_MAP.generated.md",
-  "docs/00-intro/REPO_ROOT_MAP.md",
   "docs/00-intro/SCOPE.md",
   "docs/00-intro/WHAT_IS_BIJUX.md",
 ]
@@ -57,6 +56,7 @@ children = [
 [[edge]]
 from = "docs/20-science/index.md"
 children = [
+  "docs/20-science/DOMAIN_COVERAGE.generated.md",
   "docs/20-science/PUBLICATION_ASSETS.md",
   "docs/20-science/SCIENTIFIC_DECISIONS.md",
   "docs/20-science/SCIENTIFIC_DEFAULTS.md",
@@ -65,6 +65,7 @@ children = [
   "docs/20-science/VALIDITY_LIMITS.md",
   "docs/20-science/bam/index.md",
   "docs/20-science/fastq/index.md",
+  "docs/20-science/vcf/index.md",
 ]
 
 [[edge]]
@@ -93,6 +94,12 @@ children = [
   "docs/20-science/fastq/STAGE_CATALOG.md",
   "docs/20-science/fastq/STAGE_TAXONOMY.md",
   "docs/20-science/fastq/TOOLS_ROSTER.md",
+]
+
+[[edge]]
+from = "docs/20-science/vcf/index.md"
+children = [
+  "docs/20-science/vcf/ROADMAP.md",
 ]
 
 [[edge]]
