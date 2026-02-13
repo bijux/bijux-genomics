@@ -689,6 +689,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "docs_build"
+path = "scripts/tooling/docs-build.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "config_inventory"
 path = "scripts/tooling/config-inventory.sh"
 purpose = "tooling script"

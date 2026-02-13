@@ -88,6 +88,7 @@ scripts/tooling/ci-test.sh
 scripts/tooling/clean-docs.sh
 scripts/tooling/config-inventory.sh
 scripts/tooling/coverage_summary.sh
+scripts/tooling/docs-build.sh
 scripts/tooling/generate-apptainer-qa-matrix.sh
 scripts/tooling/generate-compatibility-matrix.sh
 scripts/tooling/generate-config-tree-snapshot.sh
