@@ -1,3 +1,6 @@
 tool=angsd
 stage=bam.genotyping
+domain=bam
 fixture_kind=synthetic_truth
+args=
+expected_outputs=contract_artifacts

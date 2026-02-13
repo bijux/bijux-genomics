@@ -2,3 +2,5 @@ tool=flash2
 stage=fastq.merge
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

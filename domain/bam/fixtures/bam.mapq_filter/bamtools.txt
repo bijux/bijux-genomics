@@ -1,1 +1,6 @@
-bamtools mapq filter fixture
+tool=mapq
+stage=bam.mapq_filter
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

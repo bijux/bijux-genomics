@@ -1,1 +1,6 @@
-vcf.call bcftools truth fixture
+tool=bcftools
+stage=vcf.call
+domain=vcf
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

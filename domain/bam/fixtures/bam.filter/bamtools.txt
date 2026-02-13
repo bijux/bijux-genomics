@@ -2,3 +2,5 @@ tool=bamtools
 stage=bam.filter
 domain=bam
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

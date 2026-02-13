@@ -1,1 +1,6 @@
-samtools endogenous content fixture
+tool=endogenous
+stage=bam.endogenous_content
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

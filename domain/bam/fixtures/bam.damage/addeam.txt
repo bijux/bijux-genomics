@@ -2,3 +2,5 @@ tool=addeam
 stage=bam.damage
 domain=bam
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

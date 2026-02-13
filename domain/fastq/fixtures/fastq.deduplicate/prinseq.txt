@@ -1,3 +1,6 @@
 tool=prinseq
 stage=fastq.deduplicate
+domain=fastq
 fixture_kind=synthetic_truth
+args=
+expected_outputs=contract_artifacts

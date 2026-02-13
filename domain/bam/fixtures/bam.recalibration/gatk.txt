@@ -1,3 +1,6 @@
 tool=gatk
 stage=bam.recalibration
+domain=bam
 fixture_kind=synthetic_truth
+args=
+expected_outputs=contract_artifacts

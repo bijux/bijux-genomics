@@ -2,3 +2,5 @@ tool=fastp
 stage=fastq.detect_adapters
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

@@ -1,2 +1,6 @@
 tool=diamond
-status=planned
+stage=fastq.screen
+domain=fastq
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

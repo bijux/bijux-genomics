@@ -2,3 +2,5 @@ tool=seqfu
 stage=fastq.stats_neutral
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

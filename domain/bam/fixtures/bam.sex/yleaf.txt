@@ -2,3 +2,5 @@ tool=yleaf
 stage=bam.sex
 domain=bam
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

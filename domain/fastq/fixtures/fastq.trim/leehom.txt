@@ -2,3 +2,5 @@ tool=leehom
 stage=fastq.trim
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

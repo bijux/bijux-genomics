@@ -2,3 +2,5 @@ tool=angsd
 stage=bam.kinship
 domain=bam
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

@@ -2,3 +2,5 @@ tool=bedtools
 stage=bam.validate
 domain=bam
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

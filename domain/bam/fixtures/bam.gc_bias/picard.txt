@@ -1,1 +1,6 @@
-picard gc bias fixture
+tool=gc
+stage=bam.gc_bias
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

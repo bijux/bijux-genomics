@@ -2,3 +2,5 @@ tool=star
 stage=fastq.prepare_reference
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts
