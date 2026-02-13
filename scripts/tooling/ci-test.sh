@@ -22,7 +22,7 @@ nextest_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
 ./scripts/checks/check-ssot-guardrails.sh
 command -v cargo-nextest >/dev/null 2>&1 || { echo 'missing required tool: cargo-nextest'; echo 'install once: cargo install cargo-nextest --locked'; exit 1; }
 chmod -R a-w assets
-trap 'chmod -R u+w assets' EXIT
+trap 'chmod -R u+w assets; chmod -R go-w assets' EXIT
 export TZ=UTC LC_ALL=C
 export TEST_TARGET_DIR=\"\$ISO_ROOT/target-test\"
 export COV_TARGET_DIR=\"\$ISO_ROOT/target-cov\"
