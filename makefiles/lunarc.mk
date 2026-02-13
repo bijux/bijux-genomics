@@ -56,7 +56,11 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
 
 apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc frontend
-	@$(MAKE) _push-lunarc
+	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+		$(MAKE) _push-lunarc; \
+	else \
+		echo "skip push: current directory is not a git worktree"; \
+	fi
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
