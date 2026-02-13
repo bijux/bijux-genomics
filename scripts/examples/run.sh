@@ -107,7 +107,6 @@ write_json_sorted_file "$art_dir/report.json" <<JSON
 {
   "example_id": "$example_id",
   "corpus_id": "$corpus_id",
-  "iso_run_id": "$iso_run_id",
   "source": "${example_dir#"$ROOT_DIR/"}",
   "status": "ok"
 }
