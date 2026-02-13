@@ -38,6 +38,8 @@ mod mod_contracts_tooling_assets_scope_policy_rs;
 mod mod_contracts_tooling_authenticct_container_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
 mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
+#[path = "contracts/tooling/bench_layout_policy.rs"]
+mod mod_contracts_tooling_bench_layout_policy_rs;
 #[path = "contracts/tooling/benchmark_suite_support_policy.rs"]
 mod mod_contracts_tooling_benchmark_suite_support_policy_rs;
 #[path = "contracts/tooling/binding_decision_record_policy.rs"]
