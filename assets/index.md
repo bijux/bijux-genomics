@@ -17,3 +17,9 @@ A single taxonomy keeps ownership clear, prevents root-level sprawl, and separat
 - Toy data must live under `assets/toy/<dataset-id>/`.
 - Golden artifacts must include deterministic regeneration guidance.
 - Publication folders must include `MANIFEST.toml`.
+- Global rules are enforced by `assets/CONTRACT.md`.
+
+---
+Asset Provenance Footer
+Last regenerated: 2026-02-13
+Regenerate command: `./scripts/run.sh assets refresh-toy && ./scripts/run.sh assets refresh-golden`

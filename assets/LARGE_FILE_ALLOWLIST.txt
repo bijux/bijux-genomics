@@ -1,0 +1,3 @@
+# Relative paths under assets/ allowed to exceed default size threshold.
+assets/reference/contaminants/references/univec.fasta
+assets/reference/contaminants/references/phix174.fasta
