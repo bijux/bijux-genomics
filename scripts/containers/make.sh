@@ -87,6 +87,15 @@ smoke_apptainer_mode() {
   ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_RUN_MODE="${mode}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${out}" sh scripts/containers/smoke-apptainer.sh
 }
 
+run_build_contract() {
+  local tools_csv="$1"
+  if [[ "${container_type}" == "apptainer" ]]; then
+    ./bin/isolate env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
+  else
+    ./bin/isolate env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
+  fi
+}
+
 case "${cmd}" in
   container-runtime-check)
     check_container_type
@@ -160,15 +169,24 @@ case "${cmd}" in
     ./bin/isolate env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
     ;;
   build-images)
-    if [[ "${container_type}" != "docker-arm64" ]]; then
-      echo "skip: build-images is docker-only (CONTAINER_TYPE=${container_type})"
-      exit 0
-    fi
     tools_val="${tools}"
     if [[ -z "${tools_val}" ]]; then
       tools_val="$("${bijux_cmd[@]}" registry list-tools --kind primary | paste -sd, -)"
     fi
-    ./bin/isolate env TOOLS="${tools_val}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
+    run_build_contract "${tools_val}"
+    ;;
+  build-tool)
+    [[ -n "${tools}" ]] || { echo "ERROR: set TOOLS=<tool_id>" >&2; exit 2; }
+    run_build_contract "${tools}"
+    ;;
+  build-all)
+    tools_val="$("${bijux_cmd[@]}" registry list-tools --kind primary | paste -sd, -)"
+    run_build_contract "${tools_val}"
+    ;;
+  build-bundle)
+    [[ -n "${toolkit}" ]] || { echo "ERROR: set TOOLKIT=<bundle-id>" >&2; exit 2; }
+    tools_val="$(resolve_toolkit_tools "$toolkit")"
+    run_build_contract "${tools_val}"
     ;;
   test-images)
     if [[ "${container_type}" == "docker-arm64" ]]; then

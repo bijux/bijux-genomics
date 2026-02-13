@@ -57,6 +57,7 @@ DOCKER_BUILD_NET_ARGS=()
 if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
   DOCKER_BUILD_NET_ARGS=(--network=none)
 fi
+DOCKER_RUN_ENV=(-e TZ=UTC -e LC_ALL=C)
 
 if ! "$DOCKER_BIN" info >/dev/null 2>&1; then
   echo "ERROR: cannot connect to docker daemon via $DOCKER_BIN" >&2
@@ -311,12 +312,12 @@ build_and_smoke_one() {
       exit 1
     fi
     echo "=== [$tool] smoke-bin: $expected_bin"
-    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"; then
+    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"; then
       echo "binary missing in image: $expected_bin"
       exit 1
     fi
     echo "=== [$tool] smoke: $cmd"
-    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
+    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
       cat "$version_output_file"
       echo "version command failed: $cmd"
       exit 1
@@ -334,7 +335,7 @@ build_and_smoke_one() {
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
       set +e
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$help_cmd" >"$help_output_file" 2>&1
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$help_cmd" >"$help_output_file" 2>&1
       help_rc=$?
       set -e
       if [ "$help_rc" -ne "$help_exit_code" ]; then
@@ -348,13 +349,13 @@ build_and_smoke_one() {
         exit 1
       fi
       echo "=== [$tool] healthcheck: $health_cmd"
-      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$health_cmd" >/dev/null 2>&1; then
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$health_cmd" >/dev/null 2>&1; then
         echo "healthcheck failed: $health_cmd"
         exit 1
       fi
       echo "=== [$tool] smoke-minimal: $minimal_cmd (expected_exit=$minimal_exit_code)"
       set +e
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$minimal_cmd" >"$minimal_output_file" 2>&1
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$minimal_cmd" >"$minimal_output_file" 2>&1
       minimal_rc=$?
       set -e
       cat "$minimal_output_file"
@@ -364,7 +365,7 @@ build_and_smoke_one() {
       fi
       echo "=== [$tool] smoke-negative: $negative_cmd (expected_exit=$negative_exit_code)"
       set +e
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$negative_cmd" >"$negative_output_file" 2>&1
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$negative_cmd" >"$negative_output_file" 2>&1
       negative_rc=$?
       set -e
       cat "$negative_output_file"
@@ -377,7 +378,7 @@ build_and_smoke_one() {
         exit 1
       fi
       echo "=== [$tool] self-report: bijux-tool-info"
-      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "bijux-tool-info" >"$self_report_file"; then
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "bijux-tool-info" >"$self_report_file"; then
         echo "self-report command failed: bijux-tool-info"
         exit 1
       fi
@@ -389,20 +390,20 @@ if d.get("tool") != t:
     raise SystemExit("self-report tool mismatch")
 PY
       echo "=== [$tool] runtime-sanity: assets read + ISO_ROOT write"
-      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm -v "$ROOT_DIR/assets/toy:/mnt/toy:ro" -v "${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}:/mnt/iso" --entrypoint sh "$image" -lc "test -r /mnt/toy && mkdir -p /mnt/iso/runtime-sanity && echo '$tool' > /mnt/iso/runtime-sanity/${tool}.docker.txt"; then
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" -v "$ROOT_DIR/assets/toy:/mnt/toy:ro" -v "${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}:/mnt/iso" --entrypoint sh "$image" -lc "test -r /mnt/toy && mkdir -p /mnt/iso/runtime-sanity && echo '$tool' > /mnt/iso/runtime-sanity/${tool}.docker.txt"; then
         echo "runtime sanity failed"
         exit 1
       fi
       if is_downstream_container_tool "$tool"; then
         echo "=== [$tool] provenance: /opt/bijux/VERSION.json"
-        if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"; then
+        if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"; then
           echo "missing provenance file /opt/bijux/VERSION.json"
           exit 1
         fi
       fi
     fi
     image_size_bytes="$("$DOCKER_BIN" image inspect --format '{{.Size}}' "$image" 2>/dev/null | head -n 1 || echo 0)"
-    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
+    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
     packages_hash="$(shasum -a 256 "$sbom_file" | awk '{print $1}')"
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
