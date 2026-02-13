@@ -31,6 +31,10 @@ fn policy__contracts__snapshot_hygiene__no_absolute_paths_or_hostnames() {
                 || trimmed.starts_with("\\Users\\")
                 || trimmed.starts_with("/tmp/")
                 || trimmed.starts_with("C:\\\\")
+                || trimmed.contains("/home/")
+                || trimmed.contains("\\home\\")
+                || trimmed.contains("/private/var/")
+                || trimmed.contains("hostname")
         });
         if bad {
             offenders.push(entry.path().display().to_string());

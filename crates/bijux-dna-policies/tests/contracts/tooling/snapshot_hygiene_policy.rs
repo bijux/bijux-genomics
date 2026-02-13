@@ -23,6 +23,10 @@ fn policy__contracts__snapshot_hygiene_policy__snapshots_avoid_hostnames_and_wal
         r#"\b20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z\b"#,
     )
     .expect("regex");
+    let home_or_user = Regex::new(
+        r#"(/Users/|/home/|\\Users\\|\\home\\|/private/var/|C:\\Users\\|(?i)\b(user(name)?|host(name)?)\b)"#,
+    )
+    .expect("regex");
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&snapshots_root)
         .into_iter()
@@ -35,7 +39,10 @@ fn policy__contracts__snapshot_hygiene_policy__snapshots_avoid_hostnames_and_wal
             continue;
         }
         let content = std::fs::read_to_string(path).unwrap_or_default();
-        if host_or_uri.is_match(&content) || wallclock.is_match(&content) {
+        if host_or_uri.is_match(&content)
+            || wallclock.is_match(&content)
+            || home_or_user.is_match(&content)
+        {
             offenders.push(path.display().to_string());
         }
     }

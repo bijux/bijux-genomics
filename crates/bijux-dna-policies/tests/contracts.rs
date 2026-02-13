@@ -144,6 +144,8 @@ mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 mod mod_contracts_tooling_stage_tool_matrix_policy_rs;
 #[path = "contracts/tooling/stages_output_typing_policy.rs"]
 mod mod_contracts_tooling_stages_output_typing_policy_rs;
+#[path = "contracts/tooling/test_determinism_policy.rs"]
+mod mod_contracts_tooling_test_determinism_policy_rs;
 #[path = "contracts/tooling/tool_registry_completeness.rs"]
 mod mod_contracts_tooling_tool_registry_completeness_rs;
 #[path = "contracts/tooling/tool_registry_reproducibility_policy.rs"]
