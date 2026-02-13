@@ -36,6 +36,7 @@ if not summary.exists():
 
 lock_data = json.loads(lock.read_text(encoding="utf-8"))
 lock_tools = {item.get("tool") for item in lock_data.get("items", [])}
+lock_row = {item.get("tool"): item for item in lock_data.get("items", []) if item.get("tool")}
 
 prod = {}
 for rp in reg_paths:
@@ -78,6 +79,15 @@ for tool, expected_version in sorted(prod.items()):
     declared_version = str(manifest.get("declared_version", "")).strip()
     if declared_version and expected_version and declared_version != expected_version:
         errors.append(f"{tool}: declared_version '{declared_version}' != registry version '{expected_version}'")
+    locked_version = str(lock_row.get(tool, {}).get("version", "")).strip()
+    if locked_version and declared_version and locked_version != declared_version:
+        errors.append(f"{tool}: lock version '{locked_version}' != declared_version '{declared_version}'")
+    version_output = str(manifest.get("version_output", "")).strip()
+    if locked_version and locked_version not in {"0.0.0", "planned", "unknown"}:
+        if not version_output:
+            errors.append(f"{tool}: missing version_output for lock/version comparison")
+        elif locked_version.lower() not in version_output.lower():
+            errors.append(f"{tool}: version_output '{version_output}' does not contain lock version '{locked_version}'")
     digest = str(manifest.get("resolved_image_digest", "")).strip()
     if not digest:
         errors.append(f"{tool}: missing resolved_image_digest in manifest")
