@@ -94,3 +94,80 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__assets_governance_policy__assets_forbid_local_machine_paths() {
+    let root = repo_root();
+    let assets = root.join("assets");
+    let mut offenders = Vec::new();
+    let banned = ["/Users/", "/home/", "C:\\\\Users\\\\", "\\\\Users\\\\"];
+    for entry in WalkDir::new(&assets)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().is_file())
+    {
+        let path = entry.path();
+        let Some(ext) = path.extension().and_then(|e| e.to_str()) else {
+            continue;
+        };
+        if !matches!(
+            ext,
+            "yaml" | "yml" | "json" | "jsonl" | "toml" | "txt" | "md" | "vcf" | "sam" | "fastq"
+        ) {
+            continue;
+        }
+        let raw = std::fs::read_to_string(path).unwrap_or_default();
+        if banned.iter().any(|needle| raw.contains(needle)) {
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "assets must not embed local-machine/PII path literals:\\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets() {
+    let root = repo_root();
+    let mut offenders = Vec::new();
+    let write_markers = [
+        "write(",
+        "create(",
+        "create_dir(",
+        "create_dir_all(",
+        "OpenOptions",
+        "remove_file(",
+        "remove_dir(",
+        "rename(",
+        "copy(",
+    ];
+    for dir in ["crates", "scripts", "makefiles"] {
+        for entry in WalkDir::new(root.join(dir)).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let path = entry.path();
+            let rel = path.strip_prefix(&root).unwrap_or(path);
+            let rel_s = rel.to_string_lossy();
+            let is_testish = rel_s.contains("/tests/")
+                || rel_s.starts_with("scripts/test/")
+                || rel_s.ends_with(".mk");
+            if !is_testish {
+                continue;
+            }
+            let raw = std::fs::read_to_string(path).unwrap_or_default();
+            if raw.contains("assets/")
+                && write_markers.iter().any(|marker| raw.contains(marker))
+            {
+                offenders.push(rel.display().to_string());
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "tests/tooling must not write into assets/ (assets are read-only):\\n{}",
+        offenders.join("\n")
+    );
+}
