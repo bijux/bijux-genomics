@@ -983,3 +983,75 @@ purpose = "domain script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "domain_check_shared_tools"
+path = "scripts/domain/check-shared-tools.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_tool_container_parity"
+path = "scripts/domain/check-tool-container-parity.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_default_settings_docs"
+path = "scripts/domain/check-default-settings-docs.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_fixture_contracts"
+path = "scripts/domain/check-fixture-contracts.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_orphan_files"
+path = "scripts/domain/check-orphan-files.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_doc_links"
+path = "scripts/domain/check-doc-links.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_external_tool_policy"
+path = "scripts/domain/check-external-tool-policy.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_generate_inventory"
+path = "scripts/domain/generate-inventory.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_inventory"
+path = "scripts/domain/check-inventory.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true

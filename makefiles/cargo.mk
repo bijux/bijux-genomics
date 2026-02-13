@@ -29,6 +29,14 @@ lint:
 	./scripts/run.sh domain check-domain-layout
 	./scripts/run.sh domain check-domain-schema
 	./scripts/run.sh domain check-domain-index
+	./scripts/run.sh domain check-shared-tools
+	./scripts/run.sh domain check-tool-container-parity
+	./scripts/run.sh domain check-default-settings-docs
+	./scripts/run.sh domain check-fixture-contracts
+	./scripts/run.sh domain check-orphan-files
+	./scripts/run.sh domain check-doc-links
+	./scripts/run.sh domain check-external-tool-policy
+	./scripts/run.sh domain check-inventory
 	./scripts/run.sh docs check-domain-doc-references
 	./scripts/run.sh docs check-doc-links
 	./scripts/run.sh docs check-docs-graph

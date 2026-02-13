@@ -13,6 +13,14 @@ cd "$repo_root"
 ./scripts/domain/check-domain-layout.sh
 ./scripts/domain/check-domain-schema.sh
 ./scripts/domain/check-domain-index.sh
+./scripts/domain/check-shared-tools.sh
+./scripts/domain/check-tool-container-parity.sh
+./scripts/domain/check-default-settings-docs.sh
+./scripts/domain/check-fixture-contracts.sh
+./scripts/domain/check-orphan-files.sh
+./scripts/domain/check-doc-links.sh
+./scripts/domain/check-external-tool-policy.sh
+./scripts/domain/check-inventory.sh
 
 if ! ./bin/require-isolate >/dev/null 2>&1; then
   exec ./bin/isolate "$0" "$@"
