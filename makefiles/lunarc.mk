@@ -76,6 +76,22 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim || echo "warning: python base pull failed; continuing without local python base SIF"; \
 		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ] && [ -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
+			tmp_def="$$(mktemp /tmp/bijux-python-base.XXXXXX.def)"; \
+			cat > "$$tmp_def" <<EOF; \
+Bootstrap: localimage
+From: $(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends ca-certificates python3 python3-pip
+    rm -rf /var/lib/apt/lists/*
+EOF
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" "$$tmp_def" || true; \
+			rm -f "$$tmp_def"; \
+		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
