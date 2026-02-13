@@ -297,6 +297,7 @@ build_and_smoke_one() {
   declared_version=$(get_registry_field version "$tool")
   image_ref="$image"
   image_digest="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image" 2>/dev/null | head -n 1 || true)"
+  phase="build"
 
   mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   {
@@ -311,11 +312,14 @@ build_and_smoke_one() {
       echo "build failed for $tool"
       exit 1
     fi
+    image_digest="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image" 2>/dev/null | head -n 1 || true)"
+    phase="runtime"
     echo "=== [$tool] smoke-bin: $expected_bin"
     if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"; then
       echo "binary missing in image: $expected_bin"
       exit 1
     fi
+    phase="smoke_mismatch"
     echo "=== [$tool] smoke: $cmd"
     if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
       cat "$version_output_file"
@@ -377,6 +381,7 @@ build_and_smoke_one() {
         echo "negative output does not match expected pattern: $negative_pattern"
         exit 1
       fi
+      phase="runtime"
       echo "=== [$tool] self-report: bijux-tool-info"
       if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "${DOCKER_RUN_ENV[@]}" --entrypoint sh "$image" -lc "bijux-tool-info" >"$self_report_file"; then
         echo "self-report command failed: bijux-tool-info"
@@ -435,6 +440,12 @@ PY
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
+  "smoke_output_paths": {
+    "version": "$(json_escape "$version_output_file")",
+    "help": "$(json_escape "$help_output_file")",
+    "minimal": "$(json_escape "$minimal_output_file")",
+    "negative": "$(json_escape "$negative_output_file")"
+  },
   "minimal_command": "$(json_escape "$minimal_cmd")",
   "minimal_expected_exit_code": $minimal_exit_code,
   "minimal_actual_exit_code": ${minimal_rc:-0},
@@ -472,6 +483,7 @@ JSON
   "tool": "$tool",
   "runtime": "$RUNTIME_NAME",
   "status": "fail",
+  "fail_class": "$(json_escape "$phase")",
   "dockerfile": "$dockerfile_json",
   "base_image": "$base_image_json",
   "image": "$image_json",

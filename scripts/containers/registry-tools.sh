@@ -19,10 +19,10 @@ source "$ROOT_DIR/scripts/_lib/common.sh"
 cmd="${1:-}"
 case "$cmd" in
   list-tools)
-    cargo run --bin bijux-dna -- registry list-tools
+    cargo run --bin bijux -- dna registry list-tools
     ;;
   list-stages)
-    cargo run --bin bijux-dna -- registry list-stages
+    cargo run --bin bijux -- dna registry list-stages
     ;;
   show-tool)
     tool_id="${2:-}"
@@ -30,7 +30,7 @@ case "$cmd" in
       echo "usage: $0 show-tool <tool-id>" >&2
       exit 2
     fi
-    cargo run --bin bijux-dna -- registry show-tool "$tool_id"
+    cargo run --bin bijux -- dna registry show-tool "$tool_id"
     ;;
   stage-tools)
     stage_id="${2:-}"
@@ -39,7 +39,7 @@ case "$cmd" in
       echo "usage: $0 stage-tools <stage-id> [all|primary|optional|validation|reporting]" >&2
       exit 2
     fi
-    cargo run --bin bijux-dna -- registry list-tools --stage "$stage_id" --kind "$kind"
+    cargo run --bin bijux -- dna registry list-tools --stage "$stage_id" --kind "$kind"
     ;;
   tools-by-runtime)
     runtime="${2:-}"
@@ -56,7 +56,7 @@ case "$cmd" in
         ;;
     esac
     require_cmd jq
-    cargo run --bin bijux-dna -- registry export-containers --json \
+    cargo run --bin bijux -- dna registry export-containers --json \
       | jq -r --arg runtime "$runtime" '
           .containers
           | map(select((.runtimes // []) | index($runtime)))
