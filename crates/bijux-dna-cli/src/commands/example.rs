@@ -414,7 +414,7 @@ fn scaffold_one_example(
         let _ = template_root;
     }
 
-    let global_suite_path = cwd.join("bench").join("suites").join(format!("{suite_id}.toml"));
+    let global_suite_path = bijux_dna_infra::bench_suites_dir(cwd).join(format!("{suite_id}.toml"));
     if !global_suite_path.exists() {
         let suite = format!(
             "schema_version = \"bijux.bench-suite.fastq.v1\"\nsuite_id = \"{suite_id}\"\ncorpus = \"{example_id}\"\nrepetitions = 2\n\n[fairness]\nthreads = 16\nmem_gb = 64\ntmp_policy = \"unique-per-run-id\"\ncold_runs = 1\nwarm_runs = 1\n\n[[stages]]\nstage = \"{stage_id}\"\ntools = [\"{primary_tool}\"]\n"

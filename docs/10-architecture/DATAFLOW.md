@@ -21,6 +21,7 @@ Enforced by tests:
 3. Engine → Runner/Runtime: step directories with `tool_invocation.json`, `execution_record.json`.
 4. Runtime → Analyze: `run_manifest.json` + `report.json`.
 5. Analyze → Benchmark: report + summaries.
+6. Benchmark suite specs are sourced from `crates/bijux-dna-bench/bench/suites/`.
 
 Exact file outputs:
 - `run_manifest.json`
