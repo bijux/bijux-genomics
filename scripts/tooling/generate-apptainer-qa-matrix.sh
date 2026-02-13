@@ -75,6 +75,7 @@ for rp in regs:
             'smoke_help_cmd': t.get('smoke_help_cmd', '-'),
             'smoke_minimal_cmd': t.get('smoke_minimal_cmd', '-'),
             'smoke_minimal_exit_code': t.get('smoke_minimal_exit_code', '0'),
+            'smoke_minimal_rationale': t.get('smoke_minimal_rationale', 'minimal command contract'),
             'status': status_from_summary.get(tool, t.get('status', 'unknown')),
             'qa_rule': 'build+smoke required',
         }
@@ -98,14 +99,15 @@ lines = [
     '- Tool row exists iff registry runtimes include `apptainer`.',
     '- `apptainer_def` and smoke command fields are surfaced for QA checks.',
     '',
-    '| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | QA Rule | Status |',
-    '|---|---|---|---|---|---|---|---|',
+    '| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Minimal Rationale | QA Rule | Status |',
+    '|---|---|---|---|---|---|---|---|---|',
 ]
 for tool in sorted(rows):
     r = rows[tool]
     lines.append(
         f"| `{tool}` | `{r['apptainer_def']}` | `{r['smoke_version_cmd']}` | "
         f"`{r['smoke_help_cmd']}` | `{r['smoke_minimal_cmd']}` | `{r['smoke_minimal_exit_code']}` | "
+        f"`{r['smoke_minimal_rationale']}` | "
         f"`{r['qa_rule']}` | `{r['status']}` |"
     )
 
