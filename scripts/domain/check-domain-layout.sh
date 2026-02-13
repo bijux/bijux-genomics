@@ -30,6 +30,7 @@ while IFS= read -r file; do
   case "$rel" in
     domain/*/index.yaml|domain/*/artifacts.yaml|domain/*/metrics.yaml) ok=1 ;;
     domain/*/stages/*.yaml|domain/*/tools/*.yaml) ok=1 ;;
+    domain/*/metrics/_schema.yaml|domain/*/artifacts/_schema.yaml) ok=1 ;;
     domain/*/fixtures/*|domain/*/fixtures/*/*|domain/*/fixtures/*/*/*) ok=1 ;;
     domain/*/docs/*|domain/*/docs/*/*) ok=1 ;;
   esac

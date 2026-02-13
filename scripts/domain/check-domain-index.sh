@@ -117,6 +117,14 @@ for dom_dir in sorted((root / "domain").iterdir()):
         if tid not in declared_tools:
             errors.append(f"{index_path}: tool {tid} listed in tool_ids but missing tools/<tool>.yaml")
 
+    # Reverse coverage: every stage/tool file must appear in index lists (no orphans).
+    for sid in sorted(stage_file_map.keys()):
+        if sid not in stage_ids:
+            errors.append(f"{index_path}: missing stage_id listing for stages file declaring '{sid}'")
+    for tid in sorted(declared_tools):
+        if tid not in tool_ids:
+            errors.append(f"{index_path}: missing tool_id listing for tools file declaring '{tid}'")
+
 if errors:
     print("domain completeness check failed:", file=sys.stderr)
     for err in errors:
