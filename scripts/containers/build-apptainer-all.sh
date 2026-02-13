@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
-export TZ=UTC
-export LC_ALL=C
-
+IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 # Batch-build Apptainer defs in a VM-local writable directory.
 # Sequential by default; optional limited concurrency.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+source "$WORKSPACE_ROOT/scripts/_lib/common.sh"
 
 DEFS_DIR="containers/apptainer"
 VM_OUT_DIR="${HOME}/apptainer-build"
@@ -26,14 +29,6 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
-
-require_cmd() {
-  local cmd="$1"
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "required command not found: $cmd" >&2
-    exit 127
-  fi
-}
 
 require_cmd apptainer
 require_cmd find
@@ -57,8 +52,6 @@ if ! [[ "$JOBS" =~ ^[0-9]+$ ]] || [[ "$JOBS" -lt 1 ]]; then
   exit 2
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VM_OUT_ABS="$(cd "$VM_OUT_DIR" && pwd)"
 if [[ "$VM_OUT_ABS" == "$WORKSPACE_ROOT"* ]]; then
   echo "vm output dir must be outside workspace: $VM_OUT_ABS" >&2

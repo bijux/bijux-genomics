@@ -208,7 +208,7 @@ image-qa: ## Run image QA (docker-arm64 only)
 	./bin/isolate cargo run --bin image_qa -- --platform $(PLATFORM)
 
 containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
-	@BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ./scripts/containers/apptainer_build_all.sh \
+	@BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ./scripts/containers/build-apptainer-all.sh \
 		--defs-dir containers/apptainer \
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
