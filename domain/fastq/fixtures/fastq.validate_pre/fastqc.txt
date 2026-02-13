@@ -2,3 +2,5 @@ tool=fastqc
 stage=fastq.validate_pre
 domain=fastq
 fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

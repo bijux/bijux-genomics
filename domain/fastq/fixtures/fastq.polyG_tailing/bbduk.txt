@@ -1,3 +1,6 @@
 tool=bbduk
-stage=fastq.polyg_tailing
+stage=fastq.polyG_tailing
+domain=fastq
 fixture_kind=synthetic_truth
+args=
+expected_outputs=contract_artifacts

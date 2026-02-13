@@ -1,1 +1,6 @@
-vcf.stats bcftools truth fixture
+tool=bcftools
+stage=vcf.stats
+domain=vcf
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

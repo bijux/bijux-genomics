@@ -1,1 +1,6 @@
-bamutil overlap correction fixture
+tool=overlap
+stage=bam.overlap_correction
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

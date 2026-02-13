@@ -1,1 +1,6 @@
-picard insert size fixture
+tool=insert
+stage=bam.insert_size
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

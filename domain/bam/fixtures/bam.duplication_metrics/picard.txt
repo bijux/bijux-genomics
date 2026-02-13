@@ -1,1 +1,6 @@
-picard duplication metrics fixture
+tool=duplication
+stage=bam.duplication_metrics
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

@@ -1,1 +1,6 @@
-samtools length filter fixture
+tool=length
+stage=bam.length_filter
+domain=bam
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts

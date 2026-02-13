@@ -1,3 +1,6 @@
 tool=fastq-scan
 stage=fastq.overrepresented_sequences
+domain=fastq
 fixture_kind=synthetic_truth
+args=
+expected_outputs=contract_artifacts

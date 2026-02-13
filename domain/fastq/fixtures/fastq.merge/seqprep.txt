@@ -1,2 +1,6 @@
 tool=seqprep
-status=planned
+stage=fastq.merge
+domain=fastq
+fixture_kind=truth
+args=
+expected_outputs=contract_artifacts
