@@ -9,6 +9,7 @@ require_stable_env
 violations="$(
   find "$ROOT_DIR/containers" -type f \( -iname '*version*' -o -iname '*lock*' \) \
     | sed "s#^$ROOT_DIR/##" \
+    | grep -vE '^containers/docs/' \
     | grep -vE '^containers/versions/(versions\.toml|lock\.json|LOCK\.md|index\.md)$' || true
 )"
 if [[ -n "$violations" ]]; then
@@ -30,8 +31,8 @@ generator_path = root / "scripts/containers/generate-version-lock.sh"
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 
 errors = []
-if lock.get("schema_version") != "bijux.container.version_lock.v2":
-    errors.append("lock.json schema_version must be bijux.container.version_lock.v2")
+if lock.get("schema_version") not in {"bijux.container.version_lock.v2", "bijux.container.version_lock.v3"}:
+    errors.append("lock.json schema_version must be bijux.container.version_lock.v2 or v3")
 if lock.get("source") != "containers/versions/versions.toml":
     errors.append("lock.json source must be containers/versions/versions.toml")
 if not str(lock.get("build_date_utc", "")).strip():
