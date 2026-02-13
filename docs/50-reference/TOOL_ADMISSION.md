@@ -38,3 +38,24 @@ A tool is considered admitted only when registry, containers, QA, and docs are a
 ## Failure modes
 - Registry entry without container/smoke coverage causes policy failure.
 - Docs updated without underlying registry/domain updates causes drift and regeneration failure.
+
+## Imputation Tools Admission
+This section applies to VCF downstream imputation/phasing tools such as `beagle`, `glimpse`, `impute5`, `shapeit5`, `eagle`, and `minimac4`.
+
+Acceptance criteria:
+- License clarity:
+  - SPDX-compatible license metadata is recorded and reviewable.
+- Reproducibility:
+  - Tool version is pinned and represented in registry/version lock contracts.
+- Offline build posture:
+  - Build recipe is deterministic and does not rely on implicit runtime downloads.
+- Deterministic versions:
+  - No floating tags/branches (`latest`, `main`, `master`) in admitted configs.
+- CLI stability:
+  - `--help` and version command behavior are contract-checked in smoke policy.
+- Domain contract:
+  - Tool has `domain/vcf/tools/<tool>.yaml` and stage bindings.
+- Fixture contract:
+  - At least one fixture exists for each admitted stage binding.
+- Runtime contract:
+  - Tool is containerized or explicitly marked external with rationale until containerized.
