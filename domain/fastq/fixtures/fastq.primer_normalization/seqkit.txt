@@ -1,0 +1,9 @@
+tool=seqkit
+tool_version=pinned
+stage=fastq.primer_normalization
+domain=fastq
+fixture_kind=truth
+command=seqkit
+args=grep -r -p PRIMER -o normalized.fastq.gz reads.fastq.gz
+expected_outputs=normalized.fastq.gz
+expected_stdout_patterns=contract_ok

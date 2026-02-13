@@ -1,0 +1,10 @@
+tool=dada2
+tool_version=pinned
+stage=fastq.asv_inference
+domain=fastq
+shipping=external
+fixture_kind=truth
+command=Rscript
+args=run_dada2.R reads.fastq.gz asv_table.tsv asv.fasta
+expected_outputs=asv_table.tsv,asv.fasta
+expected_stdout_patterns=contract_ok

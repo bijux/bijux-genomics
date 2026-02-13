@@ -1,0 +1,9 @@
+tool=vsearch
+tool_version=pinned
+stage=fastq.chimera_detection
+domain=fastq
+fixture_kind=truth
+command=vsearch
+args=--uchime_denovo reads.fastq.gz --nonchimeras nonchimera.fastq.gz
+expected_outputs=nonchimera.fastq.gz
+expected_stdout_patterns=contract_ok
