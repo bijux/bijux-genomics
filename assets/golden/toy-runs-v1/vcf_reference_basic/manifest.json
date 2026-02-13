@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "generated_at": "2026-02-13T22:45:50.418877+00:00",
+  "generated_at": "2026-02-13T22:51:48.282922+00:00",
   "inputs_root": "assets/toy/core-v1/vcf",
   "profile_id": "vcf_reference_basic",
   "schema_version": "bijux.toy.run_manifest.v1"
