@@ -53,25 +53,25 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     let legacy_registry = root.join("configs/tools.toml");
     if legacy_registry.exists() {
         offenders.push(format!(
-            "configs/tools.toml is deprecated; use generated configs/ci/tool_registry.toml only: {}",
+            "configs/tools.toml is deprecated; use generated configs/ci/registry/tool_registry.toml only: {}",
             legacy_registry.display()
         ));
     }
-    let registry_path = root.join("configs/ci/tool_registry.toml");
-    let experimental_registry_path = root.join("configs/ci/tool_registry_experimental.toml");
-    let vcf_registry_path = root.join("configs/ci/tool_registry_vcf.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/ci/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/tool_registry.toml");
+    let registry_path = root.join("configs/ci/registry/tool_registry.toml");
+    let experimental_registry_path = root.join("configs/ci/registry/tool_registry_experimental.toml");
+    let vcf_registry_path = root.join("configs/ci/registry/tool_registry_vcf.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
     let experimental_raw = std::fs::read_to_string(&experimental_registry_path)
-        .expect("read configs/ci/tool_registry_experimental.toml");
+        .expect("read configs/ci/registry/tool_registry_experimental.toml");
     let experimental_parsed: toml::Value = experimental_raw
         .parse()
-        .expect("parse configs/ci/tool_registry_experimental.toml");
+        .expect("parse configs/ci/registry/tool_registry_experimental.toml");
     let vcf_raw = std::fs::read_to_string(&vcf_registry_path)
-        .expect("read configs/ci/tool_registry_vcf.toml");
+        .expect("read configs/ci/registry/tool_registry_vcf.toml");
     let vcf_parsed: toml::Value = vcf_raw
         .parse()
-        .expect("parse configs/ci/tool_registry_vcf.toml");
+        .expect("parse configs/ci/registry/tool_registry_vcf.toml");
     let mut tools = as_table_array(&parsed, "tools");
     tools.extend(as_table_array(&experimental_parsed, "tools"));
     tools.extend(as_table_array(&vcf_parsed, "tools"));
@@ -81,7 +81,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         Regex::new(r"git checkout [0-9a-f]{40}").expect("compile git checkout regex");
 
     if tools.is_empty() {
-        offenders.push("configs/ci/tool_registry.toml: missing [[tools]] entries".to_string());
+        offenders.push("configs/ci/registry/tool_registry.toml: missing [[tools]] entries".to_string());
     }
 
     for entry in tools {

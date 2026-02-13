@@ -96,7 +96,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         std::env::set_var("RUST_LOG", level);
     }
     let domain_dir = cwd.join("domain");
-    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
 
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
@@ -425,8 +425,8 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
 
 #[allow(clippy::too_many_lines)]
 fn print_contract_status(cwd: &Path) -> Result<()> {
-    let domains = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/domains.toml"))?;
-    let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/images.toml"))?;
+    let domains = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/registry/domains.toml"))?;
+    let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
     let image_ids = images
         .as_table()
         .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())

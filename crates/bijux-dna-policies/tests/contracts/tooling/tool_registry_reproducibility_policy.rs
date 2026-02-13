@@ -38,7 +38,7 @@ fn str_field<'a>(table: &'a toml::Value, key: &str) -> &'a str {
 fn policy__contracts__tool_registry_reproducibility_policy__production_registry_is_pinned_and_non_floating(
 ) {
     let root = workspace_root();
-    let registry = parse_registry(&root.join("configs/ci/tool_registry.toml"));
+    let registry = parse_registry(&root.join("configs/ci/registry/tool_registry.toml"));
     let tools = tools_by_id(&registry);
     let mut offenders = Vec::new();
 
@@ -128,12 +128,12 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
 fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_present_in_production_registry(
 ) {
     let root = workspace_root();
-    let registry = parse_registry(&root.join("configs/ci/tool_registry.toml"));
+    let registry = parse_registry(&root.join("configs/ci/registry/tool_registry.toml"));
     let tool_ids = tools_by_id(&registry)
         .keys()
         .cloned()
         .collect::<BTreeSet<_>>();
-    let required = parse_registry(&root.join("configs/ci/required_tools.toml"));
+    let required = parse_registry(&root.join("configs/ci/tools/required_tools.toml"));
     let required_tools = required
         .get("required_tools")
         .and_then(toml::Value::as_array)
@@ -159,9 +159,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_p
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_valid_production_tools(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
-        &root.join("configs/ci/tool_registry_experimental.toml"),
+        &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
 
     let mut profiles = Vec::new();
@@ -211,9 +211,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_va
 #[test]
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_readiness_gate() {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
-        &root.join("configs/ci/tool_registry_experimental.toml"),
+        &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
 
     let mut profiles = Vec::new();
@@ -281,9 +281,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_rea
 fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profile_uses_production_tools_only(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
-        &root.join("configs/ci/tool_registry_experimental.toml"),
+        &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
     let profile = bijux_dna_pipelines::fastq::fastq_reference_adna_profile();
     let mut offenders = Vec::new();
@@ -321,20 +321,20 @@ fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profi
 fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract_lock_matches_registry(
 ) {
     let root = workspace_root();
-    let registry_path = root.join("configs/ci/tool_registry.toml");
+    let registry_path = root.join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read(&registry_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", registry_path.display()));
     let mut hasher = sha2::Sha256::new();
     hasher.update(raw);
     let expected_hash = format!("{:x}", hasher.finalize());
-    let lock_path = root.join("configs/ci/tool_registry.lock.sha256");
+    let lock_path = root.join("configs/ci/registry/tool_registry_lock.sha256");
     let actual_hash = std::fs::read_to_string(&lock_path)
         .unwrap_or_else(|err| panic!("read lockfile: {err}"))
         .trim()
         .to_string();
     bijux_dna_policies::policy_assert!(
         actual_hash == expected_hash,
-        "tool digest contract violated: configs/ci/tool_registry.lock.sha256 is stale; update it after tool pin changes"
+        "tool digest contract violated: configs/ci/registry/tool_registry_lock.sha256 is stale; update it after tool pin changes"
     );
 }
 
@@ -344,8 +344,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
     let root = workspace_root();
     let mut offenders = Vec::new();
     for rel in [
-        "configs/ci/tool_registry.toml",
-        "configs/ci/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
     ] {
         let registry = parse_registry(&root.join(rel));
         for (id, tool) in tools_by_id(&registry) {
@@ -371,8 +371,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
     let root = workspace_root();
     let mut offenders = Vec::new();
     for rel in [
-        "configs/ci/tool_registry.toml",
-        "configs/ci/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
     ] {
         let registry = parse_registry(&root.join(rel));
         for (id, tool) in tools_by_id(&registry) {
@@ -397,9 +397,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
 fn policy__contracts__tool_registry_reproducibility_policy__stable_profiles_must_not_use_unknown_declared_versions(
 ) {
     let root = workspace_root();
-    let mut tools = tools_by_id(&parse_registry(&root.join("configs/ci/tool_registry.toml")));
+    let mut tools = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     for (id, value) in tools_by_id(&parse_registry(
-        &root.join("configs/ci/tool_registry_vcf.toml"),
+        &root.join("configs/ci/registry/tool_registry_vcf.toml"),
     )) {
         tools.entry(id).or_insert(value);
     }

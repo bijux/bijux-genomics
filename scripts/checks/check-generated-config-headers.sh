@@ -29,10 +29,10 @@ check_file() {
     || fail "$file missing regenerate command header"
 }
 
-check_file "$ROOT_DIR/configs/ci/tool_registry.toml"
-check_file "$ROOT_DIR/configs/ci/tool_registry_experimental.toml"
-check_file "$ROOT_DIR/configs/ci/required_tools.toml"
-check_file "$ROOT_DIR/configs/ci/stages.toml"
-check_file "$ROOT_DIR/configs/ci/images.toml"
+check_file "$ROOT_DIR/configs/ci/registry/tool_registry.toml"
+check_file "$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
+check_file "$ROOT_DIR/configs/ci/tools/required_tools.toml"
+check_file "$ROOT_DIR/configs/ci/stages/stages.toml"
+check_file "$ROOT_DIR/configs/ci/tools/images.toml"
 
 echo "generated-config-headers: OK"

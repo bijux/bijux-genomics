@@ -31,9 +31,14 @@ fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
     compile_domain_configs(&opts_a)?;
     compile_domain_configs(&opts_b)?;
 
-    for name in ["tool_registry.toml", "stages.toml", "images.toml"] {
-        let a = std::fs::read_to_string(out_a.path().join("ci").join(name))?;
-        let b = std::fs::read_to_string(out_b.path().join("ci").join(name))?;
+    let pairs = [
+        ("ci/registry/tool_registry.toml", "tool_registry.toml"),
+        ("ci/stages/stages.toml", "stages.toml"),
+        ("ci/tools/images.toml", "images.toml"),
+    ];
+    for (rel, name) in pairs {
+        let a = std::fs::read_to_string(out_a.path().join(rel))?;
+        let b = std::fs::read_to_string(out_b.path().join(rel))?;
         assert_eq!(a, b, "generated output mismatch for {name}");
     }
     Ok(())

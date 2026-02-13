@@ -27,8 +27,8 @@ fn policy__contracts__stage_id_symmetry_policy__ids_follow_domain_dot_verb_patte
         regex::Regex::new(r"^(fastq|bam|vcf)\.[a-z0-9]+(?:_[a-z0-9]+)*$").expect("compile regex");
     let mut offenders = Vec::new();
     for path in [
-        root.join("configs/ci/stages.toml"),
-        root.join("configs/ci/stages_vcf.toml"),
+        root.join("configs/ci/stages/stages.toml"),
+        root.join("configs/ci/stages/stages_vcf.toml"),
     ] {
         for stage_id in stage_ids_from(&path) {
             if !pattern.is_match(&stage_id) {

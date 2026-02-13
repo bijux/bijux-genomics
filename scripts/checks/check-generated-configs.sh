@@ -13,8 +13,8 @@ fi
 cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir "$ROOT_DIR/domain" --configs-dir "$ROOT_DIR/configs" >/dev/null
 
 git diff --exit-code -- \
-  configs/ci/tool_registry.toml \
-  configs/ci/tool_registry_experimental.toml \
-  configs/ci/required_tools.toml \
-  configs/ci/stages.toml \
-  configs/ci/images.toml
+  configs/ci/registry/tool_registry.toml \
+  configs/ci/registry/tool_registry_experimental.toml \
+  configs/ci/tools/required_tools.toml \
+  configs/ci/stages/stages.toml \
+  configs/ci/tools/images.toml

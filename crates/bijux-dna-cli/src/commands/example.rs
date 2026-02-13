@@ -149,7 +149,7 @@ pub fn run_example(cwd: &Path, id: &str, hpc_mode: bool) -> Result<()> {
 
     let stage_domain = spec.stage_1.split('.').next().unwrap_or("fastq").to_string();
     let _ensure_report = crate::commands::cli::env::ensure_apptainer_images(
-        &bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"),
+        &bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"),
         &hpc_root,
         &stage_domain,
         &spec.stage_1,
@@ -353,7 +353,7 @@ fn scaffold_one_example(
     bijux_dna_infra::atomic_write_bytes(&root.join("example.toml"), example_toml.as_bytes())?;
 
     let local_suite = format!(
-        "schema_version = \"bijux.example.bench-suite.v1\"\nexample_id = \"{example_id}\"\nstage_catalog_index = {stage_catalog_index}\nstage_id = \"{stage_id}\"\n\n[pinning]\nsource_of_truth = \"configs/ci/tool_registry.toml\"\npinned_tools = [\"{primary_tool}\"]\n\n[probes]\nrequired = [\"--help\", \"--version\"]\n"
+        "schema_version = \"bijux.example.bench-suite.v1\"\nexample_id = \"{example_id}\"\nstage_catalog_index = {stage_catalog_index}\nstage_id = \"{stage_id}\"\n\n[pinning]\nsource_of_truth = \"configs/ci/registry/tool_registry.toml\"\npinned_tools = [\"{primary_tool}\"]\n\n[probes]\nrequired = [\"--help\", \"--version\"]\n"
     );
     bijux_dna_infra::atomic_write_bytes(&root.join("bench-suite.toml"), local_suite.as_bytes())?;
 
@@ -694,7 +694,7 @@ fn load_example(cwd: &Path, id: &str) -> Result<(ExampleSpec, PathBuf)> {
 }
 
 fn stage_exists_in_registry(cwd: &Path, stage_id: &str) -> Result<bool> {
-    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"))?;
+    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))?;
     let doc: toml::Value = toml::from_str(&raw)?;
     let Some(stages) = doc.get("stages").and_then(toml::Value::as_array) else {
         return Ok(false);
@@ -707,7 +707,7 @@ fn stage_exists_in_registry(cwd: &Path, stage_id: &str) -> Result<bool> {
 }
 
 fn primary_tool_for_stage(cwd: &Path, stage_id: &str) -> Option<String> {
-    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml")).ok()?;
+    let raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml")).ok()?;
     let doc: toml::Value = toml::from_str(&raw).ok()?;
     let stages = doc.get("stages")?.as_array()?;
     let row = stages.iter().find(|row| {
@@ -806,7 +806,7 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| "unknown".to_string());
 
-    let registry_raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"))
+    let registry_raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))
         .unwrap_or_else(|_| String::new());
     let mut hasher = sha2::Sha256::new();
     hasher.update(registry_raw.as_bytes());

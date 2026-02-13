@@ -1,7 +1,7 @@
 # bijux-dna-domain-compiler
 
 ## What this crate does
-Compiles authored `domain/**` YAML into generated runtime configs (`configs/ci/tool_registry.toml`, `configs/ci/stages.toml`, `configs/ci/images.toml`) and validates domain schema completeness.
+Compiles authored `domain/**` YAML into generated runtime configs (`configs/ci/registry/tool_registry.toml`, `configs/ci/stages/stages.toml`, `configs/ci/tools/images.toml`) and validates domain schema completeness.
 This crate owns the domain-to-config compilation and validation logic used by CLI/tooling.
 
 ## What it must not do (boundaries)
@@ -21,9 +21,9 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - Consumes domain schema and stage/tool compatibility declarations.
 
 ## Artifacts / Contracts
-- `configs/ci/tool_registry.toml`
-- `configs/ci/stages.toml`
-- `configs/ci/images.toml`
+- `configs/ci/registry/tool_registry.toml`
+- `configs/ci/stages/stages.toml`
+- `configs/ci/tools/images.toml`
 
 ## Failure modes
 - Missing required domain fields.

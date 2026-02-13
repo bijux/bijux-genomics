@@ -1,3 +1,6 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+
 [profile.default]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
 

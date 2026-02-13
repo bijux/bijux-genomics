@@ -11,7 +11,7 @@ fn repo_root() -> std::path::PathBuf {
 
 #[test]
 fn policy__contracts__vcf_support_gate_policy__supported_vcf_stages_require_smoke_and_schema() {
-    let path = repo_root().join("configs/ci/stages_vcf.toml");
+    let path = repo_root().join("configs/ci/stages/stages_vcf.toml");
     let raw = fs::read_to_string(path).expect("read stages_vcf.toml");
     let doc: toml::Value = raw.parse().expect("parse stages_vcf.toml");
     let stages = doc
@@ -57,7 +57,7 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_stages_require_smok
 
 #[test]
 fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinned() {
-    let path = repo_root().join("configs/ci/tool_registry_vcf.toml");
+    let path = repo_root().join("configs/ci/registry/tool_registry_vcf.toml");
     let raw = fs::read_to_string(path).expect("read tool_registry_vcf.toml");
     let doc: toml::Value = raw.parse().expect("parse tool_registry_vcf.toml");
     let tools = doc
@@ -115,11 +115,11 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinne
 fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_stages_and_tool_binding(
 ) {
     let root = repo_root();
-    let stages_raw = fs::read_to_string(root.join("configs/ci/stages_vcf.toml"))
-        .expect("read configs/ci/stages_vcf.toml");
+    let stages_raw = fs::read_to_string(root.join("configs/ci/stages/stages_vcf.toml"))
+        .expect("read configs/ci/stages/stages_vcf.toml");
     let stages_doc: toml::Value = stages_raw.parse().expect("parse stages_vcf.toml");
-    let tool_raw = fs::read_to_string(root.join("configs/ci/tool_registry_vcf.toml"))
-        .expect("read configs/ci/tool_registry_vcf.toml");
+    let tool_raw = fs::read_to_string(root.join("configs/ci/registry/tool_registry_vcf.toml"))
+        .expect("read configs/ci/registry/tool_registry_vcf.toml");
     let tool_doc: toml::Value = tool_raw.parse().expect("parse tool_registry_vcf.toml");
     let planner_source = fs::read_to_string(root.join("crates/bijux-dna-planner-vcf/src/lib.rs"))
         .expect("read planner vcf source");
@@ -181,11 +181,11 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
 fn policy__contracts__vcf_support_gate_policy__production_switch_requires_non_experimental_stage_flags(
 ) {
     let root = repo_root();
-    let domains_raw = fs::read_to_string(root.join("configs/ci/domains.toml"))
-        .expect("read configs/ci/domains.toml");
+    let domains_raw = fs::read_to_string(root.join("configs/ci/registry/domains.toml"))
+        .expect("read configs/ci/registry/domains.toml");
     let domains_doc: toml::Value = domains_raw.parse().expect("parse domains.toml");
-    let stages_raw = fs::read_to_string(root.join("configs/ci/stages_vcf.toml"))
-        .expect("read configs/ci/stages_vcf.toml");
+    let stages_raw = fs::read_to_string(root.join("configs/ci/stages/stages_vcf.toml"))
+        .expect("read configs/ci/stages/stages_vcf.toml");
     let stages_doc: toml::Value = stages_raw.parse().expect("parse stages_vcf.toml");
 
     let vcf_domain = domains_doc
@@ -198,7 +198,7 @@ fn policy__contracts__vcf_support_gate_policy__production_switch_requires_non_ex
                     .is_some_and(|id| id == "vcf")
             })
         })
-        .expect("vcf domain entry in configs/ci/domains.toml");
+        .expect("vcf domain entry in configs/ci/registry/domains.toml");
 
     let vcf_is_experimental = vcf_domain
         .get("experimental")

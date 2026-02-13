@@ -18,7 +18,7 @@ fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
     std::fs::create_dir_all(&ci_dir).expect("create ci configs");
     std::fs::write(
-        configs_dir.join("profile.local.toml"),
+        configs_dir.join("profile_local.toml"),
         r#"
 container_runtime = "docker"
 default_threads = 1
@@ -30,7 +30,7 @@ image_pull_policy = "if_not_present"
     )
     .expect("write profile");
     std::fs::write(
-        runtime_dir.join("profile.local.toml"),
+        runtime_dir.join("profile_local.toml"),
         r#"
 container_runtime = "docker"
 default_threads = 1

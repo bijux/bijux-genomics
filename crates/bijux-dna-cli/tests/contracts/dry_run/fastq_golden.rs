@@ -11,7 +11,7 @@ fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
     std::fs::create_dir_all(&ci_dir).expect("create ci configs");
     std::fs::write(
-        configs_dir.join("profile.local.toml"),
+        configs_dir.join("profile_local.toml"),
         r#"
 container_runtime = "docker"
 default_threads = 1

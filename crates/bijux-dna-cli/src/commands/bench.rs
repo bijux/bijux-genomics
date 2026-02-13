@@ -521,7 +521,7 @@ fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     roots.sort();
     roots.dedup();
     for root in roots {
-        for rel in ["ci/param_registry.toml", "ci/param_registry_vcf.toml"] {
+        for rel in ["ci/params/param_registry.toml", "ci/params/param_registry_vcf.toml"] {
             let path = bijux_dna_infra::configs_file(&root, rel);
             if !path.exists() {
                 continue;

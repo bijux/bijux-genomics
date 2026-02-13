@@ -1,3 +1,6 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+
 default = "docker-mac-arm64"
 
 [platforms.docker-mac-arm64]

@@ -21,18 +21,18 @@ mod contracts {
     #[test]
     fn generated_param_registry_matches_config_artifact() {
         let expected_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../configs/ci/param_registry_vcf.toml");
+            .join("../../configs/ci/params/param_registry_vcf.toml");
         let expected = std::fs::read_to_string(expected_path)
-            .unwrap_or_else(|err| panic!("read configs/ci/param_registry_vcf.toml: {err}"));
+            .unwrap_or_else(|err| panic!("read configs/ci/params/param_registry_vcf.toml: {err}"));
         assert_eq!(param_registry_toml().trim(), expected.trim());
     }
 
     #[test]
     fn generated_required_tools_matches_config_artifact() {
         let expected_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../configs/ci/required_tools_vcf.toml");
+            .join("../../configs/ci/tools/required_tools_vcf.toml");
         let expected = std::fs::read_to_string(expected_path)
-            .unwrap_or_else(|err| panic!("read configs/ci/required_tools_vcf.toml: {err}"));
+            .unwrap_or_else(|err| panic!("read configs/ci/tools/required_tools_vcf.toml: {err}"));
         assert_eq!(required_tools_toml().trim(), expected.trim());
     }
 }

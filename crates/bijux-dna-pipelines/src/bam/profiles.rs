@@ -148,9 +148,9 @@ fn bam_stage_order(stage: &BamStage) -> usize {
 }
 
 fn catalog_bam_stages() -> Vec<BamStage> {
-    let parsed: toml::Value = include_str!("../../../../configs/ci/stages.toml")
+    let parsed: toml::Value = include_str!("../../../../configs/ci/stages/stages.toml")
         .parse()
-        .expect("generated configs/ci/stages.toml must parse");
+        .expect("generated configs/ci/stages/stages.toml must parse");
     let mut stages = parsed
         .get("stages")
         .and_then(toml::Value::as_array)

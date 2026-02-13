@@ -7,8 +7,8 @@ use std::collections::BTreeSet;
 #[test]
 fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_smoke_paths() {
     let root = support::workspace_root();
-    let registry_path = root.join("configs/ci/tool_registry_vcf.toml");
-    let images_path = root.join("configs/ci/images.toml");
+    let registry_path = root.join("configs/ci/registry/tool_registry_vcf.toml");
+    let images_path = root.join("configs/ci/tools/images.toml");
     let docker_smoke_path = root.join("scripts/containers/smoke-docker-arm64.sh");
     let apptainer_smoke_path = root.join("scripts/containers/smoke-apptainer.sh");
 
@@ -41,12 +41,12 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let mut offenders = Vec::new();
     for tool in vcf_tools {
         let Some(tool_id) = tool.get("id").and_then(toml::Value::as_str) else {
-            offenders.push("configs/ci/tool_registry_vcf.toml has tool row missing id".to_string());
+            offenders.push("configs/ci/registry/tool_registry_vcf.toml has tool row missing id".to_string());
             continue;
         };
         if !image_ids.contains(tool_id) {
             offenders.push(format!(
-                "vcf tool {tool_id} missing image entry in configs/ci/images.toml"
+                "vcf tool {tool_id} missing image entry in configs/ci/tools/images.toml"
             ));
         }
         let dockerfile = tool

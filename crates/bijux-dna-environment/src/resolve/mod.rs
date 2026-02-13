@@ -284,12 +284,12 @@ pub fn resolve_image(
     })
 }
 
-/// Load tool images from configs/ci/images.toml.
+/// Load tool images from configs/ci/tools/images.toml.
 ///
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
-    let path = bijux_dna_infra::configs_file(Path::new("."), "ci/images.toml");
+    let path = bijux_dna_infra::configs_file(Path::new("."), "ci/tools/images.toml");
     load_image_catalog_from_file(&path)
 }
 
