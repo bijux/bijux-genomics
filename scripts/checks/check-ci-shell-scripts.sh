@@ -15,7 +15,7 @@ if [[ ! -f "$ALLOWLIST" ]]; then
   exit 1
 fi
 
-scripts=$(sed '/^\s*$/d' "$ALLOWLIST" | rg '\.sh$' | sort -u)
+scripts=$(awk '/^path = "/ {gsub(/^path = "/,""); gsub(/"$/,""); print}' "$ROOT_DIR/scripts/SUPPORTED.toml" | rg '^scripts/.*\.sh$' | sort -u)
 if [[ -z "$scripts" ]]; then
   echo "ci-shell-lint: no shell scripts in allowlist"
   exit 0
@@ -29,6 +29,10 @@ if command -v shellcheck >/dev/null 2>&1; then
 $scripts
 EOF
 else
+  if [[ "${CI:-}" == "true" ]]; then
+    echo "ci-shell-lint: shellcheck is required in CI but was not found on PATH" >&2
+    exit 1
+  fi
   while IFS= read -r rel; do
     [[ -n "$rel" ]] || continue
     bash -n "$ROOT_DIR/$rel"

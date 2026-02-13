@@ -73,6 +73,7 @@ lint:
 	./scripts/run.sh checks check-exit-codes
 	./scripts/run.sh checks check-script-deps
 	./scripts/run.sh checks check-script-help
+	./scripts/run.sh checks check-script-interface
 	./scripts/run.sh checks check-isolation-contract
 	./scripts/run.sh checks check-isolate-contract-strong
 	./scripts/run.sh checks check-shell-portability
@@ -83,6 +84,7 @@ lint:
 	./scripts/run.sh checks check-output-roots
 	./scripts/run.sh checks check-artifacts-layout
 	./scripts/run.sh checks check-script-arg-style
+	./scripts/run.sh checks check-script-entrypoint
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
