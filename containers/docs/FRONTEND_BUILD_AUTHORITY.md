@@ -26,3 +26,11 @@ Purpose: enforce HPC frontend nodes as the only authority for Apptainer SIF buil
 2. Generate local digests with `scripts/containers/generate-local-apptainer-digests.sh`.
 3. Compare with `scripts/containers/compare-frontend-local-sif-hash.sh`.
 4. If mismatch exists, capture deterministic cause (base digest drift, embedded timestamp, host/runtime variation, or source artifact change).
+
+## Full Frontend Smoke Workflow
+1. Run `scripts/containers/run-apptainer-frontend-smoke.sh`.
+2. Smoke executes `--version` and `--help` plus contract probes for every Apptainer tool SIF.
+3. Logs and manifests are stored under `artifacts/containers/hpc/frontend-smoke/`.
+4. Proof gate is enforced by:
+   - `scripts/containers/check-apptainer-frontend-smoke-proof.sh`
+   - `scripts/containers/check-apptainer-frontend-version-output-lock.sh`
