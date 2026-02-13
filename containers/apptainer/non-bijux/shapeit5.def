@@ -1,0 +1,56 @@
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+# Tool ID: shapeit5
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+    org.opencontainers.image.source https://odelaneau.github.io/shapeit5/
+    org.opencontainers.image.revision planned-2026-02-13
+    org.opencontainers.image.created 2026-02-13T00:00:00Z
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version planned
+    org.opencontainers.image.tool shapeit5
+    org.opencontainers.image.title shapeit5
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    cat >/usr/local/bin/shapeit5 <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  echo "shapeit5 planned"
+  exit 0
+fi
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
+  echo "SHAPEIT5 wrapper image. Upstream: https://odelaneau.github.io/shapeit5/"
+  exit 0
+fi
+echo "SHAPEIT5 binary not bundled in this planned wrapper image." >&2
+exit 2
+SH
+    chmod 0755 /usr/local/bin/shapeit5
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"shapeit5","version":"planned","source":"https://odelaneau.github.io/shapeit5/","license":"MIT"}' > /opt/bijux/VERSION.json
+    cat >/usr/local/bin/bijux-tool-info <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+cat /opt/bijux/VERSION.json
+SH
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
+%runscript
+    exec shapeit5 "$@"
+
+%help
+    Non-bijux Apptainer wrapper for SHAPEIT5.
