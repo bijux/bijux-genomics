@@ -97,6 +97,12 @@ _containers-lint: ## Lint container naming, headers, labels, and forbidden patte
 _containers-ensure-images: ## Ensure container images are up to date with images.toml + registry lock
 	@./scripts/run.sh containers ensure-images
 
+_containers-doctor: ## Run container doctor status report (missing images, lock drift, parity).
+	@./scripts/run.sh containers container-doctor
+
+_containers-release-gate: ## Run mandatory container release gate checks.
+	@./scripts/run.sh containers release-gate
+
 _containers: ## Print tools/runtime/result/log summary from target-containers manifests
 	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers summary
 
@@ -104,5 +110,5 @@ _containers: ## Print tools/runtime/result/log summary from target-containers ma
 	_smoke-containers-docker-arm64 _smoke-containers-docker-amd64 _smoke-containers-apptainer \
 	_smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run _smoke-cntainers-apptainer-verify \
 	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
-	_containers-apptainer-build _containers-lint _containers-ensure-images _containers \
+	_containers-apptainer-build _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _containers \
 	_apptainer-ensure _apptainer-ensure-stage

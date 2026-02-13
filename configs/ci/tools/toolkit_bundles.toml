@@ -1,0 +1,14 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+
+[bundles.fastq_core]
+purpose = "Production FASTQ preprocessing and QC toolkit."
+tools = ["fastp", "fastqc", "alientrimmer", "seqkit", "multiqc", "rcorrector"]
+
+[bundles.bam_core]
+purpose = "Production BAM processing and alignment-postprocessing toolkit."
+tools = ["samtools", "bedtools", "mosdepth", "mapdamage2", "verifybamid2"]
+
+[bundles.vcf_downstream]
+purpose = "VCF downstream population/IBD toolkit (planned promotion path)."
+tools = ["bcftools", "plink", "plink2", "beagle", "eigensoft", "germline", "ibdhap", "ibdne"]
