@@ -1,6 +1,6 @@
 ##@ BAM Benchmarks
 
-BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux -- dna
+BIJUX_BIN ?= ./scripts/run.sh tooling bijux
 BAM ?=
 OUT_DIR ?= .
 TOOLS ?=

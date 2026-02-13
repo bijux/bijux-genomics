@@ -1,6 +1,6 @@
 ##@ Performance Benchmarks
 
-BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux -- dna
+BIJUX_BIN ?= ./scripts/run.sh tooling bijux
 OUT_DIR ?= .
 TOOLS ?=
 SAMPLE_ID ?=

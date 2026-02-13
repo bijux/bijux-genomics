@@ -17,7 +17,7 @@ STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
 APPTAINER_COPY_BACK ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/containers/apptainer,artifacts/containers/apptainer)
 CONTAINER_ARTIFACT_DIR ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/containers,artifacts/containers)
-BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux -- dna
+BIJUX_BIN ?= ./scripts/run.sh tooling bijux
 BIJUX_HPC_ROOT ?= $(HOME)/bijux
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))

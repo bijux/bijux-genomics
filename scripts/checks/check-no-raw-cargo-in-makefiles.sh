@@ -26,16 +26,16 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 127
 fi
 
-matches=$(rg -n "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" Makefile makefiles/*.mk || true)
+matches=$(rg -n "^\t@?.*\\bcargo([[:space:]]|$)" Makefile makefiles/*.mk || true)
 if [[ -n "$matches" ]]; then
-  violations=$(printf '%s\n' "$matches" | rg -v "(\./bin/isolate cargo |install once: cargo install|policy-no-raw-cargo)" || true)
+  violations=$(printf '%s\n' "$matches" | rg -v "(install once: cargo install|policy-no-raw-cargo)" || true)
   if [[ -n "$violations" ]]; then
-    echo "raw-cargo-policy(makefiles): direct cargo invocation found; use isolate/scripts" >&2
+    echo "raw-cargo-policy(makefiles): raw cargo mentions are forbidden; route through scripts/tooling/ci-*.sh or scripts/run.sh tooling ..." >&2
     printf '%s\n' "$violations" >&2
     exit 1
   fi
 fi
-echo "raw-cargo-policy(makefiles): OK"
+echo "raw-cargo-policy(makefiles): OK (no raw cargo in makefiles)"
 
 tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\\b" Makefile makefiles/*.mk || true)
 if [[ -n "$tool_matches" ]]; then

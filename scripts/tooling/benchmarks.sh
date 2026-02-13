@@ -16,7 +16,7 @@ fi
 mode="$1"
 shift
 
-bijux_bin="${BIJUX_BIN:-./bin/isolate cargo run --bin bijux -- dna}"
+bijux_bin="${BIJUX_BIN:-./scripts/run.sh tooling bijux}"
 out_dir="${OUT_DIR:-.}"
 tools="${TOOLS:-}"
 allow_experimental="${ALLOW_EXPERIMENTAL:-0}"
