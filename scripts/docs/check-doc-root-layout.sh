@@ -20,6 +20,16 @@ allowed_dirs=(
   "overrides"
 )
 
+required_dirs=(
+  "00-intro"
+  "10-architecture"
+  "20-science"
+  "30-operations"
+  "40-policies"
+  "50-reference"
+  "assets"
+)
+
 failed=0
 while IFS= read -r entry; do
   base="${entry##*/}"
@@ -39,6 +49,13 @@ while IFS= read -r entry; do
     fi
   fi
 done < <(find "$ROOT_DIR/docs" -mindepth 1 -maxdepth 1)
+
+for d in "${required_dirs[@]}"; do
+  if [[ ! -d "$ROOT_DIR/docs/$d" ]]; then
+    echo "doc-root-layout: missing required docs root directory: docs/$d" >&2
+    failed=1
+  fi
+done
 
 if [[ $failed -ne 0 ]]; then
   exit 1

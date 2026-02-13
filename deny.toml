@@ -4,25 +4,23 @@ yanked = "deny"
 
 [bans]
 multiple-versions = "warn"
-wildcards = "allow"
+wildcards = "warn"
 
 [[bans.skip]]
 name = "hashbrown"
+# why = "Transitive across serde_json/indexmap paths; tracked for consolidation."
 
 [[bans.skip]]
 name = "linux-raw-sys"
+# why = "Required by rustix stack on Unix targets."
 
 [[bans.skip]]
 name = "rustix"
-
-[[bans.skip]]
-name = "thiserror"
-
-[[bans.skip]]
-name = "thiserror-impl"
+# why = "System-call abstraction used by dependencies in test/runtime tooling."
 
 [[bans.skip]]
 name = "windows-sys"
+# why = "Target-specific dependency for cross-platform crates."
 
 [licenses]
 allow = [

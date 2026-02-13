@@ -31,6 +31,8 @@ Thumbs.db
 *.tmp
 /artifacts/
 /artifacts/**
+/artifacts/isolate/
+/artifacts/isolate/**
 /coverage/
 
 !docs/
@@ -44,7 +46,7 @@ site
 site/
 
 /target-*/
-/target-containers/
 **/target-*/
+/target-containers/
 /target-isolate-*/
 **/target-isolate-*/
