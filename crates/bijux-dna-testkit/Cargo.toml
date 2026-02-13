@@ -10,6 +10,7 @@ serde.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
 tempfile.workspace = true
+rand.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }

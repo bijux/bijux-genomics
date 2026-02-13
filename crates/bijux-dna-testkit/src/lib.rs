@@ -139,6 +139,79 @@ pub mod temp {
         }
         std::env::temp_dir().join(path)
     }
+
+    #[must_use]
+    pub fn sorted_read_dir_paths(dir: impl AsRef<Path>) -> Vec<PathBuf> {
+        let mut out: Vec<PathBuf> = std::fs::read_dir(dir)
+            .unwrap_or_else(|err| panic!("read_dir failed: {err}"))
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .collect();
+        out.sort();
+        out
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct TestPaths {
+        root: PathBuf,
+    }
+
+    impl TestPaths {
+        #[must_use]
+        pub fn new(test_name: &str) -> Self {
+            let dir = tempdir_for(test_name);
+            let root = dir.keep();
+            Self { root }
+        }
+
+        #[must_use]
+        pub fn root(&self) -> &Path {
+            &self.root
+        }
+
+        #[must_use]
+        pub fn child(&self, rel: impl AsRef<Path>) -> PathBuf {
+            self.root.join(rel)
+        }
+    }
+}
+
+pub mod clocks {
+    use std::time::{Duration, SystemTime};
+
+    #[derive(Debug, Clone)]
+    pub struct FixedClock {
+        now: SystemTime,
+    }
+
+    impl FixedClock {
+        #[must_use]
+        pub fn at(now: SystemTime) -> Self {
+            Self { now }
+        }
+
+        #[must_use]
+        pub fn unix_s(secs: u64) -> Self {
+            Self {
+                now: SystemTime::UNIX_EPOCH + Duration::from_secs(secs),
+            }
+        }
+
+        #[must_use]
+        pub fn now(&self) -> SystemTime {
+            self.now
+        }
+    }
+}
+
+pub mod random {
+    use rand::rngs::StdRng;
+    use rand::SeedableRng;
+
+    #[must_use]
+    pub fn fixed_rng(seed: u64) -> StdRng {
+        StdRng::seed_from_u64(seed)
+    }
 }
 
 pub mod snapshots {
@@ -154,7 +227,7 @@ pub mod snapshots {
 
     #[must_use]
     pub fn stable_json(value: &Value) -> Value {
-        sort_value(value)
+        stable_json_with_arrays(value)
     }
 
     #[must_use]
@@ -258,25 +331,6 @@ pub mod snapshots {
     pub fn install_snapshot_env() {
         env::set_var("TZ", "UTC");
         env::set_var("LC_ALL", "C");
-    }
-
-    fn sort_value(value: &Value) -> Value {
-        match value {
-            Value::Object(map) => {
-                let mut entries: Vec<(String, Value)> = map
-                    .iter()
-                    .map(|(k, v)| (k.clone(), sort_value(v)))
-                    .collect();
-                entries.sort_by(|a, b| a.0.cmp(&b.0));
-                let mut sorted = serde_json::Map::new();
-                for (k, v) in entries {
-                    sorted.insert(k, v);
-                }
-                Value::Object(sorted)
-            }
-            Value::Array(items) => Value::Array(items.iter().map(sort_value).collect()),
-            _ => value.clone(),
-        }
     }
 
     fn strip_unstable_fields(value: &Value) -> Value {
@@ -405,8 +459,10 @@ pub mod snapshots {
 
 pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields};
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
+pub use random::fixed_rng;
+pub use clocks::FixedClock;
 pub use snapshots::{
     install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name,
     snapshot_normalize_json, snapshot_normalize_text, stable_json,
 };
-pub use temp::{resolve_under, temp_path_for, tempdir_for};
+pub use temp::{resolve_under, sorted_read_dir_paths, temp_path_for, tempdir_for, TestPaths};
