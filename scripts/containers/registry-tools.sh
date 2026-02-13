@@ -55,16 +55,39 @@ case "$cmd" in
         exit 2
         ;;
     esac
-    require_cmd jq
-    cargo run --bin bijux -- dna registry export-containers --json \
-      | jq -r --arg runtime "$runtime" '
-          .containers
-          | map(select((.runtimes // []) | index($runtime)))
-          | map(.tool_id)
-          | unique
-          | .[]
-        ' \
-      | paste -sd, -
+    python3 - "$ROOT_DIR" "$runtime" <<'PY'
+from pathlib import Path
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+root = Path(sys.argv[1])
+runtime = sys.argv[2]
+registry_files = [
+    root / "configs/ci/registry/tool_registry.toml",
+    root / "configs/ci/registry/tool_registry_vcf.toml",
+    root / "configs/ci/registry/tool_registry_experimental.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
+]
+tools = set()
+for reg in registry_files:
+    if not reg.exists():
+        continue
+    data = tomllib.loads(reg.read_text(encoding="utf-8"))
+    for row in data.get("tools", []):
+        if not isinstance(row, dict):
+            continue
+        tool_id = row.get("id") or row.get("tool_id")
+        runtimes = row.get("runtimes", [])
+        status = str(row.get("status", "")).strip()
+        if status not in {"production", "supported", "experimental"}:
+            continue
+        if tool_id and isinstance(runtimes, list) and runtime in runtimes:
+            tools.add(str(tool_id))
+print(",".join(sorted(tools)))
+PY
     ;;
   *)
     echo "unknown command: $cmd" >&2
