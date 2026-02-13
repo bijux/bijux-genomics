@@ -28,7 +28,7 @@ check_header() {
 check_header "$ROOT/docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"
 check_header "$ROOT/docs/20-science/TOOL_INDEX.md"
 check_header "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md"
-check_header "$ROOT/docs/00-intro/REPO_ROOT_MAP.md"
+check_header "$ROOT/docs/00-intro/REPO_ROOT_MAP.generated.md"
 check_header "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md"
 while IFS= read -r g; do
   [[ -n "$g" ]] || continue
@@ -46,8 +46,8 @@ diff -u "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md" "$TMP_DIR/30-operation
   echo "generated-docs: docs/30-operations/APPTAINER_QA_MATRIX.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
-diff -u "$ROOT/docs/00-intro/REPO_ROOT_MAP.md" "$TMP_DIR/00-intro/REPO_ROOT_MAP.md" >/dev/null || {
-  echo "generated-docs: docs/00-intro/REPO_ROOT_MAP.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
+diff -u "$ROOT/docs/00-intro/REPO_ROOT_MAP.generated.md" "$TMP_DIR/00-intro/REPO_ROOT_MAP.generated.md" >/dev/null || {
+  echo "generated-docs: docs/00-intro/REPO_ROOT_MAP.generated.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
 diff -u "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md" "$TMP_DIR/50-reference/COMPATIBILITY_MATRIX.md" >/dev/null || {
