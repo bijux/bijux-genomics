@@ -94,6 +94,7 @@ scripts/tooling/generate-compatibility-matrix.sh
 scripts/tooling/generate-config-tree-snapshot.sh
 scripts/tooling/generate-configs.sh
 scripts/tooling/generate-docs-graph.sh
+scripts/tooling/generate-docs.sh
 scripts/tooling/generate-policy-index.sh
 scripts/tooling/generate-repo-root-map.sh
 scripts/tooling/generate-tool-index.sh
