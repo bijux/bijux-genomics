@@ -26,6 +26,9 @@ fmt:
 
 lint:
 	./scripts/checks/check-supported-scripts.sh
+	./scripts/checks/check-config-layout.sh
+	./scripts/checks/check-config-filenames.sh
+	./scripts/checks/check-config-contract-headers.sh
 	./scripts/tooling/check-config-paths.sh
 	./scripts/tooling/check-config-snapshot.sh
 	./scripts/checks/check-root-layout.sh
