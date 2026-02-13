@@ -5,7 +5,7 @@ id = "refresh_golden"
 path = "scripts/assets/refresh-golden.sh"
 purpose = "assets script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -13,7 +13,7 @@ id = "refresh_toy"
 path = "scripts/assets/refresh-toy.sh"
 purpose = "assets script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -21,7 +21,7 @@ id = "validate_reference"
 path = "scripts/assets/validate-reference.sh"
 purpose = "assets script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -29,7 +29,7 @@ id = "check_artifacts_tracked"
 path = "scripts/checks/check-artifacts-tracked.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -37,7 +37,7 @@ id = "check_assets_drift"
 path = "scripts/checks/check-assets-drift.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -45,7 +45,7 @@ id = "check_assets_reference_schema"
 path = "scripts/checks/check-assets-reference-schema.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -53,7 +53,7 @@ id = "check_asset_manifests"
 path = "scripts/checks/check-asset-manifests.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -61,7 +61,7 @@ id = "check_asset_checksums"
 path = "scripts/checks/check-asset-checksums.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -69,7 +69,7 @@ id = "check_assets_contracts"
 path = "scripts/checks/check-assets-contracts.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -77,7 +77,7 @@ id = "check_golden_artifact_schema"
 path = "scripts/checks/check-golden-artifact-schema.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -85,7 +85,7 @@ id = "check_bench_knobs"
 path = "scripts/checks/check-bench-knobs.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -93,7 +93,7 @@ id = "check_ci_shell_scripts"
 path = "scripts/checks/check-ci-shell-scripts.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -101,7 +101,7 @@ id = "check_exit_codes"
 path = "scripts/checks/check-exit-codes.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -109,7 +109,7 @@ id = "check_config_contract_headers"
 path = "scripts/checks/check-config-contract-headers.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -117,7 +117,7 @@ id = "check_config_headers"
 path = "scripts/checks/check-config-headers.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -125,7 +125,7 @@ id = "check_config_schema"
 path = "scripts/checks/check-config-schema.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -133,7 +133,7 @@ id = "check_config_filenames"
 path = "scripts/checks/check-config-filenames.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -141,7 +141,7 @@ id = "check_config_layout"
 path = "scripts/checks/check-config-layout.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -149,7 +149,7 @@ id = "check_config_owners"
 path = "scripts/checks/check-config-owners.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -157,7 +157,7 @@ id = "check_generated_config_headers"
 path = "scripts/checks/check-generated-config-headers.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -165,7 +165,7 @@ id = "check_generated_configs"
 path = "scripts/checks/check-generated-configs.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -173,7 +173,7 @@ id = "check_isolation_contract"
 path = "scripts/checks/check-isolation-contract.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -181,7 +181,7 @@ id = "check_isolate_contract_strong"
 path = "scripts/checks/check-isolate-contract-strong.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -189,7 +189,7 @@ id = "check_lib_api"
 path = "scripts/checks/check-lib-api.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -197,7 +197,7 @@ id = "check_no_orphan_scripts"
 path = "scripts/checks/check-no-orphan-scripts.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -205,7 +205,7 @@ id = "check_no_temp_leaks"
 path = "scripts/checks/check-no-temp-leaks.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -213,7 +213,7 @@ id = "check_no_raw_cargo_in_makefiles"
 path = "scripts/checks/check-no-raw-cargo-in-makefiles.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -221,7 +221,7 @@ id = "check_no_raw_cargo_in_scripts"
 path = "scripts/checks/check-no-raw-cargo-in-scripts.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -229,7 +229,7 @@ id = "check_no_target_paths_in_tests"
 path = "scripts/checks/check-no-target-paths-in-tests.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -237,7 +237,7 @@ id = "check_no_user_path_literals"
 path = "scripts/checks/check-no-user-path-literals.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -245,7 +245,7 @@ id = "check_output_roots"
 path = "scripts/checks/check-output-roots.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -253,7 +253,7 @@ id = "check_readme_links"
 path = "scripts/checks/check-readme-links.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -261,7 +261,7 @@ id = "check_registry_split"
 path = "scripts/checks/check-registry-split.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -269,7 +269,7 @@ id = "check_root_layout"
 path = "scripts/checks/check-root-layout.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -277,7 +277,7 @@ id = "check_script_arg_style"
 path = "scripts/checks/check-script-arg-style.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -285,7 +285,7 @@ id = "check_script_deps"
 path = "scripts/checks/check-script-deps.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -293,7 +293,7 @@ id = "check_script_help"
 path = "scripts/checks/check-script-help.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -301,7 +301,7 @@ id = "check_script_writes"
 path = "scripts/checks/check-script-writes.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -309,7 +309,7 @@ id = "check_shell_portability"
 path = "scripts/checks/check-shell-portability.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -317,7 +317,7 @@ id = "check_hpc_safety"
 path = "scripts/checks/check-hpc-safety.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -325,7 +325,7 @@ id = "check_network_usage"
 path = "scripts/checks/check-network-usage.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -333,7 +333,7 @@ id = "check_artifacts_layout"
 path = "scripts/checks/check-artifacts-layout.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -341,7 +341,7 @@ id = "check_ssot_guardrails"
 path = "scripts/checks/check-ssot-guardrails.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -349,7 +349,7 @@ id = "check_supported_scripts"
 path = "scripts/checks/check-supported-scripts.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -357,7 +357,7 @@ id = "check_species_aliases"
 path = "scripts/checks/check-species-aliases.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -365,7 +365,7 @@ id = "check_tool_registry_lock"
 path = "scripts/checks/check-tool-registry-lock.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -373,7 +373,7 @@ id = "tree_intent"
 path = "scripts/checks/tree-intent.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -381,7 +381,7 @@ id = "build_apptainer_all"
 path = "scripts/containers/build-apptainer-all.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -389,7 +389,7 @@ id = "ensure_images"
 path = "scripts/containers/ensure-images.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -397,7 +397,7 @@ id = "lint"
 path = "scripts/containers/lint.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -405,7 +405,7 @@ id = "make"
 path = "scripts/containers/make.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -413,7 +413,7 @@ id = "registry_tools"
 path = "scripts/containers/registry-tools.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -421,7 +421,7 @@ id = "smoke_apptainer"
 path = "scripts/containers/smoke-apptainer.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -429,7 +429,7 @@ id = "smoke_docker_amd64"
 path = "scripts/containers/smoke-docker-amd64.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -437,7 +437,7 @@ id = "smoke_docker_arm64"
 path = "scripts/containers/smoke-docker-arm64.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -445,7 +445,7 @@ id = "summary"
 path = "scripts/containers/summary.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -453,7 +453,7 @@ id = "check_doc_assets"
 path = "scripts/docs/check-doc-assets.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -461,7 +461,7 @@ id = "check_doc_depth"
 path = "scripts/docs/check-doc-depth.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -469,7 +469,7 @@ id = "check_doc_links"
 path = "scripts/docs/check-doc-links.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -477,7 +477,7 @@ id = "check_doc_root_layout"
 path = "scripts/docs/check-doc-root-layout.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -485,7 +485,7 @@ id = "check_docs_graph"
 path = "scripts/docs/check-docs-graph.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -493,7 +493,7 @@ id = "check_domain_doc_references"
 path = "scripts/docs/check-domain-doc-references.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -501,7 +501,7 @@ id = "check_generated_docs"
 path = "scripts/docs/check-generated-docs.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -509,7 +509,7 @@ id = "check_no_placeholder_language"
 path = "scripts/docs/check-no-placeholder-language.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -517,7 +517,7 @@ id = "check_root_pollution"
 path = "scripts/docs/check-root-pollution.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -525,7 +525,7 @@ id = "inventory_drift"
 path = "scripts/domain/inventory-drift.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -533,7 +533,7 @@ id = "lock_registry"
 path = "scripts/domain/lock-registry.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -541,7 +541,7 @@ id = "validate"
 path = "scripts/domain/validate.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -549,7 +549,7 @@ id = "pull"
 path = "scripts/hpc/lunarc/pull.sh"
 purpose = "hpc script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -557,7 +557,7 @@ id = "push"
 path = "scripts/hpc/lunarc/push.sh"
 purpose = "hpc script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -565,7 +565,7 @@ id = "run_bench"
 path = "scripts/lab/run_bench.sh"
 purpose = "lab script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -573,7 +573,7 @@ id = "run_pipelines"
 path = "scripts/lab/run_pipelines.sh"
 purpose = "lab script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -581,7 +581,7 @@ id = "run"
 path = "scripts/run.sh"
 purpose = "run.sh script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -589,7 +589,7 @@ id = "run"
 path = "scripts/smoke/run.sh"
 purpose = "smoke script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -597,7 +597,7 @@ id = "smoke_bam"
 path = "scripts/smoke/smoke_bam.sh"
 purpose = "smoke script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -605,7 +605,7 @@ id = "smoke_fastq"
 path = "scripts/smoke/smoke_fastq.sh"
 purpose = "smoke script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -613,7 +613,7 @@ id = "reproduce_failure"
 path = "scripts/test/reproduce-failure.sh"
 purpose = "test script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -621,7 +621,7 @@ id = "test_triage"
 path = "scripts/test/test-triage.sh"
 purpose = "test script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -629,7 +629,7 @@ id = "test_scripts_smoke"
 path = "scripts/test/test-scripts-smoke.sh"
 purpose = "test script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -637,7 +637,7 @@ id = "toy_runs"
 path = "scripts/test/toy_runs.sh"
 purpose = "test script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -645,7 +645,7 @@ id = "benchmarks"
 path = "scripts/tooling/benchmarks.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -653,7 +653,7 @@ id = "cargo_targets"
 path = "scripts/tooling/cargo-targets.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -661,7 +661,7 @@ id = "check_config_paths"
 path = "scripts/tooling/check-config-paths.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -669,7 +669,7 @@ id = "check_config_snapshot"
 path = "scripts/tooling/check-config-snapshot.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -677,7 +677,7 @@ id = "ci_audit"
 path = "scripts/tooling/ci-audit.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -685,7 +685,7 @@ id = "ci_clippy"
 path = "scripts/tooling/ci-clippy.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -693,7 +693,7 @@ id = "ci_coverage"
 path = "scripts/tooling/ci-coverage.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -701,7 +701,7 @@ id = "ci_fmt"
 path = "scripts/tooling/ci-fmt.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -709,7 +709,7 @@ id = "ci_install_tools"
 path = "scripts/tooling/ci-install-tools.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -717,7 +717,7 @@ id = "ci_test_slow"
 path = "scripts/tooling/ci-test-slow.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -725,7 +725,7 @@ id = "ci_test"
 path = "scripts/tooling/ci-test.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -733,7 +733,7 @@ id = "clean_docs"
 path = "scripts/tooling/clean-docs.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -741,7 +741,7 @@ id = "docs_build"
 path = "scripts/tooling/docs-build.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -749,7 +749,7 @@ id = "config_inventory"
 path = "scripts/tooling/config-inventory.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -757,7 +757,7 @@ id = "coverage_summary"
 path = "scripts/tooling/coverage_summary.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -765,7 +765,7 @@ id = "generate_config_tree_snapshot"
 path = "scripts/tooling/generate-config-tree-snapshot.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -773,7 +773,7 @@ id = "generate_configs"
 path = "scripts/tooling/generate-configs.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -781,7 +781,7 @@ id = "generate_docs_graph"
 path = "scripts/tooling/generate-docs-graph.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -789,7 +789,7 @@ id = "generate_docs"
 path = "scripts/tooling/generate-docs.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -797,7 +797,7 @@ id = "generate_apptainer_qa_matrix"
 path = "scripts/tooling/generate-apptainer-qa-matrix.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -805,7 +805,7 @@ id = "generate_compatibility_matrix"
 path = "scripts/tooling/generate-compatibility-matrix.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -813,7 +813,7 @@ id = "generate_policy_index"
 path = "scripts/tooling/generate-policy-index.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -821,7 +821,7 @@ id = "generate_repo_root_map"
 path = "scripts/tooling/generate-repo-root-map.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -829,7 +829,7 @@ id = "generate_tool_index"
 path = "scripts/tooling/generate-tool-index.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -837,7 +837,7 @@ id = "inventory"
 path = "scripts/tooling/inventory.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -845,7 +845,7 @@ id = "setup_docs_venv"
 path = "scripts/tooling/setup-docs-venv.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -853,7 +853,7 @@ id = "repo_doctor"
 path = "scripts/tooling/repo-doctor.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -861,7 +861,7 @@ id = "common"
 path = "scripts/_lib/common.sh"
 purpose = "shared shell library"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -869,7 +869,7 @@ id = "runtime"
 path = "scripts/_lib/runtime.sh"
 purpose = "shared shell runtime library"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -877,7 +877,7 @@ id = "generate_tool_ids"
 path = "scripts/containers/generate-tool-ids.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -885,7 +885,7 @@ id = "check_tool_id_manifest"
 path = "scripts/containers/check-tool-id-manifest.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -893,7 +893,7 @@ id = "generate_qa_matrix"
 path = "scripts/containers/generate-qa-matrix.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -901,7 +901,7 @@ id = "check_smoke_contract"
 path = "scripts/containers/check-smoke-contract.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -909,7 +909,7 @@ id = "check_docker_arch_policy"
 path = "scripts/containers/check-docker-arch-policy.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -917,7 +917,7 @@ id = "check_digest_output_policy"
 path = "scripts/containers/check-digest-output-policy.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -925,7 +925,7 @@ id = "check_missing_images"
 path = "scripts/containers/check-missing-images.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -933,7 +933,7 @@ id = "check_tool_container_coverage"
 path = "scripts/containers/check-tool-container-coverage.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -941,7 +941,7 @@ id = "check_non_bijux_sources"
 path = "scripts/containers/check-non-bijux-sources.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -949,7 +949,7 @@ id = "check_version_completeness"
 path = "scripts/containers/check-version-completeness.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -957,7 +957,7 @@ id = "check_version_hash_pin"
 path = "scripts/containers/check-version-hash-pin.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -965,7 +965,7 @@ id = "generate_version_lock"
 path = "scripts/containers/generate-version-lock.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -973,7 +973,7 @@ id = "check_version_lock"
 path = "scripts/containers/check-version-lock.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -981,7 +981,7 @@ id = "check_lock_matches_built_output"
 path = "scripts/containers/check-lock-matches-built-output.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -989,7 +989,7 @@ id = "check_apptainer_bijux_header"
 path = "scripts/containers/check-apptainer-bijux-header.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -997,7 +997,7 @@ id = "check_docker_labels"
 path = "scripts/containers/check-docker-labels.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1005,7 +1005,7 @@ id = "promote_container_tool"
 path = "scripts/containers/promote.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -1013,7 +1013,7 @@ id = "demote_container_tool"
 path = "scripts/containers/demote.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -1021,7 +1021,7 @@ id = "check_rebuild_repro"
 path = "scripts/containers/check-rebuild-repro.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -1029,7 +1029,7 @@ id = "check_registry_vs_defs"
 path = "scripts/containers/check-registry-vs-defs.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1037,7 +1037,7 @@ id = "check_tool_name_collision"
 path = "scripts/containers/check-tool-name-collision.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1045,7 +1045,7 @@ id = "check_build_provenance"
 path = "scripts/containers/check-build-provenance.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1053,7 +1053,7 @@ id = "check_bijux_template_markers"
 path = "scripts/containers/check-bijux-template-markers.sh"
 purpose = "containers script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1061,7 +1061,7 @@ id = "domain_check_layout"
 path = "scripts/domain/check-domain-layout.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1069,7 +1069,7 @@ id = "domain_check_schema"
 path = "scripts/domain/check-domain-schema.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1077,7 +1077,7 @@ id = "domain_check_index"
 path = "scripts/domain/check-domain-index.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1085,7 +1085,7 @@ id = "domain_generate_index"
 path = "scripts/domain/generate-index.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1093,7 +1093,7 @@ id = "domain_check_shared_tools"
 path = "scripts/domain/check-shared-tools.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1101,7 +1101,7 @@ id = "domain_check_tool_container_parity"
 path = "scripts/domain/check-tool-container-parity.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1109,7 +1109,7 @@ id = "domain_check_default_settings_docs"
 path = "scripts/domain/check-default-settings-docs.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1117,7 +1117,7 @@ id = "domain_check_fixture_contracts"
 path = "scripts/domain/check-fixture-contracts.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1125,7 +1125,7 @@ id = "domain_check_orphan_files"
 path = "scripts/domain/check-orphan-files.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1133,7 +1133,7 @@ id = "domain_check_doc_links"
 path = "scripts/domain/check-doc-links.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1141,7 +1141,7 @@ id = "domain_check_external_tool_policy"
 path = "scripts/domain/check-external-tool-policy.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1149,7 +1149,7 @@ id = "domain_generate_inventory"
 path = "scripts/domain/generate-inventory.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1157,7 +1157,7 @@ id = "domain_check_inventory"
 path = "scripts/domain/check-inventory.sh"
 purpose = "domain script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1165,7 +1165,7 @@ id = "examples_generate_index"
 path = "scripts/examples/generate-index.sh"
 purpose = "examples script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1173,7 +1173,7 @@ id = "examples_check_index"
 path = "scripts/examples/check-index.sh"
 purpose = "examples script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1181,7 +1181,7 @@ id = "examples_run"
 path = "scripts/examples/run.sh"
 purpose = "examples script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1189,7 +1189,7 @@ id = "check_examples_structure"
 path = "scripts/checks/check-examples-structure.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1197,7 +1197,7 @@ id = "check_examples_corpus_manifests"
 path = "scripts/checks/check-examples-corpus-manifests.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1205,7 +1205,7 @@ id = "check_examples_corpus_layout"
 path = "scripts/checks/check-examples-corpus-layout.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1213,7 +1213,7 @@ id = "check_examples_golden"
 path = "scripts/checks/check-examples-golden.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1221,7 +1221,7 @@ id = "check_examples_cli_snapshot"
 path = "scripts/checks/check-examples-cli-snapshot.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1229,7 +1229,7 @@ id = "check_examples_notebook_policy"
 path = "scripts/checks/check-examples-notebook-policy.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1237,7 +1237,7 @@ id = "examples_check_drift"
 path = "scripts/examples/check-drift.sh"
 purpose = "examples script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1245,7 +1245,7 @@ id = "check_examples_corpus_checksums"
 path = "scripts/checks/check-examples-corpus-checksums.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1253,7 +1253,7 @@ id = "checks_make"
 path = "scripts/checks/make.sh"
 purpose = "checks group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1261,7 +1261,7 @@ id = "tooling_make"
 path = "scripts/tooling/make.sh"
 purpose = "tooling group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1269,7 +1269,7 @@ id = "assets_make"
 path = "scripts/assets/make.sh"
 purpose = "assets group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1277,7 +1277,7 @@ id = "docs_make"
 path = "scripts/docs/make.sh"
 purpose = "docs group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1285,7 +1285,7 @@ id = "domain_make"
 path = "scripts/domain/make.sh"
 purpose = "domain group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1293,7 +1293,7 @@ id = "examples_make"
 path = "scripts/examples/make.sh"
 purpose = "examples group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1301,7 +1301,7 @@ id = "hpc_make"
 path = "scripts/hpc/make.sh"
 purpose = "hpc group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1309,7 +1309,7 @@ id = "lab_make"
 path = "scripts/lab/make.sh"
 purpose = "lab group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1317,7 +1317,7 @@ id = "smoke_make"
 path = "scripts/smoke/make.sh"
 purpose = "smoke group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1325,7 +1325,7 @@ id = "test_make"
 path = "scripts/test/make.sh"
 purpose = "test group dispatcher"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1333,7 +1333,7 @@ id = "check_no_parallel_accidental"
 path = "scripts/checks/check-no-parallel-accidental.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1341,7 +1341,7 @@ id = "generate_domain_coverage_doc"
 path = "scripts/tooling/generate-domain-coverage-doc.sh"
 purpose = "tooling script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1349,7 +1349,7 @@ id = "check_config_index_discipline"
 path = "scripts/checks/check-config-index-discipline.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1357,7 +1357,7 @@ id = "check_registry_required_tools_parity"
 path = "scripts/checks/check-registry-required-tools-parity.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1365,7 +1365,7 @@ id = "check_stage_domain_parity"
 path = "scripts/checks/check-stage-domain-parity.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1373,7 +1373,7 @@ id = "check_param_registry_completeness"
 path = "scripts/checks/check-param-registry-completeness.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1381,7 +1381,7 @@ id = "check_deprecations_enforcement"
 path = "scripts/checks/check-deprecations-enforcement.sh"
 purpose = "checks script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1389,7 +1389,7 @@ id = "require_isolate_smoke"
 path = "scripts/test/require-isolate-smoke.sh"
 purpose = "test script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1397,5 +1397,21 @@ id = "check_doc_major_depth"
 path = "scripts/docs/check-doc-major-depth.sh"
 purpose = "docs script"
 inputs = []
-outputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_script_interface"
+path = "scripts/checks/check-script-interface.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_script_entrypoint"
+path = "scripts/checks/check-script-entrypoint.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true

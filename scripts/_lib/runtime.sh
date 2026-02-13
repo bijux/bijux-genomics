@@ -47,3 +47,28 @@ write_artifact() {
     cat >"$path"
   fi
 }
+
+parse_common_flags() {
+  # Consumes leading common flags and leaves remaining args on "$@".
+  # Sets DRY_RUN=1 and/or VERBOSE=1 when requested.
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --dry-run)
+        export DRY_RUN=1
+        shift
+        ;;
+      --verbose)
+        export VERBOSE=1
+        shift
+        ;;
+      --help|-h)
+        # caller handles help output; stop parsing to keep behavior explicit.
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+  printf '%s\0' "$@"
+}
