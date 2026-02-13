@@ -1,6 +1,18 @@
 {
   "example_id": "vcf_imputation_mini",
   "status": "ok",
+  "coverage_regime": {
+    "selected": "diploid",
+    "thresholds_used": {
+      "gl_max_depth": 0.5,
+      "pseudohaploid_max_depth": 2.0,
+      "diploid_min_depth": 10.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 12.0,
+      "median_depth_x": 11.4
+    }
+  },
   "artifacts": [
     "plan.json",
     "explain.json",
