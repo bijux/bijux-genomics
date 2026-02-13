@@ -10,10 +10,12 @@ OUT="${1:-$ROOT_DIR/docs/30-operations/APPTAINER_QA_MATRIX.md}"
 REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
+SUMMARY_JSON="$ROOT_DIR/artifacts/container/summary/summary.json"
 
-python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$OUT"
+python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$SUMMARY_JSON" "$OUT"
 from pathlib import Path
 import sys
+import json
 
 def parse_tools(path: Path):
     rows = []
@@ -42,8 +44,22 @@ def parse_tools(path: Path):
     return rows
 
 regs = [Path(p) for p in sys.argv[1:4]]
-out = Path(sys.argv[4])
+summary_json = Path(sys.argv[4])
+out = Path(sys.argv[5])
 rows = {}
+status_from_summary = {}
+
+if summary_json.exists():
+    try:
+        payload = json.loads(summary_json.read_text(encoding="utf-8"))
+        for item in payload.get("items", []):
+            tool = item.get("tool")
+            runtime = item.get("runtime")
+            status = item.get("status")
+            if tool and runtime == "apptainer" and status:
+                status_from_summary[tool] = status
+    except Exception:
+        pass
 for rp in regs:
     for t in parse_tools(rp):
         tool = t.get('id') or t.get('tool_id')
@@ -55,7 +71,7 @@ for rp in regs:
         rows[tool] = {
             'apptainer_def': t.get('apptainer_def', '-'),
             'smoke_help_cmd': t.get('smoke_help_cmd', '-'),
-            'status': t.get('status', 'unknown'),
+            'status': status_from_summary.get(tool, t.get('status', 'unknown')),
             'qa_rule': 'build+smoke required',
         }
 
