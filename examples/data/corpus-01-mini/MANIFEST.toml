@@ -1,0 +1,4 @@
+origin = "bijux-dna internal mini corpus"
+license = "CC0-1.0"
+checksum_policy = "sha256-required"
+normalization_rules = "normalize under normalized/; preserve raw inputs in raw/"
