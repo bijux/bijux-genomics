@@ -14,6 +14,7 @@ Purpose: Define container taxonomy, authority, and version ownership for reprodu
 ## Versions And Authority
 - Canonical version pins: `containers/versions/versions.toml`.
 - Pin/lock policy: `containers/versions/LOCK.md`.
+- Planned backlog and justification: `containers/PLANNED.md`.
 - Operational guide: `docs/30-operations/CONTAINERS.md`.
 
 ## Tool Identity Contract

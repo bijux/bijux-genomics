@@ -1,0 +1,28 @@
+# Planned Container Tools
+
+Purpose: track planned VCF-downstream tool onboarding before container definitions are added.
+
+Scope: tools with `status = "planned"` in `configs/ci/registry/tool_registry_vcf_downstream.toml`.
+
+Non-goals:
+- Declaring production support.
+- Replacing registry contracts.
+
+Contracts:
+- Planned tools must appear in `configs/ci/tools/images.toml` with `enabled = false`.
+- Planned tools must appear in `containers/versions/versions.toml` with `status = "planned"`.
+- Missing container defs are allowed for planned tools and forbidden for production tools.
+
+## Planned Tool List
+
+| Tool | Primary Stage(s) | Shipping Policy | Justification |
+|---|---|---|---|
+| `beagle` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Standard population-genetics phasing/imputation baseline. |
+| `shapeit` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Alternate phasing path for scientific comparability. |
+| `plink` | `vcf.qc`, `vcf.admixture` | `docker_apptainer` | Broad QC/admixture preprocessing compatibility. |
+| `plink2` | `vcf.qc`, `vcf.pca`, `vcf.relatedness` | `docker_apptainer` | Modern PLINK runtime for downstream analysis. |
+| `eigensoft` | `vcf.pca` | `apptainer_only` | PCA lineage consistency with aDNA population workflows. |
+| `germline` | `vcf.ibd` | `apptainer_only` | IBD segment discovery path for relatedness checks. |
+| `ibdseq` | `vcf.ibd` | `apptainer_only` | Alternate IBD segment inference for cross-method checks. |
+| `ibdhap` | `vcf.ibd` | `apptainer_only` | Planned haplotype-oriented IBD analysis path. |
+| `ibdne` | `vcf.relatedness` | `apptainer_only` | Planned demographic inference from IBD segments. |
