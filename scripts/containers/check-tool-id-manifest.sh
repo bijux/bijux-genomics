@@ -25,7 +25,7 @@ if ! diff -u "$manifest" "$tmp_expected" >/dev/null; then
   exit 1
 fi
 
-grep -vE '^(#|$)' "$manifest" | sort -u > "$tmp_expected"
+grep -vE '^(#|$)' "$manifest" | awk -F'\t' '{print $1}' | sort -u > "$tmp_expected"
 
 {
   find "$ROOT_DIR/containers/docker/arm64" -type f -name 'Dockerfile.*' -print \

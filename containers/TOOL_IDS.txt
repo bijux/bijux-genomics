@@ -1,61 +1,71 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: scripts/containers/generate-tool-ids.sh
-adapterremoval
-addeam
-alientrimmer
-angsd
-atropos
-authenticct
-bamtools
-bayeshammer
-bbduk
-bbmerge
-bcftools
-bedtools
-bowtie2
-bracken
-bwa
-centrifuge
-contammix
-cutadapt
-damageprofiler
-fastp
-fastq_screen
-fastqc
-fastqvalidator
-fastx_clipper
-flash2
-fqtools
-kaiju
-king
-kraken2
-krakenuniq
-leehom
-lighter
-mapdamage2
-metaphlan
-mosdepth
-multiqc
-musket
-pear
-pmdtools
-prinseq
-pydamage
-qualimap
-rcorrector
-rxy
-samtools
-schmutzi
-seqkit
-seqkit_stats
-seqtk
-skewer
-sortmerna
-spades
-star
-trim_galore
-trimmomatic
-umi_tools
-verifybamid2
-vsearch
-yleaf
+# format: <tool_id><TAB><status>
+adapterremoval	experimental
+addeam	experimental
+alientrimmer	production
+angsd	production
+atropos	experimental
+authenticct	production
+bamtools	production
+bayeshammer	experimental
+bbduk	production
+bbmerge	experimental
+bcftools	production
+beagle	planned
+bedtools	production
+bowtie2	production
+bracken	production
+bwa	production
+centrifuge	experimental
+contammix	production
+cutadapt	experimental
+damageprofiler	experimental
+eigensoft	planned
+fastp	production
+fastq_screen	experimental
+fastqc	production
+fastqvalidator	production
+fastx_clipper	production
+flash2	experimental
+fqtools	experimental
+germline	planned
+ibdhap	planned
+ibdne	planned
+ibdseq	planned
+kaiju	experimental
+king	production
+kraken2	production
+krakenuniq	production
+leehom	experimental
+lighter	experimental
+mapdamage2	production
+metaphlan	experimental
+mosdepth	production
+multiqc	production
+musket	experimental
+pear	production
+plink	planned
+plink2	planned
+pmdtools	production
+prinseq	experimental
+pydamage	production
+qualimap	experimental
+rcorrector	production
+rxy	production
+samtools	production
+schmutzi	production
+seqkit	production
+seqkit_stats	production
+seqtk	experimental
+shapeit	planned
+skewer	experimental
+sortmerna	production
+spades	experimental
+star	production
+trim_galore	experimental
+trimmomatic	experimental
+umi_tools	production
+verifybamid2	production
+vsearch	production
+yleaf	experimental
