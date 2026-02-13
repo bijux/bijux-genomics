@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "beagle"
 container_kind = "bijux"
-license = "GPL-3.0"
-upstream_source = "https://faculty.washington.edu/browning/beagle/beagle.html"
+spdx = "GPL-3.0"
+upstream_url = "https://faculty.washington.edu/browning/beagle/beagle.html"
+redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
+citation = "beagle upstream project (see upstream_url)."
 version = "5.4"

@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "yleaf"
 container_kind = "bijux"
-license = "GPL-3.0"
-upstream_source = "https://github.com/bijux/bijux-dna"
+spdx = "GPL-3.0"
+upstream_url = "https://github.com/bijux/bijux-dna"
+redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
+citation = "yleaf upstream project (see upstream_url)."
 version = "3.0.3"

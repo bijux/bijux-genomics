@@ -24,11 +24,14 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
         errors.append(f"missing {meta.relative_to(root)}")
         continue
     data = tomllib.loads(meta.read_text(encoding="utf-8"))
-    for key in ("tool_id", "container_kind", "license", "upstream_source", "version"):
+    for key in ("tool_id", "container_kind", "spdx", "upstream_url", "redistribution_note", "citation", "version"):
         if not str(data.get(key, "")).strip():
             errors.append(f"{meta.relative_to(root)} missing key: {key}")
     if data.get("tool_id") != tool:
         errors.append(f"{meta.relative_to(root)} tool_id mismatch")
+    up = str(data.get("upstream_url", ""))
+    if not up.startswith(("http://", "https://")):
+        errors.append(f"{meta.relative_to(root)} upstream_url must be URL")
 
 if errors:
     print("license metadata check failed:", file=sys.stderr)
