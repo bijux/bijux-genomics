@@ -298,51 +298,60 @@ version = "planned"
 source = "https://faculty.washington.edu/browning/beagle/beagle.html"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
 
 [shapeit]
 version = "planned"
 source = "https://odelaneau.github.io/shapeit4/"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "MIT"
 
 [plink]
 version = "planned"
 source = "https://www.cog-genomics.org/plink/"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
 
 [plink2]
 version = "planned"
 source = "https://www.cog-genomics.org/plink/2.0/"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
 
 [eigensoft]
 version = "planned"
 source = "https://github.com/DReichLab/EIG"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-2.0"
 
 [germline]
 version = "planned"
 source = "https://www.cs.columbia.edu/~gusev/germline/"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
 
 [ibdseq]
 version = "planned"
 source = "https://faculty.washington.edu/browning/ibdseq.shtml"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
 
 [ibdhap]
 version = "planned"
 source = "https://example.invalid/ibdhap"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "unknown"
 
 [ibdne]
 version = "planned"
 source = "https://faculty.washington.edu/browning/ibdne.shtml"
 date_pinned = "2026-02-13"
 status = "planned"
+upstream_license = "GPL-3.0"
