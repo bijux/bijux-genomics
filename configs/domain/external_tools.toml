@@ -24,3 +24,4 @@ impute5 = "planned external tool for imputation workflows; containerization pend
 shapeit5 = "planned external tool for phasing workflows; containerization pending"
 eagle = "planned external tool for phasing workflows; containerization pending"
 minimac4 = "planned external tool for imputation workflows; containerization pending"
+dada2 = "planned external tool for ASV inference workflows; containerization pending"

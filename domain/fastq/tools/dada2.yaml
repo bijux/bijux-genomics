@@ -1,0 +1,29 @@
+schema_version: bijux.tool.v2
+tool_id: dada2
+upstream: https://benjjneb.github.io/dada2/
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: planned
+install_kind: external
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+  - fastq.asv_inference
+status: planned
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+  - asv_table
+metrics_schema_id: bijux.fastq.asv.v1
+metrics_schema: bijux.fastq.asv.v1
+version_cmd: Rscript -e "packageVersion('dada2')"
+help_cmd: Rscript -e "library(dada2); cat('dada2 help via R docs\n')"
+comparability:
+  comparable_with: []
+  non_comparable_with:
+    - vsearch
+comparability_notes: ASV outputs are not directly comparable with OTU centroid outputs.
+notes: External/planned ASV inference tool pending container policy.
+capabilities:
+  - SE
+  - PE
+  - asv

@@ -1,0 +1,31 @@
+extends: "_schema.yaml"
+stage_id: "fastq.asv_inference"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "asv_table"
+    data_type: "table"
+    cardinality: "One"
+  - name: "asv_sequences"
+    data_type: "fasta"
+    cardinality: "One"
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+compatible_tools:
+  - dada2
+assumptions:
+  - "ASV inference engine is external until containerized."
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+bank_hooks:
+  - "contaminant_db_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+required_inputs: []
+required_outputs: []
+allowed_missingness:
+  - "none"
