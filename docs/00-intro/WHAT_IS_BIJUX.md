@@ -19,6 +19,7 @@ Three invariants define Bijux:
 
 ## Examples
 See `QUICKSTART.md` for a first successful run.
+Licensing policy reference: `docs/50-reference/LICENSING.md`.
 
 ## Failure modes
 If any invariant is violated, policies fail in CI and execution halts with a contract error.
