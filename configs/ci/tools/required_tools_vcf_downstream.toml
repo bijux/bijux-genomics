@@ -7,12 +7,14 @@
 
 schema_version = "bijux.required_tools.v1"
 required_tools = [
+  "bcftools",
   "beagle",
   "eagle",
   "eigensoft",
   "germline",
   "glimpse",
   "ibdhap",
+  "ibdseq",
   "ibdne",
   "impute5",
   "minimac4",

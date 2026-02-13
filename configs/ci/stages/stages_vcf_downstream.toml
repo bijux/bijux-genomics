@@ -19,7 +19,7 @@ status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.phasing.v1"
 smoke_required = false
-tools = ["beagle", "shapeit"]
+tools = ["beagle", "shapeit5", "eagle"]
 
 [[stages]]
 id = "vcf.imputation"
@@ -27,7 +27,7 @@ status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.imputation.v1"
 smoke_required = false
-tools = ["beagle", "shapeit"]
+tools = ["beagle", "glimpse", "impute5", "minimac4"]
 
 [[stages]]
 id = "vcf.impute"
@@ -35,7 +35,7 @@ status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.imputation.v1"
 smoke_required = false
-tools = ["beagle"]
+tools = ["beagle", "glimpse", "impute5", "minimac4"]
 
 [[stages]]
 id = "vcf.postprocess"
@@ -75,4 +75,28 @@ status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.ibd.v1"
 smoke_required = false
-tools = ["germline", "ibdseq", "ibdhap"]
+tools = ["germline", "ibdseq", "ibdhap", "ibdne"]
+
+[[stages]]
+id = "vcf.population_structure"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.pca.v1"
+smoke_required = false
+tools = ["plink2", "eigensoft"]
+
+[[stages]]
+id = "vcf.roh"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.roh.v1"
+smoke_required = false
+tools = ["plink2"]
+
+[[stages]]
+id = "vcf.demography"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.demography.v1"
+smoke_required = false
+tools = ["ibdne"]
