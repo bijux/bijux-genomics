@@ -165,6 +165,8 @@ fi
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
 "$SCRIPT_DIR/check-apptainer-hardening.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
+"$SCRIPT_DIR/check-docker-hardening.sh"
+"$SCRIPT_DIR/check-docker-context.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"
 "$SCRIPT_DIR/check-build-provenance.sh"
 "$SCRIPT_DIR/check-bijux-template-markers.sh"

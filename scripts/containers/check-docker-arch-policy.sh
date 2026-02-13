@@ -16,6 +16,12 @@ if ! rg -q "arm64" "$policy_doc"; then
   echo "docker arch policy: policy doc must mention arm64 support contract" >&2
   exit 1
 fi
+for marker in "build strategy" "publish strategy" "promotion criteria"; do
+  if ! rg -qi "$marker" "$policy_doc"; then
+    echo "docker arch policy: policy doc missing required multiarch marker: $marker" >&2
+    exit 1
+  fi
+done
 if [[ -d "$amd64_dir" ]]; then
   if find "$amd64_dir" -type f -name 'Dockerfile.*' | grep -q .; then
     echo "docker arch policy: amd64 Dockerfiles detected under containers/docker/amd64" >&2
