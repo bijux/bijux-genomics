@@ -70,6 +70,7 @@ if [[ -f "$REPORT" ]]; then
 fi
 
 selected_tools_json='[]'
+build_durations_json='[]'
 
 if [[ -n "$only_tool" ]]; then
   selected_tools_json="[\"$only_tool\"]"
@@ -165,6 +166,8 @@ fi
 
 build_one_apptainer_tool() {
   local tool="$1"
+  local started ended duration
+  started="$(date +%s)"
   if [[ -f "$ROOT_DIR/containers/apptainer/bijux/${tool}.def" ]]; then
     ./scripts/run.sh containers build-apptainer-all \
       --defs-dir containers/apptainer/bijux \
@@ -181,6 +184,13 @@ build_one_apptainer_tool() {
     echo "ensure-images: no apptainer def found for tool: $tool" >&2
     return 1
   fi
+  ended="$(date +%s)"
+  duration="$((ended-started))"
+  if [[ "$build_durations_json" == "[]" ]]; then
+    build_durations_json="[{\"tool\":\"$tool\",\"duration_seconds\":$duration}]"
+  else
+    build_durations_json="${build_durations_json%]} , {\"tool\":\"$tool\",\"duration_seconds\":$duration}]"
+  fi
 }
 
 if [[ -n "$only_tool" ]]; then
@@ -195,7 +205,10 @@ elif [[ "$changed_only" == "1" ]]; then
     done
   fi
 else
+  started_all="$(date +%s)"
   ./scripts/run.sh containers build-apptainer-all --defs-dir containers/apptainer --vm-out "${HOME}/apptainer-build" --copy-back "$ROOT_DIR/artifacts/containers/apptainer"
+  ended_all="$(date +%s)"
+  build_durations_json="[{\"tool\":\"__all__\",\"duration_seconds\":$((ended_all-started_all))}]"
 fi
 
 cat > "$REPORT" <<JSON
@@ -208,7 +221,8 @@ cat > "$REPORT" <<JSON
   "images_sha": "$images_sha",
   "lock_sha": "$lock_sha",
   "combined_sha": "$combined_sha",
-  "selected_tools": $selected_tools_json
+  "selected_tools": $selected_tools_json,
+  "build_durations": $build_durations_json
 }
 JSON
 
