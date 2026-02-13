@@ -34,3 +34,15 @@ fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_fla
         "toy golden refresh must fail without --accept"
     );
 }
+
+#[test]
+fn policy__contracts__toy_golden_runs_policy__make_refresh_targets_use_assets_scripts_only() {
+    let root = support::workspace_root();
+    let mk = std::fs::read_to_string(root.join("makefiles/toy.mk"))
+        .unwrap_or_else(|err| panic!("read makefiles/toy.mk: {err}"));
+    assert!(
+        mk.contains("./scripts/assets/refresh-toy.sh")
+            && mk.contains("./scripts/assets/refresh-golden.sh"),
+        "toy.mk refresh targets must call scripts/assets refresh entrypoints"
+    );
+}
