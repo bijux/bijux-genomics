@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-02-13T19:10:13+01:00",
+  "build_date_utc": "2026-02-13T20:55:09+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "items": [
@@ -488,7 +488,7 @@
       "version": "4.1.6"
     },
     {
-      "entry_sha256": "998a578682030dc3b1225d3a6d126c35dc6b0bbd7031fd119779c3be6ff92e07",
+      "entry_sha256": "a706cf5b6306b9ef3fac1a696dd93eee63985849f8e859a613561c798a8f72e9",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -496,7 +496,7 @@
       "source_sha256": "",
       "status": "production",
       "tool": "mosdepth",
-      "version": "0.3.10"
+      "version": "0.3.11"
     },
     {
       "entry_sha256": "f10979c38f5b926198063be42c1a30701f8db5bcf8603b0bb833d4ce62909bab",
@@ -576,7 +576,7 @@
       "version": "1.2.4"
     },
     {
-      "entry_sha256": "ccf19a195500fa03f8d9df514d905b486f69ed44631872dd489e2d82d6bb93ff",
+      "entry_sha256": "23755335afe4faca62c9faf3f054ecd3395180eca05b4be6f9511cdae398fcfc",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -584,7 +584,7 @@
       "source_sha256": "",
       "status": "production",
       "tool": "pydamage",
-      "version": "1.0.0"
+      "version": "0.80"
     },
     {
       "entry_sha256": "acbfc6855dcbc9ac58c1ca5f046112f16635b3bc05fd6bb9d4c3fd9dd4e33dc1",
@@ -653,7 +653,7 @@
       "version": "2.8.2"
     },
     {
-      "entry_sha256": "5a66002a143031493e384e4faec54b49641c88b6034f78d5a4488a0276a269de",
+      "entry_sha256": "03baefe3e775726d55aa18c462e86b27606d08db2f91eb475fe2d72131dfb320",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -661,7 +661,7 @@
       "source_sha256": "",
       "status": "production",
       "tool": "seqkit_stats",
-      "version": "2.7.0"
+      "version": "2.8.2"
     },
     {
       "entry_sha256": "0a4aa66f7506c6d6d2716e60613c07b6869bd3c16da6237a70c6b81b0c834e41",
@@ -809,6 +809,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v2",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "cd0a902d2022ccfeee359141a46f7e505948dea284daea7e0ac26dc224e5dfde",
+  "source_sha256": "0c3b380b8835d132d52a409c3fde58974df708714de7e01994aac0acac6f9e3c",
   "version_map_source": "artifacts/containers/version_map.json"
 }
