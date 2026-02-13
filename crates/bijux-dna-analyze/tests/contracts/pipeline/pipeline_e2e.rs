@@ -108,11 +108,13 @@ fn write_stage_artifacts(root: &Path, stage_id: &str) -> Result<()> {
 fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
     let profile =
         profile_by_id(domain, pipeline_id).unwrap_or_else(|err| panic!("profile exists: {err}"));
-    let temp = bijux_dna_infra::temp_dir("pipeline-e2e")?;
-    let root = temp.path();
+    let paths = bijux_dna_testkit::TestPaths::new(&format!("pipeline-e2e-{pipeline_id}"));
+    let root = paths.root();
 
+    let mut stages = profile.capabilities.required_stages.clone();
+    stages.sort_unstable();
     let mut facts = Vec::new();
-    for stage in &profile.capabilities.required_stages {
+    for stage in &stages {
         let stage_key = bijux_dna_core::ids::StageId::from_static(stage);
         let tool_id = profile
             .defaults
@@ -153,6 +155,10 @@ fn pipeline_fastq_default_report_snapshot() -> Result<()> {
 }
 
 /// Snapshot locks fastq-to-bam default pipeline report.
+///
+/// Nondeterminism vectors eliminated:
+/// - Explicit stage sorting before report assembly to prevent snapshot drift from input order.
+/// - Per-test unique temp roots via `TestPaths` under `TEST_TMP_DIR`.
 #[test]
 fn pipeline_fastq_to_bam_default_report_snapshot() -> Result<()> {
     let report = build_report(Domain::Cross, "fastq-to-bam__default__v1")?;
@@ -166,6 +172,10 @@ fn pipeline_fastq_to_bam_default_report_snapshot() -> Result<()> {
 }
 
 /// Snapshot locks bam adna shotgun pipeline report.
+///
+/// Nondeterminism vectors eliminated:
+/// - Explicit stage sorting before report assembly to prevent snapshot drift from input order.
+/// - Per-test unique temp roots via `TestPaths` under `TEST_TMP_DIR`.
 #[test]
 fn pipeline_bam_shotgun_report_snapshot() -> Result<()> {
     let report = build_report(Domain::Bam, "bam-to-bam__adna_shotgun__v1")?;
@@ -179,6 +189,10 @@ fn pipeline_bam_shotgun_report_snapshot() -> Result<()> {
 }
 
 /// Snapshot locks bam adna capture pipeline report.
+///
+/// Nondeterminism vectors eliminated:
+/// - Explicit stage sorting before report assembly to prevent snapshot drift from input order.
+/// - Per-test unique temp roots via `TestPaths` under `TEST_TMP_DIR`.
 #[test]
 fn pipeline_bam_capture_report_snapshot() -> Result<()> {
     let report = build_report(Domain::Bam, "bam-to-bam__adna_capture__v1")?;
