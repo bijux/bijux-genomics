@@ -5,5 +5,7 @@
 //! - Stable, deterministic ordering of returned paths.
 
 mod bench;
+mod config;
 
 pub use bench::{bench_base_dir, bench_tools_dir};
+pub use config::{configs_dir, configs_file};
