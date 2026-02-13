@@ -138,3 +138,7 @@ scripts/checks/check-assets-large-file-allowlist.sh
 scripts/tooling/simulate-coverage-regime.sh
 scripts/tooling/acquire-panels.sh
 scripts/tooling/make-help.sh
+scripts/checks/check-docs-build-contract.sh
+scripts/checks/check-docs-requirements-lock.sh
+scripts/checks/check-examples-policy.sh
+scripts/checks/check-make-cargo-isolate-target.sh

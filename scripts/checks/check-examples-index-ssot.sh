@@ -40,11 +40,13 @@ else:
     rows = data.get("examples", [])
 
 errors = []
+indexed_paths = set()
 for row in rows:
     ex_id = str(row.get("id", "")).strip()
     path = str(row.get("path", "")).strip()
     outs = row.get("expected_outputs", [])
     ex = root / path
+    indexed_paths.add(path.rstrip("/"))
     if not ex_id:
         errors.append("examples/index.yaml entry missing id")
         continue
@@ -66,6 +68,14 @@ for row in rows:
         need = {"plan.json", "explain.json", "report.json"}
         if not need.issubset(set(str(x) for x in outs)):
             errors.append(f"{path}: expected_outputs must include plan.json/explain.json/report.json")
+
+# Reverse coverage: every runnable example folder must be listed in examples/index.yaml.
+for ex_toml in sorted((root / "examples").glob("*/*/example.toml")):
+    ex_path = str(ex_toml.parent.relative_to(root))
+    if ex_path.startswith("examples/_template") or ex_path.startswith("examples/data"):
+        continue
+    if ex_path not in indexed_paths:
+        errors.append(f"examples/index.yaml missing entry for {ex_path}")
 
 if errors:
     print("examples index ssoT: FAILED", file=sys.stderr)

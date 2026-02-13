@@ -1743,3 +1743,35 @@ purpose = "tooling script"
 inputs = ["makefiles/README.md", "makefiles/cargo.mk"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "check_make_cargo_isolate_target"
+path = "scripts/checks/check-make-cargo-isolate-target.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_docs_requirements_lock"
+path = "scripts/checks/check-docs-requirements-lock.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_docs_build_contract"
+path = "scripts/checks/check-docs-build-contract.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_examples_policy"
+path = "scripts/checks/check-examples-policy.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

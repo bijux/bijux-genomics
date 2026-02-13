@@ -15,6 +15,7 @@ fi
 CFG="${DOCS_CFG:-$ROOT_DIR/configs/docs/mkdocs.toml}"
 DOCS_VENV="${DOCS_VENV:-$ROOT_DIR/artifacts/docs/.venv}"
 mkdocs_bin="${DOCS_VENV}/bin/mkdocs"
+CACHE_DIR="${ROOT_DIR}/artifacts/docs/.cache"
 
 require_file "$CFG"
 require_file "$mkdocs_bin"
@@ -45,15 +46,23 @@ site_dir="$(printf '%s\n' "$cfg_text" | sed -n '2p')"
 strict="$(printf '%s\n' "$cfg_text" | sed -n '3p')"
 dev_addr="$(printf '%s\n' "$cfg_text" | sed -n '4p')"
 
+if [[ "$site_dir" != "artifacts/docs/site" ]]; then
+  echo "docs-build: site_dir must be artifacts/docs/site (got: $site_dir)" >&2
+  exit 1
+fi
+
+mkdir -p "$CACHE_DIR"
+export XDG_CACHE_HOME="$CACHE_DIR"
+
 case "$mode" in
   build)
-    "$mkdocs_bin" build --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$site_dir"
+    "$mkdocs_bin" build --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$ROOT_DIR/$site_dir"
     ;;
   lint)
     if [[ "$strict" == "true" ]]; then
-      "$mkdocs_bin" build --strict --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$site_dir"
+      "$mkdocs_bin" build --strict --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$ROOT_DIR/$site_dir"
     else
-      "$mkdocs_bin" build --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$site_dir"
+      "$mkdocs_bin" build --config-file "$ROOT_DIR/$mkdocs_config" --site-dir "$ROOT_DIR/$site_dir"
     fi
     ;;
   serve)

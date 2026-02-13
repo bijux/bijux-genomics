@@ -9,8 +9,12 @@ LC_ALL=C
 export LC_ALL
 
 DOCS_PY="${DOCS_PY:-python3}"
-DOCS_VENV="${DOCS_VENV:-artifacts/docs/.venv}"
-DOCS_REQ="${DOCS_REQ:-configs/docs/requirements.txt}"
+DOCS_VENV="${DOCS_VENV:-$ROOT_DIR/artifacts/docs/.venv}"
+DOCS_REQ="${DOCS_REQ:-$ROOT_DIR/configs/docs/requirements.txt}"
+DOCS_CACHE="${ROOT_DIR}/artifacts/docs/.cache/pip"
+
+mkdir -p "$DOCS_CACHE"
+export PIP_CACHE_DIR="$DOCS_CACHE"
 
 "${DOCS_PY}" -m venv "${DOCS_VENV}"
 "${DOCS_VENV}/bin/pip" install --upgrade pip
