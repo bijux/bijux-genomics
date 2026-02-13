@@ -1,6 +1,6 @@
 {
   "domain": "fastq",
-  "generated_at": "2026-02-13T22:45:50.417158+00:00",
+  "generated_at": "2026-02-13T22:51:48.280912+00:00",
   "inputs_root": "assets/toy/core-v1/fastq",
   "profile_id": "fastq_reference_adna",
   "schema_version": "bijux.toy.run_manifest.v1"
