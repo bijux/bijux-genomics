@@ -15,8 +15,7 @@ required_inputs: ["vcf"]
 required_outputs: ["imputation_out"]
 metrics:
   - name: "imputation_status"
-compatible_tools: ["beagle"]
-single_tool_justification: "beagle is the current admitted planned imputation baseline."
+compatible_tools: ["beagle", "glimpse", "impute5", "minimac4"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]

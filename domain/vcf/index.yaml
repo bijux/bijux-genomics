@@ -8,28 +8,47 @@ stage_ids:
   - vcf.filter
   - vcf.ibd
   - vcf.imputation
+  - vcf.impute
   - vcf.pca
   - vcf.phasing
+  - vcf.postprocess
+  - vcf.prepare_reference_panel
   - vcf.qc
   - vcf.stats
 tool_ids:
   - bcftools
   - beagle
+  - eagle
   - eigensoft
   - germline
+  - glimpse
   - ibdhap
   - ibdne
+  - impute5
+  - minimac4
   - plink
   - plink2
+  - shapeit5
 stage_tool_compatibility:
   vcf.call: ["bcftools"]
   vcf.filter: ["bcftools"]
+  vcf.imputation: ["beagle", "glimpse", "impute5", "minimac4"]
+  vcf.impute: ["beagle", "glimpse", "impute5", "minimac4"]
+  vcf.phasing: ["beagle", "shapeit5", "eagle"]
+  vcf.postprocess: ["bcftools"]
+  vcf.prepare_reference_panel: ["bcftools"]
   vcf.stats: ["bcftools"]
 active_defaults:
   vcf.call: "bcftools"
   vcf.filter: "bcftools"
+  vcf.impute: "beagle"
+  vcf.postprocess: "bcftools"
+  vcf.prepare_reference_panel: "bcftools"
   vcf.stats: "bcftools"
 active_default_rationale:
   vcf.call: "deterministic baseline caller"
   vcf.filter: "deterministic pass filter"
+  vcf.impute: "planned pinned imputation baseline"
+  vcf.postprocess: "deterministic post-imputation normalization baseline"
+  vcf.prepare_reference_panel: "deterministic panel preparation baseline"
   vcf.stats: "required summary metrics"

@@ -1,0 +1,10 @@
+tool=eagle
+shipping=external
+tool_version=pinned
+stage=vcf.phasing
+domain=vcf
+fixture_kind=planned
+command=eagle
+args=--vcfTarget input.vcf --outPrefix phased
+expected_outputs=phased_vcf
+expected_stdout_patterns=eagle

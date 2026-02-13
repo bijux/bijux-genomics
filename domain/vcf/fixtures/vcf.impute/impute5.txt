@@ -1,0 +1,10 @@
+tool=impute5
+shipping=external
+tool_version=pinned
+stage=vcf.impute
+domain=vcf
+fixture_kind=planned
+command=impute5
+args=--h phased.vcf --o imputed.vcf.gz
+expected_outputs=imputed_vcf
+expected_stdout_patterns=impute5

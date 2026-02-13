@@ -1,0 +1,10 @@
+tool=shapeit5
+shipping=external
+tool_version=pinned
+stage=vcf.phasing
+domain=vcf
+fixture_kind=planned
+command=shapeit5
+args=--input input.vcf --output phased.bcf
+expected_outputs=phased_vcf
+expected_stdout_patterns=shapeit

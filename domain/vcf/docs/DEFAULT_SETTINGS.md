@@ -12,6 +12,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.ibd`: phased/imputed-compatible VCF plus sample metadata.
 - `vcf.phasing`: filtered VCF + reference panels (when enabled).
 - `vcf.imputation`: phased VCF + panel metadata.
+- `vcf.impute`: phased VCF + panel metadata.
+- `vcf.postprocess`: imputed VCF + report filters.
+- `vcf.prepare_reference_panel`: raw panel VCF/BCF + build metadata.
 
 ## Outputs
 - `vcf.call` -> `called_vcf`
@@ -23,6 +26,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.ibd` -> `ibd_json`
 - `vcf.phasing` -> `phased_vcf`
 - `vcf.imputation` -> `imputed_vcf`
+- `vcf.impute` -> `imputed_vcf`
+- `vcf.postprocess` -> `postprocess_vcf`
+- `vcf.prepare_reference_panel` -> `prepared_panel`
 
 ## Key Parameters
 - calling strictness and emit mode (`vcf.call`)
@@ -31,6 +37,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - missingness/maf guardrails (`vcf.qc`, `vcf.pca`, `vcf.admixture`)
 - window/segment constraints (`vcf.ibd`)
 - panel and phasing algorithm toggles (`vcf.phasing`, `vcf.imputation`)
+- panel and imputation engine toggles (`vcf.impute`)
+- post-imputation INFO/filter normalization toggles (`vcf.postprocess`)
+- panel normalization/index strategy (`vcf.prepare_reference_panel`)
 
 ## Validity Limits
 - Defaults are valid only with pinned production/approved planned tool versions.
@@ -47,6 +56,9 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.ibd` default: `bcftools` (planned placeholder). rationale: placeholder contract baseline before `germline/ibdseq/ibdhap/ibdne` promotion.
 - `vcf.phasing` default: `bcftools` (planned placeholder). rationale: deterministic staging until `beagle/shapeit` policy promotion.
 - `vcf.imputation` default: `bcftools` (planned placeholder). rationale: deterministic staging until imputation toolchain is admitted.
+- `vcf.impute` default: `beagle` (planned). rationale: first pinned planned imputation baseline while alternative tools are externally tracked.
+- `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
+- `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
 
 single_tool_justification: vcf.call
 single_tool_justification: vcf.filter
@@ -57,3 +69,6 @@ single_tool_justification: vcf.admixture
 single_tool_justification: vcf.ibd
 single_tool_justification: vcf.phasing
 single_tool_justification: vcf.imputation
+single_tool_justification: vcf.impute
+single_tool_justification: vcf.postprocess
+single_tool_justification: vcf.prepare_reference_panel

@@ -1,0 +1,10 @@
+tool=glimpse
+shipping=external
+tool_version=pinned
+stage=vcf.impute
+domain=vcf
+fixture_kind=planned
+command=GLIMPSE_phase
+args=--input phased.vcf --output imputed.bcf
+expected_outputs=imputed_vcf
+expected_stdout_patterns=glimpse

@@ -15,3 +15,6 @@ Minimum taxonomy:
 - `vcf.ibd`: identity-by-descent segment inference inputs/outputs.
 - `vcf.phasing`: haplotype phasing preparation/execution.
 - `vcf.imputation`: post-phasing imputation staging.
+- `vcf.impute`: explicit imputation execution stage (tool-focused contract).
+- `vcf.postprocess`: info/filter/format normalization after imputation.
+- `vcf.prepare_reference_panel`: deterministic panel prep/index normalization.
