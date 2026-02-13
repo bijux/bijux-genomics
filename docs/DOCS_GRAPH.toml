@@ -85,10 +85,14 @@ children = [
 [[edge]]
 from = "docs/20-science/fastq/index.md"
 children = [
+  "docs/20-science/fastq/CHIMERA_SEMANTICS.md",
   "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md",
   "docs/20-science/fastq/METHODOLOGICAL_INTENT.md",
   "docs/20-science/fastq/METRIC_SEMANTICS.md",
+  "docs/20-science/fastq/NORMALIZATION_SEMANTICS.md",
   "docs/20-science/fastq/OPERATIONAL_CONTRACT.md",
+  "docs/20-science/fastq/OTU_VS_ASV_SEMANTICS.md",
+  "docs/20-science/fastq/PRIMER_ASSUMPTIONS.md",
   "docs/20-science/fastq/REFERENCES.md",
   "docs/20-science/fastq/SCIENTIFIC_SPEC.md",
   "docs/20-science/fastq/STAGE_ASSUMPTIONS.md",
@@ -100,9 +104,13 @@ children = [
 [[edge]]
 from = "docs/20-science/vcf/index.md"
 children = [
+  "docs/20-science/vcf/DEMOGRAPHY.md",
+  "docs/20-science/vcf/IBD.md",
   "docs/20-science/vcf/IMPUTATION_METHODS.md",
   "docs/20-science/vcf/IMPUTATION_SCOPE.md",
+  "docs/20-science/vcf/POPULATION_STRUCTURE.md",
   "docs/20-science/vcf/ROADMAP.md",
+  "docs/20-science/vcf/ROH.md",
 ]
 
 [[edge]]
@@ -163,6 +171,7 @@ children = [
   "docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md",
   "docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md",
   "docs/50-reference/EXAMPLE_TEMPLATE.md",
+  "docs/50-reference/LICENSING.md",
   "docs/50-reference/MANIFEST_MIGRATION.md",
   "docs/50-reference/NO_ORPHANS.md",
   "docs/50-reference/PIPELINES.md",

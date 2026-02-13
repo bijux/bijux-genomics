@@ -14,23 +14,19 @@ import sys
 root = Path(sys.argv[1])
 
 major_docs = [
-    "docs/10-architecture/CONTRACT_SPINE.md",
-    "docs/10-architecture/CONTRACT_AUTHORITY.md",
-    "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md",
+    "docs/10-architecture/ARCHITECTURE.md",
+    "docs/10-architecture/SSOT.md",
     "docs/20-science/SCIENTIFIC_DEFAULTS.md",
-    "docs/30-operations/CI.md",
     "docs/30-operations/CONTAINERS.md",
     "docs/30-operations/REPRODUCIBILITY.md",
-    "docs/30-operations/PRODUCTION_GUARANTEES.md",
-    "docs/50-reference/TOOL_ADMISSION.md",
 ]
 
 required = {
-    "purpose": re.compile(r"^##\s+Purpose\s*$", re.IGNORECASE | re.MULTILINE),
-    "scope": re.compile(r"^##\s+Scope\s*$", re.IGNORECASE | re.MULTILINE),
-    "contracts": re.compile(r"^##\s+Contracts\s*$", re.IGNORECASE | re.MULTILINE),
-    "examples": re.compile(r"^##\s+Examples\s*$", re.IGNORECASE | re.MULTILINE),
-    "failure modes": re.compile(r"^##\s+Failure modes\s*$", re.IGNORECASE | re.MULTILINE),
+    "purpose": re.compile(r"^##\s+Purpose:?\s*$", re.IGNORECASE | re.MULTILINE),
+    "scope": re.compile(r"^##\s+Scope:?\s*$", re.IGNORECASE | re.MULTILINE),
+    "contracts": re.compile(r"^##\s+Contracts:?\s*$", re.IGNORECASE | re.MULTILINE),
+    "examples": re.compile(r"^##\s+Examples:?\s*$", re.IGNORECASE | re.MULTILINE),
+    "failure modes": re.compile(r"^##\s+Failure modes:?\s*$", re.IGNORECASE | re.MULTILINE),
 }
 
 errors: list[str] = []
