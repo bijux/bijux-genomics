@@ -34,3 +34,13 @@ Define the runtime contract for `bin/isolate` and `bin/require-isolate`.
 ## `bin/require-isolate`
 - Verifies required isolate env vars are present and path-scoped under `ISO_ROOT`.
 - `--explain` prints a user-facing diagnostic and invocation guidance.
+
+## Scope
+Applies only to the files and workflows referenced in this document.
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

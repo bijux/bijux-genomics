@@ -40,7 +40,10 @@ scripts/containers/smoke-docker-amd64.sh
 scripts/containers/smoke-docker-arm64.sh
 scripts/containers/summary.sh
 scripts/docs/check-doc-assets.sh
+scripts/docs/check-doc-depth.sh
 scripts/docs/check-doc-links.sh
+scripts/docs/check-doc-root-layout.sh
+scripts/docs/check-docs-graph.sh
 scripts/docs/check-domain-doc-references.sh
 scripts/docs/check-generated-docs.sh
 scripts/docs/check-root-pollution.sh
@@ -74,7 +77,10 @@ scripts/tooling/config-inventory.sh
 scripts/tooling/coverage_summary.sh
 scripts/tooling/generate-config-tree-snapshot.sh
 scripts/tooling/generate-configs.sh
+scripts/tooling/generate-docs-graph.sh
+scripts/tooling/generate-apptainer-qa-matrix.sh
 scripts/tooling/generate-policy-index.sh
+scripts/tooling/generate-repo-root-map.sh
 scripts/tooling/generate-tool-index.sh
 scripts/tooling/inventory.sh
 scripts/tooling/setup-docs-venv.sh

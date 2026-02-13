@@ -30,3 +30,16 @@ Crate authority ownership is defined in:
 ## Failure modes:
 - Manual edits to generated configs drift from domain and fail CI.
 - Makefile-side tool lists drift from registry and fail policies.
+
+## Purpose
+This document defines the intended behavior and navigation contract for this topic.
+
+## Scope
+Applies only to the files and workflows referenced in this document.
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

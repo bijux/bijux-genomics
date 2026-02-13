@@ -31,3 +31,16 @@ No profile may rely on implicit library assumptions.
 - `soft`: warning-level scientific risk; does not block by itself.
 
 `invariants_report.json` is the canonical machine-readable report artifact.
+
+## Purpose
+This document defines the intended behavior and navigation contract for this topic.
+
+## Scope
+Applies only to the files and workflows referenced in this document.
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

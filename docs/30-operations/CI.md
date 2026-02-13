@@ -18,3 +18,10 @@ CI enforces the minimal deterministic gate for the workspace.
 
 ## Non-goals
 - Documenting non-`make ci` target suites.
+
+## Scope
+Applies only to the files and workflows referenced in this document.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

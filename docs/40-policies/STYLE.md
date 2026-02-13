@@ -17,3 +17,10 @@ Consistency reduces review time and errors.
 
 ## Failure modes
 - Misplaced docs fail policies.
+
+## Docs Depth Policy
+- Every authored Markdown doc must include: `## Purpose`, `## Scope`, `## Non-goals`, and `## Contracts`.
+- Transitional aliases are accepted temporarily by checks:
+  - `## What` can satisfy `Purpose`
+  - `## Why` can satisfy `Scope`
+- Generated docs and `index.md` files are exempt.

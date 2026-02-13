@@ -26,6 +26,9 @@ lint:
 	./scripts/run.sh checks check-tool-registry-lock
 	./scripts/run.sh docs check-domain-doc-references
 	./scripts/run.sh docs check-doc-links
+	./scripts/run.sh docs check-docs-graph
+	./scripts/run.sh docs check-doc-root-layout
+	./scripts/run.sh docs check-doc-depth
 	./scripts/run.sh docs check-generated-docs
 	./scripts/run.sh docs check-doc-assets
 	./scripts/run.sh tooling check-config-paths
