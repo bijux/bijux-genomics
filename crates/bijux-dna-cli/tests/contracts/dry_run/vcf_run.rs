@@ -69,8 +69,11 @@ arch = "x86_64"
         "param_registry_vcf.toml",
         "required_tools_vcf.toml",
     ] {
-        std::fs::copy(ws_root.join("configs").join("ci").join(file), ci_dir.join(file))
-            .unwrap_or_else(|err| panic!("copy {file}: {err}"));
+        std::fs::copy(
+            ws_root.join("configs").join("ci").join(file),
+            ci_dir.join(file),
+        )
+        .unwrap_or_else(|err| panic!("copy {file}: {err}"));
     }
 
     let args = [

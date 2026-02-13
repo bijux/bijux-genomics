@@ -7,7 +7,10 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
     let root = support::workspace_root();
     let checksum = root.join("scripts/assets/toy/core-v1/CHECKSUMS.sha256");
     if !checksum.exists() {
-        eprintln!("skip toy golden deterministic check; missing {}", checksum.display());
+        eprintln!(
+            "skip toy golden deterministic check; missing {}",
+            checksum.display()
+        );
         return;
     }
     let status = std::process::Command::new("python3")
