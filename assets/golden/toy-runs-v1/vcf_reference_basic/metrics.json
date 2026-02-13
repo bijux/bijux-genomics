@@ -3,10 +3,10 @@
     "LOWQUAL": 1,
     "PASS": 2
   },
-  "generated_at": "2026-02-11T19:44:31.173901+00:00",
+  "generated_at": "2026-02-13T21:03:59.481414+00:00",
   "indels": 1,
   "input_checksums": {
-    "vcf/toy.vcf": "907c412e3b4f04bc05a5e1a0e09cef57763a4d6accfbe0e0b7196c4cf9badc2b"
+    "vcf/toy.vcf": "aeebfc848b3f2256abf5b39c208c5ccf46f9650ee0f6878a8b343d0a49fc233e"
   },
   "schema_version": "bijux.toy.metrics.vcf.v1",
   "snps": 2,
