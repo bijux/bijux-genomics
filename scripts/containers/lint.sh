@@ -157,6 +157,7 @@ fi
 "$SCRIPT_DIR/check-version-authority.sh"
 "$SCRIPT_DIR/check-version-hash-pin.sh"
 "$SCRIPT_DIR/check-version-lock.sh"
+"$SCRIPT_DIR/check-version-deprecations.sh"
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 "$SCRIPT_DIR/check-tool-id-manifest.sh"
 "$SCRIPT_DIR/check-tool-id-contract.sh"
