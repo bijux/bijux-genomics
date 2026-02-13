@@ -26,6 +26,14 @@ help: ## Show this help message
 	@printf "  %-22s %s\n" "ci" "Run fmt/lint/audit/test/coverage in one isolate"
 	@printf "  %-22s %s\n" "refresh-assets-toy" "Refresh toy assets"
 	@printf "  %-22s %s\n" "refresh-assets-golden" "Refresh golden assets"
+	@if [ "$${SHOW_INTERNAL:-0}" = "1" ]; then \
+		printf "\nInternal make targets:\n\n"; \
+		printf "  %-22s %s\n" "domain-validate" "Run strict domain validation checks"; \
+		printf "  %-22s %s\n" "examples-validate" "Run example structure/corpus/golden checks"; \
+		printf "  %-22s %s\n" "_policy-fast" "Fast policy checks for local iteration"; \
+		printf "  %-22s %s\n" "_ci-fast" "Fast internal CI profile"; \
+		printf "  %-22s %s\n" "_ci-slow" "Slow internal CI profile"; \
+	fi
 	@printf "\nSee makefiles/README.md for the public surface contract.\n"
 
 _prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir

@@ -16,6 +16,8 @@ fmt:
 
 lint:
 	./scripts/run.sh tooling repo-doctor --fast
+	$(MAKE) _domain-validate
+	$(MAKE) _examples-validate
 	./scripts/run.sh checks check-supported-scripts
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
@@ -76,13 +78,6 @@ lint:
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
-	./scripts/run.sh checks check-examples-structure
-	./scripts/run.sh checks check-examples-corpus-manifests
-	./scripts/run.sh checks check-examples-corpus-checksums
-	./scripts/run.sh checks check-examples-corpus-layout
-	./scripts/run.sh checks check-examples-golden
-	./scripts/run.sh checks check-examples-cli-snapshot
-	./scripts/run.sh checks check-examples-notebook-policy
 	./scripts/run.sh containers lint
 	./scripts/run.sh test test-scripts-smoke
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
@@ -105,7 +100,7 @@ _install-ci-tools: ## Install required cargo tools once per CI job.
 _domain-gates: _domain-validate _domain-inventory-drift _check-generated-configs _check-generated-config-headers
 
 ci:
-	@./bin/isolate sh -ceu 'export CARGO_TARGET_DIR="$$ISO_ROOT/target-ci"; $(MAKE) fmt lint audit test coverage'
+	@./bin/isolate sh -ceu 'export CARGO_TARGET_DIR="$$ISO_ROOT/target-ci"; ./scripts/run.sh tooling repo-doctor --fast; $(MAKE) fmt lint audit test coverage'
 
 _check:
 	$(MAKE) fmt lint audit coverage
@@ -171,6 +166,9 @@ _policy-full: ## Run full policy suite
 _domain-validate:
 	./scripts/run.sh domain validate
 
+domain-validate:
+	./scripts/run.sh domain validate
+
 _domain-coverage:
 	@./scripts/run.sh tooling cargo-targets domain-coverage
 
@@ -223,6 +221,18 @@ _smoke-fastq: ## Quick local FASTQ smoke dry-run.
 _smoke-bam: ## Quick local BAM smoke dry-run.
 	@./scripts/run.sh smoke run bam
 
+examples-validate:
+	@$(MAKE) _examples-validate
+
+_examples-validate:
+	./scripts/run.sh checks check-examples-structure
+	./scripts/run.sh checks check-examples-corpus-manifests
+	./scripts/run.sh checks check-examples-corpus-checksums
+	./scripts/run.sh checks check-examples-corpus-layout
+	./scripts/run.sh checks check-examples-golden
+	./scripts/run.sh checks check-examples-cli-snapshot
+	./scripts/run.sh checks check-examples-notebook-policy
+
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 	@./scripts/run.sh assets refresh-toy
 
@@ -231,7 +241,8 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 
 .PHONY: fmt lint test audit coverage ci _check _verify-parallel-isolation \
 		_clean-isolates \
-		_domain-gates \
+		_domain-gates domain-validate examples-validate \
+		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _quick _install-ci-tools \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
