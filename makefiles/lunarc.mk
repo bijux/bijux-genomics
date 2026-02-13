@@ -78,17 +78,16 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		fi; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ] && [ -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
 			tmp_def="$$(mktemp /tmp/bijux-python-base.XXXXXX.def)"; \
-			cat > "$$tmp_def" <<EOF; \
-Bootstrap: localimage
-From: $(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif
-
-%post
-    set -eux
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends ca-certificates python3 python3-pip
-    rm -rf /var/lib/apt/lists/*
-EOF
+			printf '%s\n' \
+				'Bootstrap: localimage' \
+				'From: $(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif' \
+				'' \
+				'%post' \
+				'    set -eux' \
+				'    export DEBIAN_FRONTEND=noninteractive' \
+				'    apt-get update' \
+				'    apt-get install -y --no-install-recommends ca-certificates python3 python3-pip' \
+				'    rm -rf /var/lib/apt/lists/*' > "$$tmp_def"; \
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" "$$tmp_def" || true; \
 			rm -f "$$tmp_def"; \
 		fi; \
