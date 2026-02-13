@@ -12,6 +12,12 @@ Canonical list of contract artifacts and their owning crates.
 ## Why
 Eliminates ambiguity about where truth lives.
 
+## Purpose
+Define the canonical contract artifact spine and ownership map.
+
+## Scope
+Applies to core runtime/report contract artifacts and their test anchors.
+
 ## Non-goals
 - Runtime execution details.
 

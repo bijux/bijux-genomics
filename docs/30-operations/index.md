@@ -1,6 +1,7 @@
 # 30-operations Index
 
 - `CI.md`
+- `PRODUCTION_GUARANTEES.md`
 - `DEVELOPER_WORKFLOW.md`
 - `REPRODUCIBILITY.md`
 - `RUN_ARTIFACTS.md`
