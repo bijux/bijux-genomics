@@ -185,7 +185,7 @@ impl From<bijux_dna_infra::IoError> for EnvError {
 /// # Errors
 /// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
 pub fn load_platform(name: Option<&str>) -> Result<PlatformSpec, EnvError> {
-    let path = Path::new("configs").join("platforms.toml");
+    let path = bijux_dna_infra::configs_file(Path::new("."), "runtime/platforms.toml");
     load_platform_from_file(&path, name)
 }
 
@@ -289,7 +289,7 @@ pub fn resolve_image(
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
-    let path = Path::new("configs").join("images.toml");
+    let path = bijux_dna_infra::configs_file(Path::new("."), "ci/images.toml");
     load_image_catalog_from_file(&path)
 }
 
