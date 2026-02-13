@@ -15,8 +15,7 @@ required_inputs: ["vcf"]
 required_outputs: ["ibd_out"]
 metrics:
   - name: "ibd_status"
-compatible_tools: ["bcftools"]
-single_tool_justification: "Planned stage baseline; additional tools enter via downstream registry promotion."
+compatible_tools: ["germline", "ibdhap", "ibdne"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]

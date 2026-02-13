@@ -14,6 +14,13 @@ stage_ids:
   - vcf.stats
 tool_ids:
   - bcftools
+  - beagle
+  - eigensoft
+  - germline
+  - ibdhap
+  - ibdne
+  - plink
+  - plink2
 stage_tool_compatibility:
   vcf.call: ["bcftools"]
   vcf.filter: ["bcftools"]

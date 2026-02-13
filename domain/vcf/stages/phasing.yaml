@@ -15,8 +15,8 @@ required_inputs: ["vcf"]
 required_outputs: ["phasing_out"]
 metrics:
   - name: "phasing_status"
-compatible_tools: ["bcftools"]
-single_tool_justification: "Planned stage baseline; additional tools enter via downstream registry promotion."
+compatible_tools: ["beagle"]
+single_tool_justification: "beagle is the current admitted planned phasing baseline."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]
