@@ -163,6 +163,8 @@ fi
 "$SCRIPT_DIR/check-tool-id-contract.sh"
 "$SCRIPT_DIR/check-registry-vs-defs.sh"
 "$SCRIPT_DIR/check-tool-name-collision.sh"
+"$SCRIPT_DIR/check-toolkit-bundles.sh"
+"$SCRIPT_DIR/check-hpc-image-naming.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
 "$SCRIPT_DIR/check-apptainer-hardening.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
