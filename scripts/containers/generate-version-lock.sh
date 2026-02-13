@@ -30,6 +30,7 @@ root = Path(sys.argv[1])
 out = Path(sys.argv[2])
 version_map_path = Path(sys.argv[3])
 versions_path = root / "containers/versions/versions.toml"
+generator_path = root / "scripts/containers/generate-version-lock.sh"
 version_map = json.loads(version_map_path.read_text(encoding="utf-8"))
 
 items = []
@@ -94,6 +95,8 @@ payload = {
     "build_manifests_source": "artifacts/containers/manifests/*.json",
     "build_date_utc": "",
     "builder_platform": "arm64",
+    "generator_script": "scripts/containers/generate-version-lock.sh",
+    "generator_sha256": hashlib.sha256(generator_path.read_bytes()).hexdigest(),
     "source_sha256": hashlib.sha256(versions_path.read_bytes()).hexdigest(),
     "items": items,
 }

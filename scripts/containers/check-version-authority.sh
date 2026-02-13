@@ -26,6 +26,7 @@ import sys
 root = Path(sys.argv[1])
 lock_path = root / "containers/versions/lock.json"
 versions_path = root / "containers/versions/versions.toml"
+generator_path = root / "scripts/containers/generate-version-lock.sh"
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 
 errors = []
@@ -37,6 +38,11 @@ if not str(lock.get("build_date_utc", "")).strip():
     errors.append("lock.json must include build_date_utc")
 if str(lock.get("builder_platform", "")).strip() != "arm64":
     errors.append("lock.json builder_platform must be arm64")
+if lock.get("generator_script") != "scripts/containers/generate-version-lock.sh":
+    errors.append("lock.json generator_script must be scripts/containers/generate-version-lock.sh")
+expected_gen_sha = hashlib.sha256(generator_path.read_bytes()).hexdigest()
+if lock.get("generator_sha256") != expected_gen_sha:
+    errors.append("lock.json generator_sha256 does not match scripts/containers/generate-version-lock.sh")
 expected_sha = hashlib.sha256(versions_path.read_bytes()).hexdigest()
 if lock.get("source_sha256") != expected_sha:
     errors.append("lock.json source_sha256 does not match versions.toml")
