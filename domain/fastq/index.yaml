@@ -1,75 +1,77 @@
+# GENERATED FILE - DO NOT EDIT
+# Regenerate with: scripts/domain/generate-index.sh fastq
+
 domain: fastq
 stage_ids:
-- fastq.prepare_reference
-- fastq.validate_pre
-- fastq.length_distribution_pre
-- fastq.detect_adapters
-- fastq.polyg_tailing
-- fastq.trim
-- fastq.filter
-- fastq.stats_neutral
-- fastq.rrna
-- fastq.qc_post
-- fastq.merge
-- fastq.deduplicate
-- fastq.low_complexity
-- fastq.host_depletion
-- fastq.contaminant_screen
-- fastq.correct
-- fastq.umi
-- fastq.overrepresented_sequences
-- fastq.screen
+  - fastq.contaminant_screen
+  - fastq.correct
+  - fastq.deduplicate
+  - fastq.detect_adapters
+  - fastq.filter
+  - fastq.host_depletion
+  - fastq.length_distribution_pre
+  - fastq.low_complexity
+  - fastq.merge
+  - fastq.overrepresented_sequences
+  - fastq.polyg_tailing
+  - fastq.prepare_reference
+  - fastq.qc_post
+  - fastq.rrna
+  - fastq.screen
+  - fastq.stats_neutral
+  - fastq.trim
+  - fastq.umi
+  - fastq.validate_pre
 tool_ids:
-- adapterremoval
-- atropos
-- bayeshammer
-- bbduk
-- bbmerge
-- bracken
-- centrifuge
-- cutadapt
-- fastp
-- fastq-scan
-- fastq_screen
-- fastqc
-- fastqvalidator
-- fastqvalidator
-- fastx_clipper
-- flash2
-- fqtools
-- kaiju
-- kraken2
-- krakenuniq
-- leehom
-- lighter
-- metaphlan
-- multiqc
-- musket
-- pear
-- prinseq
-- qualimap
-- rcorrector
-- samtools
-- seqfu
-- seqkit
-- seqkit_stats
-- seqpurge
-- seqtk
-- sortmerna
-- seqprep
-- diamond
-- star
-- skewer
-- spades
-- trim_galore
-- trimmomatic
-- umi_tools
-- vsearch
-- alientrimmer
-- fastuniq
-- clumpify
-- dustmasker
-- bowtie2
+  - adapterremoval
+  - alientrimmer
+  - atropos
+  - bayeshammer
+  - bbduk
+  - bbmerge
+  - bowtie2
+  - bracken
+  - centrifuge
+  - clumpify
+  - cutadapt
+  - diamond
+  - dustmasker
+  - fastp
+  - fastq-scan
+  - fastq_screen
+  - fastqc
+  - fastqvalidator
+  - fastuniq
+  - fastx_clipper
+  - flash2
+  - fqtools
+  - kaiju
+  - kraken2
+  - krakenuniq
+  - leehom
+  - lighter
+  - metaphlan
+  - multiqc
+  - musket
+  - pear
+  - prinseq
+  - qualimap
+  - rcorrector
+  - samtools
+  - seqfu
+  - seqkit
+  - seqkit_stats
+  - seqprep
+  - seqpurge
+  - seqtk
+  - skewer
+  - sortmerna
+  - spades
+  - star
+  - trim_galore
+  - trimmomatic
+  - umi_tools
+  - vsearch
 stage_tool_compatibility:
   fastq.prepare_reference:
   - star
