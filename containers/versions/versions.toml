@@ -299,10 +299,10 @@ source = "https://github.com/genid/Yleaf"
 date_pinned = "2026-02-12"
 
 [beagle]
-version = "planned"
+version = "5.4"
 source = "https://faculty.washington.edu/browning/beagle/beagle.html"
 date_pinned = "2026-02-13"
-status = "planned"
+status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
 
@@ -354,34 +354,34 @@ upstream_license = "MIT"
 source_sha256 = "5555555555555555555555555555555555555555555555555555555555555555"
 
 [plink]
-version = "planned"
+version = "1.90"
 source = "https://www.cog-genomics.org/plink/"
 date_pinned = "2026-02-13"
-status = "planned"
+status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578"
 
 [plink2]
-version = "planned"
+version = "2.00a5"
 source = "https://www.cog-genomics.org/plink/2.0/"
 date_pinned = "2026-02-13"
-status = "planned"
+status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
 
 [eigensoft]
-version = "planned"
+version = "8.0.0"
 source = "https://github.com/DReichLab/EIG"
 date_pinned = "2026-02-13"
-status = "planned"
+status = "experimental"
 upstream_license = "GPL-2.0"
 source_sha256 = "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
 
 [germline]
-version = "planned"
+version = "1.5.3"
 source = "https://www.cs.columbia.edu/~gusev/germline/"
 date_pinned = "2026-02-13"
-status = "planned"
+status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2"
 
@@ -394,14 +394,14 @@ upstream_license = "GPL-3.0"
 pinned_commit = "planned:ibdseq-upstream-pin"
 
 [ibdhap]
-version = "planned"
+version = "0.1.0-planned"
 source = "https://example.invalid/ibdhap"
 date_pinned = "2026-02-13"
 status = "planned"
 upstream_license = "unknown"
 
 [ibdne]
-version = "planned"
+version = "1.0-planned"
 source = "https://faculty.washington.edu/browning/ibdne.shtml"
 date_pinned = "2026-02-13"
 status = "planned"

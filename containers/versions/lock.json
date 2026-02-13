@@ -100,13 +100,13 @@
       "version": "0.0.0"
     },
     {
-      "entry_sha256": "f5ddfe4e98d4a0be5fec7a00c69813f0c7761c716b0d245b500c86bd59ede065",
+      "entry_sha256": "f6d8e22be2d7f455cc5a134363e1649e21cd467dd00559df9f388ab202d72313",
       "pinned_commit": "",
       "source": "https://faculty.washington.edu/browning/beagle/beagle.html",
       "source_sha256": "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
-      "status": "planned",
+      "status": "experimental",
       "tool": "beagle",
-      "version": "planned"
+      "version": "5.4"
     },
     {
       "entry_sha256": "9d4a82074495d7bff3e7807d57c919d2c0905b5a562a148f0ccae911272a98e6",
@@ -190,13 +190,13 @@
       "version": "planned"
     },
     {
-      "entry_sha256": "af4c0ef8148b9561f7aee08266a928c7c1514ff2412aec8b3d56991346d709fe",
+      "entry_sha256": "9478dc489a5034865ca890d61548da9f0f7012b2c717b8233552f241189d4855",
       "pinned_commit": "",
       "source": "https://github.com/DReichLab/EIG",
       "source_sha256": "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
-      "status": "planned",
+      "status": "experimental",
       "tool": "eigensoft",
-      "version": "planned"
+      "version": "8.0.0"
     },
     {
       "entry_sha256": "fcdd040265ba8d248fe5cd55d3170034c42a496eed32dda20669f1c5e408c4f8",
@@ -262,13 +262,13 @@
       "version": "0.0.0"
     },
     {
-      "entry_sha256": "d3457c22da2f3d55817de1d7d6e46b3afcf01418e2e52e6916bdee10b064dcf2",
+      "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
       "pinned_commit": "",
       "source": "https://www.cs.columbia.edu/~gusev/germline/",
       "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
-      "status": "planned",
+      "status": "experimental",
       "tool": "germline",
-      "version": "planned"
+      "version": "1.5.3"
     },
     {
       "entry_sha256": "c2a607a662bcf30631b0dafffb3aa4da1c0cb6d0704e793e1fdc88523a9af365",
@@ -280,22 +280,22 @@
       "version": "planned"
     },
     {
-      "entry_sha256": "ee0ac36c41fabcb54b7d8b7f1f0216c3cab0831bc363a6a414df23da960ec5d2",
+      "entry_sha256": "2986007e9be019c3a1be677ea7ef5968d81a82bb69e6c1363321f318bff5e58a",
       "pinned_commit": "",
       "source": "https://example.invalid/ibdhap",
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdhap",
-      "version": "planned"
+      "version": "0.1.0-planned"
     },
     {
-      "entry_sha256": "99780d340a34a888a0d7dc1e7e93a0e4c508473273bd255c8c8a9e5018cdff26",
+      "entry_sha256": "7f69a44224bbe8a2a7cfa1741ca410e976fad495608796c2069a31f2bffe2770",
       "pinned_commit": "planned:ibdne-upstream-pin",
       "source": "https://faculty.washington.edu/browning/ibdne.shtml",
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdne",
-      "version": "planned"
+      "version": "1.0-planned"
     },
     {
       "entry_sha256": "15082382a7458f76781dea8ef43e039b3f8327b148553b2b620e34a2a63634c3",
@@ -433,22 +433,22 @@
       "version": "0.9.6"
     },
     {
-      "entry_sha256": "56ea9afaf3c155682297239fddb75dcda71b21e0e42a39cda39392432a5cb0e9",
+      "entry_sha256": "f36c891662f00efecd29034d46262373967e0c9b9df4ab64e1bf4677bc57b5af",
       "pinned_commit": "",
       "source": "https://www.cog-genomics.org/plink/",
       "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
-      "status": "planned",
+      "status": "experimental",
       "tool": "plink",
-      "version": "planned"
+      "version": "1.90"
     },
     {
-      "entry_sha256": "1ac116a0d94c314235a8001ea59aaa3a07b8dd22b5f35db02cb2adbcd779d7c9",
+      "entry_sha256": "521793f959761eb533c398bf23325d826007f57062cb180be12f2244bd3c364a",
       "pinned_commit": "",
       "source": "https://www.cog-genomics.org/plink/2.0/",
       "source_sha256": "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
-      "status": "planned",
+      "status": "experimental",
       "tool": "plink2",
-      "version": "planned"
+      "version": "2.00a5"
     },
     {
       "entry_sha256": "cb4b0006779e2fab5c64a24ed775f0b33d1d84e41b43d1e23a0c6379d06d7f83",
@@ -660,6 +660,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v2",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "a0e8ae8e3ffd838b08032d11a05167a6082ed6858ce0ea758ed9479d339525f6",
+  "source_sha256": "eb6266f8af37b94760ba1b1e513f518898cf3e7fb8c6e7abfb7ec8f92264a7bc",
   "version_map_source": "artifacts/containers/version_map.json"
 }
