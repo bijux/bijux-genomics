@@ -1,0 +1,8 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+
+scheme = "bijux-hpc-image-ref.v1"
+registry_prefix = "oras://hpc.local/bijux-dna"
+tag_format = "{tool}-{version}-apptainer"
+tool_regex = "^[a-z][a-z0-9_]*$"
+version_regex = "^[A-Za-z0-9._-]+$"
