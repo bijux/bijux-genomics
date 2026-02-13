@@ -1,10 +1,11 @@
-#!/bin/sh
-set -eu
-export TZ=UTC
-export LC_ALL=C
-
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+source "$ROOT_DIR/scripts/_lib/common.sh"
 
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 DOCKER_DIR="${DOCKER_DIR:-$ROOT_DIR/containers/docker/arm64}"
@@ -28,14 +29,6 @@ MANIFEST_DIR="$ARTIFACT_DIR"
 INTERRUPTED=0
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
-
-require_cmd() {
-  name="$1"
-  if ! command -v "$name" >/dev/null 2>&1; then
-    echo "ERROR: required command '$name' not found in PATH" >&2
-    exit 127
-  fi
-}
 
 require_cmd "$DOCKER_BIN"
 require_cmd jq

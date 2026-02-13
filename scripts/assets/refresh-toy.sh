@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
-
+export LC_ALL
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 STAGE_DIR="${ROOT}/artifacts/tmp/assets/toy/core-v1"
 TARGET_DIR="${ROOT}/assets/toy/core-v1"

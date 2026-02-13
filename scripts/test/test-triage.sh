@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 LOG_PATH="${1:-artifacts/test-logs/latest.log}"
 
 if [[ ! -f "${LOG_PATH}" ]]; then

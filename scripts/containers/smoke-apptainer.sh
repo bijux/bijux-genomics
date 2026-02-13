@@ -1,10 +1,11 @@
-#!/bin/sh
-set -eu
-export TZ=UTC
-export LC_ALL=C
-
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+source "$ROOT_DIR/scripts/_lib/common.sh"
 SELF_SCRIPT="$SCRIPT_DIR/$(basename -- "$0")"
 if [ ! -f "$SELF_SCRIPT" ]; then
   SELF_SCRIPT="$SCRIPT_DIR/smoke-apptainer.sh"
@@ -33,14 +34,6 @@ export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_
 export SMOKE_RUN_MODE
 export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
 export UBUNTU_BASE_SIF REGISTRY_EXPORT_JSON
-
-require_cmd() {
-  name="$1"
-  if ! command -v "$name" >/dev/null 2>&1; then
-    echo "ERROR: required command '$name' not found in PATH" >&2
-    exit 127
-  fi
-}
 
 require_cmd "$APPTAINER_BIN"
 require_cmd python3

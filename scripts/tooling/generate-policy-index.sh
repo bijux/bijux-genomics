@@ -1,8 +1,8 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
 OUT_DIR="$ROOT_DIR/artifacts/policies"
 OUT_FILE="$OUT_DIR/index.md"

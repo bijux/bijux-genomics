@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 if ! command -v rg >/dev/null 2>&1; then
   echo "no-target-paths-in-tests: ripgrep (rg) is required but not found in PATH" >&2
   exit 127

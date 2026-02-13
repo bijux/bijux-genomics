@@ -1,22 +1,15 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
+source "$ROOT_DIR/scripts/_lib/common.sh"
 
 if ! ./bin/require-isolate >/dev/null 2>&1; then
   exec ./bin/isolate "$0" "$@"
 fi
-
-require_cmd() {
-  name="$1"
-  if ! command -v "$name" >/dev/null 2>&1; then
-    echo "ERROR: required command '$name' not found in PATH" >&2
-    exit 127
-  fi
-}
 
 cmd="${1:-}"
 case "$cmd" in

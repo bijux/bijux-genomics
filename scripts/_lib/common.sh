@@ -1,5 +1,6 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
 
@@ -11,9 +12,9 @@ require_cmd() {
 }
 
 require_env() {
-  var_name="$1"
-  eval "var_value=\${$var_name-}"
-  [ -n "$var_value" ] || {
+  local var_name="$1"
+  local var_value="${!var_name-}"
+  [[ -n "$var_value" ]] || {
     echo "missing required env var: $var_name" >&2
     exit 2
   }
@@ -24,7 +25,7 @@ repo_root() {
 }
 
 ensure_artifacts_dir() {
-  dir_path="$1"
+  local dir_path="$1"
   case "$dir_path" in
     artifacts/*|*/artifacts/*|"${ISO_ROOT:-}"/*)
       mkdir -p "$dir_path"
