@@ -1,7 +1,10 @@
 tool=clumpify
+tool_version=pinned
 stage=fastq.deduplicate
 domain=fastq
 shipping=external
 fixture_kind=synthetic_truth
+command=clumpify
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

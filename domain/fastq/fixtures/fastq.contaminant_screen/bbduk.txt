@@ -1,6 +1,9 @@
 tool=bbduk
+tool_version=pinned
 stage=fastq.contaminant_screen
 domain=fastq
 fixture_kind=synthetic_truth
+command=bbduk
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

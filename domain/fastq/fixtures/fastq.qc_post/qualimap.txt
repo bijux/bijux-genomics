@@ -1,6 +1,9 @@
 tool=qualimap
+tool_version=pinned
 stage=fastq.qc_post
 domain=fastq
 fixture_kind=truth
+command=qualimap
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

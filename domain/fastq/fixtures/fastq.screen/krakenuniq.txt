@@ -1,6 +1,9 @@
 tool=krakenuniq
+tool_version=pinned
 stage=fastq.screen
 domain=fastq
 fixture_kind=truth
+command=krakenuniq
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

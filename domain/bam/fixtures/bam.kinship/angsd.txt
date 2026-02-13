@@ -1,6 +1,9 @@
 tool=angsd
+tool_version=pinned
 stage=bam.kinship
 domain=bam
 fixture_kind=truth
+command=angsd
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

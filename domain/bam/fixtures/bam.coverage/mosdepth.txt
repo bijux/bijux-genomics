@@ -1,6 +1,9 @@
 tool=mosdepth
+tool_version=pinned
 stage=bam.coverage
 domain=bam
 fixture_kind=truth
+command=mosdepth
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

@@ -1,6 +1,9 @@
 tool=fastqvalidator
+tool_version=pinned
 stage=fastq.validate_pre
 domain=fastq
 fixture_kind=truth
+command=fastqvalidator
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

@@ -1,7 +1,10 @@
 tool=picard
+tool_version=pinned
 stage=bam.markdup
 domain=bam
 shipping=external
 fixture_kind=synthetic_truth
+command=picard
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok
