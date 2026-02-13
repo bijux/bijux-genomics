@@ -1,0 +1,61 @@
+{
+  "generated_at_utc": "2026-02-13T18:05:31.467953Z",
+  "panels": [
+    {
+      "build_steps": [
+        "download https://example.org/bijux/panels/corpus-01-mini/panel.vcf.gz",
+        "verify sha256 sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "index tabix corpus_01_mini_panel.vcf.gz.tbi",
+        "generate chunks corpus_01_mini_panel.chunks.tsv"
+      ],
+      "citation": "Bijux synthetic mini panel v1 (internal reference corpus)",
+      "date": "2026-02-13",
+      "derived_artifacts": [
+        "corpus_01_mini_panel.vcf.gz.tbi",
+        "corpus_01_mini_panel.chunks.tsv"
+      ],
+      "derived_checksums_sha256": {
+        "corpus_01_mini_panel.chunks.tsv": "sha256:dff66661bddf04b4c0d7a9f0ad26d36fd86f733d6dd98f711dd657c941971be9",
+        "corpus_01_mini_panel.vcf.gz.tbi": "sha256:c279fc71bfd1e79bdc2aa25283b0b5e6492ae7c02a6ddd00423e5642414a38b5"
+      },
+      "genome_build": "GRCh38",
+      "id": "corpus_01_mini_panel",
+      "license": "CC-BY-4.0",
+      "population_set": "mixed_global_synthetic",
+      "provenance": "examples/data/corpus-01-mini/reference/panel.vcf.gz",
+      "sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "url": "https://example.org/bijux/panels/corpus-01-mini/panel.vcf.gz",
+      "variant_set_compatibility": "vcf_biallelic_snv",
+      "version": "1.0.0"
+    },
+    {
+      "build_steps": [
+        "download https://example.org/bijux/panels/corpus-01/panel.vcf.gz",
+        "verify sha256 sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "index tabix corpus_01_panel.vcf.gz.tbi",
+        "generate chunks corpus_01_panel.chunks.tsv"
+      ],
+      "citation": "Bijux synthetic panel v1 (internal reference corpus)",
+      "date": "2026-02-13",
+      "derived_artifacts": [
+        "corpus_01_panel.vcf.gz.tbi",
+        "corpus_01_panel.chunks.tsv"
+      ],
+      "derived_checksums_sha256": {
+        "corpus_01_panel.chunks.tsv": "sha256:4dd1343377c20b41d0f683a630b7dba589873215fa7d0cb4022a78f393a59392",
+        "corpus_01_panel.vcf.gz.tbi": "sha256:dae8f41f8eb7bafaf5728e98d32a19537c8eab3b5ef2894b6a885849df11068c"
+      },
+      "genome_build": "GRCh38",
+      "id": "corpus_01_panel",
+      "license": "CC-BY-4.0",
+      "population_set": "mixed_global_synthetic",
+      "provenance": "examples/data/corpus-01/reference/panel.vcf.gz",
+      "sha256": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "url": "https://example.org/bijux/panels/corpus-01/panel.vcf.gz",
+      "variant_set_compatibility": "vcf_biallelic_snv",
+      "version": "1.0.0"
+    }
+  ],
+  "schema_version": 1,
+  "source": "configs/vcf/panels/panels.toml"
+}
