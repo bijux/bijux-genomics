@@ -21,23 +21,26 @@ CONFIGS = ROOT / "configs"
 REGISTRY_DIR = CONFIGS / "ci" / "registry"
 FLOATING = {"latest", "main", "master", ""}
 ALLOWED_TOOL_STATUS = {"production", "experimental", "planned"}
+HEADER_KEYS = ("schema_version", "owner", "purpose", "authority", "stability", "last_updated")
 
 
 def load_toml(path: pathlib.Path) -> dict:
     try:
         return tomllib.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:  # pragma: no cover
-        raise ValueError(f"{path}: invalid TOML ({exc})") from exc
+        line = getattr(exc, "lineno", None)
+        col = getattr(exc, "colno", None)
+        where = f" line {line} col {col}" if line is not None and col is not None else ""
+        raise ValueError(f"{path}: invalid TOML{where} ({exc})") from exc
 
 
 def check_headers(path: pathlib.Path, errs: list[str]) -> None:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
-    head = lines[:12]
-    has_schema = any(l.startswith("# schema_version = ") for l in head)
-    has_owner = any(l.startswith("# owner = ") for l in head)
-    if not (has_schema and has_owner):
-        errs.append(f"{path}: missing schema header in first 12 lines (# schema_version / # owner)")
+    head = lines[:16]
+    for key in HEADER_KEYS:
+        if not any(l.startswith(f"# {key} = ") for l in head):
+            errs.append(f"{path}: missing '# {key} = ...' in first 16 lines")
 
 
 def parse_date(value: str, path: pathlib.Path, field: str, errs: list[str]) -> dt.date | None:
@@ -107,14 +110,117 @@ def check_deprecations(known_tools: set[str], known_stages: set[str], errs: list
             errs.append(
                 f"{dep_path}: tool '{tool_id}' stage '{stage}' has removal_after <= deprecated_since"
             )
-        if after_d and today > after_d:
-            errs.append(
-                f"{dep_path}: tool '{tool_id}' stage '{stage}' is past removal_after ({after_d.isoformat()})"
-            )
         key = (tool_id, stage)
         if key in seen:
             errs.append(f"{dep_path}: duplicate deprecation entry for tool '{tool_id}' stage '{stage}'")
         seen.add(key)
+
+
+def check_deprecation_references(errs: list[str]) -> None:
+    dep_path = REGISTRY_DIR / "deprecations.toml"
+    data = load_toml(dep_path)
+    rows = data.get("deprecations", [])
+    today = dt.date.today()
+
+    required_tools: set[str] = set()
+    for path in (
+        CONFIGS / "ci" / "tools" / "required_tools.toml",
+        CONFIGS / "ci" / "tools" / "required_tools_vcf.toml",
+        CONFIGS / "ci" / "tools" / "required_tools_vcf_downstream.toml",
+    ):
+        cfg = load_toml(path)
+        required_tools |= {str(t) for t in cfg.get("required_tools", [])}
+
+    declared_stages: set[str] = set()
+    for path in (
+        CONFIGS / "ci" / "stages" / "stages.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf_downstream.toml",
+    ):
+        cfg = load_toml(path)
+        for row in cfg.get("stages", []):
+            sid = str(row.get("id", "")).strip()
+            if sid:
+                declared_stages.add(sid)
+
+    param_stages: set[str] = set()
+    for path in (
+        CONFIGS / "ci" / "params" / "param_registry.toml",
+        CONFIGS / "ci" / "params" / "param_registry_vcf.toml",
+        CONFIGS / "ci" / "params" / "param_registry_downstream.toml",
+    ):
+        cfg = load_toml(path)
+        for row in cfg.get("entries", []) + cfg.get("params", []):
+            sid = str(row.get("stage_id", "")).strip()
+            if sid:
+                param_stages.add(sid)
+
+    for row in rows:
+        tool_id = str(row.get("tool_id", "")).strip()
+        stage = str(row.get("stage", "")).strip()
+        removal_after = parse_date(str(row.get("removal_after", "")).strip(), dep_path, "removal_after", errs)
+        if not removal_after or today <= removal_after:
+            continue
+        if tool_id and tool_id in required_tools:
+            errs.append(f"{dep_path}: deprecated tool '{tool_id}' past removal_after is still required")
+        if stage and stage in declared_stages:
+            errs.append(f"{dep_path}: deprecated stage '{stage}' past removal_after is still declared")
+        if stage and stage in param_stages:
+            errs.append(f"{dep_path}: deprecated stage '{stage}' past removal_after still appears in param registries")
+
+
+def check_required_tools_registry_parity(errs: list[str]) -> None:
+    known_tools: set[str] = set()
+    for reg in (
+        REGISTRY_DIR / "tool_registry.toml",
+        REGISTRY_DIR / "tool_registry_experimental.toml",
+        REGISTRY_DIR / "tool_registry_vcf.toml",
+        REGISTRY_DIR / "tool_registry_vcf_downstream.toml",
+    ):
+        data = load_toml(reg)
+        for row in data.get("tools", []):
+            tid = str(row.get("id") or row.get("tool_id") or "").strip()
+            if tid:
+                known_tools.add(tid)
+
+    for req in (
+        CONFIGS / "ci" / "tools" / "required_tools.toml",
+        CONFIGS / "ci" / "tools" / "required_tools_vcf.toml",
+        CONFIGS / "ci" / "tools" / "required_tools_vcf_downstream.toml",
+    ):
+        data = load_toml(req)
+        for tid in data.get("required_tools", []):
+            if str(tid) not in known_tools:
+                errs.append(f"{req}: required_tools entry '{tid}' has no registry definition")
+
+
+def check_stage_domain_parity(errs: list[str]) -> None:
+    stage_ids: set[str] = set()
+    for p in (
+        CONFIGS / "ci" / "stages" / "stages.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf_downstream.toml",
+    ):
+        d = load_toml(p)
+        for row in d.get("stages", []):
+            sid = str(row.get("id", "")).strip()
+            if sid:
+                stage_ids.add(sid)
+
+    domain_stage_ids: set[str] = set()
+    for f in (ROOT / "domain").glob("*/*/*.yaml"):
+        if f.parts[-2] != "stages" or f.name.startswith("_"):
+            continue
+        text = f.read_text(encoding="utf-8")
+        for line in text.splitlines():
+            if line.startswith("stage_id:"):
+                value = line.split(":", 1)[1].strip().strip("\"'")
+                if value:
+                    domain_stage_ids.add(value)
+                break
+
+    for sid in sorted(stage_ids - domain_stage_ids):
+        errs.append(f"configs/ci/stages: stage '{sid}' not found under domain/**/stages/*.yaml")
 
 
 def check_runtime_platforms(errs: list[str]) -> None:
@@ -257,9 +363,17 @@ def main() -> int:
         if path.suffix not in {".toml", ".yaml", ".yml"}:
             continue
         check_headers(path, errs)
+        if path.suffix == ".toml":
+            try:
+                load_toml(path)
+            except ValueError as exc:
+                errs.append(str(exc))
 
     known_tools, known_stages = check_registries(errs)
     check_deprecations(known_tools, known_stages, errs)
+    check_deprecation_references(errs)
+    check_required_tools_registry_parity(errs)
+    check_stage_domain_parity(errs)
     check_runtime_platforms(errs)
     check_stage_param_coverage(errs)
     check_images_contract(errs)

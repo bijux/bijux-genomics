@@ -20,10 +20,15 @@ lint:
 	$(MAKE) _examples-validate
 	./scripts/run.sh checks check-supported-scripts
 	./scripts/run.sh checks check-config-layout
+	./scripts/run.sh checks check-config-index-discipline
 	./scripts/run.sh checks check-config-filenames
 	./scripts/run.sh checks check-config-headers
 	./scripts/run.sh checks check-config-schema
 	./scripts/run.sh checks check-config-owners
+	./scripts/run.sh checks check-registry-required-tools-parity
+	./scripts/run.sh checks check-stage-domain-parity
+	./scripts/run.sh checks check-param-registry-completeness
+	./scripts/run.sh checks check-deprecations-enforcement
 	./scripts/run.sh checks check-species-aliases
 	./scripts/run.sh checks check-bench-knobs
 	./scripts/run.sh checks check-registry-split
