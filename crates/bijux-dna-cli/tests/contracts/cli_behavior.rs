@@ -36,7 +36,10 @@ seqkit_stats = { version = "99.99.99+fixture" }
 
     fn setup_configs_with_images(&self, images: &str) {
         let configs_dir = self.path().join("configs");
-        std::fs::create_dir_all(&configs_dir).expect("create configs");
+        let runtime_dir = configs_dir.join("runtime");
+        let ci_dir = configs_dir.join("ci");
+        std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
+        std::fs::create_dir_all(&ci_dir).expect("create ci configs");
         std::fs::write(
             configs_dir.join("profile.local.toml"),
             r#"
@@ -50,7 +53,7 @@ image_pull_policy = "if_not_present"
         )
         .expect("write profile");
         std::fs::write(
-            configs_dir.join("platforms.toml"),
+            runtime_dir.join("platforms.toml"),
             r#"
 default = "test"
 [platforms.test]
@@ -61,7 +64,7 @@ arch = "x86_64"
 "#,
         )
         .expect("write platforms");
-        std::fs::write(configs_dir.join("images.toml"), images).expect("write images");
+        std::fs::write(ci_dir.join("images.toml"), images).expect("write images");
     }
 }
 
