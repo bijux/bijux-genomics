@@ -206,6 +206,57 @@ fn default_repetitions() -> u32 {
     1
 }
 
+#[derive(Debug, Clone, Default)]
+struct BenchKnobs {
+    repetitions: Option<u32>,
+    threads: Option<u32>,
+    mem_gb: Option<u32>,
+    cold_runs: Option<u32>,
+    warm_runs: Option<u32>,
+    tmp_policy: Option<String>,
+}
+
+fn load_bench_knobs(cwd: &Path) -> BenchKnobs {
+    let path = bijux_dna_infra::configs_file(cwd, "bench/knobs.toml");
+    let Ok(raw) = fs::read_to_string(path) else {
+        return BenchKnobs::default();
+    };
+    let Ok(parsed): Result<toml::Value, _> = raw.parse() else {
+        return BenchKnobs::default();
+    };
+    let defaults = parsed
+        .get("defaults")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    BenchKnobs {
+        repetitions: defaults
+            .get("repetitions")
+            .and_then(toml::Value::as_integer)
+            .and_then(|v| u32::try_from(v).ok()),
+        threads: defaults
+            .get("threads")
+            .and_then(toml::Value::as_integer)
+            .and_then(|v| u32::try_from(v).ok()),
+        mem_gb: defaults
+            .get("mem_gb")
+            .and_then(toml::Value::as_integer)
+            .and_then(|v| u32::try_from(v).ok()),
+        cold_runs: defaults
+            .get("cold_runs")
+            .and_then(toml::Value::as_integer)
+            .and_then(|v| u32::try_from(v).ok()),
+        warm_runs: defaults
+            .get("warm_runs")
+            .and_then(toml::Value::as_integer)
+            .and_then(|v| u32::try_from(v).ok()),
+        tmp_policy: defaults
+            .get("tmp_policy")
+            .and_then(toml::Value::as_str)
+            .map(str::to_string),
+    }
+}
+
 impl SuiteSpec {
     fn effective_fairness(&self) -> FairnessSpec {
         if let Some(fairness) = self.fairness.clone() {
@@ -244,8 +295,30 @@ pub fn load_suite(cwd: &Path, suite: &str) -> Result<SuiteSpec> {
             suite
         ));
     }
-    validate_suite_contracts(&parsed)?;
-    Ok(parsed)
+    let knobs = load_bench_knobs(cwd);
+    let mut effective = parsed;
+    if effective.repetitions == default_repetitions() {
+        if let Some(repetitions) = knobs.repetitions {
+            effective.repetitions = repetitions.max(1);
+        }
+    }
+    if effective.fairness.is_none()
+        && (knobs.threads.is_some()
+            || knobs.mem_gb.is_some()
+            || knobs.cold_runs.is_some()
+            || knobs.warm_runs.is_some()
+            || knobs.tmp_policy.is_some())
+    {
+        effective.fairness = Some(FairnessSpec {
+            threads: knobs.threads.unwrap_or(8),
+            mem_gb: knobs.mem_gb.unwrap_or(32),
+            tmp_policy: knobs.tmp_policy.unwrap_or_else(|| "unique-per-run".to_string()),
+            cold_runs: knobs.cold_runs.unwrap_or(1),
+            warm_runs: knobs.warm_runs.unwrap_or(effective.repetitions.max(1)),
+        });
+    }
+    validate_suite_contracts(&effective)?;
+    Ok(effective)
 }
 
 #[allow(clippy::too_many_lines)]
