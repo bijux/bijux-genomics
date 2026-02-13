@@ -2,11 +2,13 @@ scripts/assets/refresh-golden.sh
 scripts/assets/refresh-toy.sh
 scripts/checks/check-artifacts-tracked.sh
 scripts/checks/check-assets-drift.sh
+scripts/checks/check-bench-knobs.sh
 scripts/checks/check-ci-shell-scripts.sh
 scripts/checks/check-config-contract-headers.sh
 scripts/checks/check-config-headers.sh
 scripts/checks/check-config-filenames.sh
 scripts/checks/check-config-layout.sh
+scripts/checks/check-config-owners.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
 scripts/checks/check-isolation-contract.sh
@@ -25,6 +27,7 @@ scripts/checks/check-script-writes.sh
 scripts/checks/check-shell-portability.sh
 scripts/checks/check-ssot-guardrails.sh
 scripts/checks/check-supported-scripts.sh
+scripts/checks/check-species-aliases.sh
 scripts/checks/check-tool-registry-lock.sh
 scripts/checks/tree-intent.sh
 scripts/containers/build-apptainer-all.sh

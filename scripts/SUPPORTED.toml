@@ -33,6 +33,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_bench_knobs"
+path = "scripts/checks/check-bench-knobs.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_ci_shell_scripts"
 path = "scripts/checks/check-ci-shell-scripts.sh"
 purpose = "checks script"
@@ -67,6 +75,14 @@ ci_allowed = true
 [[script]]
 id = "check_config_layout"
 path = "scripts/checks/check-config-layout.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_config_owners"
+path = "scripts/checks/check-config-owners.sh"
 purpose = "checks script"
 inputs = []
 outputs = []
@@ -211,6 +227,14 @@ ci_allowed = true
 [[script]]
 id = "check_supported_scripts"
 path = "scripts/checks/check-supported-scripts.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_species_aliases"
+path = "scripts/checks/check-species-aliases.sh"
 purpose = "checks script"
 inputs = []
 outputs = []

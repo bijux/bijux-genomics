@@ -1,0 +1,46 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+
+[[rule]]
+prefix = "configs/index.md"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/OWNERS.toml"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/bench/"
+owner = "bijux-dna-bench"
+
+[[rule]]
+prefix = "configs/ci/"
+owner = "bijux-dna-domain-compiler"
+
+[[rule]]
+prefix = "configs/coverage/"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/docs/"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/lab/"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/logging/"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/nextest/"
+owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/runtime/"
+owner = "bijux-dna-runtime"
+
+[[rule]]
+prefix = "configs/schema/"
+owner = "bijux-dna-infra"
