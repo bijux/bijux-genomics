@@ -11,6 +11,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Lifecycle: `containers/docs/TOOL_LIFECYCLE.md`
 - Version authority: `containers/docs/VERSION_AUTHORITY.md`
 - Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
+- HPC frontend build authority: `containers/docs/FRONTEND_BUILD_AUTHORITY.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
