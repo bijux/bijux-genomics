@@ -257,6 +257,11 @@ run_tool_command() {
   fi
 }
 
+is_downstream_container_tool() {
+  tool="$1"
+  rg -q "^id = \"${tool}\"$" "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml" 2>/dev/null
+}
+
 build_and_smoke_one() {
   def_file="$1"
   tmp_def=""
@@ -324,6 +329,10 @@ build_and_smoke_one() {
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
       echo "=== [$tool] healthcheck: $health_cmd"
       run_tool_command "$vm_sif" "$health_cmd" "$expected_bin" >/dev/null
+      if is_downstream_container_tool "$tool"; then
+        echo "=== [$tool] provenance: /opt/bijux/VERSION.json"
+        run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"
+      fi
     fi
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"

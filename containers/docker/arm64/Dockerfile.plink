@@ -24,6 +24,8 @@ RUN curl -fsSL -o /tmp/plink.zip https://s3.amazonaws.com/plink1-assets/plink_li
     echo "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578  /tmp/plink.zip" | sha256sum -c - && \
     unzip -q /tmp/plink.zip -d /opt/plink && \
     install -m 0755 /opt/plink/plink /usr/local/bin/plink && \
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"plink","version":"1.90","source":"https://www.cog-genomics.org/plink/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
     rm -rf /tmp/plink.zip /opt/plink
 
 ENTRYPOINT ["/usr/local/bin/plink"]

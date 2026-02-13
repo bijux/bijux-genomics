@@ -32,6 +32,8 @@ echo "ibdne: planned wrapper (no upstream binary integrated yet)" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/ibdne
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"ibdne","version":"1.0-planned","source":"https://faculty.washington.edu/browning/ibdne.shtml","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
