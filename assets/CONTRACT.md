@@ -28,6 +28,13 @@ An asset is deterministic, version-controlled data (not executable code) require
 3. Run asset policy checks (`./scripts/run.sh checks check-assets-contracts`).
 4. Commit data + metadata + check updates together.
 
+## What Must Be Committed
+- Regenerated data files.
+- Updated `CHECKSUMS.sha256` for each affected package.
+- Updated `GENERATE.md` with exact command and tool versions.
+- Updated metadata manifests (`manifest.json`, `artifact_checksums.json`, `metrics.json`) where applicable.
+- Any policy/config updates needed to keep checks green.
+
 ## GENERATE.md Contract
 Each package `GENERATE.md` must include:
 - `Command(s)`
