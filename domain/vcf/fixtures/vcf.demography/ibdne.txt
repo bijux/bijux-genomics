@@ -1,0 +1,9 @@
+tool=ibdne
+tool_version=pinned
+stage=vcf.demography
+domain=vcf
+fixture_kind=planned
+command=ibdne
+args=--ibd ibd_segments.txt --out demography
+expected_outputs=demography_report
+expected_stdout_patterns=ibdne

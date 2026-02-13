@@ -1,0 +1,9 @@
+tool=germline
+tool_version=pinned
+stage=vcf.ibd
+domain=vcf
+fixture_kind=planned
+command=germline
+args=-input cohort.bed -output ibd_segments
+expected_outputs=ibd_segments
+expected_stdout_patterns=germline
