@@ -3,7 +3,9 @@
 - `SCIENTIFIC_DEFAULTS.md`
 - `SCIENTIFIC_DECISIONS.md`
 - `TOOL_INDEX.md`
+- `DOMAIN_COVERAGE.generated.md`
 - `TOOL_STAGE_CITATIONS.md`
 - `VALIDITY_LIMITS.md`
 - `fastq/SCIENTIFIC_SPEC.md`
 - `bam/METHODOLOGICAL_INTENT.md`
+- `vcf/index.md`

@@ -7,16 +7,18 @@
 Generated index of registry tools with stage bindings and container references.
 
 ## Scope
-Derived from `configs/ci/registry/tool_registry*.toml`.
+Source of truth = `configs/ci/registry/tool_registry*.toml` + `containers/**` definitions.
 
 ## Non-goals
 - Replacing full scientific method docs for each domain.
 
 ## Contracts
 - Manual edits are forbidden; regenerate via script.
+- Source of truth is registry + containers; this file is a rendered view.
 - Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.
 
 See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)
+See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Citation | Status |
 |---|---|---|---|---|---|
