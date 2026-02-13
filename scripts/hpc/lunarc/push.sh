@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
 LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
@@ -23,7 +27,7 @@ if [[ "$CLEAN_CONTEXT" == "1" ]]; then
   rsync -az --delete --files-from="$files_from" ./ "$LUNARC_HOST:$LUNARC_REPO_DIR/"
 else
   rsync -az --delete \
-    --exclude-from="scripts/lunarc/rsync-push-excludes.txt" \
+    --exclude-from="${SCRIPT_DIR}/rsync-push-excludes.txt" \
     ./ "$LUNARC_HOST:$LUNARC_REPO_DIR/"
 fi
 
