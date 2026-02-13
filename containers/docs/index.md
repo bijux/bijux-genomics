@@ -6,12 +6,18 @@
 Purpose: Authoritative tool/container index for container governance and CI checks.
 
 ## Strict TOC
+- Entry point: `containers/index.md`
 - Policy: `containers/docs/PROMOTION_POLICY.md`
+- Lifecycle: `containers/docs/TOOL_LIFECYCLE.md`
+- Version authority: `containers/docs/VERSION_AUTHORITY.md`
+- Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
 - Promotion/demotion: `containers/docs/PROMOTION_POLICY.md`
 - Network disclosure: `containers/docs/NETWORK_USAGE.md`
+- Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
+- Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`
 - Licenses: `containers/licenses/`
 - SBOM + vulnerability hooks: `scripts/containers/check-sbom-artifacts.sh`, `scripts/containers/check-vuln-hook.sh`
 - Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
