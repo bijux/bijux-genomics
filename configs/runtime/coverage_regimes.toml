@@ -1,0 +1,27 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Contract config for configs/runtime/coverage_regimes.toml
+# authority = bijux-dna-planner
+# stability = stable
+# last_updated = 2026-02-13
+
+[decision.coverage_regime]
+id = "decision.coverage_regime"
+description = "Planner-level rule mapping empirical coverage to calling regime."
+units = "mean_depth_x"
+
+[decision.coverage_regime.thresholds]
+gl_max_depth = 1.5
+pseudohaploid_max_depth = 6.0
+diploid_min_depth = 8.0
+
+[decision.coverage_regime.rules]
+gl = "mean_depth_x <= gl_max_depth"
+pseudohaploid = "mean_depth_x > gl_max_depth && mean_depth_x <= pseudohaploid_max_depth"
+diploid = "mean_depth_x >= diploid_min_depth"
+fallback = "pseudohaploid"
+
+[decision.coverage_regime.outputs]
+decision_key = "coverage_regime"
+allowed_values = ["gl", "pseudohaploid", "diploid"]
+trace_required = true

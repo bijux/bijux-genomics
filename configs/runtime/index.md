@@ -20,6 +20,7 @@ Fields:
 
 ## Files
 - `configs/runtime/platforms.toml`
+- `configs/runtime/coverage_regimes.toml`
 - `configs/runtime/species_aliases.toml`
 - `configs/runtime/profiles/index.md`
 
