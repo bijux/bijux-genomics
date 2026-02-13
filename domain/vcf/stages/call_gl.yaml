@@ -11,15 +11,21 @@ outputs:
   - name: "gl_sites_vcf"
     data_type: "vcf"
     cardinality: "One"
+  - name: "gl_provenance"
+    data_type: "json"
+    cardinality: "One"
 required_inputs: ["bam"]
-required_outputs: ["gl_sites_vcf"]
+required_outputs: ["gl_sites_vcf", "gl_provenance"]
 metrics:
   - name: "gl_sites_count"
   - name: "mean_gl_depth"
+  - name: "gl_parameter_profile"
 compatible_tools: ["angsd", "bcftools"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "Likelihood-based calling is used for low-coverage contexts."
+  - "ANGSD-style GL defaults are locked (GL model, mapQ/baseQ, and depth filters)."
+  - "GL calling emits provenance with parameter values and source references."
 bank_hooks: ["none"]
 invariants:
   - "tool_pinned"

@@ -11,15 +11,22 @@ outputs:
   - name: "damage_filtered_vcf"
     data_type: "vcf"
     cardinality: "One"
+  - name: "damage_bias_audit_report"
+    data_type: "json"
+    cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["damage_filtered_vcf"]
+required_outputs: ["damage_filtered_vcf", "damage_bias_audit_report"]
 metrics:
   - name: "ct_ga_masked_sites"
   - name: "pmd_filtered_reads"
+  - name: "damage_strategy_applied"
+  - name: "damage_bias_before_after_summary"
 compatible_tools: ["bcftools", "angsd"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "C>T/G>A and PMD thresholds are explicit and versioned."
+  - "Damage filtering must support PMD-based filtering and C>T/G>A masking strategies."
+  - "Bias audit section must summarize before/after damage filtering metrics."
 bank_hooks: ["none"]
 invariants:
   - "tool_pinned"

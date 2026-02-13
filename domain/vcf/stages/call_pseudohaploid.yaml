@@ -11,15 +11,21 @@ outputs:
   - name: "pseudohaploid_vcf"
     data_type: "vcf"
     cardinality: "One"
+  - name: "pseudohaploid_sampling_log"
+    data_type: "json"
+    cardinality: "One"
 required_inputs: ["bam"]
-required_outputs: ["pseudohaploid_vcf"]
+required_outputs: ["pseudohaploid_vcf", "pseudohaploid_sampling_log"]
 metrics:
   - name: "pseudo_called_sites"
   - name: "pseudo_missing_rate"
+  - name: "pseudo_sampling_seed"
 compatible_tools: ["angsd", "bcftools"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "Pseudohaploid random-allele or consensus model is fixed and documented."
+  - "Pseudohaploid sampling policy is deterministic via explicit seeded configuration."
+  - "Sampling seed and policy are logged in output artifacts."
 bank_hooks: ["none"]
 invariants:
   - "tool_pinned"

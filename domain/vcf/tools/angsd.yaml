@@ -17,7 +17,7 @@ license: "GPL-3.0"
 citation: "Korneliussen et al. 2014, BMC Bioinformatics 15:356"
 version_cmd: "angsd 2>&1 | head -n 1"
 help_cmd: "angsd -h"
-expected_artifacts: ["gl_vcf", "damage_report"]
+expected_artifacts: ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
 capabilities: ["SE", "PE", "GL", "damage_aware"]
 metrics_schema_id: "bijux.vcf.gl.v1"
 comparability_notes: "Comparable only when GL model, PMD filters, and reference build are identical."

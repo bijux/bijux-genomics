@@ -5,6 +5,6 @@ domain=vcf
 shipping=external
 fixture_kind=truth
 command=angsd
-args=-i sample.bam -ref ref.fa -out damage -doDamage 1 -minMapQ 30 -minQ 20
-expected_outputs=damage_report.txt
-expected_stdout_patterns=PMD,C>T,G>A
+args=-i sample.bam -ref ref.fa -out damage -doDamage 1 -minMapQ 30 -minQ 20 -pmd 1
+expected_outputs=damage_report.txt,damage_bias_audit_report.json
+expected_stdout_patterns=PMD,C>T,G>A,damage_strategy=pmd_filter,bias_before_after

@@ -4,6 +4,6 @@ stage=vcf.damage_filter
 domain=vcf
 fixture_kind=truth
 command=bcftools
-args=filter -e '((REF="C" && ALT="T") || (REF="G" && ALT="A")) && INFO/PMD>3' input.vcf -Ov -o damage_filtered.vcf
-expected_outputs=damage_filtered.vcf
-expected_stdout_patterns=C>T,G>A,PMD
+args=filter -e '((REF="C" && ALT="T") || (REF="G" && ALT="A")) && INFO/PMD>3' input.vcf -Ov -o damage_filtered.vcf; query -f '%CHROM\t%POS\t%REF\t%ALT\n' damage_filtered.vcf > damage_bias_audit.tsv
+expected_outputs=damage_filtered.vcf,damage_bias_audit_report.json
+expected_stdout_patterns=C>T,G>A,PMD,damage_strategy=ct_ga_masking,bias_before_after
