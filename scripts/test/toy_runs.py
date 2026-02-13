@@ -12,7 +12,8 @@ from pathlib import Path
 from typing import Dict, Iterable, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
-TOY_ROOT = ROOT / "assets" / "toy"
+TOY_DATASET = "core-v1"
+TOY_ROOT = ROOT / "assets" / "toy" / TOY_DATASET
 GOLDEN_ROOT = ROOT / "assets" / "golden" / "toy_runs"
 PROFILES = {
     "fastq": "fastq_reference_adna",
