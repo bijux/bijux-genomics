@@ -15,7 +15,10 @@ fn workspace_root() -> PathBuf {
 
 fn rs_test_files(root: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -75,10 +78,9 @@ fn policy__contracts__test_determinism_policy__tests_ban_thread_rng() {
 fn policy__contracts__test_determinism_policy__tests_do_not_write_to_artifacts_root() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let write_to_artifacts = Regex::new(
-        r#"(write|create_dir|create_dir_all|open)\s*\([^\n]*[\"']artifacts/"#,
-    )
-    .expect("compile regex");
+    let write_to_artifacts =
+        Regex::new(r#"(write|create_dir|create_dir_all|open)\s*\([^\n]*[\"']artifacts/"#)
+            .expect("compile regex");
 
     for file in rs_test_files(&root) {
         let content = std::fs::read_to_string(&file).expect("read test source");
@@ -99,7 +101,10 @@ fn policy__contracts__test_determinism_policy__jsonl_appends_use_locked_writer()
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }

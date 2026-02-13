@@ -32,10 +32,10 @@ mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 mod mod_contracts_tooling_architecture_invariants_suite_rs;
 #[path = "contracts/tooling/artifacts_policy.rs"]
 mod mod_contracts_tooling_artifacts_policy_rs;
-#[path = "contracts/tooling/assets_scope_policy.rs"]
-mod mod_contracts_tooling_assets_scope_policy_rs;
 #[path = "contracts/tooling/assets_governance_policy.rs"]
 mod mod_contracts_tooling_assets_governance_policy_rs;
+#[path = "contracts/tooling/assets_scope_policy.rs"]
+mod mod_contracts_tooling_assets_scope_policy_rs;
 #[path = "contracts/tooling/authenticct_container_policy.rs"]
 mod mod_contracts_tooling_authenticct_container_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
@@ -64,6 +64,8 @@ mod mod_contracts_tooling_cli_runtime_dependency_policy_rs;
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
+#[path = "contracts/tooling/configs_layout_policy.rs"]
+mod mod_contracts_tooling_configs_layout_policy_rs;
 #[path = "contracts/tooling/container_label_policy.rs"]
 mod mod_contracts_tooling_container_label_policy_rs;
 #[path = "contracts/tooling/container_manifest_snapshot_policy.rs"]
@@ -78,8 +80,6 @@ mod mod_contracts_tooling_container_smoke_registry_driven_policy_rs;
 mod mod_contracts_tooling_container_version_variable_policy_rs;
 #[path = "contracts/tooling/container_versions_policy.rs"]
 mod mod_contracts_tooling_container_versions_policy_rs;
-#[path = "contracts/tooling/configs_layout_policy.rs"]
-mod mod_contracts_tooling_configs_layout_policy_rs;
 #[path = "contracts/tooling/contract_authority_policy.rs"]
 mod mod_contracts_tooling_contract_authority_policy_rs;
 #[path = "contracts/tooling/default_profile_binding_policy.rs"]
@@ -136,10 +136,10 @@ mod mod_contracts_tooling_root_layout_policy_rs;
 mod mod_contracts_tooling_root_migration_guard_policy_rs;
 #[path = "contracts/tooling/root_pollution_policy.rs"]
 mod mod_contracts_tooling_root_pollution_policy_rs;
-#[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
-mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/scripts_layout_policy.rs"]
 mod mod_contracts_tooling_scripts_layout_policy_rs;
+#[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
+mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
 #[path = "contracts/tooling/smoke_probe_policy.rs"]

@@ -67,8 +67,8 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     let experimental_parsed: toml::Value = experimental_raw
         .parse()
         .expect("parse configs/ci/tool_registry_experimental.toml");
-    let vcf_raw =
-        std::fs::read_to_string(&vcf_registry_path).expect("read configs/ci/tool_registry_vcf.toml");
+    let vcf_raw = std::fs::read_to_string(&vcf_registry_path)
+        .expect("read configs/ci/tool_registry_vcf.toml");
     let vcf_parsed: toml::Value = vcf_raw
         .parse()
         .expect("parse configs/ci/tool_registry_vcf.toml");

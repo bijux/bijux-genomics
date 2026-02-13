@@ -12,7 +12,8 @@ fn repo_root() -> PathBuf {
 #[test]
 fn policy__contracts__nextest_determinism_policy__ci_profile_disables_flaky_ordering_behaviors() {
     let root = repo_root();
-    let config = std::fs::read_to_string(root.join("configs/nextest/nextest.toml")).expect("read configs/nextest/nextest.toml");
+    let config = std::fs::read_to_string(root.join("configs/nextest/nextest.toml"))
+        .expect("read configs/nextest/nextest.toml");
     bijux_dna_policies::policy_assert!(
         config.contains("[profile.ci]"),
         "configs/nextest/nextest.toml must define [profile.ci]"

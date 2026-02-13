@@ -214,15 +214,16 @@ fn pipeline_reports_are_stable_across_repeated_builds() -> Result<()> {
         (Domain::Bam, "bam-to-bam__adna_capture__v1"),
     ];
     for (domain, pipeline_id) in cases {
-        let a = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(&build_report(
-            domain,
-            pipeline_id,
-        )?));
-        let b = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(&build_report(
-            domain,
-            pipeline_id,
-        )?));
-        assert_eq!(a, b, "pipeline report must be deterministic for {pipeline_id}");
+        let a = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(
+            &build_report(domain, pipeline_id)?,
+        ));
+        let b = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(
+            &build_report(domain, pipeline_id)?,
+        ));
+        assert_eq!(
+            a, b,
+            "pipeline report must be deterministic for {pipeline_id}"
+        );
     }
     Ok(())
 }
