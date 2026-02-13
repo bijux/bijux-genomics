@@ -38,7 +38,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `bbduk` | `production` | `bijux` | `arm64` |
 | `bbmerge` | `experimental` | `bijux` | `arm64` |
 | `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `planned` | `non-bijux` | `arm64` |
+| `beagle` | `experimental` | `non-bijux` | `arm64` |
 | `bedtools` | `production` | `bijux` | `arm64` |
 | `bowtie2` | `production` | `bijux` | `arm64` |
 | `bracken` | `production` | `bijux` | `arm64` |
@@ -47,8 +47,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `contammix` | `production` | `bijux` | `arm64` |
 | `cutadapt` | `experimental` | `bijux` | `arm64` |
 | `damageprofiler` | `experimental` | `bijux` | `arm64` |
-| `eagle` | `planned` | `non-bijux` | `arm64` |
-| `eigensoft` | `planned` | `non-bijux` | `arm64` |
+| `eagle` | `experimental` | `non-bijux` | `arm64` |
+| `eigensoft` | `experimental` | `non-bijux` | `arm64` |
 | `fastp` | `production` | `bijux` | `arm64` |
 | `fastq_screen` | `experimental` | `bijux` | `arm64` |
 | `fastqc` | `production` | `bijux` | `arm64` |
@@ -56,7 +56,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `fastx_clipper` | `production` | `bijux` | `arm64` |
 | `flash2` | `experimental` | `bijux` | `arm64` |
 | `fqtools` | `experimental` | `bijux` | `arm64` |
-| `germline` | `planned` | `non-bijux` | `arm64` |
+| `germline` | `experimental` | `non-bijux` | `arm64` |
 | `glimpse` | `planned` | `non-bijux` | `arm64` |
 | `ibdhap` | `planned` | `non-bijux` | `arm64` |
 | `ibdne` | `planned` | `non-bijux` | `arm64` |
@@ -75,8 +75,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `multiqc` | `production` | `bijux` | `arm64` |
 | `musket` | `experimental` | `bijux` | `arm64` |
 | `pear` | `production` | `bijux` | `arm64` |
-| `plink` | `planned` | `bijux` | `arm64` |
-| `plink2` | `planned` | `bijux` | `arm64` |
+| `plink` | `experimental` | `bijux` | `arm64` |
+| `plink2` | `experimental` | `bijux` | `arm64` |
 | `pmdtools` | `production` | `bijux` | `arm64` |
 | `prinseq` | `experimental` | `bijux` | `arm64` |
 | `pydamage` | `production` | `bijux` | `arm64` |
@@ -89,7 +89,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `seqkit_stats` | `production` | `bijux` | `arm64` |
 | `seqtk` | `experimental` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `none` | `none` |
-| `shapeit5` | `planned` | `non-bijux` | `arm64` |
+| `shapeit5` | `experimental` | `non-bijux` | `arm64` |
 | `skewer` | `experimental` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |
