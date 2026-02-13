@@ -17,3 +17,6 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+
+## Bench Suites
+See `../bench/index.md` for suite location, ownership, and governance.
