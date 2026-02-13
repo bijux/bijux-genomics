@@ -1,19 +1,16 @@
-# Developer Workflow
+# Developer Workflow (Redirect)
 
-## What
-A concise workflow for adding stages, tools, and metrics.
+## Purpose
+Declare the single authoritative developer workflow document.
 
-## Why
-Keeps changes aligned with contracts and policies.
+## Scope
+Applies to workflow guidance duplicated across docs sections.
 
 ## Non-goals
-- Full tutorial for tool usage.
+- Duplicating operational command guidance.
 
 ## Contracts
-- New tools must be recorded in planners and docs.
+- Authoritative source: `docs/30-operations/DEVELOPER_WORKFLOW.md`.
+- This redirect file remains one page and must not diverge from the authority doc.
 
-## Examples
-- Add new stage: stage spec → observer → planner wiring.
-
-## Failure modes
-- Missing docs updates cause policy failures.
+See: [Operations Developer Workflow](../30-operations/DEVELOPER_WORKFLOW.md)

@@ -35,7 +35,7 @@ Policies are enforced by tests under `crates/bijux-dna-policies/tests`.
 | id_literal_policy | SSOT IDs | string IDs | all crates | `tests/surface/id_literal_policy.rs` |
 | mod_naming_policy | naming hygiene | legacy/internal misuse | all crates | `tests/surface/mod_naming_policy.rs` |
 | no_duplicate_canonicalizers | single canonicalization | duplicate hash/paths | all crates | `tests/surface/no_duplicate_canonicalizers.rs` |
-| no_empty_dirs_policy | no empty dirs | placeholder dirs | all crates | `tests/surface/no_empty_dirs_policy.rs` |
+| no_empty_dirs_policy | no empty dirs | marker-only dirs | all crates | `tests/surface/no_empty_dirs_policy.rs` |
 | no_helpers_policy | no helpers buckets | helpers/utils | all crates | `tests/surface/no_helpers_policy.rs` |
 | no_policy_duplication | centralize policy logic | policy redefs | all crates | `tests/surface/no_policy_duplication.rs` |
 | no_serde_json_writer | canonical JSON only | raw serde_json writes | all crates | `tests/surface/no_serde_json_writer.rs` |
