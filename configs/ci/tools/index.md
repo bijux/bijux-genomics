@@ -6,6 +6,7 @@ Files:
 - `configs/ci/tools/images.toml`
 - `configs/ci/tools/hpc_image_naming.toml`
 - `configs/ci/tools/apptainer_cache_policy.toml`
+- `configs/ci/tools/apptainer_reproducibility_policy.toml`
 - `configs/ci/tools/toolkit_bundles.toml`
 - `configs/ci/tools/required_tools.toml`
 - `configs/ci/tools/required_tools_vcf.toml`

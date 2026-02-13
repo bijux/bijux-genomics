@@ -41,6 +41,7 @@ INFO
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
 "$SCRIPT_DIR/check-apptainer-frontend-version-output-lock.sh"
 "$SCRIPT_DIR/check-apptainer-frontend-smoke-proof.sh"
+"$SCRIPT_DIR/check-apptainer-frontend-reproducibility.sh"
 "$SCRIPT_DIR/check-release-checklist.sh"
 "$SCRIPT_DIR/container-doctor.sh" --strict
 

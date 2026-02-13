@@ -149,3 +149,7 @@ scripts/checks/check-hpc-rsync-docs-parity.sh
 scripts/tooling/ci-fast.sh
 scripts/tooling/ci-slow.sh
 scripts/checks/check-container-ssot-parity.sh
+scripts/tooling/benchmark-integrity-mini.sh
+scripts/checks/check-benchmark-integrity-policy.sh
+scripts/containers/check-apptainer-frontend-reproducibility.sh
+scripts/containers/run-apptainer-frontend-reproducibility.sh
