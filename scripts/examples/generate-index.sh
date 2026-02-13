@@ -6,11 +6,36 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-OUT="${1:-$ROOT_DIR/examples/index.yaml}"
-if [[ "${1:-}" == "--help" ]]; then
-  echo "Usage: scripts/examples/generate-index.sh [output-path]"
-  exit 0
-fi
+OUT="$ROOT_DIR/examples/index.yaml"
+
+usage() {
+  echo "Usage: scripts/examples/generate-index.sh [--out <path>] [--help]"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --out)
+      shift
+      [[ $# -gt 0 ]] || { echo "missing value for --out" >&2; exit 2; }
+      OUT="$1"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --*)
+      echo "unknown flag: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      echo "unexpected positional argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 python3 - "$ROOT_DIR" "$OUT" <<'PY'
 from pathlib import Path
