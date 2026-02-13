@@ -7,7 +7,10 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 OWNERS="$ROOT_DIR/configs/OWNERS.toml"
-RULES_TMP="$(mktemp)"
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
+RULES_TMP="$(mktemp "$TMP_ROOT/tmp-config-owners.XXXXXX")"
 trap 'rm -f "$RULES_TMP"' EXIT
 
 awk '

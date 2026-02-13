@@ -9,7 +9,10 @@ LC_ALL=C
 export LC_ALL
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_DIR="$(mktemp -d)"
+tmp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$tmp_root"
+mkdir -p "$tmp_root"
+TMP_DIR="$(mktemp -d "$tmp_root/tmp-generated-docs.XXXXXX")"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 check_header() {

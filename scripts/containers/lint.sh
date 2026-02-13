@@ -11,7 +11,10 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 DOCKER_ROOT="$ROOT_DIR/containers/docker"
 APPTAINER_ROOT="$ROOT_DIR/containers/apptainer"
 
-tmp=$(mktemp "${TMPDIR:-/tmp}/containers-lint.XXXXXX")
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
+tmp=$(mktemp "$TMP_ROOT/tmp-containers-lint.XXXXXX")
 trap 'rm -f "$tmp"' EXIT INT TERM
 
 record() {

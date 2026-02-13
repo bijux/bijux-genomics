@@ -10,7 +10,10 @@ export LC_ALL
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-refs_file="$(mktemp)"
+tmp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$tmp_root"
+mkdir -p "$tmp_root"
+refs_file="$(mktemp "$tmp_root/tmp-config-paths.XXXXXX")"
 trap 'rm -f "$refs_file"' EXIT
 
 rg -No --no-filename 'configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)' Makefile makefiles crates scripts docs .github \

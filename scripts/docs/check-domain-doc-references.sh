@@ -10,7 +10,10 @@ export LC_ALL
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-tmp="$(mktemp -d)"
+tmp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$tmp_root"
+mkdir -p "$tmp_root"
+tmp="$(mktemp -d "$tmp_root/tmp-doc-domain-refs.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 
 stage_ids_file="$tmp/stage_ids.txt"
