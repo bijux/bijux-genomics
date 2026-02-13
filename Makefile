@@ -17,17 +17,21 @@ include makefiles/docs.mk
 ##@ General
 
 help: ## Show this help message
-	@printf "\033[1mBijux DNA Project – Available Make Targets\033[0m\n\n"
-	@printf "\033[1mUsage:\033[0m make \033[36m<TARGET>\033[0m\n\n"
-	@awk 'BEGIN {FS = ":.*?## "} \
-	      /^##@/{printf "\n\033[1;34m%s\033[0m\n", substr($$0, 5)} \
-	      /^[a-zA-Z0-9_-]+:.*?## /{printf "  \033[36m%-30s\033[0m %s\n", $$1, $$2}' \
-	      $(MAKEFILE_LIST)
+	@printf "Public make targets:\n\n"
+	@printf "  %-22s %s\n" "fmt" "Format Rust workspace"
+	@printf "  %-22s %s\n" "lint" "Run repository policy/lint checks"
+	@printf "  %-22s %s\n" "audit" "Run dependency/security audit"
+	@printf "  %-22s %s\n" "test" "Run test suite"
+	@printf "  %-22s %s\n" "coverage" "Generate and validate coverage report"
+	@printf "  %-22s %s\n" "ci" "Run fmt/lint/audit/test/coverage in one isolate"
+	@printf "  %-22s %s\n" "refresh-assets-toy" "Refresh toy assets"
+	@printf "  %-22s %s\n" "refresh-assets-golden" "Refresh golden assets"
+	@printf "\nSee makefiles/README.md for the public surface contract.\n"
 
-prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir
-	@$(MAKE) containers-apptainer-build
+_prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir
+	@$(MAKE) _containers-apptainer-build
 
-gc-mac: ## Remove macOS metadata cruft locally (outside CI)
+_gc-mac: ## Remove macOS metadata cruft locally (outside CI)
 	@find . -name '.DS_Store' -type f -delete
 	@find . -name '._*' -type f -delete
 	@echo "macOS cruft removed"
