@@ -20,6 +20,7 @@ Internal-only:
 - `scripts/assets`: asset refresh helpers.
 
 The source of truth for supported scripts is `scripts/checks/supported_scripts.txt`.
+Use `./scripts/run.sh --list` to print the supported command surface from `scripts/SUPPORTED.toml`.
 
 Requires: bash, rg, coreutils (plus script-specific tools documented inline).
 Exit codes: 0 success; 1 policy/validation failure; 2 usage/config error; 127 missing dependency.
