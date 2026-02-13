@@ -6,18 +6,19 @@ DOCS_SITE ?= $(DOCS_ROOT)/site
 DOCS_VENV ?= $(DOCS_ROOT)/.venv
 DOCS_PY ?= python3
 DOCS_REQ ?= configs/docs/requirements.txt
+DOCS_CFG ?= configs/docs/mkdocs.toml
 
 $(DOCS_VENV)/bin/activate: $(DOCS_REQ)
 	@DOCS_PY="$(DOCS_PY)" DOCS_VENV="$(DOCS_VENV)" DOCS_REQ="$(DOCS_REQ)" ./scripts/run.sh tooling setup-docs-venv
 
 _docs: $(DOCS_VENV)/bin/activate ## Build docs locally (non-strict)
-	$(DOCS_VENV)/bin/mkdocs build --site-dir $(DOCS_SITE)
+	@DOCS_VENV="$(DOCS_VENV)" DOCS_CFG="$(DOCS_CFG)" ./scripts/run.sh tooling docs-build build
 
 _docs-lint: $(DOCS_VENV)/bin/activate ## Build docs in strict mode
-	$(DOCS_VENV)/bin/mkdocs build --strict --site-dir $(DOCS_SITE)
+	@DOCS_VENV="$(DOCS_VENV)" DOCS_CFG="$(DOCS_CFG)" ./scripts/run.sh tooling docs-build lint
 
 _docs-serve: $(DOCS_VENV)/bin/activate ## Serve docs locally
-	$(DOCS_VENV)/bin/mkdocs serve
+	@DOCS_VENV="$(DOCS_VENV)" DOCS_CFG="$(DOCS_CFG)" ./scripts/run.sh tooling docs-build serve
 
 _docs-clean: ## Remove built docs
 	@./scripts/run.sh tooling clean-docs "$(DOCS_ROOT)"
