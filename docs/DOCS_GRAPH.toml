@@ -1,0 +1,172 @@
+# GENERATED FILE - DO NOT EDIT
+# Regenerate with: scripts/tooling/generate-docs-graph.sh
+
+[[edge]]
+from = "docs/index.md"
+children = [
+  "docs/00-intro/index.md",
+  "docs/10-architecture/index.md",
+  "docs/20-science/index.md",
+  "docs/30-operations/index.md",
+  "docs/40-policies/index.md",
+  "docs/50-reference/index.md",
+  "docs/cli/index.md",
+  "docs/containers/index.md",
+  "docs/decisions/index.md",
+]
+
+[[edge]]
+from = "docs/00-intro/index.md"
+children = [
+  "docs/00-intro/DOCS_MAP.md",
+  "docs/00-intro/DOC_PROMISES.md",
+  "docs/00-intro/GLOSSARY.md",
+  "docs/00-intro/QUICKSTART.md",
+  "docs/00-intro/REFUSALS.md",
+  "docs/00-intro/REPO_ROOT_MAP.md",
+  "docs/00-intro/SCOPE.md",
+  "docs/00-intro/WHAT_IS_BIJUX.md",
+]
+
+[[edge]]
+from = "docs/10-architecture/index.md"
+children = [
+  "docs/10-architecture/ANTI_PATTERNS.md",
+  "docs/10-architecture/ARCHITECTURE.md",
+  "docs/10-architecture/ARCHITECTURE_LITMUS.md",
+  "docs/10-architecture/ARCHITECTURE_OVERVIEW.md",
+  "docs/10-architecture/BOUNDARY_DIAGRAM.md",
+  "docs/10-architecture/BOUNDARY_MAP.md",
+  "docs/10-architecture/CONTRACT_AUTHORITY.md",
+  "docs/10-architecture/CONTRACT_SPINE.md",
+  "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
+  "docs/10-architecture/DATAFLOW.md",
+  "docs/10-architecture/DEPENDENCY_RULES.md",
+  "docs/10-architecture/SSOT.md",
+  "docs/10-architecture/CONTRACTS/index.md",
+]
+
+[[edge]]
+from = "docs/10-architecture/CONTRACTS/index.md"
+children = [
+  "docs/10-architecture/CONTRACTS/ARTIFACTS.md",
+  "docs/10-architecture/CONTRACTS/RUN_OUTPUT.md",
+]
+
+[[edge]]
+from = "docs/20-science/index.md"
+children = [
+  "docs/20-science/PUBLICATION_ASSETS.md",
+  "docs/20-science/SCIENTIFIC_DECISIONS.md",
+  "docs/20-science/SCIENTIFIC_DEFAULTS.md",
+  "docs/20-science/TOOL_INDEX.md",
+  "docs/20-science/TOOL_STAGE_CITATIONS.md",
+  "docs/20-science/VALIDITY_LIMITS.md",
+  "docs/20-science/bam/index.md",
+  "docs/20-science/fastq/index.md",
+]
+
+[[edge]]
+from = "docs/20-science/bam/index.md"
+children = [
+  "docs/20-science/bam/METHODOLOGICAL_INTENT.md",
+  "docs/20-science/bam/METRIC_SEMANTICS.md",
+  "docs/20-science/bam/OPERATIONAL_CONTRACT.md",
+  "docs/20-science/bam/REFERENCES.md",
+  "docs/20-science/bam/STAGE_ASSUMPTIONS.md",
+  "docs/20-science/bam/STAGE_CATALOG.md",
+  "docs/20-science/bam/STAGE_TAXONOMY.md",
+  "docs/20-science/bam/TOOLS_ROSTER.md",
+]
+
+[[edge]]
+from = "docs/20-science/fastq/index.md"
+children = [
+  "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md",
+  "docs/20-science/fastq/METHODOLOGICAL_INTENT.md",
+  "docs/20-science/fastq/METRIC_SEMANTICS.md",
+  "docs/20-science/fastq/OPERATIONAL_CONTRACT.md",
+  "docs/20-science/fastq/REFERENCES.md",
+  "docs/20-science/fastq/SCIENTIFIC_SPEC.md",
+  "docs/20-science/fastq/STAGE_ASSUMPTIONS.md",
+  "docs/20-science/fastq/STAGE_CATALOG.md",
+  "docs/20-science/fastq/STAGE_TAXONOMY.md",
+  "docs/20-science/fastq/TOOLS_ROSTER.md",
+]
+
+[[edge]]
+from = "docs/30-operations/index.md"
+children = [
+  "docs/30-operations/APPTAINER_QA_MATRIX.md",
+  "docs/30-operations/ARTIFACT_EXPLORER.md",
+  "docs/30-operations/CI.md",
+  "docs/30-operations/CONTAINERS.md",
+  "docs/30-operations/DEVELOPER_WORKFLOW.md",
+  "docs/30-operations/EXPLAINABILITY.md",
+  "docs/30-operations/HPC_LUNARC_LAYOUT.md",
+  "docs/30-operations/ISOLATION.md",
+  "docs/30-operations/MKDOCS_BUILD.md",
+  "docs/30-operations/PRE_HPC_SCOPE_CLOSURE_CHECKLIST.md",
+  "docs/30-operations/RELEASE_HYGIENE.md",
+  "docs/30-operations/REPORT_CONTRACT.md",
+  "docs/30-operations/REPRODUCIBILITY.md",
+  "docs/30-operations/RUN_ARTIFACTS.md",
+  "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
+  "docs/30-operations/SECURITY.md",
+  "docs/30-operations/SECURITY_POLICY.md",
+  "docs/30-operations/TEST_FAILURE_TRIAGE.md",
+  "docs/30-operations/THREAT_MODEL.md",
+]
+
+[[edge]]
+from = "docs/40-policies/index.md"
+children = [
+  "docs/40-policies/DEVELOPER_WORKFLOW.md",
+  "docs/40-policies/DOCS_STYLE.md",
+  "docs/40-policies/FAILURE_PLAYBOOKS.md",
+  "docs/40-policies/MATURITY_LADDER.md",
+  "docs/40-policies/POLICIES_EXPLAINED.md",
+  "docs/40-policies/POLICY_INDEX.md",
+  "docs/40-policies/POLICY_MATRIX.md",
+  "docs/40-policies/POLICY_OWNERSHIP.md",
+  "docs/40-policies/POLICY_STABILITY.md",
+  "docs/40-policies/STYLE.md",
+  "docs/40-policies/TESTS_STYLE.md",
+]
+
+[[edge]]
+from = "docs/50-reference/index.md"
+children = [
+  "docs/50-reference/BIJUX_ANALYZE_CONTRACT.md",
+  "docs/50-reference/BIJUX_CONTRACT.md",
+  "docs/50-reference/COMPATIBILITY_MATRIX.md",
+  "docs/50-reference/CONTRACT_COMPATIBILITY.md",
+  "docs/50-reference/CONTRACT_VERSIONING.md",
+  "docs/50-reference/CRATE_MAP.md",
+  "docs/50-reference/DESIGN_AUTHORITY.md",
+  "docs/50-reference/DOMAIN_TEMPLATE_CHECKLIST.md",
+  "docs/50-reference/EXAMPLES.md",
+  "docs/50-reference/EXAMPLE_TEMPLATE.md",
+  "docs/50-reference/MANIFEST_MIGRATION.md",
+  "docs/50-reference/NO_ORPHANS.md",
+  "docs/50-reference/PIPELINES.md",
+  "docs/50-reference/REFERENCE_INDEX.md",
+  "docs/50-reference/SCHEMAS_INDEX.md",
+  "docs/50-reference/TOOL_ADMISSION.md",
+]
+
+[[edge]]
+from = "docs/cli/index.md"
+children = [
+]
+
+[[edge]]
+from = "docs/containers/index.md"
+children = [
+]
+
+[[edge]]
+from = "docs/decisions/index.md"
+children = [
+  "docs/decisions/TOOL_BINDING_DECISIONS.md",
+]
