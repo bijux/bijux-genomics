@@ -1,6 +1,4 @@
 #![allow(non_snake_case)]
-use std::path::Path;
-
 use walkdir::WalkDir;
 
 fn workspace_root() -> std::path::PathBuf {
