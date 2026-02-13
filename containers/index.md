@@ -1,26 +1,85 @@
 # Containers Index
 
-Purpose: Define container taxonomy, authority, and version ownership for reproducible execution.
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- source: scripts/containers/generate-index.sh -->
 
-## Apptainer vs Docker
-- `containers/apptainer/`: Apptainer definitions for HPC and isolate-first runs.
-- `containers/docker/`: Dockerfiles for OCI image build and smoke validation.
-- Docker architecture contract: this repository currently ships `containers/docker/arm64/` definitions only.
-- Multiarch contract details: `containers/docker/multiarch-policy.md`.
+Purpose: Authoritative tool/container index for container governance and CI checks.
 
-## Bijux vs Non-bijux
-- `containers/apptainer/bijux/`: Bijux-maintained definitions with project policy headers.
-- `containers/apptainer/non-bijux/`: Third-party sourced definitions tracked with explicit upstream provenance in `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
+## Authority
+- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
+- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
+- Non-bijux provenance: `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
+- Ownership map: `containers/OWNERS.toml`.
 
-## Versions And Authority
-- Canonical version pins: `containers/versions/versions.toml`.
-- Pin/lock policy: `containers/versions/LOCK.md`.
-- Planned backlog and justification: `containers/PLANNED.md`.
-- Operational guide: `docs/30-operations/CONTAINERS.md`.
+## Tool Container Coverage
+| tool_id | status | apptainer_source | docker_source |
+|---|---|---|---|
+| `adapterremoval` | `experimental` | `bijux` | `arm64` |
+| `addeam` | `experimental` | `bijux` | `arm64` |
+| `alientrimmer` | `production` | `bijux` | `arm64` |
+| `angsd` | `production` | `bijux` | `arm64` |
+| `atropos` | `experimental` | `bijux` | `arm64` |
+| `authenticct` | `production` | `bijux` | `arm64` |
+| `bamtools` | `production` | `bijux` | `arm64` |
+| `bayeshammer` | `experimental` | `bijux` | `arm64` |
+| `bbduk` | `production` | `bijux` | `arm64` |
+| `bbmerge` | `experimental` | `bijux` | `arm64` |
+| `bcftools` | `production` | `non-bijux` | `arm64` |
+| `beagle` | `planned` | `non-bijux` | `none` |
+| `bedtools` | `production` | `bijux` | `arm64` |
+| `bowtie2` | `production` | `bijux` | `arm64` |
+| `bracken` | `production` | `bijux` | `arm64` |
+| `bwa` | `production` | `bijux` | `arm64` |
+| `centrifuge` | `experimental` | `bijux` | `arm64` |
+| `contammix` | `production` | `bijux` | `arm64` |
+| `cutadapt` | `experimental` | `bijux` | `arm64` |
+| `damageprofiler` | `experimental` | `bijux` | `arm64` |
+| `eigensoft` | `planned` | `non-bijux` | `none` |
+| `fastp` | `production` | `bijux` | `arm64` |
+| `fastq_screen` | `experimental` | `bijux` | `arm64` |
+| `fastqc` | `production` | `bijux` | `arm64` |
+| `fastqvalidator` | `production` | `bijux` | `arm64` |
+| `fastx_clipper` | `production` | `bijux` | `arm64` |
+| `flash2` | `experimental` | `bijux` | `arm64` |
+| `fqtools` | `experimental` | `bijux` | `arm64` |
+| `germline` | `planned` | `non-bijux` | `none` |
+| `ibdhap` | `planned` | `non-bijux` | `none` |
+| `ibdne` | `planned` | `non-bijux` | `none` |
+| `ibdseq` | `planned` | `none` | `none` |
+| `kaiju` | `experimental` | `bijux` | `arm64` |
+| `king` | `production` | `bijux` | `arm64` |
+| `kraken2` | `production` | `bijux` | `arm64` |
+| `krakenuniq` | `production` | `bijux` | `arm64` |
+| `leehom` | `experimental` | `bijux` | `arm64` |
+| `lighter` | `experimental` | `bijux` | `arm64` |
+| `mapdamage2` | `production` | `bijux` | `arm64` |
+| `metaphlan` | `experimental` | `bijux` | `arm64` |
+| `mosdepth` | `production` | `bijux` | `arm64` |
+| `multiqc` | `production` | `bijux` | `arm64` |
+| `musket` | `experimental` | `bijux` | `arm64` |
+| `pear` | `production` | `bijux` | `arm64` |
+| `plink` | `planned` | `bijux` | `arm64` |
+| `plink2` | `planned` | `bijux` | `arm64` |
+| `pmdtools` | `production` | `bijux` | `arm64` |
+| `prinseq` | `experimental` | `bijux` | `arm64` |
+| `pydamage` | `production` | `bijux` | `arm64` |
+| `qualimap` | `experimental` | `bijux` | `arm64` |
+| `rcorrector` | `production` | `bijux` | `arm64` |
+| `rxy` | `production` | `bijux` | `arm64` |
+| `samtools` | `production` | `bijux` | `arm64` |
+| `schmutzi` | `production` | `bijux` | `arm64` |
+| `seqkit` | `production` | `bijux` | `arm64` |
+| `seqkit_stats` | `production` | `bijux` | `arm64` |
+| `seqtk` | `experimental` | `bijux` | `arm64` |
+| `shapeit` | `planned` | `none` | `none` |
+| `skewer` | `experimental` | `bijux` | `arm64` |
+| `sortmerna` | `production` | `bijux` | `arm64` |
+| `spades` | `experimental` | `bijux` | `arm64` |
+| `star` | `production` | `bijux` | `arm64` |
+| `trim_galore` | `experimental` | `bijux` | `arm64` |
+| `trimmomatic` | `experimental` | `bijux` | `arm64` |
+| `umi_tools` | `production` | `bijux` | `arm64` |
+| `verifybamid2` | `production` | `bijux` | `arm64` |
+| `vsearch` | `production` | `bijux` | `arm64` |
+| `yleaf` | `experimental` | `bijux` | `arm64` |
 
-## Tool Identity Contract
-- Allowed tool IDs for container filenames are generated in `containers/TOOL_IDS.txt`.
-- Regenerate with `scripts/containers/generate-tool-ids.sh`.
-
-## Notes
-- `seqkit_stats` is intentionally modeled as a distinct tool ID and stage binding (`fastq.stats_neutral`) in registry and container definitions.
