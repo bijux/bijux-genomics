@@ -44,6 +44,7 @@ lint:
 	./scripts/run.sh checks check-readme-links
 	./scripts/run.sh checks check-ci-shell-scripts
 	./scripts/run.sh checks check-lib-api
+	./scripts/run.sh checks check-isolation-contract
 	./scripts/run.sh checks check-shell-portability
 	./scripts/run.sh checks check-output-roots
 	./scripts/run.sh checks check-script-arg-style
