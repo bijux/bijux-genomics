@@ -1,0 +1,7 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "minimac4"
+container_kind = "bijux"
+license = "MIT"
+upstream_source = "https://genome.sph.umich.edu/wiki/Minimac4"
+version = "planned"

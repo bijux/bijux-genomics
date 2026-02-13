@@ -181,6 +181,15 @@
       "version": "0.0.0"
     },
     {
+      "entry_sha256": "a8cf93ba58a95d6d474626a75207fcb671e0ba0bfa08f234ac44a123433e068b",
+      "pinned_commit": "",
+      "source": "https://alkesgroup.broadinstitute.org/Eagle/",
+      "source_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "status": "planned",
+      "tool": "eagle",
+      "version": "planned"
+    },
+    {
       "entry_sha256": "af4c0ef8148b9561f7aee08266a928c7c1514ff2412aec8b3d56991346d709fe",
       "pinned_commit": "",
       "source": "https://github.com/DReichLab/EIG",
@@ -262,6 +271,15 @@
       "version": "planned"
     },
     {
+      "entry_sha256": "c2a607a662bcf30631b0dafffb3aa4da1c0cb6d0704e793e1fdc88523a9af365",
+      "pinned_commit": "",
+      "source": "https://odelaneau.github.io/GLIMPSE/",
+      "source_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "status": "planned",
+      "tool": "glimpse",
+      "version": "planned"
+    },
+    {
       "entry_sha256": "ee0ac36c41fabcb54b7d8b7f1f0216c3cab0831bc363a6a414df23da960ec5d2",
       "pinned_commit": "",
       "source": "https://example.invalid/ibdhap",
@@ -286,6 +304,15 @@
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdseq",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "bede3f78ea0881dc9602c60f384ebdcd1fdaa60a3b3b689c3f178c445550c206",
+      "pinned_commit": "",
+      "source": "https://jmarchini.org/software/#impute-5",
+      "source_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "status": "planned",
+      "tool": "impute5",
       "version": "planned"
     },
     {
@@ -359,6 +386,15 @@
       "status": "production",
       "tool": "metaphlan",
       "version": "4.1.1"
+    },
+    {
+      "entry_sha256": "3eeea1757c5eec278bcfcf67593117d3c289b5f1d990be720cb7a0cc5977ab58",
+      "pinned_commit": "",
+      "source": "https://genome.sph.umich.edu/wiki/Minimac4",
+      "source_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "status": "planned",
+      "tool": "minimac4",
+      "version": "planned"
     },
     {
       "entry_sha256": "253788fd9c02d7545fb763f69cf02f3f4c7809b3aeebb26237d1486f9efb995d",
@@ -523,6 +559,15 @@
       "version": "planned"
     },
     {
+      "entry_sha256": "169ea1ecfe359c4844d05d3350011842c7ba5919472a730b17cc8415bd659025",
+      "pinned_commit": "",
+      "source": "https://odelaneau.github.io/shapeit5/",
+      "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "status": "planned",
+      "tool": "shapeit5",
+      "version": "planned"
+    },
+    {
       "entry_sha256": "0dd35f74d23da9bbf5af75f9121a7151665b07a87279d1b403a10aedbb7cfb86",
       "pinned_commit": "",
       "source": "https://github.com/relipmoc/skewer",
@@ -615,6 +660,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v2",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "7ad9de4be81e7bebe74e374c626d29752a10861f1e1020f99adf224e616cddb1",
+  "source_sha256": "a0e8ae8e3ffd838b08032d11a05167a6082ed6858ce0ea758ed9479d339525f6",
   "version_map_source": "artifacts/containers/version_map.json"
 }
