@@ -15,11 +15,16 @@ required_inputs: ["ibd_segments"]
 required_outputs: ["demography_report"]
 metrics:
   - name: "ne_recent"
+  - name: "ne_time_series"
   - name: "ne_confidence_interval"
+  - name: "assumption_flags"
 compatible_tools: ["ibdne"]
 single_tool_justification: "ibdne is the current planned baseline for Ne inference from IBD summaries."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions:
+  - "ibd_segments_are_filtered_and_comparable_before_demography"
+  - "generation_time_and_recombination_model_are_fixed_per_run"
+  - "demography_outputs_emit_metrics_json_with_schema_bijux.vcf.demography.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

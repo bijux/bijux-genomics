@@ -15,10 +15,14 @@ required_inputs: ["vcf"]
 required_outputs: ["ibd_segments"]
 metrics:
   - name: "ibd_segment_count"
-  - name: "ibd_total_length_bp"
+  - name: "ibd_total_length_cM"
+  - name: "ibd_length_bins_cM"
+  - name: "pairwise_ibd_sharing_matrix"
 compatible_tools: ["germline", "ibdhap"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions:
+  - "phasing_quality_thresholds_are_fixed_per_run"
+  - "ibd_outputs_emit_metrics_json_with_schema_bijux.vcf.ibd.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

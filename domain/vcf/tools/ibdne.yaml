@@ -13,7 +13,7 @@ license: "GPL-3.0"
 citation: "planned"
 version_cmd: "ibdne --version"
 help_cmd: "ibdne --help"
-expected_artifacts: ["demography_report"]
+expected_artifacts: ["demography_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.ibd.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."

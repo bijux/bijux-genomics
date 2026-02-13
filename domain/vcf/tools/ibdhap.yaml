@@ -13,7 +13,7 @@ license: "unknown"
 citation: "planned"
 version_cmd: "ibdhap --version"
 help_cmd: "ibdhap --help"
-expected_artifacts: ["ibd_haplotype_report"]
+expected_artifacts: ["ibd_segments", "ibd_haplotype_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.ibd.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."

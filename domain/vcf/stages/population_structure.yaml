@@ -15,10 +15,16 @@ required_inputs: ["filtered_vcf"]
 required_outputs: ["population_structure_report"]
 metrics:
   - name: "pca_variance_explained"
-  - name: "population_clusters"
-compatible_tools: ["plink2", "eigensoft"]
+  - name: "pc_axes"
+  - name: "cluster_assignments"
+  - name: "admixture_k_selected"
+  - name: "admixture_cross_validation_error"
+compatible_tools: ["plink", "plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage", "diploid_assumptions"]
+assumptions:
+  - "diploid_assumptions"
+  - "ld_pruning_and_missingness_thresholds_are_fixed_per_run"
+  - "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

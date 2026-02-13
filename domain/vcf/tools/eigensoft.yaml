@@ -13,9 +13,9 @@ license: "GPL-2.0"
 citation: "planned"
 version_cmd: "smartpca -h"
 help_cmd: "smartpca -h"
-expected_artifacts: ["pca_report", "population_structure_report"]
+expected_artifacts: ["pca_report", "population_structure_report", "metrics.json"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.pca.v1"
+metrics_schema_id: "bijux.vcf.population_structure.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."
 container:
   image: "containers/apptainer/non-bijux/eigensoft.def"
