@@ -24,3 +24,4 @@ seed = 42
 output_format = "vcf.gz"
 coverage_decision = "decision.coverage_regime"
 calling_regime_from_decision = true
+regime_profile = "modern_wgs_shotgun"

@@ -25,3 +25,35 @@ fallback = "pseudohaploid"
 decision_key = "coverage_regime"
 allowed_values = ["gl", "pseudohaploid", "diploid"]
 trace_required = true
+
+[decision.coverage_regime.profiles.adna_lowcov_capture]
+description = "aDNA low-coverage capture defaults"
+gl_max_depth = 2.0
+pseudohaploid_max_depth = 8.0
+diploid_min_depth = 12.0
+capture = true
+shotgun = false
+
+[decision.coverage_regime.profiles.adna_lowcov_shotgun]
+description = "aDNA low-coverage shotgun defaults"
+gl_max_depth = 1.5
+pseudohaploid_max_depth = 6.0
+diploid_min_depth = 10.0
+capture = false
+shotgun = true
+
+[decision.coverage_regime.profiles.modern_wgs_capture]
+description = "modern WGS/capture defaults"
+gl_max_depth = 1.0
+pseudohaploid_max_depth = 3.0
+diploid_min_depth = 12.0
+capture = true
+shotgun = false
+
+[decision.coverage_regime.profiles.modern_wgs_shotgun]
+description = "modern WGS shotgun defaults"
+gl_max_depth = 0.5
+pseudohaploid_max_depth = 2.0
+diploid_min_depth = 10.0
+capture = false
+shotgun = true
