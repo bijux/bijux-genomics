@@ -129,4 +129,6 @@ scripts/tooling/make.sh
 scripts/tooling/repo-doctor.sh
 scripts/tooling/setup-docs-venv.sh
 scripts/checks/check-panel-locks.sh
+scripts/checks/check-panel-license-policy.sh
 scripts/tooling/simulate-coverage-regime.sh
+scripts/tooling/acquire-panels.sh

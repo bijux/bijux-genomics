@@ -1679,3 +1679,19 @@ purpose = "tooling script"
 inputs = ["configs/runtime/coverage_regimes.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "acquire_panels"
+path = "scripts/tooling/acquire-panels.sh"
+purpose = "tooling script"
+inputs = ["configs/vcf/panels/panels.toml"]
+outputs = ["configs/vcf/panels/locks/", "artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_panel_license_policy"
+path = "scripts/checks/check-panel-license-policy.sh"
+purpose = "checks script"
+inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/panels/locks/lock.json"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
