@@ -337,8 +337,32 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_doc_depth"
+path = "scripts/docs/check-doc-depth.sh"
+purpose = "docs script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_doc_links"
 path = "scripts/docs/check-doc-links.sh"
+purpose = "docs script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_doc_root_layout"
+path = "scripts/docs/check-doc-root-layout.sh"
+purpose = "docs script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_docs_graph"
+path = "scripts/docs/check-docs-graph.sh"
 purpose = "docs script"
 inputs = []
 outputs = []
@@ -609,8 +633,32 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "generate_docs_graph"
+path = "scripts/tooling/generate-docs-graph.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "generate_apptainer_qa_matrix"
+path = "scripts/tooling/generate-apptainer-qa-matrix.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "generate_policy_index"
 path = "scripts/tooling/generate-policy-index.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "generate_repo_root_map"
+path = "scripts/tooling/generate-repo-root-map.sh"
 purpose = "tooling script"
 inputs = []
 outputs = []

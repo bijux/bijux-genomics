@@ -27,3 +27,13 @@
 ## Hash contract
 - Profile hash is derived from canonicalized profile manifest only.
 - Non-semantic ordering changes must not alter hash.
+
+## Purpose
+This document defines the intended behavior and navigation contract for this topic.
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

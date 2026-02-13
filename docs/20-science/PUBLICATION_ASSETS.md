@@ -11,3 +11,10 @@ When documentation references publication assets, link the publication index (`a
 
 ## Current Publication IDs
 - [`assets/publications/adna-methods-2024/index.md`](../../assets/publications/adna-methods-2024/index.md)
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+

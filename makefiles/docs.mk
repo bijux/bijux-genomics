@@ -23,6 +23,6 @@ docs-clean: ## Remove built docs
 	@./scripts/run.sh tooling clean-docs "$(DOCS_ROOT)"
 
 docs-isolate: ## Build docs in strict mode under an isolate dir
-	@./bin/isolate sh -ceu './scripts/run.sh docs check-domain-doc-references; ./scripts/run.sh docs check-doc-links; ./scripts/run.sh docs check-generated-docs; ./scripts/run.sh docs check-doc-assets; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/run.sh docs check-root-pollution'
+	@./bin/isolate sh -ceu './scripts/run.sh docs check-domain-doc-references; ./scripts/run.sh docs check-doc-links; ./scripts/run.sh docs check-docs-graph; ./scripts/run.sh docs check-doc-root-layout; ./scripts/run.sh docs check-doc-depth; ./scripts/run.sh docs check-generated-docs; ./scripts/run.sh docs check-doc-assets; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/run.sh docs check-root-pollution'
 
 .PHONY: docs docs-lint docs-serve docs-clean docs-isolate

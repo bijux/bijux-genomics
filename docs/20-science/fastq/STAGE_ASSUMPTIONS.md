@@ -19,3 +19,16 @@ Source of truth remains `domain/fastq/stages/*.yaml` (`assumptions` field).
 
 ## Contract note
 Assumptions are validated for presence by domain validation; semantic interpretation remains operator responsibility.
+
+## Purpose
+This document defines the intended behavior and navigation contract for this topic.
+
+## Scope
+Applies only to the files and workflows referenced in this document.
+
+## Non-goals
+- Not a replacement for lower-level implementation or crate-specific contracts.
+
+## Contracts
+- Content here is normative where explicitly stated.
+
