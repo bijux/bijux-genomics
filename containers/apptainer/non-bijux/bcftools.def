@@ -13,7 +13,7 @@
 
 # VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
-From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
+From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d
 
 %labels
     VERSION unknown

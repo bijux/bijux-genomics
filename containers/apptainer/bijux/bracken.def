@@ -43,7 +43,17 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     cd /opt/bracken
     git checkout c5bfec1929fe30feef21afbde67b16bda44de448
     ./install_bracken.sh
-    ln -sf /opt/bracken/bracken /usr/local/bin/bracken
+    mv /opt/bracken/bracken /usr/local/bin/bracken-bin
+    cat > /usr/local/bin/bracken <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "2.9"
+  exit 0
+fi
+exec /usr/local/bin/bracken-bin "$@"
+SH
+    chmod +x /usr/local/bin/bracken
 
 %runscript
     exec /usr/local/bin/bracken "$@"

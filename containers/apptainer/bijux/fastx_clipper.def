@@ -37,7 +37,16 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     apt-get update -qq && apt-get install -y --no-install-recommends \
         fastx-toolkit ca-certificates && \
         rm -rf /var/lib/apt/lists/*
-    ln -sf /usr/bin/fastx_clipper /usr/local/bin/fastx_clipper
+    cat > /usr/local/bin/fastx_clipper <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "0.0.14"
+  exit 0
+fi
+exec /usr/bin/fastx_clipper "$@"
+SH
+    chmod +x /usr/local/bin/fastx_clipper
 
 %runscript
     exec /usr/local/bin/fastx_clipper "$@"

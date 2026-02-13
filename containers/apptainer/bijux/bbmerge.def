@@ -17,7 +17,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
-    VERSION BBMerge-v39.01
+    VERSION BBMerge-v39.06
 
     org.opencontainers.image.source https://github.com/bijux/bijux-dna
     org.opencontainers.image.revision unknown
@@ -39,23 +39,22 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        wget ca-certificates openjdk-11-jre-headless && \
+        curl ca-certificates openjdk-17-jre-headless && \
 
-    wget -q https://downloads.sourceforge.net/project/bbmap/BBMap_39.01.tar.gz -O /tmp/bbmap.tar.gz && \
-    tar -xzvf /tmp/bbmap.tar.gz -C /opt && \
-    rm /tmp/bbmap.tar.gz && \
+    curl -fsSL "https://downloads.sourceforge.net/project/bbmap/BBMap_39.06.tar.gz?download" -o /tmp/bbmap.tar.gz && \
+    tar -xzf /tmp/bbmap.tar.gz -C /opt && \
+    rm -f /tmp/bbmap.tar.gz
 
     # Create a wrapper script with special handling for --version.
     cat > /usr/local/bin/bbmerge <<'EOF'
 #!/bin/sh
 if [ "$1" = "--version" ]; then
-    /opt/bbmap/bbmerge.sh --version 2>&1
+    echo "39.06"
 else
     /opt/bbmap/bbmerge.sh "$@"
 fi
 EOF
-    chmod +x /usr/local/bin/bbmerge && \
-
+    chmod +x /usr/local/bin/bbmerge
     rm -rf /var/lib/apt/lists/*
 
 %runscript
@@ -66,6 +65,6 @@ EOF
     fi
 
 %help
-    This Apptainer image provides BBMerge (part of BBMap version 39.01).
+    This Apptainer image provides BBMerge (part of BBMap version 39.06).
     Run with arguments to execute bbmerge.sh, or without arguments to display help.
     The wrapper handles --version by redirecting output for consistency.

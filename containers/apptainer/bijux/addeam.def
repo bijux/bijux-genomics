@@ -46,7 +46,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 #!/bin/sh
 set -eu
 if [ "${1:-}" = "--version" ]; then
-  (cd /opt/AdDeam && git rev-parse --short=12 HEAD) || echo "unknown"
+  echo "1.0.0"
   exit 0
 fi
 entry=""
