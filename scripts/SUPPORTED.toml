@@ -937,6 +937,30 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_version_hash_pin"
+path = "scripts/containers/check-version-hash-pin.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "generate_version_lock"
+path = "scripts/containers/generate-version-lock.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_version_lock"
+path = "scripts/containers/check-version-lock.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_apptainer_bijux_header"
 path = "scripts/containers/check-apptainer-bijux-header.sh"
 purpose = "containers script"
