@@ -12,8 +12,6 @@ required_tools = [
   "germline",
   "ibdhap",
   "ibdne",
-  "ibdseq",
   "plink",
   "plink2",
-  "shapeit",
 ]

@@ -15,8 +15,7 @@ required_inputs: ["vcf"]
 required_outputs: ["pca_out"]
 metrics:
   - name: "pca_status"
-compatible_tools: ["bcftools"]
-single_tool_justification: "Planned stage baseline; additional tools enter via downstream registry promotion."
+compatible_tools: ["plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]
