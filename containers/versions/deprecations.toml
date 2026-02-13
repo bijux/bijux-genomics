@@ -1,0 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+
+[[deprecation]]
+tool_id = "bamtools"
+version = "2.5.2"
+deprecated_since = "2026-02-13"
+removal_after = "2026-08-13"
+rationale = "Example entry for version deprecation workflow."
+compatibility_mode = "allowed"

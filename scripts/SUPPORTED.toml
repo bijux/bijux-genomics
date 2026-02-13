@@ -1543,3 +1543,27 @@ purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "containers_extract_version_map"
+path = "scripts/containers/extract-version-map.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_deprecate_version"
+path = "scripts/containers/deprecate-version.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_version_deprecations"
+path = "scripts/containers/check-version-deprecations.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
