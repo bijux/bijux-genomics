@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import pathlib
-import re
 import sys
 try:
     import tomllib  # type: ignore[attr-defined]
@@ -78,6 +77,7 @@ def check_deprecations(known_tools: set[str], known_stages: set[str], errs: list
     data = load_toml(dep_path)
     rows = data.get("deprecations", [])
     seen = set()
+    today = dt.date.today()
     for row in rows:
         tool_id = str(row.get("tool_id", "")).strip()
         stage = str(row.get("stage", "")).strip()
@@ -100,10 +100,42 @@ def check_deprecations(known_tools: set[str], known_stages: set[str], errs: list
             errs.append(
                 f"{dep_path}: tool '{tool_id}' stage '{stage}' has removal_after <= deprecated_since"
             )
+        if after_d and today > after_d:
+            errs.append(
+                f"{dep_path}: tool '{tool_id}' stage '{stage}' is past removal_after ({after_d.isoformat()})"
+            )
         key = (tool_id, stage)
         if key in seen:
             errs.append(f"{dep_path}: duplicate deprecation entry for tool '{tool_id}' stage '{stage}'")
         seen.add(key)
+
+
+def check_runtime_platforms(errs: list[str]) -> None:
+    path = CONFIGS / "runtime" / "platforms.toml"
+    data = load_toml(path)
+    allowed_top = {"default", "platforms"}
+    unknown_top = set(data.keys()) - allowed_top
+    if unknown_top:
+        errs.append(f"{path}: unknown top-level keys: {sorted(unknown_top)}")
+    default = str(data.get("default", "")).strip()
+    if not default:
+        errs.append(f"{path}: missing non-empty top-level 'default'")
+    platforms = data.get("platforms")
+    if not isinstance(platforms, dict) or not platforms:
+        errs.append(f"{path}: [platforms] table must exist and be non-empty")
+        return
+    if default and default not in platforms:
+        errs.append(f"{path}: default platform '{default}' not present under [platforms]")
+    allowed_platform_keys = {"runner", "container_dir", "image_prefix", "arch", "runtime", "notes"}
+    for pid, cfg in platforms.items():
+        if not isinstance(cfg, dict):
+            errs.append(f"{path}: platforms.{pid} must be a table")
+            continue
+        unknown = set(cfg.keys()) - allowed_platform_keys
+        if unknown:
+            errs.append(f"{path}: platforms.{pid} has unknown keys: {sorted(unknown)}")
+        if not (cfg.get("runner") or cfg.get("runtime")):
+            errs.append(f"{path}: platforms.{pid} requires one of 'runner' or 'runtime'")
 
 
 def main() -> int:
@@ -124,6 +156,7 @@ def main() -> int:
 
     known_tools, known_stages = check_registries(errs)
     check_deprecations(known_tools, known_stages, errs)
+    check_runtime_platforms(errs)
 
     if errs:
         print("config-schema: validation failed", file=sys.stderr)
