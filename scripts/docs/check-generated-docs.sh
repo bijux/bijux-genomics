@@ -30,26 +30,32 @@ check_header "$ROOT/docs/20-science/TOOL_INDEX.md"
 check_header "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md"
 check_header "$ROOT/docs/00-intro/REPO_ROOT_MAP.md"
 check_header "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md"
+while IFS= read -r g; do
+  [[ -n "$g" ]] || continue
+  check_header "$g"
+done < <(find "$ROOT/docs" -type f -name '*.generated.md' | sort)
 
-./scripts/tooling/generate-tool-index.sh "$TMP_DIR/TOOL_INDEX.md" >/dev/null
-./scripts/tooling/generate-apptainer-qa-matrix.sh "$TMP_DIR/APPTAINER_QA_MATRIX.md" >/dev/null
-./scripts/tooling/generate-repo-root-map.sh "$TMP_DIR/REPO_ROOT_MAP.md" >/dev/null
-./scripts/tooling/generate-compatibility-matrix.sh "$TMP_DIR/COMPATIBILITY_MATRIX.md" >/dev/null
+mkdir -p "$TMP_DIR/00-intro" "$TMP_DIR/20-science" "$TMP_DIR/30-operations" "$TMP_DIR/50-reference"
+./scripts/tooling/generate-docs.sh "$TMP_DIR" >/dev/null
 
-diff -u "$ROOT/docs/20-science/TOOL_INDEX.md" "$TMP_DIR/TOOL_INDEX.md" >/dev/null || {
-  echo "generated-docs: docs/20-science/TOOL_INDEX.md drift; regenerate with scripts/tooling/generate-tool-index.sh" >&2
+diff -u "$ROOT/docs/20-science/TOOL_INDEX.md" "$TMP_DIR/20-science/TOOL_INDEX.md" >/dev/null || {
+  echo "generated-docs: docs/20-science/TOOL_INDEX.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
-diff -u "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md" "$TMP_DIR/APPTAINER_QA_MATRIX.md" >/dev/null || {
-  echo "generated-docs: docs/30-operations/APPTAINER_QA_MATRIX.md drift; regenerate with scripts/tooling/generate-apptainer-qa-matrix.sh" >&2
+diff -u "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md" "$TMP_DIR/30-operations/APPTAINER_QA_MATRIX.md" >/dev/null || {
+  echo "generated-docs: docs/30-operations/APPTAINER_QA_MATRIX.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
-diff -u "$ROOT/docs/00-intro/REPO_ROOT_MAP.md" "$TMP_DIR/REPO_ROOT_MAP.md" >/dev/null || {
-  echo "generated-docs: docs/00-intro/REPO_ROOT_MAP.md drift; regenerate with scripts/tooling/generate-repo-root-map.sh" >&2
+diff -u "$ROOT/docs/00-intro/REPO_ROOT_MAP.md" "$TMP_DIR/00-intro/REPO_ROOT_MAP.md" >/dev/null || {
+  echo "generated-docs: docs/00-intro/REPO_ROOT_MAP.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
-diff -u "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md" "$TMP_DIR/COMPATIBILITY_MATRIX.md" >/dev/null || {
-  echo "generated-docs: docs/50-reference/COMPATIBILITY_MATRIX.md drift; regenerate with scripts/tooling/generate-compatibility-matrix.sh" >&2
+diff -u "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md" "$TMP_DIR/50-reference/COMPATIBILITY_MATRIX.md" >/dev/null || {
+  echo "generated-docs: docs/50-reference/COMPATIBILITY_MATRIX.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
+  exit 1
+}
+diff -u "$ROOT/docs/DOCS_GRAPH.toml" "$TMP_DIR/DOCS_GRAPH.toml" >/dev/null || {
+  echo "generated-docs: docs/DOCS_GRAPH.toml drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
 
