@@ -11,16 +11,22 @@ usage: bin/isolate [options] <command> [args...]
 
 options:
   --print-root                  print computed ISO_ROOT and exit
+  --print-env                   print isolate env contract (key=value) and exit
   --print-tag                   print computed ISO_TAG and exit
+  --tag <name>                  set explicit ISO_TAG
+  --require-clean               fail if ISO_ROOT already exists (unless --reuse)
   --require-empty-target-dir    fail if ISO_ROOT already has target-* dirs/files (unless --reuse)
   --reuse                       allow reuse of existing ISO_ROOT target-* entries
 EOF
 }
 
 require_empty_target_dir=0
+require_clean=0
 reuse=0
 print_root=0
+print_env=0
 print_tag=0
+explicit_tag=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -28,8 +34,24 @@ while [ "$#" -gt 0 ]; do
       print_root=1
       shift
       ;;
+    --print-env)
+      print_env=1
+      shift
+      ;;
     --print-tag)
       print_tag=1
+      shift
+      ;;
+    --tag)
+      [ "$#" -ge 2 ] || {
+        echo "isolate: --tag requires a value" >&2
+        exit 2
+      }
+      explicit_tag="$2"
+      shift 2
+      ;;
+    --require-clean)
+      require_clean=1
       shift
       ;;
     --require-empty-target-dir)
@@ -55,12 +77,21 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "${ISO_TAG:-}" ]; then
+if [ -n "$explicit_tag" ]; then
+  ISO_TAG="$explicit_tag"
+elif [ -z "${ISO_TAG:-}" ]; then
   ISO_TAG="$(date -u +%Y%m%dT%H%M%SZ)-${GIT_SHORT_SHA}-$$"
 fi
 if [ -z "${ISO_ROOT:-}" ]; then
   ISO_ROOT="$ROOT_DIR/artifacts/isolates/$ISO_TAG"
 fi
+case "$ISO_ROOT" in
+  *"$ISO_TAG"*) ;;
+  *)
+    echo "isolate: ISO_ROOT must include ISO_TAG for predictable naming: ISO_TAG=$ISO_TAG ISO_ROOT=$ISO_ROOT" >&2
+    exit 2
+    ;;
+esac
 
 if [ "$print_root" -eq 1 ]; then
   echo "$ISO_ROOT"
@@ -75,9 +106,31 @@ if [ "$print_tag" -eq 1 ]; then
   exit 0
 fi
 
+if [ "$print_env" -eq 1 ]; then
+  echo "ISO_TAG=$ISO_TAG"
+  echo "ISO_ROOT=$ISO_ROOT"
+  echo "CARGO_TARGET_DIR=$ISO_ROOT/target"
+  echo "CARGO_HOME=$ISO_ROOT/cargo-home"
+  echo "TMPDIR=$ISO_ROOT/tmp"
+  echo "TMP=$ISO_ROOT/tmp"
+  echo "TEMP=$ISO_ROOT/tmp"
+  echo "TZ=UTC"
+  echo "LC_ALL=C"
+  echo "RUST_BACKTRACE=${RUST_BACKTRACE:-1}"
+  echo "CARGO_TERM_COLOR=${CARGO_TERM_COLOR:-always}"
+  exit 0
+fi
+
 if [ "$#" -eq 0 ]; then
   print_usage
   exit 2
+fi
+
+if [ "$require_clean" -eq 1 ] && [ "$reuse" -ne 1 ]; then
+  if [ -e "$ISO_ROOT" ]; then
+    echo "isolate: ISO_ROOT already exists; pass --reuse to allow reuse: $ISO_ROOT" >&2
+    exit 1
+  fi
 fi
 
 if [ "$require_empty_target_dir" -eq 1 ] && [ "$reuse" -ne 1 ]; then
@@ -96,8 +149,8 @@ export CARGO_HOME="$ISO_ROOT/cargo-home"
 export TMPDIR="$ISO_ROOT/tmp"
 export TMP="$ISO_ROOT/tmp"
 export TEMP="$ISO_ROOT/tmp"
-export TZ="${TZ:-UTC}"
-export LC_ALL="${LC_ALL:-C}"
+export TZ="UTC"
+export LC_ALL="C"
 export RUST_BACKTRACE="${RUST_BACKTRACE:-1}"
 export CARGO_TERM_COLOR="${CARGO_TERM_COLOR:-always}"
 
