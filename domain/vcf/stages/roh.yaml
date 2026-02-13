@@ -14,12 +14,17 @@ outputs:
 required_inputs: ["filtered_vcf"]
 required_outputs: ["roh_report"]
 metrics:
-  - name: "roh_segment_count"
-  - name: "roh_total_length_bp"
+  - name: "roh_count"
+  - name: "roh_total_mb"
+  - name: "roh_length_bins_mb"
+  - name: "roh_mean_length_mb"
+  - name: "roh_max_length_mb"
 compatible_tools: ["plink2"]
 single_tool_justification: "plink2 is the current planned baseline for ROH calls with stable CLI contracts."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions:
+  - "roh_min_kb_and_density_thresholds_are_fixed_per_run"
+  - "roh_outputs_emit_metrics_json_with_schema_bijux.vcf.roh.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

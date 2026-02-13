@@ -13,9 +13,9 @@ license: "GPL-3.0"
 citation: "planned"
 version_cmd: "plink2 --version"
 help_cmd: "plink2 --help"
-expected_artifacts: ["qc_report", "pca_report", "admixture_report", "population_structure_report", "roh_report"]
+expected_artifacts: ["qc_report", "pca_report", "admixture_report", "population_structure_report", "roh_report", "metrics.json"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.pca.v1"
+metrics_schema_id: "bijux.vcf.population_structure.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."
 container:
   image: "containers/docker/arm64/Dockerfile.plink2"
