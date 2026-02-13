@@ -759,7 +759,8 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
 }
 
 fn suite_path(cwd: &Path, suite: &str) -> Result<PathBuf> {
-    let preferred = cwd.join("bench").join("suites").join(format!("{suite}.toml"));
+    let root = workspace_root();
+    let preferred = bijux_dna_infra::bench_suites_dir(&root).join(format!("{suite}.toml"));
     if preferred.exists() {
         return Ok(preferred);
     }
@@ -772,6 +773,44 @@ fn suite_path(cwd: &Path, suite: &str) -> Result<PathBuf> {
         preferred.display(),
         fallback.display()
     ))
+}
+
+#[must_use]
+pub fn bench_status(cwd: &Path) -> serde_json::Value {
+    let root = workspace_root();
+    let suite_dir = bijux_dna_infra::bench_suites_dir(&root);
+    let config_dir = bijux_dna_infra::configs_dir(&root).join("bench");
+    let mut suites = Vec::new();
+    if suite_dir.exists() {
+        if let Ok(entries) = fs::read_dir(&suite_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|v| v.to_str()) != Some("toml") {
+                    continue;
+                }
+                if let Some(stem) = path.file_stem().and_then(|v| v.to_str()) {
+                    suites.push(stem.to_string());
+                }
+            }
+        }
+    }
+    suites.sort();
+    suites.dedup();
+    serde_json::json!({
+        "schema_version": "bijux.bench.status.v1",
+        "bench_suite_dir": suite_dir.display().to_string(),
+        "bench_config_dir": config_dir.display().to_string(),
+        "detected_suites": suites,
+        "cwd": cwd.display().to_string(),
+    })
+}
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("workspace root")
+        .to_path_buf()
 }
 
 fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {

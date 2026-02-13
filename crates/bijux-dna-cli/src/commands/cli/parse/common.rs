@@ -592,6 +592,7 @@ impl PipelineDomainArg {
 #[allow(clippy::large_enum_variant)]
 pub enum BenchCommand {
     Run(BenchRunArgs),
+    Status,
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,

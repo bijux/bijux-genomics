@@ -739,6 +739,11 @@ pub(crate) fn handle_meta_commands(
                     )?;
                     println!("suite_run_dir={}", run_dir.display());
                 }
+                BenchCommand::Status => {
+                    let cwd = std::env::current_dir()?;
+                    let status = crate::commands::bench_suite::bench_status(&cwd);
+                    crate::commands::cli::render::json::print_pretty(&status)?;
+                }
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
