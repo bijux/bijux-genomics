@@ -111,6 +111,8 @@ arch = "arm64"
             tool: "fastp".to_string(),
             version: "0.23.4".to_string(),
             digest: None,
+            enabled: None,
+            shipping_policy: None,
         };
         assert_eq!(spec.tool, "fastp");
     }
@@ -128,6 +130,8 @@ arch = "arm64"
             tool: "fastp".to_string(),
             version: "0.23.4".to_string(),
             digest: None,
+            enabled: None,
+            shipping_policy: None,
         };
         let resolved = resolve_image(&tool, &platform)?;
         assert_eq!(resolved.full_name, "bijuxdna/fastp:0.23.4-arm64");
@@ -181,6 +185,8 @@ arch = "arm64"
                 tool: "fastp".to_string(),
                 version: "0.23.4".to_string(),
                 digest: None,
+                enabled: None,
+                shipping_policy: None,
             },
         );
         match validate_images_for_stage(&catalog, &["fastp", "bwa"]) {
@@ -204,6 +210,8 @@ arch = "arm64"
             tool: "fastp".to_string(),
             version: "0.23.4".to_string(),
             digest: Some("sha256:abc123".to_string()),
+            enabled: None,
+            shipping_policy: None,
         };
         let resolved = resolve_image(&tool, &platform)?;
         assert_eq!(resolved.full_name, "bijuxdna/fastp@sha256:abc123");
