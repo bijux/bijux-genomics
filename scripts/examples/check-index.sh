@@ -7,6 +7,10 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 IDX="$ROOT_DIR/examples/index.yaml"
+if [[ "${1:-}" == "--help" ]]; then
+  echo "Usage: scripts/examples/check-index.sh"
+  exit 0
+fi
 [[ -f "$IDX" ]] || {
   echo "examples index missing: examples/index.yaml" >&2
   exit 1
@@ -20,7 +24,7 @@ fi
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
-expected="$(mktemp "$TMP_ROOT/examples-index.XXXXXX.yaml")"
+expected="$(mktemp "$TMP_ROOT/examples-index.XXXXXX")"
 trap 'rm -f "$expected"' EXIT INT TERM
 
 "$ROOT_DIR/scripts/examples/generate-index.sh" "$expected" >/dev/null

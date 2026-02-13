@@ -12,6 +12,11 @@ Usage: scripts/examples/check-drift.sh <example-id>
 EOF
 }
 
+if [[ "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 [[ $# -eq 1 ]] || { usage >&2; exit 2; }
 id="$1"
 
