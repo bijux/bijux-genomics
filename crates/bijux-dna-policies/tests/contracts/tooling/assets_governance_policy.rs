@@ -190,3 +190,29 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__assets_governance_policy__docs_publication_refs_use_publications_prefix() {
+    let root = repo_root();
+    let docs = root.join("docs");
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(&docs)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|e| e.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("md") {
+            continue;
+        }
+        let raw = std::fs::read_to_string(path).unwrap_or_default();
+        if raw.contains("assets/") && !raw.contains("assets/publications/") {
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "docs asset references must use assets/publications/<pub-id>/...:\\n{}",
+        offenders.join("\n")
+    );
+}
