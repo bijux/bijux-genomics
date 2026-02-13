@@ -26,6 +26,9 @@ lint:
 	./scripts/run.sh checks check-bench-knobs
 	./scripts/run.sh checks check-registry-split
 	./scripts/run.sh checks check-tool-registry-lock
+	./scripts/run.sh domain check-domain-layout
+	./scripts/run.sh domain check-domain-schema
+	./scripts/run.sh domain check-domain-index
 	./scripts/run.sh docs check-domain-doc-references
 	./scripts/run.sh docs check-doc-links
 	./scripts/run.sh docs check-docs-graph
