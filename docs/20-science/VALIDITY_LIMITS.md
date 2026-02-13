@@ -26,3 +26,16 @@ Users need explicit limits to avoid overconfidence in downstream decisions.
 
 ## Failure modes
 - Omitted limits lead to invalid scientific conclusions.
+
+## eDNA and Pollen Limits
+### Database bias
+- Marker databases are incomplete and taxonomically uneven.
+- Absence in outputs does not prove biological absence.
+
+### Marker choice
+- Different markers resolve different taxonomic depths.
+- Cross-marker comparisons require explicit normalization and caveats.
+
+### Compositionality
+- Read counts are compositional proxies, not absolute abundance.
+- Relative abundance shifts may reflect library effects, not ecology alone.
