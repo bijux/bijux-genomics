@@ -108,13 +108,13 @@ case "${cmd}" in
     done < <("${bijux_cmd[@]}" registry list-stages)
     ;;
   smoke-containers-docker-arm64)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
+    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
     ;;
   smoke-containers-docker-amd64)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-amd64.sh
+    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-amd64" sh scripts/containers/smoke-docker-amd64.sh
     ;;
   smoke-containers-apptainer)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-apptainer.sh
+    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
     ;;
   smoke-cntainers-apptainer-bijux-run)
     smoke_apptainer_mode "bijux-run" "${container_artifact_dir}/apptainer-bijux-run"
@@ -124,6 +124,9 @@ case "${cmd}" in
     ;;
   smoke-cntainers-apptainer-verify)
     PYTHONPATH="scripts/tooling/python${PYTHONPATH:+:$PYTHONPATH}" python3 -m bijux_dna_tools.compare_apptainer_smoke "${container_artifact_dir}"
+    ;;
+  smoke-cross-runtime-verify)
+    ./scripts/containers/check-cross-runtime-smoke.sh "${container_artifact_dir}/docker-arm64" "${container_artifact_dir}/apptainer"
     ;;
   build-images)
     if [[ "${container_type}" != "docker-arm64" ]]; then

@@ -169,6 +169,7 @@ fi
 "$SCRIPT_DIR/check-docker-hardening.sh"
 "$SCRIPT_DIR/check-docker-context.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"
+"$SCRIPT_DIR/check-cross-runtime-smoke.sh"
 "$SCRIPT_DIR/check-build-provenance.sh"
 "$SCRIPT_DIR/check-bijux-template-markers.sh"
 "$SCRIPT_DIR/check-license-metadata.sh"
