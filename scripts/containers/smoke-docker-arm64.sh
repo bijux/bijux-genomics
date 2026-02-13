@@ -24,7 +24,7 @@ IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-contract}"
 
-ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
+ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
 IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"

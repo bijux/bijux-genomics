@@ -8,7 +8,7 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
-MANIFEST_DIR="${MANIFEST_DIR:-$ROOT_DIR/artifacts/container}"
+MANIFEST_DIR="${MANIFEST_DIR:-$ROOT_DIR/artifacts/containers}"
 json_out=""
 
 while [[ $# -gt 0 ]]; do
@@ -52,7 +52,7 @@ done | sort
 
 if [[ -n "$json_out" ]]; then
   if [[ "$json_out" == "__default__" ]]; then
-    json_out="$ROOT_DIR/artifacts/container/summary/summary.json"
+    json_out="$ROOT_DIR/artifacts/containers/summary/summary.json"
   fi
   if [[ -d "$json_out" ]]; then
     rm -rf "$json_out"
