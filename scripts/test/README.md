@@ -1,7 +1,5 @@
 # scripts/test
 
-## What
-Test-focused orchestration utilities and triage helpers.
+Purpose: test triage and deterministic toy-run wrappers.
 
-## Philosophy
-Keep flaky-test hunting, triage, and test fixtures tooling together so test operations stay discoverable and deterministic.
+Back to index: `scripts/README.md`.

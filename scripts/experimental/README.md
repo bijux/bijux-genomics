@@ -1,7 +1,5 @@
 # scripts/experimental
 
-## What
-Unsupported or exploratory scripts not wired to supported Make targets.
+Purpose: quarantined non-supported scripts not called from make/CI.
 
-## Philosophy
-Experimental work can live here without weakening CI guarantees; promote scripts out only after they become stable and policy-backed.
+Back to index: `scripts/README.md`.

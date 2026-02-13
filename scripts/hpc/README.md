@@ -1,7 +1,5 @@
 # scripts/hpc
 
-## What
-HPC-specific operational scripts grouped by cluster/provider.
+Purpose: HPC-specific operational scripts.
 
-## Philosophy
-Cluster workflows are isolated from default local/CI workflows to prevent accidental coupling and environment leakage.
+Back to index: `scripts/README.md`.
