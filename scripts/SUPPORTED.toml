@@ -951,3 +951,35 @@ purpose = "containers script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "domain_check_layout"
+path = "scripts/domain/check-domain-layout.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_schema"
+path = "scripts/domain/check-domain-schema.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_check_index"
+path = "scripts/domain/check-domain-index.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_generate_index"
+path = "scripts/domain/generate-index.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true

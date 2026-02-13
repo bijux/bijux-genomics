@@ -10,8 +10,12 @@ export LC_ALL
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$repo_root"
 
+./scripts/domain/check-domain-layout.sh
+./scripts/domain/check-domain-schema.sh
+./scripts/domain/check-domain-index.sh
+
 if ! ./bin/require-isolate >/dev/null 2>&1; then
   exec ./bin/isolate "$0" "$@"
 fi
 
-cargo run --bin bijux-dna -- domain validate --domain-dir "$repo_root/domain"
+cargo run -p bijux-dna-domain-compiler --bin domain_validate -- --domain-dir "$repo_root/domain"
