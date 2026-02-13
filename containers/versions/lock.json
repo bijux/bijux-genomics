@@ -2,6 +2,8 @@
   "build_date_utc": "2026-02-13T21:03:33+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
+  "generator_script": "scripts/containers/generate-version-lock.sh",
+  "generator_sha256": "bffe1f06c204a51babca0c24631dfc935a10cd6aedcf3ccc0abce1b7bb38d893",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
