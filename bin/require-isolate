@@ -1,6 +1,22 @@
 #!/usr/bin/env sh
 set -eu
 
+if [ "${1:-}" = "--explain" ]; then
+  cat <<'EOF'
+isolate-required:
+- This command must run inside an isolate to keep build/test outputs deterministic.
+- Required env vars: ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP.
+- Expected contract: all writable paths are inside ISO_ROOT.
+
+Invoke with:
+  ./bin/isolate <command> [args...]
+
+Inspect isolate root:
+  ./bin/isolate --print-root
+EOF
+  exit 0
+fi
+
 fail() {
   echo "isolate-required: $1" >&2
   exit 1
