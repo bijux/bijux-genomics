@@ -7,4 +7,5 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 "$SCRIPT_DIR/check-tool-container-coverage.sh"
+"$SCRIPT_DIR/check-toolkit-bundles.sh"
 echo "missing images gate: OK"

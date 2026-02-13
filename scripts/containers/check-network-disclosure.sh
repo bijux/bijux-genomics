@@ -9,8 +9,8 @@ require_stable_env
 report="${ISO_ROOT:-$ROOT_DIR/artifacts}/containers/network_usage.json"
 "$SCRIPT_DIR/generate-network-usage.sh" "$report" >/dev/null
 
-if [[ ! -f "$ROOT_DIR/containers/docs/NETWORK_USAGE.md" ]]; then
-  echo "missing containers/docs/NETWORK_USAGE.md" >&2
+if [[ ! -f "$ROOT_DIR/containers/NETWORK_USAGE.md" ]]; then
+  echo "missing containers/NETWORK_USAGE.md" >&2
   exit 1
 fi
 
@@ -24,7 +24,7 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 root = Path(sys.argv[1])
-doc = (root / "containers/docs/NETWORK_USAGE.md").read_text(encoding="utf-8")
+doc = (root / "containers/NETWORK_USAGE.md").read_text(encoding="utf-8")
 tool_ids = []
 for raw in (root / "containers/TOOL_IDS.txt").read_text(encoding="utf-8").splitlines():
     line = raw.strip()
@@ -50,7 +50,7 @@ for tid in sorted(tool_ids):
 
 for tid in runtime_network_true:
     if re.search(rf"`{re.escape(tid)}`", doc) is None:
-        errors.append(f"containers/docs/NETWORK_USAGE.md must list runtime-network tool `{tid}`")
+        errors.append(f"containers/NETWORK_USAGE.md must list runtime-network tool `{tid}`")
 
 if errors:
     print("network disclosure metadata check failed:", file=sys.stderr)
