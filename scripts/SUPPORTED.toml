@@ -97,6 +97,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_no_orphan_scripts"
+path = "scripts/checks/check-no-orphan-scripts.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_no_raw_cargo_in_makefiles"
 path = "scripts/checks/check-no-raw-cargo-in-makefiles.sh"
 purpose = "checks script"
@@ -153,6 +161,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_script_arg_style"
+path = "scripts/checks/check-script-arg-style.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_script_writes"
 path = "scripts/checks/check-script-writes.sh"
 purpose = "checks script"
@@ -195,6 +211,14 @@ ci_allowed = true
 [[script]]
 id = "build_apptainer_all"
 path = "scripts/containers/build-apptainer-all.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "ensure_images"
+path = "scripts/containers/ensure-images.sh"
 purpose = "containers script"
 inputs = []
 outputs = []
@@ -377,6 +401,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "reproduce_failure"
+path = "scripts/test/reproduce-failure.sh"
+purpose = "test script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "test_triage"
 path = "scripts/test/test-triage.sh"
 purpose = "test script"
@@ -551,4 +583,12 @@ purpose = "tooling script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "common_lib"
+path = "scripts/_lib/common.sh"
+purpose = "shared shell library"
+inputs = []
+outputs = []
+ci_allowed = false
 
