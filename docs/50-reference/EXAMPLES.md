@@ -1,23 +1,11 @@
 # EXAMPLES
 
-## What
-Pointers to deterministic fixtures used as reference examples.
+Canonical examples index.
 
-## Why
-Examples make schema and contract expectations concrete.
+## Example IDs
+- `template`: `examples/_template/README.md`
+- `corpus_01_mini`: `examples/bijux-dna-data/corpus-01-mini/README.md`
+- `corpus_01`: `examples/bijux-dna-data/corpus-01/README.md`
 
-## Non-goals
-- Full tutorials.
-
-## Contracts
-- Example fixtures must be deterministic and versioned.
-
-## Examples
-Deterministic fixtures are stored in:
-- `crates/bijux-dna-analyze/tests/fixtures`
-- `crates/bijux-dna-pipelines/tests/snapshots`
-
-These are used by tests to enforce stability.
-
-## Failure modes
-- Orphaned fixtures drift without review.
+## Root Example Guide
+- `examples/README.md`
