@@ -1695,3 +1695,43 @@ purpose = "checks script"
 inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/panels/locks/lock.json"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "check_audit_allowlist"
+path = "scripts/checks/check-audit-allowlist.sh"
+purpose = "checks script"
+inputs = ["audit-allowlist.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_cargo_config_policy"
+path = "scripts/checks/check-cargo-config-policy.sh"
+purpose = "checks script"
+inputs = [".cargo/config.toml", "configs/runtime/cargo_build.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_gitignore_contract"
+path = "scripts/checks/check-gitignore-contract.sh"
+purpose = "checks script"
+inputs = [".gitignore"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_make_help_sync"
+path = "scripts/checks/check-make-help-sync.sh"
+purpose = "checks script"
+inputs = ["Makefile", "makefiles/README.md", "makefiles/cargo.mk"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "make_help"
+path = "scripts/tooling/make-help.sh"
+purpose = "tooling script"
+inputs = ["makefiles/README.md", "makefiles/cargo.mk"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
