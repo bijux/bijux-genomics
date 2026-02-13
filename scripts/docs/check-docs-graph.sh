@@ -20,6 +20,7 @@ if not graph.exists():
     sys.exit(1)
 
 edges = defaultdict(list)
+graph_nodes = set()
 cur_from = None
 in_children = False
 for raw in graph.read_text(encoding="utf-8").splitlines():
@@ -32,6 +33,7 @@ for raw in graph.read_text(encoding="utf-8").splitlines():
         continue
     if line.startswith("from = "):
         cur_from = line.split("=",1)[1].strip().strip('"')
+        graph_nodes.add(cur_from)
         continue
     if line.startswith("children = ["):
         in_children = True
@@ -43,10 +45,18 @@ for raw in graph.read_text(encoding="utf-8").splitlines():
         child = line.rstrip(",").strip().strip('"')
         if cur_from:
             edges[cur_from].append(child)
+            graph_nodes.add(child)
 
 if "docs/index.md" not in edges:
     print("docs-graph: docs/index.md missing from graph roots", file=sys.stderr)
     sys.exit(1)
+
+# Graph node validity
+graph_node_errors = []
+for n in sorted(graph_nodes):
+    p = root / n
+    if not p.exists():
+        graph_node_errors.append(f"missing graph node target: {n}")
 
 # Missing target file links in markdown
 pat = re.compile(r'\[[^\]]*\]\(([^)]+)\)')
@@ -97,6 +107,11 @@ if link_errors:
     failed = True
     print("docs-graph: missing markdown link targets:", file=sys.stderr)
     for e in sorted(link_errors):
+        print(f"  - {e}", file=sys.stderr)
+if graph_node_errors:
+    failed = True
+    print("docs-graph: graph contains missing nodes:", file=sys.stderr)
+    for e in graph_node_errors:
         print(f"  - {e}", file=sys.stderr)
 if index_errors:
     failed = True

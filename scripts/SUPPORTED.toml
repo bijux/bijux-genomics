@@ -1391,3 +1391,11 @@ purpose = "test script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "check_doc_major_depth"
+path = "scripts/docs/check-doc-major-depth.sh"
+purpose = "docs script"
+inputs = []
+outputs = []
+ci_allowed = true
