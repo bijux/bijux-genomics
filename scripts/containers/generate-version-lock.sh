@@ -7,7 +7,10 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 OUT="${1:-$ROOT_DIR/containers/versions/lock.json}"
-ensure_artifacts_dir "$(dirname "$OUT")"
+case "$OUT" in
+  "$ROOT_DIR"/containers/versions/*) ;;
+  *) ensure_artifacts_dir "$(dirname "$OUT")" ;;
+esac
 
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
@@ -29,6 +32,18 @@ versions_path = root / "containers/versions/versions.toml"
 version_map = json.loads(version_map_path.read_text(encoding="utf-8"))
 
 items = []
+manifest_dir = root / "artifacts" / "containers" / "manifests"
+digest_by_tool = {}
+if manifest_dir.exists():
+    for p in sorted(manifest_dir.glob("*.json")):
+        try:
+            m = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        t = str(m.get("tool", "")).strip()
+        d = str(m.get("resolved_image_digest", "")).strip()
+        if t:
+            digest_by_tool[t] = d
 for row in version_map.get("items", []):
     tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
@@ -39,6 +54,7 @@ for row in version_map.get("items", []):
         "source": str(row.get("source", "")),
         "source_sha256": str(row.get("source_sha256", "")),
         "pinned_commit": str(row.get("pinned_commit", "")),
+        "resolved_image_digest": str(digest_by_tool.get(tool, "")),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
 
@@ -46,6 +62,7 @@ payload = {
     "schema_version": "bijux.container.version_lock.v2",
     "source": "containers/versions/versions.toml",
     "version_map_source": "artifacts/containers/version_map.json",
+    "build_manifests_source": "artifacts/containers/manifests/*.json",
     "source_sha256": hashlib.sha256(versions_path.read_bytes()).hexdigest(),
     "items": items,
 }

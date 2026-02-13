@@ -91,6 +91,9 @@ for tool, expected_version in sorted(prod.items()):
     digest = str(manifest.get("resolved_image_digest", "")).strip()
     if not digest:
         errors.append(f"{tool}: missing resolved_image_digest in manifest")
+    lock_digest = str(lock_row.get(tool, {}).get("resolved_image_digest", "")).strip()
+    if lock_digest and digest and lock_digest != digest:
+        errors.append(f"{tool}: built digest '{digest}' does not match lock digest '{lock_digest}'")
 
 if errors:
     print("lock-vs-built: failed", file=sys.stderr)

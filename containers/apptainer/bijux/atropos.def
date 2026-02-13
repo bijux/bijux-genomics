@@ -11,6 +11,7 @@
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
+# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
 

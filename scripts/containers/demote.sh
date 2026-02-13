@@ -30,6 +30,18 @@ done
 
 [[ -n "$tool" && -n "$stage" && -n "$reason" && -n "$removal_after" ]] || { echo "missing required args" >&2; exit 2; }
 
+python3 - "$ROOT_DIR" "$tool" <<'PY'
+from pathlib import Path
+import json
+import sys
+root = Path(sys.argv[1]); tool = sys.argv[2]
+lock = root / "containers/versions/lock.json"
+data = json.loads(lock.read_text(encoding="utf-8"))
+known = {str(i.get("tool", "")) for i in data.get("items", [])}
+if tool not in known:
+    raise SystemExit(f"tool '{tool}' not present in containers/versions/lock.json; ad-hoc demotion is forbidden")
+PY
+
 python3 - "$ROOT_DIR" "$tool" "$stage" "$reason" "$today" "$removal_after" <<'PY'
 from pathlib import Path
 import sys

@@ -11,6 +11,7 @@
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
+# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
 

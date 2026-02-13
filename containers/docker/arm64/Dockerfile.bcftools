@@ -3,6 +3,7 @@
 #
 # Container definition license: MIT.
 # The bijux-dna software source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
 FROM quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
