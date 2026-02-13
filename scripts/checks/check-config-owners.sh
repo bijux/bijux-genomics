@@ -66,6 +66,28 @@ while IFS= read -r f; do
   fi
 done < <(find "$ROOT_DIR/configs" -type f | sort)
 
+# Every config subtree directory must be covered by at least one owner prefix.
+while IFS= read -r d; do
+  [[ -d "$d" ]] || continue
+  [[ "$d" == "$ROOT_DIR/configs" ]] && continue
+  rel="${d#$ROOT_DIR/}/"
+  matches=0
+  while IFS= read -r rule; do
+    prefix="${rule%%$'\t'*}"
+    case "$prefix" in
+      */) ;;
+      *) continue ;;
+    esac
+    if [[ "$rel" == "$prefix"* || "$prefix" == "${rel%/}" || "${rel%/}" == "$prefix" ]]; then
+      matches=$((matches + 1))
+    fi
+  done < "$RULES_TMP"
+  if [[ $matches -lt 1 ]]; then
+    echo "config-owners: directory $rel has no subtree owner rule" >&2
+    failed=1
+  fi
+done < <(find "$ROOT_DIR/configs" -type d | sort)
+
 if [[ $failed -ne 0 ]]; then
   exit 1
 fi
