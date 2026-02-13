@@ -29,6 +29,8 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 - Reference panels are locked inputs defined under `configs/vcf/panels/`.
 - Panel catalog entries must include pinned `version`, pinned `url`, and `checksum_sha256`.
 - Floating URLs are forbidden for panel artifacts.
+- Panel metadata must include `population_set`, `genome_build`, and `variant_set_compatibility` to prevent ancestry/build mismatches.
+- Canonical lock outputs are `configs/vcf/panels/locks/lock.json` and `configs/vcf/panels/locks/lock.json.sha256`.
 
 ## HPC Forward-compat
 - Enabling HPC profile changes physical data/container/output roots, not contract semantics.

@@ -28,6 +28,11 @@ Imputation in bijux means: converting partially observed genotypes into inferred
 - Cohort composition and ancestry mismatch can change imputation quality; this is a documented failure mode.
 - Deterministic runs require pinned versions, stable references, and isolated output roots.
 
+## Ancestry Matching Guidance
+- `population_set` in panel metadata must match expected cohort ancestry composition.
+- `genome_build` must match input build exactly; no implicit liftover.
+- `variant_set_compatibility` must be validated before run admission.
+
 ## Contracts
 - Every planned imputation stage must have domain stage YAML + fixture coverage.
 - Tool admission follows `docs/50-reference/TOOL_ADMISSION.md` and container policy gates.
