@@ -12,46 +12,49 @@ COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
 fmt:
-	@./scripts/tooling/ci-fmt.sh
+	@./scripts/run.sh tooling ci-fmt
 
 lint:
-	./scripts/checks/check-supported-scripts.sh
-	./scripts/checks/check-config-layout.sh
-	./scripts/checks/check-config-filenames.sh
-	./scripts/checks/check-config-contract-headers.sh
-	./scripts/docs/check-domain-doc-references.sh
-	./scripts/docs/check-doc-links.sh
-	./scripts/docs/check-generated-docs.sh
-	./scripts/docs/check-doc-assets.sh
-	./scripts/tooling/check-config-paths.sh
-	./scripts/tooling/check-config-snapshot.sh
-	./scripts/checks/check-root-layout.sh
-	./scripts/checks/check-artifacts-tracked.sh
-	./scripts/checks/check-no-target-paths-in-tests.sh
-	./scripts/checks/check-no-user-path-literals.sh
-	./scripts/checks/check-script-writes.sh
-	./scripts/checks/check-assets-drift.sh
-	./scripts/checks/tree-intent.sh
-	./scripts/checks/check-readme-links.sh
-	./scripts/checks/check-ci-shell-scripts.sh
-	./scripts/checks/check-no-raw-cargo-in-makefiles.sh
-	./scripts/checks/check-no-raw-cargo-in-scripts.sh
-	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/tooling/ci-clippy.sh
+	./scripts/run.sh checks check-supported-scripts
+	./scripts/run.sh checks check-config-layout
+	./scripts/run.sh checks check-config-filenames
+	./scripts/run.sh checks check-config-contract-headers
+	./scripts/run.sh docs check-domain-doc-references
+	./scripts/run.sh docs check-doc-links
+	./scripts/run.sh docs check-generated-docs
+	./scripts/run.sh docs check-doc-assets
+	./scripts/run.sh tooling check-config-paths
+	./scripts/run.sh tooling check-config-snapshot
+	./scripts/run.sh checks check-root-layout
+	./scripts/run.sh checks check-artifacts-tracked
+	./scripts/run.sh checks check-no-target-paths-in-tests
+	./scripts/run.sh checks check-no-user-path-literals
+	./scripts/run.sh checks check-script-writes
+	./scripts/run.sh checks check-assets-drift
+	./scripts/run.sh checks tree-intent
+	./scripts/run.sh checks check-readme-links
+	./scripts/run.sh checks check-ci-shell-scripts
+	./scripts/run.sh checks check-lib-api
+	./scripts/run.sh checks check-shell-portability
+	./scripts/run.sh checks check-output-roots
+	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
+	./scripts/run.sh checks check-no-raw-cargo-in-scripts
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 test:
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/tooling/ci-test.sh
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
 
 test-slow: ## Run only slow-labeled tests (functions containing slow__).
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/tooling/ci-test-slow.sh
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
-	@./scripts/tooling/ci-audit.sh
+	@./scripts/run.sh tooling ci-audit
 
 coverage:
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/tooling/ci-coverage.sh
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/run.sh tooling ci-coverage
 
 install-ci-tools: ## Install required cargo tools once per CI job.
-	@./scripts/tooling/ci-install-tools.sh
+	@./scripts/run.sh tooling ci-install-tools
 
 domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 
@@ -75,26 +78,26 @@ clean-isolates:
 	@rm -rf artifacts/isolates/*
 
 policy-fast: ## Run fast policy checks (no snapshots)
-	@./scripts/tooling/cargo-targets.sh policy-fast
+	@./scripts/run.sh tooling cargo-targets policy-fast
 	$(MAKE) domain-gates
 
 ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
-	./scripts/checks/check-ssot-guardrails.sh
+	./scripts/run.sh checks check-ssot-guardrails
 	$(MAKE) domain-gates
-	@./scripts/tooling/cargo-targets.sh ssot-policy-fast
+	@./scripts/run.sh tooling cargo-targets ssot-policy-fast
 
 test-profile-invariants: ## Run pipeline profile invariant contract tests.
-	@./scripts/tooling/cargo-targets.sh test-profile-invariants
+	@./scripts/run.sh tooling cargo-targets test-profile-invariants
 
 registry-lint: ## Run strict tool registry reproducibility policy checks.
-	@./scripts/tooling/cargo-targets.sh registry-lint
+	@./scripts/run.sh tooling cargo-targets registry-lint
 
 unit-contract-fast: ## Fast unit/contract checks for critical crates.
-	@./scripts/tooling/cargo-targets.sh unit-contract-fast
+	@./scripts/run.sh tooling cargo-targets unit-contract-fast
 
 release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
 	$(MAKE) registry-lint
-	@./scripts/tooling/cargo-targets.sh release-readiness
+	@./scripts/run.sh tooling cargo-targets release-readiness
 
 ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) ssot-policy-fast
@@ -120,69 +123,69 @@ quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) registry-lint
 
 policy-full: ## Run full policy suite
-	@./scripts/tooling/cargo-targets.sh policy-full
+	@./scripts/run.sh tooling cargo-targets policy-full
 	$(MAKE) domain-gates
 
 domain-validate:
-	./scripts/domain/validate.sh
+	./scripts/run.sh domain validate
 
 domain-coverage:
-	@./scripts/tooling/cargo-targets.sh domain-coverage
+	@./scripts/run.sh tooling cargo-targets domain-coverage
 
 domain-inventory-drift:
-	./scripts/domain/inventory-drift.sh
+	./scripts/run.sh domain inventory-drift
 
 snapshots:
-	@./scripts/tooling/cargo-targets.sh snapshots
+	@./scripts/run.sh tooling cargo-targets snapshots
 
 snapshots-accept:
-	@./scripts/tooling/cargo-targets.sh snapshots-accept
+	@./scripts/run.sh tooling cargo-targets snapshots-accept
 
 snapshots-review:
-	@./scripts/tooling/cargo-targets.sh snapshots-review
+	@./scripts/run.sh tooling cargo-targets snapshots-review
 
 fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
-	@./scripts/tooling/cargo-targets.sh fix-snapshots
+	@./scripts/run.sh tooling cargo-targets fix-snapshots
 
 test-triage: ## Group failed tests from a saved nextest log.
-	@./scripts/test/test-triage.sh artifacts/test-logs/latest.log
+	@./scripts/run.sh test test-triage artifacts/test-logs/latest.log
 
 generate-configs:
-	@./scripts/tooling/generate-configs.sh
+	@./scripts/run.sh tooling generate-configs
 
 check-generated-configs:
-	./scripts/checks/check-generated-configs.sh
+	./scripts/run.sh checks check-generated-configs
 
 check-generated-config-headers:
-	./scripts/checks/check-generated-config-headers.sh
+	./scripts/run.sh checks check-generated-config-headers
 
 policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
-	./scripts/checks/check-no-raw-cargo-in-makefiles.sh
-	./scripts/checks/check-no-raw-cargo-in-scripts.sh
+	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
+	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 
 policy-index: ## Generate policy index under artifacts/.
-	@./scripts/tooling/generate-policy-index.sh
+	@./scripts/run.sh tooling generate-policy-index
 
 policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
-	@./scripts/tooling/cargo-targets.sh policy-only-fast-gate
+	@./scripts/run.sh tooling cargo-targets policy-only-fast-gate
 
 scripts-inventory: ## Generate scripts inventory under artifacts/
-	@./scripts/tooling/inventory.sh
+	@./scripts/run.sh tooling inventory
 
 config-inventory: ## Generate config inventory under artifacts/
-	@./scripts/tooling/config-inventory.sh
+	@./scripts/run.sh tooling config-inventory
 
 smoke-fastq: ## Quick local FASTQ smoke dry-run.
-	@./scripts/smoke/run.sh fastq
+	@./scripts/run.sh smoke run fastq
 
 smoke-bam: ## Quick local BAM smoke dry-run.
-	@./scripts/smoke/run.sh bam
+	@./scripts/run.sh smoke run bam
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/assets/refresh-toy.sh
+	@./scripts/run.sh assets refresh-toy
 
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/assets/refresh-golden.sh
+	@./scripts/run.sh assets refresh-golden
 
 .PHONY: fmt lint test audit coverage ci check verify-parallel-isolation \
 		clean-isolates \

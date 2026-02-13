@@ -15,7 +15,7 @@ push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
 	CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	ALLOW_DIRTY="$(ALLOW_DIRTY)" \
-	./scripts/hpc/lunarc/push.sh
+	./scripts/run.sh hpc lunarc/push
 
 pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: results)
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -25,7 +25,7 @@ pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resul
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	./scripts/hpc/lunarc/pull.sh
+	./scripts/run.sh hpc lunarc/pull
 
 pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -35,6 +35,6 @@ pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	./scripts/hpc/lunarc/pull.sh
+	./scripts/run.sh hpc lunarc/pull
 
 .PHONY: push-lunarc pull-lunarc pull-lunarc-results
