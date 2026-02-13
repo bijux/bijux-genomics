@@ -21,6 +21,7 @@ scripts/checks/check-supported-scripts.sh
 scripts/checks/tree-intent.sh
 scripts/containers/build-apptainer-all.sh
 scripts/containers/lint.sh
+scripts/containers/make.sh
 scripts/containers/registry-tools.sh
 scripts/containers/smoke-apptainer.sh
 scripts/containers/smoke-docker-amd64.sh
@@ -42,6 +43,8 @@ scripts/smoke/smoke_bam.sh
 scripts/smoke/smoke_fastq.sh
 scripts/test/test-triage.sh
 scripts/test/toy_runs.sh
+scripts/tooling/benchmarks.sh
+scripts/tooling/cargo-targets.sh
 scripts/tooling/check-config-paths.sh
 scripts/tooling/check-config-snapshot.sh
 scripts/tooling/ci-audit.sh
