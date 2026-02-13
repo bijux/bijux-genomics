@@ -1,8 +1,8 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
@@ -10,10 +10,10 @@ if ! ./bin/require-isolate >/dev/null 2>&1; then
   exec ./bin/isolate "$0" "$@"
 fi
 
-CONFIG_PATH="${CONFIG_PATH:-scripts/lab/config.toml}"
+CONFIG_PATH="${CONFIG_PATH:-configs/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "config not found: $CONFIG_PATH"
-  echo "copy scripts/lab/config.example.toml to scripts/lab/config.toml"
+  echo "copy configs/lab/config.example.toml to configs/lab/config.toml"
   exit 1
 fi
 

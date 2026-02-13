@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, Tuple
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[4]
 TOY_DATASET = "core-v1"
 TOY_ROOT = ROOT / "assets" / "toy" / TOY_DATASET
 GOLDEN_ROOT = ROOT / "assets" / "golden" / "toy-runs-v1"
