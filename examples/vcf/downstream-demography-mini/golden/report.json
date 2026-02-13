@@ -1,6 +1,18 @@
 {
   "example_id": "vcf_downstream_demography_mini",
   "status": "ok",
+  "coverage_regime": {
+    "selected": "pseudohaploid",
+    "thresholds_used": {
+      "gl_max_depth": 2.0,
+      "pseudohaploid_max_depth": 8.0,
+      "diploid_min_depth": 12.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 4.2,
+      "median_depth_x": 3.8
+    }
+  },
   "artifacts": [
     "plan.json",
     "explain.json",

@@ -3,5 +3,17 @@
   "reasoning": [
     "coverage-safe downstream demography mini flow",
     "use corpus-01-mini for deterministic scope"
-  ]
+  ],
+  "coverage_regime": {
+    "selected": "pseudohaploid",
+    "thresholds_used": {
+      "gl_max_depth": 2.0,
+      "pseudohaploid_max_depth": 8.0,
+      "diploid_min_depth": 12.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 4.2,
+      "median_depth_x": 3.8
+    }
+  }
 }
