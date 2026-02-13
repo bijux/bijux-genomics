@@ -100,13 +100,25 @@ ensure_artifacts_dir "$art_dir"
 mkdir -p "$art_dir"
 cp -f "$example_dir/golden/plan.json" "$art_dir/plan.json"
 cp -f "$example_dir/golden/explain.json" "$art_dir/explain.json"
-cp -f "$example_dir/golden/report.json" "$art_dir/report.json"
+cp -f "$example_dir/golden/report.json" "$art_dir/golden_report.json"
+
+iso_run_id="${ISO_RUN_ID:-none}"
+write_json_sorted_file "$art_dir/report.json" <<JSON
+{
+  "example_id": "$example_id",
+  "corpus_id": "$corpus_id",
+  "iso_run_id": "$iso_run_id",
+  "source": "${example_dir#"$ROOT_DIR/"}",
+  "status": "ok"
+}
+JSON
 
 # Step 4: generate report
 write_json_sorted_file "$art_dir/run_report.json" <<JSON
 {
   "example_id": "$example_id",
   "corpus_id": "$corpus_id",
+  "iso_run_id": "$iso_run_id",
   "mini_supported": $mini_supported,
   "status": "ok",
   "steps": ["ensure_images", "run_bench", "collect_artifacts", "generate_report"],
@@ -119,8 +131,9 @@ write_json_sorted_file "$art_dir/manifest.json" <<JSON
   "schema_version": "bijux.example.bundle.v1",
   "example_id": "$example_id",
   "corpus_id": "$corpus_id",
+  "iso_run_id": "$iso_run_id",
   "source": "${example_dir#"$ROOT_DIR/"}",
-  "files": ["plan.json", "explain.json", "report.json", "run_report.json", "metrics.json", "logs.txt"]
+  "files": ["plan.json", "explain.json", "report.json", "golden_report.json", "run_report.json", "metrics.json", "logs.txt"]
 }
 JSON
 
@@ -142,6 +155,6 @@ step3=collect golden outputs
 step4=write run report and bundle
 TXT
 
-tar -czf "$art_dir/bundle.tar.gz" -C "$art_dir" manifest.json metrics.json logs.txt plan.json explain.json report.json run_report.json
+tar -czf "$art_dir/bundle.tar.gz" -C "$art_dir" manifest.json metrics.json logs.txt plan.json explain.json report.json golden_report.json run_report.json
 
 echo "example run complete: $art_dir/bundle.tar.gz"
