@@ -1,0 +1,15 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Policy for frontend-only Apptainer builds on HPC.
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-13
+
+policy = "bijux.hpc.frontend_build.v1"
+
+# Hostname regex that identifies compute nodes where builds are forbidden.
+compute_hostname_regex = "(^|\\.)((cn|nid|gpu)[0-9]+|compute[0-9-]*)($|\\.)"
+
+# Optional regex for known frontend/login nodes.
+frontend_hostname_regex = "(^|\\.)((login|front|interactive)[0-9-]*)($|\\.)"
+

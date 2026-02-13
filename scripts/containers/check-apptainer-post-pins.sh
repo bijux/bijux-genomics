@@ -15,6 +15,7 @@ python3 - "$ROOT_DIR" <<'PY'
 from pathlib import Path
 import re
 import sys
+import subprocess
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -22,7 +23,22 @@ except ModuleNotFoundError:
 
 root = Path(sys.argv[1])
 versions = tomllib.loads((root / "containers/versions/versions.toml").read_text(encoding="utf-8"))
+policy = tomllib.loads((root / "configs/ci/tools/hpc_frontend_build_policy.toml").read_text(encoding="utf-8"))
 errors = []
+
+# CI guard: if this runner is a compute node hostname, refuse %post execution context.
+host = ""
+for cmd in (["hostname", "-f"], ["hostname"]):
+    try:
+        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        out = ""
+    if out:
+        host = out
+        break
+pat = str(policy.get("compute_hostname_regex", "")).strip()
+if host and pat and re.search(pat, host):
+    errors.append(f"CI runner host '{host}' matches compute node policy; %post checks refused outside frontend/login node")
 
 for path in sorted((root / "containers/apptainer").rglob("*.def")):
     tool = path.stem

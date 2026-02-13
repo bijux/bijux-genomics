@@ -457,6 +457,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_hpc_frontend_policy_enforcement"
+path = "scripts/containers/check-hpc-frontend-policy-enforcement.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_runtime_downloads"
 path = "scripts/containers/check-runtime-downloads.sh"
 purpose = "containers script"
@@ -1901,6 +1909,22 @@ id = "ci_slow"
 path = "scripts/tooling/ci-slow.sh"
 purpose = "tooling script"
 inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "benchmark_integrity_mini"
+path = "scripts/tooling/benchmark-integrity-mini.sh"
+purpose = "tooling script"
+inputs = ["assets/toy/core-v1/fastq/reads_1.fastq", "configs/bench/knobs.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_benchmark_integrity_policy"
+path = "scripts/checks/check-benchmark-integrity-policy.sh"
+purpose = "checks script"
+inputs = ["scripts/tooling/benchmarks.sh", "configs/bench/knobs.toml", "docs/30-operations/BENCHMARK_VARIANCE.md"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
