@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://www.cs.columbia.edu/~gusev/germline/
+    org.opencontainers.image.revision v1.5.3
+    org.opencontainers.image.created 2026-02-13T00:00:00Z
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 1.5.3
+    org.opencontainers.image.tool germline
+    org.opencontainers.image.title germline
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends ca-certificates curl g++ make zlib1g-dev
+    curl -fsSL -o /tmp/germline.tar.gz https://github.com/gusevlab/germline/archive/refs/tags/v1.5.3.tar.gz
+    echo "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2  /tmp/germline.tar.gz" | sha256sum -c -
+    tar -xzf /tmp/germline.tar.gz -C /tmp
+    make -C /tmp/germline-1.5.3
+    install -m 0755 /tmp/germline-1.5.3/germline /usr/local/bin/germline
+    rm -rf /tmp/germline.tar.gz /tmp/germline-1.5.3
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec germline "$@"
+
+%help
+    Non-bijux Apptainer recipe for germline with pinned source checksum.
