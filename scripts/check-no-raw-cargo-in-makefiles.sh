@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 if ! command -v rg >/dev/null 2>&1; then
   echo "raw-cargo-policy: ripgrep (rg) is required" >&2

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
 
 banned='/(home|Users)/bijan/'
 

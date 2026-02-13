@@ -25,6 +25,7 @@ lint:
 	./scripts/check-artifacts-tracked.sh
 	./scripts/check-no-target-paths-in-tests.sh
 	./scripts/check-no-user-path-literals.sh
+	./scripts/check-ci-shell-scripts.sh
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
@@ -148,9 +149,18 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/check-no-raw-cargo-in-makefiles.sh
 	./scripts/check-no-raw-cargo-in-scripts.sh
 
+scripts-inventory: ## Generate scripts inventory under artifacts/
+	@./scripts/inventory.sh
+
+smoke-fastq: ## Quick local FASTQ smoke dry-run.
+	@./scripts/smoke/smoke_fastq.sh
+
+smoke-bam: ## Quick local BAM smoke dry-run.
+	@./scripts/smoke/smoke_bam.sh
+
 .PHONY: fmt lint test audit coverage ci check verify-parallel-isolation \
 		clean-isolates \
 		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
-		snapshots snapshots-accept snapshots-review fix-snapshots test-triage
+		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory smoke-fastq smoke-bam
