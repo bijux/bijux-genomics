@@ -1,6 +1,6 @@
 {
   "domain": "bam",
-  "generated_at": "2026-02-13T21:32:20.051138+00:00",
+  "generated_at": "2026-02-13T21:45:56.954890+00:00",
   "inputs_root": "assets/toy/core-v1/bam",
   "profile_id": "bam_reference_adna",
   "schema_version": "bijux.toy.run_manifest.v1"
