@@ -73,12 +73,33 @@ for bundle_id, spec in sorted(bundles.items()):
         if tool not in registry:
             errors.append(f"{bundle_id}: tool '{tool}' missing from registry")
             continue
-        status = str(registry[tool].get("status", "")).strip()
-        if status != "production":
+        if tool not in images:
+            errors.append(f"{bundle_id}: tool '{tool}' missing images.toml metadata")
             continue
-        policy = str(images.get(tool, {}).get("shipping_policy", "")).strip()
+        image_meta = images.get(tool, {})
+        if not str(image_meta.get("version", "")).strip():
+            errors.append(f"{bundle_id}: tool '{tool}' images.toml entry missing version")
+        status = str(registry[tool].get("status", "")).strip()
+        if status not in {"production", "experimental", "planned"}:
+            errors.append(f"{bundle_id}: tool '{tool}' has unsupported status '{status}'")
+            continue
+        if status == "planned":
+            enabled = image_meta.get("enabled")
+            if enabled not in (False, "false"):
+                errors.append(f"{bundle_id}: planned tool '{tool}' must be enabled=false in images.toml")
+            continue
+        policy = str(image_meta.get("shipping_policy", "")).strip()
         has_apptainer = tool in apptainer_tools
         has_docker = tool in docker_tools
+        if not policy:
+            if has_apptainer and has_docker:
+                policy = "docker_apptainer"
+            elif has_apptainer:
+                policy = "apptainer_only"
+            elif has_docker:
+                policy = "docker_only"
+            else:
+                policy = "none"
         if policy == "apptainer_only" and not has_apptainer:
             errors.append(f"{bundle_id}: production tool '{tool}' requires apptainer container")
         elif policy == "docker_only" and not has_docker:
