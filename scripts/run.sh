@@ -17,7 +17,7 @@ command="$2"
 shift 2
 
 case "$group" in
-  checks|tooling|containers|assets|docs|domain|smoke|test|lab)
+  checks|tooling|containers|assets|docs|domain|smoke|test|lab|examples)
     target="${SCRIPT_DIR}/${group}/${command}.sh"
     ;;
   hpc)
