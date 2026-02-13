@@ -93,7 +93,7 @@ def load_registry_production_bindings(root_dir: Path):
     for row in data.get("tools", []):
         tool_id = str(row.get("id") or row.get("tool_id") or "").strip()
         status = str(row.get("status") or "").strip()
-        if not tool_id or status != "supported":
+        if not tool_id or status not in {"production", "supported"}:
             continue
         for sid in row.get("bindings", []):
             bindings.add((str(sid).strip(), tool_id))
@@ -101,6 +101,22 @@ def load_registry_production_bindings(root_dir: Path):
 
 
 production_bindings = load_registry_production_bindings(root)
+
+downstream_stages_cfg = root / "configs" / "ci" / "stages" / "stages_vcf_downstream.toml"
+if not downstream_stages_cfg.exists():
+    errors.append(f"{downstream_stages_cfg}: missing required downstream stages registry file")
+else:
+    ds = tomllib.loads(downstream_stages_cfg.read_text(encoding="utf-8"))
+    rows = ds.get("stages", [])
+    if not rows:
+        errors.append(f"{downstream_stages_cfg}: must define at least one [[stages]] entry")
+    for row in rows:
+        sid = str(row.get("id", "")).strip()
+        status = str(row.get("status", "")).strip()
+        if not sid.startswith("vcf."):
+            errors.append(f"{downstream_stages_cfg}: downstream stage id must start with 'vcf.': {sid}")
+        if status not in {"planned", "experimental", "production", "supported"}:
+            errors.append(f"{downstream_stages_cfg}: invalid stage status '{status}' for {sid}")
 
 
 for dom_dir in sorted(p for p in domain_root.iterdir() if p.is_dir()):

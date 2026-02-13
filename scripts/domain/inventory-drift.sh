@@ -26,7 +26,7 @@ CODE_STAGES="$TMP_DIR/code_stages.txt"
 
 awk '
 FNR==1{
-  if (NR > 1 && status == "supported" && id != "") print id
+  if (NR > 1 && (status == "production" || status == "supported") && id != "") print id
   id = ""
   status = ""
 }
@@ -39,14 +39,14 @@ $1 == "status:" {
   gsub(/"/, "", status)
 }
 END{
-  if (status == "supported" && id != "") print id
+  if ((status == "production" || status == "supported") && id != "") print id
 }
 ' "$ROOT_DIR"/domain/fastq/tools/*.yaml "$ROOT_DIR"/domain/bam/tools/*.yaml \
   | sort -u > "$DOM_TOOLS"
 
 awk '
 FNR==1{
-  if (NR > 1 && status == "supported" && id != "") print id
+  if (NR > 1 && (status == "production" || status == "supported") && id != "") print id
   id = ""
   status = ""
 }
@@ -59,7 +59,7 @@ $1 == "status:" {
   gsub(/"/, "", status)
 }
 END{
-  if (status == "supported" && id != "") print id
+  if ((status == "production" || status == "supported") && id != "") print id
 }
 ' "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.yaml \
   | sort -u > "$DOM_STAGES"

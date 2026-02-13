@@ -32,7 +32,7 @@ for reg in reg_paths:
     for row in data.get("tools", []):
         if not isinstance(row, dict):
             continue
-        if row.get("status") != "supported":
+        if row.get("status") not in ("production", "supported"):
             continue
         if not bool(row.get("container", False)):
             continue
