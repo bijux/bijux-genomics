@@ -22,11 +22,11 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_must_appear_in_suite(
 ) {
     let root = support::workspace_root();
-    let registry_raw = std::fs::read_to_string(root.join("configs/tool_registry.toml"))
-        .expect("read configs/tool_registry.toml");
+    let registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
+        .expect("read configs/ci/tool_registry.toml");
     let registry: toml::Value = registry_raw
         .parse()
-        .expect("parse configs/tool_registry.toml");
+        .expect("parse configs/ci/tool_registry.toml");
 
     let suite_files = std::fs::read_dir(root.join("configs"))
         .expect("read configs")

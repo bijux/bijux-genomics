@@ -20,9 +20,9 @@ Domain-owned canonical vocabularies are part of SSOT:
 
 ## Examples:
 The generated config set is fixed and compiler-owned:
-- `configs/tool_registry.toml`
-- `configs/stages.toml`
-- `configs/images.toml`
+- `configs/ci/tool_registry.toml`
+- `configs/ci/stages.toml`
+- `configs/ci/images.toml`
 
 Crate authority ownership is defined in:
 - `docs/10-architecture/CRATE_AUTHORITY_MAP.md`

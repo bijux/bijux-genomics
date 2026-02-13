@@ -81,8 +81,8 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
 #[test]
 fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_per_domain_policy() {
     let root = support::workspace_root();
-    let domains = parse_toml(&root.join("configs/domains.toml"));
-    let images = parse_toml(&root.join("configs/images.toml"));
+    let domains = parse_toml(&root.join("configs/ci/domains.toml"));
+    let images = parse_toml(&root.join("configs/ci/images.toml"));
     let image_ids = images
         .as_table()
         .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
@@ -113,7 +113,7 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
         if stages_ssot.is_empty() || tool_registry_ssot.is_empty() || param_registry_ssot.is_empty()
         {
             offenders.push(format!(
-                "domain {id}: missing stages/tool/param ssot pointers in configs/domains.toml"
+                "domain {id}: missing stages/tool/param ssot pointers in configs/ci/domains.toml"
             ));
             continue;
         }
@@ -209,7 +209,7 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
                 }
                 if runnable && !has_images {
                     offenders.push(format!(
-                        "domain={id} stage={stage_id}: missing image binding for at least one bound tool in configs/images.toml"
+                        "domain={id} stage={stage_id}: missing image binding for at least one bound tool in configs/ci/images.toml"
                     ));
                 }
             }
@@ -228,15 +228,15 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
 ) {
     let root = support::workspace_root();
     let production_registries = [
-        "configs/tool_registry.toml",
-        "configs/tool_registry_vcf.toml",
+        "configs/ci/tool_registry.toml",
+        "configs/ci/tool_registry_vcf.toml",
     ];
     let all_registries = [
-        "configs/tool_registry.toml",
-        "configs/tool_registry_vcf.toml",
-        "configs/tool_registry_experimental.toml",
+        "configs/ci/tool_registry.toml",
+        "configs/ci/tool_registry_vcf.toml",
+        "configs/ci/tool_registry_experimental.toml",
     ];
-    let images = parse_toml(&root.join("configs/images.toml"));
+    let images = parse_toml(&root.join("configs/ci/images.toml"));
     let image_ids = images
         .as_table()
         .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
@@ -267,7 +267,7 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
                 production_supported_tools.insert(id.to_string());
                 if !image_ids.contains(id) {
                     offenders.push(format!(
-                        "{rel}: supported tool {id} missing image catalog entry in configs/images.toml"
+                        "{rel}: supported tool {id} missing image catalog entry in configs/ci/images.toml"
                     ));
                 }
             }
@@ -282,8 +282,8 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
         }
     }
 
-    let required = parse_toml(&root.join("configs/required_tools.toml"));
-    let required_vcf = parse_toml(&root.join("configs/required_tools_vcf.toml"));
+    let required = parse_toml(&root.join("configs/ci/required_tools.toml"));
+    let required_vcf = parse_toml(&root.join("configs/ci/required_tools_vcf.toml"));
     let required_tools = list(&required, "required_tools")
         .into_iter()
         .chain(list(&required_vcf, "required_tools"))
@@ -311,8 +311,8 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
 #[test]
 fn policy__contracts__contract_authority_policy__production_stages_have_scientific_rationale() {
     let root = support::workspace_root();
-    let stages = parse_toml(&root.join("configs/stages.toml"));
-    let registry = parse_toml(&root.join("configs/tool_registry.toml"));
+    let stages = parse_toml(&root.join("configs/ci/stages.toml"));
+    let registry = parse_toml(&root.join("configs/ci/tool_registry.toml"));
     let rationale_by_stage = table_array(&registry, "stages")
         .into_iter()
         .filter_map(|row| {
@@ -349,7 +349,7 @@ fn policy__contracts__contract_authority_policy__production_stages_have_scientif
             .is_none_or(|value| value.trim().is_empty())
         {
             offenders.push(format!(
-                "production stage {stage_id} has no non-empty default_rationale in configs/tool_registry.toml [[stages]]"
+                "production stage {stage_id} has no non-empty default_rationale in configs/ci/tool_registry.toml [[stages]]"
             ));
         }
     }

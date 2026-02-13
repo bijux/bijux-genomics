@@ -353,7 +353,7 @@ fn scaffold_one_example(
     bijux_dna_infra::atomic_write_bytes(&root.join("example.toml"), example_toml.as_bytes())?;
 
     let local_suite = format!(
-        "schema_version = \"bijux.example.bench-suite.v1\"\nexample_id = \"{example_id}\"\nstage_catalog_index = {stage_catalog_index}\nstage_id = \"{stage_id}\"\n\n[pinning]\nsource_of_truth = \"configs/tool_registry.toml\"\npinned_tools = [\"{primary_tool}\"]\n\n[probes]\nrequired = [\"--help\", \"--version\"]\n"
+        "schema_version = \"bijux.example.bench-suite.v1\"\nexample_id = \"{example_id}\"\nstage_catalog_index = {stage_catalog_index}\nstage_id = \"{stage_id}\"\n\n[pinning]\nsource_of_truth = \"configs/ci/tool_registry.toml\"\npinned_tools = [\"{primary_tool}\"]\n\n[probes]\nrequired = [\"--help\", \"--version\"]\n"
     );
     bijux_dna_infra::atomic_write_bytes(&root.join("bench-suite.toml"), local_suite.as_bytes())?;
 

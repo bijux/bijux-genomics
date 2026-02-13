@@ -7,10 +7,10 @@ use std::collections::BTreeSet;
 #[test]
 fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_image_entries() {
     let root = support::workspace_root();
-    let registry_raw = std::fs::read_to_string(root.join("configs/tool_registry.toml"))
-        .expect("read configs/tool_registry.toml");
-    let images_raw = std::fs::read_to_string(root.join("configs/images.toml"))
-        .expect("read configs/images.toml");
+    let registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
+        .expect("read configs/ci/tool_registry.toml");
+    let images_raw = std::fs::read_to_string(root.join("configs/ci/images.toml"))
+        .expect("read configs/ci/images.toml");
 
     let registry: toml::Value = registry_raw.parse().expect("parse tool_registry.toml");
     let images: toml::Value = images_raw.parse().expect("parse images.toml");

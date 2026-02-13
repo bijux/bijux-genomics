@@ -22,11 +22,11 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 fn policy__contracts__binding_decision_record_policy__complex_binding_changes_require_decision_record(
 ) {
     let root = support::workspace_root();
-    let registry_raw = std::fs::read_to_string(root.join("configs/tool_registry.toml"))
-        .expect("read configs/tool_registry.toml");
+    let registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
+        .expect("read configs/ci/tool_registry.toml");
     let registry: toml::Value = registry_raw
         .parse()
-        .expect("parse configs/tool_registry.toml");
+        .expect("parse configs/ci/tool_registry.toml");
 
     let decision_path = root.join("docs/decisions/TOOL_BINDING_DECISIONS.md");
     let decision_raw = std::fs::read_to_string(&decision_path)

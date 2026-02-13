@@ -23,4 +23,4 @@ This document tracks default scientific thresholds and tool choices that affect 
 ## Change Control
 - Profile manifests are hash-addressed (`profile_hash`).
 - Any defaults change must change profile hash and corresponding contract snapshot.
-- Tool pin updates must update `configs/tool_registry.lock.sha256`.
+- Tool pin updates must update `configs/ci/tool_registry.lock.sha256`.

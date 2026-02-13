@@ -180,7 +180,7 @@ impl From<bijux_dna_infra::IoError> for EnvError {
     }
 }
 
-/// Load platforms from configs/platforms.toml and resolve the selected platform.
+/// Load platforms from configs/runtime/platforms.toml and resolve the selected platform.
 ///
 /// # Errors
 /// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
@@ -284,7 +284,7 @@ pub fn resolve_image(
     })
 }
 
-/// Load tool images from configs/images.toml.
+/// Load tool images from configs/ci/images.toml.
 ///
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.

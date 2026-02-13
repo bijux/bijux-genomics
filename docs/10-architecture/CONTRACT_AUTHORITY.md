@@ -18,21 +18,21 @@ Prevents contract drift between generated registries, pipeline profiles, and pol
 
 ## Stages
 - Authoritative source:
-  - `configs/stages.toml` (FASTQ/BAM)
-  - `configs/stages_vcf.toml` (VCF)
+  - `configs/ci/stages.toml` (FASTQ/BAM)
+  - `configs/ci/stages_vcf.toml` (VCF)
 - Generated from domain SSOT through the domain compiler.
 
 ## Tools
 - Authoritative source:
-  - `configs/tool_registry.toml` (production FASTQ/BAM)
-  - `configs/tool_registry_vcf.toml` (VCF)
-  - `configs/tool_registry_experimental.toml` (experimental-only tools)
+  - `configs/ci/tool_registry.toml` (production FASTQ/BAM)
+  - `configs/ci/tool_registry_vcf.toml` (VCF)
+  - `configs/ci/tool_registry_experimental.toml` (experimental-only tools)
 - Generated from domain SSOT through the domain compiler.
 
 ## Params
 - Authoritative source:
-  - `configs/param_registry.toml`
-  - `configs/param_registry_vcf.toml`
+  - `configs/ci/param_registry.toml`
+  - `configs/ci/param_registry_vcf.toml`
 - Code must not hardcode param schema IDs outside domain/config generation code.
 
 ## Metrics
@@ -55,8 +55,8 @@ Prevents contract drift between generated registries, pipeline profiles, and pol
   - compatibility decision (breaking vs non-breaking) documented in PR.
 
 ## Examples
-- Stage authority: `configs/stages.toml`.
-- Tool authority: `configs/tool_registry.toml`.
+- Stage authority: `configs/ci/stages.toml`.
+- Tool authority: `configs/ci/tool_registry.toml`.
 
 ## Failure modes
 - Registry/profile snapshots diverge when authority source changes without regeneration.

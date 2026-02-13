@@ -8,9 +8,9 @@ use support::workspace_root;
 #[test]
 fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_and_reporting_contracts(
 ) {
-    let registry_path = workspace_root().join("configs/tool_registry.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
+    let registry_path = workspace_root().join("configs/ci/tool_registry.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/ci/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/tool_registry.toml");
 
     let mut offenders = Vec::new();
 
@@ -31,7 +31,7 @@ fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_a
         .cloned()
         .unwrap_or_default();
     if stages.is_empty() {
-        offenders.push("missing [[stages]] matrix in configs/tool_registry.toml".to_string());
+        offenders.push("missing [[stages]] matrix in configs/ci/tool_registry.toml".to_string());
     }
 
     for stage in &stages {
