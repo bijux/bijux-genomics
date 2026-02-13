@@ -27,7 +27,7 @@ Top-level workspace paths only.
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `bin` | `dir` | `-` | - |
 | `configs` | `dir` | `-` | - |
-| `containers` | `dir` | `-` | - |
+| `containers` | `dir` | `-` | Define the only supported user-facing container script entrypoints. |
 | `crates` | `dir` | `-` | - |
 | `deny.toml` | `file` | `-` | - |
 | `docs` | `dir` | `-` | - |

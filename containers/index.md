@@ -5,6 +5,7 @@ Purpose: Define container taxonomy, authority, and version ownership for reprodu
 ## Apptainer vs Docker
 - `containers/apptainer/`: Apptainer definitions for HPC and isolate-first runs.
 - `containers/docker/`: Dockerfiles for OCI image build and smoke validation.
+- Docker architecture contract: this repository currently ships `containers/docker/arm64/` definitions only.
 
 ## Bijux vs Non-bijux
 - `containers/apptainer/bijux/`: Bijux-maintained definitions with project policy headers.
@@ -14,3 +15,10 @@ Purpose: Define container taxonomy, authority, and version ownership for reprodu
 - Canonical version pins: `containers/versions/versions.toml`.
 - Pin/lock policy: `containers/versions/LOCK.md`.
 - Operational guide: `docs/30-operations/CONTAINERS.md`.
+
+## Tool Identity Contract
+- Allowed tool IDs for container filenames are generated in `containers/TOOL_IDS.txt`.
+- Regenerate with `scripts/containers/generate-tool-ids.sh`.
+
+## Notes
+- `seqkit_stats` is intentionally modeled as a distinct tool ID and stage binding (`fastq.stats_neutral`) in registry and container definitions.
