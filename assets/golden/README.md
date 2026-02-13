@@ -7,9 +7,9 @@ This pack provides tiny inputs for local smoke runs.
 - Paired-end: `assets/golden/smoke-inputs-v1/fastq/pe/reads_1.fastq`, `assets/golden/smoke-inputs-v1/fastq/pe/reads_2.fastq`
 
 ## BAM
-- Source SAM: `assets/golden/smoke-inputs-v1/bam/sample.sam`
+- Source SAM: `assets/golden/smoke-inputs-v1/bam/toy.sam`
 - Generate BAM (requires samtools):
-  - `samtools view -bS assets/golden/smoke-inputs-v1/bam/sample.sam > assets/golden/smoke-inputs-v1/bam/sample.bam`
+  - `samtools view -bS assets/golden/smoke-inputs-v1/bam/toy.sam > assets/golden/smoke-inputs-v1/bam/sample.bam`
   - `samtools index assets/golden/smoke-inputs-v1/bam/sample.bam`
 
 The BAM is intentionally minimal (single alignment) to keep smoke runs fast.
@@ -33,3 +33,8 @@ Validate against goldens:
 
 Refresh goldens (explicit opt-in):
 - `make golden-refresh ACCEPT=1`
+
+---
+Asset Provenance Footer
+Last regenerated: 2026-02-13
+Regenerate command: `./scripts/run.sh assets refresh-toy && ./scripts/run.sh assets refresh-golden`

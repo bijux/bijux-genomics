@@ -1,9 +1,19 @@
 # Generate
 
-## What
-Deterministic BAM toy-run golden outputs.
-
-## Command
+## Command(s)
 ```bash
-scripts/assets/refresh-golden.sh
+./scripts/run.sh assets refresh-golden
 ```
+
+## Tool versions
+- `bijux-dna` workspace generators from current commit
+
+## Input origins
+- `assets/toy/core-v1/bam/toy.sam`
+
+## Expected outputs
+- `manifest.json`
+- `metrics.json`
+- `report.html`
+- `artifact_checksums.json`
+- `CHECKSUMS.sha256`
