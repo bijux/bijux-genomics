@@ -133,6 +133,10 @@ pub struct ToolImageSpec {
     pub version: String,
     #[serde(default)]
     pub digest: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shipping_policy: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

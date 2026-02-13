@@ -81,6 +81,8 @@ fn image_resolution_prefers_digest_and_rejects_base_name() -> Result<(), Box<dyn
             tool: "fastp".to_string(),
             version: "0.23.4".to_string(),
             digest: Some("sha256:abc".to_string()),
+            enabled: None,
+            shipping_policy: None,
         },
         &platform,
     )?;
@@ -91,6 +93,8 @@ fn image_resolution_prefers_digest_and_rejects_base_name() -> Result<(), Box<dyn
             tool: "base-image".to_string(),
             version: "1.0".to_string(),
             digest: None,
+            enabled: None,
+            shipping_policy: None,
         },
         &platform,
     ) {

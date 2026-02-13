@@ -22,6 +22,8 @@ fn tool_image_spec_schema_snapshot() {
         tool: "fastp".to_string(),
         version: "0.23.4".to_string(),
         digest: Some("sha256:img".to_string()),
+        enabled: None,
+        shipping_policy: None,
     };
     let actual = String::from_utf8(
         bijux_dna_core::contract::canonical::to_canonical_json_bytes(&spec)
