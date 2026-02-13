@@ -11,9 +11,13 @@ Provides stable paths for analysis and benchmarking.
 
 ## Contracts
 - Layout is derived from RunLayout.
+- `explain.json` must include a decision trace for planner decisions that alter stage/tool behavior.
+- For VCF calling, decision id `decision.coverage_regime` must be present with selected value in `{gl,diploid,pseudohaploid}`.
+- Decision traces must include: decision id, selected value, evaluated evidence, and source config path.
 
 ## Examples
 - `run_artifacts/` lives under the run output directory.
+- `explain.json` includes `decision_traces[].id = "decision.coverage_regime"` with coverage-derived regime.
 
 ## Failure modes
 - Layout drift breaks replay and audits.
