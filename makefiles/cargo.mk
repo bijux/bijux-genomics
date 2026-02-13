@@ -15,7 +15,7 @@ fmt:
 	@./scripts/run.sh tooling ci-fmt
 
 lint:
-	./scripts/run.sh tooling repo-doctor
+	./scripts/run.sh tooling repo-doctor --fast
 	./scripts/run.sh checks check-supported-scripts
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
@@ -68,6 +68,7 @@ lint:
 	./scripts/run.sh checks check-shell-portability
 	./scripts/run.sh checks check-network-usage
 	./scripts/run.sh checks check-no-temp-leaks
+	./scripts/run.sh checks check-no-parallel-accidental
 	./scripts/run.sh checks check-hpc-safety
 	./scripts/run.sh checks check-output-roots
 	./scripts/run.sh checks check-artifacts-layout
