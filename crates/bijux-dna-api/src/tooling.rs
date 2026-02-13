@@ -11,11 +11,7 @@ pub fn load_registry(
             .and_then(|name| name.to_str())
             .is_some_and(|name| name == "domain")
     {
-        source_path
-            .parent()
-            .unwrap_or(source_path)
-            .join("configs")
-            .join("tool_registry.toml")
+        bijux_dna_infra::configs_file(source_path.parent().unwrap_or(source_path), "ci/tool_registry.toml")
     } else {
         source_path.to_path_buf()
     };

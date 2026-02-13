@@ -342,7 +342,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
 
     let mut registry = ToolRegistry::default();
     let registry_path = if source_path.is_dir() {
-        source_path.join("configs").join("tool_registry.toml")
+        bijux_dna_infra::configs_file(source_path, "ci/tool_registry.toml")
     } else {
         source_path.to_path_buf()
     };
