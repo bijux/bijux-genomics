@@ -22,6 +22,8 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     tar -xzf /tmp/germline.tar.gz -C /tmp
     make -C /tmp/germline-1.5.3
     install -m 0755 /tmp/germline-1.5.3/germline /usr/local/bin/germline
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"germline","version":"1.5.3","source":"https://www.cs.columbia.edu/~gusev/germline/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
     rm -rf /tmp/germline.tar.gz /tmp/germline-1.5.3
     apt-get clean
     rm -rf /var/lib/apt/lists/*

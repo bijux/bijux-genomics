@@ -181,6 +181,11 @@ get_expected_version_regex() {
   printf '%s\n' "$value"
 }
 
+is_downstream_container_tool() {
+  tool="$1"
+  rg -q "^id = \"${tool}\"$" "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml" 2>/dev/null
+}
+
 build_and_smoke_one() {
   dockerfile="$1"
   tool=$(basename "$dockerfile" | sed 's/^Dockerfile\.//')
@@ -253,6 +258,13 @@ build_and_smoke_one() {
       if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$health_cmd" >/dev/null 2>&1; then
         echo "healthcheck failed: $health_cmd"
         exit 1
+      fi
+      if is_downstream_container_tool "$tool"; then
+        echo "=== [$tool] provenance: /opt/bijux/VERSION.json"
+        if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"; then
+          echo "missing provenance file /opt/bijux/VERSION.json"
+          exit 1
+        fi
       fi
     fi
     if [ "$SAVE_TAR" = "1" ]; then
