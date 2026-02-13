@@ -6,6 +6,12 @@ Last reviewed: 2026-02-07
 Contract version: v1
 Applies to crates: bijux-dna-core, bijux-dna-engine, bijux-dna-runtime, bijux-dna-runner, bijux-dna-api
 
+## Purpose
+Define single-source-of-truth boundaries for IDs, stage specs, metrics, and generated configs.
+
+## Scope
+Applies to repository-wide ownership and consumption boundaries for typed contracts.
+
 ## What
 Single Source of Truth for IDs, stage specs, tool selection, and metrics definitions.
 
