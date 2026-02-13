@@ -12,6 +12,7 @@ LUNARC_APPTAINER_DIR ?= $(LUNARC_ROOT)/bijux-dna-apptainer
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
+LUNARC_FRONTEND_SENTINEL ?= /home/bijan/bijux/bijux-dna
 
 _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -56,6 +57,10 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
 
 apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc frontend
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+		echo "refusing local-ssh target on frontend host; use: make apptainer-hpc-build"; \
+		exit 2; \
+	fi
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
 		$(MAKE) _push-lunarc; \
 	else \
@@ -77,6 +82,10 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+		echo "refusing local-ssh target on frontend host; use: make apptainer-hpc-test"; \
+		exit 2; \
+	fi
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
@@ -92,10 +101,51 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"'
 
 apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-apptainer
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+		echo "refusing pull-to-local target on frontend host; run this from your local machine"; \
+		exit 2; \
+	fi
 	@mkdir -p "$(LUNARC_LOCAL_APPTAINER_DIR)"
 	@rsync -az --delete \
 		"$(LUNARC_HOST):$(LUNARC_APPTAINER_DIR)/" \
 		"$(LUNARC_LOCAL_APPTAINER_DIR)/"
 	@echo "pulled_to=$(LUNARC_LOCAL_APPTAINER_DIR)"
 
-.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull
+apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ssh)
+	@if [ -d "$(LUNARC_FRONTEND_SENTINEL)" ]; then :; else \
+		echo "refusing HPC-native target off frontend; use: make apptainer-lunarc-build"; \
+		exit 2; \
+	fi
+	@set -euo pipefail; \
+		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
+		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
+		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim; \
+		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
+			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
+			FRONTEND_PROOF_MODE=1 \
+			SMOKE_LEVEL=build \
+			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
+			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
+			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"
+
+apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
+	@if [ -d "$(LUNARC_FRONTEND_SENTINEL)" ]; then :; else \
+		echo "refusing HPC-native target off frontend; use: make apptainer-lunarc-test"; \
+		exit 2; \
+	fi
+	@set -euo pipefail; \
+		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
+		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)-test" env \
+			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
+			FRONTEND_PROOF_MODE=1 \
+			SMOKE_LEVEL=contract \
+			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
+			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
+			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
+
+.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test
