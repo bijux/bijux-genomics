@@ -132,6 +132,8 @@ mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
+#[path = "contracts/tooling/root_migration_guard_policy.rs"]
+mod mod_contracts_tooling_root_migration_guard_policy_rs;
 #[path = "contracts/tooling/root_pollution_policy.rs"]
 mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
