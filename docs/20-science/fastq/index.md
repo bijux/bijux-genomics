@@ -13,6 +13,10 @@ Documents under `docs/20-science/fastq/`.
 - Every FASTQ science doc in this folder is linked here.
 
 ## Entries
+- [Primer Assumptions](PRIMER_ASSUMPTIONS.md)
+- [Chimera Semantics](CHIMERA_SEMANTICS.md)
+- [OTU vs ASV Semantics](OTU_VS_ASV_SEMANTICS.md)
+- [Normalization Semantics](NORMALIZATION_SEMANTICS.md)
 - [Gold Pipeline Spec](GOLD_PIPELINE_SPEC.md)
 - [Methodological Intent](METHODOLOGICAL_INTENT.md)
 - [Metric Semantics](METRIC_SEMANTICS.md)
