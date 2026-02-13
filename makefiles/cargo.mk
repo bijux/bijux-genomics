@@ -60,7 +60,7 @@ lint:
 	./scripts/run.sh docs check-generated-docs
 	./scripts/run.sh docs check-doc-assets
 	./scripts/run.sh tooling check-config-paths
-	./scripts/run.sh tooling check-config-snapshot
+	./scripts/run.sh tooling check-config-snapshot --if-config-changed
 	./scripts/run.sh checks check-root-layout
 	./scripts/run.sh checks check-artifacts-tracked
 	./scripts/run.sh checks check-no-target-paths-in-tests
