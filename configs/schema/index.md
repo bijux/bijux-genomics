@@ -8,6 +8,7 @@ Keep schema configuration scoped to this directory so ownership is explicit and 
 
 ## Rules
 - Schema evolution policy lives in `configs/schema/CONFIG_SCHEMA_RULES.md`.
+- Validation entrypoint: `configs/schema/validate.py`.
 
 ## Notes
 Schema-oriented descriptors or schema governance inputs should be placed here rather than mixed into CI/runtime directories.

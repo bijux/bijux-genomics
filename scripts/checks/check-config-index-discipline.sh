@@ -20,6 +20,16 @@ for d in sorted(p for p in cfg.rglob("*") if p.is_dir()):
     idx = d / "index.md"
     if not idx.exists():
         errors.append(f"{d.relative_to(root)}: missing index.md")
+        continue
+    # sibling discipline: index.md must reference all sibling config files in same directory.
+    text = idx.read_text(encoding="utf-8")
+    backticked = set(re.findall(r"`([^`]+)`", text))
+    for sib in sorted(p for p in d.iterdir() if p.is_file() and p.name != "index.md"):
+        rel = sib.relative_to(root).as_posix()
+        if sib.suffix not in {".toml", ".yaml", ".yml", ".py", ".txt", ".md"}:
+            continue
+        if rel not in backticked and sib.name not in backticked:
+            errors.append(f"{idx.relative_to(root)}: missing sibling reference `{sib.name}`")
 
 # 2) every config file appears in exactly one index
 cfg_files = [
