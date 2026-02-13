@@ -1,23 +1,32 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- Regenerate with: scripts/tooling/generate-compatibility-matrix.sh -->
+
 # COMPATIBILITY_MATRIX
 
-## What
-Compatibility matrix for plan, manifest, and report versions.
+## Purpose
+Generated compatibility matrix derived from pipeline profile IDs and tool registry inventory.
 
-## Why
-Clarifies which artifacts can be safely combined.
+## Scope
+Profiles sourced from `crates/bijux-dna-core/src/id_catalog.rs`; registries include 59 tool entries.
 
 ## Non-goals
-- Exhaustive version history.
+- Replacing detailed per-domain migration guides.
 
 ## Contracts
-- Breaking changes require major version increments.
+- Matrix is generated-only and must not be manually edited.
+- Breaking contract changes require version/schema updates and matrix regeneration.
 
-## Examples
-| Plan | Manifest | Report | Compatibility |
-| --- | --- | --- | --- |
-| v1 | v1 | v1 | compatible |
-
-Version bumps: breaking changes require major increments.
-
-## Failure modes
-- Untracked version changes invalidate stored artifacts.
+| Pipeline Profile | Domain | Stability | Plan Contract | Report Contract | Compatibility Rule |
+|---|---|---|---|---|---|
+| `bam-to-bam__adna_capture__v1` | `bam` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `bam-to-bam__adna_shotgun__v1` | `bam` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `bam-to-bam__default__v1` | `bam` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `bam-to-bam__reference_adna__v1` | `bam` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-bam__adna_shotgun__v1` | `fastq` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-bam__default__v1` | `fastq` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-fastq__adna__v1` | `fastq` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-fastq__default__v1` | `fastq` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-fastq__minimal__v1` | `fastq` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `fastq-to-fastq__reference_adna__v1` | `fastq` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `vcf-to-vcf__minimal__v1` | `vcf` | `experimental` | `v1` | `v1` | compatible if stage/tool contracts unchanged |
+| `vcf-to-vcf__reference_basic__v1` | `vcf` | `stable` | `v1` | `v1` | compatible if stage/tool contracts unchanged |

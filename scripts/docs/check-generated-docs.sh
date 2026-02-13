@@ -26,10 +26,12 @@ check_header "$ROOT/docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"
 check_header "$ROOT/docs/20-science/TOOL_INDEX.md"
 check_header "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md"
 check_header "$ROOT/docs/00-intro/REPO_ROOT_MAP.md"
+check_header "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md"
 
 ./scripts/tooling/generate-tool-index.sh "$TMP_DIR/TOOL_INDEX.md" >/dev/null
 ./scripts/tooling/generate-apptainer-qa-matrix.sh "$TMP_DIR/APPTAINER_QA_MATRIX.md" >/dev/null
 ./scripts/tooling/generate-repo-root-map.sh "$TMP_DIR/REPO_ROOT_MAP.md" >/dev/null
+./scripts/tooling/generate-compatibility-matrix.sh "$TMP_DIR/COMPATIBILITY_MATRIX.md" >/dev/null
 
 diff -u "$ROOT/docs/20-science/TOOL_INDEX.md" "$TMP_DIR/TOOL_INDEX.md" >/dev/null || {
   echo "generated-docs: docs/20-science/TOOL_INDEX.md drift; regenerate with scripts/tooling/generate-tool-index.sh" >&2
@@ -41,6 +43,10 @@ diff -u "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md" "$TMP_DIR/APPTAINER_QA
 }
 diff -u "$ROOT/docs/00-intro/REPO_ROOT_MAP.md" "$TMP_DIR/REPO_ROOT_MAP.md" >/dev/null || {
   echo "generated-docs: docs/00-intro/REPO_ROOT_MAP.md drift; regenerate with scripts/tooling/generate-repo-root-map.sh" >&2
+  exit 1
+}
+diff -u "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md" "$TMP_DIR/COMPATIBILITY_MATRIX.md" >/dev/null || {
+  echo "generated-docs: docs/50-reference/COMPATIBILITY_MATRIX.md drift; regenerate with scripts/tooling/generate-compatibility-matrix.sh" >&2
   exit 1
 }
 
