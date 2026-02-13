@@ -23,7 +23,7 @@ if [ "${#offenders[@]}" -ne 0 ]; then
     for item in "${offenders[@]}"; do
       echo " - $item"
     done
-    echo "Use artifacts/isolates/* or artifacts/container/* outputs instead."
+    echo "Use isolate-scoped ISO_ROOT outputs or artifacts/container/* outputs instead."
   } >&2
   exit 1
 fi
