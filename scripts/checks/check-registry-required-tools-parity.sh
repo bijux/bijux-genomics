@@ -42,6 +42,14 @@ for p in (root / "containers/apptainer/bijux").glob("*.def"):
 for p in (root / "containers/apptainer/non-bijux").glob("*.def"):
     container_ids.add(p.stem)
 
+external_tools: set[str] = set()
+external_cfg = root / "configs/domain/external_tools.toml"
+if external_cfg.exists():
+    data = tomllib.loads(external_cfg.read_text(encoding="utf-8"))
+    ext = data.get("non_container_tools", {})
+    if isinstance(ext, dict):
+        external_tools = {str(k) for k in ext.keys()}
+
 errors: list[str] = []
 for p in req_files:
     data = tomllib.loads(p.read_text(encoding="utf-8"))
@@ -49,8 +57,11 @@ for p in req_files:
         tid = str(tid)
         if tid not in known:
             errors.append(f"{p.relative_to(root)}: required_tools entry '{tid}' has no registry definition")
-        if "downstream" in p.name and tid not in container_ids:
-            errors.append(f"{p.relative_to(root)}: required downstream tool '{tid}' has no container definition")
+        if "downstream" in p.name and tid not in container_ids and tid not in external_tools:
+            errors.append(
+                f"{p.relative_to(root)}: required downstream tool '{tid}' must have a container definition "
+                "or be declared in configs/domain/external_tools.toml"
+            )
 
 if errors:
     print("registry-required-tools-parity: FAILED", file=sys.stderr)
