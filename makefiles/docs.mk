@@ -5,7 +5,7 @@ DOCS_ROOT ?= artifacts/docs
 DOCS_SITE ?= $(DOCS_ROOT)/site
 DOCS_VENV ?= $(DOCS_ROOT)/.venv
 DOCS_PY ?= python3
-DOCS_REQ ?= scripts/docs/requirements.txt
+DOCS_REQ ?= configs/docs/requirements.txt
 
 $(DOCS_VENV)/bin/activate: $(DOCS_REQ)
 	@DOCS_PY="$(DOCS_PY)" DOCS_VENV="$(DOCS_VENV)" DOCS_REQ="$(DOCS_REQ)" ./scripts/run.sh tooling setup-docs-venv

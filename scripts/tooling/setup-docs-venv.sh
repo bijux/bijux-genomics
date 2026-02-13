@@ -10,7 +10,7 @@ export LC_ALL
 
 DOCS_PY="${DOCS_PY:-python3}"
 DOCS_VENV="${DOCS_VENV:-artifacts/docs/.venv}"
-DOCS_REQ="${DOCS_REQ:-scripts/docs/requirements.txt}"
+DOCS_REQ="${DOCS_REQ:-configs/docs/requirements.txt}"
 
 "${DOCS_PY}" -m venv "${DOCS_VENV}"
 "${DOCS_VENV}/bin/pip" install --upgrade pip
