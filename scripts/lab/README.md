@@ -1,7 +1,5 @@
 # scripts/lab
 
-## What
-Manual lab benchmarking and pipeline run entrypoints.
+Purpose: manual lab runs and benchmark orchestration.
 
-## Philosophy
-Lab scripts support exploratory/manual workflows and are intentionally excluded from CI enforcement paths.
+Back to index: `scripts/README.md`.

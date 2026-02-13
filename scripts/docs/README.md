@@ -1,7 +1,5 @@
 # scripts/docs
 
-## What
-Documentation pipeline entrypoints and pinned docs dependencies.
+Purpose: docs checks and documentation tooling entrypoints.
 
-## Philosophy
-Docs generation and validation should be isolated from runtime/test tooling and remain reproducible across environments.
+Back to index: `scripts/README.md`.

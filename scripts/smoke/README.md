@@ -1,7 +1,5 @@
 # scripts/smoke
 
-## What
-Quick local smoke scripts for BAM/FASTQ validation paths.
+Purpose: unified local smoke entrypoint and domain-specific smoke commands.
 
-## Philosophy
-Smoke scripts should give fast confidence checks with minimal setup and no hidden side effects.
+Back to index: `scripts/README.md`.

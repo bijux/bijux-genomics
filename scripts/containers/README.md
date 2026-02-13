@@ -1,7 +1,5 @@
 # scripts/containers
 
-## What
-Container build, lint, registry, and smoke-test entrypoints.
+Purpose: container runtime build/lint/smoke entrypoints.
 
-## Philosophy
-Keep all container lifecycle operations in one place with reproducible invocations and explicit tool/image mapping.
+Back to index: `scripts/README.md`.
