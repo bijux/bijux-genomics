@@ -1,45 +1,67 @@
-# Tool Index
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- Regenerate with: scripts/tooling/generate-tool-index.sh -->
 
-## What
-Alphabetical index of tools used in FASTQ and BAM stages.
+# TOOL_INDEX
 
-## Why
-Provides a single lookup for tool coverage.
+Generated from `configs/ci/registry/tool_registry*.toml`.
 
-## Non-goals
-- Full tool manuals.
-
-## Contracts
-- Tool IDs are canonical and referenced by stage catalogs.
-
-## Examples
-- fastp → FASTQ trim stage.
-
-## Failure modes
-- Missing tool references in stage catalogs.
-
-## Index
-- ANGSD → [bam.contamination](bam/STAGE_CATALOG.md#bam-contamination)
-- BBMerge → [fastq.merge](fastq/STAGE_CATALOG.md#fastq-merge)
-- Bowtie2 → [bam.align](bam/STAGE_CATALOG.md#bam-align)
-- BWA → [bam.align](bam/STAGE_CATALOG.md#bam-align)
-- Cutadapt → [fastq.trim](fastq/STAGE_CATALOG.md#fastq-trim)
-- fastp → [fastq.detect_adapters](fastq/STAGE_CATALOG.md#fastq-detect-adapters), [fastq.trim](fastq/STAGE_CATALOG.md#fastq-trim)
-- FASTQ‑Validator → [fastq.validate_pre](fastq/STAGE_CATALOG.md#fastq-validate-pre)
-- FLASH2 → [fastq.merge](fastq/STAGE_CATALOG.md#fastq-merge)
-- GATK → [bam.recalibration](bam/STAGE_CATALOG.md#bam-recalibration)
-- KING → [bam.kinship](bam/STAGE_CATALOG.md#bam-kinship)
-- Kraken2 → [fastq.screen](fastq/STAGE_CATALOG.md#fastq-screen)
-- mapDamage2 → [bam.damage](bam/STAGE_CATALOG.md#bam-damage)
-- mosdepth → [bam.coverage](bam/STAGE_CATALOG.md#bam-coverage)
-- MultiQC → [fastq.qc_post](fastq/STAGE_CATALOG.md#fastq-qc-post)
-- PEAR → [fastq.merge](fastq/STAGE_CATALOG.md#fastq-merge)
-- Picard → [bam.markdup](bam/STAGE_CATALOG.md#bam-markdup)
-- preseq → [bam.complexity](bam/STAGE_CATALOG.md#bam-complexity)
-- RCorrector → [fastq.correct](fastq/STAGE_CATALOG.md#fastq-correct)
-- RXY → [bam.sex](bam/STAGE_CATALOG.md#bam-sex)
-- SAMtools → [bam.validate](bam/STAGE_CATALOG.md#bam-validate)
-- SeqKit → [fastq.filter](fastq/STAGE_CATALOG.md#fastq-filter)
-- UMI‑tools → [fastq.umi](fastq/STAGE_CATALOG.md#fastq-umi)
-- VSEARCH → [fastq.merge](fastq/STAGE_CATALOG.md#fastq-merge)
-- Yleaf → [bam.haplogroups](bam/STAGE_CATALOG.md#bam-haplogroups)
+## Tools
+- `adapterremoval`: fastq.trim
+- `addeam`: bam.damage
+- `alientrimmer`: fastq.trim
+- `angsd`: bam.kinship, bam.sex
+- `atropos`: fastq.trim
+- `authenticct`: bam.authenticity
+- `bamtools`: bam.filter, bam.mapq_filter, bam.validate
+- `bayeshammer`: fastq.correct
+- `bbduk`: fastq.low_complexity, fastq.trim
+- `bbmerge`: fastq.merge
+- `bcftools`: vcf.call, vcf.filter, vcf.stats
+- `bedtools`: bam.filter, bam.validate
+- `bowtie2`: bam.align
+- `bracken`: fastq.screen
+- `bwa`: bam.align
+- `centrifuge`: fastq.screen
+- `contammix`: bam.contamination
+- `cutadapt`: fastq.trim
+- `damageprofiler`: bam.authenticity, bam.damage
+- `fastp`: fastq.filter, fastq.trim
+- `fastq_screen`: fastq.screen
+- `fastqc`: fastq.detect_adapters
+- `fastqvalidator`: fastq.validate_pre
+- `fastx_clipper`: fastq.trim
+- `flash2`: fastq.merge
+- `fqtools`: fastq.validate_pre
+- `kaiju`: fastq.screen
+- `king`: bam.kinship
+- `kraken2`: fastq.screen
+- `krakenuniq`: fastq.screen
+- `leehom`: fastq.merge, fastq.trim
+- `lighter`: fastq.correct
+- `mapdamage2`: bam.damage
+- `metaphlan`: fastq.screen
+- `mosdepth`: bam.coverage
+- `multiqc`: fastq.qc_post
+- `musket`: fastq.correct
+- `pear`: fastq.merge
+- `pmdtools`: bam.authenticity, bam.damage
+- `prinseq`: fastq.filter
+- `pydamage`: bam.damage
+- `qualimap`: fastq.qc_post
+- `rcorrector`: fastq.correct
+- `rxy`: bam.sex
+- `samtools`: bam.align, bam.coverage, bam.duplication_metrics, bam.endogenous_content, bam.filter, bam.length_filter, bam.mapping_summary, bam.mapq_filter, bam.markdup, bam.overlap_correction, bam.qc_pre, bam.validate, fastq.prepare_reference, fastq.qc_post
+- `schmutzi`: bam.contamination
+- `seqkit`: fastq.filter
+- `seqkit_stats`: fastq.stats_neutral
+- `seqtk`: fastq.validate_pre
+- `skewer`: fastq.trim
+- `sortmerna`: fastq.filter
+- `spades`: fastq.correct
+- `star`: fastq.prepare_reference
+- `trim_galore`: fastq.trim
+- `trimmomatic`: fastq.trim
+- `umi_tools`: fastq.umi
+- `verifybamid2`: bam.contamination
+- `vsearch`: fastq.merge
+- `yleaf`: bam.haplogroups, bam.sex
