@@ -433,6 +433,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_docker_arm64_completeness"
+path = "scripts/containers/check-docker-arm64-completeness.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "smoke_docker_arm64"
 path = "scripts/containers/smoke-docker-arm64.sh"
 purpose = "containers script"

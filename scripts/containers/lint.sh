@@ -180,6 +180,7 @@ fi
 "$SCRIPT_DIR/check-bijux-template-markers.sh"
 "$SCRIPT_DIR/check-license-metadata.sh"
 "$SCRIPT_DIR/check-docker-arch-policy.sh"
+"$SCRIPT_DIR/check-docker-arm64-completeness.sh"
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 
 echo "containers lint: ok"
