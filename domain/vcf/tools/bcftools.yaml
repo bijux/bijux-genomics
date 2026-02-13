@@ -21,7 +21,7 @@ license: "MIT"
 citation: "DOI:10.1093/gigascience/giab008"
 version_cmd: "bcftools --version"
 help_cmd: "bcftools --help"
-expected_artifacts: ["vcf", "vcf_metrics", "gl_vcf", "damage_report"]
+expected_artifacts: ["vcf", "vcf_metrics", "gl_vcf", "gl_provenance", "damage_report", "damage_bias_audit_report", "gl_propagation_report", "pseudohaploid_sampling_log"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.stats.v1"
 comparability_notes: "Comparable only within same stage contract and reference build."

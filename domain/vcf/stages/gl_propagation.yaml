@@ -11,15 +11,20 @@ outputs:
   - name: "gl_propagated_vcf"
     data_type: "vcf"
     cardinality: "One"
+  - name: "gl_propagation_report"
+    data_type: "json"
+    cardinality: "One"
 required_inputs: ["gl_sites_vcf"]
-required_outputs: ["gl_propagated_vcf"]
+required_outputs: ["gl_propagated_vcf", "gl_propagation_report"]
 metrics:
   - name: "gl_fields_retained"
   - name: "genotyped_sites"
+  - name: "gl_propagation_pass_rate"
 compatible_tools: ["bcftools", "angsd"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "GL/PL tags are retained through filtering and post-processing."
+  - "Propagation checks must assert GL fields survive into imputation-ready inputs."
 bank_hooks: ["none"]
 invariants:
   - "tool_pinned"

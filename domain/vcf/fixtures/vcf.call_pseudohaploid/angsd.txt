@@ -5,6 +5,6 @@ domain=vcf
 shipping=external
 fixture_kind=truth
 command=angsd
-args=-b bam.list -ref ref.fa -out pseudo -doHaploCall 1 -doCounts 1
-expected_outputs=pseudo.vcf.gz
-expected_stdout_patterns=pseudo
+args=-b bam.list -ref ref.fa -out pseudo -doHaploCall 1 -doCounts 1 -seed 42
+expected_outputs=pseudo.vcf.gz,pseudohaploid_sampling_log.json
+expected_stdout_patterns=pseudo,seeded_sampling,seed=42
