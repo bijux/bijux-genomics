@@ -1575,3 +1575,11 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "containers_check_cross_runtime_smoke"
+path = "scripts/containers/check-cross-runtime-smoke.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
