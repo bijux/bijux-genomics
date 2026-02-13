@@ -18,6 +18,9 @@ if not ref.exists():
     sys.exit(1)
 
 errors = []
+schemas_doc = ref / "SCHEMAS.md"
+if not schemas_doc.exists():
+    errors.append("assets/reference/SCHEMAS.md missing (reference schema authority doc)")
 
 for y in sorted(list(ref.rglob("*.yaml")) + list(ref.rglob("*.yml"))):
     text = y.read_text(encoding="utf-8")
