@@ -4,437 +4,437 @@
 [[owner]]
 tool_id = "adapterremoval"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "addeam"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "alientrimmer"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "angsd"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "atropos"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "authenticct"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bamtools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bayeshammer"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bbduk"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bbmerge"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bcftools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "beagle"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bedtools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bowtie2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bracken"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "bwa"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "centrifuge"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "contammix"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "cutadapt"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "damageprofiler"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "eagle"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "eigensoft"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fastp"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fastq_screen"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fastqc"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fastqvalidator"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fastx_clipper"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "flash2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "fqtools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "germline"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "glimpse"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "ibdhap"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "ibdne"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "ibdseq"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "impute5"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "kaiju"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "king"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "kraken2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "krakenuniq"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "leehom"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "lighter"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "mapdamage2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "metaphlan"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "minimac4"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "mosdepth"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "multiqc"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "musket"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "pear"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "plink"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "plink2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "pmdtools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "prinseq"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "pydamage"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "qualimap"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "rcorrector"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "rxy"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "samtools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "schmutzi"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "seqkit"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "seqkit_stats"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "seqtk"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "shapeit"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "shapeit5"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "skewer"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "sortmerna"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "spades"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "star"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "trim_galore"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "trimmomatic"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "umi_tools"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "verifybamid2"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "vsearch"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
 tool_id = "yleaf"
 team = "bijux-dna-platform"
-contact = "platform@bijux.local"
+contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
