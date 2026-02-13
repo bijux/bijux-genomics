@@ -59,6 +59,14 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.impute` default: `beagle` (planned). rationale: first pinned planned imputation baseline while alternative tools are externally tracked.
 - `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
 - `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
+- `vcf.call_gl` default: `angsd` (planned). rationale: deterministic genotype-likelihood baseline for low-coverage aDNA profiles.
+- `vcf.call_diploid` default: `bcftools` (planned). rationale: deterministic diploid baseline for modern-depth profiles.
+- `vcf.call_pseudohaploid` default: `angsd` (planned). rationale: deterministic pseudohaploid path for low-depth regimes.
+- `vcf.damage_filter` default: `bcftools` (planned). rationale: deterministic PMD/C>T-G>A masking contract anchor.
+- `vcf.gl_propagation` default: `bcftools` (planned). rationale: preserves GL fields across downstream imputation handoffs.
+- `vcf.population_structure` default: `plink2` (planned). rationale: deterministic PCA/pop-structure baseline with stable metrics schema.
+- `vcf.roh` default: `plink2` (planned). rationale: deterministic ROH interval extraction and summary bins.
+- `vcf.demography` default: `ibdne` (planned). rationale: deterministic effective population size summary from IBD-derived inputs.
 
 single_tool_justification: vcf.call
 single_tool_justification: vcf.filter
@@ -72,3 +80,6 @@ single_tool_justification: vcf.imputation
 single_tool_justification: vcf.impute
 single_tool_justification: vcf.postprocess
 single_tool_justification: vcf.prepare_reference_panel
+single_tool_justification: vcf.call_diploid
+single_tool_justification: vcf.roh
+single_tool_justification: vcf.demography
