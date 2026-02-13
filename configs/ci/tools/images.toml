@@ -182,3 +182,27 @@ version = "latest-pinned"
 [yleaf]
 version = "latest-pinned"
 
+
+[beagle]
+version = "planned"
+enabled = false
+
+[shapeit]
+version = "planned"
+enabled = false
+
+[plink]
+version = "planned"
+enabled = false
+
+[plink2]
+version = "planned"
+enabled = false
+
+[eigensoft]
+version = "planned"
+enabled = false
+
+[ibdseq]
+version = "planned"
+enabled = false

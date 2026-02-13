@@ -1,0 +1,34 @@
+# schema_version = 1
+# owner = bijux-dna-domain-compiler
+
+[[stages]]
+id = "vcf.phasing"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.phasing.v1"
+smoke_required = false
+tools = ["beagle", "shapeit"]
+
+[[stages]]
+id = "vcf.ld_pruning"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.ld_pruning.v1"
+smoke_required = false
+tools = ["plink", "plink2"]
+
+[[stages]]
+id = "vcf.population_structure"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.population_structure.v1"
+smoke_required = false
+tools = ["eigensoft", "plink2"]
+
+[[stages]]
+id = "vcf.relatedness"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.relatedness.v1"
+smoke_required = false
+tools = ["plink2", "ibdseq"]
