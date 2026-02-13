@@ -6,7 +6,38 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-OUT="${1:-$ROOT_DIR/docs/20-science/DOMAIN_COVERAGE.generated.md}"
+OUT="$ROOT_DIR/docs/20-science/DOMAIN_COVERAGE.generated.md"
+
+usage() {
+    cat <<'EOF'
+Usage: scripts/tooling/generate-domain-coverage-doc.sh [--out <path>] [--help]
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --out)
+            shift
+            [[ $# -gt 0 ]] || { echo "missing value for --out" >&2; exit 2; }
+            OUT="$1"
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        --*)
+            echo "unknown flag: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+        *)
+            echo "unexpected positional argument: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
 
 python3 - "$ROOT_DIR" "$OUT" <<'PY'
 from pathlib import Path
