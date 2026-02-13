@@ -26,16 +26,33 @@ done
 [[ -n "$tool" ]] || { echo "--tool required" >&2; exit 2; }
 [[ "$to_status" == "experimental" || "$to_status" == "production" ]] || { echo "--to must be experimental|production" >&2; exit 2; }
 
-python3 - "$ROOT_DIR" "$tool" <<'PY'
+python3 - "$ROOT_DIR" "$tool" "$to_status" <<'PY'
 from pathlib import Path
 import json
 import sys
-root = Path(sys.argv[1]); tool = sys.argv[2]
+root = Path(sys.argv[1]); tool = sys.argv[2]; to_status = sys.argv[3]
 lock = root / "containers/versions/lock.json"
+versions = root / "containers/versions/versions.toml"
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 data = json.loads(lock.read_text(encoding="utf-8"))
-known = {str(i.get("tool", "")) for i in data.get("items", [])}
-if tool not in known:
+by_tool = {str(i.get("tool", "")): i for i in data.get("items", [])}
+if tool not in by_tool:
     raise SystemExit(f"tool '{tool}' not present in containers/versions/lock.json; ad-hoc promotion is forbidden")
+v = tomllib.loads(versions.read_text(encoding="utf-8"))
+if tool not in v:
+    raise SystemExit(f"tool '{tool}' missing in containers/versions/versions.toml")
+lock_ver = str(by_tool[tool].get("version", "")).strip()
+ver = str(v[tool].get("version", "")).strip()
+if lock_ver != ver:
+    raise SystemExit(f"tool '{tool}' version mismatch lock='{lock_ver}' versions.toml='{ver}'")
+if to_status == "production":
+    docker_digest = str(by_tool[tool].get("resolved_image_digest", "")).strip()
+    sif_digest = str(by_tool[tool].get("resolved_sif_sha256", "")).strip()
+    if not docker_digest and not sif_digest:
+        raise SystemExit(f"tool '{tool}' cannot be promoted to production without locked artifact digest")
 PY
 
 python3 - "$ROOT_DIR" "$tool" "$to_status" <<'PY'
