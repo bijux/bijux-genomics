@@ -14,6 +14,8 @@ Describe OTU clustering versus ASV inference contracts for FASTQ ecology workflo
 - OTU and ASV outputs are treated as non-comparable result families.
 - Identity threshold (OTU) and denoiser model assumptions (ASV) are explicit.
 - Reports must state whether downstream metrics are OTU- or ASV-derived.
+- Current policy: ASV is not implemented in pre-HPC baseline; OTU is the primary supported ecological quantification path.
+- OTU outputs must use stable identifier generation and reproducible clustering parameters.
 
 ## Examples
 - OTU at 97% identity for broad comparability.
