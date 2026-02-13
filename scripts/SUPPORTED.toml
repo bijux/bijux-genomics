@@ -1775,3 +1775,59 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "check_examples_golden"
+path = "scripts/checks/check-examples-golden.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_nextest_profile_contract"
+path = "scripts/checks/check-nextest-profile-contract.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_runtime_profiles_contract"
+path = "scripts/checks/check-runtime-profiles-contract.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_logging_contract"
+path = "scripts/checks/check-logging-contract.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_hpc_rsync_docs_parity"
+path = "scripts/checks/check-hpc-rsync-docs-parity.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "ci_fast"
+path = "scripts/tooling/ci-fast.sh"
+purpose = "tooling script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "ci_slow"
+path = "scripts/tooling/ci-slow.sh"
+purpose = "tooling script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

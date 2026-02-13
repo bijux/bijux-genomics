@@ -1,0 +1,11 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Contract config for runtime logging knobs
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-13
+
+default_level = "info"
+default_format = "json"
+json_fields = ["timestamp", "level", "target", "message", "trace_id", "run_id"]
+env_vars = ["RUST_LOG", "BIJUX_LOG_FORMAT", "BIJUX_LOG_INCLUDE_FIELDS"]

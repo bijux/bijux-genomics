@@ -11,3 +11,4 @@ default_mem_gb = 8
 default_time_minutes = 60
 run_base_dir = "./runs"
 image_pull_policy = "if_missing"
+use_case = "default local development profile"

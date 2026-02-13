@@ -142,3 +142,9 @@ scripts/checks/check-docs-build-contract.sh
 scripts/checks/check-docs-requirements-lock.sh
 scripts/checks/check-examples-policy.sh
 scripts/checks/check-make-cargo-isolate-target.sh
+scripts/checks/check-nextest-profile-contract.sh
+scripts/checks/check-runtime-profiles-contract.sh
+scripts/checks/check-logging-contract.sh
+scripts/checks/check-hpc-rsync-docs-parity.sh
+scripts/tooling/ci-fast.sh
+scripts/tooling/ci-slow.sh
