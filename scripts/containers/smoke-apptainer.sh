@@ -29,6 +29,7 @@ VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
+FRONTEND_PROOF_MODE="${FRONTEND_PROOF_MODE:-0}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 CACHE_POLICY_TOML="$ROOT_DIR/configs/ci/tools/apptainer_cache_policy.toml"
 HPC_BUILD_POLICY_TOML="$ROOT_DIR/configs/ci/tools/hpc_frontend_build_policy.toml"
@@ -45,6 +46,9 @@ PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unkn
 PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
 PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
 APPTAINER_RUN_ARGS=(--pwd /tmp)
+if [[ "$FRONTEND_PROOF_MODE" == "1" ]]; then
+  APPTAINER_RUN_ARGS+=(--no-home --net --network none)
+fi
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
@@ -195,6 +199,10 @@ write_manifest_json() {
 
 json_escape() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+normalize_output_line() {
+  tr -d '\r' | awk 'NF{print; exit}' | sed -E 's/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g' | tr '[:upper:]' '[:lower:]'
 }
 
 get_version_cmd() {
@@ -457,6 +465,9 @@ build_and_smoke_one() {
   declared_version=$(get_registry_field version "$tool")
   image_ref="$out_sif"
   image_digest="$(shasum -a 256 "$vm_sif" 2>/dev/null | awk '{print $1}' || true)"
+  network_runtime_detected=false
+  home_write_detected=false
+  write_policy_ok=true
 
   mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   rm -f "$vm_sif" "$vm_log" "$out_log" "$out_sif" "$version_output_file" "$help_output_file" "$minimal_output_file" "$self_report_file"
@@ -492,6 +503,13 @@ build_and_smoke_one() {
       cat "$version_output_file"
       echo "version output does not match expected regex: $version_regex"
       exit 1
+    fi
+    if [ -n "$declared_version" ] && [ "$declared_version" != "unknown" ] && [ "$declared_version" != "planned" ]; then
+      if ! tr '[:upper:]' '[:lower:]' <"$version_output_file" | grep -Fq "$(printf '%s' "$declared_version" | tr '[:upper:]' '[:lower:]')"; then
+        cat "$version_output_file"
+        echo "version output does not include declared registry version: $declared_version"
+        exit 1
+      fi
     fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
@@ -556,7 +574,9 @@ PY
     packages_hash="$(shasum -a 256 "$sbom_file" | awk '{print $1}')"
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
+    normalized_version_output="$(normalize_output_line <"$version_output_file")"
     version_output_json="$(json_escape "$version_output")"
+    normalized_version_output_json="$(json_escape "$normalized_version_output")"
     cmd_json="$(json_escape "$cmd")"
     def_json="$(json_escape "$def_file")"
     base_image_json="$(json_escape "$base_image")"
@@ -588,6 +608,10 @@ PY
   "help_expected_exit_code": $help_exit_code,
   "help_actual_exit_code": ${help_rc:-0},
   "version_output": "$version_output_json",
+  "normalized_version_output": "$normalized_version_output_json",
+  "network_runtime_detected": $network_runtime_detected,
+  "home_write_detected": $home_write_detected,
+  "write_policy_ok": $write_policy_ok,
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
   "sbom_path": "$(json_escape "$sbom_file")",
