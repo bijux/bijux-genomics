@@ -197,6 +197,31 @@ version = "planned"
 enabled = false
 shipping_policy = "apptainer_only"
 
+[shapeit5]
+version = "planned"
+enabled = false
+shipping_policy = "docker_apptainer"
+
+[glimpse]
+version = "planned"
+enabled = false
+shipping_policy = "docker_apptainer"
+
+[impute5]
+version = "planned"
+enabled = false
+shipping_policy = "docker_apptainer"
+
+[eagle]
+version = "planned"
+enabled = false
+shipping_policy = "docker_apptainer"
+
+[minimac4]
+version = "planned"
+enabled = false
+shipping_policy = "docker_apptainer"
+
 [plink]
 version = "planned"
 enabled = false
