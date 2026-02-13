@@ -70,8 +70,14 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
-		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
-		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim || echo "warning: python base pull failed; continuing without local python base SIF"; \
+		fi; \
+		py_arg=""; \
+		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
@@ -79,7 +85,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
-			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
+			$$py_arg \
 			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
@@ -129,8 +135,10 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
 		fi; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
-			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim; \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim || echo "warning: python base pull failed; continuing without local python base SIF"; \
 		fi; \
+		py_arg=""; \
+		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
@@ -138,7 +146,7 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
-			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
+			$$py_arg \
 			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"
 
 apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
@@ -148,6 +156,8 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 	fi
 	@set -euo pipefail; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
+		py_arg=""; \
+		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)-test" env \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
@@ -155,7 +165,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
-			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
+			$$py_arg \
 			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
