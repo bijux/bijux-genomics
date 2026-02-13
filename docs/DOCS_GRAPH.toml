@@ -118,6 +118,7 @@ from = "docs/30-operations/index.md"
 children = [
   "docs/30-operations/APPTAINER_QA_MATRIX.md",
   "docs/30-operations/ARTIFACT_EXPLORER.md",
+  "docs/30-operations/BENCHMARK_VARIANCE.md",
   "docs/30-operations/CI.md",
   "docs/30-operations/CONTAINERS.md",
   "docs/30-operations/DEVELOPER_WORKFLOW.md",
