@@ -1,0 +1,27 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bowtie2"
+upstream: "https://github.com/BenLangmead/bowtie2"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "2.5.4"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "upstream:https://github.com/BenLangmead/bowtie2"
+stage_ids:
+  - "fastq.host_depletion"
+  - "fastq.contaminant_screen"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts:
+  - "report_json"
+metrics_schema_id: "bijux.unknown.v1"
+metrics_schema: "bijux.unknown.v1"
+version_cmd: "bowtie2 --version"
+help_cmd: "bowtie2 --help"
+comparability:
+  comparable_with: []
+  non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
+capabilities:
+  - "SE"
+  - "PE"

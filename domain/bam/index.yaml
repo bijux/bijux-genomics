@@ -1,54 +1,57 @@
+# GENERATED FILE - DO NOT EDIT
+# Regenerate with: scripts/domain/generate-index.sh bam
+
 domain: "bam"
 stage_ids:
   - bam.align
-  - bam.validate
-  - bam.qc_pre
-  - bam.mapping_summary
-  - bam.filter
-  - bam.mapq_filter
-  - bam.length_filter
-  - bam.markdup
-  - bam.duplication_metrics
-  - bam.complexity
-  - bam.coverage
-  - bam.insert_size
-  - bam.gc_bias
-  - bam.endogenous_content
-  - bam.overlap_correction
-  - bam.damage
   - bam.authenticity
-  - bam.contamination
-  - bam.sex
   - bam.bias_mitigation
-  - bam.recalibration
-  - bam.haplogroups
+  - bam.complexity
+  - bam.contamination
+  - bam.coverage
+  - bam.damage
+  - bam.duplication_metrics
+  - bam.endogenous_content
+  - bam.filter
+  - bam.gc_bias
   - bam.genotyping
+  - bam.haplogroups
+  - bam.insert_size
   - bam.kinship
+  - bam.length_filter
+  - bam.mapping_summary
+  - bam.mapq_filter
+  - bam.markdup
+  - bam.overlap_correction
+  - bam.qc_pre
+  - bam.recalibration
+  - bam.sex
+  - bam.validate
 tool_ids:
-  - bwa
-  - bowtie2
-  - samtools
-  - mapdamage2
-  - pydamage
-  - damageprofiler
-  - ngsbriggs
   - addeam
+  - angsd
+  - authenticct
+  - bamtools
+  - bamutil
+  - bedtools
+  - bowtie2
+  - bwa
+  - contammix
+  - damageprofiler
+  - gatk
+  - king
+  - mapdamage2
+  - mosdepth
+  - ngsbriggs
+  - picard
   - pmdtools
+  - preseq
+  - pydamage
+  - rxy
+  - samtools
   - schmutzi
   - verifybamid2
-  - contammix
-  - bedtools
-  - bamtools
-  - mosdepth
-  - picard
-  - gatk
-  - authenticct
-  - rxy
-  - angsd
   - yleaf
-  - king
-  - preseq
-  - bamutil
 stage_tool_compatibility:
   bam.align: [bwa, bowtie2]
   bam.validate: [samtools, bedtools, bamtools]

@@ -1,10 +1,13 @@
+# GENERATED FILE - DO NOT EDIT
+# Regenerate with: scripts/domain/generate-index.sh vcf
+
 domain: "vcf"
 stage_ids:
-  - "vcf.call"
-  - "vcf.filter"
-  - "vcf.stats"
+  - vcf.call
+  - vcf.filter
+  - vcf.stats
 tool_ids:
-  - "bcftools"
+  - bcftools
 stage_tool_compatibility:
   vcf.call: ["bcftools"]
   vcf.filter: ["bcftools"]
