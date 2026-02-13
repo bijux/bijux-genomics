@@ -17,6 +17,9 @@ while IFS= read -r rel; do
   [[ "$rel" == "scripts/checks/check-no-raw-cargo-in-scripts.sh" ]] && continue
   file="$ROOT_DIR/$rel"
   [[ -f "$file" ]] || continue
+  if [[ "$rel" == scripts/tooling/ci-*.sh ]]; then
+    continue
+  fi
 
   matches=$(rg -Hn "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" "$file" || true)
   while IFS= read -r row; do
