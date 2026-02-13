@@ -17,3 +17,7 @@ Container digests make execution reproducible.
 
 ## Failure modes
 - Missing digest blocks promotion to production.
+
+## References
+- `containers/index.md`
+- `containers/README.md`
