@@ -35,12 +35,33 @@ tools="${TOOLS:-}"
 stage="${STAGE:-}"
 workers="${BIJUX_WORKERS:-1}"
 container_artifact_dir="${CONTAINER_ARTIFACT_DIR:-artifacts/containers}"
+toolkit="${TOOLKIT:-}"
 bijux_bin="${BIJUX_BIN:-./bin/isolate cargo run --bin bijux -- dna}"
 bijux_hpc_root="${BIJUX_HPC_ROOT:-$HOME/bijux}"
 domain="${DOMAIN:-}"
 stages="${STAGES:-}"
 
 read -r -a bijux_cmd <<< "${bijux_bin}"
+
+resolve_toolkit_tools() {
+  local bundle="$1"
+  python3 - "$ROOT_DIR/configs/ci/tools/toolkit_bundles.toml" "$bundle" <<'PY'
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+path = sys.argv[1]
+bundle = sys.argv[2]
+with open(path, "rb") as fh:
+    data = tomllib.load(fh)
+tools = data.get("bundles", {}).get(bundle, {}).get("tools", [])
+if not tools:
+    raise SystemExit(f"unknown or empty toolkit bundle: {bundle}")
+print(",".join(str(t) for t in tools))
+PY
+}
 
 check_container_type() {
   case "${container_type}" in
@@ -127,6 +148,16 @@ case "${cmd}" in
     ;;
   smoke-cross-runtime-verify)
     ./scripts/containers/check-cross-runtime-smoke.sh "${container_artifact_dir}/docker-arm64" "${container_artifact_dir}/apptainer"
+    ;;
+  smoke-toolkit-docker-arm64)
+    [[ -n "${toolkit}" ]] || { echo "ERROR: set TOOLKIT=<bundle-id>" >&2; exit 2; }
+    toolkit_tools="$(resolve_toolkit_tools "$toolkit")"
+    ./bin/isolate env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
+    ;;
+  smoke-toolkit-apptainer)
+    [[ -n "${toolkit}" ]] || { echo "ERROR: set TOOLKIT=<bundle-id>" >&2; exit 2; }
+    toolkit_tools="$(resolve_toolkit_tools "$toolkit")"
+    ./bin/isolate env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
     ;;
   build-images)
     if [[ "${container_type}" != "docker-arm64" ]]; then
