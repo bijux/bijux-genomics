@@ -9,33 +9,43 @@ require_stable_env
 OUT="${1:-$ROOT_DIR/containers/versions/lock.json}"
 ensure_artifacts_dir "$(dirname "$OUT")"
 
-python3 - "$ROOT_DIR" "$OUT" <<'PY'
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
+version_map="$TMP_ROOT/version-map.lock.$$.json"
+trap 'rm -f "$version_map"' EXIT
+"$SCRIPT_DIR/extract-version-map.sh" "$version_map" >/dev/null
+
+python3 - "$ROOT_DIR" "$OUT" "$version_map" <<'PY'
 from pathlib import Path
 import hashlib
 import json
 import sys
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
 
 root = Path(sys.argv[1])
 out = Path(sys.argv[2])
+version_map_path = Path(sys.argv[3])
 versions_path = root / "containers/versions/versions.toml"
-versions = tomllib.loads(versions_path.read_text(encoding="utf-8"))
+version_map = json.loads(version_map_path.read_text(encoding="utf-8"))
 
 items = []
-for tool in sorted(versions):
-    row = versions[tool]
+for row in version_map.get("items", []):
+    tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
     items.append({
         "tool": tool,
+        "version": str(row.get("version", "")),
+        "status": str(row.get("status", "")),
+        "source": str(row.get("source", "")),
+        "source_sha256": str(row.get("source_sha256", "")),
+        "pinned_commit": str(row.get("pinned_commit", "")),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
 
 payload = {
-    "schema_version": "bijux.container.version_lock.v1",
+    "schema_version": "bijux.container.version_lock.v2",
     "source": "containers/versions/versions.toml",
+    "version_map_source": "artifacts/containers/version_map.json",
     "source_sha256": hashlib.sha256(versions_path.read_bytes()).hexdigest(),
     "items": items,
 }
