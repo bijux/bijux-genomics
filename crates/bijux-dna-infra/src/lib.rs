@@ -9,7 +9,7 @@ mod logging;
 mod paths;
 
 pub use logging::init_logging;
-pub use paths::{bench_base_dir, bench_tools_dir};
+pub use paths::{bench_base_dir, bench_tools_dir, configs_dir, configs_file};
 
 pub mod formats;
 
