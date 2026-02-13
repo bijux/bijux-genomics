@@ -127,7 +127,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let profile_path = bijux_dna_infra::configs_file(cwd, &format!("runtime/profile.{}.toml", cli.profile));
+    let profile_path = bijux_dna_infra::configs_file(cwd, &format!("runtime/profiles/{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path).map_err(|err| {
         anyhow!(CategorizedError::new(
             ErrorCategory::PlanError,

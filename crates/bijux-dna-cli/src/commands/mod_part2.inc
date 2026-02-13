@@ -187,7 +187,9 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
             layout.ensure_dirs()?;
             let configs_dir = bijux_dna_infra::configs_dir(cwd);
             bijux_dna_infra::ensure_dir(&configs_dir)?;
-            let profile_path = configs_dir.join("profile.hpc.toml");
+            let profiles_dir = configs_dir.join("runtime").join("profiles");
+            std::fs::create_dir_all(&profiles_dir)?;
+            let profile_path = profiles_dir.join("hpc.toml");
             bijux_dna_api::v1::api::run::atomic_write_bytes(
                 &profile_path,
                 layout.profile_hpc_toml().as_bytes(),

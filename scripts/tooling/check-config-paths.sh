@@ -21,7 +21,7 @@ missing=0
 while IFS= read -r rel; do
   [ -z "$rel" ] && continue
   case "$rel" in
-    configs/profile.hpc.toml|configs/tools.toml|configs/lab/config.toml)
+    configs/runtime/profiles/hpc.toml|configs/tools.toml|configs/lab/config.toml)
       continue
       ;;
   esac
