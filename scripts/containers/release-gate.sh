@@ -38,6 +38,7 @@ INFO
 "$SCRIPT_DIR/check-tool-docs-generated.sh"
 "$SCRIPT_DIR/check-time-locale-determinism.sh"
 "$SCRIPT_DIR/check-apptainer-cache-policy.sh"
+"$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
 "$SCRIPT_DIR/check-release-checklist.sh"
 "$SCRIPT_DIR/container-doctor.sh" --strict
 

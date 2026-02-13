@@ -31,6 +31,7 @@ SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 CACHE_POLICY_TOML="$ROOT_DIR/configs/ci/tools/apptainer_cache_policy.toml"
+HPC_BUILD_POLICY_TOML="$ROOT_DIR/configs/ci/tools/hpc_frontend_build_policy.toml"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
@@ -60,6 +61,27 @@ ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
 
 [[ -f "$CACHE_POLICY_TOML" ]] || { echo "missing $CACHE_POLICY_TOML" >&2; exit 1; }
+[[ -f "$HPC_BUILD_POLICY_TOML" ]] || { echo "missing $HPC_BUILD_POLICY_TOML" >&2; exit 1; }
+host_name="$(hostname -f 2>/dev/null || hostname)"
+if python3 - "$HPC_BUILD_POLICY_TOML" "$host_name" <<'PY'
+import re
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+cfg = tomllib.loads(open(sys.argv[1], "rb").read())
+hn = sys.argv[2]
+pat = str(cfg.get("compute_hostname_regex", "")).strip()
+if pat and re.search(pat, hn):
+    raise SystemExit(1)
+PY
+then
+  :
+else
+  echo "refusing apptainer smoke/build on compute node host: $host_name" >&2
+  exit 2
+fi
 resolve_tilde() {
   local path="$1"
   if [[ "$path" == "~/"* ]]; then

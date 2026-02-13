@@ -172,6 +172,7 @@ fi
 "$SCRIPT_DIR/check-tool-name-collision.sh"
 "$SCRIPT_DIR/check-toolkit-bundles.sh"
 "$SCRIPT_DIR/check-hpc-image-naming.sh"
+"$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
 "$SCRIPT_DIR/check-apptainer-cache-policy.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
 "$SCRIPT_DIR/check-apptainer-hardening.sh"
