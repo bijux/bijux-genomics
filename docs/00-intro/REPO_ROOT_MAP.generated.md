@@ -22,12 +22,13 @@ Top-level workspace paths only.
 | `Cargo.toml` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
+| `README.md` | `file` | `-` | - |
 | `artifacts` | `dir` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `bin` | `dir` | `-` | runtime boundary helpers for strict isolated execution. |
 | `configs` | `dir` | `-` | - |
-| `containers` | `dir` | `-` | Define the only supported user-facing container script entrypoints. |
+| `containers` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |
 | `deny.toml` | `file` | `-` | - |
 | `docs` | `dir` | `-` | - |
