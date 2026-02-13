@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
 
 if [[ ! -f assets/golden/bam/sample.bam ]]; then
   echo "Missing assets/golden/bam/sample.bam. Generate it with samtools (see assets/golden/README.md)." >&2

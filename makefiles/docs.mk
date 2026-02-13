@@ -5,7 +5,7 @@ DOCS_ROOT ?= artifacts/docs
 DOCS_SITE ?= $(DOCS_ROOT)/site
 DOCS_VENV ?= $(DOCS_ROOT)/.venv
 DOCS_PY ?= python3
-DOCS_REQ ?= requirements-docs.txt
+DOCS_REQ ?= scripts/docs/requirements.txt
 
 $(DOCS_VENV)/bin/activate: $(DOCS_REQ)
 	$(DOCS_PY) -m venv $(DOCS_VENV)
@@ -25,6 +25,6 @@ docs-clean: ## Remove built docs
 	rm -rf $(DOCS_ROOT)
 
 docs-isolate: ## Build docs in strict mode under an isolate dir
-	@./bin/isolate sh -ceu './scripts/docs/check-domain-doc-references.sh; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/check-root-pollution.sh'
+	@./bin/isolate sh -ceu './scripts/docs/check-domain-doc-references.sh; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/docs/check-root-pollution.sh'
 
 .PHONY: docs docs-lint docs-serve docs-clean docs-isolate

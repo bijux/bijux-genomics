@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
 LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
@@ -20,12 +24,12 @@ mkdir -p "$dest"
 pulled_paths=()
 if [[ "$PULL_MODE" == "full" ]]; then
   rsync -az \
-    --exclude-from="scripts/lunarc/rsync-pull-full-excludes.txt" \
+    --exclude-from="${SCRIPT_DIR}/rsync-pull-full-excludes.txt" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/")
 else
   rsync -az \
-    --include-from="scripts/lunarc/rsync-pull-results-includes.txt" \
+    --include-from="${SCRIPT_DIR}/rsync-pull-results-includes.txt" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/bijux-dna-results/")
   if [[ "$INCLUDE_CONTAINERS_MANIFEST" == "1" ]]; then
