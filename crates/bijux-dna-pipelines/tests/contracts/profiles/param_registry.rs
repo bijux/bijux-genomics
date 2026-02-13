@@ -72,7 +72,8 @@ fn registry_entries() -> BTreeMap<String, (String, String)> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
-        .join("configs");
+        .join("configs")
+        .join("ci");
     let registry_text = std::fs::read_to_string(root.join("param_registry.toml"))
         .unwrap_or_else(|err| panic!("read param_registry.toml failed: {err}"));
     let registry: ParamRegistryFile = toml::from_str(&registry_text)
@@ -90,7 +91,8 @@ fn param_registry_covers_all_stage_ids() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
-        .join("configs");
+        .join("configs")
+        .join("ci");
     let stages_text = std::fs::read_to_string(root.join("stages.toml"))
         .unwrap_or_else(|err| panic!("read stages.toml failed: {err}"));
     let stages: StagesConfig = toml::from_str(&stages_text)

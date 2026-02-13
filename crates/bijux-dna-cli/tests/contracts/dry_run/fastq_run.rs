@@ -10,7 +10,10 @@ fn cli_fastq_run_dry_run_emits_manifest_and_graph() {
     std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");
 
     let configs_dir = root.join("configs");
-    std::fs::create_dir_all(&configs_dir).expect("create configs");
+    let runtime_dir = configs_dir.join("runtime");
+    let ci_dir = configs_dir.join("ci");
+    std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
+    std::fs::create_dir_all(&ci_dir).expect("create ci configs");
     std::fs::write(
         configs_dir.join("profile.local.toml"),
         r#"
@@ -24,7 +27,7 @@ image_pull_policy = "if_not_present"
     )
     .expect("write profile");
     std::fs::write(
-        configs_dir.join("platforms.toml"),
+        runtime_dir.join("platforms.toml"),
         r#"
 default = "test"
 [platforms.test]
@@ -41,19 +44,18 @@ arch = "x86_64"
         .parent()
         .unwrap()
         .join("configs")
+        .join("ci")
         .join("images.toml");
-    std::fs::copy(workspace_images, configs_dir.join("images.toml")).expect("write images");
+    std::fs::copy(workspace_images, ci_dir.join("images.toml")).expect("write images");
     let workspace_tool_registry = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap()
         .join("configs")
+        .join("ci")
         .join("tool_registry.toml");
-    std::fs::copy(
-        workspace_tool_registry,
-        configs_dir.join("tool_registry.toml"),
-    )
+    std::fs::copy(workspace_tool_registry, ci_dir.join("tool_registry.toml"))
     .expect("write tool registry");
     let workspace_stages = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -61,8 +63,9 @@ arch = "x86_64"
         .parent()
         .unwrap()
         .join("configs")
+        .join("ci")
         .join("stages.toml");
-    std::fs::copy(workspace_stages, configs_dir.join("stages.toml")).expect("write stages");
+    std::fs::copy(workspace_stages, ci_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
     std::os::unix::fs::symlink(

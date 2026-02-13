@@ -13,7 +13,10 @@ fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     .expect("write vcf");
 
     let configs_dir = root.join("configs");
-    std::fs::create_dir_all(&configs_dir).expect("create configs");
+    let runtime_dir = configs_dir.join("runtime");
+    let ci_dir = configs_dir.join("ci");
+    std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
+    std::fs::create_dir_all(&ci_dir).expect("create ci configs");
     std::fs::write(
         configs_dir.join("profile.local.toml"),
         r#"
@@ -27,7 +30,19 @@ image_pull_policy = "if_not_present"
     )
     .expect("write profile");
     std::fs::write(
-        configs_dir.join("platforms.toml"),
+        runtime_dir.join("profile.local.toml"),
+        r#"
+container_runtime = "docker"
+default_threads = 1
+default_mem_gb = 1
+default_time_minutes = 1
+run_base_dir = "runs"
+image_pull_policy = "if_not_present"
+"#,
+    )
+    .expect("write runtime profile");
+    std::fs::write(
+        runtime_dir.join("platforms.toml"),
         r#"
 default = "test"
 [platforms.test]
@@ -54,7 +69,7 @@ arch = "x86_64"
         "param_registry_vcf.toml",
         "required_tools_vcf.toml",
     ] {
-        std::fs::copy(ws_root.join("configs").join(file), configs_dir.join(file))
+        std::fs::copy(ws_root.join("configs").join("ci").join(file), ci_dir.join(file))
             .unwrap_or_else(|err| panic!("copy {file}: {err}"));
     }
 
