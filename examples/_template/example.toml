@@ -1,8 +1,12 @@
 schema_version = "bijux.example.v1"
 id = "example-XYZ"
+domain = "fastq"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+expected_outputs = ["plan.json", "explain.json", "report.json"]
 ena_project = "PRJEXXXXXX"
 species = "human"
-corpus_id = "example-XYZ"
 target_se = 10
 target_pe = 10
 benchmark_suite = "fastq_stage01_validate_pre"

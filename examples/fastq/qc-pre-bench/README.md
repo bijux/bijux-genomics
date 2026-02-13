@@ -3,11 +3,16 @@
 ## Purpose
 Run a deterministic FASTQ pre-QC benchmark flow and validate expected contracts.
 
-## Steps
-1. Ensure images: `./scripts/run.sh containers ensure-images --plan`
-2. Run bench: `./scripts/run.sh examples run fastq_qc_pre_bench`
-3. Collect artifacts: `artifacts/examples/fastq_qc_pre_bench/`
-4. Generate report: `artifacts/examples/fastq_qc_pre_bench/report.json`
+Canonical invocation: `./scripts/examples/run.sh fastq_qc_pre_bench`
 
-## Runner
-Use `./scripts/run.sh examples run fastq_qc_pre_bench`.
+## Step 1 Containers
+- Ensure image plan is resolved by the runner.
+
+## Step 2 Build/Verify
+- Validate the example contract (`example.toml`) and corpus selection before execution.
+
+## Step 3 Bench
+- Execute the benchmark flow using the example-pinned suite.
+
+## Step 4 Collect/Report
+- Collect outputs in `artifacts/examples/fastq_qc_pre_bench/` and produce `bundle.tar.gz`.
