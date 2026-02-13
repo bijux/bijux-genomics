@@ -24,6 +24,8 @@ Ensures scientific and engineering results are re-runnable and reviewable across
 ## Examples
 - Re-run with the same manifest and lock on an offline worker.
 - Verify `manifest_signature_sha256` equality before comparing metrics.
+- Verify benchmark suite/config locations with `bijux dna bench status`.
+- Benchmark suites are owned under `crates/bijux-dna-bench/bench/suites/`.
 
 ## Failure modes
 - Floating tool tags or mutable pins break reproducibility.
