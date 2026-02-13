@@ -27,7 +27,11 @@ fn policy__contracts__configs_layout_policy__configs_root_contains_only_index_an
         if path.is_dir() {
             continue;
         }
-        let rel = path.strip_prefix(&root).unwrap_or(&path).display().to_string();
+        let rel = path
+            .strip_prefix(&root)
+            .unwrap_or(&path)
+            .display()
+            .to_string();
         if rel != "configs/index.md" {
             offenders.push(rel);
         }
@@ -45,7 +49,10 @@ fn policy__contracts__configs_layout_policy__rust_src_uses_configs_path_helper()
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -53,7 +60,11 @@ fn policy__contracts__configs_layout_policy__rust_src_uses_configs_path_helper()
         if path.extension().and_then(|s| s.to_str()) != Some("rs") {
             continue;
         }
-        let rel = path.strip_prefix(&root).unwrap_or(path).display().to_string();
+        let rel = path
+            .strip_prefix(&root)
+            .unwrap_or(path)
+            .display()
+            .to_string();
         if !rel.contains("/src/") {
             continue;
         }

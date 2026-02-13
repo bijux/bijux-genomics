@@ -15,7 +15,10 @@ fn workspace_root() -> PathBuf {
 
 fn script_files(root: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    for entry in WalkDir::new(root.join("scripts")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(root.join("scripts"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -48,7 +51,11 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
 
     let mut offenders = Vec::new();
     for file in script_files(&root) {
-        let rel = file.strip_prefix(&root).unwrap().to_string_lossy().to_string();
+        let rel = file
+            .strip_prefix(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         let ok_prefix = allowed_prefixes.iter().any(|p| rel.starts_with(p));
         if !ok_prefix {
             offenders.push(rel);
@@ -72,7 +79,11 @@ fn policy__contracts__scripts_layout_policy__scripts_have_strict_mode_and_c_loca
         if file.extension().and_then(|s| s.to_str()) != Some("sh") {
             continue;
         }
-        let rel = file.strip_prefix(&root).unwrap().to_string_lossy().to_string();
+        let rel = file
+            .strip_prefix(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         let head = std::fs::read_to_string(&file)
             .unwrap_or_default()
             .lines()
@@ -100,7 +111,8 @@ fn policy__contracts__scripts_layout_policy__scripts_have_strict_mode_and_c_loca
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenced_or_experimental() {
+fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenced_or_experimental()
+{
     let root = workspace_root();
     let make_text = std::fs::read_to_string(root.join("Makefile")).unwrap_or_default()
         + &std::fs::read_to_string(root.join("makefiles/cargo.mk")).unwrap_or_default()
@@ -118,7 +130,11 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
 
     let mut offenders = Vec::new();
     for file in script_files(&root) {
-        let rel = file.strip_prefix(&root).unwrap().to_string_lossy().to_string();
+        let rel = file
+            .strip_prefix(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         if rel.starts_with("scripts/experimental/") || rel.starts_with("scripts/_lib/") {
             continue;
         }
@@ -138,7 +154,10 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
 fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_scripts() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join(".github/workflows")).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(root.join(".github/workflows"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -165,7 +184,11 @@ fn policy__contracts__scripts_layout_policy__arg_parsing_reuses_shared_lib() {
         if file.extension().and_then(|s| s.to_str()) != Some("sh") {
             continue;
         }
-        let rel = file.strip_prefix(&root).unwrap().to_string_lossy().to_string();
+        let rel = file
+            .strip_prefix(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         if rel.starts_with("scripts/_lib/") || rel.starts_with("scripts/experimental/") {
             continue;
         }

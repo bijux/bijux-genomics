@@ -181,8 +181,8 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
 fn policy__contracts__vcf_support_gate_policy__production_switch_requires_non_experimental_stage_flags(
 ) {
     let root = repo_root();
-    let domains_raw =
-        fs::read_to_string(root.join("configs/ci/domains.toml")).expect("read configs/ci/domains.toml");
+    let domains_raw = fs::read_to_string(root.join("configs/ci/domains.toml"))
+        .expect("read configs/ci/domains.toml");
     let domains_doc: toml::Value = domains_raw.parse().expect("parse domains.toml");
     let stages_raw = fs::read_to_string(root.join("configs/ci/stages_vcf.toml"))
         .expect("read configs/ci/stages_vcf.toml");
