@@ -1,2 +1,3 @@
 # Paths to notebook files allowed under examples/.
 # Keep empty unless notebooks are explicitly approved.
+examples/vcf/downstream-vcf-full-mini/notebook/notebook.ipynb
