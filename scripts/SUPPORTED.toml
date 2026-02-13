@@ -457,6 +457,54 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_runtime_downloads"
+path = "scripts/containers/check-runtime-downloads.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_time_locale_determinism"
+path = "scripts/containers/check-time-locale-determinism.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "generate_tool_docs"
+path = "scripts/containers/generate-tool-docs.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_tool_docs_generated"
+path = "scripts/containers/check-tool-docs-generated.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_qa_matrix_generated"
+path = "scripts/containers/check-qa-matrix-generated.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_release_checklist"
+path = "scripts/containers/check-release-checklist.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "smoke_docker_arm64"
 path = "scripts/containers/smoke-docker-arm64.sh"
 purpose = "containers script"
