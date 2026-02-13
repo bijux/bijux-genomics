@@ -77,6 +77,7 @@ lint:
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 	./scripts/run.sh checks check-examples-structure
 	./scripts/run.sh checks check-examples-corpus-manifests
+	./scripts/run.sh checks check-examples-corpus-checksums
 	./scripts/run.sh checks check-examples-corpus-layout
 	./scripts/run.sh checks check-examples-golden
 	./scripts/run.sh checks check-examples-cli-snapshot

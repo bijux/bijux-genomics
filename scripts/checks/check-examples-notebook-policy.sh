@@ -34,6 +34,11 @@ while IFS= read -r nb; do
   fi
 done < <(find "$ROOT_DIR/examples" -type f -name '*.ipynb' | sort)
 
+if rg -n '\.ipynb' "$ROOT_DIR/scripts/examples/run.sh" >/dev/null 2>&1; then
+  echo "notebook policy: scripts/examples/run.sh must not depend on notebooks" >&2
+  errors=1
+fi
+
 if [[ "$errors" -ne 0 ]]; then
   exit 1
 fi
