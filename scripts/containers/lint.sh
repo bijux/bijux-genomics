@@ -63,9 +63,15 @@ check_docker() {
   if grep -qE 'FROM[[:space:]]+[^[:space:]]+:latest([[:space:]]|$)' "$file"; then
     record "$file: floating base tag latest is not allowed"
   fi
-  if ! awk '/^FROM /{print $2; exit}' "$file" | grep -q '@sha256:'; then
+  from_image="$(awk '/^FROM /{print $2; exit}' "$file")"
+  if ! printf '%s\n' "$from_image" | grep -q '@sha256:'; then
     record "$file: docker base image must be digest-pinned"
   fi
+  base_repo="$(printf '%s\n' "$from_image" | sed -E 's/@sha256:.*$//' | sed -E 's/:.*$//')"
+  case "$base_repo" in
+    ubuntu|python|quay.io/biocontainers/bcftools) ;;
+    *) record "$file: base image '$base_repo' is not allowed by containers/STYLE.md" ;;
+  esac
 }
 
 check_apptainer() {
@@ -146,6 +152,8 @@ fi
 "$SCRIPT_DIR/check-non-bijux-sources.sh"
 "$SCRIPT_DIR/check-version-completeness.sh"
 "$SCRIPT_DIR/check-tool-id-manifest.sh"
+"$SCRIPT_DIR/check-registry-vs-defs.sh"
+"$SCRIPT_DIR/check-tool-name-collision.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"

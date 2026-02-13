@@ -953,6 +953,22 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_registry_vs_defs"
+path = "scripts/containers/check-registry-vs-defs.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_tool_name_collision"
+path = "scripts/containers/check-tool-name-collision.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "domain_check_layout"
 path = "scripts/domain/check-domain-layout.sh"
 purpose = "domain script"

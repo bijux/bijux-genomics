@@ -33,7 +33,10 @@ for reg in reg_paths:
     for row in data.get("tools", []):
         if not isinstance(row, dict):
             continue
-        if row.get("status") not in ("production", "supported"):
+        status = str(row.get("status") or "").strip()
+        if status == "planned":
+            continue
+        if status != "production":
             continue
         if not bool(row.get("container", False)):
             continue
