@@ -74,6 +74,8 @@ mod mod_contracts_tooling_container_smoke_registry_driven_policy_rs;
 mod mod_contracts_tooling_container_version_variable_policy_rs;
 #[path = "contracts/tooling/container_versions_policy.rs"]
 mod mod_contracts_tooling_container_versions_policy_rs;
+#[path = "contracts/tooling/configs_layout_policy.rs"]
+mod mod_contracts_tooling_configs_layout_policy_rs;
 #[path = "contracts/tooling/contract_authority_policy.rs"]
 mod mod_contracts_tooling_contract_authority_policy_rs;
 #[path = "contracts/tooling/default_profile_binding_policy.rs"]
