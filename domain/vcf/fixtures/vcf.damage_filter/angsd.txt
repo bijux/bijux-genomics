@@ -1,0 +1,10 @@
+tool=angsd
+tool_version=pinned
+stage=vcf.damage_filter
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=angsd
+args=-i sample.bam -ref ref.fa -out damage -doDamage 1 -minMapQ 30 -minQ 20
+expected_outputs=damage_report.txt
+expected_stdout_patterns=PMD,C>T,G>A
