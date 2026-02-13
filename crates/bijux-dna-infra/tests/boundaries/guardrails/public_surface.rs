@@ -14,9 +14,25 @@ fn public_surface_is_snapshotted() {
     let content = fs::read_to_string(&lib)
         .unwrap_or_else(|err| panic!("read lib.rs at {}: {err}", lib.display()));
     let mut snapshot = String::new();
-    for line in content.lines() {
-        if line.trim_start().starts_with("pub mod") || line.trim_start().starts_with("pub use") {
+    let mut lines = content.lines().peekable();
+    while let Some(line) = lines.next() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("pub mod") {
             snapshot.push_str(line);
+            snapshot.push('\n');
+            continue;
+        }
+        if trimmed.starts_with("pub use") {
+            let mut block = line.to_string();
+            while !block.trim_end().ends_with(';') {
+                if let Some(next) = lines.next() {
+                    block.push(' ');
+                    block.push_str(next.trim());
+                } else {
+                    break;
+                }
+            }
+            snapshot.push_str(&block);
             snapshot.push('\n');
         }
     }
