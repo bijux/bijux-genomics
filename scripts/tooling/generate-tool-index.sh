@@ -52,6 +52,7 @@ def parse_tools(path: Path):
     return rows
 
 tools = {}
+vcf_downstream = {}
 for p in reg_paths:
     for t in parse_tools(p):
         tool_id = t.get('id') or t.get('tool_id')
@@ -65,6 +66,11 @@ for p in reg_paths:
             'status': t.get('status', 'unknown'),
             'version': t.get('version', '-'),
         }
+        if str(t.get("domain", "")) == "vcf" and any(s.startswith("vcf.") for s in t.get("stage_ids", [])):
+            vcf_downstream[tool_id] = {
+                "status": t.get("status", "unknown"),
+                "stages": t.get("stage_ids", []),
+            }
 
 self_reports = {}
 if summary_path.exists():
@@ -118,6 +124,13 @@ lines.append('- Tool admission policy is documented in `docs/50-reference/TOOL_A
 lines.append('')
 lines.append('See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)')
 lines.append('See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)')
+lines.append('')
+lines.append('## VCF Downstream / IBD Toolkit')
+lines.append('')
+for tid in sorted(vcf_downstream):
+    info = vcf_downstream[tid]
+    stages = ", ".join(info["stages"]) if info["stages"] else "-"
+    lines.append(f"- `{tid}` ({info['status']}) : {stages}")
 lines.append('')
 lines.append('| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |')
 lines.append('|---|---|---|---|---|---|---|')

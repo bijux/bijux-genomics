@@ -20,6 +20,19 @@ Source of truth = registry contracts + `artifacts/containers/summary.json` self-
 See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)
 See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 
+## VCF Downstream / IBD Toolkit
+
+- `bcftools` (production) : vcf.call, vcf.filter, vcf.stats
+- `beagle` (planned) : vcf.phasing
+- `eigensoft` (planned) : vcf.pca
+- `germline` (planned) : vcf.ibd
+- `ibdhap` (planned) : vcf.ibd
+- `ibdne` (planned) : vcf.ibd
+- `ibdseq` (planned) : vcf.ibd
+- `plink` (planned) : vcf.qc, vcf.admixture
+- `plink2` (planned) : vcf.qc, vcf.pca, vcf.relatedness
+- `shapeit` (planned) : vcf.phasing
+
 | Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
 |---|---|---|---|---|---|---|
 | `adapterremoval` | `trimmer` | `fastq.trim` | `bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d` | `latest-pinned` | upstream:https://github.com/MikkelSchubert/adapterremoval | `experimental` |

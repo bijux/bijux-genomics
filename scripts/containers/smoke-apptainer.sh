@@ -393,6 +393,8 @@ PY
         run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"
       fi
     fi
+    image_size_bytes="$(stat -f%z "$vm_sif" 2>/dev/null || stat -c%s "$vm_sif" 2>/dev/null || echo 0)"
+    packages_hash="$(run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc 'dpkg-query -W 2>/dev/null || true' | shasum -a 256 | awk '{print $1}')"
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
     version_output_json="$(json_escape "$version_output")"
@@ -420,7 +422,10 @@ PY
   "version_command": "$cmd_json",
   "minimal_command": "$(json_escape "$minimal_cmd")",
   "minimal_expected_exit_code": $minimal_exit_code,
+  "minimal_actual_exit_code": ${minimal_rc:-0},
   "version_output": "$version_output_json",
+  "image_size_bytes": $image_size_bytes,
+  "packages_hash": "$(json_escape "$packages_hash")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }
