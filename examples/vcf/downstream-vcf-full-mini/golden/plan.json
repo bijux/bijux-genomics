@@ -1,0 +1,15 @@
+{
+  "example_id": "vcf_downstream_vcf_full_mini",
+  "steps": [
+    "ensure_images",
+    "validate_inputs",
+    "run_bench",
+    "collect_outputs"
+  ],
+  "pipeline": [
+    "vcf.population_structure",
+    "vcf.roh",
+    "vcf.ibd",
+    "vcf.demography"
+  ]
+}

@@ -1,0 +1,9 @@
+id = "vcf_downstream_vcf_full_mini"
+domain = "vcf"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+expected_outputs = ["plan.json", "explain.json", "report.json"]
+reference_panel_id = "corpus_01_mini_panel"
+coverage_decision = "decision.coverage_regime"
+coverage_profile = "adna_lowcov_shotgun"

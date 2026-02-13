@@ -17,6 +17,14 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: vcf_damage_aware_genotype_mini
+    domain: vcf
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/damage-aware-genotype-mini
   - id: vcf_downstream_demography_mini
     domain: vcf
     corpus_required: corpus-01-mini
@@ -25,6 +33,14 @@ examples:
       - explain.json
       - report.json
     path: examples/vcf/downstream-demography-mini
+  - id: vcf_downstream_vcf_full_mini
+    domain: vcf
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/downstream-vcf-full-mini
   - id: vcf_imputation_mini
     domain: vcf
     corpus_required: corpus-01-mini

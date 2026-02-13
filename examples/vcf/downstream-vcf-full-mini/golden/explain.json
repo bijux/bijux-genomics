@@ -1,0 +1,19 @@
+{
+  "example_id": "vcf_downstream_vcf_full_mini",
+  "reasoning": [
+    "full downstream VCF mini path selected",
+    "toy VCF drives deterministic stage contract execution"
+  ],
+  "coverage_regime": {
+    "selected": "pseudohaploid",
+    "thresholds_used": {
+      "gl_max_depth": 2.0,
+      "pseudohaploid_max_depth": 8.0,
+      "diploid_min_depth": 12.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 3.9,
+      "median_depth_x": 3.5
+    }
+  }
+}
