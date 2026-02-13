@@ -1343,3 +1343,43 @@ purpose = "tooling script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "check_config_index_discipline"
+path = "scripts/checks/check-config-index-discipline.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_registry_required_tools_parity"
+path = "scripts/checks/check-registry-required-tools-parity.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_stage_domain_parity"
+path = "scripts/checks/check-stage-domain-parity.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_param_registry_completeness"
+path = "scripts/checks/check-param-registry-completeness.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_deprecations_enforcement"
+path = "scripts/checks/check-deprecations-enforcement.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
