@@ -24,6 +24,16 @@ regs = [
 ]
 images = tomllib.loads((root / "configs/ci/tools/images.toml").read_text(encoding="utf-8"))
 versions = tomllib.loads((root / "containers/versions/versions.toml").read_text(encoding="utf-8"))
+tool_ids = set()
+for raw in (root / "containers/TOOL_IDS.txt").read_text(encoding="utf-8").splitlines():
+    line = raw.strip()
+    if not line or line.startswith("#"):
+        continue
+    tool_ids.add(line.split("\t", 1)[0])
+docker_ids = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
+apptainer_ids = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
+apptainer_ids |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+domain_ids = {p.stem for p in (root / "domain").glob("*/tools/*.yaml") if p.stem != "_schema"}
 
 tools = {}
 for reg in regs:
@@ -64,6 +74,34 @@ for tid in sorted(tools):
         errors.append(
             f"name-collision: expected_bin must differ for '{base}' and '{tid}' (both '{base_bin}')"
         )
+
+if errors:
+    print("tool-name-collision: failed", file=sys.stderr)
+    for err in errors:
+        print(f"- {err}", file=sys.stderr)
+    raise SystemExit(1)
+
+# Cross-surface ID parity and normalization.
+surfaces = {
+    "registry": set(tools.keys()),
+    "images": {k for k, v in images.items() if isinstance(v, dict)},
+    "versions": set(versions.keys()),
+    "tool_ids": tool_ids,
+    "docker": docker_ids,
+    "apptainer": apptainer_ids,
+    "domain_tools": domain_ids,
+}
+all_ids = set().union(*surfaces.values())
+norm = re.compile(r"^[a-z][a-z0-9_]*$")
+for sid in sorted(all_ids):
+    if not norm.fullmatch(sid):
+        errors.append(f"id normalization: '{sid}' is not snake_case")
+
+for sid in sorted(all_ids):
+    present = [name for name, vals in surfaces.items() if sid in vals]
+    # domain tools may be external; but every non-domain surface id must exist in registry.
+    if "registry" not in present and any(s in present for s in ("images", "versions", "tool_ids", "docker", "apptainer")):
+        errors.append(f"id parity: '{sid}' present in {present} but missing from registry")
 
 if errors:
     print("tool-name-collision: failed", file=sys.stderr)

@@ -36,6 +36,9 @@ for row in owner_rows:
     if not tid or not team or not contact:
         print("each [[owner]] row must include tool_id, team, contact", file=sys.stderr)
         raise SystemExit(1)
+    if tid == "*":
+        print("containers/OWNERS.toml: wildcard tool_id='*' is not allowed; map each tool explicitly", file=sys.stderr)
+        raise SystemExit(1)
     rows.append((tid, team))
 
 tool_ids = []
@@ -49,7 +52,7 @@ errors = []
 for tool_id in tool_ids:
     matches = 0
     for pat, _team in rows:
-        if pat == "*" or pat == tool_id:
+        if pat == tool_id:
             matches += 1
     if matches != 1:
         errors.append(f"{tool_id}: expected exactly one owner match, got {matches}")

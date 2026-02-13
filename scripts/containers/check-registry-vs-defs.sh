@@ -23,6 +23,7 @@ regs = [
 ]
 
 registry_ids = set()
+registry_container_ids = set()
 for reg in regs:
     if not reg.exists():
         continue
@@ -33,6 +34,9 @@ for reg in regs:
         tid = str(row.get("id") or row.get("tool_id") or "").strip()
         if tid:
             registry_ids.add(tid)
+            status = str(row.get("status", "")).strip()
+            if bool(row.get("container", False)) and status in {"production", "experimental"}:
+                registry_container_ids.add(tid)
 
 def_ids = set()
 for d in (root / "containers/docker/arm64").glob("Dockerfile.*"):
@@ -43,11 +47,17 @@ for d in (root / "containers/apptainer/non-bijux").glob("*.def"):
     def_ids.add(d.stem)
 
 orphans = sorted(def_ids - registry_ids)
+missing = sorted(registry_container_ids - def_ids)
 if orphans:
-    print("registry-vs-defs: orphan container defs not present in registries:", file=sys.stderr)
+    print("registry-vs-defs: defs without registry entry:", file=sys.stderr)
     for tid in orphans:
         print(f"- {tid}", file=sys.stderr)
+if missing:
+    print("registry-vs-defs: registry container tools missing defs:", file=sys.stderr)
+    for tid in missing:
+        print(f"- {tid}", file=sys.stderr)
+if orphans or missing:
     raise SystemExit(1)
 
-print("registry-vs-defs: OK")
+print(f"registry-vs-defs: OK ({len(def_ids)} defs, {len(registry_container_ids)} registry container tools)")
 PY
