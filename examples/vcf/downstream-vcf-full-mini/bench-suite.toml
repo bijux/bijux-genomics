@@ -1,0 +1,3 @@
+suite_id = "bench-vcf-downstream-full-mini-01"
+domain = "vcf"
+stages = ["vcf.population_structure", "vcf.roh", "vcf.ibd", "vcf.demography"]
