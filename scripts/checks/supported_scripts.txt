@@ -18,6 +18,7 @@ scripts/checks/check-exit-codes.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
 scripts/checks/check-hpc-safety.sh
+scripts/checks/check-isolate-contract-strong.sh
 scripts/checks/check-isolation-contract.sh
 scripts/checks/check-lib-api.sh
 scripts/checks/check-network-usage.sh

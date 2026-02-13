@@ -137,6 +137,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_isolate_contract_strong"
+path = "scripts/checks/check-isolate-contract-strong.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_lib_api"
 path = "scripts/checks/check-lib-api.sh"
 purpose = "checks script"
