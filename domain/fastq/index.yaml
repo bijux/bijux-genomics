@@ -3,6 +3,9 @@
 
 domain: fastq
 stage_ids:
+  - fastq.abundance_normalization
+  - fastq.asv_inference
+  - fastq.chimera_detection
   - fastq.contaminant_screen
   - fastq.correct
   - fastq.deduplicate
@@ -12,9 +15,11 @@ stage_ids:
   - fastq.length_distribution_pre
   - fastq.low_complexity
   - fastq.merge
+  - fastq.otu_clustering
   - fastq.overrepresented_sequences
   - fastq.polyg_tailing
   - fastq.prepare_reference
+  - fastq.primer_normalization
   - fastq.qc_post
   - fastq.rrna
   - fastq.screen
@@ -34,6 +39,7 @@ tool_ids:
   - centrifuge
   - clumpify
   - cutadapt
+  - dada2
   - diamond
   - dustmasker
   - fastp

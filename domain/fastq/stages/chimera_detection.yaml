@@ -1,0 +1,28 @@
+extends: "_schema.yaml"
+stage_id: "fastq.chimera_detection"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "chimera_filtered_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+compatible_tools:
+  - vsearch
+assumptions:
+  - "Reference or de-novo chimera detection mode is fixed per run."
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+bank_hooks:
+  - "contaminant_db_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+required_inputs: []
+required_outputs: []
+allowed_missingness:
+  - "none"

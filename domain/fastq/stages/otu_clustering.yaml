@@ -1,0 +1,31 @@
+extends: "_schema.yaml"
+stage_id: "fastq.otu_clustering"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "otu_table"
+    data_type: "table"
+    cardinality: "One"
+  - name: "otu_representatives"
+    data_type: "fasta"
+    cardinality: "One"
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+compatible_tools:
+  - vsearch
+assumptions:
+  - "OTU identity threshold is declared in the run configuration."
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+bank_hooks:
+  - "contaminant_db_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+required_inputs: []
+required_outputs: []
+allowed_missingness:
+  - "none"

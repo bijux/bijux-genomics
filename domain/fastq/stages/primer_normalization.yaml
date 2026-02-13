@@ -1,0 +1,30 @@
+extends: "_schema.yaml"
+stage_id: "fastq.primer_normalization"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "primer_normalized_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+compatible_tools:
+  - cutadapt
+  - seqkit
+assumptions:
+  - "Marker-specific primer references are curated before execution."
+  - "Ambiguous primer matches are retained with explicit tags."
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+bank_hooks:
+  - "adapter_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+required_inputs: []
+required_outputs: []
+allowed_missingness:
+  - "none"
