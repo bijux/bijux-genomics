@@ -26,6 +26,8 @@ RUN curl -fsSL -o /tmp/plink2.zip https://s3.amazonaws.com/plink2-assets/alpha6/
     install -m 0755 /opt/plink2/plink2 /usr/local/bin/plink2 && \
     mkdir -p /opt/bijux && \
     printf '%s\n' '{"tool":"plink2","version":"2.00a5","source":"https://www.cog-genomics.org/plink/2.0/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info && \
     rm -rf /tmp/plink2.zip /opt/plink2
 
 ENTRYPOINT ["/usr/local/bin/plink2"]

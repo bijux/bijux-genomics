@@ -34,8 +34,10 @@ for reg in regs:
     for row in data.get("tools", []):
         if not isinstance(row, dict):
             continue
-        if row.get("status") not in ("production", "supported"):
-            continue
+        status = row.get("status")
+        if status not in ("production", "supported"):
+            if not (reg.name == "tool_registry_vcf_downstream.toml" and status == "planned"):
+                continue
         if not row.get("container", False):
             continue
         tool_id = str(row.get("id") or row.get("tool_id") or "<unknown>")
@@ -43,10 +45,17 @@ for reg in regs:
             continue
         v = str(row.get("smoke_version_cmd", "")).strip()
         h = str(row.get("smoke_help_cmd", "")).strip()
+        m = str(row.get("smoke_minimal_cmd", "")).strip()
+        me = row.get("smoke_minimal_exit_code", None)
         if not v:
             errors.append(f"{reg}: {tool_id} missing smoke_version_cmd")
         if not h:
             errors.append(f"{reg}: {tool_id} missing smoke_help_cmd")
+        if reg.name == "tool_registry_vcf_downstream.toml":
+            if not m:
+                errors.append(f"{reg}: {tool_id} missing smoke_minimal_cmd")
+            if me is None or not isinstance(me, int):
+                errors.append(f"{reg}: {tool_id} missing integer smoke_minimal_exit_code")
 
 if errors:
     print("smoke contract check failed:", file=sys.stderr)

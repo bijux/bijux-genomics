@@ -34,6 +34,12 @@ SH
     chmod 0755 /usr/local/bin/ibdhap
     mkdir -p /opt/bijux
     printf '%s\n' '{"tool":"ibdhap","version":"0.1.0-planned","source":"https://example.invalid/ibdhap","license":"unknown"}' > /opt/bijux/VERSION.json
+    cat >/usr/local/bin/bijux-tool-info <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+cat /opt/bijux/VERSION.json
+SH
+    chmod 0755 /usr/local/bin/bijux-tool-info
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
