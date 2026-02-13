@@ -158,6 +158,7 @@ children = [
   "docs/50-reference/DESIGN_AUTHORITY.md",
   "docs/50-reference/DOMAIN_TEMPLATE_CHECKLIST.md",
   "docs/50-reference/EXAMPLES.md",
+  "docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md",
   "docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md",
   "docs/50-reference/EXAMPLE_TEMPLATE.md",
   "docs/50-reference/MANIFEST_MIGRATION.md",
