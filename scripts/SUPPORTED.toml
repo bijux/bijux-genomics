@@ -1967,3 +1967,19 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "run_apptainer_frontend_reproducibility"
+path = "scripts/containers/run-apptainer-frontend-reproducibility.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/apptainer_cache_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_frontend_reproducibility"
+path = "scripts/containers/check-apptainer-frontend-reproducibility.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

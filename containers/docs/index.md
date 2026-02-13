@@ -12,6 +12,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Version authority: `containers/docs/VERSION_AUTHORITY.md`
 - Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
 - HPC frontend build authority: `containers/docs/FRONTEND_BUILD_AUTHORITY.md`
+- Frontend rebuild determinism: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY.md`
+- Frontend reproducibility report: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
@@ -107,4 +109,3 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `verifybamid2` | `production` | `bijux` | `arm64` |
 | `vsearch` | `production` | `bijux` | `arm64` |
 | `yleaf` | `experimental` | `bijux` | `arm64` |
-
