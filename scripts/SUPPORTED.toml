@@ -81,6 +81,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_config_schema"
+path = "scripts/checks/check-config-schema.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_config_filenames"
 path = "scripts/checks/check-config-filenames.sh"
 purpose = "checks script"
