@@ -33,24 +33,44 @@ versions_path = root / "containers/versions/versions.toml"
 version_map = json.loads(version_map_path.read_text(encoding="utf-8"))
 
 items = []
-manifest_dir = root / "artifacts" / "containers" / "manifests"
-digest_by_tool = {}
+manifest_candidates = [
+    root / "artifacts" / "containers",
+    root / "artifacts" / "containers" / "manifests",
+]
+docker_digest_by_tool = {}
+apptainer_sif_sha256_by_tool = {}
 size_by_tool = {}
-if manifest_dir.exists():
-    for p in sorted(manifest_dir.glob("*.json")):
+seen = set()
+for base in manifest_candidates:
+    if not base.exists():
+        continue
+    for p in sorted(base.glob("*.json")):
+        if p.name in {"lock.json", "summary.json", "report.json"}:
+            continue
+        if p in seen:
+            continue
+        seen.add(p)
         try:
             m = json.loads(p.read_text(encoding="utf-8"))
         except Exception:
             continue
         t = str(m.get("tool", "")).strip()
+        runtime = str(m.get("runtime", "")).strip()
         d = str(m.get("resolved_image_digest", "")).strip()
         s = m.get("image_size_bytes", 0)
-        if t:
-            digest_by_tool[t] = d
-            try:
-                size_by_tool[t] = int(s)
-            except Exception:
-                size_by_tool[t] = 0
+        if not t:
+            continue
+        if runtime.startswith("docker"):
+            docker_digest_by_tool[t] = d
+        elif runtime == "apptainer":
+            apptainer_sif_sha256_by_tool[t] = d
+        # keep most recent non-zero size if available
+        try:
+            size = int(s)
+        except Exception:
+            size = 0
+        if size > 0:
+            size_by_tool[t] = size
 for row in version_map.get("items", []):
     tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
@@ -61,7 +81,8 @@ for row in version_map.get("items", []):
         "source": str(row.get("source", "")),
         "source_sha256": str(row.get("source_sha256", "")),
         "pinned_commit": str(row.get("pinned_commit", "")),
-        "resolved_image_digest": str(digest_by_tool.get(tool, "")),
+        "resolved_image_digest": str(docker_digest_by_tool.get(tool, "")),
+        "resolved_sif_sha256": str(apptainer_sif_sha256_by_tool.get(tool, "")),
         "image_size_bytes": int(size_by_tool.get(tool, 0)),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
