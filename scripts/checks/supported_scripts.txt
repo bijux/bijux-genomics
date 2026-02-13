@@ -152,4 +152,6 @@ scripts/checks/check-container-ssot-parity.sh
 scripts/tooling/benchmark-integrity-mini.sh
 scripts/checks/check-benchmark-integrity-policy.sh
 scripts/containers/check-apptainer-frontend-reproducibility.sh
+scripts/containers/check-apptainer-frontend-security.sh
 scripts/containers/run-apptainer-frontend-reproducibility.sh
+scripts/containers/run-apptainer-frontend-security.sh

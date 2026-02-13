@@ -14,6 +14,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - HPC frontend build authority: `containers/docs/FRONTEND_BUILD_AUTHORITY.md`
 - Frontend rebuild determinism: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY.md`
 - Frontend reproducibility report: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
+- Frontend security doctrine: `containers/docs/APPTAINER_FRONTEND_SECURITY.md`
+- Frontend security summary: `containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
