@@ -1,6 +1,7 @@
 tool=diamond
 stage=fastq.screen
 domain=fastq
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

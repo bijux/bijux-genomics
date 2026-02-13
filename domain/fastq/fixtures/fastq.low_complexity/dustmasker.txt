@@ -1,6 +1,7 @@
 tool=dustmasker
 stage=fastq.low_complexity
 domain=fastq
+shipping=external
 fixture_kind=synthetic_truth
 args=
 expected_outputs=contract_artifacts

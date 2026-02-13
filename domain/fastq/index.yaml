@@ -37,7 +37,7 @@ tool_ids:
   - diamond
   - dustmasker
   - fastp
-  - fastq-scan
+  - fastq_scan
   - fastq_screen
   - fastqc
   - fastqvalidator

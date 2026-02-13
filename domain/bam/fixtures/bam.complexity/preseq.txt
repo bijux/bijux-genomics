@@ -1,6 +1,7 @@
 tool=preseq
 stage=bam.complexity
 domain=bam
+shipping=external
 fixture_kind=synthetic_truth
 args=
 expected_outputs=contract_artifacts

@@ -1,6 +1,7 @@
-tool=duplication
+tool=picard
 stage=bam.duplication_metrics
 domain=bam
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

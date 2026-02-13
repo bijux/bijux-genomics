@@ -1,6 +1,7 @@
 tool=gatk
 stage=bam.genotyping
 domain=bam
+shipping=external
 fixture_kind=synthetic_truth
 args=
 expected_outputs=contract_artifacts
