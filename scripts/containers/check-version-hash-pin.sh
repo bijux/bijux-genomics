@@ -8,6 +8,7 @@ require_stable_env
 
 python3 - "$ROOT_DIR" <<'PY'
 from pathlib import Path
+import re
 import sys
 try:
     import tomllib
@@ -20,18 +21,26 @@ versions = tomllib.loads((root / "containers/versions/versions.toml").read_text(
 errors = []
 for tid in sorted(versions.keys()):
     entry = versions.get(tid, {})
-    source = str(entry.get("source", ""))
-    needs_hash = any(token in source for token in (".zip", ".tar.gz", ".tgz", "/archive/", "/releases/download/"))
-    if not needs_hash:
+    source = str(entry.get("source", "")).strip()
+    if not source:
+        errors.append(f"{tid}: missing source URL")
         continue
+    if not re.match(r"^https?://", source):
+        errors.append(f"{tid}: source must be explicit http(s) URL")
+    version = str(entry.get("version", "")).strip()
+    if not version or version in {"0.0.0", "planned", "unknown"}:
+        errors.append(f"{tid}: version must be concrete and must not be placeholder ({version})")
     source_sha = str(entry.get("source_sha256", "")).strip()
     pin = str(entry.get("pinned_commit", "")).strip()
     if not source_sha and not pin:
-        errors.append(f"{tid}: missing source_sha256 or pinned_commit for source build")
+        errors.append(f"{tid}: missing source_sha256 or pinned_commit")
     if source_sha and len(source_sha) != 64:
         errors.append(f"{tid}: source_sha256 must be 64 hex chars")
-    if pin.lower() in {"pending", "unknown"}:
-        errors.append(f"{tid}: pinned_commit must not be pending/unknown")
+    if pin:
+        if pin.lower() in {"pending", "unknown"}:
+            errors.append(f"{tid}: pinned_commit must not be pending/unknown")
+        elif len(pin) not in {7, 40}:
+            errors.append(f"{tid}: pinned_commit must be short(7) or full(40) git hash")
 
 if errors:
     print("version hash pin check failed:", file=sys.stderr)

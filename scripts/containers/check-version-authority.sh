@@ -33,6 +33,10 @@ if lock.get("schema_version") != "bijux.container.version_lock.v2":
     errors.append("lock.json schema_version must be bijux.container.version_lock.v2")
 if lock.get("source") != "containers/versions/versions.toml":
     errors.append("lock.json source must be containers/versions/versions.toml")
+if not str(lock.get("build_date_utc", "")).strip():
+    errors.append("lock.json must include build_date_utc")
+if str(lock.get("builder_platform", "")).strip() != "arm64":
+    errors.append("lock.json builder_platform must be arm64")
 expected_sha = hashlib.sha256(versions_path.read_bytes()).hexdigest()
 if lock.get("source_sha256") != expected_sha:
     errors.append("lock.json source_sha256 does not match versions.toml")

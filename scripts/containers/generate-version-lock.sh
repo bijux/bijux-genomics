@@ -23,6 +23,7 @@ python3 - "$ROOT_DIR" "$OUT" "$version_map" <<'PY'
 from pathlib import Path
 import hashlib
 import json
+import subprocess
 import sys
 
 root = Path(sys.argv[1])
@@ -70,9 +71,21 @@ payload = {
     "source": "containers/versions/versions.toml",
     "version_map_source": "artifacts/containers/version_map.json",
     "build_manifests_source": "artifacts/containers/manifests/*.json",
+    "build_date_utc": "",
+    "builder_platform": "arm64",
     "source_sha256": hashlib.sha256(versions_path.read_bytes()).hexdigest(),
     "items": items,
 }
+ts = ""
+try:
+    proc = subprocess.run(
+        ["git", "-C", str(root), "log", "-1", "--format=%cI", "--", "containers/versions/versions.toml"],
+        capture_output=True, text=True, check=False
+    )
+    ts = (proc.stdout or "").strip()
+except Exception:
+    ts = ""
+payload["build_date_utc"] = ts or "1970-01-01T00:00:00Z"
 out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 print(f"generated {out}")
 PY
