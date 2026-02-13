@@ -46,6 +46,7 @@ scripts/docs/check-doc-root-layout.sh
 scripts/docs/check-docs-graph.sh
 scripts/docs/check-domain-doc-references.sh
 scripts/docs/check-generated-docs.sh
+scripts/docs/check-no-placeholder-language.sh
 scripts/docs/check-root-pollution.sh
 scripts/domain/inventory-drift.sh
 scripts/domain/lock-registry.sh
@@ -79,6 +80,7 @@ scripts/tooling/generate-config-tree-snapshot.sh
 scripts/tooling/generate-configs.sh
 scripts/tooling/generate-docs-graph.sh
 scripts/tooling/generate-apptainer-qa-matrix.sh
+scripts/tooling/generate-compatibility-matrix.sh
 scripts/tooling/generate-policy-index.sh
 scripts/tooling/generate-repo-root-map.sh
 scripts/tooling/generate-tool-index.sh

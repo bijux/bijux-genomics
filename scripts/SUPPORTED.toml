@@ -385,6 +385,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_no_placeholder_language"
+path = "scripts/docs/check-no-placeholder-language.sh"
+purpose = "docs script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_root_pollution"
 path = "scripts/docs/check-root-pollution.sh"
 purpose = "docs script"
@@ -643,6 +651,14 @@ ci_allowed = true
 [[script]]
 id = "generate_apptainer_qa_matrix"
 path = "scripts/tooling/generate-apptainer-qa-matrix.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "generate_compatibility_matrix"
+path = "scripts/tooling/generate-compatibility-matrix.sh"
 purpose = "tooling script"
 inputs = []
 outputs = []
