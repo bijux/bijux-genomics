@@ -5,6 +5,22 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 GIT_SHORT_SHA=$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo nogit)
 
+gen_uuid() {
+  if command -v uuidgen >/dev/null 2>&1; then
+    uuidgen | tr '[:upper:]' '[:lower:]'
+    return 0
+  fi
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - <<'PY'
+import uuid
+print(str(uuid.uuid4()))
+PY
+    return 0
+  fi
+  # fallback: deterministic shape when UUID generators are unavailable
+  echo "${ISO_TAG:-$(date -u +%Y%m%dT%H%M%SZ)-$$}-fallback"
+}
+
 print_usage() {
   cat >&2 <<'EOF'
 usage: bin/isolate [options] <command> [args...]
@@ -85,6 +101,9 @@ fi
 if [ -z "${ISO_ROOT:-}" ]; then
   ISO_ROOT="$ROOT_DIR/artifacts/isolates/$ISO_TAG"
 fi
+if [ -z "${ISO_RUN_ID:-}" ]; then
+  ISO_RUN_ID="$(gen_uuid)"
+fi
 case "$ISO_ROOT" in
   *"$ISO_TAG"*) ;;
   *)
@@ -108,6 +127,7 @@ fi
 
 if [ "$print_env" -eq 1 ]; then
   echo "ISO_TAG=$ISO_TAG"
+  echo "ISO_RUN_ID=$ISO_RUN_ID"
   echo "ISO_ROOT=$ISO_ROOT"
   echo "CARGO_TARGET_DIR=$ISO_ROOT/target"
   echo "CARGO_HOME=$ISO_ROOT/cargo-home"
@@ -143,6 +163,7 @@ fi
 mkdir -p "$ISO_ROOT/target" "$ISO_ROOT/cargo-home" "$ISO_ROOT/tmp" "$ISO_ROOT/logs" "$ISO_ROOT/out"
 
 export ISO_TAG
+export ISO_RUN_ID
 export ISO_ROOT
 export CARGO_TARGET_DIR="$ISO_ROOT/target"
 export CARGO_HOME="$ISO_ROOT/cargo-home"
