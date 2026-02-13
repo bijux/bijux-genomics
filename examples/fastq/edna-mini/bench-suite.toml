@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-edna-mini-01"
+domain = "fastq"
+stages = ["fastq.primer_normalization", "fastq.chimera_detection", "fastq.otu_clustering", "fastq.abundance_normalization"]

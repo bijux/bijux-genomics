@@ -5,6 +5,9 @@ Canonical examples index.
 ## Example IDs
 - `template`: `examples/_template/README.md`
 - `fastq_qc_pre_bench`: `examples/fastq/qc-pre-bench/README.md`
+- `fastq_edna_mini`: `examples/fastq/edna-mini/README.md`
+- `vcf_imputation_mini`: `examples/vcf/imputation-mini/README.md`
+- `vcf_downstream_demography_mini`: `examples/vcf/downstream-demography-mini/README.md`
 - `corpus_01_mini`: `examples/data/corpus-01-mini/README.md`
 - `corpus_01`: `examples/data/corpus-01/README.md`
 

@@ -1,0 +1,9 @@
+{
+  "example_id": "fastq_edna_mini",
+  "status": "ok",
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ]
+}

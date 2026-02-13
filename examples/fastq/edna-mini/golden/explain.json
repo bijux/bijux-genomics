@@ -1,0 +1,7 @@
+{
+  "example_id": "fastq_edna_mini",
+  "reasoning": [
+    "ecology-first fastq path",
+    "primer/chimera/otu/abundance stages enabled"
+  ]
+}

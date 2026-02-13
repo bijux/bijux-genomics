@@ -1,0 +1,7 @@
+{
+  "example_id": "vcf_downstream_demography_mini",
+  "reasoning": [
+    "coverage-safe downstream demography mini flow",
+    "use corpus-01-mini for deterministic scope"
+  ]
+}
