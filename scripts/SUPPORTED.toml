@@ -57,6 +57,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_exit_codes"
+path = "scripts/checks/check-exit-codes.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_config_contract_headers"
 path = "scripts/checks/check-config-contract-headers.sh"
 purpose = "checks script"
@@ -209,6 +217,22 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_script_deps"
+path = "scripts/checks/check-script-deps.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_script_help"
+path = "scripts/checks/check-script-help.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_script_writes"
 path = "scripts/checks/check-script-writes.sh"
 purpose = "checks script"
@@ -219,6 +243,22 @@ ci_allowed = true
 [[script]]
 id = "check_shell_portability"
 path = "scripts/checks/check-shell-portability.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_network_usage"
+path = "scripts/checks/check-network-usage.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_artifacts_layout"
+path = "scripts/checks/check-artifacts-layout.sh"
 purpose = "checks script"
 inputs = []
 outputs = []
@@ -716,6 +756,14 @@ ci_allowed = true
 id = "common"
 path = "scripts/_lib/common.sh"
 purpose = "shared shell library"
+inputs = []
+outputs = []
+ci_allowed = false
+
+[[script]]
+id = "runtime"
+path = "scripts/_lib/runtime.sh"
+purpose = "shared shell runtime library"
 inputs = []
 outputs = []
 ci_allowed = false
