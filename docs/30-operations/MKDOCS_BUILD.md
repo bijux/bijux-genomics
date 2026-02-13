@@ -1,34 +1,16 @@
-# MkDocs Build
+# MkDocs Build (Redirect)
 
 ## Purpose
-Define exact MkDocs build commands and dependency locations.
+Point to the authoritative reproducible docs build contract.
 
 ## Scope
-Applies to root documentation builds executed via Make and CI.
+Applies to docs build guidance maintained under operations docs.
 
 ## Non-goals
-- Covering crate-local docs generation workflows.
+- Duplicating build instructions in multiple files.
 
 ## Contracts
-- Dependencies are sourced from `configs/docs/requirements.txt`.
-- Environment setup is performed only through `scripts/tooling/setup-docs-venv.sh`.
-- CI/docs gates must use `make docs-lint` behavior (`mkdocs build --strict`).
+- Authoritative source: `docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md`.
+- This file remains a short redirect to avoid conflicting instructions.
 
-## Commands
-```bash
-make docs            # non-strict local build
-make docs-lint       # strict local build
-make docs-isolate    # strict build and checks under isolate
-```
-
-Equivalent internal commands:
-```bash
-DOCS_REQ=configs/docs/requirements.txt ./scripts/run.sh tooling setup-docs-venv
-. artifacts/docs/.venv/bin/activate
-mkdocs build --strict --site-dir artifacts/docs/site
-```
-
-## Dependency Locations
-- Requirements file: `configs/docs/requirements.txt`
-- Venv/bootstrap wrapper: `scripts/tooling/setup-docs-venv.sh`
-- Docs checks entrypoints: `scripts/docs/*.sh`
+See: [Docs Build Reproducible](DOCS_BUILD_REPRODUCIBLE.md)

@@ -14,6 +14,9 @@ Derived from `configs/ci/registry/tool_registry*.toml`.
 
 ## Contracts
 - Manual edits are forbidden; regenerate via script.
+- Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.
+
+See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Citation | Status |
 |---|---|---|---|---|---|
