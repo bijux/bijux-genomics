@@ -1,16 +1,43 @@
 # FASTQ Default Settings (Pre-HPC)
 
-This document defines aDNA-sane baseline defaults by stage.
+Purpose: define deterministic defaults for every FASTQ stage contract.
 
-- `fastq.prepare_reference`: prefer deterministic reference indexing (`star`).
-- `fastq.detect_adapters`: detect with `fastp` before trimming decisions.
-- `fastq.trim`: default `fastp`; keep deterministic ordering and stable report artifacts.
-- `fastq.filter`: default `fastp`; preserve stage artifact contract.
-- `fastq.validate_pre`: default `fastqvalidator` for strict validation.
-- `fastq.stats_neutral`: default `seqkit_stats` for neutral descriptive summaries.
-- `fastq.rrna`: default `sortmerna` when rRNA depletion is enabled.
-- `fastq.qc_post`: default `multiqc` for operator-facing aggregation.
-- `fastq.screen`: default `kraken2` for baseline taxonomic screening.
-- `fastq.merge`: default `pear` for overlap merge baseline.
-- `fastq.correct`: default `rcorrector` for conservative correction baseline.
-- `fastq.umi`: default `umi_tools` for UMI-aware workflows.
+## Inputs
+- FASTQ read pairs or single-end reads, plus optional reference/decoy indexes by stage.
+
+## Outputs
+- stage-specific FASTQ/BAM/JSON artifacts declared in stage contracts.
+
+## Key Parameters
+- read layout (SE/PE), quality thresholds, adapter/polyg settings, classifier presets.
+
+## Validity Limits
+- only pinned tool versions are valid
+- contract-required inputs/outputs must be preserved
+- stage/tool combinations must remain in index compatibility map
+
+## Stage Coverage
+- `fastq.prepare_reference`: default `star`.
+- `fastq.validate_pre`: default `fastqvalidator`.
+- `fastq.length_distribution_pre`: default `seqkit_stats`.
+- `fastq.detect_adapters`: default `fastp`.
+- `fastq.polyg_tailing`: default `fastp`.
+- `fastq.trim`: default `fastp`.
+- `fastq.filter`: default `fastp`.
+- `fastq.stats_neutral`: default `seqkit_stats`.
+- `fastq.rrna`: default `sortmerna`.
+- `fastq.qc_post`: default `multiqc`.
+- `fastq.merge`: default `pear`.
+- `fastq.deduplicate`: default `prinseq`.
+- `fastq.low_complexity`: default `bbduk`.
+- `fastq.host_depletion`: default `bowtie2`.
+- `fastq.contaminant_screen`: default `bbduk`.
+- `fastq.correct`: default `rcorrector`.
+- `fastq.umi`: default `umi_tools`.
+- `fastq.overrepresented_sequences`: default `fastqc`.
+- `fastq.screen`: default `kraken2`.
+
+single_tool_justification: fastq.prepare_reference
+single_tool_justification: fastq.detect_adapters
+single_tool_justification: fastq.rrna
+single_tool_justification: fastq.umi

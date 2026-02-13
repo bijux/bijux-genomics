@@ -1,0 +1,23 @@
+schema_version: "bijux.stage.v1"
+required_fields:
+  - stage_id
+  - status
+  - scope
+  - domain
+  - inputs
+  - outputs
+  - required_inputs
+  - required_outputs
+  - metrics
+  - compatible_tools
+  - assumptions
+  - bank_hooks
+  - invariants
+  - allowed_missingness
+  - planned_out_of_scope
+allowed_status:
+  - supported
+  - planned
+  - out_of_scope
+required_scope: "post_vcf"
+domain: "vcf"

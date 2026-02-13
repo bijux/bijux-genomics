@@ -1,0 +1,9 @@
+schema_version: "bijux.artifacts.v1"
+domain: "vcf"
+artifacts:
+  - id: "called_vcf"
+    type: "vcf"
+  - id: "filtered_vcf"
+    type: "vcf"
+  - id: "vcf_stats"
+    type: "json"
