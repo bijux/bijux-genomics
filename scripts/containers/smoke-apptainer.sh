@@ -10,6 +10,10 @@ export LC_ALL
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 source "$ROOT_DIR/scripts/_lib/common.sh"
+./bin/require-isolate >/dev/null || {
+  ./bin/require-isolate --explain >&2
+  exit 1
+}
 SELF_SCRIPT="$SCRIPT_DIR/$(basename -- "$0")"
 if [ ! -f "$SELF_SCRIPT" ]; then
   SELF_SCRIPT="$SCRIPT_DIR/smoke-apptainer.sh"
@@ -132,6 +136,16 @@ get_help_cmd() {
   printf '%s\n' "$value"
 }
 
+get_help_exit_code() {
+  tool="$1"
+  value=$(get_registry_field smoke_help_exit_code "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "0"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
 get_registry_field() {
   field="$1"
   tool="$2"
@@ -240,6 +254,36 @@ get_minimal_exit_code() {
   printf '%s\n' "$value"
 }
 
+get_negative_cmd() {
+  tool="$1"
+  value=$(get_registry_field smoke_negative_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "$tool --__bijux_invalid_flag__"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
+get_negative_exit_code() {
+  tool="$1"
+  value=$(get_registry_field smoke_negative_exit_code "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "2"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
+get_negative_pattern() {
+  tool="$1"
+  value=$(get_registry_field smoke_negative_expected_pattern "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "invalid|unknown|error|usage"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
 derive_runscript_args() {
   cmd="$1"
   expected_bin="$2"
@@ -304,8 +348,12 @@ build_and_smoke_one() {
   out_sif="$IMG_DIR/${tool}.sif"
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
+  help_exit_code=$(get_help_exit_code "$tool")
   minimal_cmd=$(get_minimal_cmd "$tool")
   minimal_exit_code=$(get_minimal_exit_code "$tool")
+  negative_cmd=$(get_negative_cmd "$tool")
+  negative_exit_code=$(get_negative_exit_code "$tool")
+  negative_pattern=$(get_negative_pattern "$tool")
   health_cmd=$(get_healthcheck_cmd "$tool")
   version_regex=$(get_expected_version_regex "$tool")
   expected_bin=$(get_registry_field expected_bin "$tool")
@@ -315,6 +363,7 @@ build_and_smoke_one() {
   version_output_file="$LOG_DIR/${tool}.version.out"
   help_output_file="$LOG_DIR/${tool}.help.out"
   minimal_output_file="$LOG_DIR/${tool}.minimal.out"
+  negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
   manifest="$MANIFEST_DIR/${tool}.json"
   base_image=$(awk '/^From: /{print $2; exit}' "$def_file")
@@ -360,7 +409,15 @@ build_and_smoke_one() {
     fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
-      run_tool_command "$vm_sif" "$help_cmd" "$expected_bin" 2>&1 | tee "$help_output_file"
+      set +e
+      run_tool_command "$vm_sif" "$help_cmd" "$expected_bin" >"$help_output_file" 2>&1
+      help_rc=$?
+      set -e
+      cat "$help_output_file"
+      if [ "$help_rc" -ne "$help_exit_code" ]; then
+        echo "help command exit mismatch: got $help_rc expected $help_exit_code"
+        exit 1
+      fi
       echo "=== [$tool] smoke-bin: $expected_bin"
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
       echo "=== [$tool] healthcheck: $health_cmd"
@@ -374,6 +431,21 @@ build_and_smoke_one() {
       cat "$minimal_output_file"
       if [ "$minimal_rc" -ne "$minimal_exit_code" ]; then
         echo "minimal command exit code mismatch: got $minimal_rc expected $minimal_exit_code"
+        exit 1
+      fi
+      echo "=== [$tool] smoke-negative: $negative_cmd (expected_exit=$negative_exit_code)"
+      if run_tool_command_capture_status "$vm_sif" "$negative_cmd" "$expected_bin" "$negative_output_file"; then
+        negative_rc=0
+      else
+        negative_rc=$?
+      fi
+      cat "$negative_output_file"
+      if [ "$negative_rc" -ne "$negative_exit_code" ]; then
+        echo "negative command exit code mismatch: got $negative_rc expected $negative_exit_code"
+        exit 1
+      fi
+      if ! grep -Eiq "$negative_pattern" "$negative_output_file"; then
+        echo "negative output does not match expected pattern: $negative_pattern"
         exit 1
       fi
       echo "=== [$tool] self-report: bijux-tool-info"
@@ -423,6 +495,11 @@ PY
   "minimal_command": "$(json_escape "$minimal_cmd")",
   "minimal_expected_exit_code": $minimal_exit_code,
   "minimal_actual_exit_code": ${minimal_rc:-0},
+  "negative_command": "$(json_escape "$negative_cmd")",
+  "negative_expected_exit_code": $negative_exit_code,
+  "negative_actual_exit_code": ${negative_rc:-0},
+  "help_expected_exit_code": $help_exit_code,
+  "help_actual_exit_code": ${help_rc:-0},
   "version_output": "$version_output_json",
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
