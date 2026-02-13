@@ -24,14 +24,19 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 
 - `bcftools` (production) : vcf.call, vcf.filter, vcf.stats
 - `beagle` (planned) : vcf.phasing
+- `eagle` (planned) : vcf.phasing
 - `eigensoft` (planned) : vcf.pca
 - `germline` (planned) : vcf.ibd
+- `glimpse` (planned) : vcf.impute, vcf.imputation
 - `ibdhap` (planned) : vcf.ibd
 - `ibdne` (planned) : vcf.ibd
 - `ibdseq` (planned) : vcf.ibd
+- `impute5` (planned) : vcf.impute, vcf.imputation
+- `minimac4` (planned) : vcf.impute, vcf.imputation
 - `plink` (planned) : vcf.qc, vcf.admixture
 - `plink2` (planned) : vcf.qc, vcf.pca, vcf.relatedness
 - `shapeit` (planned) : vcf.phasing
+- `shapeit5` (planned) : vcf.phasing
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
 |---|---|---|---|---|---|---|
@@ -55,6 +60,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `contammix` | `transform` | `bam.contamination` | `bijuxdna/contammix:1.0.11` | `1.0.11` | upstream:https://bioconductor.org/packages/contamMix | `production` |
 | `cutadapt` | `trimmer` | `fastq.trim` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `latest-pinned` | upstream:https://github.com/cutadapt/cutadapt | `experimental` |
 | `damageprofiler` | `transform` | `bam.damage, bam.authenticity` | `bijuxdna/damageprofiler:latest-pinned` | `latest-pinned` | upstream:https://github.com/Integrative-Transcriptomics/DamageProfiler | `experimental` |
+| `eagle` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `eigensoft` | `population_structure` | `vcf.pca` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `fastp` | `filter` | `fastq.trim, fastq.filter` | `bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10` | `0.23.4` | upstream:https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz | `production` |
 | `fastq.validate_pre` | `merger` | `fastq.merge` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | upstream:https://github.com/vsearch/vsearch | `production` |
@@ -65,9 +71,11 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `flash2` | `merger` | `fastq.merge` | `bijuxdna/flash2@sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5` | `2.2.00` | upstream:https://github.com/dstreett/FLASH2 | `experimental` |
 | `fqtools` | `validator` | `fastq.validate_pre` | `bijuxdna/fqtools@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `v2.3` | upstream:https://github.com/alastair-droop/fqtools | `experimental` |
 | `germline` | `relatedness` | `vcf.ibd` | `planned` | `0.0.0-planned` | planned | `planned` |
+| `glimpse` | `imputation` | `vcf.impute, vcf.imputation` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `ibdhap` | `relatedness` | `vcf.ibd` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `ibdne` | `demography` | `vcf.ibd` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `ibdseq` | `relatedness` | `vcf.ibd` | `planned` | `0.0.0-planned` | planned | `planned` |
+| `impute5` | `imputation` | `vcf.impute, vcf.imputation` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `kaiju` | `screen` | `fastq.screen` | `bijuxdna/kaiju@sha256:pending` | `1.10.0` | upstream:https://github.com/bioinformatics-centre/kaiju | `experimental` |
 | `king` | `transform` | `bam.kinship` | `bijuxdna/king:2.3.0` | `2.3.0` | upstream:https://www.kingrelatedness.com/ | `production` |
 | `kraken2` | `screen` | `fastq.screen` | `bijuxdna/kraken2@sha256:pending` | `2.1.3` | upstream:https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz | `production` |
@@ -76,6 +84,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `lighter` | `corrector` | `fastq.correct` | `bijuxdna/lighter@sha256:pending` | `latest-pinned` | upstream:https://github.com/mourisl/Lighter | `experimental` |
 | `mapdamage2` | `transform` | `bam.damage` | `bijuxdna/mapdamage2:2.2.2` | `2.2.2` | upstream:https://github.com/ginolhac/mapDamage | `production` |
 | `metaphlan` | `screen` | `fastq.screen` | `bijuxdna/metaphlan@sha256:pending` | `4.1.1` | upstream:https://github.com/biobakery/MetaPhlAn | `experimental` |
+| `minimac4` | `imputation` | `vcf.impute, vcf.imputation` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `mosdepth` | `transform` | `bam.coverage` | `bijuxdna/mosdepth:0.3.10` | `0.3.10` | upstream:https://github.com/brentp/mosdepth | `production` |
 | `multiqc` | `qc` | `fastq.qc_post` | `bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec` | `1.24` | upstream:https://github.com/multiqc/multiqc | `production` |
 | `musket` | `corrector` | `fastq.correct` | `bijuxdna/musket@sha256:pending` | `1.1` | upstream:https://github.com/alexdobin/musket | `experimental` |
@@ -94,6 +103,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `seqkit_stats` | `qc` | `fastq.stats_neutral` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
 | `seqtk` | `validator` | `fastq.validate_pre` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `experimental` |
 | `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
+| `shapeit5` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `skewer` | `trimmer` | `fastq.trim` | `bijuxdna/skewer:latest-pinned` | `latest-pinned` | upstream:https://github.com/relipmoc/skewer | `experimental` |
 | `sortmerna` | `filter` | `fastq.filter` | `bijuxdna/sortmerna:4.3.7` | `4.3.7` | upstream:https://github.com/biocore/sortmerna | `production` |
 | `spades` | `corrector` | `fastq.correct` | `bijuxdna/spades@sha256:pending` | `latest-pinned` | upstream:https://github.com/ablab/spades | `experimental` |
