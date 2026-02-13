@@ -40,6 +40,8 @@ for row in data.get("tools", []):
             text = path.read_text(encoding="utf-8")
             if "/opt/bijux/VERSION.json" not in text:
                 errors.append(f"{tid}: dockerfile missing provenance file write /opt/bijux/VERSION.json")
+            if "bijux-tool-info" not in text:
+                errors.append(f"{tid}: dockerfile missing bijux-tool-info self-report command")
 
     if apptainer_def:
         path = root / apptainer_def
@@ -49,6 +51,8 @@ for row in data.get("tools", []):
             text = path.read_text(encoding="utf-8")
             if "/opt/bijux/VERSION.json" not in text:
                 errors.append(f"{tid}: apptainer def missing provenance file write /opt/bijux/VERSION.json")
+            if "bijux-tool-info" not in text:
+                errors.append(f"{tid}: apptainer def missing bijux-tool-info self-report command")
 
 if errors:
     print("build-provenance: failed", file=sys.stderr)

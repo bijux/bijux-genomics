@@ -181,6 +181,26 @@ get_expected_version_regex() {
   printf '%s\n' "$value"
 }
 
+get_minimal_cmd() {
+  tool="$1"
+  value=$(get_registry_field smoke_minimal_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "$tool --help"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
+get_minimal_exit_code() {
+  tool="$1"
+  value=$(get_registry_field smoke_minimal_exit_code "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "0"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
 is_downstream_container_tool() {
   tool="$1"
   rg -q "^id = \"${tool}\"$" "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml" 2>/dev/null
@@ -193,6 +213,8 @@ build_and_smoke_one() {
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
+  minimal_cmd=$(get_minimal_cmd "$tool")
+  minimal_exit_code=$(get_minimal_exit_code "$tool")
   health_cmd=$(get_healthcheck_cmd "$tool")
   version_regex=$(get_expected_version_regex "$tool")
   expected_bin=$(get_registry_field expected_bin "$tool")
@@ -201,6 +223,8 @@ build_and_smoke_one() {
   fi
   version_output_file="$LOG_DIR/${tool}.version.out"
   help_output_file="$LOG_DIR/${tool}.help.out"
+  minimal_output_file="$LOG_DIR/${tool}.minimal.out"
+  self_report_file="$LOG_DIR/${tool}.self_report.json"
   manifest="$MANIFEST_DIR/${tool}.json"
   dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
   upstream=$(get_registry_field upstream "$tool")
@@ -259,6 +283,33 @@ build_and_smoke_one() {
         echo "healthcheck failed: $health_cmd"
         exit 1
       fi
+      echo "=== [$tool] smoke-minimal: $minimal_cmd (expected_exit=$minimal_exit_code)"
+      set +e
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$minimal_cmd" >"$minimal_output_file" 2>&1
+      minimal_rc=$?
+      set -e
+      cat "$minimal_output_file"
+      if [ "$minimal_rc" -ne "$minimal_exit_code" ]; then
+        echo "minimal command exit code mismatch: got $minimal_rc expected $minimal_exit_code"
+        exit 1
+      fi
+      echo "=== [$tool] self-report: bijux-tool-info"
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "bijux-tool-info" >"$self_report_file"; then
+        echo "self-report command failed: bijux-tool-info"
+        exit 1
+      fi
+      python3 - "$self_report_file" "$tool" <<'PY'
+import json,sys
+p=sys.argv[1]; t=sys.argv[2]
+d=json.load(open(p,"r",encoding="utf-8"))
+if d.get("tool") != t:
+    raise SystemExit("self-report tool mismatch")
+PY
+      echo "=== [$tool] runtime-sanity: assets read + ISO_ROOT write"
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm -v "$ROOT_DIR/assets/toy:/mnt/toy:ro" -v "${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}:/mnt/iso" --entrypoint sh "$image" -lc "test -r /mnt/toy && mkdir -p /mnt/iso/runtime-sanity && echo '$tool' > /mnt/iso/runtime-sanity/${tool}.docker.txt"; then
+        echo "runtime sanity failed"
+        exit 1
+      fi
       if is_downstream_container_tool "$tool"; then
         echo "=== [$tool] provenance: /opt/bijux/VERSION.json"
         if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"; then
@@ -297,7 +348,10 @@ build_and_smoke_one() {
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
+  "minimal_command": "$(json_escape "$minimal_cmd")",
+  "minimal_expected_exit_code": $minimal_exit_code,
   "version_output": "$version_output_json",
+  "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }
 JSON

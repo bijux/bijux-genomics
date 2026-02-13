@@ -26,6 +26,8 @@ RUN curl -fsSL -o /tmp/plink.zip https://s3.amazonaws.com/plink1-assets/plink_li
     install -m 0755 /opt/plink/plink /usr/local/bin/plink && \
     mkdir -p /opt/bijux && \
     printf '%s\n' '{"tool":"plink","version":"1.90","source":"https://www.cog-genomics.org/plink/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info && \
     rm -rf /tmp/plink.zip /opt/plink
 
 ENTRYPOINT ["/usr/local/bin/plink"]

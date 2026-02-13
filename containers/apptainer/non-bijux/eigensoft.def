@@ -24,6 +24,12 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     install -m 0755 /tmp/EIG-8.0.0/bin/smartpca /usr/local/bin/smartpca
     mkdir -p /opt/bijux
     printf '%s\n' '{"tool":"eigensoft","version":"8.0.0","source":"https://github.com/DReichLab/EIG","license":"GPL-2.0"}' > /opt/bijux/VERSION.json
+    cat >/usr/local/bin/bijux-tool-info <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+cat /opt/bijux/VERSION.json
+SH
+    chmod 0755 /usr/local/bin/bijux-tool-info
     rm -rf /tmp/eigensoft.tar.gz /tmp/EIG-8.0.0
     apt-get clean
     rm -rf /var/lib/apt/lists/*
