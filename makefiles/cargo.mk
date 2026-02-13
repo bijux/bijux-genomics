@@ -8,8 +8,14 @@ COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS = configs/coverage.toml
 COVERAGE_OUT = coverage.json
 
+REQUIRED_CARGO_TOOLS = cargo-nextest cargo-llvm-cov cargo-deny
+
 define RUN_IN_ISOLATE
 	@./bin/isolate sh -ceu '$(1)'
+endef
+
+define REQUIRE_TOOL
+	command -v $(1) >/dev/null 2>&1 || { echo "missing required tool: $(1)"; echo "install once: cargo install $(1) --locked"; exit 1; }
 endef
 
 fmt:
@@ -22,17 +28,21 @@ lint:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; ./scripts/check-ssot-guardrails.sh; export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo install cargo-nextest --locked >/dev/null 2>&1 || true; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); ./scripts/check-isolation-contract.sh)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; ./scripts/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); ./scripts/check-isolation-contract.sh)
 
 audit:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo install cargo-deny --locked >/dev/null 2>&1 || true; cargo deny check)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-deny); cargo deny check)
 
 coverage:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-cov"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo install cargo-llvm-cov --locked >/dev/null 2>&1 || true; cargo install cargo-nextest --locked >/dev/null 2>&1 || true; cargo llvm-cov clean; rm -rf "$$ISO_ROOT/coverage"; mkdir -p "$$ISO_ROOT/coverage"; cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); cargo llvm-cov report --json --output-path "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; cargo llvm-cov report --html --output-dir "$$ISO_ROOT/coverage"; test -f "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; test -f "$$ISO_ROOT/coverage/index.html"; if [ -f $(COVERAGE_BASELINE) ]; then python3 scripts/coverage_summary.py "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --baseline $(COVERAGE_BASELINE) --check-thresholds $(COVERAGE_THRESHOLDS); else python3 scripts/coverage_summary.py "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --check-thresholds $(COVERAGE_THRESHOLDS); fi)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-llvm-cov); $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo llvm-cov clean; rm -rf "$$ISO_ROOT/coverage"; mkdir -p "$$ISO_ROOT/coverage"; cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); cargo llvm-cov report --json --output-path "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; cargo llvm-cov report --html --output-dir "$$ISO_ROOT/coverage"; test -f "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; test -f "$$ISO_ROOT/coverage/index.html"; if [ -f $(COVERAGE_BASELINE) ]; then python3 scripts/coverage_summary.py "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --baseline $(COVERAGE_BASELINE) --check-thresholds $(COVERAGE_THRESHOLDS); else python3 scripts/coverage_summary.py "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --check-thresholds $(COVERAGE_THRESHOLDS); fi)
+
+install-ci-tools: ## Install required cargo tools once per CI job.
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo install --locked cargo-nextest cargo-llvm-cov cargo-deny)
 
 domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 
 ci:
+	$(MAKE) install-ci-tools
 	$(MAKE) fmt
 	$(MAKE) lint
 	$(MAKE) audit
@@ -83,6 +93,7 @@ ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) policy-no-raw-cargo
 
 ci-slow: ## Slow CI tier (manual): heavier integration checks.
+	$(MAKE) install-ci-tools
 	$(MAKE) audit
 	$(MAKE) coverage
 	$(MAKE) docs-isolate
@@ -141,5 +152,5 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 		clean-isolates \
 		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
-		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick \
+		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
 		snapshots snapshots-accept snapshots-review fix-snapshots test-triage
