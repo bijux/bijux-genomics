@@ -13,6 +13,7 @@ LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
 LUNARC_FRONTEND_SENTINEL ?= /home/bijan/bijux/bijux-dna
+LUNARC_APPTAINER_BASE_SEED_DIR ?= /home/bijan/bijux/apptainer-build/base
 
 _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -118,8 +119,18 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 	fi
 	@set -euo pipefail; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
-		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
-		apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ] && [ -s "$(LUNARC_APPTAINER_BASE_SEED_DIR)/ubuntu-jammy.sif" ]; then \
+			cp -f "$(LUNARC_APPTAINER_BASE_SEED_DIR)/ubuntu-jammy.sif" "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif"; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ] && [ -s "$(LUNARC_APPTAINER_BASE_SEED_DIR)/python-3.11-slim.sif" ]; then \
+			cp -f "$(LUNARC_APPTAINER_BASE_SEED_DIR)/python-3.11-slim.sif" "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim; \
+		fi; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
@@ -148,4 +159,9 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 			scripts/containers/smoke-apptainer.sh | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
-.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test
+apptainer-hpc-clean: ## Remove frontend apptainer output dir
+	@set -euo pipefail; \
+		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
+		echo "removed $(LUNARC_APPTAINER_DIR)"
+
+.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
