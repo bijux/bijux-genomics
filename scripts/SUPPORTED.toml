@@ -1583,3 +1583,51 @@ purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "containers_generate_network_usage"
+path = "scripts/containers/generate-network-usage.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_network_disclosure"
+path = "scripts/containers/check-network-disclosure.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_no_secrets"
+path = "scripts/containers/check-no-secrets.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_vuln_scan_hook"
+path = "scripts/containers/vuln-scan-hook.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_vuln_hook"
+path = "scripts/containers/check-vuln-hook.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_sbom_artifacts"
+path = "scripts/containers/check-sbom-artifacts.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
