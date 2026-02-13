@@ -64,11 +64,10 @@ ci_allowed_paths=$(parse_supported_toml "$ROOT_DIR/scripts/SUPPORTED.toml" | awk
 viol=()
 while IFS= read -r line; do
   [[ -n "$line" ]] || continue
-  # scripts/run.sh <group> <command>
+  # scripts/run.sh <group> <command> -> scripts/<group>/make.sh
   if [[ "$line" =~ scripts/run\.sh[[:space:]]+([a-z_]+)[[:space:]]+([A-Za-z0-9_./-]+) ]]; then
     group="${BASH_REMATCH[1]}"
-    cmd="${BASH_REMATCH[2]}"
-    path="scripts/${group}/${cmd}.sh"
+    path="scripts/${group}/make.sh"
     if ! grep -qx "$path" <<< "$ci_allowed_paths"; then
       viol+=("$line -> $path not ci_allowed=true")
     fi
