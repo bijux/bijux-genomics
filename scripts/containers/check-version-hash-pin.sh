@@ -16,17 +16,12 @@ except ModuleNotFoundError:
 
 root = Path(sys.argv[1])
 versions = tomllib.loads((root / "containers/versions/versions.toml").read_text(encoding="utf-8"))
-down = tomllib.loads((root / "configs/ci/registry/tool_registry_vcf_downstream.toml").read_text(encoding="utf-8"))
-down_ids = {str(t.get("id") or t.get("tool_id") or "") for t in down.get("tools", [])}
 
 errors = []
-for tid in sorted(x for x in down_ids if x):
-    entry = versions.get(tid)
-    if not isinstance(entry, dict):
-        errors.append(f"{tid}: missing versions entry")
-        continue
+for tid in sorted(versions.keys()):
+    entry = versions.get(tid, {})
     source = str(entry.get("source", ""))
-    needs_hash = any(token in source for token in (".zip", ".tar.gz", "github.com", "faculty.washington.edu", "sourceforge.net"))
+    needs_hash = any(token in source for token in (".zip", ".tar.gz", ".tgz", "/archive/", "/releases/download/"))
     if not needs_hash:
         continue
     source_sha = str(entry.get("source_sha256", "")).strip()
