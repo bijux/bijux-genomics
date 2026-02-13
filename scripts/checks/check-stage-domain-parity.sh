@@ -38,9 +38,46 @@ for f in sorted(root.glob("domain/*/stages/*.yaml")):
     if m:
         dom_stages.add(m.group(1).strip())
 
+domain_tools: set[str] = set()
+for f in sorted(root.glob("domain/*/tools/*.yaml")):
+    if f.name.startswith("_"):
+        continue
+    text = f.read_text(encoding="utf-8")
+    m = re.search(r'^tool_id:\s*"?([^"\n]+)"?', text, re.MULTILINE)
+    if m:
+        domain_tools.add(m.group(1).strip())
+
+container_tools: set[str] = set()
+for p in (root / "containers/docker/arm64").glob("Dockerfile.*"):
+    container_tools.add(p.name.split("Dockerfile.", 1)[1])
+for p in (root / "containers/apptainer/bijux").glob("*.def"):
+    container_tools.add(p.stem)
+for p in (root / "containers/apptainer/non-bijux").glob("*.def"):
+    container_tools.add(p.stem)
+
 errors: list[str] = []
 for sid in sorted(cfg_stages - dom_stages):
     errors.append(f"configs/ci/stages: stage '{sid}' not found under domain/**/stages/*.yaml")
+
+for p in stage_files:
+    d = tomllib.loads(p.read_text(encoding="utf-8"))
+    for row in d.get("stages", []):
+        sid = str(row.get("id", "")).strip()
+        if not sid:
+            continue
+        tools = [str(t).strip() for t in row.get("tools", []) if str(t).strip()]
+        if not tools:
+            errors.append(f"{p.relative_to(root)}: stage '{sid}' has no tools declared")
+            continue
+        has_impl = False
+        for tid in tools:
+            if tid in domain_tools and tid in container_tools:
+                has_impl = True
+                break
+        if not has_impl:
+            errors.append(
+                f"{p.relative_to(root)}: stage '{sid}' has no tool with both domain tool yaml and container definition"
+            )
 
 if errors:
     print("stage-domain-parity: FAILED", file=sys.stderr)
