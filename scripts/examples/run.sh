@@ -9,12 +9,19 @@ require_stable_env
 usage() {
   cat <<'EOF'
 Usage: scripts/examples/run.sh <example-id>
+       scripts/examples/run.sh --allow-non-isolate <example-id>
 EOF
 }
 
 if [[ "${1:-}" == "--help" ]]; then
   usage
   exit 0
+fi
+
+allow_non_isolate=0
+if [[ "${1:-}" == "--allow-non-isolate" ]]; then
+  allow_non_isolate=1
+  shift
 fi
 
 [[ $# -eq 1 ]] || {
@@ -34,6 +41,13 @@ done)"
   echo "unknown example id: $example_id" >&2
   exit 1
 }
+
+if ! "$ROOT_DIR/bin/require-isolate" >/dev/null 2>&1; then
+  if [[ "$allow_non_isolate" -ne 1 ]]; then
+    echo "examples run must execute inside isolate; use --allow-non-isolate to override" >&2
+    exit 2
+  fi
+fi
 
 corpus_id="$(python3 - "$example_dir/example.toml" <<'PY'
 import sys
@@ -89,7 +103,7 @@ cp -f "$example_dir/golden/explain.json" "$art_dir/explain.json"
 cp -f "$example_dir/golden/report.json" "$art_dir/report.json"
 
 # Step 4: generate report
-cat > "$art_dir/run_report.json" <<JSON
+write_json_sorted_file "$art_dir/run_report.json" <<JSON
 {
   "example_id": "$example_id",
   "corpus_id": "$corpus_id",
@@ -100,7 +114,7 @@ cat > "$art_dir/run_report.json" <<JSON
 }
 JSON
 
-cat > "$art_dir/manifest.json" <<JSON
+write_json_sorted_file "$art_dir/manifest.json" <<JSON
 {
   "schema_version": "bijux.example.bundle.v1",
   "example_id": "$example_id",
@@ -110,7 +124,7 @@ cat > "$art_dir/manifest.json" <<JSON
 }
 JSON
 
-cat > "$art_dir/metrics.json" <<JSON
+write_json_sorted_file "$art_dir/metrics.json" <<JSON
 {
   "example_id": "$example_id",
   "collected_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",

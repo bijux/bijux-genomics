@@ -78,3 +78,8 @@ compat_readlink_f() {
   local target="$1"
   python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$target"
 }
+
+write_json_sorted_file() {
+  local out="$1"
+  python3 -c 'import json,sys; out=sys.argv[1]; obj=json.loads(sys.stdin.read()); open(out,"w",encoding="utf-8").write(json.dumps(obj, indent=2, sort_keys=True)+"\n")' "$out"
+}
