@@ -7,7 +7,7 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 errors=0
-for req in README.md example.toml bench-suite.toml golden/plan.json golden/explain.json golden/report.json; do
+for req in README.md example.toml bench-suite.toml make.sh golden/plan.json golden/explain.json golden/report.json; do
   if [[ ! -f "$ROOT_DIR/examples/_template/$req" ]]; then
     echo "examples structure: examples/_template missing $req" >&2
     errors=1

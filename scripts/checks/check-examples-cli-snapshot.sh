@@ -34,4 +34,7 @@ done < <(find "$ROOT_DIR/examples" -type f -name example.toml | sort)
 if [[ "$errors" -ne 0 ]]; then
   exit 1
 fi
+
+"$ROOT_DIR/scripts/checks/check-cli-command-snapshot.sh"
+
 echo "examples cli snapshot: OK"

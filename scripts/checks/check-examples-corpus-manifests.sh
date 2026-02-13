@@ -7,7 +7,7 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 errors=0
-for corpus_dir in "$ROOT_DIR"/examples/data/corpus-*; do
+for corpus_dir in "$ROOT_DIR"/examples/data/*; do
   [[ -d "$corpus_dir" ]] || continue
   manifest="$corpus_dir/MANIFEST.toml"
   if [[ ! -f "$manifest" ]]; then

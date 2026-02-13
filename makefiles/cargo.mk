@@ -257,10 +257,12 @@ examples-validate:
 
 _examples-validate:
 	./scripts/run.sh checks check-examples-structure
+	./scripts/run.sh checks check-examples-index-ssot
 	./scripts/run.sh checks check-examples-corpus-manifests
 	./scripts/run.sh checks check-examples-corpus-checksums
 	./scripts/run.sh checks check-examples-corpus-layout
 	./scripts/run.sh checks check-examples-golden
+	./scripts/run.sh checks check-examples-runner-contract
 	./scripts/run.sh checks check-examples-cli-snapshot
 	./scripts/run.sh checks check-examples-notebook-policy
 
