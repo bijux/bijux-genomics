@@ -2,6 +2,11 @@
 
 Purpose: Track upstream provenance for every definition under `containers/apptainer/non-bijux/`.
 
+Classification contract:
+- `non-bijux` = upstream-derived recipe ownership/provenance (minimal packaging adaptation only).
+- `bijux` = Bijux-owned recipe lifecycle in this repo.
+- This split is not a license override mechanism; upstream license terms remain authoritative.
+
 | tool_id | apptainer_def | why_non_bijux | upstream_source | upstream_license | upstream_checksum | patching_rules |
 |---|---|---|---|---|---|---|
 | `beagle` | `containers/apptainer/non-bijux/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
