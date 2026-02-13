@@ -44,6 +44,13 @@ scripts/test/test-triage.sh
 scripts/test/toy_runs.sh
 scripts/tooling/check-config-paths.sh
 scripts/tooling/check-config-snapshot.sh
+scripts/tooling/ci-audit.sh
+scripts/tooling/ci-clippy.sh
+scripts/tooling/ci-coverage.sh
+scripts/tooling/ci-fmt.sh
+scripts/tooling/ci-install-tools.sh
+scripts/tooling/ci-test-slow.sh
+scripts/tooling/ci-test.sh
 scripts/tooling/clean-docs.sh
 scripts/tooling/config-inventory.sh
 scripts/tooling/coverage_summary.sh

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
+
+nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
+test_features="${TEST_FEATURES:---all-features}"
+nextest_profile="${NEXTEST_PROFILE:-ci}"
+nextest_threads="${NEXTEST_TEST_THREADS:-8}"
+nextest_no_tests="${NEXTEST_NO_TESTS:-pass}"
+run_ignored="${RUN_IGNORED:---run-ignored all}"
+
+./bin/isolate sh -ceu "
+./bin/require-isolate >/dev/null
+command -v cargo-nextest >/dev/null 2>&1 || { echo 'missing required tool: cargo-nextest'; echo 'install once: cargo install cargo-nextest --locked'; exit 1; }
+export TZ=UTC LC_ALL=C
+export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"
+if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=\"\$(command -v sccache)\"; fi
+cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} -E \"test(/::slow__/)\"
+"
