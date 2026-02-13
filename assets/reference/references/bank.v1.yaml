@@ -1,0 +1,26 @@
+schema_version: bijux.reference_bank.v1
+bank_id: bijux-dna-reference-bank
+version: v1
+provenance_status: complete
+references:
+  - id: hs37d5_primary
+    kind: nuclear_reference
+    file: hs37d5.fa
+    source: "1000 Genomes hs37d5 bundle"
+    rationale: "Legacy-compatible primary reference for aDNA BAM alignment comparability."
+    notes:
+      - "Use matching index bundle with deterministic build provenance."
+  - id: rcrs_mt
+    kind: mt_reference
+    file: rcrs.fasta
+    source: "rCRS mitochondrial reference"
+    rationale: "Canonical mtDNA reference for contamination/authenticity workflows."
+    notes:
+      - "Required for schmutzi-based mt contamination estimation."
+  - id: 1000g_phase3_panel
+    kind: contamination_panel
+    file: 1000g_phase3_panel.vcf.gz
+    source: "1000 Genomes phase 3 panel"
+    rationale: "Panel for nuclear contamination estimation workflows."
+    notes:
+      - "Required for verifybamid2-style contamination estimates."

@@ -1,0 +1,21 @@
+schema_version: bijux.contaminant_presets.v1
+presets:
+  - name: illumina_default
+    description: "PhiX + UniVec references for common Illumina runs."
+    motif_ids:
+      - phix_kmer
+      - univec_adapter_motif
+    references:
+      - id: phix174
+        file: phix174.fasta
+        rationale: "PhiX control spike-in is common in Illumina runs."
+        source: "Illumina PhiX control"
+        notes: []
+      - id: univec
+        file: univec.fasta
+        rationale: "Vector contamination screening."
+        source: "NCBI UniVec"
+        notes: []
+    rationale: "Default contaminant screen for Illumina." 
+    notes: []
+    hash: 7c1ed532032882ae3106927632fec1b90f4122c9e714ae7840fa495d1f620f04

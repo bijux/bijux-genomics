@@ -7,8 +7,8 @@ fn cli_adapter_bank_parses() -> Result<(), Box<dyn std::error::Error>> {
         .parent()
         .and_then(|p| p.parent())
         .ok_or("repo root not found")?;
-    let bank_path = repo_root.join("assets/adapters/bank.v1.yaml");
-    let presets_path = repo_root.join("assets/adapters/presets.v1.yaml");
+    let bank_path = repo_root.join("assets/reference/adapters/bank.v1.yaml");
+    let presets_path = repo_root.join("assets/reference/adapters/presets.v1.yaml");
     let bank = bijux_dna_api::v1::api::bench::load_adapter_bank(&bank_path)?;
     let presets = bijux_dna_api::v1::api::bench::load_adapter_presets(&presets_path, &bank)?;
     assert!(

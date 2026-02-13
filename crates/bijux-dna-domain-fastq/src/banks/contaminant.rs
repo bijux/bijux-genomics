@@ -74,17 +74,17 @@ pub struct EffectiveContaminantSet {
 
 #[must_use]
 pub fn contaminant_motifs_path() -> PathBuf {
-    PathBuf::from("assets/contaminants/contaminant_motifs.v1.yaml")
+    PathBuf::from("assets/reference/contaminants/contaminant_motifs.v1.yaml")
 }
 
 #[must_use]
 pub fn contaminant_presets_path() -> PathBuf {
-    PathBuf::from("assets/contaminants/presets.v1.yaml")
+    PathBuf::from("assets/reference/contaminants/presets.v1.yaml")
 }
 
 #[must_use]
 pub fn contaminant_references_dir() -> PathBuf {
-    PathBuf::from("assets/contaminants/references")
+    PathBuf::from("assets/reference/contaminants/references")
 }
 
 /// Load contaminant motifs YAML and validate its contents.

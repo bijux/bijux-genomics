@@ -66,12 +66,12 @@ pub struct EffectivePolyxSet {
 
 #[must_use]
 pub fn polyx_bank_path() -> std::path::PathBuf {
-    std::path::PathBuf::from("assets/polyx/bank.v1.yaml")
+    std::path::PathBuf::from("assets/reference/polyx/bank.v1.yaml")
 }
 
 #[must_use]
 pub fn polyx_presets_path() -> std::path::PathBuf {
-    std::path::PathBuf::from("assets/polyx/presets.v1.yaml")
+    std::path::PathBuf::from("assets/reference/polyx/presets.v1.yaml")
 }
 
 /// Load the polyX bank YAML and validate its contents.
