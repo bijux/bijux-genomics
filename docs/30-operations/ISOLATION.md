@@ -1,0 +1,36 @@
+# ISOLATION
+
+## Purpose
+Define the runtime contract for `bin/isolate` and `bin/require-isolate`.
+
+## `bin/isolate` Contract
+- Computes `ISO_TAG` if unset: `<utc-timestamp>-<git-short-sha>-<pid>`.
+- Computes `ISO_ROOT` if unset: `artifacts/isolates/<ISO_TAG>`.
+- Creates isolate directories under `ISO_ROOT`:
+  - `target/`
+  - `cargo-home/`
+  - `tmp/`
+  - `logs/`
+  - `out/`
+- Exports:
+  - `ISO_TAG`
+  - `ISO_ROOT`
+  - `CARGO_TARGET_DIR=$ISO_ROOT/target`
+  - `CARGO_HOME=$ISO_ROOT/cargo-home`
+  - `TMPDIR=$ISO_ROOT/tmp` (and `TMP`, `TEMP`)
+
+## Flags
+- `--print-root`: prints computed `ISO_ROOT` and exits.
+
+## Tag Behavior
+- If caller sets `ISO_TAG`, `bin/isolate` uses it.
+- If caller sets `ISO_ROOT`, `bin/isolate` uses it.
+- Otherwise defaults are derived as above.
+
+## Allowed Outputs
+- Scripts and tooling must write only via `ISO_ROOT`-scoped env vars or under `artifacts/`.
+- Scripts must not hardcode `artifacts/isolates/<...>` paths.
+
+## `bin/require-isolate`
+- Verifies required isolate env vars are present and path-scoped under `ISO_ROOT`.
+- `--explain` prints a user-facing diagnostic and invocation guidance.
