@@ -13,5 +13,8 @@ CI enforces the minimal deterministic gate for the workspace.
 - `test`
 - `coverage`
 
+## Isolation Contract
+- See `docs/30-operations/ISOLATION.md`.
+
 ## Non-goals
 - Documenting non-`make ci` target suites.
