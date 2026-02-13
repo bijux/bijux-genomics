@@ -34,6 +34,8 @@ mod mod_contracts_tooling_architecture_invariants_suite_rs;
 mod mod_contracts_tooling_artifacts_policy_rs;
 #[path = "contracts/tooling/assets_scope_policy.rs"]
 mod mod_contracts_tooling_assets_scope_policy_rs;
+#[path = "contracts/tooling/assets_governance_policy.rs"]
+mod mod_contracts_tooling_assets_governance_policy_rs;
 #[path = "contracts/tooling/authenticct_container_policy.rs"]
 mod mod_contracts_tooling_authenticct_container_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
