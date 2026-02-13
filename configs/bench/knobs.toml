@@ -16,3 +16,8 @@ tmp_policy = "unique-per-run"
 capture_cpu = true
 capture_memory = true
 capture_io = true
+
+[variance]
+runtime_relative_max = 0.20
+memory_relative_max = 0.25
+report_structure_match = true

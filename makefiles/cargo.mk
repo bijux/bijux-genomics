@@ -31,6 +31,7 @@ lint:
 	./scripts/run.sh checks check-nextest-profile-contract
 	./scripts/run.sh checks check-runtime-profiles-contract
 	./scripts/run.sh checks check-logging-contract
+	./scripts/run.sh checks check-benchmark-integrity-policy
 	./scripts/run.sh checks check-hpc-rsync-docs-parity
 	./scripts/run.sh checks check-config-owners
 	./scripts/run.sh checks check-registry-required-tools-parity
