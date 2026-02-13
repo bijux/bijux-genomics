@@ -86,7 +86,10 @@ for cmd in [["python3", "--version"], ["shasum", "-a", "256", "--version"]]:
 report = {
     "schema_version": "bijux.assets.refresh_report.v1",
     "asset": "toy/core-v1",
+    "generator_command": "scripts/assets/refresh-toy.sh",
     "inputs": list(checksums.keys()),
+    "input_list": list(checksums.keys()),
+    "output_checksums": checksums,
     "tool_versions": tool_versions,
     "checksums": checksums,
 }
