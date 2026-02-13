@@ -1,7 +1,7 @@
 # SCIENTIFIC_DECISIONS
 
 This document tracks default scientific thresholds and tool choices that affect interpretation and reproducibility.
-Publication-scoped scientific artifacts are referenced via `assets/publications/<pub-id>/...`; see `docs/20-science/PUBLICATION_ASSETS.md`.
+Publication-scoped scientific artifacts are referenced via [`assets/publications/adna-methods-2024/index.md`](../../assets/publications/adna-methods-2024/index.md); see [`docs/20-science/PUBLICATION_ASSETS.md`](./PUBLICATION_ASSETS.md).
 
 ## FASTQ
 - `fastq.trim.min_len > 0` in all aDNA presets.

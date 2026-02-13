@@ -1,13 +1,13 @@
 # Publication Assets
 
 ## What
-Publication-scoped scientific artifacts are stored under `assets/publications/<pub-id>/`.
+Publication-scoped scientific artifacts are stored at publication indexes such as [`assets/publications/adna-methods-2024/index.md`](../../assets/publications/adna-methods-2024/index.md).
 
 ## Why
 This keeps bibliographic provenance, licensing, and data ownership explicit and stable.
 
 ## Rule
-When documentation references publication artifacts, it must use paths rooted at `assets/publications/<pub-id>/...`.
+When documentation references publication assets, link the publication index (`assets/publications/<pub-id>/index.md`) instead of deep asset files.
 
 ## Current Publication IDs
-- `assets/publications/adna-methods-2024/`
+- [`assets/publications/adna-methods-2024/index.md`](../../assets/publications/adna-methods-2024/index.md)
