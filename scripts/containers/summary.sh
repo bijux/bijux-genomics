@@ -52,7 +52,7 @@ done | sort
 
 if [[ -n "$json_out" ]]; then
   if [[ "$json_out" == "__default__" ]]; then
-    json_out="$ROOT_DIR/artifacts/containers/summary/summary.json"
+    json_out="$ROOT_DIR/artifacts/containers/summary.json"
   fi
   if [[ -d "$json_out" ]]; then
     rm -rf "$json_out"
