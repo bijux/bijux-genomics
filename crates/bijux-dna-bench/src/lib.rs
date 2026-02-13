@@ -17,20 +17,22 @@ pub use summary::{compare, gate, load_suite, summarize, BenchRunOptions};
 
 #[must_use]
 pub fn bench_data_dir() -> PathBuf {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let root = manifest_dir
         .parent()
         .and_then(std::path::Path::parent)
-        .expect("workspace root")
-        .to_path_buf();
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or(manifest_dir);
     bijux_dna_infra::bench_data_dir(&root)
 }
 
 #[must_use]
 pub fn bench_suites_dir() -> PathBuf {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let root = manifest_dir
         .parent()
         .and_then(std::path::Path::parent)
-        .expect("workspace root")
-        .to_path_buf();
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or(manifest_dir);
     bijux_dna_infra::bench_suites_dir(&root)
 }
