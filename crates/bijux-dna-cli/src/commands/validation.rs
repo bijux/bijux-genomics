@@ -5,9 +5,8 @@ use bijux_dna_api::v1::api::run::{load_profile, resolve_run_base_dir};
 
 pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_dna_api::v1::api::run::Profile> {
     let cwd = std::env::current_dir().context("resolve current directory")?;
-    let profile_path = cwd
-        .join("configs")
-        .join(format!("profile.{}.toml", cli.profile));
+    let profile_path =
+        bijux_dna_infra::configs_file(&cwd, &format!("runtime/profile.{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
     profile.run_base_dir = resolve_run_base_dir(&cwd, &profile.run_base_dir);
