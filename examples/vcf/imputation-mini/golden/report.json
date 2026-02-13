@@ -1,0 +1,9 @@
+{
+  "example_id": "vcf_imputation_mini",
+  "status": "ok",
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ]
+}

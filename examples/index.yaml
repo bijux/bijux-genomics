@@ -9,3 +9,11 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: vcf_imputation_mini
+    domain: vcf
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/imputation-mini

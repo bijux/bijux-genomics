@@ -1,0 +1,3 @@
+suite_id = "bench-vcf-imputation-mini-01"
+domain = "vcf"
+stages = ["vcf.prepare_reference_panel", "vcf.phasing", "vcf.impute", "vcf.postprocess"]

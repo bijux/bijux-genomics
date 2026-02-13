@@ -1,0 +1,14 @@
+{
+  "example_id": "vcf_imputation_mini",
+  "corpus_id": "corpus-01-mini",
+  "defaults": {
+    "profile": "vcf_downstream_local",
+    "stages": [
+      "vcf.prepare_reference_panel",
+      "vcf.phasing",
+      "vcf.impute",
+      "vcf.postprocess"
+    ]
+  },
+  "status": "ok"
+}
