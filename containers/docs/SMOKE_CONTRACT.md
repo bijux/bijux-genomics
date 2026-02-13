@@ -7,6 +7,7 @@ Per-tool smoke spec (resolved from registry fields with defaults):
 - `smoke_help_cmd`: must execute with `smoke_help_exit_code` (required to be `0`).
 - `smoke_minimal_cmd`: deterministic minimal invocation with `smoke_minimal_exit_code`.
 - `smoke_negative_cmd`: expected-failure invocation with `smoke_negative_exit_code` and `smoke_negative_expected_pattern`.
+- network behavior: smoke runs must not require network unless `containers/network/<tool>.network.toml` declares `runtime_network = true`.
 
 Exit code contract:
 - `--help` path: exit `0`.

@@ -7,7 +7,8 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 out="${ISO_ROOT:-$ROOT_DIR/artifacts}/containers/vuln_scan_report.json"
-"$SCRIPT_DIR/vuln-scan-hook.sh" "${ISO_ROOT:-$ROOT_DIR/artifacts}/containers/sbom" "$out" >/dev/null
+TOOLKIT="${TOOLKIT:-fastq_core}" PROMOTED_ONLY="${PROMOTED_ONLY:-1}" \
+  "$SCRIPT_DIR/vuln-scan-hook.sh" "${ISO_ROOT:-$ROOT_DIR/artifacts}/containers/sbom" "$out" >/dev/null
 if [[ ! -f "$out" ]]; then
   echo "vuln hook: missing report $out" >&2
   exit 1

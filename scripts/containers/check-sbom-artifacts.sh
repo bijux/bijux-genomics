@@ -22,7 +22,12 @@ if not manifest_root.exists():
     raise SystemExit(0)
 
 errors = []
-seen = 0
+strict_promoted = bool(os.environ.get("CI")) or os.environ.get("REQUIRE_PROMOTED_SBOM") == "1"
+lock_path = root / "containers/versions/lock.json"
+lock = json.loads(lock_path.read_text(encoding="utf-8")) if lock_path.exists() else {"items": []}
+promoted = {str(i.get("tool", "")).strip() for i in lock.get("items", []) if str(i.get("status", "")).strip() == "production"}
+
+manifests = {}
 for mf in sorted(manifest_root.glob("*.json")):
     if mf.name in {"summary.json", "report.json"}:
         continue
@@ -30,15 +35,36 @@ for mf in sorted(manifest_root.glob("*.json")):
         data = json.loads(mf.read_text(encoding="utf-8"))
     except Exception:
         continue
-    if data.get("status") != "ok":
+    tool = str(data.get("tool", "")).strip()
+    if not tool:
         continue
-    seen += 1
-    sbom = str(data.get("sbom_path", "")).strip()
-    if not sbom:
-        errors.append(f"{mf.name}: missing sbom_path")
+    manifests.setdefault(tool, []).append((mf, data))
+
+seen = 0
+tools_to_check = sorted(promoted) if strict_promoted else sorted(set(manifests.keys()) & promoted) or sorted(manifests.keys())
+for tool in tools_to_check:
+    rows = manifests.get(tool, [])
+    if not rows:
+        errors.append(f"{tool}: missing smoke/build manifest under artifacts/containers/")
         continue
-    if not Path(sbom).exists():
-        errors.append(f"{mf.name}: sbom_path does not exist: {sbom}")
+    ok_rows = [(mf, d) for (mf, d) in rows if d.get("status") == "ok"]
+    if not ok_rows:
+        errors.append(f"{tool}: has manifests but no successful status=ok result")
+        continue
+    for mf, data in ok_rows:
+        seen += 1
+        sbom = str(data.get("sbom_path", "")).strip()
+        smoke_log = str(data.get("smoke_log_path", "")).strip()
+        smoke_log_sha = str(data.get("smoke_log_checksum_path", "")).strip()
+        if not sbom:
+            errors.append(f"{mf.name}: missing sbom_path")
+            continue
+        if not Path(sbom).exists():
+            errors.append(f"{mf.name}: sbom_path does not exist: {sbom}")
+        if not smoke_log or not Path(smoke_log).exists():
+            errors.append(f"{mf.name}: missing smoke_log_path or file not found: {smoke_log}")
+        if not smoke_log_sha or not Path(smoke_log_sha).exists():
+            errors.append(f"{mf.name}: missing smoke_log_checksum_path or file not found: {smoke_log_sha}")
 
 if errors:
     print("sbom artifacts: FAILED", file=sys.stderr)
