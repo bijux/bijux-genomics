@@ -1,0 +1,9 @@
+id = "vcf_damage_aware_genotype_mini"
+domain = "vcf"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+expected_outputs = ["plan.json", "explain.json", "report.json"]
+coverage_decision = "decision.coverage_regime"
+coverage_profile = "adna_lowcov_capture"
+damage_filter_strategy = "ct_ga_mask_plus_pmd"

@@ -1,0 +1,24 @@
+{
+  "example_id": "vcf_damage_aware_genotype_mini",
+  "reasoning": [
+    "coverage-regime decision selected pseudohaploid path",
+    "damage filter applied before pseudohaploid projection"
+  ],
+  "coverage_regime": {
+    "selected": "pseudohaploid",
+    "thresholds_used": {
+      "gl_max_depth": 2.0,
+      "pseudohaploid_max_depth": 8.0,
+      "diploid_min_depth": 12.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 2.7,
+      "median_depth_x": 2.3
+    }
+  },
+  "damage_filter_effect": {
+    "strategy": "ct_ga_mask_plus_pmd",
+    "ct_ga_masked_fraction": 0.116,
+    "pmd_filtered_sites": 312
+  }
+}

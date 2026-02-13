@@ -1,0 +1,3 @@
+suite_id = "bench-vcf-damage-aware-genotype-mini-01"
+domain = "vcf"
+stages = ["vcf.call_gl", "vcf.damage_filter", "vcf.call_pseudohaploid", "vcf.gl_propagation"]

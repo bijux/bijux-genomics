@@ -1,0 +1,15 @@
+{
+  "example_id": "vcf_damage_aware_genotype_mini",
+  "steps": [
+    "ensure_images",
+    "validate_inputs",
+    "run_bench",
+    "collect_outputs"
+  ],
+  "pipeline": [
+    "vcf.call_gl",
+    "vcf.damage_filter",
+    "vcf.call_pseudohaploid",
+    "vcf.gl_propagation"
+  ]
+}

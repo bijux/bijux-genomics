@@ -1,0 +1,31 @@
+{
+  "example_id": "vcf_damage_aware_genotype_mini",
+  "status": "ok",
+  "coverage_regime": {
+    "selected": "pseudohaploid",
+    "thresholds_used": {
+      "gl_max_depth": 2.0,
+      "pseudohaploid_max_depth": 8.0,
+      "diploid_min_depth": 12.0
+    },
+    "observed_coverage_stats": {
+      "mean_depth_x": 2.7,
+      "median_depth_x": 2.3
+    }
+  },
+  "damage_bias_audit": {
+    "before_filter": {
+      "ct_rate_terminal": 0.182,
+      "ga_rate_terminal": 0.174
+    },
+    "after_filter": {
+      "ct_rate_terminal": 0.061,
+      "ga_rate_terminal": 0.057
+    }
+  },
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ]
+}
