@@ -1,0 +1,6 @@
+schema_version: "bijux.metrics.v1"
+domain: "vcf"
+metrics:
+  - id: "called_variants"
+  - id: "filtered_variants"
+  - id: "ts_tv_ratio"
