@@ -1801,9 +1801,11 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .or_else(|| git_head_commit(&options.domain_dir))
         .unwrap_or_else(|| "unknown".to_string());
 
-    let tool_registry_path = options.configs_dir.join("tool_registry.toml");
-    let experimental_registry_path = options.configs_dir.join("tool_registry_experimental.toml");
-    let required_tools_path = options.configs_dir.join("required_tools.toml");
+    let ci_dir = options.configs_dir.join("ci");
+    ensure_dir(&ci_dir).with_context(|| format!("create {}", ci_dir.display()))?;
+    let tool_registry_path = ci_dir.join("tool_registry.toml");
+    let experimental_registry_path = ci_dir.join("tool_registry_experimental.toml");
+    let required_tools_path = ci_dir.join("required_tools.toml");
     let registries = build_tool_registries_toml(
         &tools,
         &stage_to_tools,
@@ -1828,14 +1830,14 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     write_string(&required_tools_path, &registries.required_tools)
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 
-    let images_path = options.configs_dir.join("images.toml");
+    let images_path = ci_dir.join("images.toml");
     let vcf_image_versions = collect_vcf_image_versions(&options.domain_dir)?;
     let images_toml = build_images_toml(&tools, &vcf_image_versions, &source_commit);
     ensure_no_placeholders_in_active_config("images.toml", &images_toml)?;
     write_string(&images_path, &images_toml)
         .with_context(|| format!("write {}", images_path.display()))?;
 
-    let stages_path = options.configs_dir.join("stages.toml");
+    let stages_path = ci_dir.join("stages.toml");
     let stages_toml = build_stages_toml(
         &stage_to_tools,
         &stage_statuses,
@@ -1848,8 +1850,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", stages_path.display()))?;
 
     // Emit VCF-scoped generated views separately from post-VCF authored domain files.
-    let tool_registry_vcf_path = options.configs_dir.join("tool_registry_vcf.toml");
-    let stages_vcf_path = options.configs_dir.join("stages_vcf.toml");
+    let tool_registry_vcf_path = ci_dir.join("tool_registry_vcf.toml");
+    let stages_vcf_path = ci_dir.join("stages_vcf.toml");
     let vcf_header = generated_header("domain/vcf/**", &source_commit);
 
     let mut stages_vcf_toml = vcf_header.clone();
