@@ -14,11 +14,11 @@ bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-stages-fastq = { path = "../bijux-dna-stages-fastq" }
+bijux-dna-infra = { path = "../bijux-dna-infra" }
 tracing = { workspace = true }
 toml = { workspace = true }
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 insta = { version = "1", features = ["json", "filters"] }
