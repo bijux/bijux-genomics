@@ -1,14 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
-if [ "${1:-}" = "--explain" ]; then
+required_vars="ISO_TAG ISO_RUN_ID ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP"
+
+print_explain() {
   TAG="$(date -u +%Y%m%dT%H%M%SZ)-explain-$$"
   cat <<'EOF'
 isolate-required:
 - This command must run inside an isolate to keep build/test outputs deterministic.
-- Required env vars: ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP.
+- Required env vars: ISO_TAG ISO_RUN_ID ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP.
 - Expected contract: all writable paths are inside ISO_ROOT.
-- Use --require-clean to avoid cross-run contamination unless reuse is explicit.
+- No silent fallback: non-isolated execution must fail and be re-invoked via bin/isolate.
 EOF
   cat <<EOF
 
@@ -25,19 +27,29 @@ For target directory hygiene:
   # add --reuse only when intentional reuse is required
 
 EOF
+}
+
+if [ "${1:-}" = "--explain" ]; then
+  print_explain
   exit 0
 fi
 
 fail() {
   echo "isolate-required: $1" >&2
+  echo "isolate-required: missing/invalid isolation contract; run './bin/require-isolate --explain' for exact invocation." >&2
   exit 1
 }
 
-required_vars="ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP"
+missing=""
 for var in $required_vars; do
   eval "value=\${$var:-}"
-  [ -n "$value" ] || fail "missing env var: $var"
+  if [ -z "$value" ]; then
+    missing="${missing}${var} "
+  fi
 done
+if [ -n "$missing" ]; then
+  fail "missing env var(s): $missing"
+fi
 
 case "$ISO_ROOT" in
   */artifacts/isolates/*) ;;

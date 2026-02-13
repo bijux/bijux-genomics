@@ -10,9 +10,10 @@ export LC_ALL
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
-if ! ./bin/require-isolate >/dev/null 2>&1; then
-  exec ./bin/isolate "$0" "$@"
-fi
+./bin/require-isolate >/dev/null || {
+  ./bin/require-isolate --explain >&2
+  exit 1
+}
 
 CONFIG_PATH="${CONFIG_PATH:-configs/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then
