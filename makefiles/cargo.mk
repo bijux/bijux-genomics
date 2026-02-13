@@ -29,6 +29,10 @@ lint:
 	./scripts/checks/check-config-layout.sh
 	./scripts/checks/check-config-filenames.sh
 	./scripts/checks/check-config-contract-headers.sh
+	./scripts/docs/check-domain-doc-references.sh
+	./scripts/docs/check-doc-links.sh
+	./scripts/docs/check-generated-docs.sh
+	./scripts/docs/check-doc-assets.sh
 	./scripts/tooling/check-config-paths.sh
 	./scripts/tooling/check-config-snapshot.sh
 	./scripts/checks/check-root-layout.sh

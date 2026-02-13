@@ -25,6 +25,6 @@ docs-clean: ## Remove built docs
 	rm -rf $(DOCS_ROOT)
 
 docs-isolate: ## Build docs in strict mode under an isolate dir
-	@./bin/isolate sh -ceu './scripts/docs/check-domain-doc-references.sh; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/docs/check-root-pollution.sh'
+	@./bin/isolate sh -ceu './scripts/docs/check-domain-doc-references.sh; ./scripts/docs/check-doc-links.sh; ./scripts/docs/check-generated-docs.sh; ./scripts/docs/check-doc-assets.sh; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/docs/check-root-pollution.sh'
 
 .PHONY: docs docs-lint docs-serve docs-clean docs-isolate

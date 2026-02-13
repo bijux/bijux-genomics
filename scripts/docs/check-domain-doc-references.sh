@@ -12,12 +12,16 @@ trap 'rm -rf "$tmp"' EXIT
 stage_ids_file="$tmp/stage_ids.txt"
 tool_ids_file="$tmp/tool_ids.txt"
 
-rg -N --no-filename '^stage_id:\s*"' domain/fastq/stages domain/bam/stages \
-  | sed -E 's/^stage_id:\s*"([^"]+)".*/\1/' \
+rg -N --no-filename '^\s*id\s*=\s*"' \
+  configs/ci/stages/stages.toml configs/ci/stages/stages_vcf.toml \
+  | awk -F'"' '{print $2}' \
   | sort -u > "$stage_ids_file"
 
-rg -N --no-filename '^tool_id:\s*"' domain/fastq/tools domain/bam/tools \
-  | sed -E 's/^tool_id:\s*"([^"]+)".*/\1/' \
+rg -N --no-filename '^\s*(id|tool_id)\s*=\s*"' \
+  configs/ci/registry/tool_registry.toml \
+  configs/ci/registry/tool_registry_vcf.toml \
+  configs/ci/registry/tool_registry_experimental.toml \
+  | awk -F'"' '{print $2}' \
   | sort -u > "$tool_ids_file"
 
 unknown_stages=()
