@@ -19,10 +19,16 @@ for ex in "$ROOT_DIR"/examples/* "$ROOT_DIR"/examples/*/*; do
     echo "examples golden: $rel missing golden/explain.json" >&2
     errors=1
   fi
-  if [[ ! -f "$ex/golden/report.html" && ! -f "$ex/golden/report.json" ]]; then
-    echo "examples golden: $rel requires golden/report.html or golden/report.json" >&2
+  if [[ ! -f "$ex/golden/report.json" ]]; then
+    echo "examples golden: $rel missing golden/report.json" >&2
     errors=1
   fi
+  for jf in "$ex/golden/plan.json" "$ex/golden/explain.json" "$ex/golden/report.json"; do
+    if ! python3 -m json.tool "$jf" >/dev/null 2>&1; then
+      echo "examples golden: ${jf#"$ROOT_DIR/"} is not valid JSON" >&2
+      errors=1
+    fi
+  done
 done
 
 if [[ "$errors" -ne 0 ]]; then

@@ -1135,3 +1135,11 @@ purpose = "examples script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "check_examples_corpus_checksums"
+path = "scripts/checks/check-examples-corpus-checksums.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true

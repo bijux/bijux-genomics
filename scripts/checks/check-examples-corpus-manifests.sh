@@ -15,7 +15,7 @@ for corpus_dir in "$ROOT_DIR"/examples/data/corpus-*; do
     errors=1
     continue
   fi
-  for key in origin license checksum_policy normalization_rules; do
+  for key in license source checksum_policy normalization_steps; do
     if ! rg -q "^${key}\s*=" "$manifest"; then
       echo "${manifest#"$ROOT_DIR/"} missing key: $key" >&2
       errors=1
