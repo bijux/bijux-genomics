@@ -44,6 +44,7 @@ scripts/test/test-triage.sh
 scripts/test/toy_runs.sh
 scripts/tooling/check-config-paths.sh
 scripts/tooling/check-config-snapshot.sh
+scripts/tooling/clean-docs.sh
 scripts/tooling/config-inventory.sh
 scripts/tooling/coverage_summary.sh
 scripts/tooling/generate-config-tree-snapshot.sh
@@ -51,3 +52,4 @@ scripts/tooling/generate-configs.sh
 scripts/tooling/generate-policy-index.sh
 scripts/tooling/generate-tool-index.sh
 scripts/tooling/inventory.sh
+scripts/tooling/setup-docs-venv.sh
