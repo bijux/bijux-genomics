@@ -25,3 +25,4 @@ shapeit5 = "planned external tool for phasing workflows; containerization pendin
 eagle = "planned external tool for phasing workflows; containerization pending"
 minimac4 = "planned external tool for imputation workflows; containerization pending"
 dada2 = "planned external tool for ASV inference workflows; containerization pending"
+angsd = "planned external tool for genotype likelihood and damage-aware workflows; containerization pending"

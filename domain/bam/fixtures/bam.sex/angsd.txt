@@ -2,6 +2,7 @@ tool=angsd
 tool_version=pinned
 stage=bam.sex
 domain=bam
+shipping=external
 fixture_kind=truth
 command=angsd
 args=

@@ -1,6 +1,14 @@
 schema_version: "bijux.tool.v1"
 tool_id: "bcftools"
-stage_ids: ["vcf.call", "vcf.filter", "vcf.stats"]
+stage_ids:
+  - "vcf.call"
+  - "vcf.call_gl"
+  - "vcf.call_diploid"
+  - "vcf.call_pseudohaploid"
+  - "vcf.damage_filter"
+  - "vcf.gl_propagation"
+  - "vcf.filter"
+  - "vcf.stats"
 role: "analysis"
 authoritative: true
 strict_capable: true
@@ -13,7 +21,7 @@ license: "MIT"
 citation: "DOI:10.1093/gigascience/giab008"
 version_cmd: "bcftools --version"
 help_cmd: "bcftools --help"
-expected_artifacts: ["vcf", "vcf_metrics"]
+expected_artifacts: ["vcf", "vcf_metrics", "gl_vcf", "damage_report"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.stats.v1"
 comparability_notes: "Comparable only within same stage contract and reference build."
