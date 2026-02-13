@@ -39,3 +39,16 @@ Users need explicit limits to avoid overconfidence in downstream decisions.
 ### Compositionality
 - Read counts are compositional proxies, not absolute abundance.
 - Relative abundance shifts may reflect library effects, not ecology alone.
+
+## VCF Downstream Demography Limits
+### Population structure
+- PCA/clustering outputs depend on LD pruning, missingness thresholds, and cohort composition.
+- Admixture-like assignments are model summaries, not hard ancestry labels.
+
+### ROH and IBD
+- ROH and IBD metrics are sensitive to marker density, phasing quality, and genotype error.
+- Cross-tool comparison is valid only under the same metrics schema and compatible parameterization.
+
+### Demography
+- Recent Ne summaries are model-dependent and require explicit generation-time/recombination assumptions.
+- Demography estimates should be interpreted with confidence intervals and assumption flags.
