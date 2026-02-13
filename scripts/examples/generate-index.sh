@@ -7,6 +7,10 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 OUT="${1:-$ROOT_DIR/examples/index.yaml}"
+if [[ "${1:-}" == "--help" ]]; then
+  echo "Usage: scripts/examples/generate-index.sh [output-path]"
+  exit 0
+fi
 
 python3 - "$ROOT_DIR" "$OUT" <<'PY'
 from pathlib import Path
