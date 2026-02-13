@@ -153,6 +153,7 @@ fi
 "$SCRIPT_DIR/check-version-completeness.sh"
 "$SCRIPT_DIR/check-version-hash-pin.sh"
 "$SCRIPT_DIR/check-version-lock.sh"
+"$SCRIPT_DIR/check-lock-matches-built-output.sh"
 "$SCRIPT_DIR/check-tool-id-manifest.sh"
 "$SCRIPT_DIR/check-registry-vs-defs.sh"
 "$SCRIPT_DIR/check-tool-name-collision.sh"
