@@ -1,5 +1,6 @@
 NEXTEST_PROFILE ?= ci
-NEXTEST_CONFIG ?= --config-file configs/nextest/nextest.toml
+NEXTEST_TOML := configs/nextest/nextest.toml
+NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
 NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
@@ -7,7 +8,7 @@ TEST_FEATURES = --all-features
 CARGO_BUILD_JOBS ?= $(JOBS)
 NEXTEST_TEST_THREADS ?= $(CARGO_BUILD_JOBS)
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
-COVERAGE_THRESHOLDS = configs/coverage/thresholds.toml
+COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
 REQUIRED_CARGO_TOOLS = cargo-nextest cargo-llvm-cov cargo-deny
@@ -24,6 +25,7 @@ fmt:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo fmt --all -- --check)
 
 lint:
+	./scripts/tooling/check-config-paths.sh
 	./scripts/checks/check-artifacts-tracked.sh
 	./scripts/checks/check-no-target-paths-in-tests.sh
 	./scripts/checks/check-no-user-path-literals.sh
@@ -163,6 +165,9 @@ policy-only-fast-gate: ## Compile+run policies and critical contract crates only
 scripts-inventory: ## Generate scripts inventory under artifacts/
 	@./scripts/tooling/inventory.sh
 
+config-inventory: ## Generate config inventory under artifacts/
+	@./scripts/tooling/config-inventory.sh
+
 smoke-fastq: ## Quick local FASTQ smoke dry-run.
 	@./scripts/smoke/smoke_fastq.sh
 
@@ -174,4 +179,4 @@ smoke-bam: ## Quick local BAM smoke dry-run.
 		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
-		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate
+		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory config-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate
