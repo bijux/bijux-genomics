@@ -1,6 +1,7 @@
 NEXTEST_PROFILE ?= ci
 NEXTEST_CONFIG ?= --config-file nextest.toml
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
+NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
 CARGO_BUILD_JOBS ?= $(JOBS)
@@ -30,10 +31,10 @@ lint:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/checks/check-isolation-contract.sh; ./scripts/checks/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED) -E "$(NEXTEST_FAST_EXPR)"; ./scripts/checks/check-isolation-contract.sh)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/checks/check-isolation-contract.sh; ./scripts/checks/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) --no-tests $(NEXTEST_NO_TESTS) $(RUN_IGNORED) -E "$(NEXTEST_FAST_EXPR)"; ./scripts/checks/check-isolation-contract.sh)
 
 test-slow: ## Run only slow-labeled tests (functions containing slow__).
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED) -E "test(/::slow__/)")
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) --no-tests $(NEXTEST_NO_TESTS) $(RUN_IGNORED) -E "test(/::slow__/)")
 
 audit:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-deny); cargo deny check)
