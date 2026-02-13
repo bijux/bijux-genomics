@@ -204,3 +204,25 @@ fn pipeline_bam_capture_report_snapshot() -> Result<()> {
     });
     Ok(())
 }
+
+/// Determinism contract for historical snapshot flakes in pipeline_e2e report generation.
+#[test]
+fn pipeline_reports_are_stable_across_repeated_builds() -> Result<()> {
+    let cases = [
+        (Domain::Cross, "fastq-to-bam__default__v1"),
+        (Domain::Bam, "bam-to-bam__adna_shotgun__v1"),
+        (Domain::Bam, "bam-to-bam__adna_capture__v1"),
+    ];
+    for (domain, pipeline_id) in cases {
+        let a = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(&build_report(
+            domain,
+            pipeline_id,
+        )?));
+        let b = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(&build_report(
+            domain,
+            pipeline_id,
+        )?));
+        assert_eq!(a, b, "pipeline report must be deterministic for {pipeline_id}");
+    }
+    Ok(())
+}
