@@ -1,9 +1,9 @@
 {
   "alignments": 4,
   "duplicate_rate": 0.0,
-  "generated_at": "2026-02-11T19:44:31.173414+00:00",
+  "generated_at": "2026-02-13T21:03:59.480522+00:00",
   "input_checksums": {
-    "bam/toy.sam": "4aeb868a57389b31c14821f2fc76fa3309de12284ac61d6d9667a57634828ee7"
+    "bam/toy.sam": "a023fb84d98a88c07e33cbdbf76c7c3c1ad463f32c7eec79aed39f9794f05f35"
   },
   "mapped": 4,
   "schema_version": "bijux.toy.metrics.bam.v1"

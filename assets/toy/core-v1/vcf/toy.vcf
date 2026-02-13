@@ -1,6 +1,4 @@
 ##fileformat=VCFv4.2
-##INFO=<ID=DP,Number=1,Type=Integer,Description="Depth">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sampleToy
-chrToy	101	.	A	G	60	PASS	DP=8	GT	0/1
-chrToy	222	.	C	T	45	PASS	DP=15	GT	0/1
-chrToy	444	.	G	GA	20	LOWQUAL	DP=5	GT	0/1
+##contig=<ID=chr1,length=1000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	10	.	A	G	60	PASS	.
