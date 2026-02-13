@@ -51,6 +51,7 @@ lint:
 	./scripts/run.sh checks check-script-deps
 	./scripts/run.sh checks check-script-help
 	./scripts/run.sh checks check-isolation-contract
+	./scripts/run.sh checks check-isolate-contract-strong
 	./scripts/run.sh checks check-shell-portability
 	./scripts/run.sh checks check-network-usage
 	./scripts/run.sh checks check-no-temp-leaks
