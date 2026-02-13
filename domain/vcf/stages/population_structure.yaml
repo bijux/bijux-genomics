@@ -1,24 +1,24 @@
 schema_version: "bijux.stage.v1"
-stage_id: "vcf.ibd"
+stage_id: "vcf.population_structure"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 inputs:
-  - name: "vcf"
+  - name: "filtered_vcf"
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "ibd_segments"
+  - name: "population_structure_report"
     data_type: "json"
     cardinality: "One"
-required_inputs: ["vcf"]
-required_outputs: ["ibd_segments"]
+required_inputs: ["filtered_vcf"]
+required_outputs: ["population_structure_report"]
 metrics:
-  - name: "ibd_segment_count"
-  - name: "ibd_total_length_bp"
-compatible_tools: ["germline", "ibdhap"]
+  - name: "pca_variance_explained"
+  - name: "population_clusters"
+compatible_tools: ["plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions: ["planned_stage", "diploid_assumptions"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

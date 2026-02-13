@@ -1,22 +1,23 @@
 schema_version: "bijux.stage.v1"
-stage_id: "vcf.ibd"
+stage_id: "vcf.roh"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 inputs:
-  - name: "vcf"
+  - name: "filtered_vcf"
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "ibd_segments"
+  - name: "roh_report"
     data_type: "json"
     cardinality: "One"
-required_inputs: ["vcf"]
-required_outputs: ["ibd_segments"]
+required_inputs: ["filtered_vcf"]
+required_outputs: ["roh_report"]
 metrics:
-  - name: "ibd_segment_count"
-  - name: "ibd_total_length_bp"
-compatible_tools: ["germline", "ibdhap"]
+  - name: "roh_segment_count"
+  - name: "roh_total_length_bp"
+compatible_tools: ["plink2"]
+single_tool_justification: "plink2 is the current planned baseline for ROH calls with stable CLI contracts."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]
