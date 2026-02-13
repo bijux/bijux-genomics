@@ -1,4 +1,4 @@
-tool=flagstat
+tool=samtools
 stage=bam.mapping_summary
 domain=bam
 fixture_kind=truth

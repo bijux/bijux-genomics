@@ -1,6 +1,6 @@
-tool=samtools
-stage=bam.duplication_metrics
-domain=bam
+tool=sortmerna
+stage=fastq.filter
+domain=fastq
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

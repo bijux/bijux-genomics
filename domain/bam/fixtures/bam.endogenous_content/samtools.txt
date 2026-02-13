@@ -1,4 +1,4 @@
-tool=endogenous
+tool=samtools
 stage=bam.endogenous_content
 domain=bam
 fixture_kind=truth

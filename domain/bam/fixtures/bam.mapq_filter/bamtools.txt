@@ -1,4 +1,4 @@
-tool=mapq
+tool=bamtools
 stage=bam.mapq_filter
 domain=bam
 fixture_kind=truth

@@ -1,6 +1,7 @@
 tool=ngsbriggs
 stage=bam.damage
 domain=bam
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

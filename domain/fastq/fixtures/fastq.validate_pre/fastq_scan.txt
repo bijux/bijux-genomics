@@ -1,6 +1,7 @@
-tool=fastq-scan
+tool=fastq_scan
 stage=fastq.validate_pre
 domain=fastq
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

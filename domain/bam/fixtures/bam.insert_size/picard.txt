@@ -1,6 +1,7 @@
-tool=insert
+tool=picard
 stage=bam.insert_size
 domain=bam
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts

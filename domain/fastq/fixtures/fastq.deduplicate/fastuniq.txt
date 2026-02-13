@@ -1,6 +1,7 @@
 tool=fastuniq
 stage=fastq.deduplicate
 domain=fastq
+shipping=external
 fixture_kind=synthetic_truth
 args=
 expected_outputs=contract_artifacts

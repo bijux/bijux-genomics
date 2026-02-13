@@ -1,6 +1,7 @@
 tool=seqfu
 stage=fastq.length_distribution_pre
 domain=fastq
+shipping=external
 fixture_kind=synthetic_truth
 args=
 expected_outputs=contract_artifacts

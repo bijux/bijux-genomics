@@ -1,6 +1,7 @@
-tool=overlap
+tool=bamutil
 stage=bam.overlap_correction
 domain=bam
+shipping=external
 fixture_kind=truth
 args=
 expected_outputs=contract_artifacts
