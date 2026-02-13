@@ -25,6 +25,7 @@ Define a damage-aware genotype calling contract for VCF workflows, including GL-
 - Transition-sensitive masking: C>T and G>A contexts can be excluded or down-weighted.
 - PMD thresholding: reads/sites above threshold are filtered or annotated per policy.
 - All active thresholds must appear in report artifacts and fixture contracts.
+- Bias audit must report before/after summary of damage-sensitive signals.
 
 ## GL Propagation Rules
 - GL/PL retention is mandatory for GL-based downstream stages.
@@ -39,3 +40,4 @@ Define a damage-aware genotype calling contract for VCF workflows, including GL-
 - Mixing pseudohaploid outputs with diploid assumptions in one analysis.
 - Dropping GL/PL tags during filtering, making downstream inference invalid.
 - Unreported PMD or transition mask changes causing irreproducible results.
+- Missing before/after bias audit section in report artifacts.
