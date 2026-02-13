@@ -1,3 +1,6 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs -->
+
 # Scope Closure Checklist
 
 - scope: `pre-hpc`
