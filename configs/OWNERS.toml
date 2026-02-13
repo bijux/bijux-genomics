@@ -26,6 +26,10 @@ prefix = "configs/docs/"
 owner = "bijux-dna-infra"
 
 [[rule]]
+prefix = "configs/hpc/"
+owner = "bijux-dna-infra"
+
+[[rule]]
 prefix = "configs/lab/"
 owner = "bijux-dna-infra"
 

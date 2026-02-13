@@ -22,3 +22,4 @@ Fields:
 - Path: `configs/runtime/profiles/<profile>.toml`
 - Purpose: composable runtime execution profiles selected by profile name (for example `local`, `hpc`).
 - Invariant: profile file names are stable identifiers used by CLI `--profile`.
+- Contract doc: `configs/runtime/profiles/README.md`.
