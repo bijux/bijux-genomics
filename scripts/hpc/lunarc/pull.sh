@@ -8,12 +8,23 @@ require_stable_env
 
 dry_run=1
 confirm=0
-for arg in "$@"; do
-  case "$arg" in
+include_profile="pull-results-default"
+exclude_profile="pull-full-default"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --dry-run) dry_run=1 ;;
     --confirm) confirm=1; dry_run=0 ;;
-    *) echo "unknown arg: $arg" >&2; exit 2 ;;
+    --include=*) include_profile="${1#*=}" ;;
+    --include-profile=*) include_profile="${1#*=}" ;;
+    --include) include_profile="${2:-}"; shift ;;
+    --include-profile) include_profile="${2:-}"; shift ;;
+    --exclude=*) exclude_profile="${1#*=}" ;;
+    --exclude-profile=*) exclude_profile="${1#*=}" ;;
+    --exclude) exclude_profile="${2:-}"; shift ;;
+    --exclude-profile) exclude_profile="${2:-}"; shift ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
+  shift
 done
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
@@ -23,6 +34,35 @@ LUNARC_PULL_BASE="${LUNARC_PULL_BASE:-${HOME}/bijux}"
 PULL_MODE="${PULL_MODE:-results}"
 INCLUDE_CONTAINERS_MANIFEST="${INCLUDE_CONTAINERS_MANIFEST:-0}"
 DATA_MANIFEST_GLOB="${DATA_MANIFEST_GLOB:-}"
+profiles_cfg="$ROOT_DIR/configs/hpc/lunarc_sync_profiles.toml"
+pull_full_exclude="$ROOT_DIR/configs/hpc/rsync/pull-full-excludes.txt"
+pull_results_include="$ROOT_DIR/configs/hpc/rsync/pull-results-includes.txt"
+if [[ -f "$profiles_cfg" ]]; then
+  full_found="$(python3 - <<'PY' "$profiles_cfg" "$exclude_profile"
+from pathlib import Path
+import sys, tomllib
+cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+name = sys.argv[2]
+for p in cfg.get("profiles", []):
+    if p.get("name") == name and p.get("exclude_file"):
+        print(p["exclude_file"])
+        break
+PY
+)"
+  [[ -n "$full_found" ]] && pull_full_exclude="$ROOT_DIR/$full_found"
+  res_found="$(python3 - <<'PY' "$profiles_cfg" "$include_profile"
+from pathlib import Path
+import sys, tomllib
+cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+name = sys.argv[2]
+for p in cfg.get("profiles", []):
+    if p.get("name") == name and p.get("include_file"):
+        print(p["include_file"])
+        break
+PY
+)"
+  [[ -n "$res_found" ]] && pull_results_include="$ROOT_DIR/$res_found"
+fi
 
 ts="$(date +%Y%m%d-%H%M%S)"
 dest="${LUNARC_PULL_BASE}/lunarc-${ts}"
@@ -42,12 +82,12 @@ mkdir -p "$dest"
 pulled_paths=()
 if [[ "$PULL_MODE" == "full" ]]; then
   rsync -az \
-    --exclude-from="${SCRIPT_DIR}/rsync-pull-full-excludes.txt" \
+    --exclude-from="$pull_full_exclude" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/")
 else
   rsync -az \
-    --include-from="${SCRIPT_DIR}/rsync-pull-results-includes.txt" \
+    --include-from="$pull_results_include" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/bijux-dna-results/")
   if [[ "$INCLUDE_CONTAINERS_MANIFEST" == "1" ]]; then

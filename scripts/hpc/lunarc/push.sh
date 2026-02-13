@@ -8,13 +8,38 @@ require_stable_env
 
 dry_run=1
 confirm=0
-for arg in "$@"; do
-  case "$arg" in
+exclude_profile="push-default"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --dry-run) dry_run=1 ;;
     --confirm) confirm=1; dry_run=0 ;;
-    *) echo "unknown arg: $arg" >&2; exit 2 ;;
+    --exclude=*) exclude_profile="${1#*=}" ;;
+    --exclude-profile=*) exclude_profile="${1#*=}" ;;
+    --exclude) exclude_profile="${2:-}"; shift ;;
+    --exclude-profile) exclude_profile="${2:-}"; shift ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
+  shift
 done
+
+profiles_cfg="$ROOT_DIR/configs/hpc/lunarc_sync_profiles.toml"
+exclude_file="$ROOT_DIR/configs/hpc/rsync/push-excludes.txt"
+if [[ -f "$profiles_cfg" ]]; then
+  found="$(python3 - <<'PY' "$profiles_cfg" "$exclude_profile"
+from pathlib import Path
+import sys, tomllib
+cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+name = sys.argv[2]
+for p in cfg.get("profiles", []):
+    if p.get("name") == name and p.get("exclude_file"):
+        print(p["exclude_file"])
+        break
+PY
+)"
+  if [[ -n "$found" ]]; then
+    exclude_file="$ROOT_DIR/$found"
+  fi
+fi
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
 LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
@@ -38,13 +63,16 @@ fi
 ssh "$LUNARC_HOST" "mkdir -p '$LUNARC_REPO_DIR'"
 
 if [[ "$CLEAN_CONTEXT" == "1" ]]; then
-  files_from="$(mktemp)"
+  temp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+  ensure_artifacts_dir "$temp_root"
+  mkdir -p "$temp_root"
+  files_from="$temp_root/tmp-lunarc-push-files.txt"
   trap 'rm -f "$files_from"' EXIT
   git ls-files >"$files_from"
   rsync -az --delete --files-from="$files_from" ./ "$LUNARC_HOST:$LUNARC_REPO_DIR/"
 else
   rsync -az --delete \
-    --exclude-from="${SCRIPT_DIR}/rsync-push-excludes.txt" \
+    --exclude-from="$exclude_file" \
     ./ "$LUNARC_HOST:$LUNARC_REPO_DIR/"
 fi
 

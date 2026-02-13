@@ -1,0 +1,14 @@
+# schema_version = 1
+# owner = platform
+
+[[profiles]]
+name = "push-default"
+exclude_file = "configs/hpc/rsync/push-excludes.txt"
+
+[[profiles]]
+name = "pull-full-default"
+exclude_file = "configs/hpc/rsync/pull-full-excludes.txt"
+
+[[profiles]]
+name = "pull-results-default"
+include_file = "configs/hpc/rsync/pull-results-includes.txt"
