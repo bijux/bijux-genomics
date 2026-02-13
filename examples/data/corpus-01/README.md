@@ -19,7 +19,7 @@
 
 ## Reproducibility
 - `ENA_METADATA.snapshot.json` stores the selected and rejected ENA records.
-- `MANIFEST.json` stores SHA256 digests for all corpus FASTQ files.
+- `CHECKSUMS.sha256` stores SHA256 digests for tracked files under `raw/` and `normalized/`.
 - `bijux corpus validate corpus-01` validates layout, checksums, and read-name sanity.
 - `bijux corpus list --json` enumerates normalized inputs deterministically.
 
