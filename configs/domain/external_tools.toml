@@ -1,0 +1,17 @@
+# schema_version = 1
+# owner = bijux-dna-domain-compiler
+
+[non_container_tools]
+gatk = "planned external tool; unshipped in current container policy"
+picard = "planned external tool; unshipped in current container policy"
+preseq = "planned external tool; unshipped in current container policy"
+bamutil = "planned external tool; unshipped in current container policy"
+ngsbriggs = "planned external tool; unshipped in current container policy"
+dustmasker = "planned external tool; unshipped in current container policy"
+seqfu = "planned external tool; unshipped in current container policy"
+seqprep = "planned external tool; unshipped in current container policy"
+seqpurge = "planned external tool; unshipped in current container policy"
+diamond = "planned external tool; unshipped in current container policy"
+fastq-scan = "planned external tool; unshipped in current container policy"
+fastuniq = "planned external tool; unshipped in current container policy"
+clumpify = "planned external tool; unshipped in current container policy"
