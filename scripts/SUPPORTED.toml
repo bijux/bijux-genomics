@@ -961,6 +961,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_lock_matches_built_output"
+path = "scripts/containers/check-lock-matches-built-output.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_apptainer_bijux_header"
 path = "scripts/containers/check-apptainer-bijux-header.sh"
 purpose = "containers script"
@@ -975,6 +983,30 @@ purpose = "containers script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "promote_container_tool"
+path = "scripts/containers/promote.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = false
+
+[[script]]
+id = "demote_container_tool"
+path = "scripts/containers/demote.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = false
+
+[[script]]
+id = "check_rebuild_repro"
+path = "scripts/containers/check-rebuild-repro.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = false
 
 [[script]]
 id = "check_registry_vs_defs"
