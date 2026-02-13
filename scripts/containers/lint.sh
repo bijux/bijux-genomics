@@ -163,10 +163,12 @@ fi
 "$SCRIPT_DIR/check-registry-vs-defs.sh"
 "$SCRIPT_DIR/check-tool-name-collision.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
+"$SCRIPT_DIR/check-apptainer-hardening.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"
 "$SCRIPT_DIR/check-build-provenance.sh"
 "$SCRIPT_DIR/check-bijux-template-markers.sh"
+"$SCRIPT_DIR/check-license-metadata.sh"
 "$SCRIPT_DIR/check-docker-arch-policy.sh"
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 

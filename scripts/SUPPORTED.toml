@@ -1503,3 +1503,27 @@ purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "containers_check_apptainer_hardening"
+path = "scripts/containers/check-apptainer-hardening.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_generate_license_metadata"
+path = "scripts/containers/generate-license-metadata.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_license_metadata"
+path = "scripts/containers/check-license-metadata.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
