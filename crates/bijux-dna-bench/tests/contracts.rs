@@ -3,6 +3,8 @@
 mod mod_contracts_architecture_rs;
 #[path = "contracts/bench_contract.rs"]
 mod mod_contracts_bench_contract_rs;
+#[path = "contracts/bench_paths.rs"]
+mod mod_contracts_bench_paths_rs;
 #[path = "contracts/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs_fixtures.rs"]
