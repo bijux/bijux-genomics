@@ -1047,6 +1047,7 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
         "src",
         "tests",
         "docs",
+        "bench",
     ]);
     let mut offenders = Vec::new();
     for (name, path) in collect_workspace_crates() {

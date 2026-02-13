@@ -37,7 +37,7 @@ fn parse_tool_ids(tool_registry_path: &Path) -> Vec<String> {
 #[test]
 fn policy__contracts__make_script_enumeration_policy__tool_stage_lists_live_in_registry_only() {
     let root = repo_root();
-    let tool_ids = parse_tool_ids(&root.join("configs").join("tool_registry.toml"));
+    let tool_ids = parse_tool_ids(&root.join("configs").join("ci").join("tool_registry.toml"));
     let stage_markers = ["fastq.", "bam.", "vcf."];
     let mut offenders = Vec::new();
 

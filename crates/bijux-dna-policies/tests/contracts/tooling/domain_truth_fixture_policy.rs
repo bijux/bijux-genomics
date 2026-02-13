@@ -3,7 +3,7 @@
 mod support;
 
 fn configured_domains(root: &std::path::Path) -> Vec<String> {
-    let path = root.join("configs").join("domains.toml");
+    let path = root.join("configs").join("ci").join("domains.toml");
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
     let parsed: toml::Value = raw

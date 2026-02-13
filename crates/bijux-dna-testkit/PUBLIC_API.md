@@ -5,3 +5,6 @@ Public modules exported from src/lib.rs:
 - determinism
 - temp
 - snapshots
+- clocks
+- random
+- policy_support

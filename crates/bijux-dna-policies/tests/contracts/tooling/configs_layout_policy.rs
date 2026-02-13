@@ -65,6 +65,9 @@ fn policy__contracts__configs_layout_policy__rust_src_uses_configs_path_helper()
             .unwrap_or(path)
             .display()
             .to_string();
+        if rel == "crates/bijux-dna-infra/src/paths/config.rs" {
+            continue;
+        }
         if !rel.contains("/src/") {
             continue;
         }

@@ -40,6 +40,20 @@ fn parse_toml(path: &std::path::Path) -> toml::Value {
         .unwrap_or_else(|_| panic!("parse {}", path.display()))
 }
 
+fn resolve_ssot_path(root: &std::path::Path, rel: &str) -> std::path::PathBuf {
+    let direct = root.join(rel);
+    if direct.exists() {
+        return direct;
+    }
+    if let Some(stripped) = rel.strip_prefix("configs/") {
+        let ci = root.join("configs/ci").join(stripped);
+        if ci.exists() {
+            return ci;
+        }
+    }
+    direct
+}
+
 #[test]
 fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardcoded_outside_domain()
 {
@@ -73,7 +87,7 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
     }
     assert!(
         offenders.is_empty(),
-        "param schema ids must come from configs/param_registry*.toml, not hardcoded in consumer code:\n{}",
+        "param schema ids must come from configs/ci/param_registry*.toml, not hardcoded in consumer code:\n{}",
         offenders.join("\n")
     );
 }
@@ -117,9 +131,9 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
             ));
             continue;
         }
-        let stages = parse_toml(&root.join(stages_ssot));
-        let registry = parse_toml(&root.join(tool_registry_ssot));
-        let params = parse_toml(&root.join(param_registry_ssot));
+        let stages = parse_toml(&resolve_ssot_path(&root, stages_ssot));
+        let registry = parse_toml(&resolve_ssot_path(&root, tool_registry_ssot));
+        let params = parse_toml(&resolve_ssot_path(&root, param_registry_ssot));
 
         let param_stage_ids = param_rows(&params)
             .into_iter()

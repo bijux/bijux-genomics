@@ -16,7 +16,7 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
         "stages_vcf.toml",
         "images.toml",
     ] {
-        let checked_in = root.join("configs").join(rel);
+        let checked_in = root.join("configs").join("ci").join(rel);
         let checked_in_raw = std::fs::read_to_string(&checked_in)
             .unwrap_or_else(|_| panic!("read {}", checked_in.display()));
 

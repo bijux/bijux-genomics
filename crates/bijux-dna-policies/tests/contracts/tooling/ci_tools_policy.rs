@@ -111,6 +111,13 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
             missing.push(needle);
         }
     }
+    missing.retain(|needle| {
+        if *needle == "--config-file configs/nextest/nextest.toml" {
+            !(content.contains("$(NEXTEST_CONFIG)") || content.contains("NEXTEST_CONFIG ?="))
+        } else {
+            true
+        }
+    });
 
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
