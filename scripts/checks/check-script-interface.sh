@@ -11,6 +11,20 @@ viol=()
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
+pollution_dir="$ROOT_DIR/artifacts/containers/smoke/pollution"
+pollution_file="$ROOT_DIR/--__bijux_invalid_flag__"
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+
+capture_root_pollution() {
+  if [[ -f "$pollution_file" ]]; then
+    mkdir -p "$pollution_dir"
+    mv "$pollution_file" "$pollution_dir/--__bijux_invalid_flag__.check-script-interface.${timestamp}.$$"
+    return 0
+  fi
+  return 1
+}
+
+capture_root_pollution || true
 
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
@@ -39,6 +53,9 @@ while IFS= read -r rel; do
   rc=$?
   rm -rf "$probe_dir"
   set -e
+  if capture_root_pollution; then
+    viol+=("$rel: invalid-flag probe wrote --__bijux_invalid_flag__ at repo root")
+  fi
   if [[ "$rc" -ne 2 ]]; then
     viol+=("$rel: invalid flag must exit 2 (got $rc)")
   fi
