@@ -1,0 +1,279 @@
+{
+  "items": [
+    {
+      "entry_sha256": "7c39e6cb4898e9e668c76760b374c136631147b302e38a6568b651c20887c90c",
+      "tool": "adapterremoval"
+    },
+    {
+      "entry_sha256": "0ba085428663bceb5d4c3380c914156ca9266fd22c0ae9a01e90ac089054e94e",
+      "tool": "addeam"
+    },
+    {
+      "entry_sha256": "1640f71060d45b838a22f6d62face4b7c8d5c0b65a001eef3a420fec9aad1fa1",
+      "tool": "alientrimmer"
+    },
+    {
+      "entry_sha256": "53e12c8c36a1a46b804b55444cacabc6301ee11a091703bd4e8748eaf896715c",
+      "tool": "angsd"
+    },
+    {
+      "entry_sha256": "3d0d0b9f2fa3b3575942059e6c25d7f0d6910610219d9b3a5646d55e90f31528",
+      "tool": "atropos"
+    },
+    {
+      "entry_sha256": "ffcc0329057664155611610756a1ea495536970b18e804c65510484e45d90071",
+      "tool": "authenticct"
+    },
+    {
+      "entry_sha256": "a7254484779640bcab300fdf66ea5f02666346025f13224de6bee0ec0c34de5b",
+      "tool": "bamtools"
+    },
+    {
+      "entry_sha256": "e881b68783571c44d90a5d90a12916f3a922aedb84583710b6164ec687494125",
+      "tool": "bayeshammer"
+    },
+    {
+      "entry_sha256": "de8a8b82bd018f33ea7d6a305ac74cdf914f7daea15e95a26cb8ae6586a37072",
+      "tool": "bbduk"
+    },
+    {
+      "entry_sha256": "de8a8b82bd018f33ea7d6a305ac74cdf914f7daea15e95a26cb8ae6586a37072",
+      "tool": "bbmerge"
+    },
+    {
+      "entry_sha256": "ba8f253d8740c76fa8222332b5ef54b13aa946fbd53203c38ae98839906e8afe",
+      "tool": "bcftools"
+    },
+    {
+      "entry_sha256": "c76628236fb75bb88d93f1f6fe2e405e9efbdf5ef9a0e81f11e5e9e568aca976",
+      "tool": "beagle"
+    },
+    {
+      "entry_sha256": "e1d08736856e61a6d69bd591f2e7e4b797bf8c3a138b517f53d2614405b9f31a",
+      "tool": "bedtools"
+    },
+    {
+      "entry_sha256": "b064df5bcbcac1217cf9c3c9c63a3163abde13b30d04b36affde4a3f8058caee",
+      "tool": "bowtie2"
+    },
+    {
+      "entry_sha256": "a8e33f95f6e6ca09886dd9e2a0bb959bd154262ed1290bdea2d708289800ac19",
+      "tool": "bracken"
+    },
+    {
+      "entry_sha256": "570807ee4d6b2431ff1663568dd10a3af10bd001961791728dd1b3271d28bf11",
+      "tool": "bwa"
+    },
+    {
+      "entry_sha256": "2308e34a3d6ae753cd55e7c15c60f3e34c8e9ede79bb72b11154110dfe5db58a",
+      "tool": "centrifuge"
+    },
+    {
+      "entry_sha256": "e52431d05aa1187f135a2a2bfeb7f12f6b18051520e7e306090bbc3ae28200f1",
+      "tool": "contammix"
+    },
+    {
+      "entry_sha256": "17d24e940bf2de7f7e09a0f5fa503b8d3d0f8a14c4e2baea0456e576d2b167ba",
+      "tool": "cutadapt"
+    },
+    {
+      "entry_sha256": "41afae2a5cd05d7352315253971202807674fd39f45b35193a097d75fac8838b",
+      "tool": "damageprofiler"
+    },
+    {
+      "entry_sha256": "a4c7362a1ce374c1dc82c6f0a5e27016c20a9529add2c2ef895c304fb3f85cf2",
+      "tool": "eigensoft"
+    },
+    {
+      "entry_sha256": "30c484ff35df0f9c4d96da7f702d0d81060d56a2eaa00f28d304054c866591f9",
+      "tool": "fastp"
+    },
+    {
+      "entry_sha256": "e6c2a03a5e77896ff9b070114a77b37b4c07792086ff38a71c7c330e6e1c6b38",
+      "tool": "fastq_screen"
+    },
+    {
+      "entry_sha256": "f73915fdbc94d5360e007f8d78390039615c63ccbb79572550ffbdfbed7136ca",
+      "tool": "fastqc"
+    },
+    {
+      "entry_sha256": "08815f539ed1b548611a0dd14768d045cb6851a8a360c5eeda32cb2b8136fe35",
+      "tool": "fastqvalidator"
+    },
+    {
+      "entry_sha256": "517c1b529b339d569f6e6220586ab50e65fd6225fb6db962eb50cc8b17eb7da9",
+      "tool": "fastx_clipper"
+    },
+    {
+      "entry_sha256": "df0d6fa79abf764e7acb7edf2362643edc11b1aab104811873468feea7798ab2",
+      "tool": "flash2"
+    },
+    {
+      "entry_sha256": "330eadc75d9c90723c9afa2722f4f8513f9aa1525cecc6343e689baf6517be48",
+      "tool": "fqtools"
+    },
+    {
+      "entry_sha256": "5401b42952a12fb2b61de676db3dbef71c2c6666c22c3a674d345cd181c0db3b",
+      "tool": "germline"
+    },
+    {
+      "entry_sha256": "dc6e2ac791c9ee1fb329493939061f55a98e0b7a5a6a5884369824678257f5cc",
+      "tool": "ibdhap"
+    },
+    {
+      "entry_sha256": "5666059de435c9e5919c5c028313f71fa63dd79a6f3d0f070536146a07e31670",
+      "tool": "ibdne"
+    },
+    {
+      "entry_sha256": "3957fac9e22e4f109d80205b7cab531ac0785ac1cf9f6c65cc63f0b7073f5bf3",
+      "tool": "ibdseq"
+    },
+    {
+      "entry_sha256": "2523d2125c5336bf7578709889a851372be644aa53c91e5f81ca4f28add8ee61",
+      "tool": "kaiju"
+    },
+    {
+      "entry_sha256": "a856ff22ab0402f91209d0852436fd5581d2a015390904f246e409d245a64f4e",
+      "tool": "king"
+    },
+    {
+      "entry_sha256": "ffe7ed31f02f1cdded9235a0cf53e9195e5bf78c776d689150ffac9b74e86009",
+      "tool": "kraken2"
+    },
+    {
+      "entry_sha256": "f3a9589267fcb35d9917f3bc01f9b3b635b7d112ffb1a24c0609d4f3dbcdbc92",
+      "tool": "krakenuniq"
+    },
+    {
+      "entry_sha256": "94d2752497f0ba0f493ff6c456ff521d0e9053a14deefe9bb79901b2bef0cc79",
+      "tool": "leehom"
+    },
+    {
+      "entry_sha256": "57d3dad4c8e66fcc8235aba4e78f65846e298b49b72872c90d66bf014fb16790",
+      "tool": "lighter"
+    },
+    {
+      "entry_sha256": "c6a68802937e3b5f1f081d0dc200209501ed75cbe2bfbef9fd3ac066573be961",
+      "tool": "mapdamage2"
+    },
+    {
+      "entry_sha256": "0bfd3c7038fb60715bcb3637cbeec02e46bd84c7eef274f5eb13032a3c72254f",
+      "tool": "metaphlan"
+    },
+    {
+      "entry_sha256": "cf2f9560ffafef887901a017e90a127a3f22206accb2e2359fc81f40b660b2e1",
+      "tool": "mosdepth"
+    },
+    {
+      "entry_sha256": "c4ca3c054e0c2d6022f78b1d0f73cd810627f5a057bec5527ae06964759b25bd",
+      "tool": "multiqc"
+    },
+    {
+      "entry_sha256": "77444c7694f13d7e467706f89564d860fed43b20eaa94ad6eef8a870e2cb3690",
+      "tool": "musket"
+    },
+    {
+      "entry_sha256": "ea708a8489413b095521d4b35295aebb273aa99eae15e0c65e1733c6bfa878dd",
+      "tool": "pear"
+    },
+    {
+      "entry_sha256": "bbb450ceb01c1440dc751b42fb4888183390f278255b27529fb2ac014488543f",
+      "tool": "plink"
+    },
+    {
+      "entry_sha256": "1285f2ea24ccaa3fcbab8fe5f6fef029a22758a3f25576d334b77b4bd406d0b4",
+      "tool": "plink2"
+    },
+    {
+      "entry_sha256": "db6eac88097de2003250a7a8f532e9bbdfd9d83131286dfd1c9bcfff739f4830",
+      "tool": "pmdtools"
+    },
+    {
+      "entry_sha256": "cd862c46835da9866cb14885647962864bfcbc95b2bef8284dc9a6a5d90499eb",
+      "tool": "prinseq"
+    },
+    {
+      "entry_sha256": "17360708d438a5d7fdf2a001cc14fb07b76efb83aa6b829676276a7aba1de6b9",
+      "tool": "pydamage"
+    },
+    {
+      "entry_sha256": "47a09af3f06b91e58da615a74d1e856c0b3c7e1d83e258823c5025a28a47051b",
+      "tool": "qualimap"
+    },
+    {
+      "entry_sha256": "6e926f8609998c0afab503ae5a3a0f6eab2fa1777b3ed2cd25732aed0393e51e",
+      "tool": "rcorrector"
+    },
+    {
+      "entry_sha256": "39e974f5d37c22d43ad85ed247c14830b8656c332c3b684ad5cdb0c597fcb37e",
+      "tool": "rxy"
+    },
+    {
+      "entry_sha256": "9160a767e92fefa2a4bbe6e78d834a0f0fa8256205bc74544bb96662ff4aee2b",
+      "tool": "samtools"
+    },
+    {
+      "entry_sha256": "2c7a55d9255edcf5c62b2b1257f6d8fe13c2a93dc63f3463a37ea4065dcc0e18",
+      "tool": "schmutzi"
+    },
+    {
+      "entry_sha256": "cb2d21de0df984b5589f086a32d97a1a94c63e1cc5139c40521f0eb450920ceb",
+      "tool": "seqkit"
+    },
+    {
+      "entry_sha256": "8fa21ab69b090e73dcdfb95e37f13584b4f8ea16ab5895df30b775e6ef9428e3",
+      "tool": "seqkit_stats"
+    },
+    {
+      "entry_sha256": "c4bc9e6f1ed8705d590d4a6976ed40470e653a2342ba1df7078c9f967d15b8fc",
+      "tool": "seqtk"
+    },
+    {
+      "entry_sha256": "38c454735b90a6bf1b9f33566bd4e777434d0ec989feb35bf961e3a0d73902d3",
+      "tool": "shapeit"
+    },
+    {
+      "entry_sha256": "9ebb7228f17c182f1420a79c35a1c3b7b0ca35374a77c7cdc10e5a0e8b21fc40",
+      "tool": "skewer"
+    },
+    {
+      "entry_sha256": "1424c0ab77f1d247c925259e2e1f7f7812c0ba06ce09307a0c327bd56124d35d",
+      "tool": "sortmerna"
+    },
+    {
+      "entry_sha256": "e881b68783571c44d90a5d90a12916f3a922aedb84583710b6164ec687494125",
+      "tool": "spades"
+    },
+    {
+      "entry_sha256": "93d19e704ee32291ce2af1eab94cb82957f9eb59714643ce6ecb83773f5edc85",
+      "tool": "star"
+    },
+    {
+      "entry_sha256": "d31e0834171aaeaa54da6b68e1bedf0eb774c96329949085e874fe695ff0c284",
+      "tool": "trim_galore"
+    },
+    {
+      "entry_sha256": "1e48ae24d92d3358f369540feb80faacce8958177a65ed29b9419c22a3671e54",
+      "tool": "trimmomatic"
+    },
+    {
+      "entry_sha256": "5c1f0b246e4093f24b61a745ba05bb4c4e30f4c6d50dab9786cf7789d45a2a28",
+      "tool": "umi_tools"
+    },
+    {
+      "entry_sha256": "ff4ef47928b5fed7f9448379b031ce9dbe5d029cef7153bd5abbfeff845f3c49",
+      "tool": "verifybamid2"
+    },
+    {
+      "entry_sha256": "e4dd39c72e1667aff7c1e0162f2f8bf0d1b149c4f3f8780211f3e80dd878da25",
+      "tool": "vsearch"
+    },
+    {
+      "entry_sha256": "8dee0ed1adecbfbad830f298a1325c1354111d30c873951fb55ff753d0f39c66",
+      "tool": "yleaf"
+    }
+  ],
+  "schema_version": "bijux.container.version_lock.v1",
+  "source": "containers/versions/versions.toml",
+  "source_sha256": "0540eb40679aa45063f1f87230b9bd6d28211b1745ae3661b71cb094fc2e8d73"
+}
