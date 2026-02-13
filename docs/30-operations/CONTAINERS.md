@@ -36,7 +36,7 @@ Applies to registry-linked container definitions, versions, and smoke-policy beh
 - Use `docs/50-reference/TOOL_ADMISSION.md` as the single authoritative "how to add tool" checklist.
 
 ## References
-- `containers/index.md`
+- `containers/docs/index.md`
 - `containers/README.md`
-- `containers/RELEASE_CHECKLIST.md`
-- `containers/PLANNED.md`
+- `containers/docs/RELEASE_CHECKLIST.md`
+- `containers/docs/PLANNED.md`

@@ -70,7 +70,7 @@ check_docker() {
   base_repo="$(printf '%s\n' "$from_image" | sed -E 's/@sha256:.*$//' | sed -E 's/:.*$//')"
   case "$base_repo" in
     ubuntu|python|quay.io/biocontainers/bcftools) ;;
-    *) record "$file: base image '$base_repo' is not allowed by containers/STYLE.md" ;;
+    *) record "$file: base image '$base_repo' is not allowed by containers/docs/STYLE.md" ;;
   esac
 }
 

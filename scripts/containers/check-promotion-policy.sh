@@ -6,9 +6,9 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-policy="$ROOT_DIR/containers/PROMOTION_POLICY.md"
+policy="$ROOT_DIR/containers/docs/PROMOTION_POLICY.md"
 if [[ ! -f "$policy" ]]; then
-  echo "missing containers/PROMOTION_POLICY.md" >&2
+  echo "missing containers/docs/PROMOTION_POLICY.md" >&2
   exit 1
 fi
 

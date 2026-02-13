@@ -15,7 +15,7 @@ Documentation section graph and entry points.
 
 ## Supporting Sections
 - `docs/cli/index.md`
-- `docs/containers/index.md`
+- `docs/containers/index.md` (container docs hub)
 - `docs/decisions/TOOL_BINDING_DECISIONS.md`
 
 Crate-specific docs live under `crates/<crate>/docs/`.
@@ -31,4 +31,3 @@ Applies only to the files and workflows referenced in this document.
 
 ## Contracts
 - Content here is normative where explicitly stated.
-
