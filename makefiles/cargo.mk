@@ -40,6 +40,7 @@ lint:
 	./scripts/run.sh checks check-no-user-path-literals
 	./scripts/run.sh checks check-script-writes
 	./scripts/run.sh checks check-assets-drift
+	./scripts/run.sh checks check-assets-reference-schema
 	./scripts/run.sh checks tree-intent
 	./scripts/run.sh checks check-readme-links
 	./scripts/run.sh checks check-ci-shell-scripts
