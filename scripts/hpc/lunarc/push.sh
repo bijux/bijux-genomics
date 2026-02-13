@@ -63,9 +63,13 @@ rsync_clean() {
 }
 
 if [[ "$ALLOW_DIRTY" != "1" ]]; then
-  if ! git diff --quiet --ignore-submodules -- || ! git diff --cached --quiet --ignore-submodules --; then
-    echo "refusing push: local git tree is dirty (set ALLOW_DIRTY=1 to override)" >&2
-    exit 2
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if ! git diff --quiet --ignore-submodules -- || ! git diff --cached --quiet --ignore-submodules --; then
+      echo "refusing push: local git tree is dirty (set ALLOW_DIRTY=1 to override)" >&2
+      exit 2
+    fi
+  else
+    echo "warning: not a git worktree; skipping dirty-tree check" >&2
   fi
 fi
 
