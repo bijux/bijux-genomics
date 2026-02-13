@@ -2,8 +2,6 @@
 # owner = bijux-dna-platform
 tool_id = "bayeshammer"
 container_kind = "bijux"
-spdx = "GPL-3.0"
-upstream_url = "https://github.com/bijux/bijux-dna"
-redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
-citation = "bayeshammer upstream project (see upstream_url)."
+license = "GPL-3.0"
+upstream_source = "https://github.com/bijux/bijux-dna"
 version = "0.0.0"

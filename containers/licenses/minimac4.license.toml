@@ -2,8 +2,6 @@
 # owner = bijux-dna-platform
 tool_id = "minimac4"
 container_kind = "bijux"
-spdx = "MIT"
-upstream_url = "https://genome.sph.umich.edu/wiki/Minimac4"
-redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
-citation = "minimac4 upstream project (see upstream_url)."
+license = "MIT"
+upstream_source = "https://genome.sph.umich.edu/wiki/Minimac4"
 version = "planned"

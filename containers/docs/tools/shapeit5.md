@@ -4,7 +4,7 @@
 
 Purpose: generated per-tool container contract summary.
 
-- Version: `planned`
+- Version: `5.1.1`
 - License: `unknown`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

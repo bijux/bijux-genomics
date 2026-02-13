@@ -2,8 +2,6 @@
 # owner = bijux-dna-platform
 tool_id = "ibdhap"
 container_kind = "bijux"
-spdx = "unknown"
-upstream_url = "https://example.invalid/ibdhap"
-redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
-citation = "ibdhap upstream project (see upstream_url)."
+license = "unknown"
+upstream_source = "https://example.invalid/ibdhap"
 version = "0.1.0-planned"
