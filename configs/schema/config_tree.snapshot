@@ -1,0 +1,34 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+configs/bench/index.md
+configs/bench/knobs.toml
+configs/ci/index.md
+configs/ci/params/index.md
+configs/ci/params/param_registry.toml
+configs/ci/params/param_registry_vcf.toml
+configs/ci/registry/domains.toml
+configs/ci/registry/index.md
+configs/ci/registry/tool_registry.toml
+configs/ci/registry/tool_registry_experimental.toml
+configs/ci/registry/tool_registry_lock.sha256
+configs/ci/registry/tool_registry_vcf.toml
+configs/ci/stages/index.md
+configs/ci/stages/stages.toml
+configs/ci/stages/stages_vcf.toml
+configs/ci/tools/images.toml
+configs/ci/tools/index.md
+configs/ci/tools/required_tools.toml
+configs/ci/tools/required_tools_vcf.toml
+configs/coverage/index.md
+configs/coverage/thresholds.toml
+configs/index.md
+configs/lab/config_example.toml
+configs/logging/index.md
+configs/nextest/index.md
+configs/nextest/nextest.toml
+configs/runtime/index.md
+configs/runtime/platforms.toml
+configs/runtime/profile_local.toml
+configs/runtime/species_aliases.toml
+configs/schema/config_tree.snapshot
+configs/schema/index.md
