@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-infra
+# purpose = Contract config for configs/ci/tools/required_tools_vcf_downstream.toml
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-13
 
 schema_version = "bijux.required_tools.v1"
 required_tools = [

@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
+# purpose = Contract config for configs/ci/stages/stages_vcf_downstream.toml
+# authority = bijux-dna-domain-compiler
+# stability = stable
+# last_updated = 2026-02-13
 
 [[stages]]
 id = "vcf.qc"

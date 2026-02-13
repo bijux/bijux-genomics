@@ -4,6 +4,10 @@
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
+# purpose = Contract config for configs/ci/registry/tool_registry_experimental.toml
+# authority = bijux-dna-domain-compiler
+# stability = stable
+# last_updated = 2026-02-13
 
 [[tools]]
 id = "adapterremoval"
@@ -820,4 +824,3 @@ comparability_notes = "Comparable only within same stage contract and input cons
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
 apptainer_def = "containers/apptainer/bijux/yleaf.def"
 require_labels = true
-

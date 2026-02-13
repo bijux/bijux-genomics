@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-bench
+# purpose = Contract config for configs/bench/knobs.toml
+# authority = bijux-dna-bench
+# stability = stable
+# last_updated = 2026-02-13
 
 [defaults]
 warmup_policy = "once"
