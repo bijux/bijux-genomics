@@ -19,6 +19,9 @@ lint:
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
 	./scripts/run.sh checks check-config-headers
+	./scripts/run.sh checks check-config-owners
+	./scripts/run.sh checks check-species-aliases
+	./scripts/run.sh checks check-bench-knobs
 	./scripts/run.sh checks check-registry-split
 	./scripts/run.sh checks check-tool-registry-lock
 	./scripts/run.sh docs check-domain-doc-references

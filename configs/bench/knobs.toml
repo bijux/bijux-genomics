@@ -2,9 +2,13 @@
 # owner = bijux-dna-bench
 
 [defaults]
-repetitions = 1
+warmup_policy = "once"
+repetitions = 3
 threads = 8
 mem_gb = 32
 cold_runs = 1
 warm_runs = 1
 tmp_policy = "unique-per-run"
+capture_cpu = true
+capture_memory = true
+capture_io = true
