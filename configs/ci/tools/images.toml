@@ -186,23 +186,44 @@ version = "latest-pinned"
 [beagle]
 version = "planned"
 enabled = false
+shipping_policy = "apptainer_only"
 
 [shapeit]
 version = "planned"
 enabled = false
+shipping_policy = "apptainer_only"
 
 [plink]
 version = "planned"
 enabled = false
+shipping_policy = "docker_apptainer"
 
 [plink2]
 version = "planned"
 enabled = false
+shipping_policy = "docker_apptainer"
 
 [eigensoft]
 version = "planned"
 enabled = false
+shipping_policy = "apptainer_only"
 
 [ibdseq]
 version = "planned"
 enabled = false
+shipping_policy = "apptainer_only"
+
+[germline]
+version = "planned"
+enabled = false
+shipping_policy = "apptainer_only"
+
+[ibdhap]
+version = "planned"
+enabled = false
+shipping_policy = "apptainer_only"
+
+[ibdne]
+version = "planned"
+enabled = false
+shipping_policy = "apptainer_only"
