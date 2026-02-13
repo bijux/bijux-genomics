@@ -67,6 +67,9 @@ benchmark-all: ## Run all FASTQ benchmarks sequentially for one explicit sample 
 		$(MAKE) benchmark-umi SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
 	fi
 
+benchmark-status: ## Show canonical benchmark suite/config directories and detected suites
+	@$(BIJUX_BIN) bench status
+
 .PHONY: benchmark-fastq-stage benchmark-all benchmark-trim benchmark-validate benchmark-filter \
 	benchmark-merge benchmark-correct benchmark-qc-post benchmark-umi \
-	benchmark-stats benchmark-screen benchmark-preprocess
+	benchmark-stats benchmark-screen benchmark-preprocess benchmark-status
