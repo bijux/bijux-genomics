@@ -1729,6 +1729,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_assets_large_file_allowlist"
+path = "scripts/checks/check-assets-large-file-allowlist.sh"
+purpose = "checks script"
+inputs = ["assets/LARGE_FILE_ALLOWLIST.txt"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "make_help"
 path = "scripts/tooling/make-help.sh"
 purpose = "tooling script"

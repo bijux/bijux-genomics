@@ -24,6 +24,17 @@ while IFS= read -r pub_dir; do
   done
 done < <(find "$ROOT_DIR/assets/publications" -mindepth 1 -maxdepth 1 -type d | sort)
 
+while IFS= read -r gen; do
+  [[ -f "$gen" ]] || continue
+  rel="${gen#"$ROOT_DIR/"}"
+  for heading in "## Command(s)" "## Tool versions"; do
+    if ! rg -F -q "${heading}" "$gen"; then
+      echo "asset-manifests: $rel missing heading '${heading}'" >&2
+      status=1
+    fi
+  done
+done < <(find "$ROOT_DIR/assets/golden" -type f -name GENERATE.md | sort)
+
 if [[ "$status" -ne 0 ]]; then
   exit "$status"
 fi

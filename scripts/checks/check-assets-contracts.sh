@@ -24,7 +24,9 @@ if allowlist.exists():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
-        allowed_large.add(line)
+        path_only = line.split("|", 1)[0].strip()
+        if path_only:
+            allowed_large.add(path_only)
 
 def is_doc_file(p: Path) -> bool:
     return p.name in {"README.md", "index.md", "GENERATE.md", "CHECKSUMS.sha256"} or p.suffix in {".md", ".toml", ".yaml", ".yml", ".json"}

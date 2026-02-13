@@ -134,6 +134,7 @@ scripts/checks/check-audit-allowlist.sh
 scripts/checks/check-cargo-config-policy.sh
 scripts/checks/check-gitignore-contract.sh
 scripts/checks/check-make-help-sync.sh
+scripts/checks/check-assets-large-file-allowlist.sh
 scripts/tooling/simulate-coverage-regime.sh
 scripts/tooling/acquire-panels.sh
 scripts/tooling/make-help.sh

@@ -70,6 +70,7 @@ lint:
 	./scripts/run.sh checks check-assets-contracts
 	./scripts/run.sh checks check-asset-manifests
 	./scripts/run.sh checks check-asset-checksums
+	./scripts/run.sh checks check-assets-large-file-allowlist
 	./scripts/run.sh checks check-golden-artifact-schema
 	./scripts/run.sh checks check-assets-reference-schema
 	./scripts/run.sh checks tree-intent
