@@ -283,7 +283,7 @@ upstream_license = "MIT"
 source_sha256 = "5555555555555555555555555555555555555555555555555555555555555555"
 
 [mosdepth]
-version = "0.3.10"
+version = "0.3.11"
 source = "https://github.com/brentp/mosdepth"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
@@ -335,7 +335,7 @@ date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
 [pydamage]
-version = "1.0.0"
+version = "0.80"
 source = "https://github.com/maxibor/pydamage"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
@@ -377,7 +377,7 @@ date_pinned = "2026-02-12"
 source_sha256 = "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc"
 
 [seqkit_stats]
-version = "2.7.0"
+version = "2.8.2"
 source = "https://github.com/seqkit_stats/seqkit_stats"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
