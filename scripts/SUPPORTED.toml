@@ -855,3 +855,99 @@ purpose = "shared shell runtime library"
 inputs = []
 outputs = []
 ci_allowed = false
+
+[[script]]
+id = "generate_tool_ids"
+path = "scripts/containers/generate-tool-ids.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_tool_id_manifest"
+path = "scripts/containers/check-tool-id-manifest.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "generate_qa_matrix"
+path = "scripts/containers/generate-qa-matrix.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_smoke_contract"
+path = "scripts/containers/check-smoke-contract.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_docker_arch_policy"
+path = "scripts/containers/check-docker-arch-policy.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_digest_output_policy"
+path = "scripts/containers/check-digest-output-policy.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_missing_images"
+path = "scripts/containers/check-missing-images.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_tool_container_coverage"
+path = "scripts/containers/check-tool-container-coverage.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_non_bijux_sources"
+path = "scripts/containers/check-non-bijux-sources.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_version_completeness"
+path = "scripts/containers/check-version-completeness.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_bijux_header"
+path = "scripts/containers/check-apptainer-bijux-header.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_docker_labels"
+path = "scripts/containers/check-docker-labels.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
