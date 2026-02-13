@@ -2,17 +2,26 @@
 set -eu
 
 if [ "${1:-}" = "--explain" ]; then
+  TAG="$(date -u +%Y%m%dT%H%M%SZ)-explain-$$"
   cat <<'EOF'
 isolate-required:
 - This command must run inside an isolate to keep build/test outputs deterministic.
 - Required env vars: ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP.
 - Expected contract: all writable paths are inside ISO_ROOT.
+EOF
+  cat <<EOF
 
 Invoke with:
-  ./bin/isolate <command> [args...]
+  ISO_TAG=$TAG ./bin/isolate <command> [args...]
 
-Inspect isolate root:
-  ./bin/isolate --print-root
+Inspect resolved isolate values before running:
+  ISO_TAG=$TAG ./bin/isolate --print-tag
+  ISO_TAG=$TAG ./bin/isolate --print-root
+
+For target directory hygiene:
+  ISO_TAG=$TAG ./bin/isolate --require-empty-target-dir <command> [args...]
+  # add --reuse only when intentional reuse is required
+
 EOF
   exit 0
 fi

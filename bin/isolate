@@ -6,8 +6,54 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 GIT_SHORT_SHA=$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo nogit)
 
 print_usage() {
-  echo "usage: $0 [--print-root] <command> [args...]" >&2
+  cat >&2 <<'EOF'
+usage: bin/isolate [options] <command> [args...]
+
+options:
+  --print-root                  print computed ISO_ROOT and exit
+  --print-tag                   print computed ISO_TAG and exit
+  --require-empty-target-dir    fail if ISO_ROOT already has target-* dirs/files (unless --reuse)
+  --reuse                       allow reuse of existing ISO_ROOT target-* entries
+EOF
 }
+
+require_empty_target_dir=0
+reuse=0
+print_root=0
+print_tag=0
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --print-root)
+      print_root=1
+      shift
+      ;;
+    --print-tag)
+      print_tag=1
+      shift
+      ;;
+    --require-empty-target-dir)
+      require_empty_target_dir=1
+      shift
+      ;;
+    --reuse)
+      reuse=1
+      shift
+      ;;
+    --help|-h)
+      print_usage
+      exit 0
+      ;;
+    --*)
+      echo "unknown option: $1" >&2
+      print_usage
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 if [ -z "${ISO_TAG:-}" ]; then
   ISO_TAG="$(date -u +%Y%m%dT%H%M%SZ)-${GIT_SHORT_SHA}-$$"
@@ -16,14 +62,29 @@ if [ -z "${ISO_ROOT:-}" ]; then
   ISO_ROOT="$ROOT_DIR/artifacts/isolates/$ISO_TAG"
 fi
 
-if [ "${1:-}" = "--print-root" ]; then
+if [ "$print_root" -eq 1 ]; then
   echo "$ISO_ROOT"
+  if [ "$print_tag" -eq 1 ]; then
+    echo "$ISO_TAG"
+  fi
+  exit 0
+fi
+
+if [ "$print_tag" -eq 1 ]; then
+  echo "$ISO_TAG"
   exit 0
 fi
 
 if [ "$#" -eq 0 ]; then
   print_usage
   exit 2
+fi
+
+if [ "$require_empty_target_dir" -eq 1 ] && [ "$reuse" -ne 1 ]; then
+  if [ -d "$ISO_ROOT" ] && find "$ISO_ROOT" -mindepth 1 -maxdepth 1 -name 'target-*' | grep -q .; then
+    echo "isolate: ISO_ROOT already contains target-* entries; use --reuse to continue: $ISO_ROOT" >&2
+    exit 1
+  fi
 fi
 
 mkdir -p "$ISO_ROOT/target" "$ISO_ROOT/cargo-home" "$ISO_ROOT/tmp" "$ISO_ROOT/logs" "$ISO_ROOT/out"
