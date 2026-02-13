@@ -22,19 +22,19 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_must_appear_in_suite(
 ) {
     let root = support::workspace_root();
-    let registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
-        .expect("read configs/ci/tool_registry.toml");
+    let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
+        .expect("read configs/ci/registry/tool_registry.toml");
     let registry: toml::Value = registry_raw
         .parse()
-        .expect("parse configs/ci/tool_registry.toml");
+        .expect("parse configs/ci/registry/tool_registry.toml");
 
-    let suite_files = std::fs::read_dir(root.join("configs").join("bench"))
-        .expect("read configs/bench")
+    let suite_files = std::fs::read_dir(root.join("crates/bijux-dna-bench/bench/suites"))
+        .expect("read bench suite directory")
         .filter_map(|entry| entry.ok().map(|row| row.path()))
         .filter(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
-                .is_some_and(|name| name.starts_with("bench-suite-") && name.ends_with(".toml"))
+                .is_some_and(|name| name.ends_with(".toml"))
         })
         .collect::<Vec<_>>();
 
@@ -115,7 +115,7 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
     for tool_id in &required_tools {
         if !suite_tools.contains(tool_id) {
             offenders.push(format!(
-                "supported benchmark tool {} missing from bench suite configs/bench/bench-suite-*.toml",
+                "supported benchmark tool {} missing from bench suite crates/bijux-dna-bench/bench/suites/*.toml",
                 tool_id
             ));
         }

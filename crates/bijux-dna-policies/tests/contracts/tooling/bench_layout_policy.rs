@@ -26,7 +26,6 @@ fn policy__contracts__bench_layout_policy__root_bench_directory_is_forbidden() {
 fn policy__contracts__bench_layout_policy__bench_suites_live_only_under_bench_crate() {
     let root = workspace_root();
     let canonical = root.join("crates/bijux-dna-bench/bench/suites");
-    let legacy_allow = root.join("configs/bench/bench-suite-01-fastq-5stages.toml");
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
@@ -40,7 +39,7 @@ fn policy__contracts__bench_layout_policy__bench_suites_live_only_under_bench_cr
         if !raw.contains("bijux.bench-suite.fastq.v1") {
             continue;
         }
-        if !path.starts_with(&canonical) && path != legacy_allow {
+        if !path.starts_with(&canonical) {
             offenders.push(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
