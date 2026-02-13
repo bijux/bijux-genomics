@@ -30,6 +30,10 @@ prefix = "configs/docs/"
 owner = "bijux-dna-infra"
 
 [[rule]]
+prefix = "configs/domain/"
+owner = "bijux-dna-domain-compiler"
+
+[[rule]]
 prefix = "configs/hpc/"
 owner = "bijux-dna-infra"
 
@@ -52,3 +56,7 @@ owner = "bijux-dna-runtime"
 [[rule]]
 prefix = "configs/schema/"
 owner = "bijux-dna-infra"
+
+[[rule]]
+prefix = "configs/vcf/"
+owner = "bijux-dna-vcf"

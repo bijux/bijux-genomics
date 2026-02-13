@@ -59,3 +59,14 @@ Acceptance criteria:
   - At least one fixture exists for each admitted stage binding.
 - Runtime contract:
   - Tool is containerized or explicitly marked external with rationale until containerized.
+
+## Reference Panel Admission Addendum
+Panel artifacts used by tool workflows must satisfy:
+- Licensing:
+  - Panel source license is documented and compatible with project distribution policy.
+- Provenance:
+  - Source origin and transformation lineage are recorded in panel metadata.
+- Reproducibility:
+  - Panel catalog and lock metadata include fixed version, URL, and checksum.
+- No floating inputs:
+  - Branch/tag-style moving references are not allowed for production panels.

@@ -26,6 +26,9 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 - `run_manifest.json` and `run_manifest.lock.json` must be emitted.
 - Tool digests in lock artifacts must be immutable.
 - Param hash changes must change profile hash snapshots.
+- Reference panels are locked inputs defined under `configs/vcf/panels/`.
+- Panel catalog entries must include pinned `version`, pinned `url`, and `checksum_sha256`.
+- Floating URLs are forbidden for panel artifacts.
 
 ## HPC Forward-compat
 - Enabling HPC profile changes physical data/container/output roots, not contract semantics.

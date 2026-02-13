@@ -1,0 +1,26 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Contract config for configs/vcf/panels/panels.toml
+# authority = bijux-dna-vcf
+# stability = stable
+# last_updated = 2026-02-13
+
+[[panel]]
+id = "corpus_01_mini_panel"
+status = "production"
+version = "1.0.0"
+url = "https://example.org/bijux/panels/corpus-01-mini/panel.vcf.gz"
+checksum_sha256 = "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+lock_ref = "locks/panel_locks.toml#corpus_01_mini_panel"
+license = "CC-BY-4.0"
+provenance = "examples/data/corpus-01-mini/reference/panel.vcf.gz"
+
+[[panel]]
+id = "corpus_01_panel"
+status = "planned"
+version = "1.0.0"
+url = "https://example.org/bijux/panels/corpus-01/panel.vcf.gz"
+checksum_sha256 = "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+lock_ref = "locks/panel_locks.toml#corpus_01_panel"
+license = "CC-BY-4.0"
+provenance = "examples/data/corpus-01/reference/panel.vcf.gz"
