@@ -27,6 +27,7 @@ lint:
 	./scripts/run.sh checks check-config-filenames
 	./scripts/run.sh checks check-config-headers
 	./scripts/run.sh checks check-config-schema
+	./scripts/run.sh checks check-docs-requirements-lock
 	./scripts/run.sh checks check-config-owners
 	./scripts/run.sh checks check-registry-required-tools-parity
 	./scripts/run.sh checks check-domain-tool-parity
@@ -52,6 +53,7 @@ lint:
 	./scripts/run.sh domain check-inventory
 	./scripts/run.sh docs check-domain-doc-references
 	./scripts/run.sh docs check-doc-links
+	./scripts/run.sh checks check-docs-build-contract
 	./scripts/run.sh docs check-docs-graph
 	./scripts/run.sh docs check-doc-root-layout
 	./scripts/run.sh docs check-doc-depth
@@ -99,6 +101,7 @@ lint:
 	./scripts/run.sh checks check-audit-allowlist
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
+	./scripts/run.sh checks check-make-cargo-isolate-target
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 	./scripts/run.sh containers lint
 	./scripts/run.sh test test-scripts-smoke
@@ -274,6 +277,7 @@ _examples-validate:
 	./scripts/run.sh checks check-examples-runner-contract
 	./scripts/run.sh checks check-examples-cli-snapshot
 	./scripts/run.sh checks check-examples-notebook-policy
+	./scripts/run.sh checks check-examples-policy
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 	@./scripts/run.sh assets refresh-toy
