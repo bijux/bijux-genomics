@@ -39,6 +39,9 @@ require_cmd jq
 require_cmd python3
 require_cmd awk
 require_cmd sed
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
 
 if ! "$DOCKER_BIN" info >/dev/null 2>&1; then
   echo "ERROR: cannot connect to docker daemon via $DOCKER_BIN" >&2
@@ -329,7 +332,7 @@ if [ "${1:-}" = "--worker" ]; then
   exit $?
 fi
 
-LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles.XXXXXX")
+LIST_FILE=$(mktemp "$TMP_ROOT/dockerfiles.XXXXXX")
 trap cleanup_files EXIT
 trap handle_interrupt INT TERM
 RUNTIME_TOOLS=$("$ROOT_DIR/scripts/containers/registry-tools.sh" tools-by-runtime docker)
@@ -346,10 +349,10 @@ printf '%s\n' "$RUNTIME_TOOLS" \
     done | sort > "$LIST_FILE"
 
 if [ -n "$TOOLS" ]; then
-  TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools.XXXXXX")
-  FILTERED_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles-filtered.XXXXXX")
+  TOOLS_FILE=$(mktemp "$TMP_ROOT/docker-tools.XXXXXX")
+  FILTERED_FILE=$(mktemp "$TMP_ROOT/dockerfiles-filtered.XXXXXX")
   printf '%s\n' "$TOOLS" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' > "$TOOLS_FILE"
-  MISSING_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools-missing.XXXXXX")
+  MISSING_FILE=$(mktemp "$TMP_ROOT/docker-tools-missing.XXXXXX")
   awk -F/ '
     NR==FNR { wanted[$0]=1; next }
     {
@@ -382,7 +385,7 @@ if [ -n "$TOOLS" ]; then
   rm -f "$TOOLS_FILE"
 fi
 
-MISSING_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-registry-missing.XXXXXX")
+MISSING_FILE=$(mktemp "$TMP_ROOT/docker-registry-missing.XXXXXX")
 awk '
   {
     if (system("[ -f \"" $0 "\" ]") != 0) print $0

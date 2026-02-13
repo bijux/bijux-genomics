@@ -39,6 +39,9 @@ require_cmd find
 require_cmd sort
 require_cmd mktemp
 require_cmd sed
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
 
 if [[ ! -d "$DEFS_DIR" ]]; then
   echo "defs dir not found: $DEFS_DIR" >&2
@@ -82,7 +85,7 @@ build_one() {
   rm -f "$sif" "$log"
   # Some Apptainer versions reject Docker refs with both tag and digest
   # (image:tag@sha256:...). Normalize to image@sha256 in a temp copy.
-  tmp_def="$(mktemp "${TMPDIR:-/tmp}/apptainer-def-${name}.XXXXXX.def")"
+  tmp_def="$(mktemp "$TMP_ROOT/apptainer-def-${name}.XXXXXX.def")"
   sed -E 's#^([[:space:]]*From:[[:space:]]*.+):([^:@[:space:]]+)@(sha256:[a-f0-9]+)[[:space:]]*$#\1@\3#' "$def_file" >"$tmp_def"
   if [[ -n "$UBUNTU_BASE_SIF" && -f "$UBUNTU_BASE_SIF" ]]; then
     if grep -Eq '^Bootstrap:[[:space:]]*docker[[:space:]]*$' "$tmp_def" && \

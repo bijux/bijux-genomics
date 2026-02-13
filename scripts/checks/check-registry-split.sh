@@ -9,8 +9,11 @@ require_stable_env
 stable="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 experimental="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
 
-stable_ids=$(mktemp)
-experimental_ids=$(mktemp)
+tmp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$tmp_root"
+mkdir -p "$tmp_root"
+stable_ids=$(mktemp "$tmp_root/tmp-registry-stable.XXXXXX")
+experimental_ids=$(mktemp "$tmp_root/tmp-registry-experimental.XXXXXX")
 trap 'rm -f "$stable_ids" "$experimental_ids"' EXIT
 
 rg '^id\s*=\s*"' "$stable" | sed -E 's/^id\s*=\s*"([^"]+)".*/\1/' | sort -u > "$stable_ids"
