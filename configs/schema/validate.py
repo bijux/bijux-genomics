@@ -20,6 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 CONFIGS = ROOT / "configs"
 REGISTRY_DIR = CONFIGS / "ci" / "registry"
 FLOATING = {"latest", "main", "master", ""}
+ALLOWED_TOOL_STATUS = {"production", "experimental", "planned"}
 
 
 def load_toml(path: pathlib.Path) -> dict:
@@ -59,6 +60,11 @@ def check_registries(errs: list[str]) -> tuple[set[str], set[str]]:
         for tool in data.get("tools", []):
             tool_id = str(tool.get("id") or tool.get("tool_id") or "<unknown>")
             known_tools.add(tool_id)
+            status = str(tool.get("status", "")).strip()
+            if status not in ALLOWED_TOOL_STATUS:
+                errs.append(
+                    f"{reg}: tool '{tool_id}' status must be one of {sorted(ALLOWED_TOOL_STATUS)} (got '{status}')"
+                )
             for stage in tool.get("stage_ids", []):
                 known_stages.add(str(stage))
             version = str(tool.get("version", "")).strip()
@@ -138,6 +144,102 @@ def check_runtime_platforms(errs: list[str]) -> None:
             errs.append(f"{path}: platforms.{pid} requires one of 'runner' or 'runtime'")
 
 
+def _collect_stage_ids_from_stage_toml(path: pathlib.Path, errs: list[str]) -> dict[str, str]:
+    data = load_toml(path)
+    rows = data.get("stages", [])
+    out: dict[str, str] = {}
+    for row in rows:
+        sid = str(row.get("id", "")).strip()
+        status = str(row.get("status", "")).strip()
+        if not sid:
+            errs.append(f"{path}: stage entry missing id")
+            continue
+        if not status:
+            errs.append(f"{path}: stage '{sid}' missing status")
+            continue
+        out[sid] = status
+    return out
+
+
+def _collect_param_stage_ids(path: pathlib.Path, errs: list[str]) -> set[str]:
+    data = load_toml(path)
+    ids: set[str] = set()
+    rows_entries = data.get("entries", [])
+    rows_params = data.get("params", [])
+    for row in rows_entries + rows_params:
+        sid = str(row.get("stage_id", "")).strip()
+        if not sid:
+            errs.append(f"{path}: parameter entry missing stage_id")
+            continue
+        ids.add(sid)
+    return ids
+
+
+def check_stage_param_coverage(errs: list[str]) -> None:
+    stage_files = (
+        CONFIGS / "ci" / "stages" / "stages.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf.toml",
+        CONFIGS / "ci" / "stages" / "stages_vcf_downstream.toml",
+    )
+    param_files = (
+        CONFIGS / "ci" / "params" / "param_registry.toml",
+        CONFIGS / "ci" / "params" / "param_registry_vcf.toml",
+        CONFIGS / "ci" / "params" / "param_registry_downstream.toml",
+    )
+    for p in stage_files + param_files:
+        if not p.exists():
+            errs.append(f"{p}: missing required config file")
+            return
+
+    stages: dict[str, str] = {}
+    for p in stage_files:
+        stages.update(_collect_stage_ids_from_stage_toml(p, errs))
+
+    params: set[str] = set()
+    for p in param_files:
+        params |= _collect_param_stage_ids(p, errs)
+
+    for sid, status in sorted(stages.items()):
+        if status not in {"production", "supported"}:
+            continue
+        if sid not in params:
+            errs.append(
+                f"configs/ci/params: missing parameter registry entry for production stage '{sid}'"
+            )
+
+
+def check_images_contract(errs: list[str]) -> None:
+    path = CONFIGS / "ci" / "tools" / "images.toml"
+    data = load_toml(path)
+    for key, value in data.items():
+        if not isinstance(value, dict):
+            continue
+        enabled = value.get("enabled", None)
+        if enabled is not None and not isinstance(enabled, bool):
+            errs.append(f"{path}: [{key}] enabled must be boolean")
+
+    planned_tools: set[str] = set()
+    for reg in (
+        REGISTRY_DIR / "tool_registry.toml",
+        REGISTRY_DIR / "tool_registry_experimental.toml",
+        REGISTRY_DIR / "tool_registry_vcf.toml",
+    ):
+        rdata = load_toml(reg)
+        for tool in rdata.get("tools", []):
+            tid = str(tool.get("id") or tool.get("tool_id") or "").strip()
+            status = str(tool.get("status") or "").strip()
+            if tid and status == "planned":
+                planned_tools.add(tid)
+
+    for tid in sorted(planned_tools):
+        entry = data.get(tid)
+        if not isinstance(entry, dict):
+            errs.append(f"{path}: planned tool '{tid}' must have a section with enabled=false")
+            continue
+        if entry.get("enabled") is not False:
+            errs.append(f"{path}: planned tool '{tid}' must set enabled=false")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate configs contract rules.")
     parser.add_argument("--root", default=str(ROOT), help="Repo root path (default: auto-detected)")
@@ -157,6 +259,8 @@ def main() -> int:
     known_tools, known_stages = check_registries(errs)
     check_deprecations(known_tools, known_stages, errs)
     check_runtime_platforms(errs)
+    check_stage_param_coverage(errs)
+    check_images_contract(errs)
 
     if errs:
         print("config-schema: validation failed", file=sys.stderr)
