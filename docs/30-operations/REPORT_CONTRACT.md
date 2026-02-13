@@ -13,6 +13,10 @@ Guarantees reports are complete and comparable.
 - Reports must include toolchain versions, parameters, hashes, and metrics.
 - aDNA VCF reports must include a `bias_audit` section with before/after damage-filter summary.
 - `bias_audit` must include strategy id (`pmd_filter` or `ct_ga_masking`) and key deltas.
+- VCF reports must include `coverage_regime` with:
+  - `selected`
+  - `thresholds_used`
+  - `observed_coverage_stats`
 
 ## Examples
 - FASTQ reports include trimming/retention metrics with units.
