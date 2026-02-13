@@ -110,9 +110,9 @@ report_diff "$DOM_TOOLS" "$REG_TOOLS" "domain tools missing from registry" || ok
 report_diff "$CODE_TOOLS" "$REG_TOOLS" "code-referenced tools missing from registry" || ok=1
 report_diff "$MAKE_TOOLS" "$REG_TOOLS" "make-referenced tools missing from registry" || ok=1
 report_diff "$REG_TOOLS" "$DOM_TOOLS" "registry tools missing from domain" || ok=1
-report_diff "$DOM_STAGES" "$REG_STAGES" "domain stages missing from generated configs/stages.toml" || ok=1
-report_diff "$REG_STAGES" "$DOM_STAGES" "generated configs/stages.toml stages missing from domain" || ok=1
-report_diff "$CODE_STAGES" "$REG_STAGES" "code-referenced stages missing from generated configs/stages.toml" || ok=1
+report_diff "$DOM_STAGES" "$REG_STAGES" "domain stages missing from generated configs/ci/stages.toml" || ok=1
+report_diff "$REG_STAGES" "$DOM_STAGES" "generated configs/ci/stages.toml stages missing from domain" || ok=1
+report_diff "$CODE_STAGES" "$REG_STAGES" "code-referenced stages missing from generated configs/ci/stages.toml" || ok=1
 
 echo "--- inventory counts ---"
 echo "domain:   $(wc -l < "$DOM_TOOLS" | tr -d ' ')"

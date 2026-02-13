@@ -420,7 +420,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
             }],
             parameters: Vec::new(),
             metrics: Vec::new(),
-            description: Some("generated from configs/tool_registry.toml".to_string()),
+            description: Some("generated from configs/ci/tool_registry.toml".to_string()),
             mutates_fastq: false,
             report_only: false,
             may_change_read_count: false,

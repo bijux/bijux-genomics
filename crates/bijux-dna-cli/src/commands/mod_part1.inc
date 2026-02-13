@@ -427,8 +427,8 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
 
 #[allow(clippy::too_many_lines)]
 fn print_contract_status(cwd: &Path) -> Result<()> {
-    let domains = parse_toml_path(&cwd.join("configs/domains.toml"))?;
-    let images = parse_toml_path(&cwd.join("configs/images.toml"))?;
+    let domains = parse_toml_path(&cwd.join("configs/ci/domains.toml"))?;
+    let images = parse_toml_path(&cwd.join("configs/ci/images.toml"))?;
     let image_ids = images
         .as_table()
         .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())

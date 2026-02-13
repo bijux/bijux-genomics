@@ -30,7 +30,7 @@ fn policy__contracts__scripts_registry_wrapper_policy__registry_script_is_cli_wr
     );
     bijux_dna_policies::policy_assert!(
         !content.contains("tool_registry.toml"),
-        "scripts/containers/registry-tools.sh must not read configs/tool_registry.toml directly"
+        "scripts/containers/registry-tools.sh must not read configs/ci/tool_registry.toml directly"
     );
 }
 
@@ -58,7 +58,7 @@ fn policy__contracts__scripts_registry_wrapper_policy__scripts_do_not_parse_tool
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "scripts must use CLI registry commands, not parse configs/tool_registry.toml directly:\n{}",
+        "scripts must use CLI registry commands, not parse configs/ci/tool_registry.toml directly:\n{}",
         offenders.join("\n")
     );
 }

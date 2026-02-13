@@ -9,9 +9,9 @@ fn load_registry_tool_ids_for_runtime(runtime: &str) -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut ids = BTreeSet::new();
     for file in [
-        "configs/tool_registry.toml",
-        "configs/tool_registry_experimental.toml",
-        "configs/tool_registry_vcf.toml",
+        "configs/ci/tool_registry.toml",
+        "configs/ci/tool_registry_experimental.toml",
+        "configs/ci/tool_registry_vcf.toml",
     ] {
         let path = root.join(file);
         let raw = std::fs::read_to_string(&path)

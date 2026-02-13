@@ -100,7 +100,7 @@ fn param_registry_covers_all_stage_ids() {
     let registry_ids: BTreeSet<String> = entries.keys().cloned().collect();
     assert!(
         stage_ids.is_subset(&registry_ids),
-        "param registry must include every stage id from configs/stages.toml",
+        "param registry must include every stage id from configs/ci/stages.toml",
     );
 }
 

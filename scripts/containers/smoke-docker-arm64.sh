@@ -130,8 +130,8 @@ get_registry_field() {
     return 0
   fi
 
-  # Fallback for VCF-only tools that are tracked in configs/tool_registry_vcf.toml.
-  value=$(python3 - "$ROOT_DIR/configs/tool_registry_vcf.toml" "$tool" "$field" <<'PY'
+  # Fallback for VCF-only tools that are tracked in configs/ci/tool_registry_vcf.toml.
+  value=$(python3 - "$ROOT_DIR/configs/ci/tool_registry_vcf.toml" "$tool" "$field" <<'PY'
 import sys
 from pathlib import Path
 

@@ -8,11 +8,11 @@ use walkdir::WalkDir;
 #[test]
 fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_stage_or_tool_ids() {
     let root = support::workspace_root();
-    let registry_raw = std::fs::read_to_string(root.join("configs/tool_registry.toml"))
-        .expect("read configs/tool_registry.toml");
+    let registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
+        .expect("read configs/ci/tool_registry.toml");
     let parsed: toml::Value = registry_raw
         .parse()
-        .expect("parse configs/tool_registry.toml");
+        .expect("parse configs/ci/tool_registry.toml");
 
     let mut ids = BTreeSet::new();
     if let Some(tools) = parsed.get("tools").and_then(toml::Value::as_array) {

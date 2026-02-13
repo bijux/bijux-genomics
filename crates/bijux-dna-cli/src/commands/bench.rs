@@ -522,8 +522,8 @@ fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     roots.dedup();
     for root in roots {
         for rel in [
-            "configs/param_registry.toml",
-            "configs/param_registry_vcf.toml",
+            "configs/ci/param_registry.toml",
+            "configs/ci/param_registry_vcf.toml",
         ] {
             let path = root.join(rel);
             if !path.exists() {
