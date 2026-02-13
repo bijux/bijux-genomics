@@ -1,6 +1,14 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: scripts/examples/generate-index.sh
 examples:
+  - id: fastq_edna_mini
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/edna-mini
   - id: fastq_qc_pre_bench
     domain: fastq
     corpus_required: corpus-01-mini
@@ -9,6 +17,14 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: vcf_downstream_demography_mini
+    domain: vcf
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/downstream-demography-mini
   - id: vcf_imputation_mini
     domain: vcf
     corpus_required: corpus-01-mini
