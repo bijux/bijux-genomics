@@ -12,14 +12,15 @@ OUT="${1:-$ROOT_DIR/docs/20-science/TOOL_INDEX.md}"
 REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
+REG4="$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
 
-python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$OUT"
+python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$OUT"
 from pathlib import Path
 import re
 import sys
 
-reg_paths = [Path(p) for p in sys.argv[1:4]]
-out = Path(sys.argv[4])
+reg_paths = [Path(p) for p in sys.argv[1:5]]
+out = Path(sys.argv[5])
 
 # Minimal TOML-like parser for the generated registries we own.
 def parse_tools(path: Path):

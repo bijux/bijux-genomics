@@ -12,6 +12,7 @@ REGS=(
   "$ROOT_DIR/configs/ci/registry/tool_registry.toml"
   "$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
   "$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
+  "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
 )
 
 python3 - "$OUT" "$CATALOG" "${REGS[@]}" <<'PY'

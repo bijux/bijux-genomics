@@ -23,6 +23,7 @@ for reg in (
     root / "configs/ci/registry/tool_registry.toml",
     root / "configs/ci/registry/tool_registry_experimental.toml",
     root / "configs/ci/registry/tool_registry_vcf.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ):
     data = tomllib.loads(reg.read_text(encoding="utf-8"))
     for row in data.get("tools", []):

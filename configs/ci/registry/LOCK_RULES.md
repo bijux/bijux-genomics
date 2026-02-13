@@ -5,8 +5,9 @@
 1. `configs/ci/registry/tool_registry.toml`
 2. `configs/ci/registry/tool_registry_experimental.toml`
 3. `configs/ci/registry/tool_registry_vcf.toml`
-4. `configs/ci/registry/domains.toml`
-5. `configs/ci/registry/deprecations.toml`
+4. `configs/ci/registry/tool_registry_vcf_downstream.toml`
+5. `configs/ci/registry/domains.toml`
+6. `configs/ci/registry/deprecations.toml`
 
 Computation contract:
 - For each input file, compute `sha256(file-bytes)` (hex).
