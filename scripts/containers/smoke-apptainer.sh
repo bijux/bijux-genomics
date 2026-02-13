@@ -800,7 +800,7 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
     build_and_smoke_one "$d" || status=1
   done < "$LIST_FILE"
 else
-  xargs -P "$JOBS" -I{} sh "$SELF_SCRIPT" --worker {} < "$LIST_FILE" || status=1
+  xargs -P "$JOBS" -I{} bash "$SELF_SCRIPT" --worker {} < "$LIST_FILE" || status=1
 fi
 
 relocate_root_invalid_flag
