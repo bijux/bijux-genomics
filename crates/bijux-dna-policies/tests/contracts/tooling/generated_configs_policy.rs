@@ -50,7 +50,7 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
 #[test]
 fn policy__contracts__generated_configs_policy__single_generator_script_is_canonical() {
     let root = support::workspace_root();
-    let script = root.join("scripts/generate-configs.sh");
+    let script = root.join("scripts/tooling/generate-configs.sh");
     let makefile = root.join("makefiles/cargo.mk");
     let script_raw =
         std::fs::read_to_string(&script).unwrap_or_else(|_| panic!("read {}", script.display()));
@@ -59,11 +59,11 @@ fn policy__contracts__generated_configs_policy__single_generator_script_is_canon
 
     assert!(
         script_raw.contains("compile_domain_configs"),
-        "scripts/generate-configs.sh must call compile_domain_configs"
+        "scripts/tooling/generate-configs.sh must call compile_domain_configs"
     );
     assert!(
         make_raw.contains("generate-configs:")
-            && make_raw.contains("./scripts/generate-configs.sh"),
-        "makefiles/cargo.mk generate-configs target must call scripts/generate-configs.sh"
+            && make_raw.contains("./scripts/tooling/generate-configs.sh"),
+        "makefiles/cargo.mk generate-configs target must call scripts/tooling/generate-configs.sh"
     );
 }

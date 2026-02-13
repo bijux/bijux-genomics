@@ -33,32 +33,24 @@ fn script_files(root: &Path) -> Vec<PathBuf> {
 fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
     let root = workspace_root();
     let allowed_prefixes = [
-        "scripts/check-",
+        "scripts/checks/",
         "scripts/containers/",
         "scripts/docs/",
+        "scripts/domain/",
         "scripts/hpc/lunarc/",
         "scripts/lab/",
         "scripts/smoke/",
+        "scripts/test/",
+        "scripts/tooling/",
         "scripts/_lib/",
         "scripts/experimental/",
-    ];
-    let allowed_files = [
-        "scripts/generate-configs.sh",
-        "scripts/domain-validate.sh",
-        "scripts/domain-inventory-drift.sh",
-        "scripts/flake-hunt.sh",
-        "scripts/inventory.sh",
-        "scripts/test-triage.sh",
-        "scripts/toy_runs.py",
-        "scripts/coverage_summary.py",
     ];
 
     let mut offenders = Vec::new();
     for file in script_files(&root) {
         let rel = file.strip_prefix(&root).unwrap().to_string_lossy().to_string();
         let ok_prefix = allowed_prefixes.iter().any(|p| rel.starts_with(p));
-        let ok_file = allowed_files.iter().any(|f| rel == *f);
-        if !ok_prefix && !ok_file {
+        if !ok_prefix {
             offenders.push(rel);
         }
     }
