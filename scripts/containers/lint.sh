@@ -23,11 +23,11 @@ record() {
 
 check_header() {
   file="$1"
-  if ! head -n 6 "$file" | grep -q 'SPDX-License-Identifier: GPL-3.0'; then
-    record "$file: missing GPL SPDX header"
+  if ! head -n 6 "$file" | grep -q 'SPDX-License-Identifier:'; then
+    record "$file: missing SPDX header"
   fi
-  if ! grep -q 'Container definition license: GPL-3.0' "$file"; then
-    record "$file: missing container GPL license notice"
+  if ! grep -q 'Container definition license:' "$file"; then
+    record "$file: missing container license notice"
   fi
 }
 
@@ -42,6 +42,7 @@ check_docker() {
   check_header "$file"
 
   for key in \
+    'org.opencontainers.image.title' \
     'org.opencontainers.image.source' \
     'org.opencontainers.image.revision' \
     'org.opencontainers.image.created' \
@@ -55,8 +56,8 @@ check_docker() {
     fi
   done
 
-  if ! grep -q 'org.opencontainers.image.licenses=.*GPL-3.0' "$file"; then
-    record "$file: license label must declare GPL-3.0"
+  if ! grep -q 'org.opencontainers.image.licenses=' "$file"; then
+    record "$file: license label must be present"
   fi
 
   if grep -qE 'FROM[[:space:]]+[^[:space:]]+:latest([[:space:]]|$)' "$file"; then
@@ -74,8 +75,6 @@ check_apptainer() {
     *.def) ;;
     *) record "$file: apptainer filename must match <tool>.def" ;;
   esac
-
-  check_header "$file"
 
   for key in \
     'org.opencontainers.image.source' \
@@ -142,5 +141,11 @@ if [ -s "$tmp" ]; then
   cat "$tmp" >&2
   exit 1
 fi
+
+"$SCRIPT_DIR/check-tool-container-coverage.sh"
+"$SCRIPT_DIR/check-non-bijux-sources.sh"
+"$SCRIPT_DIR/check-version-completeness.sh"
+"$SCRIPT_DIR/check-apptainer-bijux-header.sh"
+"$SCRIPT_DIR/check-docker-labels.sh"
 
 echo "containers lint: ok"
