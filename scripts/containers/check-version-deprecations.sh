@@ -49,6 +49,13 @@ if deps_path.exists():
                 errors.append(f"{tool}: deprecation version '{version}' does not match versions.toml '{current}'")
         if replacement_tool and replacement_tool not in versions:
             errors.append(f"{tool}: replacement_tool '{replacement_tool}' is unknown in versions.toml")
+        elif replacement_tool:
+            rv = str(versions[replacement_tool].get("version", "")).strip()
+            if replacement_version and rv and rv != replacement_version:
+                errors.append(
+                    f"{tool}: replacement_version '{replacement_version}' does not match "
+                    f"versions.toml[{replacement_tool}]='{rv}'"
+                )
         if tool not in lock_tools:
             errors.append(f"{tool}: missing from lock.json, breaks reproducibility")
         try:
