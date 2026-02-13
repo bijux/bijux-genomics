@@ -1,12 +1,7 @@
-## Container Helper Scripts
+# scripts/containers
 
-This directory is the single entrypoint for container helper scripts.
+## What
+Container build, lint, registry, and smoke-test entrypoints.
 
-- `smoke-docker-arm64.sh`: build/smoke Docker arm64 images and write manifests.
-- `smoke-docker-amd64.sh`: amd64 wrapper around the arm64 smoke logic.
-- `smoke-apptainer.sh`: build/smoke Apptainer images and write manifests.
-- `apptainer_build_all.sh`: batch Apptainer build helper for HPC/VM workflows.
-- `lint.sh`: static checks for container definitions.
-- `summary.sh`: summarize smoke manifest results.
-
-Callers should reference scripts from this directory rather than `scripts/` root.
+## Philosophy
+Keep all container lifecycle operations in one place with reproducible invocations and explicit tool/image mapping.
