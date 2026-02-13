@@ -31,6 +31,7 @@ SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
 FRONTEND_PROOF_MODE="${FRONTEND_PROOF_MODE:-0}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-${UBUNTU_BASE_SIF:-}}"
+PYTHON_BASE_SIF="${APPTAINER_PYTHON_BASE_SIF:-${PYTHON_BASE_SIF:-}}"
 CACHE_POLICY_TOML="$ROOT_DIR/configs/ci/tools/apptainer_cache_policy.toml"
 HPC_BUILD_POLICY_TOML="$ROOT_DIR/configs/ci/tools/hpc_frontend_build_policy.toml"
 
@@ -69,6 +70,8 @@ export SMOKE_RUN_MODE
 export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
 export UBUNTU_BASE_SIF
 export APPTAINER_UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-$UBUNTU_BASE_SIF}"
+export PYTHON_BASE_SIF
+export APPTAINER_PYTHON_BASE_SIF="${APPTAINER_PYTHON_BASE_SIF:-$PYTHON_BASE_SIF}"
 export REGISTRY_EXPORT_JSON
 
 require_cmd "$APPTAINER_BIN"
@@ -335,7 +338,7 @@ get_expected_version_regex() {
   tool="$1"
   value=$(get_registry_field expected_version_regex "$tool")
   if [ "$value" = "unknown" ] || [ -z "$value" ]; then
-    printf '%s\n' 'v?[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)?'
+    printf '%s\n' '.+'
     return 0
   fi
   printf '%s\n' "$value"
@@ -504,6 +507,15 @@ build_and_smoke_one() {
         sed -Ei \
           -e 's#^Bootstrap:[[:space:]]*docker[[:space:]]*$#Bootstrap: localimage#' \
           -e "s#^From:[[:space:]].*\$#From: ${UBUNTU_BASE_SIF}#" \
+          "$tmp_def"
+      fi
+    fi
+    if [ -n "$PYTHON_BASE_SIF" ] && [ -f "$PYTHON_BASE_SIF" ]; then
+      if grep -Eq '^Bootstrap:[[:space:]]*docker[[:space:]]*$' "$tmp_def" && \
+         grep -Eq '^From:[[:space:]]*(python(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+|docker\.io/library/python(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+)[[:space:]]*$' "$tmp_def"; then
+        sed -Ei \
+          -e 's#^Bootstrap:[[:space:]]*docker[[:space:]]*$#Bootstrap: localimage#' \
+          -e "s#^From:[[:space:]].*\$#From: ${PYTHON_BASE_SIF}#" \
           "$tmp_def"
       fi
     fi
