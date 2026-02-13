@@ -13,14 +13,16 @@ REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
 REG4="$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
+SUMMARY_JSON="$ROOT_DIR/artifacts/containers/summary.json"
 
-python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$OUT"
+python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$SUMMARY_JSON" "$OUT"
 from pathlib import Path
-import re
+import json
 import sys
 
 reg_paths = [Path(p) for p in sys.argv[1:5]]
-out = Path(sys.argv[5])
+summary_path = Path(sys.argv[5])
+out = Path(sys.argv[6])
 
 # Minimal TOML-like parser for the generated registries we own.
 def parse_tools(path: Path):
@@ -61,7 +63,38 @@ for p in reg_paths:
             'container_ref': t.get('container_ref', '-'),
             'citation': t.get('citation', 'TBD') or 'TBD',
             'status': t.get('status', 'unknown'),
+            'version': t.get('version', '-'),
         }
+
+self_reports = {}
+if summary_path.exists():
+    try:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        for item in summary.get("items", []):
+            tool = item.get("tool")
+            manifest_path = item.get("manifest")
+            if not tool or not manifest_path:
+                continue
+            mp = Path(manifest_path)
+            if not mp.exists():
+                continue
+            try:
+                manifest = json.loads(mp.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            sr_path = manifest.get("self_report_path")
+            if not sr_path:
+                continue
+            sp = Path(sr_path)
+            if not sp.exists():
+                continue
+            try:
+                sr = json.loads(sp.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            self_reports[tool] = sr
+    except Exception:
+        pass
 
 lines = []
 lines.append('<!-- GENERATED FILE - DO NOT EDIT -->')
@@ -70,10 +103,10 @@ lines.append('')
 lines.append('# TOOL_INDEX')
 lines.append('')
 lines.append('## Purpose')
-lines.append('Generated index of registry tools with stage bindings and container references.')
+lines.append('Generated index of registry tools with stage bindings and container references/self-reports.')
 lines.append('')
 lines.append('## Scope')
-lines.append('Source of truth = `configs/ci/registry/tool_registry*.toml` + `containers/**` definitions.')
+lines.append('Source of truth = registry contracts + `artifacts/containers/summary.json` self-reports when available.')
 lines.append('')
 lines.append('## Non-goals')
 lines.append('- Replacing full scientific method docs for each domain.')
@@ -86,13 +119,16 @@ lines.append('')
 lines.append('See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)')
 lines.append('See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)')
 lines.append('')
-lines.append('| Tool ID | Purpose | Stage Bindings | Container Ref | Citation | Status |')
-lines.append('|---|---|---|---|---|---|')
+lines.append('| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |')
+lines.append('|---|---|---|---|---|---|---|')
 for tool_id in sorted(tools):
     row = tools[tool_id]
     stages = ', '.join(row['stages']) if row['stages'] else '-'
+    version = row['version']
+    if tool_id in self_reports:
+        version = str(self_reports[tool_id].get("version", version))
     lines.append(
-        f"| `{tool_id}` | `{row['purpose']}` | `{stages}` | `{row['container_ref']}` | {row['citation']} | `{row['status']}` |"
+        f"| `{tool_id}` | `{row['purpose']}` | `{stages}` | `{row['container_ref']}` | `{version}` | {row['citation']} | `{row['status']}` |"
     )
 
 out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
