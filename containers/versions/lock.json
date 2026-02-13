@@ -1,279 +1,620 @@
 {
   "items": [
     {
-      "entry_sha256": "7c39e6cb4898e9e668c76760b374c136631147b302e38a6568b651c20887c90c",
-      "tool": "adapterremoval"
-    },
-    {
-      "entry_sha256": "0ba085428663bceb5d4c3380c914156ca9266fd22c0ae9a01e90ac089054e94e",
-      "tool": "addeam"
-    },
-    {
-      "entry_sha256": "1640f71060d45b838a22f6d62face4b7c8d5c0b65a001eef3a420fec9aad1fa1",
-      "tool": "alientrimmer"
-    },
-    {
-      "entry_sha256": "53e12c8c36a1a46b804b55444cacabc6301ee11a091703bd4e8748eaf896715c",
-      "tool": "angsd"
-    },
-    {
-      "entry_sha256": "3d0d0b9f2fa3b3575942059e6c25d7f0d6910610219d9b3a5646d55e90f31528",
-      "tool": "atropos"
-    },
-    {
-      "entry_sha256": "ffcc0329057664155611610756a1ea495536970b18e804c65510484e45d90071",
-      "tool": "authenticct"
-    },
-    {
-      "entry_sha256": "a7254484779640bcab300fdf66ea5f02666346025f13224de6bee0ec0c34de5b",
-      "tool": "bamtools"
-    },
-    {
-      "entry_sha256": "e881b68783571c44d90a5d90a12916f3a922aedb84583710b6164ec687494125",
-      "tool": "bayeshammer"
-    },
-    {
-      "entry_sha256": "de8a8b82bd018f33ea7d6a305ac74cdf914f7daea15e95a26cb8ae6586a37072",
-      "tool": "bbduk"
-    },
-    {
-      "entry_sha256": "de8a8b82bd018f33ea7d6a305ac74cdf914f7daea15e95a26cb8ae6586a37072",
-      "tool": "bbmerge"
-    },
-    {
-      "entry_sha256": "ba8f253d8740c76fa8222332b5ef54b13aa946fbd53203c38ae98839906e8afe",
-      "tool": "bcftools"
-    },
-    {
-      "entry_sha256": "c76628236fb75bb88d93f1f6fe2e405e9efbdf5ef9a0e81f11e5e9e568aca976",
-      "tool": "beagle"
-    },
-    {
-      "entry_sha256": "e1d08736856e61a6d69bd591f2e7e4b797bf8c3a138b517f53d2614405b9f31a",
-      "tool": "bedtools"
-    },
-    {
-      "entry_sha256": "b064df5bcbcac1217cf9c3c9c63a3163abde13b30d04b36affde4a3f8058caee",
-      "tool": "bowtie2"
-    },
-    {
-      "entry_sha256": "a8e33f95f6e6ca09886dd9e2a0bb959bd154262ed1290bdea2d708289800ac19",
-      "tool": "bracken"
-    },
-    {
-      "entry_sha256": "570807ee4d6b2431ff1663568dd10a3af10bd001961791728dd1b3271d28bf11",
-      "tool": "bwa"
-    },
-    {
-      "entry_sha256": "2308e34a3d6ae753cd55e7c15c60f3e34c8e9ede79bb72b11154110dfe5db58a",
-      "tool": "centrifuge"
-    },
-    {
-      "entry_sha256": "e52431d05aa1187f135a2a2bfeb7f12f6b18051520e7e306090bbc3ae28200f1",
-      "tool": "contammix"
-    },
-    {
-      "entry_sha256": "17d24e940bf2de7f7e09a0f5fa503b8d3d0f8a14c4e2baea0456e576d2b167ba",
-      "tool": "cutadapt"
-    },
-    {
-      "entry_sha256": "41afae2a5cd05d7352315253971202807674fd39f45b35193a097d75fac8838b",
-      "tool": "damageprofiler"
-    },
-    {
-      "entry_sha256": "a4c7362a1ce374c1dc82c6f0a5e27016c20a9529add2c2ef895c304fb3f85cf2",
-      "tool": "eigensoft"
-    },
-    {
-      "entry_sha256": "30c484ff35df0f9c4d96da7f702d0d81060d56a2eaa00f28d304054c866591f9",
-      "tool": "fastp"
-    },
-    {
-      "entry_sha256": "e6c2a03a5e77896ff9b070114a77b37b4c07792086ff38a71c7c330e6e1c6b38",
-      "tool": "fastq_screen"
-    },
-    {
-      "entry_sha256": "f73915fdbc94d5360e007f8d78390039615c63ccbb79572550ffbdfbed7136ca",
-      "tool": "fastqc"
-    },
-    {
-      "entry_sha256": "08815f539ed1b548611a0dd14768d045cb6851a8a360c5eeda32cb2b8136fe35",
-      "tool": "fastqvalidator"
-    },
-    {
-      "entry_sha256": "517c1b529b339d569f6e6220586ab50e65fd6225fb6db962eb50cc8b17eb7da9",
-      "tool": "fastx_clipper"
-    },
-    {
-      "entry_sha256": "df0d6fa79abf764e7acb7edf2362643edc11b1aab104811873468feea7798ab2",
-      "tool": "flash2"
-    },
-    {
-      "entry_sha256": "330eadc75d9c90723c9afa2722f4f8513f9aa1525cecc6343e689baf6517be48",
-      "tool": "fqtools"
-    },
-    {
-      "entry_sha256": "5401b42952a12fb2b61de676db3dbef71c2c6666c22c3a674d345cd181c0db3b",
-      "tool": "germline"
-    },
-    {
-      "entry_sha256": "dc6e2ac791c9ee1fb329493939061f55a98e0b7a5a6a5884369824678257f5cc",
-      "tool": "ibdhap"
-    },
-    {
-      "entry_sha256": "5666059de435c9e5919c5c028313f71fa63dd79a6f3d0f070536146a07e31670",
-      "tool": "ibdne"
-    },
-    {
-      "entry_sha256": "3957fac9e22e4f109d80205b7cab531ac0785ac1cf9f6c65cc63f0b7073f5bf3",
-      "tool": "ibdseq"
-    },
-    {
-      "entry_sha256": "2523d2125c5336bf7578709889a851372be644aa53c91e5f81ca4f28add8ee61",
-      "tool": "kaiju"
-    },
-    {
-      "entry_sha256": "a856ff22ab0402f91209d0852436fd5581d2a015390904f246e409d245a64f4e",
-      "tool": "king"
-    },
-    {
-      "entry_sha256": "ffe7ed31f02f1cdded9235a0cf53e9195e5bf78c776d689150ffac9b74e86009",
-      "tool": "kraken2"
-    },
-    {
-      "entry_sha256": "f3a9589267fcb35d9917f3bc01f9b3b635b7d112ffb1a24c0609d4f3dbcdbc92",
-      "tool": "krakenuniq"
-    },
-    {
-      "entry_sha256": "94d2752497f0ba0f493ff6c456ff521d0e9053a14deefe9bb79901b2bef0cc79",
-      "tool": "leehom"
-    },
-    {
-      "entry_sha256": "57d3dad4c8e66fcc8235aba4e78f65846e298b49b72872c90d66bf014fb16790",
-      "tool": "lighter"
-    },
-    {
-      "entry_sha256": "c6a68802937e3b5f1f081d0dc200209501ed75cbe2bfbef9fd3ac066573be961",
-      "tool": "mapdamage2"
-    },
-    {
-      "entry_sha256": "0bfd3c7038fb60715bcb3637cbeec02e46bd84c7eef274f5eb13032a3c72254f",
-      "tool": "metaphlan"
-    },
-    {
-      "entry_sha256": "cf2f9560ffafef887901a017e90a127a3f22206accb2e2359fc81f40b660b2e1",
-      "tool": "mosdepth"
-    },
-    {
-      "entry_sha256": "c4ca3c054e0c2d6022f78b1d0f73cd810627f5a057bec5527ae06964759b25bd",
-      "tool": "multiqc"
-    },
-    {
-      "entry_sha256": "77444c7694f13d7e467706f89564d860fed43b20eaa94ad6eef8a870e2cb3690",
-      "tool": "musket"
-    },
-    {
-      "entry_sha256": "ea708a8489413b095521d4b35295aebb273aa99eae15e0c65e1733c6bfa878dd",
-      "tool": "pear"
-    },
-    {
-      "entry_sha256": "bbb450ceb01c1440dc751b42fb4888183390f278255b27529fb2ac014488543f",
-      "tool": "plink"
-    },
-    {
-      "entry_sha256": "1285f2ea24ccaa3fcbab8fe5f6fef029a22758a3f25576d334b77b4bd406d0b4",
-      "tool": "plink2"
-    },
-    {
-      "entry_sha256": "db6eac88097de2003250a7a8f532e9bbdfd9d83131286dfd1c9bcfff739f4830",
-      "tool": "pmdtools"
-    },
-    {
-      "entry_sha256": "cd862c46835da9866cb14885647962864bfcbc95b2bef8284dc9a6a5d90499eb",
-      "tool": "prinseq"
-    },
-    {
-      "entry_sha256": "17360708d438a5d7fdf2a001cc14fb07b76efb83aa6b829676276a7aba1de6b9",
-      "tool": "pydamage"
-    },
-    {
-      "entry_sha256": "47a09af3f06b91e58da615a74d1e856c0b3c7e1d83e258823c5025a28a47051b",
-      "tool": "qualimap"
-    },
-    {
-      "entry_sha256": "6e926f8609998c0afab503ae5a3a0f6eab2fa1777b3ed2cd25732aed0393e51e",
-      "tool": "rcorrector"
-    },
-    {
-      "entry_sha256": "39e974f5d37c22d43ad85ed247c14830b8656c332c3b684ad5cdb0c597fcb37e",
-      "tool": "rxy"
-    },
-    {
-      "entry_sha256": "9160a767e92fefa2a4bbe6e78d834a0f0fa8256205bc74544bb96662ff4aee2b",
-      "tool": "samtools"
-    },
-    {
-      "entry_sha256": "2c7a55d9255edcf5c62b2b1257f6d8fe13c2a93dc63f3463a37ea4065dcc0e18",
-      "tool": "schmutzi"
-    },
-    {
-      "entry_sha256": "cb2d21de0df984b5589f086a32d97a1a94c63e1cc5139c40521f0eb450920ceb",
-      "tool": "seqkit"
-    },
-    {
-      "entry_sha256": "8fa21ab69b090e73dcdfb95e37f13584b4f8ea16ab5895df30b775e6ef9428e3",
-      "tool": "seqkit_stats"
-    },
-    {
-      "entry_sha256": "c4bc9e6f1ed8705d590d4a6976ed40470e653a2342ba1df7078c9f967d15b8fc",
-      "tool": "seqtk"
-    },
-    {
-      "entry_sha256": "38c454735b90a6bf1b9f33566bd4e777434d0ec989feb35bf961e3a0d73902d3",
-      "tool": "shapeit"
-    },
-    {
-      "entry_sha256": "9ebb7228f17c182f1420a79c35a1c3b7b0ca35374a77c7cdc10e5a0e8b21fc40",
-      "tool": "skewer"
-    },
-    {
-      "entry_sha256": "1424c0ab77f1d247c925259e2e1f7f7812c0ba06ce09307a0c327bd56124d35d",
-      "tool": "sortmerna"
-    },
-    {
-      "entry_sha256": "e881b68783571c44d90a5d90a12916f3a922aedb84583710b6164ec687494125",
-      "tool": "spades"
-    },
-    {
-      "entry_sha256": "93d19e704ee32291ce2af1eab94cb82957f9eb59714643ce6ecb83773f5edc85",
-      "tool": "star"
-    },
-    {
-      "entry_sha256": "d31e0834171aaeaa54da6b68e1bedf0eb774c96329949085e874fe695ff0c284",
-      "tool": "trim_galore"
-    },
-    {
-      "entry_sha256": "1e48ae24d92d3358f369540feb80faacce8958177a65ed29b9419c22a3671e54",
-      "tool": "trimmomatic"
-    },
-    {
-      "entry_sha256": "5c1f0b246e4093f24b61a745ba05bb4c4e30f4c6d50dab9786cf7789d45a2a28",
-      "tool": "umi_tools"
-    },
-    {
-      "entry_sha256": "ff4ef47928b5fed7f9448379b031ce9dbe5d029cef7153bd5abbfeff845f3c49",
-      "tool": "verifybamid2"
-    },
-    {
-      "entry_sha256": "e4dd39c72e1667aff7c1e0162f2f8bf0d1b149c4f3f8780211f3e80dd878da25",
-      "tool": "vsearch"
-    },
-    {
-      "entry_sha256": "8dee0ed1adecbfbad830f298a1325c1354111d30c873951fb55ff753d0f39c66",
-      "tool": "yleaf"
+      "entry_sha256": "c9c07ec2276ed32e565aef189497bc33badbf344d5dfb6d113ae0763780c0ed6",
+      "pinned_commit": "",
+      "source": "https://github.com/MikkelSchubert/adapterremoval",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "adapterremoval",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "3003ef9f9c6b307fc16116a0431d8dc1b5cd3c320af15b2b5df2d4c2466bb3ea",
+      "pinned_commit": "",
+      "source": "https://github.com/LouisPwr/AdDeam",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "addeam",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "80cf84fd708ad9d8a240f4c4bbea8da57717782947dcb5039bc40f5c4bc0e573",
+      "pinned_commit": "",
+      "source": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "alientrimmer",
+      "version": "0.4.0"
+    },
+    {
+      "entry_sha256": "eecdd197a31071f8c7339d6ed01b8d0837b8db1ce3a3cd28890eda6d17092155",
+      "pinned_commit": "",
+      "source": "https://github.com/ANGSD/angsd",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "angsd",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "7843540bb58597c89a30b99a1ab700688f70cbb3115a5b3dbe7f646edac7ce5f",
+      "pinned_commit": "",
+      "source": "https://github.com/jdidion/atropos",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "atropos",
+      "version": "1.1.31"
+    },
+    {
+      "entry_sha256": "2f6637d1b394b666b109c5b34cc6d1e2686798e17aae1f6c120cee790fc869c1",
+      "pinned_commit": "",
+      "source": "https://github.com/StephanePeyregne/AuthentiCT",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "authenticct",
+      "version": "1.0.0"
+    },
+    {
+      "entry_sha256": "b6d09b8095c048f507b8a2be718319e6216987e87c9fc837c7fd8f7d17a9002c",
+      "pinned_commit": "",
+      "source": "https://github.com/pezmaster31/bamtools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bamtools",
+      "version": "2.5.2"
+    },
+    {
+      "entry_sha256": "ae803bca3eb202e300eadeeb6e11b07800e1b0f4a3dff3e4041672fe3e1e8b5e",
+      "pinned_commit": "",
+      "source": "https://github.com/ablab/spades",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bayeshammer",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "7cb700f4ac51be6163df65e8ebdb5492ce6856e43608a151f2ced8ed09b4cfa0",
+      "pinned_commit": "",
+      "source": "https://sourceforge.net/projects/bbmap/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bbduk",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "3d686f083fa771c3eae5a4111ab6810a9e43d957eae64d2cf60b5f25b3022dbd",
+      "pinned_commit": "",
+      "source": "https://sourceforge.net/projects/bbmap/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bbmerge",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "0dc5cb8ce9d4dd6b029bcaab798cef8a68de20e69f4d44e74a672acb522cc260",
+      "pinned_commit": "",
+      "source": "https://github.com/samtools/bcftools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bcftools",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "f5ddfe4e98d4a0be5fec7a00c69813f0c7761c716b0d245b500c86bd59ede065",
+      "pinned_commit": "",
+      "source": "https://faculty.washington.edu/browning/beagle/beagle.html",
+      "source_sha256": "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
+      "status": "planned",
+      "tool": "beagle",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "9d4a82074495d7bff3e7807d57c919d2c0905b5a562a148f0ccae911272a98e6",
+      "pinned_commit": "",
+      "source": "https://github.com/arq5x/bedtools2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bedtools",
+      "version": "2.31.1"
+    },
+    {
+      "entry_sha256": "9f3e89761fa671dced60b8956b3c4ef0a4c46d86224e5148d022e9a5eec21b9b",
+      "pinned_commit": "",
+      "source": "https://github.com/BenLangmead/bowtie2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bowtie2",
+      "version": "2.5.4"
+    },
+    {
+      "entry_sha256": "757773f7e1cd898927154028d6d7a36b33fefda9345a62936bdc999ed4686f82",
+      "pinned_commit": "",
+      "source": "https://github.com/jenniferlu717/Bracken",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bracken",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "d828400a02b888c664a4c25710ea49250d47b49bf4080efba5e82af827e1aece",
+      "pinned_commit": "",
+      "source": "https://github.com/lh3/bwa",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bwa",
+      "version": "0.7.17"
+    },
+    {
+      "entry_sha256": "a26229942ba2445f2b99ebdb7eec48e8b9421822c6634141d2d96dd972563604",
+      "pinned_commit": "",
+      "source": "https://github.com/DaehwanKimLab/centrifuge",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "centrifuge",
+      "version": "1.0.4"
+    },
+    {
+      "entry_sha256": "39b7e298501f752f7fa2541468690087bc6b35d7e6cf23c10d40e776343eb9d7",
+      "pinned_commit": "",
+      "source": "https://bioconductor.org/packages/contamMix",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "contammix",
+      "version": "1.0.11"
+    },
+    {
+      "entry_sha256": "f1c93914c6813feda986bdf1496ebe444cc2911230c8ef3b1f5df5961c62bd2b",
+      "pinned_commit": "",
+      "source": "https://github.com/cutadapt/cutadapt",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "cutadapt",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "c6572e2a869a1049d4e189eb76ea0671ef0cee3a08963a914ee234669dadeb93",
+      "pinned_commit": "",
+      "source": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "damageprofiler",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "af4c0ef8148b9561f7aee08266a928c7c1514ff2412aec8b3d56991346d709fe",
+      "pinned_commit": "",
+      "source": "https://github.com/DReichLab/EIG",
+      "source_sha256": "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
+      "status": "planned",
+      "tool": "eigensoft",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "fcdd040265ba8d248fe5cd55d3170034c42a496eed32dda20669f1c5e408c4f8",
+      "pinned_commit": "",
+      "source": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
+      "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
+      "status": "production",
+      "tool": "fastp",
+      "version": "0.23.4"
+    },
+    {
+      "entry_sha256": "523acc192d9b118984aaad480e1d5e3b36761ab6a344f875bae2d60865f0b2ab",
+      "pinned_commit": "",
+      "source": "https://github.com/fastq_screen/fastq_screen",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fastq_screen",
+      "version": "0.15.3"
+    },
+    {
+      "entry_sha256": "9a7c960ecedaac9b066d0bc9a831a5e7fc505192b3e8dacd5f8d2cab49032576",
+      "pinned_commit": "",
+      "source": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
+      "source_sha256": "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7",
+      "status": "production",
+      "tool": "fastqc",
+      "version": "0.12.1"
+    },
+    {
+      "entry_sha256": "d5711f6e542a01dd9cf8a3a95212439694f4039789f4e4422e9cb35cf9656101",
+      "pinned_commit": "",
+      "source": "https://github.com/fastqvalidator/fastqvalidator",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fastqvalidator",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "90c627a59bf9725172c99a114f99b7f0b2a1308ed77fa55d658d0ff158e93ede",
+      "pinned_commit": "",
+      "source": "https://github.com/agordon/fastx_toolkit",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fastx_clipper",
+      "version": "0.0.14"
+    },
+    {
+      "entry_sha256": "b524659553ad1bca15afb9cf6fb461478f38ba976e9b8e43f6416bc3ad329310",
+      "pinned_commit": "",
+      "source": "https://github.com/dstreett/FLASH2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "flash2",
+      "version": "2.2.00"
+    },
+    {
+      "entry_sha256": "cf3475422e708b0ca99cc0d2589fe3f822072fd75add917928caf40072112fb2",
+      "pinned_commit": "",
+      "source": "https://github.com/alastair-droop/fqtools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fqtools",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "d3457c22da2f3d55817de1d7d6e46b3afcf01418e2e52e6916bdee10b064dcf2",
+      "pinned_commit": "",
+      "source": "https://www.cs.columbia.edu/~gusev/germline/",
+      "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
+      "status": "planned",
+      "tool": "germline",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "ee0ac36c41fabcb54b7d8b7f1f0216c3cab0831bc363a6a414df23da960ec5d2",
+      "pinned_commit": "",
+      "source": "https://example.invalid/ibdhap",
+      "source_sha256": "",
+      "status": "planned",
+      "tool": "ibdhap",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "99780d340a34a888a0d7dc1e7e93a0e4c508473273bd255c8c8a9e5018cdff26",
+      "pinned_commit": "planned:ibdne-upstream-pin",
+      "source": "https://faculty.washington.edu/browning/ibdne.shtml",
+      "source_sha256": "",
+      "status": "planned",
+      "tool": "ibdne",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "15082382a7458f76781dea8ef43e039b3f8327b148553b2b620e34a2a63634c3",
+      "pinned_commit": "planned:ibdseq-upstream-pin",
+      "source": "https://faculty.washington.edu/browning/ibdseq.shtml",
+      "source_sha256": "",
+      "status": "planned",
+      "tool": "ibdseq",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "89af6c97b6fea808dcf71c467350adc533e1a60314c0b9c02a11c8493234d4aa",
+      "pinned_commit": "",
+      "source": "https://github.com/bioinformatics-centre/kaiju",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "kaiju",
+      "version": "1.10.0"
+    },
+    {
+      "entry_sha256": "4235108fd9be185304691f0075ef2b8ba1fe845d628e634c04a01db557cb75ba",
+      "pinned_commit": "",
+      "source": "https://www.kingrelatedness.com/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "king",
+      "version": "2.3.0"
+    },
+    {
+      "entry_sha256": "efb9a2d7dc0147fe9e430ee1a4aa59b81869fb2d1b60d062ba1ec11f0c36fdb0",
+      "pinned_commit": "",
+      "source": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
+      "source_sha256": "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69",
+      "status": "production",
+      "tool": "kraken2",
+      "version": "2.1.3"
+    },
+    {
+      "entry_sha256": "33df3e76efcd8a5ce09d0e3030cdff6ebf11ed36d5b01e5ed6443537d027ff82",
+      "pinned_commit": "",
+      "source": "https://github.com/fbreitwieser/krakenuniq",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "krakenuniq",
+      "version": "1.0.4"
+    },
+    {
+      "entry_sha256": "7489a72f4a6c11ac20c5f7724304e1550f2303a27c4a9cf15e2caf452c91cfe9",
+      "pinned_commit": "",
+      "source": "https://github.com/grenaud/leeHom",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "leehom",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "d71a510c69cb5c2c7b72c57a703f2ee7e24512beabd278fceac9b17f6a374bb7",
+      "pinned_commit": "",
+      "source": "https://github.com/mourisl/Lighter",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "lighter",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "99eb9d8c87e942282c7444ded6619744c3c376734f7368f33b4be9c1e7d130b6",
+      "pinned_commit": "",
+      "source": "https://github.com/ginolhac/mapDamage",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "mapdamage2",
+      "version": "2.2.2"
+    },
+    {
+      "entry_sha256": "09dea79cff720095d4c196a958af98dd74e99154fdb141b9a8d9cc62da396b6d",
+      "pinned_commit": "",
+      "source": "https://github.com/biobakery/MetaPhlAn",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "metaphlan",
+      "version": "4.1.1"
+    },
+    {
+      "entry_sha256": "253788fd9c02d7545fb763f69cf02f3f4c7809b3aeebb26237d1486f9efb995d",
+      "pinned_commit": "",
+      "source": "https://github.com/brentp/mosdepth",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "mosdepth",
+      "version": "0.3.10"
+    },
+    {
+      "entry_sha256": "7654d0a09d04e3c7b05e1f3e1f4b94340a355dcc8a395e1e85798589ac533b61",
+      "pinned_commit": "",
+      "source": "https://github.com/multiqc/multiqc",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "multiqc",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "3239e59a8ec1a1ee3adfbeee05c74fda6a2d48c991920e2a67b6cf657de3b72a",
+      "pinned_commit": "",
+      "source": "https://github.com/alexdobin/musket",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "musket",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "4afce617d2a8dd48006705530ee18714963b3551a8f05d128da6a5450b2d11c3",
+      "pinned_commit": "",
+      "source": "https://github.com/xflouris/PEAR",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "pear",
+      "version": "0.9.6"
+    },
+    {
+      "entry_sha256": "56ea9afaf3c155682297239fddb75dcda71b21e0e42a39cda39392432a5cb0e9",
+      "pinned_commit": "",
+      "source": "https://www.cog-genomics.org/plink/",
+      "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
+      "status": "planned",
+      "tool": "plink",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "1ac116a0d94c314235a8001ea59aaa3a07b8dd22b5f35db02cb2adbcd779d7c9",
+      "pinned_commit": "",
+      "source": "https://www.cog-genomics.org/plink/2.0/",
+      "source_sha256": "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
+      "status": "planned",
+      "tool": "plink2",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "cb4b0006779e2fab5c64a24ed775f0b33d1d84e41b43d1e23a0c6379d06d7f83",
+      "pinned_commit": "",
+      "source": "https://github.com/pontussk/PMDtools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "pmdtools",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "ebcd1046a784b2e8f2d00228cfa26b6fb77b2ba49fd182c5721beea8ac473c60",
+      "pinned_commit": "",
+      "source": "https://github.com/uwb-linux/prinseq",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "prinseq",
+      "version": "1.2.4"
+    },
+    {
+      "entry_sha256": "a86fafd7ed9d82f2da43e620fd3e930d15668ac103173e16d682db38f3fea075",
+      "pinned_commit": "",
+      "source": "https://github.com/maxibor/pydamage",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "pydamage",
+      "version": "1.0.0"
+    },
+    {
+      "entry_sha256": "3698d30c4667c6b06595ba2e66cbc5e81a9db82f20da82ecb7fc6fd384836222",
+      "pinned_commit": "",
+      "source": "http://qualimap.conesalab.org/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "qualimap",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "3d8dc060f41f5198c391ffe147540263100fb8fcb131e256e32fb3aa22b18277",
+      "pinned_commit": "",
+      "source": "https://github.com/mourisl/Rcorrector",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "rcorrector",
+      "version": "1.0.7"
+    },
+    {
+      "entry_sha256": "0bb398892623ffb08d4c68bec275fdd59f0e04fd43a7ea28e8efc01e42b3d1cf",
+      "pinned_commit": "",
+      "source": "https://github.com/bijux/bijux-dna",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "rxy",
+      "version": "1.0.0"
+    },
+    {
+      "entry_sha256": "56d37a379e133c9e50d3221efff2ddd243fce73c97bd15ddb085e187aee4bc56",
+      "pinned_commit": "",
+      "source": "https://github.com/samtools/samtools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "samtools",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "d009027d7d077911682d8c78c83885540fa1ef572ebcb93a7e0fe4a7b5e6483c",
+      "pinned_commit": "",
+      "source": "https://github.com/grenaud/schmutzi",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "schmutzi",
+      "version": "1.5.4"
+    },
+    {
+      "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
+      "pinned_commit": "",
+      "source": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
+      "source_sha256": "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc",
+      "status": "production",
+      "tool": "seqkit",
+      "version": "2.8.2"
+    },
+    {
+      "entry_sha256": "71138a8e4fa0596528a3e867a9fbf894eb1623816137efaf62faed7256e26267",
+      "pinned_commit": "",
+      "source": "https://github.com/seqkit_stats/seqkit_stats",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "seqkit_stats",
+      "version": "2.7.0"
+    },
+    {
+      "entry_sha256": "bd66907aa6c092982feea1a6458530a6808af73a80cacce4b41b023c3a5f8b7a",
+      "pinned_commit": "",
+      "source": "https://github.com/lh3/seqtk.git",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "seqtk",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "496bac5f0b340036531eb51e86f00354ac9781a32fa0838f3262ba1c118faabf",
+      "pinned_commit": "",
+      "source": "https://odelaneau.github.io/shapeit4/",
+      "source_sha256": "",
+      "status": "planned",
+      "tool": "shapeit",
+      "version": "planned"
+    },
+    {
+      "entry_sha256": "0dd35f74d23da9bbf5af75f9121a7151665b07a87279d1b403a10aedbb7cfb86",
+      "pinned_commit": "",
+      "source": "https://github.com/relipmoc/skewer",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "skewer",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "d94cdd41596d0404c66b5f6a73458bc92a6f2a414154e3d30e619ae7dda7552f",
+      "pinned_commit": "",
+      "source": "https://github.com/biocore/sortmerna",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "sortmerna",
+      "version": "4.3.7"
+    },
+    {
+      "entry_sha256": "94e4a53e5d69ece8b939bf34f08550efd7e377d5808458b319de5f799af4236b",
+      "pinned_commit": "",
+      "source": "https://github.com/ablab/spades",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "spades",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "88394ca5952b723b3e66d83f801929f5ec8f56803e14614735a69f79cdfd3a84",
+      "pinned_commit": "",
+      "source": "https://github.com/alexdobin/STAR",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "star",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "2b8357e52e442b23e2609fecaab2f228e9727b604a3dabbf93de7f6d3bd35fa6",
+      "pinned_commit": "",
+      "source": "https://github.com/FelixKrueger/TrimGalore",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "trim_galore",
+      "version": "0.6.10"
+    },
+    {
+      "entry_sha256": "6f6042d15ec8a38e8bad257a3e5a11b74225dba295a40d90de62a66a4073c58a",
+      "pinned_commit": "",
+      "source": "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip",
+      "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
+      "status": "production",
+      "tool": "trimmomatic",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "0d131f8d45970783de7e37535d4dcc1cef19d868f915cb67c53bbb767e3ed07e",
+      "pinned_commit": "",
+      "source": "https://github.com/umi_tools/umi_tools",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "umi_tools",
+      "version": "1.1.6"
+    },
+    {
+      "entry_sha256": "9d4390fda6b662292d331d9fcfedcf19bfc21e15adda45e8bf9a4097a8177d74",
+      "pinned_commit": "",
+      "source": "https://github.com/Griffan/VerifyBamID",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "verifybamid2",
+      "version": "2.0.1"
+    },
+    {
+      "entry_sha256": "b2d8192f199f1fd8140876f197e98fb9f208dbacbafbc5e862f2bba81868dcd6",
+      "pinned_commit": "",
+      "source": "tag:vsearch",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "vsearch",
+      "version": "0.0.0"
+    },
+    {
+      "entry_sha256": "7f004e872de2149dbfe1b1c2d0e9da73e96fb596e23abf1d92e1180d14d3e4b4",
+      "pinned_commit": "",
+      "source": "https://github.com/genid/Yleaf",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "yleaf",
+      "version": "3.0.3"
     }
   ],
-  "schema_version": "bijux.container.version_lock.v1",
+  "schema_version": "bijux.container.version_lock.v2",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "0540eb40679aa45063f1f87230b9bd6d28211b1745ae3661b71cb094fc2e8d73"
+  "source_sha256": "7ad9de4be81e7bebe74e374c626d29752a10861f1e1020f99adf224e616cddb1",
+  "version_map_source": "artifacts/containers/version_map.json"
 }

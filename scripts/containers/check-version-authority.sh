@@ -29,8 +29,8 @@ versions_path = root / "containers/versions/versions.toml"
 lock = json.loads(lock_path.read_text(encoding="utf-8"))
 
 errors = []
-if lock.get("schema_version") != "bijux.container.version_lock.v1":
-    errors.append("lock.json schema_version must be bijux.container.version_lock.v1")
+if lock.get("schema_version") != "bijux.container.version_lock.v2":
+    errors.append("lock.json schema_version must be bijux.container.version_lock.v2")
 if lock.get("source") != "containers/versions/versions.toml":
     errors.append("lock.json source must be containers/versions/versions.toml")
 expected_sha = hashlib.sha256(versions_path.read_bytes()).hexdigest()
