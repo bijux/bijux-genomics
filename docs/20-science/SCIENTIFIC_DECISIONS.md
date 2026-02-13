@@ -24,4 +24,4 @@ Publication-scoped scientific artifacts are referenced via `assets/publications/
 ## Change Control
 - Profile manifests are hash-addressed (`profile_hash`).
 - Any defaults change must change profile hash and corresponding contract snapshot.
-- Tool pin updates must update `configs/ci/tool_registry.lock.sha256`.
+- Tool pin updates must update `configs/ci/registry/tool_registry_lock.sha256`.

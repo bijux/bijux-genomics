@@ -1,0 +1,184 @@
+# GENERATED - DO NOT EDIT - source: domain/**
+# source_commit: 6424feae67b37d12e6fba823e015aa664490197a
+# domain_schema_version: bijux.domain.v1
+# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+# schema_version = 1
+# owner = bijux-dna-domain-compiler
+
+[adapterremoval]
+version = "latest-pinned"
+
+[addeam]
+version = "latest-pinned"
+
+[alientrimmer]
+version = "0.4.0"
+
+[angsd]
+version = "0.940"
+
+[atropos]
+version = "latest-pinned"
+
+[authenticct]
+version = "latest-pinned"
+
+[bamtools]
+version = "2.5.2"
+
+[bayeshammer]
+version = "latest-pinned"
+
+[bbduk]
+version = "latest-pinned"
+
+[bbmerge]
+version = "latest-pinned"
+
+[bcftools]
+version = "1.20"
+
+[bedtools]
+version = "2.31.1"
+
+[bowtie2]
+version = "2.5.4"
+
+[bracken]
+version = "2.9"
+
+[bwa]
+version = "0.7.17"
+
+[centrifuge]
+version = "latest-pinned"
+
+[contammix]
+version = "1.0.11"
+
+[cutadapt]
+version = "latest-pinned"
+
+[damageprofiler]
+version = "latest-pinned"
+
+[fastp]
+version = "latest-pinned"
+
+[fastq_screen]
+version = "latest-pinned"
+
+[fastqc]
+version = "latest-pinned"
+
+[fastqvalidator]
+version = "latest-pinned"
+
+[fastx_clipper]
+version = "0.0.14"
+
+[flash2]
+version = "latest-pinned"
+
+[fqtools]
+version = "latest-pinned"
+
+[kaiju]
+version = "latest-pinned"
+
+[king]
+version = "2.3.0"
+
+[kraken2]
+version = "latest-pinned"
+
+[krakenuniq]
+version = "1.0.4"
+
+[leehom]
+version = "latest-pinned"
+
+[lighter]
+version = "latest-pinned"
+
+[mapdamage2]
+version = "2.2.2"
+
+[metaphlan]
+version = "latest-pinned"
+
+[mosdepth]
+version = "0.3.10"
+
+[multiqc]
+version = "latest-pinned"
+
+[musket]
+version = "latest-pinned"
+
+[pear]
+version = "latest-pinned"
+
+[pmdtools]
+version = "0.60"
+
+[prinseq]
+version = "latest-pinned"
+
+[pydamage]
+version = "1.0.0"
+
+[qualimap]
+version = "latest-pinned"
+
+[rcorrector]
+version = "latest-pinned"
+
+[rxy]
+version = "latest-pinned"
+
+[samtools]
+version = "1.21"
+
+[schmutzi]
+version = "latest-pinned"
+
+[seqkit]
+version = "latest-pinned"
+
+[seqkit_stats]
+version = "latest-pinned"
+
+[seqtk]
+version = "latest-pinned"
+
+[skewer]
+version = "latest-pinned"
+
+[sortmerna]
+version = "latest-pinned"
+
+[spades]
+version = "latest-pinned"
+
+[star]
+version = "latest-pinned"
+
+[trim_galore]
+version = "latest-pinned"
+
+[trimmomatic]
+version = "latest-pinned"
+
+[umi_tools]
+version = "latest-pinned"
+
+[verifybamid2]
+version = "2.0.1"
+
+[vsearch]
+version = "latest-pinned"
+
+[yleaf]
+version = "latest-pinned"
+

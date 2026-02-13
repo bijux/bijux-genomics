@@ -9,9 +9,9 @@ use support::workspace_root;
 #[test]
 fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_explicit_and_domain_consistent(
 ) {
-    let registry_path = workspace_root().join("configs/ci/tool_registry.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/ci/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/tool_registry.toml");
+    let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
     let tools = parsed
         .get("tools")

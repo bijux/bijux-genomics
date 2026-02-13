@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn registry_path() -> PathBuf {
-    repo_root().join("configs/ci/tool_registry.toml")
+    repo_root().join("configs/ci/registry/tool_registry.toml")
 }
 
 #[test]

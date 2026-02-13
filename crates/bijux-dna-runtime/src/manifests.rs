@@ -342,7 +342,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
 
     let mut registry = ToolRegistry::default();
     let registry_path = if source_path.is_dir() {
-        bijux_dna_infra::configs_file(source_path, "ci/tool_registry.toml")
+        bijux_dna_infra::configs_file(source_path, "ci/registry/tool_registry.toml")
     } else {
         source_path.to_path_buf()
     };
@@ -420,7 +420,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
             }],
             parameters: Vec::new(),
             metrics: Vec::new(),
-            description: Some("generated from configs/ci/tool_registry.toml".to_string()),
+            description: Some("generated from configs/ci/registry/tool_registry.toml".to_string()),
             mutates_fastq: false,
             report_only: false,
             may_change_read_count: false,

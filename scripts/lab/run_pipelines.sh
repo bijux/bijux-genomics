@@ -13,7 +13,7 @@ fi
 CONFIG_PATH="${CONFIG_PATH:-configs/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "config not found: $CONFIG_PATH"
-  echo "copy configs/lab/config.example.toml to configs/lab/config.toml"
+  echo "copy configs/lab/config_example.toml to configs/lab/config.toml"
   exit 1
 fi
 

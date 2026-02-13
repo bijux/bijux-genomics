@@ -9,15 +9,15 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
         cli::EnvCommand::List => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             print_env_registry_list(&registry_path)?;
         }
         cli::EnvCommand::ExportJson => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             print_env_export_json(&registry_path)?;
         }
         cli::EnvCommand::ExportContainers { .. } => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             crate::commands::cli::env::print_registry_export_containers_json(&registry_path)?;
         }
         cli::EnvCommand::ExportHpc { json, hpc_root } => {
@@ -54,7 +54,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 Ok,
             )?;
             let report = ensure_apptainer_images(
-                &bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml"),
+                &bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"),
                 &hpc_root,
                 &domain,
                 &args.stage,
@@ -85,7 +85,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             println!("qa_matrix={}", out.display());
         }
         cli::EnvCommand::EnsureImages(args) => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             let hpc_root = args.hpc_root.clone().map_or_else(
                 || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
@@ -122,7 +122,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             lint_apptainer_defs(cwd)?;
         }
         cli::EnvCommand::Smoke(args) => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             if let Some(stage) = args.stage.as_deref() {
                 run_env_smoke_for_stage(&registry_path, &args.runtime, stage)?;
             } else if let Some(tool) = args.tool.as_deref() {
@@ -134,7 +134,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             }
         }
         cli::EnvCommand::Prep(args) => {
-            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+            let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
             run_env_prep(
                 &registry_path,
                 &args.runtime,
@@ -217,7 +217,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         print_registry_show_tool, print_registry_tools, promote_registry_tool,
         verify_registry_tool,
     };
-    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
     match command {
         cli::RegistryCommand::Tools { stage, kind } => {
             print_registry_tools(&registry_path, stage.as_deref(), kind)?;
@@ -324,7 +324,7 @@ fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
         detail: workspace_out.display().to_string(),
     });
 
-    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
     let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
         .map(|report| report.ok)
         .unwrap_or(false);
@@ -364,7 +364,7 @@ fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
 
 fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::verify_registry_tool;
-    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
+    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
     match command {
         cli::ToolCommand::Validate { id } => verify_registry_tool(&registry_path, id)?,
     }

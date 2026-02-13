@@ -13,7 +13,7 @@ pub fn load_registry(
     {
         bijux_dna_infra::configs_file(
             source_path.parent().unwrap_or(source_path),
-            "ci/tool_registry.toml",
+            "ci/registry/tool_registry.toml",
         )
     } else {
         source_path.to_path_buf()

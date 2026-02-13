@@ -23,9 +23,9 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
     let root = support::workspace_root();
     let mut tools = Vec::new();
     for rel in [
-        "configs/ci/tool_registry.toml",
-        "configs/ci/tool_registry_experimental.toml",
-        "configs/ci/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
     ] {
         let raw = std::fs::read_to_string(root.join(rel)).expect("read registry");
         let parsed: toml::Value = raw.parse().expect("parse registry");

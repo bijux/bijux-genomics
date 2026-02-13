@@ -640,7 +640,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
 
 fn stage_status(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
-    let path = bijux_dna_infra::configs_file(&cwd, "ci/stages.toml");
+    let path = bijux_dna_infra::configs_file(&cwd, "ci/stages/stages.toml");
     let raw = std::fs::read_to_string(path).ok()?;
     let parsed = raw.parse::<toml::Value>().ok()?;
     let entries = parsed.get("stages")?.as_array()?;

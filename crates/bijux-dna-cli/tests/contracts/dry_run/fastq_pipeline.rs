@@ -15,7 +15,7 @@ fn cli_fastq_preprocess_dry_run_emits_manifest_and_graph() {
     std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
     std::fs::create_dir_all(&ci_dir).expect("create ci configs");
     std::fs::write(
-        configs_dir.join("profile.local.toml"),
+        configs_dir.join("profile_local.toml"),
         r#"
 container_runtime = "docker"
 default_threads = 1

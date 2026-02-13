@@ -1,0 +1,7 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+
+corpus_root = "/path/to/scripts/lab/corpus"
+runner_kind = "docker"
+pipeline_ids = ["fastq-to-fastq__default__v1", "bam-to-bam__default__v1"]
+output_dir = "/path/to/scripts/lab/output"

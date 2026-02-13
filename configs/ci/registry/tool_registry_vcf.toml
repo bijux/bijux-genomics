@@ -1,0 +1,38 @@
+# GENERATED - DO NOT EDIT - source: domain/vcf/**
+# source_commit: 6424feae67b37d12e6fba823e015aa664490197a
+# domain_schema_version: bijux.domain.v1
+# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+# schema_version = 1
+# owner = bijux-dna-domain-compiler
+
+[[tools]]
+id = "bcftools"
+tool_id = "bcftools"
+domain = "vcf"
+status = "supported"
+stage_ids = ["vcf.call", "vcf.filter", "vcf.stats"]
+version = "1.20"
+default_version = "1.20"
+upstream = "https://github.com/samtools/bcftools"
+version_rule = "pinned"
+license = "MIT"
+citation = "DOI:10.1093/gigascience/giab008"
+pinned_commit = "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+pin_strategy = "container_digest"
+container_ref = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bcftools --version"
+help_cmd = "bcftools --help"
+smoke_version_cmd = "bcftools --version"
+smoke_help_cmd = "bcftools --help"
+expected_version_regex = "bcftools [0-9]+[.][0-9]+"
+healthcheck_cmd = "bcftools --help"
+expected_bin = "bcftools"
+expected_artifacts = ["vcf", "vcf_metrics"]
+metrics_schema = "bijux.vcf.stats.v1"
+comparability_notes = "Comparable only within same stage contract and reference build."
+dockerfile = "containers/docker/arm64/Dockerfile.bcftools"
+apptainer_def = "containers/apptainer/non-bijux/bcftools.def"
+require_labels = true
+

@@ -21,7 +21,7 @@ fn parse_registry_tools(path: &std::path::Path) -> Vec<toml::Value> {
 fn policy__contracts__production_container_policy__production_tools_have_version_entry_and_smoke_contract(
 ) {
     let root = support::workspace_root();
-    let registry_tools = parse_registry_tools(&root.join("configs/ci/tool_registry.toml"));
+    let registry_tools = parse_registry_tools(&root.join("configs/ci/registry/tool_registry.toml"));
     let versions_raw = std::fs::read_to_string(root.join("containers/versions/versions.toml"))
         .expect("read containers/versions/versions.toml");
     let versions: toml::Value = versions_raw
@@ -96,7 +96,7 @@ fn policy__contracts__production_container_policy__production_tools_have_version
 
     bijux_dna_policies::policy_assert!(
         !production_ids.is_empty(),
-        "no production tools found in configs/ci/tool_registry.toml"
+        "no production tools found in configs/ci/registry/tool_registry.toml"
     );
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),

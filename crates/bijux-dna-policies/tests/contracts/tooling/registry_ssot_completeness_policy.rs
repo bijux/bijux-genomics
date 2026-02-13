@@ -43,12 +43,12 @@ fn stage_tools_from_matrix(stage: &toml::Value) -> Vec<String> {
 #[test]
 fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_tools_are_complete() {
     let root = support::workspace_root();
-    let tool_registry_raw = std::fs::read_to_string(root.join("configs/ci/tool_registry.toml"))
-        .expect("read configs/ci/tool_registry.toml");
-    let stages_raw = std::fs::read_to_string(root.join("configs/ci/stages.toml"))
-        .expect("read configs/ci/stages.toml");
-    let images_raw = std::fs::read_to_string(root.join("configs/ci/images.toml"))
-        .expect("read configs/ci/images.toml");
+    let tool_registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
+        .expect("read configs/ci/registry/tool_registry.toml");
+    let stages_raw = std::fs::read_to_string(root.join("configs/ci/stages/stages.toml"))
+        .expect("read configs/ci/stages/stages.toml");
+    let images_raw = std::fs::read_to_string(root.join("configs/ci/tools/images.toml"))
+        .expect("read configs/ci/tools/images.toml");
 
     let tool_registry: toml::Value = tool_registry_raw.parse().expect("parse tool_registry");
     let stages: toml::Value = stages_raw.parse().expect("parse stages");
@@ -203,7 +203,7 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "registry ssot completeness policy failures:\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/ci/stages.toml, configs/ci/tool_registry.toml, configs/ci/images.toml, configs/ci/param_registry.toml, configs/ci/required_tools.toml.",
+        "registry ssot completeness policy failures:\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/ci/stages/stages.toml, configs/ci/registry/tool_registry.toml, configs/ci/tools/images.toml, configs/ci/params/param_registry.toml, configs/ci/tools/required_tools.toml.",
         offenders.join("\n")
     );
 }

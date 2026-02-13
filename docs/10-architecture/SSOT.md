@@ -21,9 +21,9 @@ Prevents duplicated semantics and inconsistent identifiers.
 - Metrics definitions in domain crates.
 - Domain metadata is authored in `domain/**`; generated config views are produced by `bijux-dna-domain-compiler`.
 - Generated config scope is fixed to:
-  - `configs/ci/tool_registry.toml`
-  - `configs/ci/stages.toml`
-  - `configs/ci/images.toml`
+  - `configs/ci/registry/tool_registry.toml`
+  - `configs/ci/stages/stages.toml`
+  - `configs/ci/tools/images.toml`
 - Generated files must carry `GENERATED - DO NOT EDIT` headers with source commit hash and are verified in CI.
 
 ## Examples
