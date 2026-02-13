@@ -1,22 +1,34 @@
 # MkDocs Build
 
-## What
-MkDocs is the single source build for root docs.
+## Purpose
+Define exact MkDocs build commands and dependency locations.
 
-## Why
-Broken links must fail CI.
+## Scope
+Applies to root documentation builds executed via Make and CI.
 
 ## Non-goals
-- Building crate docs (they are linked only).
+- Covering crate-local docs generation workflows.
 
 ## Contracts
-CI runs `mkdocs build --strict` and fails on broken links.
+- Dependencies are sourced from `configs/docs/requirements.txt`.
+- Environment setup is performed only through `scripts/tooling/setup-docs-venv.sh`.
+- CI/docs gates must use `make docs-lint` behavior (`mkdocs build --strict`).
 
-## Examples
+## Commands
 ```bash
-make docs
-make docs-lint
+make docs            # non-strict local build
+make docs-lint       # strict local build
+make docs-isolate    # strict build and checks under isolate
 ```
 
-## Failure modes
-Broken links or missing files fail the build.
+Equivalent internal commands:
+```bash
+DOCS_REQ=configs/docs/requirements.txt ./scripts/run.sh tooling setup-docs-venv
+. artifacts/docs/.venv/bin/activate
+mkdocs build --strict --site-dir artifacts/docs/site
+```
+
+## Dependency Locations
+- Requirements file: `configs/docs/requirements.txt`
+- Venv/bootstrap wrapper: `scripts/tooling/setup-docs-venv.sh`
+- Docs checks entrypoints: `scripts/docs/*.sh`
