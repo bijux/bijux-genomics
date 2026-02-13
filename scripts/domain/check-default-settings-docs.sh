@@ -37,6 +37,28 @@ for dom_dir in sorted((root / "domain").iterdir()):
     for stage in stages:
         if stage.lower() not in text:
             errors.append(f"{doc.relative_to(root)}: missing stage coverage for '{stage}'")
+        has_doc_default = bool(re.search(rf"{re.escape(stage.lower())}.*default", text, re.DOTALL))
+        has_doc_rationale = bool(re.search(rf"{re.escape(stage.lower())}.*rationale", text, re.DOTALL))
+        if not has_doc_default:
+            errors.append(f"{doc.relative_to(root)}: missing blessed default description for '{stage}'")
+        idx = dom_dir / "index.yaml"
+        idx_text = idx.read_text(encoding="utf-8") if idx.exists() else ""
+        has_idx_default = bool(re.search(rf"^\s{{2}}{re.escape(stage)}:\s*.+$", idx_text, flags=re.MULTILINE))
+        has_idx_rationale = False
+        in_rationale = False
+        for line in idx_text.splitlines():
+            if line.startswith("active_default_rationale:"):
+                in_rationale = True
+                continue
+            if in_rationale and re.match(r"^[A-Za-z0-9_]+:\s*", line):
+                break
+            if in_rationale and re.match(rf"^\s{{2}}{re.escape(stage)}:\s*.+$", line):
+                has_idx_rationale = True
+                break
+        if not (has_doc_rationale or has_idx_rationale):
+            errors.append(f"{doc.relative_to(root)}: missing blessed default rationale for '{stage}'")
+        if not (has_doc_default or has_idx_default):
+            errors.append(f"{doc.relative_to(root)}: missing blessed default mapping for '{stage}'")
         # single-tool stage must be explicitly justified
     idx = dom_dir / "index.yaml"
     if idx.exists():

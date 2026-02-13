@@ -1,0 +1,7 @@
+schema_version: "bijux.domain.artifacts.schema.v1"
+required_fields:
+  - schema_version
+  - domain
+allowed_payload_keys:
+  - artifact_ids
+  - artifacts

@@ -48,7 +48,7 @@ for dom_dir in sorted((root / "domain").iterdir()):
                 continue
             k, v = line.split("=", 1)
             kv[k.strip()] = v.strip()
-        for key in ("tool", "stage", "args", "expected_outputs"):
+        for key in ("tool", "tool_version", "command", "args", "expected_outputs", "expected_stdout_patterns", "stage"):
             if key not in kv:
                 errors.append(f"{fx.relative_to(root)}: missing required key '{key}'")
         if "tool" in kv and not re.fullmatch(r"[a-z0-9_]+", kv["tool"]):

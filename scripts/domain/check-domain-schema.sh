@@ -60,6 +60,23 @@ def parse_required_fields(schema_path: Path):
                 break
     return fields
 
+def parse_allowed_payload_keys(schema_path: Path):
+    keys = []
+    in_section = False
+    for raw in read_text(schema_path).splitlines():
+        line = raw.rstrip()
+        if re.match(r"^allowed_payload_keys:\s*$", line):
+            in_section = True
+            continue
+        if in_section:
+            m = re.match(r"^\s*-\s*([A-Za-z0-9_]+)\s*$", line)
+            if m:
+                keys.append(m.group(1))
+                continue
+            if line and not line.startswith(" "):
+                break
+    return keys
+
 
 def parse_scalar_from_text(text: str, key: str) -> str | None:
     pat = re.compile(rf"^{re.escape(key)}:\s*\"?([^\"\n#]+)\"?\s*$", re.MULTILINE)
@@ -218,10 +235,30 @@ for dom_dir in sorted(p for p in domain_root.iterdir() if p.is_dir()):
             errors.append(f"{tool_file}: scope must be {required_tool_scope} (got {scope})")
 
     metrics_file = dom_dir / "metrics.yaml"
+    metrics_schema = dom_dir / "metrics" / "_schema.yaml"
+    artifacts_file = dom_dir / "artifacts.yaml"
+    artifacts_schema = dom_dir / "artifacts" / "_schema.yaml"
+
+    if not metrics_schema.exists():
+        errors.append(f"{dom_dir}: missing metrics schema {metrics_schema.relative_to(root)}")
+    if not artifacts_schema.exists():
+        errors.append(f"{dom_dir}: missing artifacts schema {artifacts_schema.relative_to(root)}")
+
     if not metrics_file.exists():
         errors.append(f"{dom_dir}: missing metrics.yaml")
     else:
         mtext = read_text(metrics_file)
+        mkeys = top_level_keys(mtext)
+        if metrics_schema.exists():
+            req = parse_required_fields(metrics_schema)
+            miss = [k for k in req if k not in mkeys]
+            if miss:
+                errors.append(f"{metrics_file}: missing required fields from schema: {miss}")
+            allowed_payload = parse_allowed_payload_keys(metrics_schema)
+            if allowed_payload and not any(k in mkeys for k in allowed_payload):
+                errors.append(
+                    f"{metrics_file}: must define at least one payload key from {allowed_payload}"
+                )
         schema_version = parse_scalar_from_text(mtext, "schema_version")
         declared_domain = parse_scalar_from_text(mtext, "domain")
         if not schema_version or not schema_version.startswith("bijux."):
@@ -242,6 +279,36 @@ for dom_dir in sorted(p for p in domain_root.iterdir() if p.is_dir()):
             )
         if has_metrics and not re.search(r"^\s*-\s*id:\s*\"?[a-z0-9_]+\"?\s*$", mtext, re.MULTILINE):
             errors.append(f"{metrics_file}: metrics entries must include id fields")
+
+    if not artifacts_file.exists():
+        errors.append(f"{dom_dir}: missing artifacts.yaml")
+    else:
+        atext = read_text(artifacts_file)
+        akeys = top_level_keys(atext)
+        if artifacts_schema.exists():
+            req = parse_required_fields(artifacts_schema)
+            miss = [k for k in req if k not in akeys]
+            if miss:
+                errors.append(f"{artifacts_file}: missing required fields from schema: {miss}")
+            allowed_payload = parse_allowed_payload_keys(artifacts_schema)
+            if allowed_payload and not any(k in akeys for k in allowed_payload):
+                errors.append(
+                    f"{artifacts_file}: must define at least one payload key from {allowed_payload}"
+                )
+        aschema = parse_scalar_from_text(atext, "schema_version")
+        adom = parse_scalar_from_text(atext, "domain")
+        if not aschema or not aschema.startswith("bijux."):
+            errors.append(f"{artifacts_file}: schema_version must exist and start with 'bijux.'")
+        if adom != dom:
+            errors.append(f"{artifacts_file}: domain must be '{dom}' (got {adom})")
+        has_artifact_ids = bool(re.search(r"^artifact_ids:\s*$", atext, re.MULTILINE))
+        has_artifacts = bool(re.search(r"^artifacts:\s*$", atext, re.MULTILINE))
+        if not (has_artifact_ids or has_artifacts):
+            errors.append(f"{artifacts_file}: must define either artifact_ids: or artifacts:")
+        if has_artifact_ids and not re.search(r"^\s*-\s*[a-z0-9_]+\s*$", atext, re.MULTILINE):
+            errors.append(f"{artifacts_file}: artifact_ids must contain at least one snake_case artifact id")
+        if has_artifacts and not re.search(r"^\s*-\s*id:\s*\"?[a-z0-9_]+\"?\s*$", atext, re.MULTILINE):
+            errors.append(f"{artifacts_file}: artifacts entries must include id fields")
 
     # Every production tool binding for this domain must have fixture coverage in that stage.
     fixture_pairs = set()

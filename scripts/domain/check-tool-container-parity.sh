@@ -27,6 +27,7 @@ appt_tools |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*
 all_container_tools = docker_tools | appt_tools
 
 errors = []
+declared_tools = set()
 for tool_file in sorted((root / "domain").glob("*/tools/*.yaml")):
     if tool_file.name == "_schema.yaml":
         continue
@@ -35,6 +36,8 @@ for tool_file in sorted((root / "domain").glob("*/tools/*.yaml")):
         m = re.search(rf'^{re.escape(key)}:\s*"?([^"\n#]+)"?\s*$', text, flags=re.MULTILINE)
         return m.group(1).strip() if m else ""
     tool_id = scalar("tool_id")
+    if tool_id:
+        declared_tools.add(tool_id)
     status = scalar("status")
     if not tool_id or status == "out_of_scope":
         continue
@@ -45,6 +48,29 @@ for tool_file in sorted((root / "domain").glob("*/tools/*.yaml")):
         errors.append(
             f"{tool_file.relative_to(root)}: tool_id '{tool_id}' has no matching container def (add container or mark in configs/domain/external_tools.toml)"
         )
+
+# Also enforce stage-level compatible_tools references have container parity (or external marker).
+for stage_file in sorted((root / "domain").glob("*/stages/*.yaml")):
+    if stage_file.name == "_schema.yaml":
+        continue
+    text = stage_file.read_text(encoding="utf-8")
+    m = re.search(r"^compatible_tools:\s*\[(.*?)\]\s*$", text, flags=re.MULTILINE)
+    if not m:
+        continue
+    tools = [x.strip().strip('"').strip("'") for x in m.group(1).split(",") if x.strip()]
+    for tool_id in tools:
+        if tool_id not in declared_tools and tool_id not in external:
+            errors.append(
+                f"{stage_file.relative_to(root)}: compatible_tools references undeclared tool '{tool_id}'"
+            )
+            continue
+        if tool_id in external:
+            continue
+        candidates = {tool_id, tool_id.replace("-", "_")}
+        if not any(c in all_container_tools for c in candidates):
+            errors.append(
+                f"{stage_file.relative_to(root)}: compatible_tools tool '{tool_id}' has no matching container def"
+            )
 
 if errors:
     print("tool/container parity check failed:", file=sys.stderr)
