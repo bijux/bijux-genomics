@@ -43,7 +43,7 @@ for t in sorted(apptainer_tools):
         errors.append(f"{t}: smoke status not ok")
         continue
     # version match
-    out = str(row.get("version_output", "")).strip().lower()
+    out = str(row.get("normalized_version_output", "") or row.get("version_output", "")).strip().lower()
     expected = str((versions.get(t) or {}).get("version", "")).strip().lower()
     if expected and expected not in out:
         errors.append(f"{t}: version output does not include expected version {expected}")
