@@ -18,6 +18,7 @@ root = Path(sys.argv[1])
 regs = [
     root / "configs/ci/registry/tool_registry.toml",
     root / "configs/ci/registry/tool_registry_vcf.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ]
 images = root / "configs/ci/tools/images.toml"
 exempt = set()

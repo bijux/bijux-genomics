@@ -55,6 +55,7 @@ def check_registries(errs: list[str]) -> tuple[set[str], set[str]]:
         REGISTRY_DIR / "tool_registry.toml",
         REGISTRY_DIR / "tool_registry_experimental.toml",
         REGISTRY_DIR / "tool_registry_vcf.toml",
+        REGISTRY_DIR / "tool_registry_vcf_downstream.toml",
     ):
         data = load_toml(reg)
         for tool in data.get("tools", []):
@@ -223,6 +224,7 @@ def check_images_contract(errs: list[str]) -> None:
         REGISTRY_DIR / "tool_registry.toml",
         REGISTRY_DIR / "tool_registry_experimental.toml",
         REGISTRY_DIR / "tool_registry_vcf.toml",
+        REGISTRY_DIR / "tool_registry_vcf_downstream.toml",
     ):
         rdata = load_toml(reg)
         for tool in rdata.get("tools", []):

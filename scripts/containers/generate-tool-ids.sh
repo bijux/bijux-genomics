@@ -26,6 +26,7 @@ regs = [
     root / "configs/ci/registry/tool_registry.toml",
     root / "configs/ci/registry/tool_registry_vcf.toml",
     root / "configs/ci/registry/tool_registry_experimental.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ]
 ids = set()
 for reg in regs:

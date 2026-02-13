@@ -19,6 +19,7 @@ root = pathlib.Path(sys.argv[1])
 reg_paths = [
     root / "configs/ci/registry/tool_registry.toml",
     root / "configs/ci/registry/tool_registry_vcf.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ]
 images_toml = root / "configs/ci/tools/images.toml"
 

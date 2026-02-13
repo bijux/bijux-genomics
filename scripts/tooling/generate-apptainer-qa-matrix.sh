@@ -10,9 +10,10 @@ OUT="${1:-$ROOT_DIR/docs/30-operations/APPTAINER_QA_MATRIX.md}"
 REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
+REG4="$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
 SUMMARY_JSON="$ROOT_DIR/artifacts/containers/summary/summary.json"
 
-python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$SUMMARY_JSON" "$OUT"
+python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$SUMMARY_JSON" "$OUT"
 from pathlib import Path
 import sys
 import json
@@ -43,9 +44,9 @@ def parse_tools(path: Path):
         rows.append(cur)
     return rows
 
-regs = [Path(p) for p in sys.argv[1:4]]
-summary_json = Path(sys.argv[4])
-out = Path(sys.argv[5])
+regs = [Path(p) for p in sys.argv[1:5]]
+summary_json = Path(sys.argv[5])
+out = Path(sys.argv[6])
 rows = {}
 status_from_summary = {}
 
