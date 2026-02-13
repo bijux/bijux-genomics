@@ -18,6 +18,8 @@ run_ignored="${RUN_IGNORED:---run-ignored all}"
 ./bin/isolate sh -ceu "
 ./bin/require-isolate >/dev/null
 command -v cargo-nextest >/dev/null 2>&1 || { echo 'missing required tool: cargo-nextest'; echo 'install once: cargo install cargo-nextest --locked'; exit 1; }
+chmod -R a-w assets
+trap 'chmod -R u+w assets' EXIT
 export TZ=UTC LC_ALL=C
 export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"
 if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=\"\$(command -v sccache)\"; fi
