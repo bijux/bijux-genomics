@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "eagle"
 container_kind = "bijux"
-license = "GPL-3.0"
-upstream_source = "https://alkesgroup.broadinstitute.org/Eagle/"
+spdx = "GPL-3.0"
+upstream_url = "https://alkesgroup.broadinstitute.org/Eagle/"
+redistribution_note = "Source-available upstream; verify redistribution constraints before publish."
+citation = "eagle upstream project (see upstream_url)."
 version = "planned"
