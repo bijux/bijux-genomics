@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 '<nextest filter expression>' [runs]" >&2

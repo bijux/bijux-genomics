@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TMP_DIR=${TEST_TMP_DIR:-"$ROOT_DIR/artifacts/tmp"}

@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 

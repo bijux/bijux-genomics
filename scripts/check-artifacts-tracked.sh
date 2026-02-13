@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+LC_ALL=C
+export LC_ALL
 
 tracked="$(git ls-files artifacts || true)"
 if [[ -n "${tracked}" ]]; then

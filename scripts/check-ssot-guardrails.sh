@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 fail() {
   echo "ssot-guardrails: $*" >&2
