@@ -40,6 +40,7 @@ manifest_candidates = [
 ]
 docker_digest_by_tool = {}
 apptainer_sif_sha256_by_tool = {}
+frontend_sif_sha256_by_tool = {}
 size_by_tool = {}
 seen = set()
 for base in manifest_candidates:
@@ -72,6 +73,18 @@ for base in manifest_candidates:
             size = 0
         if size > 0:
             size_by_tool[t] = size
+
+frontend_digests = root / "artifacts" / "containers" / "hpc" / "frontend-sif-digests.json"
+if frontend_digests.exists():
+    try:
+        payload = json.loads(frontend_digests.read_text(encoding="utf-8"))
+        for row in payload.get("items", []):
+            tool = str(row.get("tool", "")).strip()
+            sha = str(row.get("sha256", "")).strip()
+            if tool and sha:
+                frontend_sif_sha256_by_tool[tool] = sha
+    except Exception:
+        pass
 for row in version_map.get("items", []):
     tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
@@ -84,12 +97,13 @@ for row in version_map.get("items", []):
         "pinned_commit": str(row.get("pinned_commit", "")),
         "resolved_image_digest": str(docker_digest_by_tool.get(tool, "")),
         "resolved_sif_sha256": str(apptainer_sif_sha256_by_tool.get(tool, "")),
+        "frontend_resolved_sif_sha256": str(frontend_sif_sha256_by_tool.get(tool, "")),
         "image_size_bytes": int(size_by_tool.get(tool, 0)),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
 
 payload = {
-    "schema_version": "bijux.container.version_lock.v2",
+    "schema_version": "bijux.container.version_lock.v3",
     "source": "containers/versions/versions.toml",
     "version_map_source": "artifacts/containers/version_map.json",
     "build_manifests_source": "artifacts/containers/manifests/*.json",
