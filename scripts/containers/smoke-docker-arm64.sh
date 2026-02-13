@@ -44,6 +44,18 @@ PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || ec
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$MANIFEST_DIR"
 
+relocate_root_invalid_flag() {
+  local root_pollution="$ROOT_DIR/--__bijux_invalid_flag__"
+  local pollution_dir="$ARTIFACT_DIR/smoke/pollution"
+  local pollution_target="$pollution_dir/--__bijux_invalid_flag__.${RUN_TIMESTAMP}"
+  if [[ -f "$root_pollution" ]]; then
+    mkdir -p "$pollution_dir"
+    mv "$root_pollution" "$pollution_target"
+    echo "relocated root pollution file to $pollution_target" >&2
+  fi
+}
+relocate_root_invalid_flag
+
 require_cmd "$DOCKER_BIN"
 require_cmd jq
 require_cmd python3
@@ -607,6 +619,8 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
 else
   xargs -P "$JOBS" -I{} sh "$0" --worker {} < "$LIST_FILE" || status=1
 fi
+
+relocate_root_invalid_flag
 
 ok_count=0
 fail_count=0

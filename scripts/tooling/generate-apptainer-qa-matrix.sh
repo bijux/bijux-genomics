@@ -7,6 +7,12 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
 OUT="${1:-$ROOT_DIR/docs/30-operations/APPTAINER_QA_MATRIX.md}"
+case "$OUT" in
+  -*)
+    echo "refusing unsafe output path (starts with '-'): $OUT" >&2
+    exit 2
+    ;;
+esac
 REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"

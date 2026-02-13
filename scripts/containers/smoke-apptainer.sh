@@ -51,6 +51,19 @@ if [[ "$FRONTEND_PROOF_MODE" == "1" ]]; then
 fi
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
+
+relocate_root_invalid_flag() {
+  local root_pollution="$ROOT_DIR/--__bijux_invalid_flag__"
+  local pollution_dir="$ARTIFACT_DIR/smoke/pollution"
+  local pollution_target="$pollution_dir/--__bijux_invalid_flag__.${RUN_TIMESTAMP}"
+  if [[ -f "$root_pollution" ]]; then
+    mkdir -p "$pollution_dir"
+    mv "$root_pollution" "$pollution_target"
+    echo "relocated root pollution file to $pollution_target" >&2
+  fi
+}
+relocate_root_invalid_flag
+
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
 export SMOKE_RUN_MODE
 export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
@@ -760,6 +773,8 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
 else
   xargs -P "$JOBS" -I{} sh "$SELF_SCRIPT" --worker {} < "$LIST_FILE" || status=1
 fi
+
+relocate_root_invalid_flag
 
 ok_count=$(grep -h '^=== .* OK$' "$LOG_DIR"/*.log 2>/dev/null | wc -l | tr -d ' ')
 fail_count=0
