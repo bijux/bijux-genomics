@@ -29,3 +29,15 @@ Required path invariants:
 - No implicit fallback from non-isolated execution to auto-created isolate dirs.
 - No writes outside `ISO_ROOT` for isolate-managed temp/build paths.
 - No scripts should bypass `require-isolate` for commands that mutate build/test outputs.
+
+## Usage
+- Print computed root: `./bin/isolate --print-root`
+- Print isolate env contract: `./bin/isolate --print-env`
+- Run command in clean isolate:
+  - `./bin/isolate --tag demo --require-clean sh -ceu 'echo "$ISO_ROOT"'`
+- Enforce target hygiene:
+  - `./bin/isolate --tag demo --require-empty-target-dir sh -ceu 'true'`
+- Validate current shell:
+  - `./bin/require-isolate`
+- Explain failure and remediation:
+  - `./bin/require-isolate --explain`

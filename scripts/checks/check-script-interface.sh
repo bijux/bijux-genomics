@@ -18,11 +18,21 @@ while IFS= read -r rel; do
   if ! "$abs" --help >/dev/null 2>&1; then
     viol+=("$rel: --help failed")
   fi
+  if ! "$abs" --help 2>&1 | rg -q 'Usage:'; then
+    viol+=("$rel: --help output missing 'Usage:'")
+  fi
   if ! "$abs" --verbose --help >/dev/null 2>&1; then
     viol+=("$rel: --verbose --help failed")
   fi
   if ! "$abs" --dry-run --help >/dev/null 2>&1; then
     viol+=("$rel: --dry-run --help failed")
+  fi
+  set +e
+  "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 2 ]]; then
+    viol+=("$rel: invalid flag must exit 2 (got $rc)")
   fi
 done < <(awk '/^path = "/ {gsub(/^path = "/,""); gsub(/"$/,""); print}' "$SPEC")
 

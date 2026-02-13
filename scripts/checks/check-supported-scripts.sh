@@ -46,4 +46,22 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   exit 1
 fi
 
+# Strict mode: every runnable script under scripts/ must be listed.
+all_runnable=$(find "$ROOT_DIR/scripts" -type f -name '*.sh' -perm -u+x | sed "s#^$ROOT_DIR/##" | sort -u)
+unlisted=()
+while IFS= read -r p; do
+  [[ -n "$p" ]] || continue
+  [[ "$p" == scripts/_lib/* ]] && continue
+  [[ "$p" == scripts/experimental/* ]] && continue
+  if ! grep -qx "$p" <<< "$listed_paths"; then
+    unlisted+=("$p")
+  fi
+done <<< "$all_runnable"
+
+if [[ ${#unlisted[@]} -gt 0 ]]; then
+  echo "supported-scripts: runnable scripts missing from scripts/SUPPORTED.toml:" >&2
+  printf '%s\n' "${unlisted[@]}" >&2
+  exit 1
+fi
+
 echo "supported-scripts: OK"

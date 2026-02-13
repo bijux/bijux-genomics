@@ -35,6 +35,7 @@ while IFS= read -r rel; do
       viol+=("$rel -> fixed artifact path may collide in parallel runs: $p")
     fi
   done < <(rg -n -o 'artifacts/[A-Za-z0-9._/-]+' "$f" | cut -d: -f3 | sort -u)
+
 done < <(awk '/^path = "/ {gsub(/^path = "/,""); gsub(/"$/,""); print}' "$SPEC")
 
 if [[ ${#viol[@]} -gt 0 ]]; then
