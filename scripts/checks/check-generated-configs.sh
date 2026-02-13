@@ -3,7 +3,7 @@ set -eu
 LC_ALL=C
 export LC_ALL
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
 if ! ./bin/require-isolate >/dev/null 2>&1; then

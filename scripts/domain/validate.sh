@@ -3,7 +3,7 @@ set -eu
 LC_ALL=C
 export LC_ALL
 
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$repo_root"
 
 if ! ./bin/require-isolate >/dev/null 2>&1; then
