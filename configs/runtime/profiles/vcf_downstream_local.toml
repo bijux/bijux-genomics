@@ -1,0 +1,24 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Contract config for configs/runtime/profiles/vcf_downstream_local.toml
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-13
+
+container_runtime = "docker"
+default_threads = 4
+default_mem_gb = 16
+default_time_minutes = 120
+run_base_dir = "./runs/vcf_downstream"
+image_pull_policy = "if_missing"
+stages = [
+  "vcf.prepare_reference_panel",
+  "vcf.phasing",
+  "vcf.impute",
+  "vcf.postprocess",
+]
+default_tools = ["beagle", "glimpse", "impute5", "shapeit5", "eagle", "minimac4"]
+reference_panel_path = "examples/data/corpus-01-mini/reference/panel.vcf.gz"
+chunk_size = 5000000
+seed = 42
+output_format = "vcf.gz"

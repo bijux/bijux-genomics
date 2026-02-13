@@ -12,18 +12,61 @@ source = "vcf downstream staged roadmap parameter contracts"
 stage_id = "vcf.phasing"
 param_type_id = "vcf.phasing"
 schema_version = "bijux.vcf.params.v1"
+params = [
+  "threads",
+  "memory_gb",
+  "reference_panel_path",
+  "chunk_size",
+  "seed",
+  "output_format",
+]
 
 [[entries]]
-stage_id = "vcf.ld_pruning"
-param_type_id = "vcf.ld_pruning"
+stage_id = "vcf.impute"
+param_type_id = "vcf.impute"
 schema_version = "bijux.vcf.params.v1"
+params = [
+  "threads",
+  "memory_gb",
+  "reference_panel_path",
+  "chunk_size",
+  "seed",
+  "output_format",
+]
 
 [[entries]]
-stage_id = "vcf.population_structure"
-param_type_id = "vcf.population_structure"
+stage_id = "vcf.imputation"
+param_type_id = "vcf.imputation"
 schema_version = "bijux.vcf.params.v1"
+params = [
+  "threads",
+  "memory_gb",
+  "reference_panel_path",
+  "chunk_size",
+  "seed",
+  "output_format",
+]
 
 [[entries]]
-stage_id = "vcf.relatedness"
-param_type_id = "vcf.relatedness"
+stage_id = "vcf.postprocess"
+param_type_id = "vcf.postprocess"
 schema_version = "bijux.vcf.params.v1"
+params = [
+  "threads",
+  "memory_gb",
+  "seed",
+  "output_format",
+]
+
+[[entries]]
+stage_id = "vcf.prepare_reference_panel"
+param_type_id = "vcf.prepare_reference_panel"
+schema_version = "bijux.vcf.params.v1"
+params = [
+  "threads",
+  "memory_gb",
+  "reference_panel_path",
+  "chunk_size",
+  "seed",
+  "output_format",
+]
