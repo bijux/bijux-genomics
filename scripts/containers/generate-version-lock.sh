@@ -41,6 +41,7 @@ manifest_candidates = [
 docker_digest_by_tool = {}
 apptainer_sif_sha256_by_tool = {}
 frontend_sif_sha256_by_tool = {}
+frontend_smoke_version_output_sha256_by_tool = {}
 size_by_tool = {}
 seen = set()
 for base in manifest_candidates:
@@ -85,6 +86,18 @@ if frontend_digests.exists():
                 frontend_sif_sha256_by_tool[tool] = sha
     except Exception:
         pass
+
+frontend_smoke_summary = root / "artifacts" / "containers" / "hpc" / "frontend-smoke" / "summary.json"
+if frontend_smoke_summary.exists():
+    try:
+        payload = json.loads(frontend_smoke_summary.read_text(encoding="utf-8"))
+        for row in payload.get("items", []):
+            tool = str(row.get("tool", "")).strip()
+            out = str(row.get("normalized_version_output", "") or row.get("version_output", "")).strip().lower()
+            if tool and out:
+                frontend_smoke_version_output_sha256_by_tool[tool] = hashlib.sha256(out.encode("utf-8")).hexdigest()
+    except Exception:
+        pass
 for row in version_map.get("items", []):
     tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
@@ -98,6 +111,7 @@ for row in version_map.get("items", []):
         "resolved_image_digest": str(docker_digest_by_tool.get(tool, "")),
         "resolved_sif_sha256": str(apptainer_sif_sha256_by_tool.get(tool, "")),
         "frontend_resolved_sif_sha256": str(frontend_sif_sha256_by_tool.get(tool, "")),
+        "frontend_smoke_version_output_sha256": str(frontend_smoke_version_output_sha256_by_tool.get(tool, "")),
         "image_size_bytes": int(size_by_tool.get(tool, 0)),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
