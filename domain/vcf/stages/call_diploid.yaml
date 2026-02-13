@@ -1,0 +1,28 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.call_diploid"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "bam"
+    data_type: "bam"
+    cardinality: "Many"
+outputs:
+  - name: "diploid_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["bam"]
+required_outputs: ["diploid_vcf"]
+metrics:
+  - name: "diploid_called_variants"
+  - name: "het_rate"
+compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the only production-approved diploid caller in current baseline."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "Diploid genotype model is valid for the cohort."
+bank_hooks: ["none"]
+invariants:
+  - "tool_pinned"
+allowed_missingness: []
+planned_out_of_scope: []

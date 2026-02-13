@@ -2,6 +2,7 @@ tool=angsd
 tool_version=pinned
 stage=bam.genotyping
 domain=bam
+shipping=external
 fixture_kind=synthetic_truth
 command=angsd
 args=

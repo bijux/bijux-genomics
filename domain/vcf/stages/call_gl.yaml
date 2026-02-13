@@ -1,0 +1,28 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.call_gl"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "bam"
+    data_type: "bam"
+    cardinality: "Many"
+outputs:
+  - name: "gl_sites_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["bam"]
+required_outputs: ["gl_sites_vcf"]
+metrics:
+  - name: "gl_sites_count"
+  - name: "mean_gl_depth"
+compatible_tools: ["angsd", "bcftools"]
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "Likelihood-based calling is used for low-coverage contexts."
+bank_hooks: ["none"]
+invariants:
+  - "tool_pinned"
+  - "gl_fields_present"
+allowed_missingness: []
+planned_out_of_scope: []

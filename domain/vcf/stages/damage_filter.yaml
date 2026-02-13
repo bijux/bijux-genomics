@@ -1,0 +1,28 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.damage_filter"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "damage_filtered_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["vcf"]
+required_outputs: ["damage_filtered_vcf"]
+metrics:
+  - name: "ct_ga_masked_sites"
+  - name: "pmd_filtered_reads"
+compatible_tools: ["bcftools", "angsd"]
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "C>T/G>A and PMD thresholds are explicit and versioned."
+bank_hooks: ["none"]
+invariants:
+  - "tool_pinned"
+  - "damage_rules_reported"
+allowed_missingness: []
+planned_out_of_scope: []

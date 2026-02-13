@@ -1,0 +1,28 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.gl_propagation"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "gl_sites_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "gl_propagated_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["gl_sites_vcf"]
+required_outputs: ["gl_propagated_vcf"]
+metrics:
+  - name: "gl_fields_retained"
+  - name: "genotyped_sites"
+compatible_tools: ["bcftools", "angsd"]
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "GL/PL tags are retained through filtering and post-processing."
+bank_hooks: ["none"]
+invariants:
+  - "tool_pinned"
+  - "gl_fields_present"
+allowed_missingness: []
+planned_out_of_scope: []
