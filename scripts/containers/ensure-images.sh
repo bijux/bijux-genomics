@@ -9,6 +9,7 @@ require_stable_env
 IMAGES_TOML_PRIMARY="$ROOT_DIR/configs/ci/images.toml"
 IMAGES_TOML_FALLBACK="$ROOT_DIR/configs/ci/tools/images.toml"
 LOCK_SHA_FILE="$ROOT_DIR/configs/ci/registry/tool_registry_lock.sha256"
+HPC_NAMING_TOML="$ROOT_DIR/configs/ci/tools/hpc_image_naming.toml"
 OUT_DIR="$ROOT_DIR/artifacts/containers/ensure-images"
 REPORT="$OUT_DIR/report.json"
 LOCK_SNAPSHOT_FILE="$OUT_DIR/last_lock.sha256"
@@ -56,6 +57,7 @@ fi
 
 [[ -f "$IMAGES_TOML" ]] || { echo "missing $IMAGES_TOML_PRIMARY and $IMAGES_TOML_FALLBACK" >&2; exit 1; }
 [[ -f "$LOCK_SHA_FILE" ]] || { echo "missing $LOCK_SHA_FILE" >&2; exit 1; }
+[[ -f "$HPC_NAMING_TOML" ]] || { echo "missing $HPC_NAMING_TOML" >&2; exit 1; }
 
 ensure_artifacts_dir "$OUT_DIR"
 mkdir -p "$OUT_DIR"
@@ -71,6 +73,7 @@ fi
 
 selected_tools_json='[]'
 build_durations_json='[]'
+hpc_refs_json='[]'
 
 if [[ -n "$only_tool" ]]; then
   selected_tools_json="[\"$only_tool\"]"
@@ -128,6 +131,54 @@ PY
   fi
 fi
 
+hpc_refs_json=$(python3 - "$IMAGES_TOML" "$HPC_NAMING_TOML" "$selected_tools_json" <<'PY'
+import json
+import re
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+images_toml = sys.argv[1]
+naming_toml = sys.argv[2]
+selected_tools = set(json.loads(sys.argv[3]))
+
+images = tomllib.loads(open(images_toml, "r", encoding="utf-8").read())
+naming = tomllib.loads(open(naming_toml, "r", encoding="utf-8").read())
+
+required = ("registry_prefix", "tag_format", "tool_regex", "version_regex")
+for key in required:
+    if key not in naming or not str(naming[key]).strip():
+        raise SystemExit(f"hpc naming config missing required key: {key}")
+
+tool_re = re.compile(str(naming["tool_regex"]))
+ver_re = re.compile(str(naming["version_regex"]))
+tag_format = str(naming["tag_format"])
+prefix = str(naming["registry_prefix"]).rstrip("/")
+
+rows = []
+for tool, meta in sorted(images.items()):
+    if not isinstance(meta, dict):
+        continue
+    if selected_tools and tool not in selected_tools:
+        continue
+    version = str(meta.get("version", "")).strip()
+    if not tool_re.fullmatch(tool):
+        raise SystemExit(f"hpc naming policy violation: tool id '{tool}' does not match tool_regex")
+    if not ver_re.fullmatch(version):
+        raise SystemExit(f"hpc naming policy violation: version '{version}' for '{tool}' does not match version_regex")
+    tag = tag_format.replace("{tool}", tool).replace("{version}", version)
+    rows.append({
+        "tool": tool,
+        "version": version,
+        "hpc_image_ref": f"{prefix}/{tool}:{tag}",
+    })
+
+print(json.dumps(rows, separators=(",", ":")))
+PY
+)
+
 if [[ -n "$prev_sha" && "$prev_sha" == "$combined_sha" && "$plan_only" -eq 0 && -z "$only_tool" && "$changed_only" -eq 0 ]]; then
   echo "ensure-images: skip rebuild (config+lock unchanged)"
   cat > "$REPORT" <<JSON
@@ -136,11 +187,13 @@ if [[ -n "$prev_sha" && "$prev_sha" == "$combined_sha" && "$plan_only" -eq 0 && 
   "action": "skip",
   "reason": "unchanged",
   "images_toml": "${IMAGES_TOML#"$ROOT_DIR/"}",
+  "hpc_naming_toml": "configs/ci/tools/hpc_image_naming.toml",
   "tool_registry_lock": "configs/ci/registry/tool_registry_lock.sha256",
   "images_sha": "$images_sha",
   "lock_sha": "$lock_sha",
   "combined_sha": "$combined_sha",
-  "selected_tools": $selected_tools_json
+  "selected_tools": $selected_tools_json,
+  "hpc_image_refs": $hpc_refs_json
 }
 JSON
   exit 0
@@ -153,11 +206,13 @@ if [[ "$plan_only" -eq 1 ]]; then
   "action": "plan",
   "reason": "requested",
   "images_toml": "${IMAGES_TOML#"$ROOT_DIR/"}",
+  "hpc_naming_toml": "configs/ci/tools/hpc_image_naming.toml",
   "tool_registry_lock": "configs/ci/registry/tool_registry_lock.sha256",
   "images_sha": "$images_sha",
   "lock_sha": "$lock_sha",
   "combined_sha": "$combined_sha",
-  "selected_tools": $selected_tools_json
+  "selected_tools": $selected_tools_json,
+  "hpc_image_refs": $hpc_refs_json
 }
 JSON
   echo "plan: wrote $REPORT"
@@ -217,11 +272,13 @@ cat > "$REPORT" <<JSON
   "action": "rebuild",
   "reason": "requested_or_changed",
   "images_toml": "${IMAGES_TOML#"$ROOT_DIR/"}",
+  "hpc_naming_toml": "configs/ci/tools/hpc_image_naming.toml",
   "tool_registry_lock": "configs/ci/registry/tool_registry_lock.sha256",
   "images_sha": "$images_sha",
   "lock_sha": "$lock_sha",
   "combined_sha": "$combined_sha",
   "selected_tools": $selected_tools_json,
+  "hpc_image_refs": $hpc_refs_json,
   "build_durations": $build_durations_json
 }
 JSON
