@@ -16,6 +16,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Frontend reproducibility report: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
 - Frontend security doctrine: `containers/docs/APPTAINER_FRONTEND_SECURITY.md`
 - Frontend security summary: `containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md`
+- Stage freeze record: `containers/docs/HPC_FRONTEND_STAGE1_STABLE.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
