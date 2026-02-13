@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-qc-pre-01"
+domain = "fastq"
+stages = ["fastq.validate_pre", "fastq.qc_post"]
