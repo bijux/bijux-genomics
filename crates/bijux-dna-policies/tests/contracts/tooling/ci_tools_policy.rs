@@ -92,7 +92,7 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
 
     let required = [
         "cargo nextest run",
-        "--config-file nextest.toml",
+        "--config-file configs/nextest/nextest.toml",
         "--workspace",
         "--all-features",
         "--profile $(NEXTEST_PROFILE)",

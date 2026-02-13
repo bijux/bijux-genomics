@@ -21,8 +21,8 @@ pass=0
 fail=0
 
 for i in $(seq 1 "$runs"); do
-  echo "[$i/$runs] cargo nextest run --config-file nextest.toml --profile flake -E $expr"
-  if cargo nextest run --config-file nextest.toml --profile flake -E "$expr" >/tmp/flake-hunt-last.log 2>&1; then
+  echo "[$i/$runs] cargo nextest run --config-file configs/nextest/nextest.toml --profile flake -E $expr"
+  if cargo nextest run --config-file configs/nextest/nextest.toml --profile flake -E "$expr" >/tmp/flake-hunt-last.log 2>&1; then
     pass=$((pass + 1))
     echo "  PASS"
   else
