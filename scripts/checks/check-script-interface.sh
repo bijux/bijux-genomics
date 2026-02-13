@@ -8,6 +8,9 @@ require_stable_env
 
 SPEC="$ROOT_DIR/scripts/SUPPORTED.toml"
 viol=()
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
 
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
@@ -28,8 +31,13 @@ while IFS= read -r rel; do
     viol+=("$rel: --dry-run --help failed")
   fi
   set +e
-  "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
+  probe_dir="$(mktemp -d "$TMP_ROOT/script-interface-probe.XXXXXX")"
+  (
+    cd "$probe_dir"
+    "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
+  )
   rc=$?
+  rm -rf "$probe_dir"
   set -e
   if [[ "$rc" -ne 2 ]]; then
     viol+=("$rel: invalid flag must exit 2 (got $rc)")
