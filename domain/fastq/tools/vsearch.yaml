@@ -63,7 +63,7 @@ stage_ids:
   - "fastq.merge"
   - "fastq.chimera_detection"
   - "fastq.otu_clustering"
-expected_artifacts: ["report_json"]
+expected_artifacts: ["report_json", "metrics.json", "otu_table", "otu_representatives"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "vsearch --version"

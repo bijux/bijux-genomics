@@ -19,6 +19,8 @@ compatible_tools:
   - seqfu
 assumptions:
   - "Compositional transforms are interpreted as relative, not absolute abundance."
+  - "Normalization mode is explicit (rarefaction or compositional transform)."
+  - "Reports must include warnings when normalization assumptions are violated."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "contaminant_db_bank"
