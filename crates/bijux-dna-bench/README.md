@@ -49,6 +49,7 @@ See `docs/TESTS.md`. Golden tests: `tests/contracts/bench_contract.rs`,
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
+Benchmark suite ownership and layout are documented in `bench/index.md`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
