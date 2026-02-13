@@ -49,6 +49,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_config_headers"
+path = "scripts/checks/check-config-headers.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_config_filenames"
 path = "scripts/checks/check-config-filenames.sh"
 purpose = "checks script"
@@ -153,6 +161,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_registry_split"
+path = "scripts/checks/check-registry-split.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_root_layout"
 path = "scripts/checks/check-root-layout.sh"
 purpose = "checks script"
@@ -195,6 +211,14 @@ ci_allowed = true
 [[script]]
 id = "check_supported_scripts"
 path = "scripts/checks/check-supported-scripts.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_tool_registry_lock"
+path = "scripts/checks/check-tool-registry-lock.sh"
 purpose = "checks script"
 inputs = []
 outputs = []
@@ -329,6 +353,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "lock_registry"
+path = "scripts/domain/lock-registry.sh"
+purpose = "domain script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "validate"
 path = "scripts/domain/validate.sh"
 purpose = "domain script"
@@ -339,7 +371,7 @@ ci_allowed = true
 [[script]]
 id = "pull"
 path = "scripts/hpc/lunarc/pull.sh"
-purpose = "hpc/lunarc script"
+purpose = "hpc script"
 inputs = []
 outputs = []
 ci_allowed = true
@@ -347,7 +379,7 @@ ci_allowed = true
 [[script]]
 id = "push"
 path = "scripts/hpc/lunarc/push.sh"
-purpose = "hpc/lunarc script"
+purpose = "hpc script"
 inputs = []
 outputs = []
 ci_allowed = true
@@ -371,7 +403,7 @@ ci_allowed = true
 [[script]]
 id = "run"
 path = "scripts/run.sh"
-purpose = "scripts script"
+purpose = "run.sh script"
 inputs = []
 outputs = []
 ci_allowed = true
@@ -585,10 +617,9 @@ outputs = []
 ci_allowed = true
 
 [[script]]
-id = "common_lib"
+id = "common"
 path = "scripts/_lib/common.sh"
 purpose = "shared shell library"
 inputs = []
 outputs = []
 ci_allowed = false
-
