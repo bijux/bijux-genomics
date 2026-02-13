@@ -11,7 +11,7 @@ REG1="$ROOT_DIR/configs/ci/registry/tool_registry.toml"
 REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
 REG4="$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
-SUMMARY_JSON="$ROOT_DIR/artifacts/containers/summary/summary.json"
+SUMMARY_JSON="$ROOT_DIR/artifacts/containers/summary.json"
 
 python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$SUMMARY_JSON" "$OUT"
 from pathlib import Path
