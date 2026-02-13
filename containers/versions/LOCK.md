@@ -16,6 +16,7 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 - `items[].status`: lifecycle status.
 - `items[].entry_sha256`: hash of canonicalized per-tool version entry.
 - `items[].frontend_resolved_sif_sha256`: authoritative SIF digest built on HPC frontend (`artifacts/containers/hpc/frontend-sif-digests.json`).
+- `items[].frontend_smoke_version_output_sha256`: hash of normalized frontend smoke `--version` output (`artifacts/containers/hpc/frontend-smoke/summary.json`).
 
 ## Pin Meaning
 - A pin is a reviewed version/provenance entry in `versions.toml`.
