@@ -26,7 +26,7 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 127
 fi
 
-matches=$(rg -n "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" Makefile makefiles || true)
+matches=$(rg -n "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" Makefile makefiles/*.mk || true)
 if [[ -n "$matches" ]]; then
   violations=$(printf '%s\n' "$matches" | rg -v "(\./bin/isolate cargo |install once: cargo install|policy-no-raw-cargo)" || true)
   if [[ -n "$violations" ]]; then
@@ -37,7 +37,7 @@ if [[ -n "$matches" ]]; then
 fi
 echo "raw-cargo-policy(makefiles): OK"
 
-tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\\b" Makefile makefiles || true)
+tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\\b" Makefile makefiles/*.mk || true)
 if [[ -n "$tool_matches" ]]; then
   tool_violations=$(printf '%s\n' "$tool_matches" | rg -v "scripts/tooling/" || true)
   if [[ -n "$tool_violations" ]]; then
@@ -47,6 +47,17 @@ if [[ -n "$tool_matches" ]]; then
   fi
 fi
 echo "raw-tooling-policy(makefiles): OK"
+
+direct_script_calls=$(rg -n "^\t@?.*scripts/[A-Za-z0-9_./-]+\\.sh" Makefile makefiles/*.mk || true)
+if [[ -n "$direct_script_calls" ]]; then
+  bad_direct=$(printf '%s\n' "$direct_script_calls" | rg -v "scripts/run\\.sh" || true)
+  if [[ -n "$bad_direct" ]]; then
+    echo "makefile-script-surface: makefiles must invoke scripts through scripts/run.sh (or approved thin wrappers)" >&2
+    printf '%s\n' "$bad_direct" >&2
+    exit 1
+  fi
+fi
+echo "makefile-script-surface: OK"
 
 ci_allowed_paths=$(parse_supported_toml "$ROOT_DIR/scripts/SUPPORTED.toml" | awk -F'\t' '$2=="true"{print $1}' | sort -u)
 
