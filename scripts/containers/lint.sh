@@ -149,12 +149,17 @@ if [ -s "$tmp" ]; then
 fi
 
 "$SCRIPT_DIR/check-missing-images.sh"
+"$SCRIPT_DIR/check-index.sh"
 "$SCRIPT_DIR/check-non-bijux-sources.sh"
+"$SCRIPT_DIR/check-owners.sh"
+"$SCRIPT_DIR/check-promotion-policy.sh"
 "$SCRIPT_DIR/check-version-completeness.sh"
+"$SCRIPT_DIR/check-version-authority.sh"
 "$SCRIPT_DIR/check-version-hash-pin.sh"
 "$SCRIPT_DIR/check-version-lock.sh"
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 "$SCRIPT_DIR/check-tool-id-manifest.sh"
+"$SCRIPT_DIR/check-tool-id-contract.sh"
 "$SCRIPT_DIR/check-registry-vs-defs.sh"
 "$SCRIPT_DIR/check-tool-name-collision.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"

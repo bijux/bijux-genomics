@@ -12,6 +12,7 @@ All other scripts under `scripts/containers/` are internal helpers or policy che
 
 ## How To Add A Tool
 - Admission policy: `docs/50-reference/TOOL_ADMISSION.md`
+- Promotion/demotion gates: `containers/PROMOTION_POLICY.md`
 - Add/update registry rows for the tool in `configs/ci/registry/*.toml`.
 - Add container defs (`containers/apptainer/...` and optionally `containers/docker/arm64/...`).
 - Build targeted image smoke plan: `./scripts/containers/ensure-images.sh --plan --only <tool-id>`
