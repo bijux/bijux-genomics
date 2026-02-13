@@ -17,3 +17,11 @@ retries = { count = 0, backoff = "fixed", delay = "1s" }
 
 [profile.science]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
+
+[profile.flake]
+retries = { count = 0, backoff = "fixed", delay = "1s" }
+fail-fast = true
+test-threads = 1
+failure-output = "immediate"
+success-output = "never"
+status-level = "fail"
