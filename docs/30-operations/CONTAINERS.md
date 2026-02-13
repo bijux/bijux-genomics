@@ -38,4 +38,5 @@ Applies to registry-linked container definitions, versions, and smoke-policy beh
 ## References
 - `containers/index.md`
 - `containers/README.md`
+- `containers/RELEASE_CHECKLIST.md`
 - `containers/PLANNED.md`
