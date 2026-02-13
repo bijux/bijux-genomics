@@ -1,0 +1,25 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Contract config for configs/runtime/cargo_build.toml
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-13
+
+[cargo]
+jobs = 8
+
+[profiles.dev]
+debug = 0
+incremental = true
+codegen_units = 128
+
+[profiles.test]
+debug = 0
+incremental = true
+codegen_units = 128
+
+[targets.aarch64_apple_darwin]
+rustflags = ["-Csplit-debuginfo=unpacked"]
+
+[targets.x86_64_apple_darwin]
+rustflags = ["-Csplit-debuginfo=unpacked"]

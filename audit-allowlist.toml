@@ -4,3 +4,11 @@ owner = "platform/infra"
 
 [advisories]
 ignore = []
+
+# For each ignored advisory use:
+# [[advisory]]
+# id = "RUSTSEC-YYYY-NNNN"
+# why = "short risk acceptance rationale"
+# expiry = "YYYY-MM-DD"
+# owner = "team-or-crate-owner"
+# link = "https://tracker-or-issue-url"

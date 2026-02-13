@@ -2,20 +2,4 @@
 bijux = "run -p bijux --bin bijux"
 
 [build]
-jobs = 8
-
-[profile.dev]
-debug = 0
 incremental = true
-codegen-units = 128
-
-[profile.test]
-debug = 0
-incremental = true
-codegen-units = 128
-
-[target.aarch64-apple-darwin]
-rustflags = ["-Csplit-debuginfo=unpacked"]
-
-[target.x86_64-apple-darwin]
-rustflags = ["-Csplit-debuginfo=unpacked"]
