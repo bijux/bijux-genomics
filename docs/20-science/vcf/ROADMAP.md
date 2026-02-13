@@ -37,3 +37,7 @@ For each stage/tool above:
 2. Add fixtures and default settings rationale.
 3. Add registry + container entries with pinned versions.
 4. Add contract/snapshot coverage before enabling in production profiles.
+
+## Placeholder Contracts
+- Stage taxonomy placeholder baseline: `domain/vcf/docs/STAGE_TAXONOMY.md`
+- Downstream tool admission criteria: `domain/vcf/docs/TOOL_ADMISSION_CRITERIA.md`

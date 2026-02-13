@@ -52,3 +52,29 @@ single_tool_justification: bam.overlap_correction
 single_tool_justification: bam.bias_mitigation
 single_tool_justification: bam.recalibration
 single_tool_justification: bam.haplogroups
+
+## Default Rationale
+- `bam.align` rationale: prioritize stable alignment baseline with broad BAM ecosystem compatibility.
+- `bam.validate` rationale: use deterministic validation diagnostics for contract enforcement.
+- `bam.qc_pre` rationale: enforce early sanity checks before downstream filtering.
+- `bam.mapping_summary` rationale: preserve comparable mapping summaries across runs.
+- `bam.filter` rationale: minimize post-alignment variance while preserving interpretability.
+- `bam.mapq_filter` rationale: deterministic MAPQ gating for reproducible retention metrics.
+- `bam.length_filter` rationale: preserve explicit read-length contract boundaries.
+- `bam.markdup` rationale: deterministic duplicate marking semantics for repeatable metrics.
+- `bam.duplication_metrics` rationale: stable duplicate summaries for comparability.
+- `bam.complexity` rationale: planned complexity extrapolation with stable baseline tooling.
+- `bam.coverage` rationale: consistent low-overhead depth metrics.
+- `bam.insert_size` rationale: deterministic insert-size summaries for QC comparability.
+- `bam.gc_bias` rationale: deterministic GC-bias baseline until expanded tool admission.
+- `bam.endogenous_content` rationale: reproducible endogenous ratio derivation from mapping summaries.
+- `bam.overlap_correction` rationale: deterministic overlap clipping preserves downstream comparability.
+- `bam.damage` rationale: preserve historical aDNA comparability baseline.
+- `bam.authenticity` rationale: stable authenticity score baseline for operator interpretation.
+- `bam.contamination` rationale: established contamination baseline for aDNA workflows.
+- `bam.sex` rationale: deterministic ratio-based sex inference baseline.
+- `bam.bias_mitigation` rationale: planned baseline keeps deterministic policy until dedicated tools are promoted.
+- `bam.recalibration` rationale: planned recalibration baseline remains pinned until full validation.
+- `bam.haplogroups` rationale: planned deterministic haplogroup assignment baseline.
+- `bam.genotyping` rationale: planned pinned-caller baseline for consistent genotype outputs.
+- `bam.kinship` rationale: reproducible pairwise kinship baseline.

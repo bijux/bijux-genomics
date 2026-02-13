@@ -3,8 +3,14 @@
 
 domain: "vcf"
 stage_ids:
+  - vcf.admixture
   - vcf.call
   - vcf.filter
+  - vcf.ibd
+  - vcf.imputation
+  - vcf.pca
+  - vcf.phasing
+  - vcf.qc
   - vcf.stats
 tool_ids:
   - bcftools
