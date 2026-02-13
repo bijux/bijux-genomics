@@ -1,0 +1,20 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Frontend Apptainer security and supply-chain enforcement policy.
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-13
+
+policy = "bijux.apptainer.security.frontend.v1"
+
+# Fail gate on any unallowlisted critical CVE.
+fail_on_unallowlisted_critical = true
+
+# In CI, scanner availability is required for strict enforcement.
+require_scanner_in_ci = true
+
+# Optional local strict toggle for non-CI runs.
+require_scanner_local = false
+
+# Vulnerability allowlist file (CVE IDs only, with reason metadata).
+vuln_allowlist_path = "configs/ci/tools/vuln_allowlist.toml"
