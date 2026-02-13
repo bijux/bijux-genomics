@@ -18,7 +18,7 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 
 errors=0
-for corpus_dir in "$ROOT_DIR"/examples/data/corpus-*; do
+for corpus_dir in "$ROOT_DIR"/examples/data/*; do
   [[ -d "$corpus_dir" ]] || continue
   rel="${corpus_dir#"$ROOT_DIR/"}"
   checksums="$corpus_dir/CHECKSUMS.sha256"

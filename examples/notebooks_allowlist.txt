@@ -1,0 +1,2 @@
+# Paths to notebook files allowed under examples/.
+# Keep empty unless notebooks are explicitly approved.

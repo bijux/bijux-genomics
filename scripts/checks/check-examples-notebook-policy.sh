@@ -8,6 +8,7 @@ require_stable_env
 
 errors=0
 policy="$ROOT_DIR/examples/POLICY.md"
+allowlist="$ROOT_DIR/examples/notebooks_allowlist.txt"
 if [[ ! -f "$policy" ]]; then
   echo "notebook policy: missing examples/POLICY.md" >&2
   errors=1
@@ -15,8 +16,22 @@ elif ! rg -q "Notebook Optional Path Rule" "$policy"; then
   echo "notebook policy: examples/POLICY.md missing 'Notebook Optional Path Rule' section" >&2
   errors=1
 fi
+if [[ ! -f "$allowlist" ]]; then
+  echo "notebook policy: missing examples/notebooks_allowlist.txt" >&2
+  errors=1
+fi
+
+allowed=""
+if [[ -f "$allowlist" ]]; then
+  allowed="$(sed '/^\s*#/d;/^\s*$/d' "$allowlist" | sort -u)"
+fi
 
 while IFS= read -r nb; do
+  rel="${nb#"$ROOT_DIR/"}"
+  if [[ -n "$allowed" ]] && ! grep -qx "$rel" <<<"$allowed"; then
+    echo "notebook policy: ${rel} is not in examples/notebooks_allowlist.txt" >&2
+    errors=1
+  fi
   ex_dir="$(dirname "$nb")"
   readme="$ex_dir/README.md"
   if [[ ! -f "$readme" ]]; then
