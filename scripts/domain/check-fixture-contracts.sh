@@ -51,10 +51,28 @@ for dom_dir in sorted((root / "domain").iterdir()):
         for key in ("tool", "stage", "args", "expected_outputs"):
             if key not in kv:
                 errors.append(f"{fx.relative_to(root)}: missing required key '{key}'")
+        if "tool" in kv and not re.fullmatch(r"[a-z0-9_]+", kv["tool"]):
+            errors.append(
+                f"{fx.relative_to(root)}: tool id '{kv['tool']}' must be snake_case ([a-z0-9_]+)"
+            )
+        if "tool" in kv and kv["tool"] != fx.stem:
+            errors.append(
+                f"{fx.relative_to(root)}: tool field '{kv['tool']}' must match fixture filename stem '{fx.stem}'"
+            )
         # stage path consistency
         stage_dir = fx.parent.name
         if kv.get("stage") and kv["stage"] != stage_dir:
             errors.append(f"{fx.relative_to(root)}: stage mismatch ({kv['stage']} != {stage_dir})")
+        shipping = kv.get("shipping", "").strip()
+        tool = kv.get("tool", "").strip()
+        if shipping == "external" and tool and tool not in external:
+            errors.append(
+                f"{fx.relative_to(root)}: shipping=external requires tool in configs/domain/external_tools.toml"
+            )
+        if tool in external and shipping != "external":
+            errors.append(
+                f"{fx.relative_to(root)}: external tool '{tool}' must declare shipping=external"
+            )
 
 if errors:
     print("fixture contracts check failed:", file=sys.stderr)
