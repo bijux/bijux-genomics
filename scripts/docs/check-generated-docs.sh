@@ -27,6 +27,7 @@ check_header() {
 
 check_header "$ROOT/docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"
 check_header "$ROOT/docs/20-science/TOOL_INDEX.md"
+check_header "$ROOT/docs/20-science/DOMAIN_COVERAGE.generated.md"
 check_header "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md"
 check_header "$ROOT/docs/00-intro/REPO_ROOT_MAP.generated.md"
 check_header "$ROOT/docs/50-reference/COMPATIBILITY_MATRIX.md"
@@ -40,6 +41,10 @@ mkdir -p "$TMP_DIR/00-intro" "$TMP_DIR/20-science" "$TMP_DIR/30-operations" "$TM
 
 diff -u "$ROOT/docs/20-science/TOOL_INDEX.md" "$TMP_DIR/20-science/TOOL_INDEX.md" >/dev/null || {
   echo "generated-docs: docs/20-science/TOOL_INDEX.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
+  exit 1
+}
+diff -u "$ROOT/docs/20-science/DOMAIN_COVERAGE.generated.md" "$TMP_DIR/20-science/DOMAIN_COVERAGE.generated.md" >/dev/null || {
+  echo "generated-docs: docs/20-science/DOMAIN_COVERAGE.generated.md drift; regenerate with scripts/tooling/generate-docs.sh" >&2
   exit 1
 }
 diff -u "$ROOT/docs/30-operations/APPTAINER_QA_MATRIX.md" "$TMP_DIR/30-operations/APPTAINER_QA_MATRIX.md" >/dev/null || {

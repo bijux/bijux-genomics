@@ -1231,3 +1231,11 @@ purpose = "checks script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "generate_domain_coverage_doc"
+path = "scripts/tooling/generate-domain-coverage-doc.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true

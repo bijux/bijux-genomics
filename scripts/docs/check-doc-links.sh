@@ -58,3 +58,19 @@ if pub_ref_errs:
 
 print('docs links: OK')
 PY
+
+forbidden_targets=(
+  "make _ci-fast"
+  "make _ci-slow"
+  "make _quick"
+  "make policy-fast"
+  "make policy-full"
+)
+
+for t in "${forbidden_targets[@]}"; do
+  if rg -n "$t" "$ROOT/docs" >/dev/null 2>&1; then
+    echo "docs link check failed: stale make target reference found: $t" >&2
+    rg -n "$t" "$ROOT/docs" >&2
+    exit 1
+  fi
+done
