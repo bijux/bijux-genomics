@@ -10,6 +10,24 @@ IMAGES_TOML="$ROOT_DIR/configs/ci/tools/images.toml"
 LOCK_SHA_FILE="$ROOT_DIR/configs/ci/registry/tool_registry_lock.sha256"
 OUT_DIR="$ROOT_DIR/artifacts/container/ensure-images"
 MANIFEST="$OUT_DIR/manifest.json"
+plan_only=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --plan) plan_only=1 ;;
+    --help|-h)
+      cat <<'EOF'
+Usage: scripts/containers/ensure-images.sh [--plan]
+EOF
+      exit 0
+      ;;
+    *)
+      echo "unknown arg: $1" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 [[ -f "$IMAGES_TOML" ]] || { echo "missing $IMAGES_TOML" >&2; exit 1; }
 [[ -f "$LOCK_SHA_FILE" ]] || { echo "missing $LOCK_SHA_FILE" >&2; exit 1; }
@@ -27,11 +45,19 @@ if [[ -f "$MANIFEST" ]]; then
 fi
 
 if [[ -n "$prev_sha" && "$prev_sha" == "$combined_sha" ]]; then
-  echo "ensure-images: config+lock unchanged, skipping rebuild"
+  echo "ensure-images: skip rebuild (config+lock unchanged)"
+  if [[ "$plan_only" == "1" ]]; then
+    echo "plan: action=skip reason=unchanged images_sha=$images_sha lock_sha=$lock_sha"
+  fi
   exit 0
 fi
 
-echo "ensure-images: change detected, rebuilding container images"
+echo "ensure-images: rebuild required (config+lock changed)"
+if [[ "$plan_only" == "1" ]]; then
+  echo "plan: action=rebuild reason=changed images_sha=$images_sha lock_sha=$lock_sha"
+  exit 0
+fi
+
 ./scripts/run.sh containers build-apptainer-all --defs-dir containers/apptainer --vm-out "${HOME}/apptainer-build" --copy-back "$ROOT_DIR/artifacts/container/apptainer"
 
 cat > "$MANIFEST" <<JSON
