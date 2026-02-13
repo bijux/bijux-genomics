@@ -40,7 +40,11 @@ pull_results_include="$ROOT_DIR/configs/hpc/rsync/pull-results-includes.txt"
 if [[ -f "$profiles_cfg" ]]; then
   full_found="$(python3 - <<'PY' "$profiles_cfg" "$exclude_profile"
 from pathlib import Path
-import sys, tomllib
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 name = sys.argv[2]
 for p in cfg.get("profiles", []):
@@ -52,7 +56,11 @@ PY
   [[ -n "$full_found" ]] && pull_full_exclude="$ROOT_DIR/$full_found"
   res_found="$(python3 - <<'PY' "$profiles_cfg" "$include_profile"
 from pathlib import Path
-import sys, tomllib
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 name = sys.argv[2]
 for p in cfg.get("profiles", []):

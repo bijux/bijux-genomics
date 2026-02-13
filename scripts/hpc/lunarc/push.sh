@@ -27,7 +27,11 @@ exclude_file="$ROOT_DIR/configs/hpc/rsync/push-excludes.txt"
 if [[ -f "$profiles_cfg" ]]; then
   found="$(python3 - <<'PY' "$profiles_cfg" "$exclude_profile"
 from pathlib import Path
-import sys, tomllib
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 name = sys.argv[2]
 for p in cfg.get("profiles", []):
