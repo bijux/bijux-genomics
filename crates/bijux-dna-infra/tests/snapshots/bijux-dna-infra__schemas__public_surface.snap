@@ -1,8 +1,8 @@
 ---
 source: crates/bijux-dna-infra/tests/boundaries/guardrails/public_surface.rs
-assertion_line: 18
-expression: snapshot
+assertion_line: 40
+expression: "bijux_dna_testkit::snapshot_normalize_text(&snapshot)"
 ---
 pub use logging::init_logging;
-pub use paths::{bench_base_dir, bench_tools_dir};
+pub use paths::{ bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir, configs_dir, configs_file, };
 pub mod formats;
