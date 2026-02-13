@@ -6,6 +6,31 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
+usage() {
+  cat <<'USAGE'
+Usage: scripts/test/test-scripts-smoke.sh [--help] [--dry-run]
+USAGE
+}
+
+dry_run=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --dry-run)
+      dry_run=1
+      ;;
+    *)
+      echo "unknown arg: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
 SPEC="$ROOT_DIR/scripts/SUPPORTED.toml"
 ISO_TMP="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}/tmp-scripts-smoke"
 ensure_artifacts_dir "$ISO_TMP"
@@ -32,6 +57,11 @@ if [[ ${#fails[@]} -gt 0 ]]; then
   echo "test-scripts-smoke: failures:" >&2
   printf '%s\n' "${fails[@]}" >&2
   exit 1
+fi
+
+if [[ "$dry_run" == "1" ]]; then
+  echo "test-scripts-smoke: dry-run OK"
+  exit 0
 fi
 
 echo "test-scripts-smoke: OK"
