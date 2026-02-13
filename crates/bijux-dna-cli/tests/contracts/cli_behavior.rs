@@ -38,10 +38,13 @@ seqkit_stats = { version = "99.99.99+fixture" }
         let configs_dir = self.path().join("configs");
         let runtime_dir = configs_dir.join("runtime");
         let ci_dir = configs_dir.join("ci");
+        let ci_tools_dir = ci_dir.join("tools");
         std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
-        std::fs::create_dir_all(&ci_dir).expect("create ci configs");
+        std::fs::create_dir_all(runtime_dir.join("profiles"))
+            .expect("create runtime profile configs");
+        std::fs::create_dir_all(&ci_tools_dir).expect("create ci tools configs");
         std::fs::write(
-            configs_dir.join("profile_local.toml"),
+            runtime_dir.join("profiles").join("local.toml"),
             r#"
 container_runtime = "docker"
 default_threads = 1
@@ -64,7 +67,7 @@ arch = "x86_64"
 "#,
         )
         .expect("write platforms");
-        std::fs::write(ci_dir.join("images.toml"), images).expect("write images");
+        std::fs::write(ci_tools_dir.join("images.toml"), images).expect("write images");
     }
 }
 

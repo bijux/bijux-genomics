@@ -17,3 +17,8 @@ Fields:
 - `platforms.<id>.runtime`: runtime selector (for example `docker-arm64`, `docker-amd64`, `apptainer`).
 - `platforms.<id>.default`: optional boolean; at most one platform can be marked default.
 - `platforms.<id>.notes`: optional human-readable rationale for platform selection constraints.
+
+## profiles/ Layout
+- Path: `configs/runtime/profiles/<profile>.toml`
+- Purpose: composable runtime execution profiles selected by profile name (for example `local`, `hpc`).
+- Invariant: profile file names are stable identifiers used by CLI `--profile`.
