@@ -30,6 +30,30 @@ smoke_required = false
 tools = ["beagle", "shapeit"]
 
 [[stages]]
+id = "vcf.impute"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.imputation.v1"
+smoke_required = false
+tools = ["beagle"]
+
+[[stages]]
+id = "vcf.postprocess"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.filter.v1"
+smoke_required = false
+tools = ["bcftools"]
+
+[[stages]]
+id = "vcf.prepare_reference_panel"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.filter.v1"
+smoke_required = false
+tools = ["bcftools"]
+
+[[stages]]
 id = "vcf.pca"
 status = "planned"
 experimental = true
