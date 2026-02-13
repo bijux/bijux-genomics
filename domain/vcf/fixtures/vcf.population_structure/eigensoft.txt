@@ -1,0 +1,9 @@
+tool=eigensoft
+tool_version=pinned
+stage=vcf.population_structure
+domain=vcf
+fixture_kind=parity
+command=smartpca
+args=-p parfile.population_structure -o eigensoft.population_structure
+expected_outputs=population_structure_report,metrics.json
+expected_stdout_patterns=smartpca,metrics_schema=bijux.vcf.population_structure.v1
