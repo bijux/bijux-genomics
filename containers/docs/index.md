@@ -1,12 +1,25 @@
-# Containers Index
+# Containers Docs Index
 
 <!-- GENERATED FILE - DO NOT EDIT -->
 <!-- source: scripts/containers/generate-index.sh -->
 
 Purpose: Authoritative tool/container index for container governance and CI checks.
 
+## Strict TOC
+- Policy: `containers/docs/PROMOTION_POLICY.md`
+- Build + style rules: `containers/docs/STYLE.md`
+- Smoke: `containers/docs/SMOKE_CONTRACT.md`
+- Lock/versioning: `containers/versions/LOCK.md`
+- Promotion/demotion: `containers/docs/PROMOTION_POLICY.md`
+- Network disclosure: `containers/docs/NETWORK_USAGE.md`
+- Licenses: `containers/licenses/`
+- SBOM + vulnerability hooks: `scripts/containers/check-sbom-artifacts.sh`, `scripts/containers/check-vuln-hook.sh`
+- Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
+- Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`
+
 ## Authority
 - Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
+- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
 - Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
 - Non-bijux provenance: `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
 - Ownership map: `containers/OWNERS.toml`.
@@ -25,7 +38,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `bbduk` | `production` | `bijux` | `arm64` |
 | `bbmerge` | `experimental` | `bijux` | `arm64` |
 | `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `planned` | `non-bijux` | `none` |
+| `beagle` | `planned` | `non-bijux` | `arm64` |
 | `bedtools` | `production` | `bijux` | `arm64` |
 | `bowtie2` | `production` | `bijux` | `arm64` |
 | `bracken` | `production` | `bijux` | `arm64` |
@@ -35,7 +48,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `cutadapt` | `experimental` | `bijux` | `arm64` |
 | `damageprofiler` | `experimental` | `bijux` | `arm64` |
 | `eagle` | `planned` | `non-bijux` | `arm64` |
-| `eigensoft` | `planned` | `non-bijux` | `none` |
+| `eigensoft` | `planned` | `non-bijux` | `arm64` |
 | `fastp` | `production` | `bijux` | `arm64` |
 | `fastq_screen` | `experimental` | `bijux` | `arm64` |
 | `fastqc` | `production` | `bijux` | `arm64` |
@@ -43,10 +56,10 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `fastx_clipper` | `production` | `bijux` | `arm64` |
 | `flash2` | `experimental` | `bijux` | `arm64` |
 | `fqtools` | `experimental` | `bijux` | `arm64` |
-| `germline` | `planned` | `non-bijux` | `none` |
+| `germline` | `planned` | `non-bijux` | `arm64` |
 | `glimpse` | `planned` | `non-bijux` | `arm64` |
-| `ibdhap` | `planned` | `non-bijux` | `none` |
-| `ibdne` | `planned` | `non-bijux` | `none` |
+| `ibdhap` | `planned` | `non-bijux` | `arm64` |
+| `ibdne` | `planned` | `non-bijux` | `arm64` |
 | `ibdseq` | `planned` | `none` | `none` |
 | `impute5` | `planned` | `non-bijux` | `arm64` |
 | `kaiju` | `experimental` | `bijux` | `arm64` |

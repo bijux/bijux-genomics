@@ -9,8 +9,8 @@ require_stable_env
 report="${ISO_ROOT:-$ROOT_DIR/artifacts}/containers/network_usage.json"
 "$SCRIPT_DIR/generate-network-usage.sh" "$report" >/dev/null
 
-if [[ ! -f "$ROOT_DIR/containers/NETWORK_USAGE.md" ]]; then
-  echo "missing containers/NETWORK_USAGE.md" >&2
+if [[ ! -f "$ROOT_DIR/containers/docs/NETWORK_USAGE.md" ]]; then
+  echo "missing containers/docs/NETWORK_USAGE.md" >&2
   exit 1
 fi
 

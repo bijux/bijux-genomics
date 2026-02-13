@@ -6,7 +6,7 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-OUT="${1:-$ROOT_DIR/containers/index.md}"
+OUT="${1:-$ROOT_DIR/containers/docs/index.md}"
 
 python3 - "$ROOT_DIR" "$OUT" <<'PY'
 from pathlib import Path
@@ -53,15 +53,28 @@ for raw in tool_ids.read_text(encoding="utf-8").splitlines():
     rows.append((tool_id, status, ap_src, docker_src))
 
 lines = []
-lines.append("# Containers Index")
+lines.append("# Containers Docs Index")
 lines.append("")
 lines.append("<!-- GENERATED FILE - DO NOT EDIT -->")
 lines.append("<!-- source: scripts/containers/generate-index.sh -->")
 lines.append("")
 lines.append("Purpose: Authoritative tool/container index for container governance and CI checks.")
 lines.append("")
+lines.append("## Strict TOC")
+lines.append("- Policy: `containers/docs/PROMOTION_POLICY.md`")
+lines.append("- Build + style rules: `containers/docs/STYLE.md`")
+lines.append("- Smoke: `containers/docs/SMOKE_CONTRACT.md`")
+lines.append("- Lock/versioning: `containers/versions/LOCK.md`")
+lines.append("- Promotion/demotion: `containers/docs/PROMOTION_POLICY.md`")
+lines.append("- Network disclosure: `containers/docs/NETWORK_USAGE.md`")
+lines.append("- Licenses: `containers/licenses/`")
+lines.append("- SBOM + vulnerability hooks: `scripts/containers/check-sbom-artifacts.sh`, `scripts/containers/check-vuln-hook.sh`")
+lines.append("- Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`")
+lines.append("- Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`")
+lines.append("")
 lines.append("## Authority")
 lines.append("- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).")
+lines.append("- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.")
 lines.append("- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.")
 lines.append("- Non-bijux provenance: `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.")
 lines.append("- Ownership map: `containers/OWNERS.toml`.")

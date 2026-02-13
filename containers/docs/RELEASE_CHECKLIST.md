@@ -22,4 +22,4 @@ Purpose: define the mandatory gate before tagging a container-affecting release.
 ## Exit Criteria
 - All release-gate checks pass with zero policy failures.
 - Lock, smoke, provenance, and docs checks are green.
-- Container docs stay aligned with runtime contracts (`containers/README.md`, `containers/index.md`).
+- Container docs stay aligned with runtime contracts (`containers/README.md`, `containers/docs/index.md`).
