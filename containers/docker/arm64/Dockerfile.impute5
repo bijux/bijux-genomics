@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=planned
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="research-only" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="impute5"
+LABEL org.opencontainers.image.title="impute5"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+RUN cat > /usr/local/bin/impute5 <<'SH' && chmod +x /usr/local/bin/impute5
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "impute5 planned"
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  echo "IMPUTE5 wrapper image. Upstream source: https://jmarchini.org/software/#impute-5"
+  exit 0
+fi
+echo "IMPUTE5 binary not bundled in this planned wrapper image." >&2
+exit 2
+SH
+RUN mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"impute5","version":"planned","source":"https://jmarchini.org/software/#impute-5","license":"research-only"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+ENTRYPOINT ["/usr/local/bin/impute5"]
+CMD ["--help"]
