@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-platform
+# purpose = Contract config for configs/ci/tools/hpc_image_naming.toml
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-13
 
 scheme = "bijux-hpc-image-ref.v1"
 registry_prefix = "oras://hpc.local/bijux-dna"
