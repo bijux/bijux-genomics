@@ -44,3 +44,10 @@ Applies only to the files and workflows referenced in this document.
 ## Contracts
 - Content here is normative where explicitly stated.
 
+## Examples
+- Keeping `trim.min_len=25` unchanged preserves comparability for aDNA FASTQ retention metrics.
+- Requiring `vcf.stats` across VCF profiles preserves baseline variant-quality interpretability.
+
+## Failure modes
+- Unreviewed threshold changes can invalidate cross-run scientific comparisons.
+- Omitting required defaults from profile constructors introduces hidden scientific assumptions.

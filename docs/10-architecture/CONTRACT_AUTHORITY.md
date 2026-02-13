@@ -8,6 +8,12 @@ Defines the single source of truth for stage/tool/param/profile contract artifac
 ## Why
 Prevents contract drift between generated registries, pipeline profiles, and policy checks.
 
+## Purpose
+Declare authoritative contract sources per category and prevent conflicting ownership.
+
+## Scope
+Applies to stage/tool/param/profile/metrics authority and migration policy.
+
 ## Non-goals
 - Repeating full schema definitions.
 - Replacing domain-level scientific docs.

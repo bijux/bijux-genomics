@@ -3,6 +3,6 @@
 - `REFERENCE_INDEX.md`
 - `EXAMPLES.md`
 - `EXAMPLE_TEMPLATE.md`
-- `TOOL_ADMISSION.md`
+- `TOOL_ADMISSION.md` (canonical how-to-add-tool workflow)
 - `PIPELINES.md`
 - `CRATE_MAP.md`
