@@ -20,6 +20,9 @@ while IFS= read -r rel; do
   if [[ "$rel" == scripts/tooling/ci-*.sh ]]; then
     continue
   fi
+  if [[ "$rel" == "scripts/tooling/cargo-targets.sh" ]]; then
+    continue
+  fi
 
   matches=$(rg -Hn "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" "$file" || true)
   while IFS= read -r row; do
