@@ -1,43 +1,41 @@
-# VCF Downstream Roadmap
+# Damage-Aware Genotype Spec
 
 ## Purpose
-Document planned downstream VCF stages/tools and why they are not yet in the production baseline.
+Define a damage-aware genotype calling contract for VCF workflows, including GL-first and pseudohaploid regimes.
 
 ## Scope
-Covers candidate post-calling stages and candidate tool families for VCF analysis expansion.
+`vcf.call_gl`, `vcf.call_diploid`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, and `vcf.gl_propagation` behavior.
 
 ## Non-goals
-- Declaring these tools as production-ready today.
-- Replacing domain contracts under `domain/vcf/`.
+- Claiming one regime is universally optimal across all coverage contexts.
+- Replacing sample- and marker-specific interpretation by domain experts.
 
 ## Contracts
-- Current production baseline remains `bcftools`-centric until stage contracts and fixtures are added.
-- New tools enter production only through `docs/50-reference/TOOL_ADMISSION.md` workflow.
+- Calling regime selection is explicit and versioned in run metadata.
+- Damage masking rules (C>T/G>A context and PMD threshold) are explicit and reproducible.
+- GL/PL fields must be retained when workflows require likelihood propagation.
+- Pseudohaploid outputs are never treated as diploid-equivalent in downstream inference.
 
-## Planned Stages And Candidate Tools
-- `vcf.phasing`
-  candidates: `beagle`, `shapeit`.
-  rationale: required for haplotype-aware downstream analyses.
-- `vcf.ld_pruning`
-  candidates: `plink`, `plink2`.
-  rationale: stable LD-pruned sets are required for PCA/kinship comparability.
-- `vcf.population_structure`
-  candidates: `eigensoft` (`smartpca`), `plink2`.
-  rationale: reproducible principal components and structure summaries.
-- `vcf.relatedness`
-  candidates: `plink2`, `ibdseq`/IBD-family tools.
-  rationale: explicit IBD/kinship inference from VCF-level inputs.
-- `vcf.imputation_prep`
-  candidates: `beagle`, `bcftools` normalization helpers.
-  rationale: normalize and phase before imputation workflows.
+## Calling Regimes
+- `vcf.call_gl`: emits likelihood-first outputs for low-coverage and aDNA-sensitive workflows.
+- `vcf.call_diploid`: emits diploid genotypes for modern high-confidence cohorts.
+- `vcf.call_pseudohaploid`: emits one-allele representations for low-coverage contexts where diploid calls are unstable.
 
-## Admission Path
-For each stage/tool above:
-1. Add stage/tool contracts in `domain/vcf/{stages,tools}`.
-2. Add fixtures and default settings rationale.
-3. Add registry + container entries with pinned versions.
-4. Add contract/snapshot coverage before enabling in production profiles.
+## Damage Filter Rules
+- Transition-sensitive masking: C>T and G>A contexts can be excluded or down-weighted.
+- PMD thresholding: reads/sites above threshold are filtered or annotated per policy.
+- All active thresholds must appear in report artifacts and fixture contracts.
 
-## Placeholder Contracts
-- Stage taxonomy placeholder baseline: `domain/vcf/docs/STAGE_TAXONOMY.md`
-- Downstream tool admission criteria: `domain/vcf/docs/TOOL_ADMISSION_CRITERIA.md`
+## GL Propagation Rules
+- GL/PL retention is mandatory for GL-based downstream stages.
+- Sites-only transforms must document whether genotypes were emitted or withheld.
+- Any conversion from GL to hard calls must state model and threshold assumptions.
+
+## Why This Exists
+- aDNA and other degraded inputs are bias-prone under naive diploid calling.
+- Separating regimes avoids silent scientific drift between low-coverage and modern workflows.
+
+## Failure modes
+- Mixing pseudohaploid outputs with diploid assumptions in one analysis.
+- Dropping GL/PL tags during filtering, making downstream inference invalid.
+- Unreported PMD or transition mask changes causing irreproducible results.
