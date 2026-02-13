@@ -18,9 +18,11 @@ compatible_tools:
   - vsearch
 assumptions:
   - "Reference or de-novo chimera detection mode is fixed per run."
+  - "Chimera reference database id/version/checksum is explicit when reference mode is used."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "contaminant_db_bank"
+  - "chimera_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs: []
 required_outputs: []

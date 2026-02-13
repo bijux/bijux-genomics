@@ -21,6 +21,7 @@ compatible_tools:
   - vsearch
 assumptions:
   - "OTU identity threshold is declared in the run configuration."
+  - "OTU clustering uses reproducible parameters and deterministic centroid ordering."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "contaminant_db_bank"

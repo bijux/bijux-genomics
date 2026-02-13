@@ -9,7 +9,7 @@ license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
   - fastq.asv_inference
-status: planned
+status: out_of_scope
 scope: pre_hpc_pre_vcf
 expected_artifacts:
   - asv_table
@@ -22,7 +22,7 @@ comparability:
   non_comparable_with:
     - vsearch
 comparability_notes: ASV outputs are not directly comparable with OTU centroid outputs.
-notes: External/planned ASV inference tool pending container policy.
+notes: ASV path is currently out-of-scope; OTU remains primary until deterministic containerized ASV admission.
 capabilities:
   - SE
   - PE

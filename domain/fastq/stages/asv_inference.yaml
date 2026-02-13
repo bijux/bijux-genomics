@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "fastq.asv_inference"
-status: "planned"
+status: "out_of_scope"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
@@ -20,7 +20,8 @@ invariants:
 compatible_tools:
   - dada2
 assumptions:
-  - "ASV inference engine is external until containerized."
+  - "ASV inference is not implemented in the current pre-HPC ecology baseline."
+  - "OTU clustering is the primary supported ecological quantification path."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "contaminant_db_bank"
@@ -29,3 +30,5 @@ required_inputs: []
 required_outputs: []
 allowed_missingness:
   - "none"
+planned_out_of_scope:
+  - "ASV requires containerized, deterministic engine admission before activation."

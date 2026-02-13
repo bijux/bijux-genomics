@@ -20,6 +20,8 @@ compatible_tools:
 assumptions:
   - "Marker-specific primer references are curated before execution."
   - "Ambiguous primer matches are retained with explicit tags."
+  - "Primer mismatch tolerance and orientation mode are explicit per run."
+  - "Marker metadata (marker_id, region, primer_set_version) is carried in example/runtime manifests."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "adapter_bank"
