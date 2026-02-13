@@ -36,7 +36,7 @@ for fx in sorted((root / "domain").glob("*/fixtures/*/*.txt")):
     if tool not in registry_tools and tool not in external:
         errors.append(f"{fx.relative_to(root)}: tool '{tool}' missing from registries and external_tools allowlist")
 
-required = {"gatk","picard","preseq","bamutil","ngsbriggs","dustmasker","seqfu","seqprep","seqpurge","diamond","fastq-scan"}
+required = {"gatk","picard","preseq","bamutil","ngsbriggs","dustmasker","seqfu","seqprep","seqpurge","diamond","fastq_scan"}
 missing_required = sorted(required - external)
 if missing_required:
     errors.append(f"configs/domain/external_tools.toml missing required external markers: {missing_required}")

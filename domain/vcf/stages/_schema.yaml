@@ -11,6 +11,7 @@ required_fields:
   - metrics
   - compatible_tools
   - assumptions
+  - defaults_source
   - bank_hooks
   - invariants
   - allowed_missingness

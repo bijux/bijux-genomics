@@ -9,6 +9,7 @@ required_fields:
   - invariants
   - compatible_tools
   - assumptions
+  - defaults_source
   - bank_hooks
   - metrics_schema
   - required_inputs

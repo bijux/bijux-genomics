@@ -6,18 +6,20 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-OUT="${1:-$ROOT_DIR/artifacts/domain/inventory.json}"
-ensure_artifacts_dir "$(dirname "$OUT")"
-mkdir -p "$(dirname "$OUT")"
+OUT_JSON="${1:-$ROOT_DIR/artifacts/domain/inventory.json}"
+OUT_MD="${2:-$ROOT_DIR/artifacts/domain/inventory.md}"
+ensure_artifacts_dir "$(dirname "$OUT_JSON")"
+ensure_artifacts_dir "$(dirname "$OUT_MD")"
+mkdir -p "$(dirname "$OUT_JSON")" "$(dirname "$OUT_MD")"
 
-python3 - "$ROOT_DIR" "$OUT" <<'PY'
+python3 - "$ROOT_DIR" "$OUT_JSON" "$OUT_MD" <<'PY'
 from pathlib import Path
 import json
-import re
 import sys
 
 root = Path(sys.argv[1])
-out = Path(sys.argv[2])
+out_json = Path(sys.argv[2])
+out_md = Path(sys.argv[3])
 
 rows = []
 for dom_dir in sorted((root / "domain").iterdir()):
@@ -42,6 +44,22 @@ for dom_dir in sorted((root / "domain").iterdir()):
     )
 
 payload = {"schema_version": "bijux.domain.inventory.v1", "domains": rows}
-out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-print(f"generated {out}")
+out_json.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+lines = [
+    "# Domain Inventory",
+    "",
+    "| Domain | Stages | Tools | Fixture Stage Dirs | Fixture Files | artifacts.yaml | metrics.yaml | DEFAULT_SETTINGS.md |",
+    "|---|---:|---:|---:|---:|:---:|:---:|:---:|",
+]
+for row in rows:
+    lines.append(
+        f"| {row['domain']} | {row['stages']} | {row['tools']} | {row['fixture_stage_dirs']} | {row['fixture_files']} | "
+        f"{'yes' if row['has_artifacts_yaml'] else 'no'} | {'yes' if row['has_metrics_yaml'] else 'no'} | "
+        f"{'yes' if row['has_default_settings_doc'] else 'no'} |"
+    )
+out_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+print(f"generated {out_json}")
+print(f"generated {out_md}")
 PY
