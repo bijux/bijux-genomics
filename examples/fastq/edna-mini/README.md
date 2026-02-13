@@ -10,6 +10,10 @@ Canonical invocation: `./scripts/examples/run.sh fastq_edna_mini`
 
 ## Step 2 Build/Verify
 - Validate `example.toml` and `corpus-01-mini` availability.
+- Validate reference DB governance contract:
+  - pinned DB identifier and version
+  - checksum-locked provenance
+  - marker compatibility declared before chimera/reference steps
 
 ## Step 3 Bench
 - Execute ecology-oriented stages:
@@ -21,3 +25,4 @@ Canonical invocation: `./scripts/examples/run.sh fastq_edna_mini`
 ## Step 4 Collect/Report
 - Collect outputs under `artifacts/examples/fastq_edna_mini/`.
 - Emit deterministic bundle and report artifacts.
+- Emit warnings in report for compositionality caveats and database-bias risk.

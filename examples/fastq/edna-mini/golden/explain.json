@@ -3,5 +3,11 @@
   "reasoning": [
     "ecology-first fastq path",
     "primer/chimera/otu/abundance stages enabled"
-  ]
+  ],
+  "reference_db_governance": {
+    "db_id": "silva-mini-v1",
+    "db_version": "2026.01",
+    "checksum_sha256": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy": "pinned_reference_db"
+  }
 }

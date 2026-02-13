@@ -1,6 +1,15 @@
 {
   "example_id": "fastq_edna_mini",
   "status": "ok",
+  "warnings": [
+    "Abundance outputs are compositional and not absolute biomass estimates.",
+    "Taxonomic assignment depends on reference DB completeness and marker bias."
+  ],
+  "reference_db_governance": {
+    "db_id": "silva-mini-v1",
+    "db_version": "2026.01",
+    "policy": "pinned_reference_db"
+  },
   "artifacts": [
     "plan.json",
     "explain.json",

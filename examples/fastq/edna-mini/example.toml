@@ -9,3 +9,6 @@ marker_region = "16S-V4"
 primer_set_version = "edna-v1"
 primer_orientation = "mixed"
 primer_mismatch_tolerance = 0.12
+reference_db_id = "silva-mini-v1"
+reference_db_checksum_sha256 = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+reference_db_governance_doc = "configs/vcf/panels/index.md"
