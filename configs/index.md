@@ -15,6 +15,7 @@
 - `configs/docs/`: docs toolchain pins.
 - `configs/hpc/`: HPC sync and transfer profiles.
 - `configs/lab/`: local-lab contract examples.
+- `configs/vcf/`: VCF-specific contracts such as reference panel governance and locks.
 
 ## Root Files
 - `configs/OWNERS.toml`

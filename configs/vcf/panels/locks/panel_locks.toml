@@ -1,0 +1,16 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Contract config for configs/vcf/panels/locks/panel_locks.toml
+# authority = bijux-dna-vcf
+# stability = stable
+# last_updated = 2026-02-13
+
+[locks.corpus_01_mini_panel]
+version = "1.0.0"
+url = "https://example.org/bijux/panels/corpus-01-mini/panel.vcf.gz"
+checksum_sha256 = "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+
+[locks.corpus_01_panel]
+version = "1.0.0"
+url = "https://example.org/bijux/panels/corpus-01/panel.vcf.gz"
+checksum_sha256 = "sha256:2222222222222222222222222222222222222222222222222222222222222222"
