@@ -49,3 +49,16 @@ if errors:
 
 print("version authority: OK")
 PY
+
+missing_marker=0
+while IFS= read -r f; do
+  [[ -n "$f" ]] || continue
+  if ! rg -q 'VERSION_SOURCE:\s*containers/versions/versions.toml' "$f"; then
+    echo "version authority: missing VERSION_SOURCE marker in ${f#"$ROOT_DIR/"}" >&2
+    missing_marker=1
+  fi
+done < <(find "$ROOT_DIR/containers/apptainer" "$ROOT_DIR/containers/docker/arm64" -type f \( -name '*.def' -o -name 'Dockerfile.*' \))
+
+if [[ "$missing_marker" -ne 0 ]]; then
+  exit 1
+fi

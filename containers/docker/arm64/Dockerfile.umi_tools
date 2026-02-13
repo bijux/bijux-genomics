@@ -3,6 +3,7 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
 FROM python:3.9-slim@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca8e0d
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown

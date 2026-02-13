@@ -1,8 +1,10 @@
 {
+  "build_manifests_source": "artifacts/containers/manifests/*.json",
   "items": [
     {
       "entry_sha256": "c9c07ec2276ed32e565aef189497bc33badbf344d5dfb6d113ae0763780c0ed6",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/MikkelSchubert/adapterremoval",
       "source_sha256": "",
       "status": "production",
@@ -12,6 +14,7 @@
     {
       "entry_sha256": "3003ef9f9c6b307fc16116a0431d8dc1b5cd3c320af15b2b5df2d4c2466bb3ea",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/LouisPwr/AdDeam",
       "source_sha256": "",
       "status": "production",
@@ -21,6 +24,7 @@
     {
       "entry_sha256": "80cf84fd708ad9d8a240f4c4bbea8da57717782947dcb5039bc40f5c4bc0e573",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
       "source_sha256": "",
       "status": "production",
@@ -30,6 +34,7 @@
     {
       "entry_sha256": "eecdd197a31071f8c7339d6ed01b8d0837b8db1ce3a3cd28890eda6d17092155",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/ANGSD/angsd",
       "source_sha256": "",
       "status": "production",
@@ -39,6 +44,7 @@
     {
       "entry_sha256": "7843540bb58597c89a30b99a1ab700688f70cbb3115a5b3dbe7f646edac7ce5f",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/jdidion/atropos",
       "source_sha256": "",
       "status": "production",
@@ -48,6 +54,7 @@
     {
       "entry_sha256": "2f6637d1b394b666b109c5b34cc6d1e2686798e17aae1f6c120cee790fc869c1",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/StephanePeyregne/AuthentiCT",
       "source_sha256": "",
       "status": "production",
@@ -57,6 +64,7 @@
     {
       "entry_sha256": "b6d09b8095c048f507b8a2be718319e6216987e87c9fc837c7fd8f7d17a9002c",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/pezmaster31/bamtools",
       "source_sha256": "",
       "status": "production",
@@ -66,6 +74,7 @@
     {
       "entry_sha256": "ae803bca3eb202e300eadeeb6e11b07800e1b0f4a3dff3e4041672fe3e1e8b5e",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "",
       "status": "production",
@@ -75,6 +84,7 @@
     {
       "entry_sha256": "7cb700f4ac51be6163df65e8ebdb5492ce6856e43608a151f2ced8ed09b4cfa0",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
       "status": "production",
@@ -84,6 +94,7 @@
     {
       "entry_sha256": "3d686f083fa771c3eae5a4111ab6810a9e43d957eae64d2cf60b5f25b3022dbd",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
       "status": "production",
@@ -93,6 +104,7 @@
     {
       "entry_sha256": "0dc5cb8ce9d4dd6b029bcaab798cef8a68de20e69f4d44e74a672acb522cc260",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/samtools/bcftools",
       "source_sha256": "",
       "status": "production",
@@ -102,6 +114,7 @@
     {
       "entry_sha256": "f6d8e22be2d7f455cc5a134363e1649e21cd467dd00559df9f388ab202d72313",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://faculty.washington.edu/browning/beagle/beagle.html",
       "source_sha256": "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
       "status": "experimental",
@@ -111,6 +124,7 @@
     {
       "entry_sha256": "9d4a82074495d7bff3e7807d57c919d2c0905b5a562a148f0ccae911272a98e6",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/arq5x/bedtools2",
       "source_sha256": "",
       "status": "production",
@@ -120,6 +134,7 @@
     {
       "entry_sha256": "9f3e89761fa671dced60b8956b3c4ef0a4c46d86224e5148d022e9a5eec21b9b",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/BenLangmead/bowtie2",
       "source_sha256": "",
       "status": "production",
@@ -129,6 +144,7 @@
     {
       "entry_sha256": "757773f7e1cd898927154028d6d7a36b33fefda9345a62936bdc999ed4686f82",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/jenniferlu717/Bracken",
       "source_sha256": "",
       "status": "production",
@@ -138,6 +154,7 @@
     {
       "entry_sha256": "d828400a02b888c664a4c25710ea49250d47b49bf4080efba5e82af827e1aece",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/lh3/bwa",
       "source_sha256": "",
       "status": "production",
@@ -147,6 +164,7 @@
     {
       "entry_sha256": "a26229942ba2445f2b99ebdb7eec48e8b9421822c6634141d2d96dd972563604",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/DaehwanKimLab/centrifuge",
       "source_sha256": "",
       "status": "production",
@@ -156,6 +174,7 @@
     {
       "entry_sha256": "39b7e298501f752f7fa2541468690087bc6b35d7e6cf23c10d40e776343eb9d7",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://bioconductor.org/packages/contamMix",
       "source_sha256": "",
       "status": "production",
@@ -165,6 +184,7 @@
     {
       "entry_sha256": "f1c93914c6813feda986bdf1496ebe444cc2911230c8ef3b1f5df5961c62bd2b",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/cutadapt/cutadapt",
       "source_sha256": "",
       "status": "production",
@@ -174,6 +194,7 @@
     {
       "entry_sha256": "c6572e2a869a1049d4e189eb76ea0671ef0cee3a08963a914ee234669dadeb93",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
       "source_sha256": "",
       "status": "production",
@@ -183,6 +204,7 @@
     {
       "entry_sha256": "a8cf93ba58a95d6d474626a75207fcb671e0ba0bfa08f234ac44a123433e068b",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://alkesgroup.broadinstitute.org/Eagle/",
       "source_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
       "status": "planned",
@@ -192,6 +214,7 @@
     {
       "entry_sha256": "9478dc489a5034865ca890d61548da9f0f7012b2c717b8233552f241189d4855",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/DReichLab/EIG",
       "source_sha256": "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
       "status": "experimental",
@@ -201,6 +224,7 @@
     {
       "entry_sha256": "fcdd040265ba8d248fe5cd55d3170034c42a496eed32dda20669f1c5e408c4f8",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
       "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
       "status": "production",
@@ -210,6 +234,7 @@
     {
       "entry_sha256": "523acc192d9b118984aaad480e1d5e3b36761ab6a344f875bae2d60865f0b2ab",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/fastq_screen/fastq_screen",
       "source_sha256": "",
       "status": "production",
@@ -219,6 +244,7 @@
     {
       "entry_sha256": "9a7c960ecedaac9b066d0bc9a831a5e7fc505192b3e8dacd5f8d2cab49032576",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
       "source_sha256": "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7",
       "status": "production",
@@ -228,6 +254,7 @@
     {
       "entry_sha256": "d5711f6e542a01dd9cf8a3a95212439694f4039789f4e4422e9cb35cf9656101",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/fastqvalidator/fastqvalidator",
       "source_sha256": "",
       "status": "production",
@@ -237,6 +264,7 @@
     {
       "entry_sha256": "90c627a59bf9725172c99a114f99b7f0b2a1308ed77fa55d658d0ff158e93ede",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/agordon/fastx_toolkit",
       "source_sha256": "",
       "status": "production",
@@ -246,6 +274,7 @@
     {
       "entry_sha256": "b524659553ad1bca15afb9cf6fb461478f38ba976e9b8e43f6416bc3ad329310",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/dstreett/FLASH2",
       "source_sha256": "",
       "status": "production",
@@ -255,6 +284,7 @@
     {
       "entry_sha256": "cf3475422e708b0ca99cc0d2589fe3f822072fd75add917928caf40072112fb2",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/alastair-droop/fqtools",
       "source_sha256": "",
       "status": "production",
@@ -264,6 +294,7 @@
     {
       "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://www.cs.columbia.edu/~gusev/germline/",
       "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
       "status": "experimental",
@@ -273,6 +304,7 @@
     {
       "entry_sha256": "c2a607a662bcf30631b0dafffb3aa4da1c0cb6d0704e793e1fdc88523a9af365",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://odelaneau.github.io/GLIMPSE/",
       "source_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
       "status": "planned",
@@ -282,6 +314,7 @@
     {
       "entry_sha256": "2986007e9be019c3a1be677ea7ef5968d81a82bb69e6c1363321f318bff5e58a",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://example.invalid/ibdhap",
       "source_sha256": "",
       "status": "planned",
@@ -291,6 +324,7 @@
     {
       "entry_sha256": "7f69a44224bbe8a2a7cfa1741ca410e976fad495608796c2069a31f2bffe2770",
       "pinned_commit": "planned:ibdne-upstream-pin",
+      "resolved_image_digest": "",
       "source": "https://faculty.washington.edu/browning/ibdne.shtml",
       "source_sha256": "",
       "status": "planned",
@@ -300,6 +334,7 @@
     {
       "entry_sha256": "15082382a7458f76781dea8ef43e039b3f8327b148553b2b620e34a2a63634c3",
       "pinned_commit": "planned:ibdseq-upstream-pin",
+      "resolved_image_digest": "",
       "source": "https://faculty.washington.edu/browning/ibdseq.shtml",
       "source_sha256": "",
       "status": "planned",
@@ -309,6 +344,7 @@
     {
       "entry_sha256": "bede3f78ea0881dc9602c60f384ebdcd1fdaa60a3b3b689c3f178c445550c206",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://jmarchini.org/software/#impute-5",
       "source_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
       "status": "planned",
@@ -318,6 +354,7 @@
     {
       "entry_sha256": "89af6c97b6fea808dcf71c467350adc533e1a60314c0b9c02a11c8493234d4aa",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/bioinformatics-centre/kaiju",
       "source_sha256": "",
       "status": "production",
@@ -327,6 +364,7 @@
     {
       "entry_sha256": "4235108fd9be185304691f0075ef2b8ba1fe845d628e634c04a01db557cb75ba",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://www.kingrelatedness.com/",
       "source_sha256": "",
       "status": "production",
@@ -336,6 +374,7 @@
     {
       "entry_sha256": "efb9a2d7dc0147fe9e430ee1a4aa59b81869fb2d1b60d062ba1ec11f0c36fdb0",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
       "source_sha256": "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69",
       "status": "production",
@@ -345,6 +384,7 @@
     {
       "entry_sha256": "33df3e76efcd8a5ce09d0e3030cdff6ebf11ed36d5b01e5ed6443537d027ff82",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/fbreitwieser/krakenuniq",
       "source_sha256": "",
       "status": "production",
@@ -354,6 +394,7 @@
     {
       "entry_sha256": "7489a72f4a6c11ac20c5f7724304e1550f2303a27c4a9cf15e2caf452c91cfe9",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/grenaud/leeHom",
       "source_sha256": "",
       "status": "production",
@@ -363,6 +404,7 @@
     {
       "entry_sha256": "d71a510c69cb5c2c7b72c57a703f2ee7e24512beabd278fceac9b17f6a374bb7",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/mourisl/Lighter",
       "source_sha256": "",
       "status": "production",
@@ -372,6 +414,7 @@
     {
       "entry_sha256": "99eb9d8c87e942282c7444ded6619744c3c376734f7368f33b4be9c1e7d130b6",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/ginolhac/mapDamage",
       "source_sha256": "",
       "status": "production",
@@ -381,6 +424,7 @@
     {
       "entry_sha256": "09dea79cff720095d4c196a958af98dd74e99154fdb141b9a8d9cc62da396b6d",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/biobakery/MetaPhlAn",
       "source_sha256": "",
       "status": "production",
@@ -390,6 +434,7 @@
     {
       "entry_sha256": "3eeea1757c5eec278bcfcf67593117d3c289b5f1d990be720cb7a0cc5977ab58",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://genome.sph.umich.edu/wiki/Minimac4",
       "source_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
       "status": "planned",
@@ -399,6 +444,7 @@
     {
       "entry_sha256": "253788fd9c02d7545fb763f69cf02f3f4c7809b3aeebb26237d1486f9efb995d",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/brentp/mosdepth",
       "source_sha256": "",
       "status": "production",
@@ -408,6 +454,7 @@
     {
       "entry_sha256": "7654d0a09d04e3c7b05e1f3e1f4b94340a355dcc8a395e1e85798589ac533b61",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/multiqc/multiqc",
       "source_sha256": "",
       "status": "production",
@@ -417,6 +464,7 @@
     {
       "entry_sha256": "3239e59a8ec1a1ee3adfbeee05c74fda6a2d48c991920e2a67b6cf657de3b72a",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/alexdobin/musket",
       "source_sha256": "",
       "status": "production",
@@ -426,6 +474,7 @@
     {
       "entry_sha256": "4afce617d2a8dd48006705530ee18714963b3551a8f05d128da6a5450b2d11c3",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/xflouris/PEAR",
       "source_sha256": "",
       "status": "production",
@@ -435,6 +484,7 @@
     {
       "entry_sha256": "f36c891662f00efecd29034d46262373967e0c9b9df4ab64e1bf4677bc57b5af",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://www.cog-genomics.org/plink/",
       "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
       "status": "experimental",
@@ -444,6 +494,7 @@
     {
       "entry_sha256": "521793f959761eb533c398bf23325d826007f57062cb180be12f2244bd3c364a",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://www.cog-genomics.org/plink/2.0/",
       "source_sha256": "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
       "status": "experimental",
@@ -453,6 +504,7 @@
     {
       "entry_sha256": "cb4b0006779e2fab5c64a24ed775f0b33d1d84e41b43d1e23a0c6379d06d7f83",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/pontussk/PMDtools",
       "source_sha256": "",
       "status": "production",
@@ -462,6 +514,7 @@
     {
       "entry_sha256": "ebcd1046a784b2e8f2d00228cfa26b6fb77b2ba49fd182c5721beea8ac473c60",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/uwb-linux/prinseq",
       "source_sha256": "",
       "status": "production",
@@ -471,6 +524,7 @@
     {
       "entry_sha256": "a86fafd7ed9d82f2da43e620fd3e930d15668ac103173e16d682db38f3fea075",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/maxibor/pydamage",
       "source_sha256": "",
       "status": "production",
@@ -480,6 +534,7 @@
     {
       "entry_sha256": "3698d30c4667c6b06595ba2e66cbc5e81a9db82f20da82ecb7fc6fd384836222",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "http://qualimap.conesalab.org/",
       "source_sha256": "",
       "status": "production",
@@ -489,6 +544,7 @@
     {
       "entry_sha256": "3d8dc060f41f5198c391ffe147540263100fb8fcb131e256e32fb3aa22b18277",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/mourisl/Rcorrector",
       "source_sha256": "",
       "status": "production",
@@ -498,6 +554,7 @@
     {
       "entry_sha256": "0bb398892623ffb08d4c68bec275fdd59f0e04fd43a7ea28e8efc01e42b3d1cf",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/bijux/bijux-dna",
       "source_sha256": "",
       "status": "production",
@@ -507,6 +564,7 @@
     {
       "entry_sha256": "56d37a379e133c9e50d3221efff2ddd243fce73c97bd15ddb085e187aee4bc56",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/samtools/samtools",
       "source_sha256": "",
       "status": "production",
@@ -516,6 +574,7 @@
     {
       "entry_sha256": "d009027d7d077911682d8c78c83885540fa1ef572ebcb93a7e0fe4a7b5e6483c",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/grenaud/schmutzi",
       "source_sha256": "",
       "status": "production",
@@ -525,6 +584,7 @@
     {
       "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
       "source_sha256": "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc",
       "status": "production",
@@ -534,6 +594,7 @@
     {
       "entry_sha256": "71138a8e4fa0596528a3e867a9fbf894eb1623816137efaf62faed7256e26267",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/seqkit_stats/seqkit_stats",
       "source_sha256": "",
       "status": "production",
@@ -543,6 +604,7 @@
     {
       "entry_sha256": "bd66907aa6c092982feea1a6458530a6808af73a80cacce4b41b023c3a5f8b7a",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/lh3/seqtk.git",
       "source_sha256": "",
       "status": "production",
@@ -552,6 +614,7 @@
     {
       "entry_sha256": "496bac5f0b340036531eb51e86f00354ac9781a32fa0838f3262ba1c118faabf",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://odelaneau.github.io/shapeit4/",
       "source_sha256": "",
       "status": "planned",
@@ -561,6 +624,7 @@
     {
       "entry_sha256": "169ea1ecfe359c4844d05d3350011842c7ba5919472a730b17cc8415bd659025",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://odelaneau.github.io/shapeit5/",
       "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
       "status": "planned",
@@ -570,6 +634,7 @@
     {
       "entry_sha256": "0dd35f74d23da9bbf5af75f9121a7151665b07a87279d1b403a10aedbb7cfb86",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/relipmoc/skewer",
       "source_sha256": "",
       "status": "production",
@@ -579,6 +644,7 @@
     {
       "entry_sha256": "d94cdd41596d0404c66b5f6a73458bc92a6f2a414154e3d30e619ae7dda7552f",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/biocore/sortmerna",
       "source_sha256": "",
       "status": "production",
@@ -588,6 +654,7 @@
     {
       "entry_sha256": "94e4a53e5d69ece8b939bf34f08550efd7e377d5808458b319de5f799af4236b",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "",
       "status": "production",
@@ -597,6 +664,7 @@
     {
       "entry_sha256": "88394ca5952b723b3e66d83f801929f5ec8f56803e14614735a69f79cdfd3a84",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/alexdobin/STAR",
       "source_sha256": "",
       "status": "production",
@@ -606,6 +674,7 @@
     {
       "entry_sha256": "2b8357e52e442b23e2609fecaab2f228e9727b604a3dabbf93de7f6d3bd35fa6",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/FelixKrueger/TrimGalore",
       "source_sha256": "",
       "status": "production",
@@ -615,6 +684,7 @@
     {
       "entry_sha256": "6f6042d15ec8a38e8bad257a3e5a11b74225dba295a40d90de62a66a4073c58a",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip",
       "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
       "status": "production",
@@ -624,6 +694,7 @@
     {
       "entry_sha256": "0d131f8d45970783de7e37535d4dcc1cef19d868f915cb67c53bbb767e3ed07e",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/umi_tools/umi_tools",
       "source_sha256": "",
       "status": "production",
@@ -633,6 +704,7 @@
     {
       "entry_sha256": "9d4390fda6b662292d331d9fcfedcf19bfc21e15adda45e8bf9a4097a8177d74",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/Griffan/VerifyBamID",
       "source_sha256": "",
       "status": "production",
@@ -642,6 +714,7 @@
     {
       "entry_sha256": "b2d8192f199f1fd8140876f197e98fb9f208dbacbafbc5e862f2bba81868dcd6",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "tag:vsearch",
       "source_sha256": "",
       "status": "production",
@@ -651,6 +724,7 @@
     {
       "entry_sha256": "7f004e872de2149dbfe1b1c2d0e9da73e96fb596e23abf1d92e1180d14d3e4b4",
       "pinned_commit": "",
+      "resolved_image_digest": "",
       "source": "https://github.com/genid/Yleaf",
       "source_sha256": "",
       "status": "production",
