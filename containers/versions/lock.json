@@ -1,32 +1,34 @@
 {
+  "build_date_utc": "2026-02-13T19:10:13+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
+  "builder_platform": "arm64",
   "items": [
     {
-      "entry_sha256": "c9c07ec2276ed32e565aef189497bc33badbf344d5dfb6d113ae0763780c0ed6",
+      "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/MikkelSchubert/adapterremoval",
       "source_sha256": "",
       "status": "production",
       "tool": "adapterremoval",
-      "version": "0.0.0"
+      "version": "2.3.4"
     },
     {
-      "entry_sha256": "3003ef9f9c6b307fc16116a0431d8dc1b5cd3c320af15b2b5df2d4c2466bb3ea",
+      "entry_sha256": "80629c4b994a60f4cb42524c92f55013bcdbad81875ce3d1f58dfe457bc4c79d",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/LouisPwr/AdDeam",
       "source_sha256": "",
       "status": "production",
       "tool": "addeam",
-      "version": "0.0.0"
+      "version": "1.0.0"
     },
     {
-      "entry_sha256": "80cf84fd708ad9d8a240f4c4bbea8da57717782947dcb5039bc40f5c4bc0e573",
+      "entry_sha256": "abd155bc794fa52053ad203e9d1bc359a0527d4625d32091e23ea3d7d14679f0",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
       "source_sha256": "",
@@ -35,20 +37,20 @@
       "version": "0.4.0"
     },
     {
-      "entry_sha256": "eecdd197a31071f8c7339d6ed01b8d0837b8db1ce3a3cd28890eda6d17092155",
+      "entry_sha256": "a3b23608dd47a1b546ff4c80d576d793b97c4c91b671f8599d55548345dc0e32",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/ANGSD/angsd",
       "source_sha256": "",
       "status": "production",
       "tool": "angsd",
-      "version": "0.0.0"
+      "version": "0.940"
     },
     {
-      "entry_sha256": "7843540bb58597c89a30b99a1ab700688f70cbb3115a5b3dbe7f646edac7ce5f",
+      "entry_sha256": "0022389de1b370bfb72f17a15716ff8820825ff56cebd09be00e15314de9ed3b",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/jdidion/atropos",
       "source_sha256": "",
@@ -57,9 +59,9 @@
       "version": "1.1.31"
     },
     {
-      "entry_sha256": "2f6637d1b394b666b109c5b34cc6d1e2686798e17aae1f6c120cee790fc869c1",
+      "entry_sha256": "198b6d02e31922d1521e6bf0f812ca4626b0ce7bf1fef4f9bf3f94ff9242aa86",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/StephanePeyregne/AuthentiCT",
       "source_sha256": "",
@@ -68,9 +70,9 @@
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "b6d09b8095c048f507b8a2be718319e6216987e87c9fc837c7fd8f7d17a9002c",
+      "entry_sha256": "50b8958ffd28c5cb0bea4f66edfcc12200f03fa6687f9b592732bc4f3c5f02cf",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/pezmaster31/bamtools",
       "source_sha256": "",
@@ -79,48 +81,48 @@
       "version": "2.5.2"
     },
     {
-      "entry_sha256": "ae803bca3eb202e300eadeeb6e11b07800e1b0f4a3dff3e4041672fe3e1e8b5e",
+      "entry_sha256": "617d6878f57aa3b4b631d5f0f51c6ed205aab641d60377dcd774452cb79d796b",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "",
       "status": "production",
       "tool": "bayeshammer",
-      "version": "0.0.0"
+      "version": "3.15.5"
     },
     {
-      "entry_sha256": "7cb700f4ac51be6163df65e8ebdb5492ce6856e43608a151f2ced8ed09b4cfa0",
+      "entry_sha256": "ef9e8e70fea82a7785bd0c4dfa23ba69a408d6eb250b423493f93992b01e8f5f",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
       "status": "production",
       "tool": "bbduk",
-      "version": "0.0.0"
+      "version": "39.06"
     },
     {
-      "entry_sha256": "3d686f083fa771c3eae5a4111ab6810a9e43d957eae64d2cf60b5f25b3022dbd",
+      "entry_sha256": "7eb708605809e13ff26fe8e829f1870dd59a23c351ab89a12796194cf9c4e8de",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://sourceforge.net/projects/bbmap/",
       "source_sha256": "",
       "status": "production",
       "tool": "bbmerge",
-      "version": "0.0.0"
+      "version": "39.06"
     },
     {
-      "entry_sha256": "0dc5cb8ce9d4dd6b029bcaab798cef8a68de20e69f4d44e74a672acb522cc260",
+      "entry_sha256": "debf629ed7e5cbd4e315a62e4264fdf955a079c98ee2ce258f85f18c873a0fa7",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/samtools/bcftools",
       "source_sha256": "",
       "status": "production",
       "tool": "bcftools",
-      "version": "0.0.0"
+      "version": "1.20"
     },
     {
       "entry_sha256": "f6d8e22be2d7f455cc5a134363e1649e21cd467dd00559df9f388ab202d72313",
@@ -134,9 +136,9 @@
       "version": "5.4"
     },
     {
-      "entry_sha256": "9d4a82074495d7bff3e7807d57c919d2c0905b5a562a148f0ccae911272a98e6",
+      "entry_sha256": "dce3f0bf8326ed42ea16a31f4b6e2434ed7577fbf0938b86f11557c79706ffcd",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/arq5x/bedtools2",
       "source_sha256": "",
@@ -145,9 +147,9 @@
       "version": "2.31.1"
     },
     {
-      "entry_sha256": "9f3e89761fa671dced60b8956b3c4ef0a4c46d86224e5148d022e9a5eec21b9b",
+      "entry_sha256": "4eae1d193f64352f348841f3c7e525065d9867be731373db3fdb351a6ccfb924",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/BenLangmead/bowtie2",
       "source_sha256": "",
@@ -156,20 +158,20 @@
       "version": "2.5.4"
     },
     {
-      "entry_sha256": "757773f7e1cd898927154028d6d7a36b33fefda9345a62936bdc999ed4686f82",
+      "entry_sha256": "05ef1de47f31cfbef751b5ea34110e5b897d0561f5aaf443d611163bc045a71d",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/jenniferlu717/Bracken",
       "source_sha256": "",
       "status": "production",
       "tool": "bracken",
-      "version": "0.0.0"
+      "version": "2.9"
     },
     {
-      "entry_sha256": "d828400a02b888c664a4c25710ea49250d47b49bf4080efba5e82af827e1aece",
+      "entry_sha256": "3af7968fd6169f0bd0a59b5d80343ac9af1a91f2599c87030c26289d7088a0fd",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/lh3/bwa",
       "source_sha256": "",
@@ -178,9 +180,9 @@
       "version": "0.7.17"
     },
     {
-      "entry_sha256": "a26229942ba2445f2b99ebdb7eec48e8b9421822c6634141d2d96dd972563604",
+      "entry_sha256": "5b4af01b7386d8974d9527fd24899431b6c021a5448ec38aa4940f0c3ece3aa5",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/DaehwanKimLab/centrifuge",
       "source_sha256": "",
@@ -189,9 +191,9 @@
       "version": "1.0.4"
     },
     {
-      "entry_sha256": "39b7e298501f752f7fa2541468690087bc6b35d7e6cf23c10d40e776343eb9d7",
+      "entry_sha256": "1df113e1619e6f7a3fc75eb26a06ae8916529b2b167fafd556f53717d5d122e0",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://bioconductor.org/packages/contamMix",
       "source_sha256": "",
@@ -200,29 +202,29 @@
       "version": "1.0.11"
     },
     {
-      "entry_sha256": "f1c93914c6813feda986bdf1496ebe444cc2911230c8ef3b1f5df5961c62bd2b",
+      "entry_sha256": "c8196bd4c267d0d0e59387b613bc87b96f5b39780b0de5e844878a6a4eab3b31",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/cutadapt/cutadapt",
       "source_sha256": "",
       "status": "production",
       "tool": "cutadapt",
-      "version": "0.0.0"
+      "version": "4.9"
     },
     {
-      "entry_sha256": "c6572e2a869a1049d4e189eb76ea0671ef0cee3a08963a914ee234669dadeb93",
+      "entry_sha256": "a9428013a11bbf4631268524cefadbe1006a8bb264d452a4198cb30cd2c1cfad",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
       "source_sha256": "",
       "status": "production",
       "tool": "damageprofiler",
-      "version": "0.0.0"
+      "version": "1.1"
     },
     {
-      "entry_sha256": "a8cf93ba58a95d6d474626a75207fcb671e0ba0bfa08f234ac44a123433e068b",
+      "entry_sha256": "14e38644b3b2bc47f0271df18c7bddfb9c82217482a25c59108d92567eb584e3",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -230,7 +232,7 @@
       "source_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
       "status": "planned",
       "tool": "eagle",
-      "version": "planned"
+      "version": "2.4.1"
     },
     {
       "entry_sha256": "9478dc489a5034865ca890d61548da9f0f7012b2c717b8233552f241189d4855",
@@ -255,9 +257,9 @@
       "version": "0.23.4"
     },
     {
-      "entry_sha256": "523acc192d9b118984aaad480e1d5e3b36761ab6a344f875bae2d60865f0b2ab",
+      "entry_sha256": "4ef1f58f54658396dfb005da8958bfdb9aa5010b2dc69f598466fd5ab6c946a6",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/fastq_screen/fastq_screen",
       "source_sha256": "",
@@ -277,20 +279,20 @@
       "version": "0.12.1"
     },
     {
-      "entry_sha256": "d5711f6e542a01dd9cf8a3a95212439694f4039789f4e4422e9cb35cf9656101",
+      "entry_sha256": "e3792f133f05df1378693da697f7974357327e23dfe5f3dc357626c2dd9b872a",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/fastqvalidator/fastqvalidator",
       "source_sha256": "",
       "status": "production",
       "tool": "fastqvalidator",
-      "version": "0.0.0"
+      "version": "0.1.1"
     },
     {
-      "entry_sha256": "90c627a59bf9725172c99a114f99b7f0b2a1308ed77fa55d658d0ff158e93ede",
+      "entry_sha256": "c1f027e627275cacb5321b6edd0072db7dc4285d33f36beef53733364eb8dddf",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/agordon/fastx_toolkit",
       "source_sha256": "",
@@ -299,9 +301,9 @@
       "version": "0.0.14"
     },
     {
-      "entry_sha256": "b524659553ad1bca15afb9cf6fb461478f38ba976e9b8e43f6416bc3ad329310",
+      "entry_sha256": "967fd6593f4d260d9a860c1f0ef712f7171f1f898e4a9abbc5fda492e3aa26ab",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/dstreett/FLASH2",
       "source_sha256": "",
@@ -310,15 +312,15 @@
       "version": "2.2.00"
     },
     {
-      "entry_sha256": "cf3475422e708b0ca99cc0d2589fe3f822072fd75add917928caf40072112fb2",
+      "entry_sha256": "0d184f294d1c30784d304c117a794b387ed1db67d1818e9f3d29b7113fb1573c",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/alastair-droop/fqtools",
       "source_sha256": "",
       "status": "production",
       "tool": "fqtools",
-      "version": "0.0.0"
+      "version": "2.0"
     },
     {
       "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
@@ -332,7 +334,7 @@
       "version": "1.5.3"
     },
     {
-      "entry_sha256": "c2a607a662bcf30631b0dafffb3aa4da1c0cb6d0704e793e1fdc88523a9af365",
+      "entry_sha256": "e253fedce8823c8d0297d062388619ad2050be14ca0aa9206363e48e760ec98c",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -340,43 +342,43 @@
       "source_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
       "status": "planned",
       "tool": "glimpse",
-      "version": "planned"
+      "version": "1.1.1"
     },
     {
-      "entry_sha256": "2986007e9be019c3a1be677ea7ef5968d81a82bb69e6c1363321f318bff5e58a",
+      "entry_sha256": "22a927c384e702fdf43bd034a329f5b4a7078f7ab8e7ae8b6d377334b55e9700",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://example.invalid/ibdhap",
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdhap",
-      "version": "0.1.0-planned"
+      "version": "0.1.0"
     },
     {
-      "entry_sha256": "7f69a44224bbe8a2a7cfa1741ca410e976fad495608796c2069a31f2bffe2770",
+      "entry_sha256": "2ab3288925302dd239b935da6e03ec28bae95f977bc534f476e568115eccde8b",
       "image_size_bytes": 0,
-      "pinned_commit": "planned:ibdne-upstream-pin",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://faculty.washington.edu/browning/ibdne.shtml",
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdne",
-      "version": "1.0-planned"
+      "version": "1.0"
     },
     {
-      "entry_sha256": "15082382a7458f76781dea8ef43e039b3f8327b148553b2b620e34a2a63634c3",
+      "entry_sha256": "80fec9643af3c58c65ea30236fe83f9304861e4fa5a7b0038f6cf11e12c3c2f4",
       "image_size_bytes": 0,
-      "pinned_commit": "planned:ibdseq-upstream-pin",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://faculty.washington.edu/browning/ibdseq.shtml",
       "source_sha256": "",
       "status": "planned",
       "tool": "ibdseq",
-      "version": "planned"
+      "version": "3.0"
     },
     {
-      "entry_sha256": "bede3f78ea0881dc9602c60f384ebdcd1fdaa60a3b3b689c3f178c445550c206",
+      "entry_sha256": "c20cc261861264c568941f456206507f080fa94f832e0652e61c265026490731",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -384,12 +386,12 @@
       "source_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
       "status": "planned",
       "tool": "impute5",
-      "version": "planned"
+      "version": "1.2.0"
     },
     {
-      "entry_sha256": "89af6c97b6fea808dcf71c467350adc533e1a60314c0b9c02a11c8493234d4aa",
+      "entry_sha256": "84a60fc6824b993d408bf0d8ba2444ae7089a8c270322c83239ebccee6fd662b",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/bioinformatics-centre/kaiju",
       "source_sha256": "",
@@ -398,9 +400,9 @@
       "version": "1.10.0"
     },
     {
-      "entry_sha256": "4235108fd9be185304691f0075ef2b8ba1fe845d628e634c04a01db557cb75ba",
+      "entry_sha256": "57973807cf93f4b2ad97697a784764faf686456acec11af3d72c4f100382c195",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://www.kingrelatedness.com/",
       "source_sha256": "",
@@ -420,9 +422,9 @@
       "version": "2.1.3"
     },
     {
-      "entry_sha256": "33df3e76efcd8a5ce09d0e3030cdff6ebf11ed36d5b01e5ed6443537d027ff82",
+      "entry_sha256": "f4fbd5a74267d4a67bd9fa18fadf4affba1cbfc7e3a0e7de47b5f0d686535cba",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/fbreitwieser/krakenuniq",
       "source_sha256": "",
@@ -431,31 +433,31 @@
       "version": "1.0.4"
     },
     {
-      "entry_sha256": "7489a72f4a6c11ac20c5f7724304e1550f2303a27c4a9cf15e2caf452c91cfe9",
+      "entry_sha256": "3af21d2cf2a03ae56433d5585636d82a9b29bf929e6422fa61fc55312e010213",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/grenaud/leeHom",
       "source_sha256": "",
       "status": "production",
       "tool": "leehom",
-      "version": "0.0.0"
+      "version": "1.0.17"
     },
     {
-      "entry_sha256": "d71a510c69cb5c2c7b72c57a703f2ee7e24512beabd278fceac9b17f6a374bb7",
+      "entry_sha256": "128106aba9c4cbdfb6fb17e77734a7f2b4a855c13213243d68e6c1f8ac26173a",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/mourisl/Lighter",
       "source_sha256": "",
       "status": "production",
       "tool": "lighter",
-      "version": "0.0.0"
+      "version": "1.1.2"
     },
     {
-      "entry_sha256": "99eb9d8c87e942282c7444ded6619744c3c376734f7368f33b4be9c1e7d130b6",
+      "entry_sha256": "1b44ed93346bc54d7cb3ba05cde3f053b7b5b64fdaa88122b9ea9f949d588265",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/ginolhac/mapDamage",
       "source_sha256": "",
@@ -464,9 +466,9 @@
       "version": "2.2.2"
     },
     {
-      "entry_sha256": "09dea79cff720095d4c196a958af98dd74e99154fdb141b9a8d9cc62da396b6d",
+      "entry_sha256": "272f1c9debf07200a6167d7f1c059c00e7ef3e81f0a04c0f402f433661de4aab",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/biobakery/MetaPhlAn",
       "source_sha256": "",
@@ -475,7 +477,7 @@
       "version": "4.1.1"
     },
     {
-      "entry_sha256": "3eeea1757c5eec278bcfcf67593117d3c289b5f1d990be720cb7a0cc5977ab58",
+      "entry_sha256": "b17bc79a12c923afd9ae18166f2de46f6bb16ddb53af4da4da64e5c648f5cb92",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -483,12 +485,12 @@
       "source_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
       "status": "planned",
       "tool": "minimac4",
-      "version": "planned"
+      "version": "4.1.6"
     },
     {
-      "entry_sha256": "253788fd9c02d7545fb763f69cf02f3f4c7809b3aeebb26237d1486f9efb995d",
+      "entry_sha256": "998a578682030dc3b1225d3a6d126c35dc6b0bbd7031fd119779c3be6ff92e07",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/brentp/mosdepth",
       "source_sha256": "",
@@ -497,31 +499,31 @@
       "version": "0.3.10"
     },
     {
-      "entry_sha256": "7654d0a09d04e3c7b05e1f3e1f4b94340a355dcc8a395e1e85798589ac533b61",
+      "entry_sha256": "f10979c38f5b926198063be42c1a30701f8db5bcf8603b0bb833d4ce62909bab",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/multiqc/multiqc",
       "source_sha256": "",
       "status": "production",
       "tool": "multiqc",
-      "version": "0.0.0"
+      "version": "1.21"
     },
     {
-      "entry_sha256": "3239e59a8ec1a1ee3adfbeee05c74fda6a2d48c991920e2a67b6cf657de3b72a",
+      "entry_sha256": "dc0fe696d16946542307aa43ab737f1d79a5378eaa5798d5e9c83da7dd28e5fd",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/alexdobin/musket",
       "source_sha256": "",
       "status": "production",
       "tool": "musket",
-      "version": "0.0.0"
+      "version": "1.1"
     },
     {
-      "entry_sha256": "4afce617d2a8dd48006705530ee18714963b3551a8f05d128da6a5450b2d11c3",
+      "entry_sha256": "9c1623fde9cb4f9c49bc9aa60b92a7fe4b5832f3a729d4f622ad6b433a46d8c5",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/xflouris/PEAR",
       "source_sha256": "",
@@ -552,20 +554,20 @@
       "version": "2.00a5"
     },
     {
-      "entry_sha256": "cb4b0006779e2fab5c64a24ed775f0b33d1d84e41b43d1e23a0c6379d06d7f83",
+      "entry_sha256": "0c4295e74e70745e0ef36f6554ebdb6eafdd0e534733267970c16c1219d395b7",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/pontussk/PMDtools",
       "source_sha256": "",
       "status": "production",
       "tool": "pmdtools",
-      "version": "0.0.0"
+      "version": "0.60"
     },
     {
-      "entry_sha256": "ebcd1046a784b2e8f2d00228cfa26b6fb77b2ba49fd182c5721beea8ac473c60",
+      "entry_sha256": "430aed38ac5538b1085e27c8c1fc25a16354a41e2ef57640fffa927fa98e03a3",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/uwb-linux/prinseq",
       "source_sha256": "",
@@ -574,9 +576,9 @@
       "version": "1.2.4"
     },
     {
-      "entry_sha256": "a86fafd7ed9d82f2da43e620fd3e930d15668ac103173e16d682db38f3fea075",
+      "entry_sha256": "ccf19a195500fa03f8d9df514d905b486f69ed44631872dd489e2d82d6bb93ff",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/maxibor/pydamage",
       "source_sha256": "",
@@ -585,20 +587,20 @@
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "3698d30c4667c6b06595ba2e66cbc5e81a9db82f20da82ecb7fc6fd384836222",
+      "entry_sha256": "acbfc6855dcbc9ac58c1ca5f046112f16635b3bc05fd6bb9d4c3fd9dd4e33dc1",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "http://qualimap.conesalab.org/",
       "source_sha256": "",
       "status": "production",
       "tool": "qualimap",
-      "version": "0.0.0"
+      "version": "2.3"
     },
     {
-      "entry_sha256": "3d8dc060f41f5198c391ffe147540263100fb8fcb131e256e32fb3aa22b18277",
+      "entry_sha256": "59a4f2837449e143dcbe2c972611a3a4edc2641ac834f1b8fcfb7c7f25952c34",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/mourisl/Rcorrector",
       "source_sha256": "",
@@ -607,9 +609,9 @@
       "version": "1.0.7"
     },
     {
-      "entry_sha256": "0bb398892623ffb08d4c68bec275fdd59f0e04fd43a7ea28e8efc01e42b3d1cf",
+      "entry_sha256": "7ce22ba6c4e688e1ef3675170c58a74702391e7790187901af7d6532de652a64",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/bijux/bijux-dna",
       "source_sha256": "",
@@ -618,20 +620,20 @@
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "56d37a379e133c9e50d3221efff2ddd243fce73c97bd15ddb085e187aee4bc56",
+      "entry_sha256": "e79a48acb62a5a2ac09a504baca5a0cdebe70fa505c0be90ae8863a2ba53d6a6",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/samtools/samtools",
       "source_sha256": "",
       "status": "production",
       "tool": "samtools",
-      "version": "0.0.0"
+      "version": "1.20"
     },
     {
-      "entry_sha256": "d009027d7d077911682d8c78c83885540fa1ef572ebcb93a7e0fe4a7b5e6483c",
+      "entry_sha256": "29f5cdfcbbccda89f1947d5fe047399c1bd7703664ba1140f03e3e641dd8b2f6",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/grenaud/schmutzi",
       "source_sha256": "",
@@ -651,9 +653,9 @@
       "version": "2.8.2"
     },
     {
-      "entry_sha256": "71138a8e4fa0596528a3e867a9fbf894eb1623816137efaf62faed7256e26267",
+      "entry_sha256": "5a66002a143031493e384e4faec54b49641c88b6034f78d5a4488a0276a269de",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/seqkit_stats/seqkit_stats",
       "source_sha256": "",
@@ -662,29 +664,29 @@
       "version": "2.7.0"
     },
     {
-      "entry_sha256": "bd66907aa6c092982feea1a6458530a6808af73a80cacce4b41b023c3a5f8b7a",
+      "entry_sha256": "0a4aa66f7506c6d6d2716e60613c07b6869bd3c16da6237a70c6b81b0c834e41",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/lh3/seqtk.git",
       "source_sha256": "",
       "status": "production",
       "tool": "seqtk",
-      "version": "0.0.0"
+      "version": "1.4"
     },
     {
-      "entry_sha256": "496bac5f0b340036531eb51e86f00354ac9781a32fa0838f3262ba1c118faabf",
+      "entry_sha256": "81da261dc215fcd458eaad31c4ba0e59a465c5554834f7a73176a561ca56762a",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://odelaneau.github.io/shapeit4/",
       "source_sha256": "",
       "status": "planned",
       "tool": "shapeit",
-      "version": "planned"
+      "version": "4.2.2"
     },
     {
-      "entry_sha256": "169ea1ecfe359c4844d05d3350011842c7ba5919472a730b17cc8415bd659025",
+      "entry_sha256": "8dec25755d2ada9f3312fbafa0191673565dc9b2c87e623966bf8401ee9d06c1",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -692,23 +694,23 @@
       "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
       "status": "planned",
       "tool": "shapeit5",
-      "version": "planned"
+      "version": "5.1.1"
     },
     {
-      "entry_sha256": "0dd35f74d23da9bbf5af75f9121a7151665b07a87279d1b403a10aedbb7cfb86",
+      "entry_sha256": "b163e27aa168afb590231bf595c1834ef02c070c6d4072d6a37b00cfaacdb27d",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/relipmoc/skewer",
       "source_sha256": "",
       "status": "production",
       "tool": "skewer",
-      "version": "0.0.0"
+      "version": "0.2.2"
     },
     {
-      "entry_sha256": "d94cdd41596d0404c66b5f6a73458bc92a6f2a414154e3d30e619ae7dda7552f",
+      "entry_sha256": "ae59507a80ad67c7b931a9e34e6eb5d0b7b07749ed15a8669b60712fd5705afc",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/biocore/sortmerna",
       "source_sha256": "",
@@ -717,31 +719,31 @@
       "version": "4.3.7"
     },
     {
-      "entry_sha256": "94e4a53e5d69ece8b939bf34f08550efd7e377d5808458b319de5f799af4236b",
+      "entry_sha256": "4a526f31b3bf0e22d0e0e40a8214a5ab253177eff6fa9ef74f506c8dc4a19445",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/ablab/spades",
       "source_sha256": "",
       "status": "production",
       "tool": "spades",
-      "version": "0.0.0"
+      "version": "4.0.0"
     },
     {
-      "entry_sha256": "88394ca5952b723b3e66d83f801929f5ec8f56803e14614735a69f79cdfd3a84",
+      "entry_sha256": "fcd8410f7cf305264b373586a0455d9180f5edd9d6edef27af4dfa70dbc6973f",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/alexdobin/STAR",
       "source_sha256": "",
       "status": "production",
       "tool": "star",
-      "version": "0.0.0"
+      "version": "2.7.11b"
     },
     {
-      "entry_sha256": "2b8357e52e442b23e2609fecaab2f228e9727b604a3dabbf93de7f6d3bd35fa6",
+      "entry_sha256": "4df8e7e000c62365ac188188855992db5bdc2df48e06e723fe8fbcd1ab1c5ba4",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/FelixKrueger/TrimGalore",
       "source_sha256": "",
@@ -750,7 +752,7 @@
       "version": "0.6.10"
     },
     {
-      "entry_sha256": "6f6042d15ec8a38e8bad257a3e5a11b74225dba295a40d90de62a66a4073c58a",
+      "entry_sha256": "25c8b616ec2782215cd561c0c5cda5c066123583f4a3d06e86aa781d552ad749",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -758,12 +760,12 @@
       "source_sha256": "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca",
       "status": "production",
       "tool": "trimmomatic",
-      "version": "0.0.0"
+      "version": "0.39"
     },
     {
-      "entry_sha256": "0d131f8d45970783de7e37535d4dcc1cef19d868f915cb67c53bbb767e3ed07e",
+      "entry_sha256": "6cd2519c72a14a0581bc34fb5ae5583ff5ae7a73d39d3a098461a4e242234ff2",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/umi_tools/umi_tools",
       "source_sha256": "",
@@ -772,9 +774,9 @@
       "version": "1.1.6"
     },
     {
-      "entry_sha256": "9d4390fda6b662292d331d9fcfedcf19bfc21e15adda45e8bf9a4097a8177d74",
+      "entry_sha256": "f96cc6315b26fa6a98fe370dc4effe273c4dc7ee68f616e43ea0302f77899349",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/Griffan/VerifyBamID",
       "source_sha256": "",
@@ -783,20 +785,20 @@
       "version": "2.0.1"
     },
     {
-      "entry_sha256": "b2d8192f199f1fd8140876f197e98fb9f208dbacbafbc5e862f2bba81868dcd6",
+      "entry_sha256": "ba21402ff14126827aa4ccd08fbac1d941edad75f193c9737bdf7864c588defd",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
-      "source": "tag:vsearch",
+      "source": "https://github.com/torognes/vsearch",
       "source_sha256": "",
       "status": "production",
       "tool": "vsearch",
-      "version": "0.0.0"
+      "version": "2.29.3"
     },
     {
-      "entry_sha256": "7f004e872de2149dbfe1b1c2d0e9da73e96fb596e23abf1d92e1180d14d3e4b4",
+      "entry_sha256": "1dbc496532274db97eea6a5b9a484cc7af0fc2b2594762780c79a2a35d0447bf",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
       "source": "https://github.com/genid/Yleaf",
       "source_sha256": "",
@@ -807,6 +809,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v2",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "eb6266f8af37b94760ba1b1e513f518898cf3e7fb8c6e7abfb7ec8f92264a7bc",
+  "source_sha256": "cd0a902d2022ccfeee359141a46f7e505948dea284daea7e0ac26dc224e5dfde",
   "version_map_source": "artifacts/containers/version_map.json"
 }
