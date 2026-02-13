@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 '<nextest filter expression>' [runs]" >&2
   echo "Example: $0 'test(mod_contracts_pipeline_rs::pipeline_e2e::pipeline_bam_shotgun_report_snapshot)' 20" >&2

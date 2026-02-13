@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
-
+export LC_ALL
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BASELINE="$ROOT_DIR/configs/schema/config-tree.snapshot"
 ACTUAL="${TEST_TMP_DIR:-$ROOT_DIR/artifacts/tmp}/config-tree.snapshot.actual"

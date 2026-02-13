@@ -1,8 +1,8 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 
 if ! command -v rg >/dev/null 2>&1; then

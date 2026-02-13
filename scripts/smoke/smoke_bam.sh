@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 if [[ ! -f assets/golden/smoke-inputs-v1/bam/sample.bam ]]; then
   echo "Missing assets/golden/smoke-inputs-v1/bam/sample.bam. Generate it with samtools (see assets/golden/README.md)." >&2
   exit 1

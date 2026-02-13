@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 banned='/(home|Users)/bijan/'
 
 matches="$(rg -n --pcre2 "$banned" \

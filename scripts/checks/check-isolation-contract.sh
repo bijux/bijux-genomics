@@ -1,8 +1,8 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ./bin/require-isolate >/dev/null
 
 if ! command -v rg >/dev/null 2>&1; then

@@ -1,8 +1,8 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
-
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 DOCKER_ROOT="$ROOT_DIR/containers/docker"
 APPTAINER_ROOT="$ROOT_DIR/containers/apptainer"
