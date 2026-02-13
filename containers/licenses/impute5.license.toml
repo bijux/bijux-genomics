@@ -1,0 +1,7 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "impute5"
+container_kind = "bijux"
+license = "research-only"
+upstream_source = "https://jmarchini.org/software/#impute-5"
+version = "planned"

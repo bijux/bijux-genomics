@@ -21,6 +21,7 @@ centrifuge	experimental
 contammix	production
 cutadapt	experimental
 damageprofiler	experimental
+eagle	planned
 eigensoft	planned
 fastp	production
 fastq_screen	experimental
@@ -30,9 +31,11 @@ fastx_clipper	production
 flash2	experimental
 fqtools	experimental
 germline	planned
+glimpse	planned
 ibdhap	planned
 ibdne	planned
 ibdseq	planned
+impute5	planned
 kaiju	experimental
 king	production
 kraken2	production
@@ -41,6 +44,7 @@ leehom	experimental
 lighter	experimental
 mapdamage2	production
 metaphlan	experimental
+minimac4	planned
 mosdepth	production
 multiqc	production
 musket	experimental
@@ -59,6 +63,7 @@ seqkit	production
 seqkit_stats	production
 seqtk	experimental
 shapeit	planned
+shapeit5	planned
 skewer	experimental
 sortmerna	production
 spades	experimental

@@ -34,6 +34,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `contammix` | `production` | `bijux` | `arm64` |
 | `cutadapt` | `experimental` | `bijux` | `arm64` |
 | `damageprofiler` | `experimental` | `bijux` | `arm64` |
+| `eagle` | `planned` | `non-bijux` | `arm64` |
 | `eigensoft` | `planned` | `non-bijux` | `none` |
 | `fastp` | `production` | `bijux` | `arm64` |
 | `fastq_screen` | `experimental` | `bijux` | `arm64` |
@@ -43,9 +44,11 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `flash2` | `experimental` | `bijux` | `arm64` |
 | `fqtools` | `experimental` | `bijux` | `arm64` |
 | `germline` | `planned` | `non-bijux` | `none` |
+| `glimpse` | `planned` | `non-bijux` | `arm64` |
 | `ibdhap` | `planned` | `non-bijux` | `none` |
 | `ibdne` | `planned` | `non-bijux` | `none` |
 | `ibdseq` | `planned` | `none` | `none` |
+| `impute5` | `planned` | `non-bijux` | `arm64` |
 | `kaiju` | `experimental` | `bijux` | `arm64` |
 | `king` | `production` | `bijux` | `arm64` |
 | `kraken2` | `production` | `bijux` | `arm64` |
@@ -54,6 +57,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `lighter` | `experimental` | `bijux` | `arm64` |
 | `mapdamage2` | `production` | `bijux` | `arm64` |
 | `metaphlan` | `experimental` | `bijux` | `arm64` |
+| `minimac4` | `planned` | `non-bijux` | `arm64` |
 | `mosdepth` | `production` | `bijux` | `arm64` |
 | `multiqc` | `production` | `bijux` | `arm64` |
 | `musket` | `experimental` | `bijux` | `arm64` |
@@ -72,6 +76,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `seqkit_stats` | `production` | `bijux` | `arm64` |
 | `seqtk` | `experimental` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `none` | `none` |
+| `shapeit5` | `planned` | `non-bijux` | `arm64` |
 | `skewer` | `experimental` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |
