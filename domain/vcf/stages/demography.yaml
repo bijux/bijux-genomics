@@ -1,22 +1,23 @@
 schema_version: "bijux.stage.v1"
-stage_id: "vcf.ibd"
+stage_id: "vcf.demography"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 inputs:
-  - name: "vcf"
-    data_type: "vcf"
-    cardinality: "One"
-outputs:
   - name: "ibd_segments"
     data_type: "json"
     cardinality: "One"
-required_inputs: ["vcf"]
-required_outputs: ["ibd_segments"]
+outputs:
+  - name: "demography_report"
+    data_type: "json"
+    cardinality: "One"
+required_inputs: ["ibd_segments"]
+required_outputs: ["demography_report"]
 metrics:
-  - name: "ibd_segment_count"
-  - name: "ibd_total_length_bp"
-compatible_tools: ["germline", "ibdhap"]
+  - name: "ne_recent"
+  - name: "ne_confidence_interval"
+compatible_tools: ["ibdne"]
+single_tool_justification: "ibdne is the current planned baseline for Ne inference from IBD summaries."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]

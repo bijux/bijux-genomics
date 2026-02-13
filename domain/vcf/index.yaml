@@ -5,15 +5,18 @@ domain: "vcf"
 stage_ids:
   - vcf.admixture
   - vcf.call
+  - vcf.demography
   - vcf.filter
   - vcf.ibd
   - vcf.imputation
   - vcf.impute
   - vcf.pca
   - vcf.phasing
+  - vcf.population_structure
   - vcf.postprocess
   - vcf.prepare_reference_panel
   - vcf.qc
+  - vcf.roh
   - vcf.stats
 tool_ids:
   - bcftools
@@ -31,13 +34,27 @@ tool_ids:
   - shapeit5
 stage_tool_compatibility:
   vcf.call: ["bcftools"]
+  vcf.demography: ["ibdne"]
   vcf.filter: ["bcftools"]
+  vcf.ibd: ["germline", "ibdhap"]
   vcf.imputation: ["beagle", "glimpse", "impute5", "minimac4"]
   vcf.impute: ["beagle", "glimpse", "impute5", "minimac4"]
+  vcf.population_structure: ["plink2", "eigensoft"]
   vcf.phasing: ["beagle", "shapeit5", "eagle"]
   vcf.postprocess: ["bcftools"]
   vcf.prepare_reference_panel: ["bcftools"]
+  vcf.roh: ["plink2"]
   vcf.stats: ["bcftools"]
+stage_intent:
+  vcf.population_structure: "Estimate structure summaries (PCA/clusters) from filtered cohort variants."
+  vcf.roh: "Estimate runs of homozygosity burden and segment distribution."
+  vcf.ibd: "Estimate pairwise IBD segments for relatedness downstream."
+  vcf.demography: "Estimate recent Ne-style demography metrics from IBD summaries."
+stage_outputs:
+  vcf.population_structure: ["population_structure_report"]
+  vcf.roh: ["roh_report"]
+  vcf.ibd: ["ibd_segments"]
+  vcf.demography: ["demography_report"]
 active_defaults:
   vcf.call: "bcftools"
   vcf.filter: "bcftools"
