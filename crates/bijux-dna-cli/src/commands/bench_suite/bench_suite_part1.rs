@@ -763,7 +763,7 @@ fn suite_path(cwd: &Path, suite: &str) -> Result<PathBuf> {
     if preferred.exists() {
         return Ok(preferred);
     }
-    let fallback = cwd.join("configs").join(format!("{suite}.toml"));
+    let fallback = bijux_dna_infra::configs_file(cwd, &format!("bench/{suite}.toml"));
     if fallback.exists() {
         return Ok(fallback);
     }
