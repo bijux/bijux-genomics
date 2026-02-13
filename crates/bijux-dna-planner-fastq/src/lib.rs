@@ -464,7 +464,7 @@ impl FastqPlanner {
 
 fn stage_status(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
-    let path = cwd.join("configs").join("stages.toml");
+    let path = bijux_dna_infra::configs_file(&cwd, "ci/stages.toml");
     let raw = std::fs::read_to_string(path).ok()?;
     let parsed = raw.parse::<toml::Value>().ok()?;
     let entries = parsed.get("stages")?.as_array()?;
