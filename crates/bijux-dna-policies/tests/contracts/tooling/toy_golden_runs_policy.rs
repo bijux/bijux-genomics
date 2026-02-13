@@ -6,7 +6,7 @@ mod support;
 fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_deterministic() {
     let root = support::workspace_root();
     let status = std::process::Command::new("python3")
-        .arg(root.join("scripts/toy_runs.py"))
+        .arg(root.join("scripts/test/toy_runs.py"))
         .arg("check")
         .arg("--profile")
         .arg("all")
@@ -21,7 +21,7 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
 fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
     let status = std::process::Command::new("python3")
-        .arg(root.join("scripts/toy_runs.py"))
+        .arg(root.join("scripts/test/toy_runs.py"))
         .arg("refresh")
         .arg("--profile")
         .arg("all")
