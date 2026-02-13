@@ -3,7 +3,7 @@ set -eu
 LC_ALL=C
 export LC_ALL
 
-ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
+ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
 OUT_DIR="$ROOT_DIR/artifacts/scripts"
 OUT_FILE="$OUT_DIR/inventory.md"
 

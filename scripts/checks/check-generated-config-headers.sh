@@ -3,7 +3,7 @@ set -eu
 LC_ALL=C
 export LC_ALL
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 
 if ! command -v rg >/dev/null 2>&1; then
   echo "generated-config-headers: ripgrep (rg) is required but not found in PATH" >&2
