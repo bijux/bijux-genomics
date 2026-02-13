@@ -1,0 +1,7 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "seqkit_stats"
+container_kind = "bijux"
+license = "GPL-3.0"
+upstream_source = "https://github.com/bijux/bijux-dna"
+version = "2.8.2"
