@@ -8,6 +8,7 @@ require_stable_env
 
 LOCK_DOC="$ROOT_DIR/configs/ci/registry/LOCK_RULES.md"
 LOCK_FILE="$ROOT_DIR/configs/ci/registry/tool_registry_lock.sha256"
+MARKER_FILE="$ROOT_DIR/artifacts/configs/tool_registry_lock.marker"
 
 print_only=0
 while [[ $# -gt 0 ]]; do
@@ -55,4 +56,9 @@ if [[ "$print_only" == "1" ]]; then
 fi
 
 printf '%s\n' "$lock_sha" > "$LOCK_FILE"
+mkdir -p "$(dirname "$MARKER_FILE")"
+cat > "$MARKER_FILE" <<EOF
+generated_by=scripts/domain/lock-registry.sh
+lock_sha256=$lock_sha
+EOF
 echo "updated $LOCK_FILE (rules: configs/ci/registry/LOCK_RULES.md)"

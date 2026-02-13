@@ -13,6 +13,21 @@ ACTUAL="${TEST_TMP_DIR:-$ROOT_DIR/artifacts/tmp}/config_tree.snapshot.actual"
 MARKER_FILE="$ROOT_DIR/artifacts/configs/config_tree_snapshot.marker"
 mkdir -p "$(dirname "$ACTUAL")"
 
+only_if_changed=0
+if [[ "${1:-}" == "--if-config-changed" ]]; then
+  only_if_changed=1
+fi
+
+if [[ "$only_if_changed" -eq 1 ]]; then
+  if git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if ! git -C "$ROOT_DIR" diff --name-only --cached -- configs/ scripts/tooling/generate-config-tree-snapshot.sh | grep -q . \
+      && ! git -C "$ROOT_DIR" diff --name-only -- configs/ scripts/tooling/generate-config-tree-snapshot.sh | grep -q .; then
+      echo "config snapshot: SKIP (no config or generator changes)"
+      exit 0
+    fi
+  fi
+fi
+
 {
   echo '# GENERATED - DO NOT EDIT'
   echo '# generator = scripts/tooling/generate-config-tree-snapshot.sh'
