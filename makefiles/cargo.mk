@@ -1,5 +1,5 @@
 NEXTEST_PROFILE ?= ci
-NEXTEST_CONFIG ?= --config-file nextest.toml
+NEXTEST_CONFIG ?= --config-file configs/nextest/nextest.toml
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
 NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
@@ -7,7 +7,7 @@ TEST_FEATURES = --all-features
 CARGO_BUILD_JOBS ?= $(JOBS)
 NEXTEST_TEST_THREADS ?= $(CARGO_BUILD_JOBS)
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
-COVERAGE_THRESHOLDS = configs/coverage.toml
+COVERAGE_THRESHOLDS = configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
 REQUIRED_CARGO_TOOLS = cargo-nextest cargo-llvm-cov cargo-deny
