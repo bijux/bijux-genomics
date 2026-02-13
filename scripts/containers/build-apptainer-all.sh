@@ -43,6 +43,10 @@ TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
 
+if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
+  "$WORKSPACE_ROOT/scripts/containers/check-network-disclosure.sh" --offline
+fi
+
 if [[ ! -d "$DEFS_DIR" ]]; then
   echo "defs dir not found: $DEFS_DIR" >&2
   exit 2
