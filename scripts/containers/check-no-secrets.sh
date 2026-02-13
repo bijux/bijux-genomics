@@ -20,6 +20,10 @@ patterns = [
     re.compile(r"AKIA[0-9A-Z]{16}"),  # aws access key id
     re.compile(r"(?i)(secret|token|password)\s*[:=]\s*['\"]?[A-Za-z0-9_\\-]{8,}"),
     re.compile(r"ghp_[A-Za-z0-9]{20,}"),  # github token
+    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),  # slack tokens
+    re.compile(r"AIza[0-9A-Za-z\\-_]{35}"),  # google api key
+    re.compile(r"(?i)aws_secret_access_key\s*[:=]\s*['\"]?[A-Za-z0-9/+=]{30,}"),
     re.compile(r"(?i)-----BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY-----"),
 ]
 

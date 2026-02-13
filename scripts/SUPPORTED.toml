@@ -441,6 +441,22 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_image_size_regression"
+path = "scripts/containers/check-image-size-regression.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_cache_policy"
+path = "scripts/containers/check-apptainer-cache-policy.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "smoke_docker_arm64"
 path = "scripts/containers/smoke-docker-arm64.sh"
 purpose = "containers script"

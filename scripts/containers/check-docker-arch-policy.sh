@@ -22,6 +22,12 @@ for marker in "build strategy" "publish strategy" "promotion criteria"; do
     exit 1
   fi
 done
+for marker in "cross-build" "buildx" "naming convention" "amd64"; do
+  if ! rg -qi "$marker" "$policy_doc"; then
+    echo "docker arch policy: policy doc missing required amd64-plan marker: $marker" >&2
+    exit 1
+  fi
+done
 if [[ -d "$amd64_dir" ]]; then
   if find "$amd64_dir" -type f -name 'Dockerfile.*' | grep -q .; then
     echo "docker arch policy: amd64 Dockerfiles detected under containers/docker/amd64" >&2

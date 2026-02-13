@@ -1,0 +1,9 @@
+.git
+artifacts
+assets
+.env
+**/*.pem
+**/*.key
+**/.DS_Store
+**/__pycache__/
+
