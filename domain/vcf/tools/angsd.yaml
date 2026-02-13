@@ -10,8 +10,8 @@ authoritative: false
 strict_capable: true
 status: "planned"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://www.popgen.dk/angsd/index.php/ANGSD"
+default_version: "0.940"
+upstream: "https://github.com/ANGSD/angsd"
 pin_strategy: "container_digest"
 license: "GPL-3.0"
 citation: "Korneliussen et al. 2014, BMC Bioinformatics 15:356"

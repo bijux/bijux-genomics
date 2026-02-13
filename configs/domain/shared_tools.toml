@@ -16,3 +16,9 @@ domains = ["fastq", "bam"]
 default_version = "2.5.4"
 license = "GPL-3.0"
 upstream = "https://github.com/BenLangmead/bowtie2"
+
+[shared_tools.angsd]
+domains = ["bam", "vcf"]
+default_version = "0.940"
+license = "GPL-3.0"
+upstream = "https://github.com/ANGSD/angsd"
