@@ -1,0 +1,9 @@
+tool=bcftools
+tool_version=pinned
+stage=vcf.damage_filter
+domain=vcf
+fixture_kind=truth
+command=bcftools
+args=filter -e '((REF="C" && ALT="T") || (REF="G" && ALT="A")) && INFO/PMD>3' input.vcf -Ov -o damage_filtered.vcf
+expected_outputs=damage_filtered.vcf
+expected_stdout_patterns=C>T,G>A,PMD

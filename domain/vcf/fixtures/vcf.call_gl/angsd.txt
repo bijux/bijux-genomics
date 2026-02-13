@@ -1,0 +1,10 @@
+tool=angsd
+tool_version=pinned
+stage=vcf.call_gl
+domain=vcf
+shipping=external
+fixture_kind=truth
+command=angsd
+args=-b bam.list -ref ref.fa -out gl_sites -doGlf 2 -doMaf 1 -doMajorMinor 1
+expected_outputs=gl_sites.vcf.gz
+expected_stdout_patterns=GL

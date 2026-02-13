@@ -16,3 +16,6 @@ Stage coverage expectations:
 - `vcf.roh/*`: at least one fixture producing `roh_report`.
 - `vcf.ibd/*`: at least one fixture producing `ibd_segments`.
 - `vcf.demography/*`: at least one fixture producing `demography_report`.
+- `vcf.call_gl/*`: at least one fixture producing GL-bearing output (`FORMAT/GL` or `FORMAT/PL`).
+- `vcf.damage_filter/*`: fixtures must include explicit C>T/G>A and PMD rule shape.
+- `vcf.gl_propagation/*`: fixtures must preserve GL/PL fields across post-processing.
