@@ -94,6 +94,9 @@ apptainer-ensure-stage: ## Ensure apptainer image(s) for one stage via DOMAIN=<d
 containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
 	@./scripts/run.sh containers lint
 
+containers-ensure-images: ## Ensure container images are up to date with images.toml + registry lock
+	@./scripts/run.sh containers ensure-images
+
 containers: ## Print tools/runtime/result/log summary from target-containers manifests
 	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers summary
 
@@ -101,5 +104,5 @@ containers: ## Print tools/runtime/result/log summary from target-containers man
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run smoke-cntainers-apptainer-verify \
 	build-images test-images test-images-stage test-images-tool image-smoke-vcf image-qa \
-	containers-apptainer-build containers-lint containers \
+	containers-apptainer-build containers-lint containers-ensure-images containers \
 	apptainer-ensure apptainer-ensure-stage
