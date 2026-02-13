@@ -9,7 +9,7 @@
 id = "bcftools"
 tool_id = "bcftools"
 domain = "vcf"
-status = "supported"
+status = "production"
 stage_ids = ["vcf.call", "vcf.filter", "vcf.stats"]
 version = "1.20"
 default_version = "1.20"

@@ -1,0 +1,25 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+
+schema_version = "bijux.param_registry.v1"
+source = "vcf downstream staged roadmap parameter contracts"
+
+[[entries]]
+stage_id = "vcf.phasing"
+param_type_id = "vcf.phasing"
+schema_version = "bijux.vcf.params.v1"
+
+[[entries]]
+stage_id = "vcf.ld_pruning"
+param_type_id = "vcf.ld_pruning"
+schema_version = "bijux.vcf.params.v1"
+
+[[entries]]
+stage_id = "vcf.population_structure"
+param_type_id = "vcf.population_structure"
+schema_version = "bijux.vcf.params.v1"
+
+[[entries]]
+stage_id = "vcf.relatedness"
+param_type_id = "vcf.relatedness"
+schema_version = "bijux.vcf.params.v1"
