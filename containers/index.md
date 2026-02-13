@@ -6,6 +6,7 @@ Purpose: Define container taxonomy, authority, and version ownership for reprodu
 - `containers/apptainer/`: Apptainer definitions for HPC and isolate-first runs.
 - `containers/docker/`: Dockerfiles for OCI image build and smoke validation.
 - Docker architecture contract: this repository currently ships `containers/docker/arm64/` definitions only.
+- Multiarch contract details: `containers/docker/multiarch-policy.md`.
 
 ## Bijux vs Non-bijux
 - `containers/apptainer/bijux/`: Bijux-maintained definitions with project policy headers.

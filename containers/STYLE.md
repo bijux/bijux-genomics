@@ -31,6 +31,11 @@ Use this section order:
 6. `%test`
 7. `%help`
 
+## Bijux Template Marker
+- Bijux-owned defs for newly admitted tools must include `BIJUX_TEMPLATE: v1` near the top.
+- Template contract lives in `containers/apptainer/bijux/TEMPLATE.def.inc`.
+- Lint enforces marker presence for downstream bijux-owned defs.
+
 ## Wrapper Policy
 - Prefer direct execution.
 - If a wrapper is needed for stable `--version`/`--help`, it must be minimal and deterministic.
