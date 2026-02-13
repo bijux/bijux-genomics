@@ -19,3 +19,8 @@ Deterministic expected outputs used by contract and integration checks.
 2. Verify integrity checks pass (`check-asset-checksums`, `check-assets-drift`).
 3. Review `artifacts/assets-refresh/golden/report.json` for deterministic inputs/outputs.
 4. Commit generated bundle plus report-driven changes together.
+
+---
+Asset Provenance Footer
+Last regenerated: 2026-02-13
+Regenerate command: `./scripts/run.sh assets refresh-toy && ./scripts/run.sh assets refresh-golden`
