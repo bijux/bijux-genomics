@@ -214,6 +214,25 @@ pub mod random {
     }
 }
 
+pub mod policy_support {
+    use std::path::{Path, PathBuf};
+
+    #[must_use]
+    pub fn workspace_root_from_manifest(manifest_dir: &str) -> PathBuf {
+        Path::new(manifest_dir)
+            .parent()
+            .and_then(|p| p.parent())
+            .unwrap_or_else(|| panic!("resolve workspace root from {manifest_dir}"))
+            .to_path_buf()
+    }
+
+    #[must_use]
+    pub fn read_text(path: &Path) -> String {
+        std::fs::read_to_string(path)
+            .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()))
+    }
+}
+
 pub mod snapshots {
     use serde_json::Value;
     use std::env;
@@ -461,6 +480,7 @@ pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestam
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
 pub use random::fixed_rng;
 pub use clocks::FixedClock;
+pub use policy_support::{read_text as read_policy_text, workspace_root_from_manifest};
 pub use snapshots::{
     install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name,
     snapshot_normalize_json, snapshot_normalize_text, stable_json,

@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 pub fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 pub fn crate_roots() -> Vec<PathBuf> {
@@ -35,7 +30,5 @@ pub fn crate_root(crate_name: &str) -> PathBuf {
 }
 
 pub fn read_to_string(path: &Path) -> String {
-    std::fs::read_to_string(path).unwrap_or_else(|err| {
-        bijux_dna_policies::policy_panic!("failed to read {}: {err}", path.display());
-    })
+    bijux_dna_testkit::read_policy_text(path)
 }
