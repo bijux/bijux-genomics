@@ -8,6 +8,8 @@ require_stable_env
 
 python3 - "$ROOT_DIR" <<'PY'
 from pathlib import Path
+import json
+import re
 import sys
 try:
     import tomllib
@@ -22,6 +24,12 @@ if not reg.exists():
 
 data = tomllib.loads(reg.read_text(encoding="utf-8"))
 errors = []
+promoted = set()
+for row in data.get("tools", []):
+    if str(row.get("status", "")).strip() == "production":
+        tid = str(row.get("id") or row.get("tool_id") or "").strip()
+        if tid:
+            promoted.add(tid)
 
 for row in data.get("tools", []):
     if not isinstance(row, dict):
@@ -53,6 +61,37 @@ for row in data.get("tools", []):
                 errors.append(f"{tid}: apptainer def missing provenance file write /opt/bijux/VERSION.json")
             if "bijux-tool-info" not in text:
                 errors.append(f"{tid}: apptainer def missing bijux-tool-info self-report command")
+
+if errors:
+    print("build-provenance: failed", file=sys.stderr)
+    for err in errors:
+        print(f"- {err}", file=sys.stderr)
+    raise SystemExit(1)
+
+artifacts = root / "artifacts/containers"
+if artifacts.exists() and promoted:
+    for tid in sorted(promoted):
+        mf = artifacts / f"{tid}.json"
+        if not mf.exists():
+            errors.append(f"{tid}: missing manifest artifact {mf}")
+            continue
+        try:
+            payload = json.loads(mf.read_text(encoding="utf-8"))
+        except Exception:
+            errors.append(f"{tid}: invalid json in {mf}")
+            continue
+        if payload.get("status") != "ok":
+            errors.append(f"{tid}: manifest status is not ok")
+            continue
+        for key in ("builder", "built_at_utc", "git_sha", "versions_toml_sha256"):
+            if not str(payload.get(key, "")).strip():
+                errors.append(f"{tid}: manifest missing provenance key '{key}'")
+        sha = str(payload.get("versions_toml_sha256", "")).strip()
+        if sha and not re.fullmatch(r"[0-9a-f]{64}", sha):
+            errors.append(f"{tid}: versions_toml_sha256 must be 64 hex chars")
+        git_sha = str(payload.get("git_sha", "")).strip()
+        if git_sha and git_sha != "unknown" and not re.fullmatch(r"[0-9a-f]{40}", git_sha):
+            errors.append(f"{tid}: git_sha must be 40 hex chars or 'unknown'")
 
 if errors:
     print("build-provenance: failed", file=sys.stderr)
