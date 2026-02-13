@@ -17,8 +17,8 @@ if [ -n "$changed_files" ]; then
     fi
   fi
 
-  if printf '%s\n' "$changed_files" | grep -Eq '^configs/stages.*\.toml$'; then
-    if ! printf '%s\n' "$changed_files" | grep -Eq '^configs/param_registry.*\.toml$'; then
+  if printf '%s\n' "$changed_files" | grep -Eq '^configs/ci/stages.*\.toml$'; then
+    if ! printf '%s\n' "$changed_files" | grep -Eq '^configs/ci/param_registry.*\.toml$'; then
       fail "partial stage edit detected: stages*.toml changed without param_registry*.toml"
     fi
   fi
