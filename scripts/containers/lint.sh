@@ -178,6 +178,8 @@ fi
 "$SCRIPT_DIR/check-apptainer-hardening.sh"
 "$SCRIPT_DIR/check-apptainer-version-label-sync.sh"
 "$SCRIPT_DIR/check-apptainer-post-pins.sh"
+"$SCRIPT_DIR/check-apptainer-frontend-version-output-lock.sh"
+"$SCRIPT_DIR/check-apptainer-frontend-smoke-proof.sh"
 "$SCRIPT_DIR/check-bijux-apptainer-built.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
 "$SCRIPT_DIR/check-docker-hardening.sh"

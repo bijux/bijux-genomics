@@ -465,6 +465,22 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "run_apptainer_frontend_smoke"
+path = "scripts/containers/run-apptainer-frontend-smoke.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_frontend_version_output_lock"
+path = "scripts/containers/check-apptainer-frontend-version-output-lock.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_runtime_downloads"
 path = "scripts/containers/check-runtime-downloads.sh"
 purpose = "containers script"
