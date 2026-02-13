@@ -3,3 +3,7 @@
 - `ROADMAP.md`
 - `IMPUTATION_SCOPE.md`
 - `IMPUTATION_METHODS.md`
+- `POPULATION_STRUCTURE.md`
+- `ROH.md`
+- `IBD.md`
+- `DEMOGRAPHY.md`
