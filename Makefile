@@ -24,6 +24,7 @@ help: ## Show this help message
 	@printf "  %-22s %s\n" "test" "Run test suite"
 	@printf "  %-22s %s\n" "coverage" "Generate and validate coverage report"
 	@printf "  %-22s %s\n" "ci" "Run fmt/lint/audit/test/coverage in one isolate"
+	@printf "  %-22s %s\n" "doctor" "Run fast repo coherence checks (no full build)"
 	@printf "  %-22s %s\n" "refresh-assets-toy" "Refresh toy assets"
 	@printf "  %-22s %s\n" "refresh-assets-golden" "Refresh golden assets"
 	@if [ "$${SHOW_INTERNAL:-0}" = "1" ]; then \

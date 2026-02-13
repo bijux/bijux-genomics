@@ -1415,3 +1415,19 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "check_make_isolation_contract"
+path = "scripts/checks/check-make-isolation-contract.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "tooling_bijux"
+path = "scripts/tooling/bijux.sh"
+purpose = "tooling script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

@@ -1,4 +1,5 @@
 NEXTEST_PROFILE ?= ci
+ARTIFACTS_DIR ?= $(if $(ISO_ROOT),$(ISO_ROOT)/artifacts/$(or $(MAKECMDGOALS),manual),artifacts/$(or $(MAKECMDGOALS),manual))
 NEXTEST_TOML := configs/nextest/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
@@ -12,9 +13,11 @@ COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
 fmt:
+	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh tooling ci-fmt
 
 lint:
+	@./bin/require-isolate >/dev/null
 	./scripts/run.sh tooling repo-doctor --fast
 	$(MAKE) _domain-validate
 	$(MAKE) _examples-validate
@@ -85,6 +88,7 @@ lint:
 	./scripts/run.sh checks check-artifacts-layout
 	./scripts/run.sh checks check-script-arg-style
 	./scripts/run.sh checks check-script-entrypoint
+	./scripts/run.sh checks check-make-isolation-contract
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
@@ -94,16 +98,31 @@ lint:
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 test:
+	@./bin/require-isolate >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
 
 _test-slow: ## Run only slow-labeled tests (functions containing slow__).
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
+	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh tooling ci-audit
 
 coverage:
+	@./bin/require-isolate >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/run.sh tooling ci-coverage
+
+doctor:
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh tooling repo-doctor --fast
+	@./scripts/run.sh checks check-supported-scripts
+	@./scripts/run.sh checks check-config-schema
+	@./scripts/run.sh checks check-registry-required-tools-parity
+	@./scripts/run.sh checks check-stage-domain-parity
+	@./scripts/run.sh checks check-param-registry-completeness
+	@./scripts/run.sh checks check-deprecations-enforcement
+	@./scripts/run.sh checks check-no-raw-cargo-in-makefiles
+	@./scripts/run.sh containers lint
 
 _install-ci-tools: ## Install required cargo tools once per CI job.
 	@./scripts/run.sh tooling ci-install-tools
@@ -117,10 +136,11 @@ _check:
 	$(MAKE) fmt lint audit coverage
 
 _verify-parallel-isolation:
-	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_a_path'
-	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_b_path'
-	@test "$$(cat artifacts/isolates/.verify_a_path)" != "$$(cat artifacts/isolates/.verify_b_path)"
-	@rm -f artifacts/isolates/.verify_a_path artifacts/isolates/.verify_b_path
+	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > "$$ISO_ROOT/.verify_path"'
+	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > "$$ISO_ROOT/.verify_path"'
+	@a_root="$$(ISO_TAG=verify-a ./bin/isolate --print-root)"; b_root="$$(ISO_TAG=verify-b ./bin/isolate --print-root)"; test "$$(cat "$$a_root/.verify_path")" != "$$(cat "$$b_root/.verify_path")"
+	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'rm -f "$$ISO_ROOT/.verify_path"'
+	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'rm -f "$$ISO_ROOT/.verify_path"'
 
 _clean-isolates:
 	@rm -rf artifacts/isolates/*
@@ -199,7 +219,7 @@ _fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta work
 	@./scripts/run.sh tooling cargo-targets fix-snapshots
 
 _test-triage: ## Group failed tests from a saved nextest log.
-	@./scripts/run.sh test test-triage artifacts/test-logs/latest.log
+	@./scripts/run.sh test test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
 
 _generate-configs:
 	@./scripts/run.sh tooling generate-configs
@@ -250,7 +270,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint test audit coverage ci _check _verify-parallel-isolation \
+.PHONY: fmt lint test audit coverage ci doctor _check _verify-parallel-isolation \
 		_clean-isolates \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
