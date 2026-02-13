@@ -521,10 +521,21 @@ build_and_smoke_one() {
     fi
     # shellcheck disable=SC2086
     "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$tmp_def"
+    if [ ! -s "$vm_sif" ]; then
+      echo "build did not produce SIF: $vm_sif"
+      exit 1
+    fi
     rm -f "$tmp_def"
     tmp_def=""
     echo "=== [$tool] smoke: $cmd"
+    set +e
     run_tool_command "$vm_sif" "$cmd" "$expected_bin" 2>&1 | tee "$version_output_file"
+    version_rc=${PIPESTATUS[0]}
+    set -e
+    if [ "$version_rc" -ne 0 ]; then
+      echo "version command failed with exit $version_rc: $cmd"
+      exit 1
+    fi
     if [ ! -s "$version_output_file" ]; then
       echo "version command produced empty output: $cmd"
       exit 1
@@ -707,6 +718,10 @@ JSON
   cp -f "$vm_log" "$out_log"
   cp -f "$vm_log" "$smoke_archive_log" 2>/dev/null || true
   shasum -a 256 "$smoke_archive_log" > "$smoke_archive_checksum" 2>/dev/null || true
+  if [ ! -s "$vm_sif" ]; then
+    echo "FAIL $tool (missing built SIF: $vm_sif)"
+    return 1
+  fi
   cp -f "$vm_sif" "$out_sif"
   echo "OK $tool"
 }
