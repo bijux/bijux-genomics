@@ -60,7 +60,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     mv /usr/local/bin/fastQValidator /usr/local/bin/fq-validator-bin && \
 
     # Create a wrapper script with version override and help handling.
-    cat > /usr/local/bin/fastq-validator <<'EOF'
+    cat > /usr/local/bin/fastqvalidator <<'EOF'
 #!/bin/sh
 case "$1" in
   --version) echo "0.1.1"; exit 0;;
@@ -68,7 +68,8 @@ case "$1" in
   *) exec /usr/local/bin/fq-validator-bin "$@";;
 esac
 EOF
-    chmod +x /usr/local/bin/fastq-validator && \
+    chmod +x /usr/local/bin/fastqvalidator && \
+    ln -sf /usr/local/bin/fastqvalidator /usr/local/bin/fastq-validator && \
 
     # Clean up source and build dependencies.
     rm -rf /opt/libStatGen /opt/fastQValidator && \
@@ -76,11 +77,11 @@ EOF
 
 %runscript
     if [ $# -eq 0 ]; then
-        exec /usr/local/bin/fastq-validator --help
+        exec /usr/local/bin/fastqvalidator --help
     else
-        exec /usr/local/bin/fastq-validator "$@"
+        exec /usr/local/bin/fastqvalidator "$@"
     fi
 
 %help
     This Apptainer image provides FastqValidator version 0.1.1 (compiled from source).
-    The default command is 'fastq-validator'; run without arguments to display help.
+    The default command is 'fastqvalidator'; run without arguments to display help.
