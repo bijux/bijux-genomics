@@ -11,6 +11,8 @@ Container digests make execution reproducible.
 
 ## Contracts
 - images.toml must include digests for production runs.
+- Docker definitions are `arm64`-only unless policy and checks are updated.
+- Container filenames must match generated `containers/TOOL_IDS.txt`.
 
 ## Examples
 - `bijuxdna/fastp:0.23.4-arm64` with immutable digest.
