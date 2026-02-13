@@ -17,6 +17,8 @@ metrics:
   - name: "variants_total"
   - name: "ti_tv"
 compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the only production-approved stats provider in current VCF baseline."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["vcf_is_normalized"]
 bank_hooks: ["none"]
 invariants: ["stats_required"]

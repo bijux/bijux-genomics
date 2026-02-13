@@ -33,6 +33,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - picard
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired-end alignment metadata is available for insert-size inference"
 bank_hooks:

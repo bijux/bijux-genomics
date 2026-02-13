@@ -50,6 +50,7 @@ compatible_tools:
   - seqkit_stats
   - seqkit
   - seqfu
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

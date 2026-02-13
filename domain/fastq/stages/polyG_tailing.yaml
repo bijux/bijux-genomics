@@ -52,6 +52,7 @@ allowed_missingness:
 compatible_tools:
   - fastp
   - bbduk
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "polyG handling is isolated from generic adapter trimming for comparability."
 bank_hooks:

@@ -51,6 +51,7 @@ compatible_tools:
   - seqfu
   - prinseq
   - fastp
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "length histogram generation must be deterministic for identical reads."
 bank_hooks:

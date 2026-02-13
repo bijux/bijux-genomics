@@ -31,6 +31,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - bamutil
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired read overlap clipping requires consistent template metadata"
 bank_hooks:

@@ -32,6 +32,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - samtools
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "endogenous ratio computed from stable mapping summary counts and host-contig rules"
 bank_hooks:

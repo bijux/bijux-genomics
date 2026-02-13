@@ -64,6 +64,7 @@ compatible_tools:
   - lighter
   - bayeshammer
   - spades
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

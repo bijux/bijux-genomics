@@ -57,6 +57,7 @@ allowed_missingness:
 compatible_tools:
   - bowtie2
   - samtools
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "reference index must match host depletion reference and naming conventions."
 bank_hooks:

@@ -53,6 +53,7 @@ allowed_missingness:
 compatible_tools:
   - bbduk
   - bowtie2
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "contaminant decoy reference is explicitly versioned and separate from taxonomy DB."
 bank_hooks:

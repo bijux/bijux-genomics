@@ -16,6 +16,8 @@ required_outputs: ["filtered_vcf"]
 metrics:
   - name: "filtered_variants"
 compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the only production-approved filter tool in current VCF baseline."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["pass_filtering"]
 bank_hooks: ["none"]
 invariants: ["tool_pinned"]

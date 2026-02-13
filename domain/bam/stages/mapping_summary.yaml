@@ -31,6 +31,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - samtools
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "mapping summary metrics are generated from deterministic BAM summary commands"
 bank_hooks:
