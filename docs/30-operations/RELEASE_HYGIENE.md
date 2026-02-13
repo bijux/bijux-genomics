@@ -14,6 +14,11 @@ Breaking contract change requires:
 - docs update
 - snapshot update
 - version bump
+- pass `make release-gate`
+
+Minimal publishable gate:
+- `./bin/isolate make release-gate`
+- includes docs contract checks, root layout guardrail, tool registry lock verification, and container version lock/authority checks.
 
 ## Examples
 If `RunManifest` changes, update schema snapshots + `CONTRACT_VERSIONING.md`.

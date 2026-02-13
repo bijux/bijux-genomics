@@ -8,6 +8,7 @@ Public targets (stable contract):
 - `coverage`
 - `ci`
 - `doctor`
+- `release-gate`
 - `refresh-assets-toy`
 - `refresh-assets-golden`
 
@@ -23,7 +24,12 @@ Target -> script mapping (no hidden magic):
 - `test` -> `./scripts/run.sh tooling ci-test`
 - `coverage` -> `./scripts/run.sh tooling ci-coverage`
 - `doctor` -> `./scripts/run.sh tooling repo-doctor --fast` + fast parity checks
+- `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `ci` -> `./bin/isolate ... make fmt lint audit test coverage`
+
+CI profile scripts:
+- Fast: `./scripts/run.sh tooling ci-fast`
+- Slow: `./scripts/run.sh tooling ci-slow`
 
 Current internal targets surfaced by help:
 - `domain-validate`
