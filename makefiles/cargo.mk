@@ -28,6 +28,10 @@ lint:
 	./scripts/run.sh checks check-config-headers
 	./scripts/run.sh checks check-config-schema
 	./scripts/run.sh checks check-docs-requirements-lock
+	./scripts/run.sh checks check-nextest-profile-contract
+	./scripts/run.sh checks check-runtime-profiles-contract
+	./scripts/run.sh checks check-logging-contract
+	./scripts/run.sh checks check-hpc-rsync-docs-parity
 	./scripts/run.sh checks check-config-owners
 	./scripts/run.sh checks check-registry-required-tools-parity
 	./scripts/run.sh checks check-domain-tool-parity
@@ -128,13 +132,16 @@ doctor:
 	@./scripts/run.sh tooling repo-doctor --fast
 	@./scripts/run.sh checks check-supported-scripts
 	@./scripts/run.sh checks check-config-schema
+	@./scripts/run.sh checks check-nextest-profile-contract
+	@./scripts/run.sh checks check-runtime-profiles-contract
+	@./scripts/run.sh checks check-logging-contract
+	@./scripts/run.sh checks check-hpc-rsync-docs-parity
 	@./scripts/run.sh checks check-registry-required-tools-parity
 	@./scripts/run.sh checks check-domain-tool-parity
 	@./scripts/run.sh checks check-stage-domain-parity
 	@./scripts/run.sh checks check-param-registry-completeness
 	@./scripts/run.sh checks check-deprecations-enforcement
 	@./scripts/run.sh checks check-no-raw-cargo-in-makefiles
-	@./scripts/run.sh containers lint
 
 _install-ci-tools: ## Install required cargo tools once per CI job.
 	@./scripts/run.sh tooling ci-install-tools
@@ -290,6 +297,20 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
-		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _quick _install-ci-tools \
+		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
 		refresh-assets-toy refresh-assets-golden
+release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh docs check-doc-links
+	@./scripts/run.sh checks check-docs-build-contract
+	@./scripts/run.sh checks check-tool-registry-lock
+	@./scripts/run.sh containers check-version-lock
+	@./scripts/run.sh containers check-version-authority
+	@./scripts/run.sh checks check-root-layout
+
+_ci-profile-fast:
+	@./scripts/run.sh tooling ci-fast
+
+_ci-profile-slow:
+	@./scripts/run.sh tooling ci-slow
