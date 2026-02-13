@@ -12,7 +12,7 @@ bayeshammer	experimental
 bbduk	production
 bbmerge	experimental
 bcftools	production
-beagle	planned
+beagle	experimental
 bedtools	production
 bowtie2	production
 bracken	production
@@ -21,8 +21,8 @@ centrifuge	experimental
 contammix	production
 cutadapt	experimental
 damageprofiler	experimental
-eagle	planned
-eigensoft	planned
+eagle	experimental
+eigensoft	experimental
 fastp	production
 fastq_screen	experimental
 fastqc	production
@@ -30,7 +30,7 @@ fastqvalidator	production
 fastx_clipper	production
 flash2	experimental
 fqtools	experimental
-germline	planned
+germline	experimental
 glimpse	planned
 ibdhap	planned
 ibdne	planned
@@ -49,8 +49,8 @@ mosdepth	production
 multiqc	production
 musket	experimental
 pear	production
-plink	planned
-plink2	planned
+plink	experimental
+plink2	experimental
 pmdtools	production
 prinseq	experimental
 pydamage	production
@@ -63,7 +63,7 @@ seqkit	production
 seqkit_stats	production
 seqtk	experimental
 shapeit	planned
-shapeit5	planned
+shapeit5	experimental
 skewer	experimental
 sortmerna	production
 spades	experimental

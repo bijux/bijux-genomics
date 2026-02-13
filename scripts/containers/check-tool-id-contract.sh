@@ -15,6 +15,7 @@ import re
 import sys
 
 path = Path(sys.argv[1])
+containers_root = path.parent
 lines = path.read_text(encoding="utf-8").splitlines()
 errors = []
 
@@ -28,6 +29,7 @@ for i, header in enumerate(required_headers):
         errors.append(f"header line {i+1} mismatch: expected '{header}'")
 
 seen = set()
+status_by_id = {}
 allowed_status = {"production", "experimental", "planned"}
 for i, raw in enumerate(lines, start=1):
     line = raw.strip()
@@ -45,6 +47,32 @@ for i, raw in enumerate(lines, start=1):
     if tool_id in seen:
         errors.append(f"line {i}: duplicate tool_id '{tool_id}'")
     seen.add(tool_id)
+    status_by_id[tool_id] = status
+
+# Mapping contract:
+# - production/experimental tools must map to exactly one Apptainer def and exactly one Dockerfile.
+# - planned tools may be absent but cannot have duplicate mappings.
+for tool_id, status in status_by_id.items():
+    ap_defs = [
+        containers_root / "apptainer" / "bijux" / f"{tool_id}.def",
+        containers_root / "apptainer" / "non-bijux" / f"{tool_id}.def",
+    ]
+    docker_defs = [
+        containers_root / "docker" / "arm64" / f"Dockerfile.{tool_id}",
+        containers_root / "docker" / "amd64" / f"Dockerfile.{tool_id}",
+    ]
+    ap_count = sum(1 for p in ap_defs if p.exists())
+    docker_count = sum(1 for p in docker_defs if p.exists())
+    if status in {"production", "experimental"}:
+        if ap_count != 1:
+            errors.append(f"tool '{tool_id}' ({status}) must map to exactly one apptainer def (found {ap_count})")
+        if docker_count != 1:
+            errors.append(f"tool '{tool_id}' ({status}) must map to exactly one dockerfile (found {docker_count})")
+    else:
+        if ap_count > 1:
+            errors.append(f"tool '{tool_id}' ({status}) has ambiguous apptainer defs (found {ap_count})")
+        if docker_count > 1:
+            errors.append(f"tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})")
 
 if errors:
     print("tool id contract check failed:", file=sys.stderr)
