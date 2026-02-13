@@ -71,7 +71,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		cd "$(LUNARC_REPO_DIR)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
-			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04 || echo "warning: ubuntu base pull failed; trying non-docker fallback"; \
 		fi; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
 			curl -fsSL "https://depot.galaxyproject.org/singularity/ubuntu:22.04" -o "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" || true; \
