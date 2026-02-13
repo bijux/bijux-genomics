@@ -11,18 +11,12 @@ COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
-REQUIRED_CARGO_TOOLS = cargo-nextest cargo-llvm-cov cargo-deny
-
 define RUN_IN_ISOLATE
 	@./bin/isolate sh -ceu '$(1)'
 endef
 
-define REQUIRE_TOOL
-	command -v $(1) >/dev/null 2>&1 || { echo "missing required tool: $(1)"; echo "install once: cargo install $(1) --locked"; exit 1; }
-endef
-
 fmt:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo fmt --all -- --check)
+	@./scripts/tooling/ci-fmt.sh
 
 lint:
 	./scripts/checks/check-supported-scripts.sh
@@ -46,22 +40,22 @@ lint:
 	./scripts/checks/check-ci-shell-scripts.sh
 	./scripts/checks/check-no-raw-cargo-in-makefiles.sh
 	./scripts/checks/check-no-raw-cargo-in-scripts.sh
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/tooling/ci-clippy.sh
 
 test:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/checks/check-isolation-contract.sh; ./scripts/checks/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) --no-tests $(NEXTEST_NO_TESTS) $(RUN_IGNORED) -E "$(NEXTEST_FAST_EXPR)"; ./scripts/checks/check-isolation-contract.sh)
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/tooling/ci-test.sh
 
 test-slow: ## Run only slow-labeled tests (functions containing slow__).
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) --no-tests $(NEXTEST_NO_TESTS) $(RUN_IGNORED) -E "test(/::slow__/)")
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/tooling/ci-test-slow.sh
 
 audit:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-deny); cargo deny check)
+	@./scripts/tooling/ci-audit.sh
 
 coverage:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-llvm-cov); $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo llvm-cov clean; rm -rf "$$ISO_ROOT/coverage"; mkdir -p "$$ISO_ROOT/coverage"; cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); cargo llvm-cov report --json --output-path "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; cargo llvm-cov report --html --output-dir "$$ISO_ROOT/coverage"; test -f "$$ISO_ROOT/coverage/$(COVERAGE_OUT)"; test -f "$$ISO_ROOT/coverage/index.html"; if [ -f $(COVERAGE_BASELINE) ]; then python3 scripts/tooling/coverage_summary.sh "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --baseline $(COVERAGE_BASELINE) --check-thresholds $(COVERAGE_THRESHOLDS); else python3 scripts/tooling/coverage_summary.sh "$$ISO_ROOT/coverage/$(COVERAGE_OUT)" --check-thresholds $(COVERAGE_THRESHOLDS); fi)
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/tooling/ci-coverage.sh
 
 install-ci-tools: ## Install required cargo tools once per CI job.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo install --locked cargo-nextest cargo-llvm-cov cargo-deny)
+	@./scripts/tooling/ci-install-tools.sh
 
 domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 
