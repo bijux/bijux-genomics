@@ -44,6 +44,8 @@ lint:
 	./scripts/checks/tree-intent.sh
 	./scripts/checks/check-readme-links.sh
 	./scripts/checks/check-ci-shell-scripts.sh
+	./scripts/checks/check-no-raw-cargo-in-makefiles.sh
+	./scripts/checks/check-no-raw-cargo-in-scripts.sh
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
@@ -64,7 +66,6 @@ install-ci-tools: ## Install required cargo tools once per CI job.
 domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 
 ci:
-	$(MAKE) install-ci-tools
 	$(MAKE) fmt
 	$(MAKE) lint
 	$(MAKE) audit
@@ -188,9 +189,16 @@ smoke-fastq: ## Quick local FASTQ smoke dry-run.
 smoke-bam: ## Quick local BAM smoke dry-run.
 	@./scripts/smoke/run.sh bam
 
+refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
+	@./scripts/assets/refresh-toy.sh
+
+refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
+	@./scripts/assets/refresh-golden.sh
+
 .PHONY: fmt lint test audit coverage ci check verify-parallel-isolation \
 		clean-isolates \
 		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
-		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory config-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate
+		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory config-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate \
+		refresh-assets-toy refresh-assets-golden
