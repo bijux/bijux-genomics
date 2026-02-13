@@ -2,36 +2,36 @@
 set -euo pipefail
 IFS=$'\n\t'
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT_DIR=$(cd "${SCRIPT_DIR}/../../" && pwd)
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
-LC_ALL=C
-export LC_ALL
-ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
-OUT_DIR="$ROOT_DIR/artifacts/scripts"
-OUT_FILE="$OUT_DIR/inventory.md"
 
+OUT_DIR="$ROOT_DIR/artifacts/inventory"
+ensure_artifacts_dir "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
-{
-  echo "# Script Inventory"
-  echo
-  echo "Generated from Makefile references and scripts tree."
-  echo
-  echo "## Make-Referenced (Supported)"
-  rg -No "scripts/[A-Za-z0-9_./-]+\\.(sh|py)" "$ROOT_DIR/Makefile" "$ROOT_DIR/makefiles" \
-    | sort -u \
-    | sed 's#^#- `#; s#$#`#'
-  echo
-  echo "## All Scripts"
-  find "$ROOT_DIR/scripts" -type f \( -name "*.sh" -o -name "*.py" \) \
-    | sed "s#^$ROOT_DIR/##" \
-    | sort \
-    | while IFS= read -r rel; do
-        purpose=$(sed -n '2,8p' "$ROOT_DIR/$rel" | rg -m1 '^[[:space:]]*#' | sed 's/^[[:space:]]*#\s*//' || true)
-        [ -n "$purpose" ] || purpose="(no purpose comment)"
-        printf -- "- `%s`: %s\n" "$rel" "$purpose"
-      done
-} > "$OUT_FILE"
+SCRIPTS_OUT="$OUT_DIR/scripts_inventory.txt"
+CONFIGS_OUT="$OUT_DIR/configs_inventory.txt"
+DOCS_OUT="$OUT_DIR/docs_index_coverage.txt"
+ASSETS_OUT="$OUT_DIR/assets_inventory.txt"
 
-echo "wrote $OUT_FILE"
+find "$ROOT_DIR/scripts" -type f -name '*.sh' | sed "s#^$ROOT_DIR/##" | sort > "$SCRIPTS_OUT"
+find "$ROOT_DIR/configs" -type f | sed "s#^$ROOT_DIR/##" | sort > "$CONFIGS_OUT"
+find "$ROOT_DIR/assets" -type f | sed "s#^$ROOT_DIR/##" | sort > "$ASSETS_OUT"
+
+{
+  echo "docs_index_coverage"
+  while IFS= read -r dir; do
+    rel="${dir#"$ROOT_DIR/"}"
+    if [[ -f "$dir/index.md" ]]; then
+      echo "$rel/index.md:present"
+    else
+      echo "$rel/index.md:missing"
+    fi
+  done < <(find "$ROOT_DIR/docs" -type d | sort)
+} > "$DOCS_OUT"
+
+echo "wrote $SCRIPTS_OUT"
+echo "wrote $CONFIGS_OUT"
+echo "wrote $DOCS_OUT"
+echo "wrote $ASSETS_OUT"
