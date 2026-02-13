@@ -1,5 +1,5 @@
 NEXTEST_PROFILE ?= ci
-ARTIFACTS_DIR ?= $(if $(ISO_ROOT),$(ISO_ROOT)/artifacts/$(or $(MAKECMDGOALS),manual),artifacts/$(or $(MAKECMDGOALS),manual))
+ARTIFACTS_DIR ?= $(if $(ISO_ROOT),$(ISO_ROOT)/artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),no-runid),artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),local))
 NEXTEST_TOML := configs/nextest/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
@@ -92,6 +92,10 @@ lint:
 	./scripts/run.sh checks check-script-arg-style
 	./scripts/run.sh checks check-script-entrypoint
 	./scripts/run.sh checks check-make-isolation-contract
+	./scripts/run.sh checks check-make-help-sync
+	./scripts/run.sh checks check-gitignore-contract
+	./scripts/run.sh checks check-cargo-config-policy
+	./scripts/run.sh checks check-audit-allowlist
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts

@@ -22,7 +22,7 @@ for t in fmt lint audit test coverage doctor; do
   fi
 done
 
-# ARTIFACTS_DIR must be per invocation and isolate-aware.
+# ARTIFACTS_DIR must be per invocation and isolate-aware under artifacts/isolate/<target>/<runid>.
 art_line="$(rg -n '^ARTIFACTS_DIR \?=' "$mk" || true)"
 if [[ -z "$art_line" ]]; then
   viol+=("makefiles/cargo.mk must define ARTIFACTS_DIR ?=")
@@ -32,6 +32,12 @@ else
   fi
   if ! grep -q 'ISO_ROOT' <<<"$art_line"; then
     viol+=("ARTIFACTS_DIR must include ISO_ROOT override for isolated outputs")
+  fi
+  if ! grep -q 'artifacts/isolate/' <<<"$art_line"; then
+    viol+=("ARTIFACTS_DIR must be rooted under artifacts/isolate/")
+  fi
+  if ! grep -q 'ISO_RUN_ID' <<<"$art_line"; then
+    viol+=("ARTIFACTS_DIR must include ISO_RUN_ID segment for run uniqueness")
   fi
 fi
 
