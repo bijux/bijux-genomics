@@ -3,6 +3,30 @@ set -euo pipefail
 IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
+_COMMON_LIB_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${_COMMON_LIB_DIR}/runtime.sh"
+
+_print_common_help() {
+  local caller="${BASH_SOURCE[2]:-${BASH_SOURCE[1]:-$0}}"
+  local rel="${caller##*/scripts/}"
+  if [[ "$rel" == "$caller" ]]; then
+    rel="$caller"
+  else
+    rel="scripts/$rel"
+  fi
+  cat <<EOF
+Usage: $caller [--help] [args...]
+
+Script contract:
+- Requires: declared in ${rel%/*}/README.md
+- Exit codes: declared in ${rel%/*}/README.md
+EOF
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  _print_common_help
+  exit 0
+fi
 
 require_stable_env() {
   export TZ="${TZ:-UTC}"
@@ -17,13 +41,6 @@ require_stable_env() {
   }
 }
 
-require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || {
-    echo "missing required command: $1" >&2
-    exit 127
-  }
-}
-
 require_env() {
   local var_name="$1"
   local var_value="${!var_name-}"
@@ -34,7 +51,7 @@ require_env() {
 }
 
 repo_root() {
-  cd "$(dirname "$0")/.." && pwd
+  cd "$(dirname "${BASH_SOURCE[1]:-$0}")/.." && pwd
 }
 
 ensure_artifacts_dir() {
