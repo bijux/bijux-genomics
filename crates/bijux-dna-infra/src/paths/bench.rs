@@ -9,3 +9,13 @@ pub fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
 pub fn bench_tools_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
     bench_base_dir(out, stage, sample_id).join("tools")
 }
+
+#[must_use]
+pub fn bench_data_dir(root: &Path) -> PathBuf {
+    root.join("crates").join("bijux-dna-bench").join("bench")
+}
+
+#[must_use]
+pub fn bench_suites_dir(root: &Path) -> PathBuf {
+    bench_data_dir(root).join("suites")
+}
