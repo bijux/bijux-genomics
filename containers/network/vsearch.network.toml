@@ -1,0 +1,6 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "vsearch"
+runtime_network = false
+build_network = true
+notes = "No runtime call-home expected; build may download pinned artifacts."
