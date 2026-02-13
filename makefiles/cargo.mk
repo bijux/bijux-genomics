@@ -77,6 +77,10 @@ lint:
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 	./scripts/run.sh checks check-examples-structure
 	./scripts/run.sh checks check-examples-corpus-manifests
+	./scripts/run.sh checks check-examples-corpus-layout
+	./scripts/run.sh checks check-examples-golden
+	./scripts/run.sh checks check-examples-cli-snapshot
+	./scripts/run.sh checks check-examples-notebook-policy
 	./scripts/run.sh containers lint
 	./scripts/run.sh test test-scripts-smoke
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy

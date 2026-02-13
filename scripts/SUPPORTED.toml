@@ -1095,3 +1095,43 @@ purpose = "checks script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "check_examples_corpus_layout"
+path = "scripts/checks/check-examples-corpus-layout.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_examples_golden"
+path = "scripts/checks/check-examples-golden.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_examples_cli_snapshot"
+path = "scripts/checks/check-examples-cli-snapshot.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_examples_notebook_policy"
+path = "scripts/checks/check-examples-notebook-policy.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "examples_check_drift"
+path = "scripts/examples/check-drift.sh"
+purpose = "examples script"
+inputs = []
+outputs = []
+ci_allowed = true
