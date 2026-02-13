@@ -12,6 +12,7 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - [Boundary Map](10-architecture/BOUNDARY_MAP.md)
 - [SSOT](10-architecture/SSOT.md)
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
+- [Configs Index](../configs/index.md)
 
 ## Policy checks
 - [CLI conventions and snapshot](cli/index.md)
