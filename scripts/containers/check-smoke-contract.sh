@@ -15,9 +15,9 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 root = Path(sys.argv[1])
-contract_doc = root / "containers/docs/SMOKE_CONTRACT.md"
+contract_doc = root / "containers/SMOKE_CONTRACT.md"
 if not contract_doc.exists():
-    print("smoke contract check failed: missing containers/docs/SMOKE_CONTRACT.md", file=sys.stderr)
+    print("smoke contract check failed: missing containers/SMOKE_CONTRACT.md", file=sys.stderr)
     raise SystemExit(1)
 regs = [
     root / "configs/ci/registry/tool_registry.toml",

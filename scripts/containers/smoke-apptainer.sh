@@ -34,11 +34,13 @@ UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
-SBOM_DIR="$ARTIFACT_DIR/sbom/apptainer"
+SBOM_DIR="$ARTIFACT_DIR/sbom"
+SMOKE_ARCHIVE_ROOT="$ARTIFACT_DIR/smoke/apptainer"
+RUN_TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SUMMARY="$LOG_DIR/summary.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 
-mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
 export SMOKE_RUN_MODE
 export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
@@ -370,7 +372,10 @@ build_and_smoke_one() {
   minimal_output_file="$LOG_DIR/${tool}.minimal.out"
   negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
-  sbom_file="$SBOM_DIR/${tool}.packages.txt"
+  sbom_file="$SBOM_DIR/${tool}/apptainer.packages.txt"
+  smoke_archive_dir="$SMOKE_ARCHIVE_ROOT/$tool"
+  smoke_archive_log="$smoke_archive_dir/${RUN_TIMESTAMP}.log"
+  smoke_archive_checksum="$smoke_archive_log.sha256"
   manifest="$MANIFEST_DIR/${tool}.json"
   base_image=$(awk '/^From: /{print $2; exit}' "$def_file")
   upstream=$(get_registry_field upstream "$tool")
@@ -379,6 +384,7 @@ build_and_smoke_one() {
   image_ref="$out_sif"
   image_digest="$(shasum -a 256 "$vm_sif" 2>/dev/null | awk '{print $1}' || true)"
 
+  mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   rm -f "$vm_sif" "$vm_log" "$out_log" "$out_sif" "$version_output_file" "$help_output_file" "$minimal_output_file" "$self_report_file"
 
   set +e
@@ -511,6 +517,8 @@ PY
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
   "sbom_path": "$(json_escape "$sbom_file")",
+  "smoke_log_path": "$(json_escape "$smoke_archive_log")",
+  "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }
@@ -545,6 +553,8 @@ JSON
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
+  "smoke_log_path": "$(json_escape "$smoke_archive_log")",
+  "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "version_output": "",
   "built_at_utc": "$built_at"
 }
@@ -552,6 +562,8 @@ JSON
 )
     write_manifest_json "$manifest" "$payload"
     cp -f "$vm_log" "$out_log" 2>/dev/null || true
+    cp -f "$vm_log" "$smoke_archive_log" 2>/dev/null || true
+    shasum -a 256 "$smoke_archive_log" > "$smoke_archive_checksum" 2>/dev/null || true
     echo "FAIL $tool (see $out_log)"
     set -e
     return 1
@@ -559,6 +571,8 @@ JSON
   set -e
 
   cp -f "$vm_log" "$out_log"
+  cp -f "$vm_log" "$smoke_archive_log" 2>/dev/null || true
+  shasum -a 256 "$smoke_archive_log" > "$smoke_archive_checksum" 2>/dev/null || true
   cp -f "$vm_sif" "$out_sif"
   echo "OK $tool"
 }

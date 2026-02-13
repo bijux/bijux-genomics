@@ -31,13 +31,15 @@ SMOKE_LEVEL="${SMOKE_LEVEL:-contract}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
 IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
-SBOM_DIR="$ARTIFACT_DIR/sbom/$RUNTIME_NAME"
+SBOM_DIR="$ARTIFACT_DIR/sbom"
+SMOKE_ARCHIVE_ROOT="$ARTIFACT_DIR/smoke/$RUNTIME_NAME"
+RUN_TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 INTERRUPTED=0
 
-mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$MANIFEST_DIR"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$MANIFEST_DIR"
 
 require_cmd "$DOCKER_BIN"
 require_cmd jq
@@ -280,7 +282,10 @@ build_and_smoke_one() {
   minimal_output_file="$LOG_DIR/${tool}.minimal.out"
   negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
-  sbom_file="$SBOM_DIR/${tool}.packages.txt"
+  sbom_file="$SBOM_DIR/${tool}/${RUNTIME_NAME}.packages.txt"
+  smoke_archive_dir="$SMOKE_ARCHIVE_ROOT/$tool"
+  smoke_archive_log="$smoke_archive_dir/${RUN_TIMESTAMP}.log"
+  smoke_archive_checksum="$smoke_archive_log.sha256"
   manifest="$MANIFEST_DIR/${tool}.json"
   dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
   upstream=$(get_registry_field upstream "$tool")
@@ -289,6 +294,7 @@ build_and_smoke_one() {
   image_ref="$image"
   image_digest="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image" 2>/dev/null | head -n 1 || true)"
 
+  mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   {
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
@@ -437,6 +443,8 @@ PY
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
   "sbom_path": "$(json_escape "$sbom_file")",
+  "smoke_log_path": "$(json_escape "$smoke_archive_log")",
+  "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }
@@ -466,15 +474,21 @@ JSON
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
+  "smoke_log_path": "$(json_escape "$smoke_archive_log")",
+  "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "version_output": "",
   "built_at_utc": "$built_at"
 }
 JSON
 )
     write_manifest_json "$manifest" "$payload"
+    cp "$log" "$smoke_archive_log" 2>/dev/null || true
+    shasum -a 256 "$smoke_archive_log" > "$smoke_archive_checksum" 2>/dev/null || true
     echo "FAIL $tool (see $log)"
     return 1
   }
+  cp "$log" "$smoke_archive_log" 2>/dev/null || true
+  shasum -a 256 "$smoke_archive_log" > "$smoke_archive_checksum" 2>/dev/null || true
 
   echo "OK $tool"
 }
