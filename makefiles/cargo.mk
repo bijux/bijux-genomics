@@ -26,6 +26,7 @@ fmt:
 
 lint:
 	./scripts/tooling/check-config-paths.sh
+	./scripts/tooling/check-config-snapshot.sh
 	./scripts/checks/check-artifacts-tracked.sh
 	./scripts/checks/check-no-target-paths-in-tests.sh
 	./scripts/checks/check-no-user-path-literals.sh
