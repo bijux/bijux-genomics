@@ -15,6 +15,7 @@ fmt:
 	@./scripts/run.sh tooling ci-fmt
 
 lint:
+	./scripts/run.sh tooling repo-doctor
 	./scripts/run.sh checks check-supported-scripts
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
@@ -51,12 +52,15 @@ lint:
 	./scripts/run.sh checks check-isolation-contract
 	./scripts/run.sh checks check-shell-portability
 	./scripts/run.sh checks check-network-usage
+	./scripts/run.sh checks check-no-temp-leaks
+	./scripts/run.sh checks check-hpc-safety
 	./scripts/run.sh checks check-output-roots
 	./scripts/run.sh checks check-artifacts-layout
 	./scripts/run.sh checks check-script-arg-style
 	./scripts/run.sh checks check-no-orphan-scripts
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
+	./scripts/run.sh test test-scripts-smoke
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 test:
