@@ -1,5 +1,6 @@
 NEXTEST_PROFILE ?= ci
 NEXTEST_CONFIG ?= --config-file nextest.toml
+NEXTEST_FAST_EXPR ?= not test(/::slow__/)
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
 CARGO_BUILD_JOBS ?= $(JOBS)
@@ -29,7 +30,10 @@ lint:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; ./scripts/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); ./scripts/check-isolation-contract.sh)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; ./scripts/check-ssot-guardrails.sh; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED) -E "$(NEXTEST_FAST_EXPR)"; ./scripts/check-isolation-contract.sh)
+
+test-slow: ## Run only slow-labeled tests (functions containing slow__).
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-nextest); export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED) -E "test(/::slow__/)")
 
 audit:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; $(call REQUIRE_TOOL,cargo-deny); cargo deny check)
@@ -149,6 +153,12 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/check-no-raw-cargo-in-makefiles.sh
 	./scripts/check-no-raw-cargo-in-scripts.sh
 
+policy-index: ## Generate policy index under artifacts/.
+	@./scripts/generate-policy-index.sh
+
+policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; cargo test -p bijux-dna-policies --test contracts --test boundaries --test determinism -- --nocapture; cargo test -p bijux-dna-core --test contracts -- --nocapture; cargo test -p bijux-dna-pipelines --test contracts -- --nocapture; cargo test -p bijux-dna-runtime --test contracts -- --nocapture)
+
 scripts-inventory: ## Generate scripts inventory under artifacts/
 	@./scripts/inventory.sh
 
@@ -163,4 +173,4 @@ smoke-bam: ## Quick local BAM smoke dry-run.
 		domain-gates \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
-		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory smoke-fastq smoke-bam
+		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate
