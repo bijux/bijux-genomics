@@ -57,7 +57,7 @@ lint:
 test:
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
 
-test-slow: ## Run only slow-labeled tests (functions containing slow__).
+_test-slow: ## Run only slow-labeled tests (functions containing slow__).
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
@@ -66,132 +66,128 @@ audit:
 coverage:
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/run.sh tooling ci-coverage
 
-install-ci-tools: ## Install required cargo tools once per CI job.
+_install-ci-tools: ## Install required cargo tools once per CI job.
 	@./scripts/run.sh tooling ci-install-tools
 
-domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
+_domain-gates: _domain-validate _domain-inventory-drift _check-generated-configs _check-generated-config-headers
 
 ci:
-	$(MAKE) fmt
-	$(MAKE) lint
-	$(MAKE) audit
-	$(MAKE) test
-	$(MAKE) coverage
+	@./bin/isolate sh -ceu 'export CARGO_TARGET_DIR="$$ISO_ROOT/target-ci"; $(MAKE) fmt lint audit test coverage'
 
-check:
+_check:
 	$(MAKE) fmt lint audit coverage
 
-verify-parallel-isolation:
+_verify-parallel-isolation:
 	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_a_path'
 	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > artifacts/isolates/.verify_b_path'
 	@test "$$(cat artifacts/isolates/.verify_a_path)" != "$$(cat artifacts/isolates/.verify_b_path)"
 	@rm -f artifacts/isolates/.verify_a_path artifacts/isolates/.verify_b_path
 
-clean-isolates:
+_clean-isolates:
 	@rm -rf artifacts/isolates/*
 
-policy-fast: ## Run fast policy checks (no snapshots)
+_policy-fast: ## Run fast policy checks (no snapshots)
 	@./scripts/run.sh tooling cargo-targets policy-fast
-	$(MAKE) domain-gates
+	$(MAKE) _domain-gates
 
-ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
+_ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
 	./scripts/run.sh checks check-ssot-guardrails
-	$(MAKE) domain-gates
+	$(MAKE) _domain-gates
 	@./scripts/run.sh tooling cargo-targets ssot-policy-fast
 
-test-profile-invariants: ## Run pipeline profile invariant contract tests.
+_test-profile-invariants: ## Run pipeline profile invariant contract tests.
 	@./scripts/run.sh tooling cargo-targets test-profile-invariants
 
-registry-lint: ## Run strict tool registry reproducibility policy checks.
+_registry-lint: ## Run strict tool registry reproducibility policy checks.
 	@./scripts/run.sh tooling cargo-targets registry-lint
 
-unit-contract-fast: ## Fast unit/contract checks for critical crates.
+_unit-contract-fast: ## Fast unit/contract checks for critical crates.
 	@./scripts/run.sh tooling cargo-targets unit-contract-fast
 
-release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
-	$(MAKE) registry-lint
+_release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
+	$(MAKE) _registry-lint
 	@./scripts/run.sh tooling cargo-targets release-readiness
 
-ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
-	$(MAKE) ssot-policy-fast
+_ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
+	$(MAKE) _ssot-policy-fast
 	$(MAKE) fmt
 	$(MAKE) lint
-	$(MAKE) unit-contract-fast
-	$(MAKE) release-readiness
-	$(MAKE) test-profile-invariants
-	$(MAKE) policy-no-raw-cargo
+	$(MAKE) _unit-contract-fast
+	$(MAKE) _release-readiness
+	$(MAKE) _test-profile-invariants
+	$(MAKE) _policy-no-raw-cargo
 
-ci-slow: ## Slow CI tier (manual): heavier integration checks.
-	$(MAKE) install-ci-tools
+_ci-slow: ## Slow CI tier (manual): heavier integration checks.
+	$(MAKE) _install-ci-tools
 	$(MAKE) audit
 	$(MAKE) coverage
-	$(MAKE) docs-isolate
-	$(MAKE) domain-gates
-	$(MAKE) release-readiness
+	$(MAKE) _docs-isolate
+	$(MAKE) _domain-gates
+	$(MAKE) _release-readiness
 
-quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
+_quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) fmt
 	$(MAKE) lint
-	$(MAKE) test-profile-invariants
-	$(MAKE) registry-lint
+	$(MAKE) _test-profile-invariants
+	$(MAKE) _registry-lint
 
-policy-full: ## Run full policy suite
+_policy-full: ## Run full policy suite
 	@./scripts/run.sh tooling cargo-targets policy-full
-	$(MAKE) domain-gates
+	$(MAKE) _domain-gates
 
-domain-validate:
+_domain-validate:
 	./scripts/run.sh domain validate
 
-domain-coverage:
+_domain-coverage:
 	@./scripts/run.sh tooling cargo-targets domain-coverage
 
-domain-inventory-drift:
+_domain-inventory-drift:
 	./scripts/run.sh domain inventory-drift
 
-snapshots:
+_snapshots:
 	@./scripts/run.sh tooling cargo-targets snapshots
 
-snapshots-accept:
+_snapshots-accept:
 	@./scripts/run.sh tooling cargo-targets snapshots-accept
 
-snapshots-review:
+_snapshots-review:
 	@./scripts/run.sh tooling cargo-targets snapshots-review
 
-fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
+_fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
 	@./scripts/run.sh tooling cargo-targets fix-snapshots
 
-test-triage: ## Group failed tests from a saved nextest log.
+_test-triage: ## Group failed tests from a saved nextest log.
 	@./scripts/run.sh test test-triage artifacts/test-logs/latest.log
 
-generate-configs:
+_generate-configs:
 	@./scripts/run.sh tooling generate-configs
 
-check-generated-configs:
+_check-generated-configs:
 	./scripts/run.sh checks check-generated-configs
 
-check-generated-config-headers:
+_check-generated-config-headers:
 	./scripts/run.sh checks check-generated-config-headers
 
-policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
+_policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 
-policy-index: ## Generate policy index under artifacts/.
+_policy-index: ## Generate policy index under artifacts/.
 	@./scripts/run.sh tooling generate-policy-index
 
-policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
+_policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
 	@./scripts/run.sh tooling cargo-targets policy-only-fast-gate
 
-scripts-inventory: ## Generate scripts inventory under artifacts/
+_scripts-inventory: ## Generate scripts inventory under artifacts/
 	@./scripts/run.sh tooling inventory
 
-config-inventory: ## Generate config inventory under artifacts/
+_config-inventory: ## Generate config inventory under artifacts/
 	@./scripts/run.sh tooling config-inventory
 
-smoke-fastq: ## Quick local FASTQ smoke dry-run.
+_smoke-fastq: ## Quick local FASTQ smoke dry-run.
 	@./scripts/run.sh smoke run fastq
 
-smoke-bam: ## Quick local BAM smoke dry-run.
+_smoke-bam: ## Quick local BAM smoke dry-run.
 	@./scripts/run.sh smoke run bam
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
@@ -200,10 +196,10 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint test audit coverage ci check verify-parallel-isolation \
-		clean-isolates \
-		domain-gates \
-		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
-		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick install-ci-tools \
-		snapshots snapshots-accept snapshots-review fix-snapshots test-triage scripts-inventory config-inventory smoke-fastq smoke-bam test-slow policy-index policy-only-fast-gate \
+.PHONY: fmt lint test audit coverage ci _check _verify-parallel-isolation \
+		_clean-isolates \
+		_domain-gates \
+		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
+		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _quick _install-ci-tools \
+		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
 		refresh-assets-toy refresh-assets-golden

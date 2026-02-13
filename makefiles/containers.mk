@@ -26,83 +26,83 @@ SMOKE_SCRIPT_docker_amd64 := scripts/containers/smoke-docker-amd64.sh
 SMOKE_SCRIPT_apptainer := scripts/containers/smoke-apptainer.sh
 SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
-container-runtime-check: ## Validate selected container runtime
+_container-runtime-check: ## Validate selected container runtime
 	@SYSTEM_TYPE="$(SYSTEM_TYPE)" CONTAINER_TYPE="$(CONTAINER_TYPE)" ./scripts/run.sh containers make container-runtime-check
 
-env-prep: ## Prepare environment images via CLI (TOOL=<id> or STAGE=<domain.stage|stage>)
+_env-prep: ## Prepare environment images via CLI (TOOL=<id> or STAGE=<domain.stage|stage>)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" STAGE="$(STAGE)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make env-prep
 
-env-smoke: ## Smoke environment via CLI (TOOL=<id> or STAGE=<domain.stage|stage>)
+_env-smoke: ## Smoke environment via CLI (TOOL=<id> or STAGE=<domain.stage|stage>)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" STAGE="$(STAGE)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make env-smoke
 
-container-smoke: container-runtime-check ## Prepare+smoke selected tool/stage via CLI
+_container-smoke: _container-runtime-check ## Prepare+smoke selected tool/stage via CLI
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" STAGE="$(STAGE)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make container-smoke
 
-containers-smoke: container-runtime-check ## Prepare+smoke every registered stage via CLI
+_containers-smoke: _container-runtime-check ## Prepare+smoke every registered stage via CLI
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make containers-smoke
 
-smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
+_smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-containers-docker-arm64
 
-smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
+_smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-containers-docker-amd64
 
-smoke-containers-apptainer: ## Build+smoke Apptainer containers
+_smoke-containers-apptainer: ## Build+smoke Apptainer containers
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-containers-apptainer
 
-smoke-cntainers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
+_smoke-cntainers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
 	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-cntainers-apptainer-bijux-run
 
-smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
+_smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
 	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-cntainers-apptainer-apptainer-run
 
-smoke-cntainers-apptainer-verify: smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
+_smoke-cntainers-apptainer-verify: _smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
 	@CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make smoke-cntainers-apptainer-verify
 
-build-images: ## Build Docker images (docker-arm64 only)
+_build-images: ## Build Docker images (docker-arm64 only)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" BIJUX_BIN="$(BIJUX_BIN)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make build-images
 
-test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
+_test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" STAGE="$(STAGE)" BIJUX_WORKERS="$(BIJUX_WORKERS)" BIJUX_BIN="$(BIJUX_BIN)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make test-images
 
-# Generic stage smoke: make test-images-stage STAGE=fastq.trim (or STAGE=trim)
-test-images-stage: ## Smoke all tools for one stage via CLI registry
+# Generic stage smoke: make _test-images-stage STAGE=fastq.trim (or STAGE=trim)
+_test-images-stage: ## Smoke all tools for one stage via CLI registry
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" STAGE="$(STAGE)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make test-images-stage
 
-# Single tool smoke: make test-images-tool TOOLS=<tool_id>
-test-images-tool: ## Smoke one tool via CLI registry
+# Single tool smoke: make _test-images-tool TOOLS=<tool_id>
+_test-images-tool: ## Smoke one tool via CLI registry
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make test-images-tool
 
-image-smoke-vcf: ## Smoke only VCF tools and write manifests under isolate/container artifacts.
+_image-smoke-vcf: ## Smoke only VCF tools and write manifests under isolate/container artifacts.
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" BIJUX_WORKERS="$(BIJUX_WORKERS)" BIJUX_BIN="$(BIJUX_BIN)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers make image-smoke-vcf
 
-image-qa: ## Run image QA (docker-arm64 only)
+_image-qa: ## Run image QA (docker-arm64 only)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" PLATFORM="$(PLATFORM)" ./scripts/run.sh containers make image-qa
 
-containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
+_containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
 	@BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ./scripts/run.sh containers build-apptainer-all \
 		--defs-dir containers/apptainer \
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
 
-apptainer-ensure: ## Ensure apptainer images from SSOT stage list. Use DOMAIN=<domain> STAGES=<s1,s2>
+_apptainer-ensure: ## Ensure apptainer images from SSOT stage list. Use DOMAIN=<domain> STAGES=<s1,s2>
 	@DOMAIN="$(DOMAIN)" STAGES="$(STAGES)" BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make apptainer-ensure
 
-apptainer-ensure-stage: ## Ensure apptainer image(s) for one stage via DOMAIN=<domain> STAGES=<stage>
+_apptainer-ensure-stage: ## Ensure apptainer image(s) for one stage via DOMAIN=<domain> STAGES=<stage>
 	@DOMAIN="$(DOMAIN)" STAGES="$(STAGES)" BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers make apptainer-ensure-stage
 
-containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
+_containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
 	@./scripts/run.sh containers lint
 
-containers-ensure-images: ## Ensure container images are up to date with images.toml + registry lock
+_containers-ensure-images: ## Ensure container images are up to date with images.toml + registry lock
 	@./scripts/run.sh containers ensure-images
 
-containers: ## Print tools/runtime/result/log summary from target-containers manifests
+_containers: ## Print tools/runtime/result/log summary from target-containers manifests
 	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/run.sh containers summary
 
-.PHONY: container-runtime-check env-prep env-smoke container-smoke containers-smoke \
-	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
-	smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run smoke-cntainers-apptainer-verify \
-	build-images test-images test-images-stage test-images-tool image-smoke-vcf image-qa \
-	containers-apptainer-build containers-lint containers-ensure-images containers \
-	apptainer-ensure apptainer-ensure-stage
+.PHONY: _container-runtime-check _env-prep _env-smoke _container-smoke _containers-smoke \
+	_smoke-containers-docker-arm64 _smoke-containers-docker-amd64 _smoke-containers-apptainer \
+	_smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run _smoke-cntainers-apptainer-verify \
+	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
+	_containers-apptainer-build _containers-lint _containers-ensure-images _containers \
+	_apptainer-ensure _apptainer-ensure-stage
