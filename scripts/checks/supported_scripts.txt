@@ -1,6 +1,7 @@
 scripts/assets/refresh-golden.sh
 scripts/assets/refresh-toy.sh
 scripts/checks/check-artifacts-tracked.sh
+scripts/checks/check-assets-drift.sh
 scripts/checks/check-ci-shell-scripts.sh
 scripts/checks/check-config-contract-headers.sh
 scripts/checks/check-config-filenames.sh

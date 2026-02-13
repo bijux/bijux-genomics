@@ -40,6 +40,7 @@ lint:
 	./scripts/checks/check-no-target-paths-in-tests.sh
 	./scripts/checks/check-no-user-path-literals.sh
 	./scripts/checks/check-script-writes.sh
+	./scripts/checks/check-assets-drift.sh
 	./scripts/checks/tree-intent.sh
 	./scripts/checks/check-readme-links.sh
 	./scripts/checks/check-ci-shell-scripts.sh

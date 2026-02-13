@@ -12,6 +12,12 @@ refresh-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/assets/refresh-golden.sh
 
+refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
+	@./scripts/assets/refresh-toy.sh
+
+refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
+	@./scripts/assets/refresh-golden.sh
+
 golden-refresh: refresh-golden ## Backward-compatible alias.
 
-.PHONY: toy-golden-check refresh-toy refresh-golden golden-refresh
+.PHONY: toy-golden-check refresh-toy refresh-golden refresh-assets-toy refresh-assets-golden golden-refresh
