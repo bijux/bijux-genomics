@@ -34,10 +34,11 @@ UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
+SBOM_DIR="$ARTIFACT_DIR/sbom/apptainer"
 SUMMARY="$LOG_DIR/summary.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 
-mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
 export SMOKE_RUN_MODE
 export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
@@ -50,6 +51,10 @@ require_cmd sed
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
+
+if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
+  "$ROOT_DIR/scripts/containers/check-network-disclosure.sh" --offline
+fi
 
 if [ ! -d "$DEFS_DIR" ]; then
   echo "ERROR: defs dir not found: $DEFS_DIR" >&2
@@ -365,6 +370,7 @@ build_and_smoke_one() {
   minimal_output_file="$LOG_DIR/${tool}.minimal.out"
   negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
+  sbom_file="$SBOM_DIR/${tool}.packages.txt"
   manifest="$MANIFEST_DIR/${tool}.json"
   base_image=$(awk '/^From: /{print $2; exit}' "$def_file")
   upstream=$(get_registry_field upstream "$tool")
@@ -466,7 +472,8 @@ PY
       fi
     fi
     image_size_bytes="$(stat -f%z "$vm_sif" 2>/dev/null || stat -c%s "$vm_sif" 2>/dev/null || echo 0)"
-    packages_hash="$(run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc 'dpkg-query -W 2>/dev/null || true' | shasum -a 256 | awk '{print $1}')"
+    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
+    packages_hash="$(shasum -a 256 "$sbom_file" | awk '{print $1}')"
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
     version_output_json="$(json_escape "$version_output")"
@@ -503,6 +510,7 @@ PY
   "version_output": "$version_output_json",
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
+  "sbom_path": "$(json_escape "$sbom_file")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }

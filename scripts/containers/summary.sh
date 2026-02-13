@@ -85,6 +85,7 @@ for path in sorted(glob.glob(os.path.join(manifest_dir, "*.json"))):
       "manifest": path,
       "image_size_bytes": data.get("image_size_bytes"),
       "packages_hash": data.get("packages_hash"),
+      "sbom_path": data.get("sbom_path"),
       "self_report_path": data.get("self_report_path"),
     })
 
