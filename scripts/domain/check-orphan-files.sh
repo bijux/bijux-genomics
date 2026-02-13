@@ -10,9 +10,36 @@ python3 - "$ROOT_DIR" <<'PY'
 from pathlib import Path
 import re
 import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 root = Path(sys.argv[1])
 errors = []
+
+external_tools_cfg = root / "configs" / "domain" / "external_tools.toml"
+external_tools = set()
+if external_tools_cfg.exists():
+    data = tomllib.loads(external_tools_cfg.read_text(encoding="utf-8"))
+    external_tools = set(data.get("non_container_tools", {}).keys())
+
+registry_tools_by_domain: dict[str, set[str]] = {}
+for reg in sorted((root / "configs" / "ci" / "registry").glob("tool_registry*.toml")):
+    data = tomllib.loads(reg.read_text(encoding="utf-8"))
+    for row in data.get("tools", []):
+        tid = str(row.get("tool_id") or row.get("id") or "").strip()
+        status = str(row.get("status", "")).strip()
+        if not tid or "." in tid:
+            continue
+        if status not in {"production", "supported"}:
+            continue
+        for sid in row.get("bindings", []):
+            sid_s = str(sid).strip()
+            if "." not in sid_s:
+                continue
+            dom = sid_s.split(".", 1)[0]
+            registry_tools_by_domain.setdefault(dom, set()).add(tid)
 
 def parse_list(text: str, key: str):
     out = []
@@ -52,13 +79,21 @@ for dom_dir in sorted((root / "domain").iterdir()):
         if sid not in indexed_stages:
             errors.append(f"{sf.relative_to(root)}: orphan stage file not referenced by index.yaml")
 
+    domain_tool_ids = set()
     for tf in (dom_dir / "tools").glob("*.yaml"):
         if tf.name == "_schema.yaml":
             continue
         m = re.search(r'^tool_id:\s*"?([^"\n#]+)"?\s*$', tf.read_text(encoding="utf-8"), flags=re.MULTILINE)
         tid = m.group(1).strip() if m else tf.stem
-        if tid not in indexed_tools and tid not in fixture_tools:
-            errors.append(f"{tf.relative_to(root)}: orphan tool file not referenced by index.yaml or fixtures")
+        domain_tool_ids.add(tid)
+        if tid not in indexed_tools and tid not in fixture_tools and tid not in registry_tools_by_domain.get(dom_dir.name, set()):
+            errors.append(f"{tf.relative_to(root)}: orphan tool file not referenced by index.yaml, fixtures, or registry bindings")
+
+    for registry_tool in sorted(registry_tools_by_domain.get(dom_dir.name, set())):
+        if registry_tool not in domain_tool_ids and registry_tool not in external_tools:
+            errors.append(
+                f"domain/{dom_dir.name}/tools: missing tool yaml for registry-bound tool '{registry_tool}' (or declare external tool policy)"
+            )
 
 if errors:
     print("orphan stage/tool check failed:", file=sys.stderr)

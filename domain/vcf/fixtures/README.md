@@ -11,11 +11,24 @@ Each fixture file under `domain/vcf/fixtures/<stage>/*.txt` must define:
 - `expected_outputs=<artifact ids or token>`
 - `expected_stdout_patterns=<token list or placeholder>`
 
-Stage coverage expectations:
-- `vcf.population_structure/*`: at least one fixture producing `population_structure_report`.
-- `vcf.roh/*`: at least one fixture producing `roh_report`.
-- `vcf.ibd/*`: at least one fixture producing `ibd_segments`.
-- `vcf.demography/*`: at least one fixture producing `demography_report`.
-- `vcf.call_gl/*`: at least one fixture producing GL-bearing output (`FORMAT/GL` or `FORMAT/PL`).
-- `vcf.damage_filter/*`: fixtures must include explicit C>T/G>A and PMD rule shape.
-- `vcf.gl_propagation/*`: fixtures must preserve GL/PL fields across post-processing.
+## Fixture Directories
+- `vcf.admixture`: intent = stage-specific command contract coverage for `vcf.admixture`.
+- `vcf.call`: intent = stage-specific command contract coverage for `vcf.call`.
+- `vcf.call_diploid`: intent = stage-specific command contract coverage for `vcf.call_diploid`.
+- `vcf.call_gl`: intent = stage-specific command contract coverage for `vcf.call_gl`.
+- `vcf.call_pseudohaploid`: intent = stage-specific command contract coverage for `vcf.call_pseudohaploid`.
+- `vcf.damage_filter`: intent = stage-specific command contract coverage for `vcf.damage_filter`.
+- `vcf.demography`: intent = stage-specific command contract coverage for `vcf.demography`.
+- `vcf.filter`: intent = stage-specific command contract coverage for `vcf.filter`.
+- `vcf.gl_propagation`: intent = stage-specific command contract coverage for `vcf.gl_propagation`.
+- `vcf.ibd`: intent = stage-specific command contract coverage for `vcf.ibd`.
+- `vcf.imputation`: intent = stage-specific command contract coverage for `vcf.imputation`.
+- `vcf.impute`: intent = stage-specific command contract coverage for `vcf.impute`.
+- `vcf.pca`: intent = stage-specific command contract coverage for `vcf.pca`.
+- `vcf.phasing`: intent = stage-specific command contract coverage for `vcf.phasing`.
+- `vcf.population_structure`: intent = stage-specific command contract coverage for `vcf.population_structure`.
+- `vcf.postprocess`: intent = stage-specific command contract coverage for `vcf.postprocess`.
+- `vcf.prepare_reference_panel`: intent = stage-specific command contract coverage for `vcf.prepare_reference_panel`.
+- `vcf.qc`: intent = stage-specific command contract coverage for `vcf.qc`.
+- `vcf.roh`: intent = stage-specific command contract coverage for `vcf.roh`.
+- `vcf.stats`: intent = stage-specific command contract coverage for `vcf.stats`.

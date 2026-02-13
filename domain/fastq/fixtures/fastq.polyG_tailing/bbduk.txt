@@ -1,6 +1,6 @@
 tool=bbduk
 tool_version=pinned
-stage=fastq.polyG_tailing
+stage=fastq.polyg_tailing
 domain=fastq
 fixture_kind=synthetic_truth
 command=bbduk
