@@ -1,0 +1,9 @@
+tool=plink2
+tool_version=pinned
+stage=vcf.roh
+domain=vcf
+fixture_kind=planned
+command=plink2
+args=--homozyg --vcf cohort.vcf.gz --out roh
+expected_outputs=roh_report
+expected_stdout_patterns=plink2
