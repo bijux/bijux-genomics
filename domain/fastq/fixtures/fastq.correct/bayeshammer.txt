@@ -1,6 +1,9 @@
 tool=bayeshammer
+tool_version=pinned
 stage=fastq.correct
 domain=fastq
 fixture_kind=truth
+command=bayeshammer
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

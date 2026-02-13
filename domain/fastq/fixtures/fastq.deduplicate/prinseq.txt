@@ -1,6 +1,9 @@
 tool=prinseq
+tool_version=pinned
 stage=fastq.deduplicate
 domain=fastq
 fixture_kind=synthetic_truth
+command=prinseq
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

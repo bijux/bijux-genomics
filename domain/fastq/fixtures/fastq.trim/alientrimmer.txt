@@ -1,6 +1,9 @@
 tool=alientrimmer
+tool_version=pinned
 stage=fastq.trim
 domain=fastq
 fixture_kind=truth
+command=alientrimmer
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

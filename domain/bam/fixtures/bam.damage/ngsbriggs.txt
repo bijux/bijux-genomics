@@ -1,7 +1,10 @@
 tool=ngsbriggs
+tool_version=pinned
 stage=bam.damage
 domain=bam
 shipping=external
 fixture_kind=truth
+command=ngsbriggs
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

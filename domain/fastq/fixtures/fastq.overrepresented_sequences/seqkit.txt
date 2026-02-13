@@ -1,6 +1,9 @@
 tool=seqkit
+tool_version=pinned
 stage=fastq.overrepresented_sequences
 domain=fastq
 fixture_kind=synthetic_truth
+command=seqkit
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

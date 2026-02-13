@@ -1,7 +1,10 @@
 tool=diamond
+tool_version=pinned
 stage=fastq.screen
 domain=fastq
 shipping=external
 fixture_kind=truth
+command=diamond
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok

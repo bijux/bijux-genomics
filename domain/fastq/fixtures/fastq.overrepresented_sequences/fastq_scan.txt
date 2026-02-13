@@ -1,7 +1,10 @@
 tool=fastq_scan
+tool_version=pinned
 stage=fastq.overrepresented_sequences
 domain=fastq
 shipping=external
 fixture_kind=synthetic_truth
+command=fastq_scan
 args=
 expected_outputs=contract_artifacts
+expected_stdout_patterns=contract_ok
