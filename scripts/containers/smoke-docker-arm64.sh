@@ -38,6 +38,9 @@ SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 INTERRUPTED=0
+PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
+PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
+PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$MANIFEST_DIR"
 
@@ -446,6 +449,9 @@ PY
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "self_report_path": "$(json_escape "$self_report_file")",
+  "builder": "$(json_escape "$PROVENANCE_BUILDER")",
+  "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
+  "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
   "built_at_utc": "$built_at"
 }
 JSON
@@ -476,6 +482,9 @@ JSON
   "version_command": "$cmd_json",
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
+  "builder": "$(json_escape "$PROVENANCE_BUILDER")",
+  "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
+  "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
   "version_output": "",
   "built_at_utc": "$built_at"
 }

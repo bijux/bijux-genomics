@@ -34,6 +34,7 @@ version_map = json.loads(version_map_path.read_text(encoding="utf-8"))
 items = []
 manifest_dir = root / "artifacts" / "containers" / "manifests"
 digest_by_tool = {}
+size_by_tool = {}
 if manifest_dir.exists():
     for p in sorted(manifest_dir.glob("*.json")):
         try:
@@ -42,8 +43,13 @@ if manifest_dir.exists():
             continue
         t = str(m.get("tool", "")).strip()
         d = str(m.get("resolved_image_digest", "")).strip()
+        s = m.get("image_size_bytes", 0)
         if t:
             digest_by_tool[t] = d
+            try:
+                size_by_tool[t] = int(s)
+            except Exception:
+                size_by_tool[t] = 0
 for row in version_map.get("items", []):
     tool = row.get("tool")
     canonical = json.dumps(row, sort_keys=True, separators=(",", ":"))
@@ -55,6 +61,7 @@ for row in version_map.get("items", []):
         "source_sha256": str(row.get("source_sha256", "")),
         "pinned_commit": str(row.get("pinned_commit", "")),
         "resolved_image_digest": str(digest_by_tool.get(tool, "")),
+        "image_size_bytes": int(size_by_tool.get(tool, 0)),
         "entry_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
     })
 

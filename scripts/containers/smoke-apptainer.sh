@@ -30,6 +30,7 @@ TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
+CACHE_POLICY_TOML="$ROOT_DIR/configs/ci/tools/apptainer_cache_policy.toml"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
@@ -39,6 +40,9 @@ SMOKE_ARCHIVE_ROOT="$ARTIFACT_DIR/smoke/apptainer"
 RUN_TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SUMMARY="$LOG_DIR/summary.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
+PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
+PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
+PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
@@ -53,6 +57,53 @@ require_cmd sed
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
+
+[[ -f "$CACHE_POLICY_TOML" ]] || { echo "missing $CACHE_POLICY_TOML" >&2; exit 1; }
+resolve_tilde() {
+  local path="$1"
+  if [[ "$path" == "~/"* ]]; then
+    printf '%s\n' "${HOME}/${path#~/}"
+  else
+    printf '%s\n' "$path"
+  fi
+}
+if [[ -n "${ISO_ROOT:-}" ]]; then
+  APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$ISO_ROOT/cache/apptainer}"
+  APPTAINER_TMPDIR="${APPTAINER_TMPDIR:-$ISO_ROOT/tmp/apptainer}"
+else
+  default_cache="$(python3 - "$CACHE_POLICY_TOML" <<'PY'
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+data = tomllib.loads(open(sys.argv[1], "rb").read())
+print(str(data.get("non_isolate_cache_root", "~/.cache/bijux-dna/apptainer")))
+PY
+)"
+  default_tmp="$(python3 - "$CACHE_POLICY_TOML" <<'PY'
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+data = tomllib.loads(open(sys.argv[1], "rb").read())
+print(str(data.get("non_isolate_tmp_root", "~/.cache/bijux-dna/apptainer/tmp")))
+PY
+)"
+  APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$(resolve_tilde "$default_cache")}"
+  APPTAINER_TMPDIR="${APPTAINER_TMPDIR:-$(resolve_tilde "$default_tmp")}"
+fi
+export APPTAINER_CACHEDIR APPTAINER_TMPDIR
+mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR"
+cache_abs="$(cd "$APPTAINER_CACHEDIR" && pwd)"
+tmp_abs="$(cd "$APPTAINER_TMPDIR" && pwd)"
+if [[ "$cache_abs" == "$ROOT_DIR"* || "$tmp_abs" == "$ROOT_DIR"* ]]; then
+  if [[ -z "${ISO_ROOT:-}" ]]; then
+    echo "apptainer cache policy violation: cache/tmp cannot be inside repo when not isolated" >&2
+    exit 1
+  fi
+fi
 
 if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
   "$ROOT_DIR/scripts/containers/check-network-disclosure.sh" --offline
@@ -520,6 +571,9 @@ PY
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "self_report_path": "$(json_escape "$self_report_file")",
+  "builder": "$(json_escape "$PROVENANCE_BUILDER")",
+  "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
+  "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
   "built_at_utc": "$built_at"
 }
 JSON
@@ -555,6 +609,9 @@ JSON
   "version_command": "$cmd_json",
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
+  "builder": "$(json_escape "$PROVENANCE_BUILDER")",
+  "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
+  "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
   "version_output": "",
   "built_at_utc": "$built_at"
 }
