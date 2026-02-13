@@ -3,10 +3,11 @@
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "scripts/containers/generate-version-lock.sh",
-  "generator_sha256": "bffe1f06c204a51babca0c24631dfc935a10cd6aedcf3ccc0abce1b7bb38d893",
+  "generator_sha256": "86a6b12395f5b0d3395fb33835ab3524baed6256474d956e125d54247a554f84",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -19,6 +20,7 @@
     },
     {
       "entry_sha256": "80629c4b994a60f4cb42524c92f55013bcdbad81875ce3d1f58dfe457bc4c79d",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -31,6 +33,7 @@
     },
     {
       "entry_sha256": "abd155bc794fa52053ad203e9d1bc359a0527d4625d32091e23ea3d7d14679f0",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -43,6 +46,7 @@
     },
     {
       "entry_sha256": "a3b23608dd47a1b546ff4c80d576d793b97c4c91b671f8599d55548345dc0e32",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -55,6 +59,7 @@
     },
     {
       "entry_sha256": "0022389de1b370bfb72f17a15716ff8820825ff56cebd09be00e15314de9ed3b",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -67,6 +72,7 @@
     },
     {
       "entry_sha256": "198b6d02e31922d1521e6bf0f812ca4626b0ce7bf1fef4f9bf3f94ff9242aa86",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -79,6 +85,7 @@
     },
     {
       "entry_sha256": "50b8958ffd28c5cb0bea4f66edfcc12200f03fa6687f9b592732bc4f3c5f02cf",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -91,6 +98,7 @@
     },
     {
       "entry_sha256": "617d6878f57aa3b4b631d5f0f51c6ed205aab641d60377dcd774452cb79d796b",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -103,6 +111,7 @@
     },
     {
       "entry_sha256": "ef9e8e70fea82a7785bd0c4dfa23ba69a408d6eb250b423493f93992b01e8f5f",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -115,6 +124,7 @@
     },
     {
       "entry_sha256": "7eb708605809e13ff26fe8e829f1870dd59a23c351ab89a12796194cf9c4e8de",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -127,6 +137,7 @@
     },
     {
       "entry_sha256": "debf629ed7e5cbd4e315a62e4264fdf955a079c98ee2ce258f85f18c873a0fa7",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -139,6 +150,7 @@
     },
     {
       "entry_sha256": "f6d8e22be2d7f455cc5a134363e1649e21cd467dd00559df9f388ab202d72313",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -151,6 +163,7 @@
     },
     {
       "entry_sha256": "dce3f0bf8326ed42ea16a31f4b6e2434ed7577fbf0938b86f11557c79706ffcd",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -163,6 +176,7 @@
     },
     {
       "entry_sha256": "4eae1d193f64352f348841f3c7e525065d9867be731373db3fdb351a6ccfb924",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -175,6 +189,7 @@
     },
     {
       "entry_sha256": "05ef1de47f31cfbef751b5ea34110e5b897d0561f5aaf443d611163bc045a71d",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -187,6 +202,7 @@
     },
     {
       "entry_sha256": "3af7968fd6169f0bd0a59b5d80343ac9af1a91f2599c87030c26289d7088a0fd",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -199,6 +215,7 @@
     },
     {
       "entry_sha256": "5b4af01b7386d8974d9527fd24899431b6c021a5448ec38aa4940f0c3ece3aa5",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -211,6 +228,7 @@
     },
     {
       "entry_sha256": "1df113e1619e6f7a3fc75eb26a06ae8916529b2b167fafd556f53717d5d122e0",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -223,6 +241,7 @@
     },
     {
       "entry_sha256": "c8196bd4c267d0d0e59387b613bc87b96f5b39780b0de5e844878a6a4eab3b31",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -235,6 +254,7 @@
     },
     {
       "entry_sha256": "a9428013a11bbf4631268524cefadbe1006a8bb264d452a4198cb30cd2c1cfad",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -247,6 +267,7 @@
     },
     {
       "entry_sha256": "14e38644b3b2bc47f0271df18c7bddfb9c82217482a25c59108d92567eb584e3",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -259,6 +280,7 @@
     },
     {
       "entry_sha256": "9478dc489a5034865ca890d61548da9f0f7012b2c717b8233552f241189d4855",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -271,6 +293,7 @@
     },
     {
       "entry_sha256": "fcdd040265ba8d248fe5cd55d3170034c42a496eed32dda20669f1c5e408c4f8",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -283,6 +306,7 @@
     },
     {
       "entry_sha256": "4ef1f58f54658396dfb005da8958bfdb9aa5010b2dc69f598466fd5ab6c946a6",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -295,6 +319,7 @@
     },
     {
       "entry_sha256": "9a7c960ecedaac9b066d0bc9a831a5e7fc505192b3e8dacd5f8d2cab49032576",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -307,6 +332,7 @@
     },
     {
       "entry_sha256": "e3792f133f05df1378693da697f7974357327e23dfe5f3dc357626c2dd9b872a",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -319,6 +345,7 @@
     },
     {
       "entry_sha256": "c1f027e627275cacb5321b6edd0072db7dc4285d33f36beef53733364eb8dddf",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -331,6 +358,7 @@
     },
     {
       "entry_sha256": "967fd6593f4d260d9a860c1f0ef712f7171f1f898e4a9abbc5fda492e3aa26ab",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -343,6 +371,7 @@
     },
     {
       "entry_sha256": "0d184f294d1c30784d304c117a794b387ed1db67d1818e9f3d29b7113fb1573c",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -355,6 +384,7 @@
     },
     {
       "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -367,6 +397,7 @@
     },
     {
       "entry_sha256": "e253fedce8823c8d0297d062388619ad2050be14ca0aa9206363e48e760ec98c",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -379,6 +410,7 @@
     },
     {
       "entry_sha256": "22a927c384e702fdf43bd034a329f5b4a7078f7ab8e7ae8b6d377334b55e9700",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -391,6 +423,7 @@
     },
     {
       "entry_sha256": "2ab3288925302dd239b935da6e03ec28bae95f977bc534f476e568115eccde8b",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -403,6 +436,7 @@
     },
     {
       "entry_sha256": "80fec9643af3c58c65ea30236fe83f9304861e4fa5a7b0038f6cf11e12c3c2f4",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -415,6 +449,7 @@
     },
     {
       "entry_sha256": "c20cc261861264c568941f456206507f080fa94f832e0652e61c265026490731",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -427,6 +462,7 @@
     },
     {
       "entry_sha256": "84a60fc6824b993d408bf0d8ba2444ae7089a8c270322c83239ebccee6fd662b",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -439,6 +475,7 @@
     },
     {
       "entry_sha256": "57973807cf93f4b2ad97697a784764faf686456acec11af3d72c4f100382c195",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -451,6 +488,7 @@
     },
     {
       "entry_sha256": "efb9a2d7dc0147fe9e430ee1a4aa59b81869fb2d1b60d062ba1ec11f0c36fdb0",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -463,6 +501,7 @@
     },
     {
       "entry_sha256": "f4fbd5a74267d4a67bd9fa18fadf4affba1cbfc7e3a0e7de47b5f0d686535cba",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -475,6 +514,7 @@
     },
     {
       "entry_sha256": "3af21d2cf2a03ae56433d5585636d82a9b29bf929e6422fa61fc55312e010213",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -487,6 +527,7 @@
     },
     {
       "entry_sha256": "128106aba9c4cbdfb6fb17e77734a7f2b4a855c13213243d68e6c1f8ac26173a",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -499,6 +540,7 @@
     },
     {
       "entry_sha256": "1b44ed93346bc54d7cb3ba05cde3f053b7b5b64fdaa88122b9ea9f949d588265",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -511,6 +553,7 @@
     },
     {
       "entry_sha256": "272f1c9debf07200a6167d7f1c059c00e7ef3e81f0a04c0f402f433661de4aab",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -523,6 +566,7 @@
     },
     {
       "entry_sha256": "b17bc79a12c923afd9ae18166f2de46f6bb16ddb53af4da4da64e5c648f5cb92",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -535,6 +579,7 @@
     },
     {
       "entry_sha256": "a706cf5b6306b9ef3fac1a696dd93eee63985849f8e859a613561c798a8f72e9",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -547,6 +592,7 @@
     },
     {
       "entry_sha256": "f10979c38f5b926198063be42c1a30701f8db5bcf8603b0bb833d4ce62909bab",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -559,6 +605,7 @@
     },
     {
       "entry_sha256": "dc0fe696d16946542307aa43ab737f1d79a5378eaa5798d5e9c83da7dd28e5fd",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -571,6 +618,7 @@
     },
     {
       "entry_sha256": "9c1623fde9cb4f9c49bc9aa60b92a7fe4b5832f3a729d4f622ad6b433a46d8c5",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -583,6 +631,7 @@
     },
     {
       "entry_sha256": "f36c891662f00efecd29034d46262373967e0c9b9df4ab64e1bf4677bc57b5af",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -595,6 +644,7 @@
     },
     {
       "entry_sha256": "521793f959761eb533c398bf23325d826007f57062cb180be12f2244bd3c364a",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -607,6 +657,7 @@
     },
     {
       "entry_sha256": "0c4295e74e70745e0ef36f6554ebdb6eafdd0e534733267970c16c1219d395b7",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -619,6 +670,7 @@
     },
     {
       "entry_sha256": "430aed38ac5538b1085e27c8c1fc25a16354a41e2ef57640fffa927fa98e03a3",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -631,6 +683,7 @@
     },
     {
       "entry_sha256": "23755335afe4faca62c9faf3f054ecd3395180eca05b4be6f9511cdae398fcfc",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -643,6 +696,7 @@
     },
     {
       "entry_sha256": "acbfc6855dcbc9ac58c1ca5f046112f16635b3bc05fd6bb9d4c3fd9dd4e33dc1",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -655,6 +709,7 @@
     },
     {
       "entry_sha256": "59a4f2837449e143dcbe2c972611a3a4edc2641ac834f1b8fcfb7c7f25952c34",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -667,6 +722,7 @@
     },
     {
       "entry_sha256": "7ce22ba6c4e688e1ef3675170c58a74702391e7790187901af7d6532de652a64",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -679,6 +735,7 @@
     },
     {
       "entry_sha256": "e79a48acb62a5a2ac09a504baca5a0cdebe70fa505c0be90ae8863a2ba53d6a6",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -691,6 +748,7 @@
     },
     {
       "entry_sha256": "29f5cdfcbbccda89f1947d5fe047399c1bd7703664ba1140f03e3e641dd8b2f6",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -703,6 +761,7 @@
     },
     {
       "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -715,6 +774,7 @@
     },
     {
       "entry_sha256": "03baefe3e775726d55aa18c462e86b27606d08db2f91eb475fe2d72131dfb320",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -727,6 +787,7 @@
     },
     {
       "entry_sha256": "0a4aa66f7506c6d6d2716e60613c07b6869bd3c16da6237a70c6b81b0c834e41",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -739,6 +800,7 @@
     },
     {
       "entry_sha256": "81da261dc215fcd458eaad31c4ba0e59a465c5554834f7a73176a561ca56762a",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -751,6 +813,7 @@
     },
     {
       "entry_sha256": "8dec25755d2ada9f3312fbafa0191673565dc9b2c87e623966bf8401ee9d06c1",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -763,6 +826,7 @@
     },
     {
       "entry_sha256": "b163e27aa168afb590231bf595c1834ef02c070c6d4072d6a37b00cfaacdb27d",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -775,6 +839,7 @@
     },
     {
       "entry_sha256": "ae59507a80ad67c7b931a9e34e6eb5d0b7b07749ed15a8669b60712fd5705afc",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -787,6 +852,7 @@
     },
     {
       "entry_sha256": "4a526f31b3bf0e22d0e0e40a8214a5ab253177eff6fa9ef74f506c8dc4a19445",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -799,6 +865,7 @@
     },
     {
       "entry_sha256": "fcd8410f7cf305264b373586a0455d9180f5edd9d6edef27af4dfa70dbc6973f",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -811,6 +878,7 @@
     },
     {
       "entry_sha256": "4df8e7e000c62365ac188188855992db5bdc2df48e06e723fe8fbcd1ab1c5ba4",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -823,6 +891,7 @@
     },
     {
       "entry_sha256": "25c8b616ec2782215cd561c0c5cda5c066123583f4a3d06e86aa781d552ad749",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "",
       "resolved_image_digest": "",
@@ -835,6 +904,7 @@
     },
     {
       "entry_sha256": "6cd2519c72a14a0581bc34fb5ae5583ff5ae7a73d39d3a098461a4e242234ff2",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -847,6 +917,7 @@
     },
     {
       "entry_sha256": "f96cc6315b26fa6a98fe370dc4effe273c4dc7ee68f616e43ea0302f77899349",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -859,6 +930,7 @@
     },
     {
       "entry_sha256": "ba21402ff14126827aa4ccd08fbac1d941edad75f193c9737bdf7864c588defd",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -871,6 +943,7 @@
     },
     {
       "entry_sha256": "1dbc496532274db97eea6a5b9a484cc7af0fc2b2594762780c79a2a35d0447bf",
+      "frontend_resolved_sif_sha256": "",
       "image_size_bytes": 0,
       "pinned_commit": "0000000000000000000000000000000000000000",
       "resolved_image_digest": "",
@@ -882,7 +955,7 @@
       "version": "3.0.3"
     }
   ],
-  "schema_version": "bijux.container.version_lock.v2",
+  "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
   "source_sha256": "0c3b380b8835d132d52a409c3fde58974df708714de7e01994aac0acac6f9e3c",
   "version_map_source": "artifacts/containers/version_map.json"

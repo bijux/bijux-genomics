@@ -8,13 +8,14 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 - Lock generator: `scripts/containers/generate-version-lock.sh`.
 
 ## What `lock.json` Pins
-- `schema_version`: lock schema contract version (`bijux.container.version_lock.v2`).
+- `schema_version`: lock schema contract version (`bijux.container.version_lock.v3`).
 - `source`: canonical source path (`containers/versions/versions.toml`).
 - `source_sha256`: full-file hash of `versions.toml`.
 - `items[].tool`: tool ID.
 - `items[].version`: canonical declared version extracted from `versions.toml`.
 - `items[].status`: lifecycle status.
 - `items[].entry_sha256`: hash of canonicalized per-tool version entry.
+- `items[].frontend_resolved_sif_sha256`: authoritative SIF digest built on HPC frontend (`artifacts/containers/hpc/frontend-sif-digests.json`).
 
 ## Pin Meaning
 - A pin is a reviewed version/provenance entry in `versions.toml`.

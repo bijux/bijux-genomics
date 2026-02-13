@@ -23,8 +23,8 @@ for k in required_top:
     if k not in lock:
         errors.append(f"missing top-level key: {k}")
 
-if lock.get("schema_version") != "bijux.container.version_lock.v2":
-    errors.append("schema_version must be bijux.container.version_lock.v2")
+if lock.get("schema_version") != "bijux.container.version_lock.v3":
+    errors.append("schema_version must be bijux.container.version_lock.v3")
 
 items = lock.get("items")
 if not isinstance(items, list) or not items:
@@ -35,7 +35,7 @@ else:
         if not isinstance(row, dict):
             errors.append(f"items[{i}] must be object")
             continue
-        for k in ["tool", "version", "status", "source", "entry_sha256", "resolved_image_digest", "resolved_sif_sha256"]:
+        for k in ["tool", "version", "status", "source", "entry_sha256", "resolved_image_digest", "resolved_sif_sha256", "frontend_resolved_sif_sha256"]:
             if k not in row:
                 errors.append(f"items[{i}] missing key: {k}")
         tool = str(row.get("tool", "")).strip()
