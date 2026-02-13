@@ -14,6 +14,8 @@ Define abundance normalization semantics for eDNA and pollen FASTQ analyses.
 - Normalized outputs are explicitly labeled as relative/compositional.
 - The selected transform and parameters are emitted in artifacts.
 - Downstream comparisons must use the same normalization contract.
+- Supported normalization modes are explicit: rarefaction and compositional transforms.
+- Reports must emit warnings when normalization assumptions are likely violated (for example low depth under rarefaction).
 
 ## Examples
 - Relative-abundance normalization for community composition summaries.
@@ -22,3 +24,4 @@ Define abundance normalization semantics for eDNA and pollen FASTQ analyses.
 ## Failure modes
 - Cross-study normalization mismatch introduces artificial shifts.
 - Rare taxa can be unstable under aggressive filtering.
+- Treating compositional outputs as absolute abundance causes invalid ecological claims.

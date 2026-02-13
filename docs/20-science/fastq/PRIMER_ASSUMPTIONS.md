@@ -14,6 +14,8 @@ Define assumptions for primer normalization in ecology-first FASTQ workflows.
 - Primer references must be versioned and traceable.
 - Ambiguous primer matches must be reported, not silently dropped.
 - Primer-trimmed outputs must preserve read pairing invariants.
+- Primer mismatch tolerance and orientation mode must be explicit in run metadata.
+- Example manifests for marker-driven workflows must include marker metadata.
 
 ## Examples
 - ITS pollen runs trim primer tails before chimera detection.
