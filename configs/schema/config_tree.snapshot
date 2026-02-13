@@ -2,12 +2,15 @@
 # generator = scripts/tooling/generate-config-tree-snapshot.sh
 # schema_version = 1
 # owner = bijux-dna-infra
+configs/OWNERS.toml
 configs/bench/index.md
 configs/bench/knobs.toml
 configs/ci/index.md
 configs/ci/params/index.md
 configs/ci/params/param_registry.toml
 configs/ci/params/param_registry_vcf.toml
+configs/ci/registry/LOCK_RULES.md
+configs/ci/registry/deprecations.toml
 configs/ci/registry/domains.toml
 configs/ci/registry/index.md
 configs/ci/registry/tool_registry.toml
@@ -24,7 +27,13 @@ configs/ci/tools/required_tools_vcf.toml
 configs/coverage/index.md
 configs/coverage/thresholds.toml
 configs/docs/index.md
+configs/docs/mkdocs.toml
 configs/docs/requirements.txt
+configs/hpc/index.md
+configs/hpc/lunarc_sync_profiles.toml
+configs/hpc/rsync/pull-full-excludes.txt
+configs/hpc/rsync/pull-results-includes.txt
+configs/hpc/rsync/push-excludes.txt
 configs/index.md
 configs/lab/config_example.toml
 configs/logging/index.md
@@ -32,8 +41,10 @@ configs/nextest/index.md
 configs/nextest/nextest.toml
 configs/runtime/index.md
 configs/runtime/platforms.toml
+configs/runtime/profiles/README.md
 configs/runtime/profiles/local.toml
 configs/runtime/species_aliases.toml
 configs/schema/CONFIG_SCHEMA_RULES.md
 configs/schema/config_tree.snapshot
 configs/schema/index.md
+configs/schema/validate.py
