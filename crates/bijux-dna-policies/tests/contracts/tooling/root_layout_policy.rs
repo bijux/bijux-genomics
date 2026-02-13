@@ -14,7 +14,6 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
         "containers",
         "docs",
         "examples",
-        "bench",
         "scripts",
         "artifacts",
         "bin",
@@ -42,7 +41,7 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "root contains non-allowlisted directories: {:?}",
-        offenders
+        "root contains non-allowlisted directories: {:?}\nUse: crates/ for Rust packages, configs/ for configuration, assets/ for data artifacts, scripts/ for tooling scripts.",
+        offenders,
     );
 }
