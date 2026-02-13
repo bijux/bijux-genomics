@@ -100,6 +100,8 @@ children = [
 [[edge]]
 from = "docs/20-science/vcf/index.md"
 children = [
+  "docs/20-science/vcf/IMPUTATION_METHODS.md",
+  "docs/20-science/vcf/IMPUTATION_SCOPE.md",
   "docs/20-science/vcf/ROADMAP.md",
 ]
 

@@ -25,7 +25,7 @@ Top-level workspace paths only.
 | `artifacts` | `dir` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
-| `bin` | `dir` | `-` | - |
+| `bin` | `dir` | `-` | runtime boundary helpers for strict isolated execution. |
 | `configs` | `dir` | `-` | - |
 | `containers` | `dir` | `-` | Define the only supported user-facing container script entrypoints. |
 | `crates` | `dir` | `-` | - |
