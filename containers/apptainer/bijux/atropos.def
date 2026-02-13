@@ -2,6 +2,14 @@
 # This container definition is part of bijux-dna.
 # The bijux-dna software source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: atropos
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
 
 Bootstrap: docker
 From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
@@ -15,13 +23,17 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version unknown
+    org.opencontainers.image.version 1.1.31
     org.opencontainers.image.tool atropos
     org.opencontainers.image.title atropos
 %environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
     DEBIAN_FRONTEND=noninteractive
 
 %post
+    set -eux
     export DEBIAN_FRONTEND=noninteractive
 
     apt-get update -qq && \
