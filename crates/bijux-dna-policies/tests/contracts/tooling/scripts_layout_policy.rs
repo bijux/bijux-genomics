@@ -278,3 +278,35 @@ fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or
         offenders.join("\\n")
     );
 }
+
+#[test]
+fn policy__contracts__scripts_layout_policy__scripts_do_not_hardcode_isolates_layout() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+
+    for file in script_files(&root) {
+        if file.extension().and_then(|s| s.to_str()) != Some("sh") {
+            continue;
+        }
+        let rel = file
+            .strip_prefix(&root)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        let raw = std::fs::read_to_string(&file).unwrap_or_default();
+        for (idx, line) in raw.lines().enumerate() {
+            if line.contains("artifacts/isolates/")
+                && !line.contains("ISO_ROOT")
+                && !line.contains("isolate --print-root")
+            {
+                offenders.push(format!("{rel}:{}:{}", idx + 1, line.trim()));
+            }
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "scripts must not hardcode artifacts/isolates layout; use ISO_ROOT env vars or `bin/isolate --print-root`:\n{}",
+        offenders.join("\n")
+    );
+}
