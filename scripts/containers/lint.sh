@@ -142,10 +142,14 @@ if [ -s "$tmp" ]; then
   exit 1
 fi
 
-"$SCRIPT_DIR/check-tool-container-coverage.sh"
+"$SCRIPT_DIR/check-missing-images.sh"
 "$SCRIPT_DIR/check-non-bijux-sources.sh"
 "$SCRIPT_DIR/check-version-completeness.sh"
+"$SCRIPT_DIR/check-tool-id-manifest.sh"
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
 "$SCRIPT_DIR/check-docker-labels.sh"
+"$SCRIPT_DIR/check-smoke-contract.sh"
+"$SCRIPT_DIR/check-docker-arch-policy.sh"
+"$SCRIPT_DIR/check-digest-output-policy.sh"
 
 echo "containers lint: ok"
