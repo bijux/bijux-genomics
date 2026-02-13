@@ -5,6 +5,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../../../" && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
+unset BASH_ENV ENV || true
 
 dry_run=1
 confirm=0
@@ -34,6 +35,16 @@ LUNARC_PULL_BASE="${LUNARC_PULL_BASE:-${HOME}/bijux}"
 PULL_MODE="${PULL_MODE:-results}"
 INCLUDE_CONTAINERS_MANIFEST="${INCLUDE_CONTAINERS_MANIFEST:-0}"
 DATA_MANIFEST_GLOB="${DATA_MANIFEST_GLOB:-}"
+
+ssh_clean() {
+  local host="$1"
+  local cmd="$2"
+  ssh "$host" "$cmd" 2> >(grep -v -E '^bash: pyenv: command not found$' >&2)
+}
+
+rsync_clean() {
+  rsync "$@" 2> >(grep -v -E '^bash: pyenv: command not found$' >&2)
+}
 profiles_cfg="$ROOT_DIR/configs/hpc/lunarc_sync_profiles.toml"
 pull_full_exclude="$ROOT_DIR/configs/hpc/rsync/pull-full-excludes.txt"
 pull_results_include="$ROOT_DIR/configs/hpc/rsync/pull-results-includes.txt"
@@ -89,18 +100,18 @@ mkdir -p "$dest"
 
 pulled_paths=()
 if [[ "$PULL_MODE" == "full" ]]; then
-  rsync -az \
+  rsync_clean -az \
     --exclude-from="$pull_full_exclude" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/")
 else
-  rsync -az \
+  rsync_clean -az \
     --include-from="$pull_results_include" \
     "$LUNARC_HOST:$LUNARC_ROOT/" "$dest/"
   pulled_paths+=("$LUNARC_ROOT/bijux-dna-results/")
   if [[ "$INCLUDE_CONTAINERS_MANIFEST" == "1" ]]; then
     mkdir -p "$dest/bijux-dna-containers"
-    rsync -az "$LUNARC_HOST:$LUNARC_ROOT/bijux-dna-containers/manifest/" "$dest/bijux-dna-containers/manifest/" || true
+    rsync_clean -az "$LUNARC_HOST:$LUNARC_ROOT/bijux-dna-containers/manifest/" "$dest/bijux-dna-containers/manifest/" || true
     pulled_paths+=("$LUNARC_ROOT/bijux-dna-containers/manifest/")
   fi
   if [[ -n "$DATA_MANIFEST_GLOB" ]]; then
@@ -108,14 +119,14 @@ else
     for rel in "${rels[@]}"; do
       clean_rel="${rel#/}"
       mkdir -p "$(dirname "$dest/bijux-dna-data/$clean_rel")"
-      rsync -az "$LUNARC_HOST:$LUNARC_ROOT/bijux-dna-data/$clean_rel" "$dest/bijux-dna-data/$clean_rel" || true
+      rsync_clean -az "$LUNARC_HOST:$LUNARC_ROOT/bijux-dna-data/$clean_rel" "$dest/bijux-dna-data/$clean_rel" || true
       pulled_paths+=("$LUNARC_ROOT/bijux-dna-data/$clean_rel")
     done
   fi
 fi
 
-remote_commit="$(ssh "$LUNARC_HOST" "cd '$LUNARC_REPO_DIR' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'")"
-remote_hostname="$(ssh "$LUNARC_HOST" "hostname -f 2>/dev/null || hostname")"
+remote_commit="$(ssh_clean "$LUNARC_HOST" "cd '$LUNARC_REPO_DIR' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'")"
+remote_hostname="$(ssh_clean "$LUNARC_HOST" "hostname -f 2>/dev/null || hostname")"
 pulled_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 json_paths="$(printf '%s\n' "${pulled_paths[@]}" | sed '/^$/d' | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')"
 
