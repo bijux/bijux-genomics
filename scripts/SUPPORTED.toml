@@ -145,6 +145,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_no_temp_leaks"
+path = "scripts/checks/check-no-temp-leaks.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_no_raw_cargo_in_makefiles"
 path = "scripts/checks/check-no-raw-cargo-in-makefiles.sh"
 purpose = "checks script"
@@ -243,6 +251,14 @@ ci_allowed = true
 [[script]]
 id = "check_shell_portability"
 path = "scripts/checks/check-shell-portability.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_hpc_safety"
+path = "scripts/checks/check-hpc-safety.sh"
 purpose = "checks script"
 inputs = []
 outputs = []
@@ -553,6 +569,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "test_scripts_smoke"
+path = "scripts/test/test-scripts-smoke.sh"
+purpose = "test script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "toy_runs"
 path = "scripts/test/toy_runs.sh"
 purpose = "test script"
@@ -747,6 +771,14 @@ ci_allowed = true
 [[script]]
 id = "setup_docs_venv"
 path = "scripts/tooling/setup-docs-venv.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "repo_doctor"
+path = "scripts/tooling/repo-doctor.sh"
 purpose = "tooling script"
 inputs = []
 outputs = []
