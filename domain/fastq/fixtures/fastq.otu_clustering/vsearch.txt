@@ -1,0 +1,9 @@
+tool=vsearch
+tool_version=pinned
+stage=fastq.otu_clustering
+domain=fastq
+fixture_kind=truth
+command=vsearch
+args=--cluster_size reads.fastq.gz --id 0.97 --centroids otu.fasta --otutabout otu.tsv
+expected_outputs=otu.fasta,otu.tsv
+expected_stdout_patterns=contract_ok
