@@ -52,8 +52,27 @@ fn policy__contracts__assets_governance_policy__publication_dirs_require_manifes
         if id == "index.md" {
             continue;
         }
-        if !path.join("MANIFEST.toml").is_file() {
+        let manifest = path.join("MANIFEST.toml");
+        if !manifest.is_file() {
             offenders.push(format!("assets/publications/{id}/MANIFEST.toml missing"));
+            continue;
+        }
+        let raw = std::fs::read_to_string(&manifest).unwrap_or_default();
+        let parsed: toml::Value = match toml::from_str(&raw) {
+            Ok(v) => v,
+            Err(err) => {
+                offenders.push(format!(
+                    "assets/publications/{id}/MANIFEST.toml invalid TOML: {err}"
+                ));
+                continue;
+            }
+        };
+        for required in ["title", "authors", "year", "provenance_notes", "license"] {
+            if parsed.get(required).is_none() {
+                offenders.push(format!(
+                    "assets/publications/{id}/MANIFEST.toml missing field `{required}`"
+                ));
+            }
         }
     }
     bijux_dna_policies::policy_assert!(
