@@ -101,17 +101,9 @@ mkdir -p "$art_dir"
 cp -f "$example_dir/golden/plan.json" "$art_dir/plan.json"
 cp -f "$example_dir/golden/explain.json" "$art_dir/explain.json"
 cp -f "$example_dir/golden/report.json" "$art_dir/golden_report.json"
+cp -f "$example_dir/golden/report.json" "$art_dir/report.json"
 
 iso_run_id="${ISO_RUN_ID:-none}"
-write_json_sorted_file "$art_dir/report.json" <<JSON
-{
-  "example_id": "$example_id",
-  "corpus_id": "$corpus_id",
-  "source": "${example_dir#"$ROOT_DIR/"}",
-  "status": "ok"
-}
-JSON
-
 # Step 4: generate report
 write_json_sorted_file "$art_dir/run_report.json" <<JSON
 {
@@ -155,5 +147,12 @@ step4=write run report and bundle
 TXT
 
 tar -czf "$art_dir/bundle.tar.gz" -C "$art_dir" manifest.json metrics.json logs.txt plan.json explain.json report.json golden_report.json run_report.json
+
+for jf in plan.json explain.json report.json; do
+  if ! diff -u "$example_dir/golden/$jf" "$art_dir/$jf" >/dev/null; then
+    echo "example golden mismatch for ${example_id}: $jf" >&2
+    exit 1
+  fi
+done
 
 echo "example run complete: $art_dir/bundle.tar.gz"
