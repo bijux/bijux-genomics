@@ -969,6 +969,22 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_build_provenance"
+path = "scripts/containers/check-build-provenance.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_bijux_template_markers"
+path = "scripts/containers/check-bijux-template-markers.sh"
+purpose = "containers script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "domain_check_layout"
 path = "scripts/domain/check-domain-layout.sh"
 purpose = "domain script"
