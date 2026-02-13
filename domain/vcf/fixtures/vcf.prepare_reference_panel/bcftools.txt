@@ -1,0 +1,9 @@
+tool=bcftools
+tool_version=pinned
+stage=vcf.prepare_reference_panel
+domain=vcf
+fixture_kind=planned
+command=bcftools
+args=norm -m-any panel.vcf.gz -Oz -o panel.prepared.vcf.gz
+expected_outputs=prepared_panel
+expected_stdout_patterns=bcftools

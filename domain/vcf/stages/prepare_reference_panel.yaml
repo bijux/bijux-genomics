@@ -1,0 +1,25 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.prepare_reference_panel"
+status: "planned"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "panel_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "prepared_panel"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["panel_vcf"]
+required_outputs: ["prepared_panel"]
+metrics:
+  - name: "reference_panel_status"
+compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools provides deterministic normalization/index baseline for reference panel prep."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
+assumptions: ["planned_stage", "reference_build_fixed"]
+bank_hooks: ["none"]
+invariants: ["stable_artifact_contract"]
+allowed_missingness: []
+planned_out_of_scope: ["full scientific validation pending downstream admission"]

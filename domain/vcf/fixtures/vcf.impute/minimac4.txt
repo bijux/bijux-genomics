@@ -1,0 +1,10 @@
+tool=minimac4
+shipping=external
+tool_version=pinned
+stage=vcf.impute
+domain=vcf
+fixture_kind=planned
+command=minimac4
+args=--haps phased.vcf --prefix imputed
+expected_outputs=imputed_vcf
+expected_stdout_patterns=minimac4

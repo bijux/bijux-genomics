@@ -1,23 +1,23 @@
 schema_version: "bijux.stage.v1"
-stage_id: "vcf.phasing"
+stage_id: "vcf.impute"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
 inputs:
-  - name: "vcf"
+  - name: "phased_vcf"
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "phasing_out"
-    data_type: "json"
+  - name: "imputed_vcf"
+    data_type: "vcf"
     cardinality: "One"
-required_inputs: ["vcf"]
-required_outputs: ["phasing_out"]
+required_inputs: ["phased_vcf"]
+required_outputs: ["imputed_vcf"]
 metrics:
-  - name: "phasing_status"
-compatible_tools: ["beagle", "shapeit5", "eagle"]
+  - name: "impute_status"
+compatible_tools: ["beagle", "glimpse", "impute5", "minimac4"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions: ["planned_stage", "panel_required"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness: []

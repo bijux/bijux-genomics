@@ -1,0 +1,9 @@
+tool=bcftools
+tool_version=pinned
+stage=vcf.postprocess
+domain=vcf
+fixture_kind=planned
+command=bcftools
+args=+fill-tags imputed.vcf.gz -Oz -o postprocessed.vcf.gz
+expected_outputs=postprocess_vcf
+expected_stdout_patterns=bcftools
