@@ -1671,3 +1671,11 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "simulate_coverage_regime"
+path = "scripts/tooling/simulate-coverage-regime.sh"
+purpose = "tooling script"
+inputs = ["configs/runtime/coverage_regimes.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
