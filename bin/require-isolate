@@ -8,18 +8,20 @@ isolate-required:
 - This command must run inside an isolate to keep build/test outputs deterministic.
 - Required env vars: ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP.
 - Expected contract: all writable paths are inside ISO_ROOT.
+- Use --require-clean to avoid cross-run contamination unless reuse is explicit.
 EOF
   cat <<EOF
 
 Invoke with:
-  ISO_TAG=$TAG ./bin/isolate <command> [args...]
+  ./bin/isolate --tag $TAG --require-clean <command> [args...]
 
 Inspect resolved isolate values before running:
-  ISO_TAG=$TAG ./bin/isolate --print-tag
-  ISO_TAG=$TAG ./bin/isolate --print-root
+  ./bin/isolate --tag $TAG --print-tag
+  ./bin/isolate --tag $TAG --print-root
+  ./bin/isolate --tag $TAG --print-env
 
 For target directory hygiene:
-  ISO_TAG=$TAG ./bin/isolate --require-empty-target-dir <command> [args...]
+  ./bin/isolate --tag $TAG --require-empty-target-dir <command> [args...]
   # add --reuse only when intentional reuse is required
 
 EOF
