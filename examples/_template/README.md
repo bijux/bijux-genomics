@@ -16,5 +16,9 @@ List generated artifacts: manifests, telemetry, reports, and golden outputs.
 ## Acceptance Criteria
 List deterministic checks required for this example to be considered valid.
 
+## Golden Refresh
+- Regenerate goldens and corpus checksums via:
+  - `examples/_template/make.sh <example-id>`
+
 ## HPC Run
 Document the exact `bijux` commands to run this example on HPC.
