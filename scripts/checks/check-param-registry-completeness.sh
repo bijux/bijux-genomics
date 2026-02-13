@@ -22,14 +22,31 @@ param_files = [
     root / "configs/ci/params/param_registry_downstream.toml",
 ]
 known_stage_ids: set[str] = set()
+registry_params: dict[str, set[str]] = {}
 for p in param_files:
     d = tomllib.loads(p.read_text(encoding="utf-8"))
     for row in d.get("entries", []) + d.get("params", []):
         sid = str(row.get("stage_id", "")).strip()
         if sid:
             known_stage_ids.add(sid)
+            vals = row.get("params", [])
+            if isinstance(vals, list):
+                registry_params[sid] = {str(v).strip() for v in vals if str(v).strip()}
 
 errors: list[str] = []
+def extract_stage_parameters(text: str) -> list[str]:
+    # Only parse names under an explicit `parameters:` block.
+    m = re.search(r"^parameters:\s*\n((?:^[ \t].*\n?)*)", text, re.MULTILINE)
+    if not m:
+        return []
+    block = m.group(1)
+    return [
+        p.strip()
+        for p in re.findall(r'^\s*-\s+name:\s*"?(.*?)"?\s*$', block, re.MULTILINE)
+        if p.strip()
+    ]
+
+
 for f in sorted(root.glob("domain/*/stages/*.yaml")):
     if f.name.startswith("_"):
         continue
@@ -45,6 +62,18 @@ for f in sorted(root.glob("domain/*/stages/*.yaml")):
     sid = m.group(1).strip()
     if sid not in known_stage_ids:
         errors.append(f"{f.relative_to(root)}: stage_id '{sid}' missing from param_registry*.toml")
+        continue
+
+    # Enforce no hidden knobs: stage parameter names must exist in registry params list when declared.
+    stage_params = extract_stage_parameters(text)
+    if stage_params and sid.startswith("vcf."):
+        reg = registry_params.get(sid, set())
+        if not reg:
+            errors.append(f"{f.relative_to(root)}: stage declares parameters but registry has no params list for '{sid}'")
+        else:
+            for p_name in stage_params:
+                if p_name not in reg:
+                    errors.append(f"{f.relative_to(root)}: parameter '{p_name}' missing in param_registry entry for '{sid}'")
 
 if errors:
     print("param-registry-completeness: FAILED", file=sys.stderr)

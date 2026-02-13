@@ -94,6 +94,7 @@ def check_deprecations(known_tools: set[str], known_stages: set[str], errs: list
         deprecated_since = str(row.get("deprecated_since", "")).strip()
         removal_after = str(row.get("removal_after", "")).strip()
         rationale = str(row.get("rationale", "")).strip()
+        replacement = str(row.get("replacement", "")).strip()
         if not tool_id:
             errs.append(f"{dep_path}: deprecation entry missing tool_id")
         elif tool_id not in known_tools:
@@ -104,6 +105,8 @@ def check_deprecations(known_tools: set[str], known_stages: set[str], errs: list
             errs.append(f"{dep_path}: unknown stage '{stage}' for tool '{tool_id}'")
         if not rationale:
             errs.append(f"{dep_path}: deprecation entry for tool '{tool_id}' missing rationale")
+        if not replacement:
+            errs.append(f"{dep_path}: deprecation entry for tool '{tool_id}' missing replacement")
         since_d = parse_date(deprecated_since, dep_path, "deprecated_since", errs)
         after_d = parse_date(removal_after, dep_path, "removal_after", errs)
         if since_d and after_d and after_d <= since_d:

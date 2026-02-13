@@ -167,3 +167,23 @@ schema_version = "bijux.fastq.params.umi.v1"
 stage_id = "fastq.validate_pre"
 param_type_id = "fastq.validate"
 schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.primer_normalization"
+param_type_id = "fastq.primer_normalization"
+schema_version = "bijux.fastq.params.v1"
+
+[[entries]]
+stage_id = "fastq.chimera_detection"
+param_type_id = "fastq.chimera_detection"
+schema_version = "bijux.fastq.params.v1"
+
+[[entries]]
+stage_id = "fastq.otu_clustering"
+param_type_id = "fastq.otu_clustering"
+schema_version = "bijux.fastq.params.v1"
+
+[[entries]]
+stage_id = "fastq.abundance_normalization"
+param_type_id = "fastq.abundance_normalization"
+schema_version = "bijux.fastq.params.v1"
