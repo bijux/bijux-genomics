@@ -153,10 +153,16 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 			cp -f "$(LUNARC_APPTAINER_BASE_SEED_DIR)/python-3.11-slim.sif" "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; \
 		fi; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
-			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04; \
+			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04 || echo "warning: ubuntu base pull failed; trying non-docker fallback"; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
+			curl -fsSL "https://depot.galaxyproject.org/singularity/ubuntu:22.04" -o "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" || true; \
 		fi; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" docker://python:3.11-slim || echo "warning: python base pull failed; continuing without local python base SIF"; \
+		fi; \
+		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then \
+			curl -fsSL "https://depot.galaxyproject.org/singularity/python:3.11" -o "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" || true; \
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
