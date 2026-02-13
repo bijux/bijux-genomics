@@ -31,12 +31,13 @@ SMOKE_LEVEL="${SMOKE_LEVEL:-contract}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
 IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
+SBOM_DIR="$ARTIFACT_DIR/sbom/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 INTERRUPTED=0
 
-mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$MANIFEST_DIR"
 
 require_cmd "$DOCKER_BIN"
 require_cmd jq
@@ -46,6 +47,11 @@ require_cmd sed
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
+
+DOCKER_BUILD_NET_ARGS=()
+if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
+  DOCKER_BUILD_NET_ARGS=(--network=none)
+fi
 
 if ! "$DOCKER_BIN" info >/dev/null 2>&1; then
   echo "ERROR: cannot connect to docker daemon via $DOCKER_BIN" >&2
@@ -274,6 +280,7 @@ build_and_smoke_one() {
   minimal_output_file="$LOG_DIR/${tool}.minimal.out"
   negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
+  sbom_file="$SBOM_DIR/${tool}.packages.txt"
   manifest="$MANIFEST_DIR/${tool}.json"
   dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
   upstream=$(get_registry_field upstream "$tool")
@@ -286,7 +293,7 @@ build_and_smoke_one() {
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
     echo "image: $image"
-    if ! "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" \
+    if ! "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" "${DOCKER_BUILD_NET_ARGS[@]}" \
       --build-arg "OCI_REVISION=$(git rev-parse HEAD 2>/dev/null || echo unknown)" \
       --build-arg "OCI_CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
       --build-arg "TOOL_VERSION=$declared_version" \
@@ -386,7 +393,8 @@ PY
       fi
     fi
     image_size_bytes="$("$DOCKER_BIN" image inspect --format '{{.Size}}' "$image" 2>/dev/null | head -n 1 || echo 0)"
-    packages_hash="$(run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc 'dpkg-query -W 2>/dev/null || true' | shasum -a 256 | awk '{print $1}')"
+    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
+    packages_hash="$(shasum -a 256 "$sbom_file" | awk '{print $1}')"
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
       "$DOCKER_BIN" save "$image" -o "$IMG_DIR/${tool}.tar"
@@ -428,6 +436,7 @@ PY
   "version_output": "$version_output_json",
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
+  "sbom_path": "$(json_escape "$sbom_file")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }
