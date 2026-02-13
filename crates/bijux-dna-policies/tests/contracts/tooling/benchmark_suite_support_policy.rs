@@ -28,8 +28,8 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
         .parse()
         .expect("parse configs/ci/tool_registry.toml");
 
-    let suite_files = std::fs::read_dir(root.join("configs"))
-        .expect("read configs")
+    let suite_files = std::fs::read_dir(root.join("configs").join("bench"))
+        .expect("read configs/bench")
         .filter_map(|entry| entry.ok().map(|row| row.path()))
         .filter(|path| {
             path.file_name()
@@ -115,7 +115,7 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
     for tool_id in &required_tools {
         if !suite_tools.contains(tool_id) {
             offenders.push(format!(
-                "supported benchmark tool {} missing from bench suite configs/bench-suite-*.toml",
+                "supported benchmark tool {} missing from bench suite configs/bench/bench-suite-*.toml",
                 tool_id
             ));
         }

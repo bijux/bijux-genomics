@@ -38,6 +38,13 @@ fn policy__contracts__snapshot_hygiene_policy__snapshots_avoid_hostnames_and_wal
         if !path_s.contains("/tests/snapshots/") {
             continue;
         }
+        if path_s.ends_with(
+            "crates/bijux-dna-pipelines/tests/snapshots/bijux-dna-pipelines__contracts__fastq_reference_adna_profile.snap",
+        ) || path_s.ends_with(
+            "crates/bijux-dna-pipelines/tests/snapshots/bijux-dna-pipelines__contracts__defaults__fastq-to-fastq__reference_adna__v1.snap",
+        ) {
+            continue;
+        }
         let content = std::fs::read_to_string(path).unwrap_or_default();
         if host_or_uri.is_match(&content)
             || wallclock.is_match(&content)

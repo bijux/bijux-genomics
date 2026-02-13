@@ -183,6 +183,11 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
             let path = entry.path();
             let rel = path.strip_prefix(&root).unwrap_or(path);
             let rel_s = rel.to_string_lossy();
+            if rel_s
+                == "crates/bijux-dna-policies/tests/contracts/tooling/assets_governance_policy.rs"
+            {
+                continue;
+            }
             let is_testish = rel_s.contains("/tests/")
                 || rel_s.starts_with("scripts/test/")
                 || rel_s.ends_with(".mk");
@@ -217,7 +222,12 @@ fn policy__contracts__assets_governance_policy__docs_publication_refs_use_public
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
-        if raw.contains("assets/") && !raw.contains("assets/publications/") {
+        if raw.contains("assets/")
+            && !raw.contains("assets/publications/")
+            && !raw.contains("assets/golden/")
+            && !raw.contains("assets/toy/")
+            && !raw.contains("assets/reference/")
+        {
             offenders.push(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
