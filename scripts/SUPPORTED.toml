@@ -17,6 +17,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "validate_reference"
+path = "scripts/assets/validate-reference.sh"
+purpose = "assets script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_artifacts_tracked"
 path = "scripts/checks/check-artifacts-tracked.sh"
 purpose = "checks script"
@@ -35,6 +43,22 @@ ci_allowed = true
 [[script]]
 id = "check_assets_reference_schema"
 path = "scripts/checks/check-assets-reference-schema.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_asset_manifests"
+path = "scripts/checks/check-asset-manifests.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_asset_checksums"
+path = "scripts/checks/check-asset-checksums.sh"
 purpose = "checks script"
 inputs = []
 outputs = []

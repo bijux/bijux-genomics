@@ -2,8 +2,11 @@ scripts/_lib/common.sh
 scripts/_lib/runtime.sh
 scripts/assets/refresh-golden.sh
 scripts/assets/refresh-toy.sh
+scripts/assets/validate-reference.sh
 scripts/checks/check-artifacts-layout.sh
 scripts/checks/check-artifacts-tracked.sh
+scripts/checks/check-asset-checksums.sh
+scripts/checks/check-asset-manifests.sh
 scripts/checks/check-assets-drift.sh
 scripts/checks/check-assets-reference-schema.sh
 scripts/checks/check-bench-knobs.sh
