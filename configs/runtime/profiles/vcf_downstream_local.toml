@@ -22,3 +22,5 @@ reference_panel_path = "examples/data/corpus-01-mini/reference/panel.vcf.gz"
 chunk_size = 5000000
 seed = 42
 output_format = "vcf.gz"
+coverage_decision = "decision.coverage_regime"
+calling_regime_from_decision = true
