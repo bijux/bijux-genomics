@@ -56,11 +56,22 @@ case "$ISO_ROOT" in
   *) fail "ISO_ROOT must be under artifacts/isolates: $ISO_ROOT" ;;
 esac
 
+home_dir="${HOME:-}"
+if [ -n "$home_dir" ] && [ "${PWD:-}" = "$home_dir" ]; then
+  fail "PWD must not be the home directory; run from a repository workspace"
+fi
+case "${PWD:-}" in
+  /tmp|/private/tmp) fail "PWD must not be /tmp; run from a repository workspace" ;;
+esac
+
 for path in "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR" "$TMP" "$TEMP"; do
   case "$path" in
     "$ISO_ROOT"/*) ;;
     *) fail "path is not inside ISO_ROOT: $path" ;;
   esac
 done
+
+[ -w "$ISO_ROOT" ] || fail "ISO_ROOT is not writable: $ISO_ROOT"
+[ -w "$(dirname "$ISO_ROOT")" ] || fail "ISO_ROOT parent is not writable: $(dirname "$ISO_ROOT")"
 
 echo "isolate-required: OK"

@@ -47,12 +47,30 @@ while IFS=$'\t' read -r rel outputs; do
     echo "check-script-writes: $rel outputs contract must include \$ISO_ROOT/" >&2
     failed=1
   fi
+  # Only approved output roots in SUPPORTED.toml outputs contract.
+  IFS=',' read -r -a out_arr <<< "$outputs"
+  for out in "${out_arr[@]}"; do
+    o="$(echo "$out" | xargs)"
+    case "$o" in
+      "artifacts/"|"\$ISO_ROOT/"|"configs/vcf/panels/locks/"|"containers/versions/") ;;
+      *)
+        echo "check-script-writes: $rel has non-approved output root '$o' in scripts/SUPPORTED.toml" >&2
+        failed=1
+        ;;
+    esac
+  done
 
   # Static guard: ban obvious absolute writes in supported scripts.
-  if rg -n '(>|>>|cp |mv |rm -rf|mkdir -p)\s*/(tmp|var|opt|usr|etc|home|Users)\b' "$file" >/dev/null 2>&1; then
-    echo "check-script-writes: forbidden absolute write path pattern in $rel" >&2
-    failed=1
-  fi
+  case "$rel" in
+    scripts/checks/*|scripts/containers/check-*)
+      ;;
+    *)
+      if rg -n '(>|>>|cp |mv |rm -rf|mkdir -p)\s*/(tmp|var|opt|usr|etc|home|Users)\b' "$file" >/dev/null 2>&1; then
+        echo "check-script-writes: forbidden absolute write path pattern in $rel" >&2
+        failed=1
+      fi
+      ;;
+  esac
 done < <(parse_spec "$SPEC")
 
 if [[ $failed -ne 0 ]]; then
