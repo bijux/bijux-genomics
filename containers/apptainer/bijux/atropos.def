@@ -34,6 +34,7 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
 
 %post
     set -eux
+    umask 022
     export DEBIAN_FRONTEND=noninteractive
 
     apt-get update -qq && \
