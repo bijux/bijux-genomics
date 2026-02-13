@@ -4,7 +4,7 @@ IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-OUT_DIR="${ROOT}/artifacts/tmp/golden-refresh"
+OUT_DIR="${ROOT}/artifacts/assets-refresh/golden/toy-runs-v1"
 TARGET_DIR="${ROOT}/assets/golden/toy-runs-v1"
 
 rm -rf "${OUT_DIR}"
