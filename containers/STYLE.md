@@ -25,11 +25,56 @@ Use this section order, with section comments in this sequence:
 Use this section order:
 1. Header comment + `Bootstrap`/`From`
 2. `%labels`
-3. `%post`
-4. `%environment` (if needed)
+3. `%environment`
+4. `%post`
 5. `%runscript`
 6. `%test`
 7. `%help`
+
+## Standard Header Block (All `.def`)
+Every Apptainer definition must include these comment markers near the top:
+- `# Tool ID: <tool_id>`
+- `# Version policy: ...`
+- `# Upstream source: ...`
+- `# Build date policy: ...`
+
+## `%labels` Contract
+Required labels:
+- `org.opencontainers.image.source`
+- `org.opencontainers.image.revision`
+- `org.opencontainers.image.created`
+- `org.opencontainers.image.licenses`
+- `org.opencontainers.image.version`
+- `org.opencontainers.image.tool`
+- `org.opencontainers.image.title`
+
+## `%environment` Contract
+Must export deterministic runtime env:
+- `PATH=...`
+- `LC_ALL=C` (or equivalent deterministic locale)
+- `TZ=UTC`
+- Must not include user-specific absolute paths.
+
+## `%post` Contract
+- First non-empty line must be `set -eux`.
+- No interactive prompts (`read -p`, `select`, `dialog`, `whiptail`).
+- If `apt-get` is used, cleanup with `rm -rf /var/lib/apt/lists/*`.
+
+## Floating Versions
+- Production tools must not use floating values (`latest`, `main`, `master`, `head`, `unknown`) for `org.opencontainers.image.version`.
+- Experimental/planned tools may use transitional values only when lock/provenance policy is still satisfied.
+
+## Base Image Policy (Apptainer)
+- `From:` must be digest-pinned (`@sha256:`).
+- Allowed bases: `ubuntu`, `debian`, `python`, or approved `quay.io/*` sources.
+
+## Download/Provenance Policy
+- Network downloads in `%post` require checksum verification or explicit lock-policy marker.
+- Non-bijux definitions must have provenance rows in `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
+
+## Runtime UID Safety
+- Definitions must avoid broad write permissions (`chmod 777` forbidden).
+- Containers should remain non-root runnable and write only to intended runtime dirs.
 
 ## Bijux Template Marker
 - Bijux-owned defs for newly admitted tools must include `BIJUX_TEMPLATE: v1` near the top.
