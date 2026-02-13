@@ -12,10 +12,10 @@ import re
 import sys
 
 root = Path(sys.argv[1])
-checklist = root / "containers/RELEASE_CHECKLIST.md"
+checklist = root / "containers/docs/RELEASE_CHECKLIST.md"
 gate = root / "scripts/containers/release-gate.sh"
 if not checklist.exists():
-    print("release checklist check: missing containers/RELEASE_CHECKLIST.md", file=sys.stderr)
+    print("release checklist check: missing containers/docs/RELEASE_CHECKLIST.md", file=sys.stderr)
     raise SystemExit(1)
 if not gate.exists():
     print("release checklist check: missing scripts/containers/release-gate.sh", file=sys.stderr)
