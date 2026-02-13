@@ -81,11 +81,24 @@ for reg in registry_files:
             continue
         tool_id = row.get("id") or row.get("tool_id")
         runtimes = row.get("runtimes", [])
-        status = str(row.get("status", "")).strip()
-        if status not in {"production", "supported", "experimental"}:
+        if not (tool_id and isinstance(runtimes, list) and runtime in runtimes):
             continue
-        if tool_id and isinstance(runtimes, list) and runtime in runtimes:
-            tools.add(str(tool_id))
+        # Include all registry rows for the runtime when a concrete runtime definition exists.
+        # This keeps planned downstream tools with real container defs in scope while excluding
+        # placeholders that cannot be built (e.g., missing .def/.Dockerfile).
+        if runtime == "apptainer":
+            def_rel = str(row.get("apptainer_def", "")).strip()
+            if not def_rel:
+                continue
+            if not (root / def_rel).exists():
+                continue
+        elif runtime == "docker":
+            docker_rel = str(row.get("dockerfile", "")).strip()
+            if not docker_rel:
+                continue
+            if not (root / docker_rel).exists():
+                continue
+        tools.add(str(tool_id))
 print(",".join(sorted(tools)))
 PY
     ;;
