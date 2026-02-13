@@ -272,10 +272,8 @@ fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>>
         "csv"
     };
 
-    let registry_path = std::env::current_dir()
-        .map_err(|err| anyhow!("resolve cwd: {err}"))?
-        .join("configs")
-        .join("tool_registry.toml");
+    let cwd = std::env::current_dir().map_err(|err| anyhow!("resolve cwd: {err}"))?;
+    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/tool_registry.toml");
     let all_tools = registry_tools_for_stage(&registry_path, stage, "all")?;
     if all_tools.is_empty() {
         return Err(anyhow!("no compatible tools found for stage `{stage}`"));
