@@ -737,6 +737,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "generate_docs"
+path = "scripts/tooling/generate-docs.sh"
+purpose = "tooling script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "generate_apptainer_qa_matrix"
 path = "scripts/tooling/generate-apptainer-qa-matrix.sh"
 purpose = "tooling script"
