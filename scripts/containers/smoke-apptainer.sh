@@ -27,7 +27,7 @@ SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 
-ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
+ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
 SUMMARY="$LOG_DIR/summary.txt"
