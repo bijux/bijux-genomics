@@ -97,13 +97,13 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
             .file_name()
             .and_then(|s| s.to_str())
             .unwrap_or_default();
-        if name == "GENERATE.md" || name == "GENERATE.toml" || name.ends_with(".md") {
+        if name == "GENERATE.md" || name.ends_with(".md") {
             continue;
         }
         let Some(dir) = path.parent() else {
             continue;
         };
-        if !(dir.join("GENERATE.md").is_file() || dir.join("GENERATE.toml").is_file()) {
+        if !dir.join("GENERATE.md").is_file() {
             offenders.push(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
@@ -115,6 +115,29 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "golden files must declare deterministic generation metadata:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__assets_governance_policy__toy_datasets_require_checksums() {
+    let root = repo_root();
+    let toy = root.join("assets/toy");
+    let mut offenders = Vec::new();
+    for entry in std::fs::read_dir(&toy).expect("read toy dir") {
+        let entry = entry.expect("read toy entry");
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let id = entry.file_name().to_string_lossy().to_string();
+        if !path.join("CHECKSUMS.sha256").is_file() {
+            offenders.push(format!("assets/toy/{id}/CHECKSUMS.sha256 missing"));
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "toy datasets must include CHECKSUMS.sha256:\n{}",
         offenders.join("\n")
     );
 }
@@ -222,18 +245,17 @@ fn policy__contracts__assets_governance_policy__docs_publication_refs_use_public
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
-        if raw.contains("assets/")
-            && !raw.contains("assets/publications/")
-            && !raw.contains("assets/golden/")
-            && !raw.contains("assets/toy/")
-            && !raw.contains("assets/reference/")
-        {
-            offenders.push(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .display()
-                    .to_string(),
-            );
+        for token in raw.split_whitespace() {
+            if let Some(idx) = token.find("assets/publications/") {
+                let frag = &token[idx..];
+                if !frag.contains("/index.md") {
+                    offenders.push(format!(
+                        "{}: publication refs must target assets/publications/<pub-id>/index.md",
+                        path.strip_prefix(&root).unwrap_or(path).display()
+                    ));
+                    break;
+                }
+            }
         }
     }
     bijux_dna_policies::policy_assert!(
