@@ -39,3 +39,16 @@ fn policy__contracts__root_pollution_policy__tracked_root_outputs_are_forbidden(
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__root_pollution_policy__target_and_artifacts_are_gitignored() {
+    let root = repo_root();
+    let gitignore =
+        std::fs::read_to_string(root.join(".gitignore")).expect("read workspace .gitignore");
+    let has_target = gitignore.contains("/target/") || gitignore.contains("**/target/");
+    let has_artifacts = gitignore.contains("/artifacts/");
+    bijux_dna_policies::policy_assert!(
+        has_target && has_artifacts,
+        ".gitignore must ignore target/ and artifacts/ to keep root clean"
+    );
+}
