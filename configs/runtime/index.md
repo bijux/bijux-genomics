@@ -22,6 +22,7 @@ Fields:
 - `configs/runtime/platforms.toml`
 - `configs/runtime/coverage_regimes.toml`
 - `configs/runtime/species_aliases.toml`
+- `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
 
 ## profiles/ Layout
