@@ -20,7 +20,8 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
-cfg = tomllib.loads(open(sys.argv[1], "rb").read())
+with open(sys.argv[1], "rb") as fh:
+    cfg = tomllib.load(fh)
 hn = sys.argv[2]
 pat = str(cfg.get("compute_hostname_regex", "")).strip()
 if pat and re.search(pat, hn):

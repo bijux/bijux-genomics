@@ -74,7 +74,8 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
-cfg = tomllib.loads(open(sys.argv[1], "rb").read())
+with open(sys.argv[1], "rb") as fh:
+    cfg = tomllib.load(fh)
 hn = sys.argv[2]
 pat = str(cfg.get("compute_hostname_regex", "")).strip()
 if pat and re.search(pat, hn):
@@ -104,7 +105,8 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
-data = tomllib.loads(open(sys.argv[1], "rb").read())
+with open(sys.argv[1], "rb") as fh:
+    data = tomllib.load(fh)
 print(str(data.get("non_isolate_cache_root", "~/.cache/bijux-dna/apptainer")))
 PY
 )"
@@ -114,7 +116,8 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
-data = tomllib.loads(open(sys.argv[1], "rb").read())
+with open(sys.argv[1], "rb") as fh:
+    data = tomllib.load(fh)
 print(str(data.get("non_isolate_tmp_root", "~/.cache/bijux-dna/apptainer/tmp")))
 PY
 )"
