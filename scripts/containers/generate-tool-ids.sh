@@ -29,6 +29,7 @@ regs = [
     root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ]
 ids = set()
+statuses = {}
 for reg in regs:
     if not reg.exists():
         continue
@@ -37,13 +38,16 @@ for reg in regs:
         if not isinstance(row, dict):
             continue
         tool_id = str(row.get("id") or row.get("tool_id") or "").strip()
+        status = str(row.get("status") or "unknown").strip()
         if tool_id:
             ids.add(tool_id)
+            statuses[tool_id] = status
 
 print("# GENERATED FILE - DO NOT EDIT")
 print("# Regenerate with: scripts/containers/generate-tool-ids.sh")
+print("# format: <tool_id><TAB><status>")
 for tool_id in sorted(ids):
-    print(tool_id)
+    print(f"{tool_id}\t{statuses.get(tool_id, 'unknown')}")
 PY
 
 mkdir -p "$(dirname "$OUT")"
