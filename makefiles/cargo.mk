@@ -38,6 +38,7 @@ lint:
 	./scripts/run.sh checks check-registry-split
 	./scripts/run.sh checks check-tool-registry-lock
 	./scripts/run.sh checks check-panel-locks
+	./scripts/run.sh checks check-panel-license-policy
 	./scripts/run.sh domain check-domain-layout
 	./scripts/run.sh domain check-domain-schema
 	./scripts/run.sh domain check-domain-index
