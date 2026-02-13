@@ -12,15 +12,7 @@ BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
 
 benchmark-fastq-stage: ## Benchmark FASTQ stage via CLI (requires STAGE=<stage> SAMPLE_ID R1, optional R2)
-	@if [ -z "$(STAGE)" ] || [ -z "$(SAMPLE_ID)" ] || [ -z "$(R1)" ]; then \
-		echo "ERROR: set STAGE=<trim|validate|...> SAMPLE_ID=<id> R1=<path>"; \
-		exit 2; \
-	fi
-	@if [ -n "$(R2)" ]; then \
-		$(BIJUX_BIN) bench fastq "$(STAGE)" --sample-id "$(SAMPLE_ID)" --r1 "$(R1)" --r2 "$(R2)" --out "$(OUT_DIR)" $(BENCH_TOOLS_ARGS) $(BENCH_EXPERIMENTAL_ARGS); \
-	else \
-		$(BIJUX_BIN) bench fastq "$(STAGE)" --sample-id "$(SAMPLE_ID)" --r1 "$(R1)" --out "$(OUT_DIR)" $(BENCH_TOOLS_ARGS) $(BENCH_EXPERIMENTAL_ARGS); \
-	fi
+	@BIJUX_BIN="$(BIJUX_BIN)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" STAGE="$(STAGE)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" ./scripts/tooling/benchmarks.sh fastq-stage
 
 benchmark-trim: ## Benchmark adapter/quality trimming tools
 	@$(MAKE) benchmark-fastq-stage STAGE=trim SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
@@ -50,25 +42,13 @@ benchmark-screen: ## Benchmark screening tools
 	@$(MAKE) benchmark-fastq-stage STAGE=screen SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 benchmark-preprocess: ## Benchmark full preprocessing pipeline
-	@$(BIJUX_BIN) bench fastq preprocess --sample-id "$(SAMPLE_ID)" --r1 "$(R1)" --out "$(OUT_DIR)" $(BENCH_TOOLS_ARGS) $(BENCH_EXPERIMENTAL_ARGS)
+	@BIJUX_BIN="$(BIJUX_BIN)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" ./scripts/tooling/benchmarks.sh fastq-preprocess
 
 benchmark-all: ## Run all FASTQ benchmarks sequentially for one explicit sample input
-	@set -e; \
-	$(MAKE) benchmark-validate SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-trim SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-filter SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-stats SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-qc-post SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-screen SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	$(MAKE) benchmark-preprocess SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	if [ -n "$(R2)" ]; then \
-		$(MAKE) benchmark-merge SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-		$(MAKE) benchmark-correct SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-		$(MAKE) benchmark-umi SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"; \
-	fi
+	@BIJUX_BIN="$(BIJUX_BIN)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" ./scripts/tooling/benchmarks.sh fastq-all
 
 benchmark-status: ## Show canonical benchmark suite/config directories and detected suites
-	@$(BIJUX_BIN) bench status
+	@BIJUX_BIN="$(BIJUX_BIN)" ./scripts/tooling/benchmarks.sh fastq-status
 
 .PHONY: benchmark-fastq-stage benchmark-all benchmark-trim benchmark-validate benchmark-filter \
 	benchmark-merge benchmark-correct benchmark-qc-post benchmark-umi \

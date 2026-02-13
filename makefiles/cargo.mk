@@ -11,10 +11,6 @@ COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 
-define RUN_IN_ISOLATE
-	@./bin/isolate sh -ceu '$(1)'
-endef
-
 fmt:
 	@./scripts/tooling/ci-fmt.sh
 
@@ -79,26 +75,26 @@ clean-isolates:
 	@rm -rf artifacts/isolates/*
 
 policy-fast: ## Run fast policy checks (no snapshots)
-	@./bin/isolate cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
+	@./scripts/tooling/cargo-targets.sh policy-fast
 	$(MAKE) domain-gates
 
 ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
 	./scripts/checks/check-ssot-guardrails.sh
 	$(MAKE) domain-gates
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts policy_test_names_are_consistent -- --nocapture; cargo test -p bijux-dna-policies --test contracts supported_stages_and_tools_are_complete -- --nocapture; cargo test -p bijux-dna-policies --test contracts each_tool_has_exactly_one_domain_and_stage_binding -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh ssot-policy-fast
 
 test-profile-invariants: ## Run pipeline profile invariant contract tests.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-pipelines --test invariant_fast -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh test-profile-invariants
 
 registry-lint: ## Run strict tool registry reproducibility policy checks.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts production_registry_is_pinned_and_non_floating -- --nocapture; cargo test -p bijux-dna-policies --test contracts profiles_only_use_valid_production_tools -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh registry-lint
 
 unit-contract-fast: ## Fast unit/contract checks for critical crates.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-runner --lib -- --nocapture; cargo test -p bijux-dna-planner-fastq --lib -- --nocapture; cargo test -p bijux-dna-planner-bam --lib -- --nocapture; cargo test -p bijux-dna-stages-fastq --lib -- --nocapture; cargo test -p bijux-dna-stages-bam --lib -- --nocapture; cargo test -p bijux-dna-api --lib -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh unit-contract-fast
 
 release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
 	$(MAKE) registry-lint
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts profiles_release_readiness_gate -- --nocapture; cargo test -p bijux-dna-policies --test contracts reference_adna_profile_uses_production_tools_only -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh release-readiness
 
 ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) ssot-policy-fast
@@ -124,30 +120,29 @@ quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) registry-lint
 
 policy-full: ## Run full policy suite
-	@./bin/isolate cargo test -p bijux-dna-policies
+	@./scripts/tooling/cargo-targets.sh policy-full
 	$(MAKE) domain-gates
 
 domain-validate:
 	./scripts/domain/validate.sh
 
 domain-coverage:
-	@./bin/isolate cargo run -p bijux-dna --bin bijux -- dna domain coverage --domain-dir domain
+	@./scripts/tooling/cargo-targets.sh domain-coverage
 
 domain-inventory-drift:
 	./scripts/domain/inventory-drift.sh
 
 snapshots:
-	@./bin/isolate cargo insta test --workspace
+	@./scripts/tooling/cargo-targets.sh snapshots
 
 snapshots-accept:
-	@./bin/isolate cargo insta accept --workspace
+	@./scripts/tooling/cargo-targets.sh snapshots-accept
 
 snapshots-review:
-	@./bin/isolate cargo insta review
+	@./scripts/tooling/cargo-targets.sh snapshots-review
 
 fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
-	@./bin/isolate cargo insta test --workspace
-	@./bin/isolate cargo insta accept --workspace
+	@./scripts/tooling/cargo-targets.sh fix-snapshots
 
 test-triage: ## Group failed tests from a saved nextest log.
 	@./scripts/test/test-triage.sh artifacts/test-logs/latest.log
@@ -169,7 +164,7 @@ policy-index: ## Generate policy index under artifacts/.
 	@./scripts/tooling/generate-policy-index.sh
 
 policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; cargo test -p bijux-dna-policies --test contracts --test boundaries --test determinism -- --nocapture; cargo test -p bijux-dna-core --test contracts -- --nocapture; cargo test -p bijux-dna-pipelines --test contracts -- --nocapture; cargo test -p bijux-dna-runtime --test contracts -- --nocapture)
+	@./scripts/tooling/cargo-targets.sh policy-only-fast-gate
 
 scripts-inventory: ## Generate scripts inventory under artifacts/
 	@./scripts/tooling/inventory.sh
