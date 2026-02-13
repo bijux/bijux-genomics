@@ -5,9 +5,16 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../../../" && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
-LC_ALL=C
-export LC_ALL
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+dry_run=1
+confirm=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    --confirm) confirm=1; dry_run=0 ;;
+    *) echo "unknown arg: $arg" >&2; exit 2 ;;
+  esac
+done
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
 LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
@@ -20,6 +27,12 @@ if [[ "$ALLOW_DIRTY" != "1" ]]; then
     echo "refusing push: local git tree is dirty (set ALLOW_DIRTY=1 to override)" >&2
     exit 2
   fi
+fi
+
+if [[ "$dry_run" == "1" || "$confirm" != "1" ]]; then
+  echo "[dry-run] would sync repo to $LUNARC_HOST:$LUNARC_REPO_DIR"
+  echo "pass --confirm to execute"
+  exit 0
 fi
 
 ssh "$LUNARC_HOST" "mkdir -p '$LUNARC_REPO_DIR'"

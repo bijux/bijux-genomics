@@ -5,9 +5,16 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../../../" && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
-LC_ALL=C
-export LC_ALL
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+dry_run=1
+confirm=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    --confirm) confirm=1; dry_run=0 ;;
+    *) echo "unknown arg: $arg" >&2; exit 2 ;;
+  esac
+done
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
 LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
@@ -19,6 +26,13 @@ DATA_MANIFEST_GLOB="${DATA_MANIFEST_GLOB:-}"
 
 ts="$(date +%Y%m%d-%H%M%S)"
 dest="${LUNARC_PULL_BASE}/lunarc-${ts}"
+
+if [[ "$dry_run" == "1" || "$confirm" != "1" ]]; then
+  echo "[dry-run] would pull mode=$PULL_MODE from $LUNARC_HOST:$LUNARC_ROOT to $dest"
+  echo "pass --confirm to execute"
+  exit 0
+fi
+
 if [[ -e "$dest" ]]; then
   echo "refusing pull: destination already exists: $dest" >&2
   exit 2
@@ -55,8 +69,8 @@ fi
 remote_commit="$(ssh "$LUNARC_HOST" "cd '$LUNARC_REPO_DIR' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'")"
 remote_hostname="$(ssh "$LUNARC_HOST" "hostname -f 2>/dev/null || hostname")"
 pulled_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
 json_paths="$(printf '%s\n' "${pulled_paths[@]}" | sed '/^$/d' | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')"
+
 cat >"$dest/PULLED_FROM.json" <<JSON
 {
   "schema_version": "bijux.lunarc.pull.v1",
