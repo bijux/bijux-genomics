@@ -2,6 +2,14 @@
 # owner = bijux-dna-domain-compiler
 
 [[stages]]
+id = "vcf.qc"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.qc.v1"
+smoke_required = false
+tools = ["plink", "plink2"]
+
+[[stages]]
 id = "vcf.phasing"
 status = "planned"
 experimental = true
@@ -10,25 +18,33 @@ smoke_required = false
 tools = ["beagle", "shapeit"]
 
 [[stages]]
-id = "vcf.ld_pruning"
+id = "vcf.imputation"
 status = "planned"
 experimental = true
-metrics_schema = "bijux.vcf.ld_pruning.v1"
+metrics_schema = "bijux.vcf.imputation.v1"
 smoke_required = false
-tools = ["plink", "plink2"]
+tools = ["beagle", "shapeit"]
 
 [[stages]]
-id = "vcf.population_structure"
+id = "vcf.pca"
 status = "planned"
 experimental = true
-metrics_schema = "bijux.vcf.population_structure.v1"
+metrics_schema = "bijux.vcf.pca.v1"
 smoke_required = false
 tools = ["eigensoft", "plink2"]
 
 [[stages]]
-id = "vcf.relatedness"
+id = "vcf.admixture"
 status = "planned"
 experimental = true
-metrics_schema = "bijux.vcf.relatedness.v1"
+metrics_schema = "bijux.vcf.admixture.v1"
 smoke_required = false
-tools = ["plink2", "ibdseq"]
+tools = ["plink", "plink2"]
+
+[[stages]]
+id = "vcf.ibd"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.ibd.v1"
+smoke_required = false
+tools = ["germline", "ibdseq", "ibdhap"]
