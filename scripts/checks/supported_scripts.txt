@@ -10,6 +10,7 @@ scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
 scripts/checks/check-isolation-contract.sh
 scripts/checks/check-lib-api.sh
+scripts/checks/check-no-orphan-scripts.sh
 scripts/checks/check-no-raw-cargo-in-makefiles.sh
 scripts/checks/check-no-raw-cargo-in-scripts.sh
 scripts/checks/check-no-target-paths-in-tests.sh
@@ -17,12 +18,14 @@ scripts/checks/check-no-user-path-literals.sh
 scripts/checks/check-output-roots.sh
 scripts/checks/check-readme-links.sh
 scripts/checks/check-root-layout.sh
+scripts/checks/check-script-arg-style.sh
 scripts/checks/check-script-writes.sh
 scripts/checks/check-shell-portability.sh
 scripts/checks/check-ssot-guardrails.sh
 scripts/checks/check-supported-scripts.sh
 scripts/checks/tree-intent.sh
 scripts/containers/build-apptainer-all.sh
+scripts/containers/ensure-images.sh
 scripts/containers/lint.sh
 scripts/containers/make.sh
 scripts/containers/registry-tools.sh
@@ -45,6 +48,7 @@ scripts/run.sh
 scripts/smoke/run.sh
 scripts/smoke/smoke_bam.sh
 scripts/smoke/smoke_fastq.sh
+scripts/test/reproduce-failure.sh
 scripts/test/test-triage.sh
 scripts/test/toy_runs.sh
 scripts/tooling/benchmarks.sh

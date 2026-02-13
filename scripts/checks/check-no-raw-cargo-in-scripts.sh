@@ -39,6 +39,9 @@ while IFS= read -r rel; do
     if [[ "$line" == *"Regenerate with: cargo run"* ]]; then
       continue
     fi
+    if [[ "$line" == *"./bin/isolate sh -ceu"* && "$line" == *"cargo nextest run"* ]]; then
+      continue
+    fi
 
     if rg -n 'exec ./bin/isolate "\$0" "\$@"' "$file" >/dev/null 2>&1; then
       continue
