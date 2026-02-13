@@ -49,6 +49,19 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
     for key in required_labels:
         if key not in text:
             errors.append(f"{rel}: missing label {key}")
+    # Label contract aliases:
+    # tool, version, source, license_ref, build_date, git_sha.
+    alias_sets = {
+        "tool": ["org.opencontainers.image.tool", "tool"],
+        "version": ["org.opencontainers.image.version", "version"],
+        "source": ["org.opencontainers.image.source", "source"],
+        "license_ref": ["org.opencontainers.image.licenses", "license_ref"],
+        "build_date": ["org.opencontainers.image.created", "build_date"],
+        "git_sha": ["org.opencontainers.image.revision", "git_sha"],
+    }
+    for alias, keys in alias_sets.items():
+        if not any(k in text for k in keys):
+            errors.append(f"{rel}: missing label contract key '{alias}'")
 
     if "%environment" not in text:
         errors.append(f"{rel}: missing %environment section")
@@ -71,6 +84,8 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
                 break
         if "set -eux" not in first_non_empty:
             errors.append(f"{rel}: %post must start with set -eux")
+        if not re.search(r"^\s*umask\s+0?22\s*$", post, re.MULTILINE):
+            errors.append(f"{rel}: %post must set deterministic umask 022")
         if re.search(r"\b(read -p|select |dialog|whiptail)\b", post):
             errors.append(f"{rel}: %post contains interactive prompt constructs")
 

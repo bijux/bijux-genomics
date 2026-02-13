@@ -69,8 +69,8 @@ for path in sorted(docker_dir.glob("Dockerfile.*")):
         cmd_txt = cmd_line.group(1).lower() if cmd_line else ""
         if not any(x in cmd_txt for x in ("--help", "-h", "--version")) and not entrypoint_exempt:
             errors.append(f"{rel}: CMD should default to --help/-h/--version")
-    if not has_entrypoint and "NO_ENTRYPOINT_JUSTIFIED" not in text and not entrypoint_exempt:
-        errors.append(f"{rel}: missing ENTRYPOINT (or NO_ENTRYPOINT_JUSTIFIED marker)")
+    if has_entrypoint and not entrypoint_exempt:
+        errors.append(f"{rel}: ENTRYPOINT is forbidden unless listed in ENTRYPOINT_EXCEPTIONS.md")
     if re.search(r'^ENTRYPOINT\s+\["/bin/sh",\s*"-c"', text, flags=re.M) and not entrypoint_exempt:
         errors.append(f"{rel}: ENTRYPOINT must not use /bin/sh -c wrapper")
 
