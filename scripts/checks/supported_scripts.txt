@@ -19,6 +19,10 @@ scripts/checks/check-config-owners.sh
 scripts/checks/check-config-schema.sh
 scripts/checks/check-exit-codes.sh
 scripts/checks/check-examples-corpus-manifests.sh
+scripts/checks/check-examples-corpus-layout.sh
+scripts/checks/check-examples-golden.sh
+scripts/checks/check-examples-cli-snapshot.sh
+scripts/checks/check-examples-notebook-policy.sh
 scripts/checks/check-examples-structure.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
@@ -69,6 +73,7 @@ scripts/domain/inventory-drift.sh
 scripts/domain/lock-registry.sh
 scripts/domain/validate.sh
 scripts/examples/check-index.sh
+scripts/examples/check-drift.sh
 scripts/examples/generate-index.sh
 scripts/examples/run.sh
 scripts/hpc/lunarc/pull.sh
