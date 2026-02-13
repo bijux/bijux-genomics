@@ -20,9 +20,19 @@ Usage: $caller [--help] [args...]
 Script contract:
 - Requires: declared in ${rel%/*}/README.md
 - Exit codes: declared in ${rel%/*}/README.md
+- Common flags: --help, --verbose, --dry-run
 EOF
 }
 
+# Normalize common leading flags across scripts to keep interface consistent.
+if [[ "${1:-}" == "--verbose" ]]; then
+  export VERBOSE=1
+  shift
+fi
+if [[ "${1:-}" == "--dry-run" ]]; then
+  export DRY_RUN=1
+  shift
+fi
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   _print_common_help
   exit 0

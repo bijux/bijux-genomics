@@ -8,21 +8,52 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-ALLOWLIST="$ROOT_DIR/scripts/checks/supported_scripts.txt"
-
+SPEC="$ROOT_DIR/scripts/SUPPORTED.toml"
 failed=0
-while IFS= read -r rel; do
-  [[ -z "$rel" ]] && continue
+
+parse_spec() {
+  local spec_file="$1"
+  python3 - "$spec_file" <<'PY'
+import sys
+from pathlib import Path
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+spec = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+for row in spec.get("script", []):
+    path = row.get("path", "")
+    outputs = row.get("outputs", [])
+    print(f"{path}\t{','.join(outputs)}")
+PY
+}
+
+while IFS=$'\t' read -r rel outputs; do
+  [[ -n "$rel" ]] || continue
   file="$ROOT_DIR/$rel"
   [[ -f "$file" ]] || continue
+
+  # Contract: each supported script must declare writable roots.
+  if [[ -z "$outputs" ]]; then
+    echo "check-script-writes: $rel has empty outputs contract in scripts/SUPPORTED.toml" >&2
+    failed=1
+  fi
+  if ! grep -Eq '(^|,)artifacts/($|,)' <<<"$outputs"; then
+    echo "check-script-writes: $rel outputs contract must include artifacts/" >&2
+    failed=1
+  fi
+  if ! grep -Eq '(^|,)\$ISO_ROOT/($|,)' <<<"$outputs"; then
+    echo "check-script-writes: $rel outputs contract must include \$ISO_ROOT/" >&2
+    failed=1
+  fi
 
   # Static guard: ban obvious absolute writes in supported scripts.
   if rg -n '(>|>>|cp |mv |rm -rf|mkdir -p)\s*/(tmp|var|opt|usr|etc|home|Users)\b' "$file" >/dev/null 2>&1; then
     echo "check-script-writes: forbidden absolute write path pattern in $rel" >&2
     failed=1
   fi
-
-done < <(sed '/^\s*$/d' "$ALLOWLIST")
+done < <(parse_spec "$SPEC")
 
 if [[ $failed -ne 0 ]]; then
   exit 1
