@@ -32,6 +32,7 @@ allowed_missingness:
 compatible_tools:
   - samtools
   - picard
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
 bank_hooks:

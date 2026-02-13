@@ -54,10 +54,11 @@ allowed_missingness:
 compatible_tools:
   - fastqvalidator
   - fastqvalidator
-  - fastq-scan
+  - fastq_scan
   - seqtk
   - fqtools
   - fastqc
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

@@ -56,6 +56,7 @@ compatible_tools:
   - dustmasker
   - prinseq
   - bbduk
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "low-complexity filtering must remain deterministic for identical input."
 bank_hooks:

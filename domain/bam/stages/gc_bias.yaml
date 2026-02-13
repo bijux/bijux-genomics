@@ -34,6 +34,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - picard
+defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "reference GC context and aligned read depth are available"
 bank_hooks:

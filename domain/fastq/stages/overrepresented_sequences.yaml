@@ -46,8 +46,9 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - fastqc
-  - fastq-scan
+  - fastq_scan
   - seqkit
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "overrepresented output remains comparable only under same top-k setting."
 bank_hooks:

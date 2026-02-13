@@ -16,6 +16,8 @@ required_outputs: ["called_vcf"]
 metrics:
   - name: "called_variants"
 compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the only production-approved caller in current VCF baseline."
+defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["diploid_calling"]
 bank_hooks: ["none"]
 invariants: ["tool_pinned"]

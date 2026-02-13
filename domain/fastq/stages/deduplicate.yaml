@@ -58,6 +58,7 @@ compatible_tools:
   - fastuniq
   - clumpify
   - prinseq
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact."
 bank_hooks:
