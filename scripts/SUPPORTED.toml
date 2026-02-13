@@ -1455,3 +1455,51 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "containers_generate_index"
+path = "scripts/containers/generate-index.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_index"
+path = "scripts/containers/check-index.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_tool_id_contract"
+path = "scripts/containers/check-tool-id-contract.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_owners"
+path = "scripts/containers/check-owners.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_version_authority"
+path = "scripts/containers/check-version-authority.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_promotion_policy"
+path = "scripts/containers/check-promotion-policy.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

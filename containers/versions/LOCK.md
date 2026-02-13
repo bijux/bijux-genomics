@@ -1,17 +1,29 @@
 # Container Version Lock Rules
 
-Purpose: Define how `containers/versions/versions.toml` is updated and owned.
+Purpose: Define lock semantics for `containers/versions/versions.toml` and `containers/versions/lock.json`.
 
 ## Authority
-- Owner: platform/tooling maintainers responsible for container reproducibility.
-- Canonical file: `containers/versions/versions.toml`.
+- Canonical version source: `containers/versions/versions.toml`.
+- Canonical lock artifact: `containers/versions/lock.json`.
+- Lock generator: `scripts/containers/generate-version-lock.sh`.
+
+## What `lock.json` Pins
+- `schema_version`: lock schema contract version (`bijux.container.version_lock.v1`).
+- `source`: canonical source path (`containers/versions/versions.toml`).
+- `source_sha256`: full-file hash of `versions.toml`.
+- `items[].tool`: tool ID.
+- `items[].entry_sha256`: hash of canonicalized per-tool version entry.
 
 ## Pin Meaning
-- A pin is a reviewed tool version value tied to a reproducible container build input.
-- Pins must not use floating references (`latest`, branch names, empty values).
+- A pin is a reviewed version/provenance entry in `versions.toml`.
+- Floating references are forbidden (`latest`, branch names, empty version fields).
+- Any edit to `versions.toml` must regenerate and commit `lock.json`.
 
 ## Update Workflow
-1. Update container definition(s) and related registry config.
-2. Update `containers/versions/versions.toml` to the reviewed version values.
-3. Run container lint/policy checks to verify parity and coverage.
-4. Commit changes in one logical unit with rationale for the pin changes.
+1. Update container definition(s) and registry records.
+2. Update `containers/versions/versions.toml`.
+3. Regenerate lock: `./scripts/containers/generate-version-lock.sh`.
+4. Validate authority and drift:
+   - `./scripts/containers/check-version-authority.sh`
+   - `./scripts/containers/check-version-lock.sh`
+5. Commit changes together with rationale.

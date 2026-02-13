@@ -1,0 +1,8 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+
+[[owner]]
+tool_id = "*"
+team = "bijux-dna-platform"
+contact = "platform@bijux.local"
+scope = "container definitions, smoke policy, version locks"
