@@ -1,6 +1,6 @@
 # configs/runtime/profiles
 
-Purpose: define named runtime profiles that compose execution defaults.
+Purpose: define named runtime profiles that compose execution defaults and use-cases.
 
 Composition and precedence:
 1. Base platform defaults from `configs/runtime/platforms.toml`.
@@ -11,3 +11,4 @@ Rules:
 - Profile filename is the stable profile ID.
 - Profile values must not redefine unknown platform IDs.
 - Profile values may override defaults but must remain deterministic.
+- Every profile TOML must declare `use_case`.

@@ -8,3 +8,4 @@ Keep coverage configuration scoped to this directory so ownership is explicit an
 
 ## Files
 - `configs/coverage/thresholds.toml`
+- `configs/coverage/runner.toml`

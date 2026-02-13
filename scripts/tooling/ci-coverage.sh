@@ -10,9 +10,28 @@ export LC_ALL
 
 nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
 test_features="${TEST_FEATURES:---all-features}"
-nextest_profile="${NEXTEST_PROFILE:-ci}"
-nextest_threads="${NEXTEST_TEST_THREADS:-8}"
-run_ignored="${RUN_IGNORED:---run-ignored all}"
+runner_cfg="${ROOT_DIR}/configs/coverage/runner.toml"
+read_cfg="$(python3 - "$runner_cfg" <<'PY'
+from pathlib import Path
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(cfg.get("nextest_profile", "ci"))
+print(cfg.get("test_threads", 1))
+print("--run-ignored all" if bool(cfg.get("run_ignored", True)) else "")
+print("--no-cfg-coverage" if bool(cfg.get("no_cfg_coverage", True)) else "")
+PY
+)"
+cfg_profile="$(printf '%s\n' "$read_cfg" | sed -n '1p')"
+cfg_threads="$(printf '%s\n' "$read_cfg" | sed -n '2p')"
+cfg_run_ignored="$(printf '%s\n' "$read_cfg" | sed -n '3p')"
+cfg_no_cfg_cov="$(printf '%s\n' "$read_cfg" | sed -n '4p')"
+nextest_profile="${NEXTEST_PROFILE:-$cfg_profile}"
+nextest_threads="${NEXTEST_TEST_THREADS:-$cfg_threads}"
+run_ignored="${RUN_IGNORED:-$cfg_run_ignored}"
 coverage_out="${COVERAGE_OUT:-coverage.json}"
 coverage_baseline="${COVERAGE_BASELINE:-artifacts/coverage/baseline.json}"
 coverage_thresholds="${COVERAGE_THRESHOLDS:-configs/coverage/thresholds.toml}"
@@ -33,7 +52,7 @@ if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=\"\$(command -v
 cargo llvm-cov clean
 rm -rf \"\$ISO_ROOT/coverage\"
 mkdir -p \"\$ISO_ROOT/coverage\"
-cargo llvm-cov nextest --no-report --no-cfg-coverage ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} ${run_ignored}
+cargo llvm-cov nextest --no-report ${cfg_no_cfg_cov} ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} ${run_ignored}
 cargo llvm-cov report --json --output-path \"\$ISO_ROOT/coverage/${coverage_out}\"
 cargo llvm-cov report --html --output-dir \"\$ISO_ROOT/coverage\"
 test -f \"\$ISO_ROOT/coverage/${coverage_out}\"

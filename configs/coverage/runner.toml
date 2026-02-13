@@ -1,0 +1,11 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Contract config for coverage/test runner profile parity
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-13
+
+nextest_profile = "ci"
+test_threads = 1
+run_ignored = true
+no_cfg_coverage = true

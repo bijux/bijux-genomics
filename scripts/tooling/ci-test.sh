@@ -10,10 +10,27 @@ export LC_ALL
 
 nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
 test_features="${TEST_FEATURES:---all-features}"
-nextest_profile="${NEXTEST_PROFILE:-ci}"
-nextest_threads="${NEXTEST_TEST_THREADS:-8}"
+runner_cfg="${ROOT_DIR}/configs/coverage/runner.toml"
+read_cfg="$(python3 - "$runner_cfg" <<'PY'
+from pathlib import Path
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+cfg = tomllib.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(cfg.get("nextest_profile", "ci"))
+print(cfg.get("test_threads", 1))
+print("--run-ignored all" if bool(cfg.get("run_ignored", True)) else "")
+PY
+)"
+cfg_profile="$(printf '%s\n' "$read_cfg" | sed -n '1p')"
+cfg_threads="$(printf '%s\n' "$read_cfg" | sed -n '2p')"
+cfg_run_ignored="$(printf '%s\n' "$read_cfg" | sed -n '3p')"
+nextest_profile="${NEXTEST_PROFILE:-$cfg_profile}"
+nextest_threads="${NEXTEST_TEST_THREADS:-$cfg_threads}"
 nextest_no_tests="${NEXTEST_NO_TESTS:-pass}"
-run_ignored="${RUN_IGNORED:---run-ignored all}"
+run_ignored="${RUN_IGNORED:-$cfg_run_ignored}"
 nextest_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
 
 ./bin/isolate sh -ceu "
