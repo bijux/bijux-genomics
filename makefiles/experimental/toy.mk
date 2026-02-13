@@ -4,19 +4,19 @@ TOY_OUT ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/toy_runs,artifacts/toy_runs)
 
 
 toy-golden-check: ## Compare produced toy outputs to goldens (timestamp-tolerant hashes).
-	@./bin/isolate ./scripts/test/toy_runs.sh check --profile all --out "$(TOY_OUT)"
+	@./bin/isolate ./scripts/run.sh test toy_runs check --profile all --out "$(TOY_OUT)"
 
 refresh-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/assets/refresh-toy.sh
+	@./scripts/run.sh assets refresh-toy
 
 refresh-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/assets/refresh-golden.sh
+	@./scripts/run.sh assets refresh-golden
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/assets/refresh-toy.sh
+	@./scripts/run.sh assets refresh-toy
 
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/assets/refresh-golden.sh
+	@./scripts/run.sh assets refresh-golden
 
 golden-refresh: refresh-golden ## Backward-compatible alias.
 

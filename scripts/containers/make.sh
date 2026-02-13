@@ -8,6 +8,11 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "Usage: scripts/containers/make.sh <subcommand> [args...]" >&2
+  exit 0
+fi
+
 if [[ $# -lt 1 ]]; then
   echo "usage: $0 <subcommand>" >&2
   exit 2
@@ -15,6 +20,14 @@ fi
 
 cmd="$1"
 shift
+
+direct_target="${SCRIPT_DIR}/${cmd}.sh"
+if [[ -f "$direct_target" ]]; then
+  if [[ ! -x "$direct_target" ]]; then
+    chmod +x "$direct_target"
+  fi
+  exec "$direct_target" "$@"
+fi
 
 container_type="${CONTAINER_TYPE:-docker-arm64}"
 platform="${PLATFORM:-docker-arm64}"

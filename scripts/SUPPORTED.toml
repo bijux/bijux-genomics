@@ -1143,3 +1143,91 @@ purpose = "checks script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "checks_make"
+path = "scripts/checks/make.sh"
+purpose = "checks group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "tooling_make"
+path = "scripts/tooling/make.sh"
+purpose = "tooling group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "assets_make"
+path = "scripts/assets/make.sh"
+purpose = "assets group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "docs_make"
+path = "scripts/docs/make.sh"
+purpose = "docs group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "domain_make"
+path = "scripts/domain/make.sh"
+purpose = "domain group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "examples_make"
+path = "scripts/examples/make.sh"
+purpose = "examples group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "hpc_make"
+path = "scripts/hpc/make.sh"
+purpose = "hpc group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "lab_make"
+path = "scripts/lab/make.sh"
+purpose = "lab group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "smoke_make"
+path = "scripts/smoke/make.sh"
+purpose = "smoke group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "test_make"
+path = "scripts/test/make.sh"
+purpose = "test group dispatcher"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
+id = "check_no_parallel_accidental"
+path = "scripts/checks/check-no-parallel-accidental.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
