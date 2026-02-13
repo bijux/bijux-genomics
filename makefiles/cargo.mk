@@ -18,7 +18,9 @@ lint:
 	./scripts/run.sh checks check-supported-scripts
 	./scripts/run.sh checks check-config-layout
 	./scripts/run.sh checks check-config-filenames
-	./scripts/run.sh checks check-config-contract-headers
+	./scripts/run.sh checks check-config-headers
+	./scripts/run.sh checks check-registry-split
+	./scripts/run.sh checks check-tool-registry-lock
 	./scripts/run.sh docs check-domain-doc-references
 	./scripts/run.sh docs check-doc-links
 	./scripts/run.sh docs check-generated-docs
