@@ -1383,3 +1383,11 @@ purpose = "checks script"
 inputs = []
 outputs = []
 ci_allowed = true
+
+[[script]]
+id = "require_isolate_smoke"
+path = "scripts/test/require-isolate-smoke.sh"
+purpose = "test script"
+inputs = []
+outputs = []
+ci_allowed = true
