@@ -43,6 +43,7 @@ MANIFEST_DIR="$ARTIFACT_DIR"
 PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
 PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
 PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
+APPTAINER_RUN_ARGS=(--pwd /tmp)
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
@@ -370,12 +371,12 @@ run_tool_command() {
     fi
     if [ -n "${args:-}" ]; then
       # shellcheck disable=SC2086
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "$sif" $args
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "${APPTAINER_RUN_ARGS[@]}" "$sif" $args
     else
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "$sif"
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "${APPTAINER_RUN_ARGS[@]}" "$sif"
     fi
   else
-    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$sif" sh -lc "$cmd"
+    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$sif" sh -lc "$cmd"
   fi
 }
 
@@ -482,7 +483,7 @@ build_and_smoke_one() {
         exit 1
       fi
       echo "=== [$tool] smoke-bin: $expected_bin"
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
       echo "=== [$tool] healthcheck: $health_cmd"
       run_tool_command "$vm_sif" "$health_cmd" "$expected_bin" >/dev/null
       echo "=== [$tool] smoke-minimal: $minimal_cmd (expected_exit=$minimal_exit_code)"
@@ -512,7 +513,7 @@ build_and_smoke_one() {
         exit 1
       fi
       echo "=== [$tool] self-report: bijux-tool-info"
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "bijux-tool-info" > "$self_report_file"
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "bijux-tool-info" > "$self_report_file"
       python3 - "$self_report_file" "$tool" <<'PY'
 import json,sys
 p=sys.argv[1]; t=sys.argv[2]
@@ -522,14 +523,14 @@ if d.get("tool") != t:
 PY
       echo "=== [$tool] runtime-sanity: assets read + ISO_ROOT write"
       sane_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "test -r '$ROOT_DIR/assets/toy' && mkdir -p '${sane_root}/runtime-sanity' && echo '$tool' > '${sane_root}/runtime-sanity/${tool}.apptainer.txt'"
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "test -r '$ROOT_DIR/assets/toy' && mkdir -p '${sane_root}/runtime-sanity' && echo '$tool' > '${sane_root}/runtime-sanity/${tool}.apptainer.txt'"
       if is_downstream_container_tool "$tool"; then
         echo "=== [$tool] provenance: /opt/bijux/VERSION.json"
-        run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"
+        run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "test -s /opt/bijux/VERSION.json && cat /opt/bijux/VERSION.json >/dev/null"
       fi
     fi
     image_size_bytes="$(stat -f%z "$vm_sif" 2>/dev/null || stat -c%s "$vm_sif" 2>/dev/null || echo 0)"
-    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
+    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc 'dpkg-query -W 2>/dev/null || true' > "$sbom_file"
     packages_hash="$(shasum -a 256 "$sbom_file" | awk '{print $1}')"
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"

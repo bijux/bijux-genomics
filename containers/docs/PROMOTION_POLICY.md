@@ -3,6 +3,10 @@
 Purpose: Define required gates for status transitions (`planned` -> `experimental` -> `production`) and demotion.
 
 ## Promotion Gates
+0. Ownership/provenance classification:
+   - `bijux` means Bijux owns and maintains the container recipe in this repo.
+   - `non-bijux` means recipe remains upstream-derived with minimal packaging-only adaptation.
+   - Classification is about recipe ownership/provenance, not license type.
 1. License clarity:
    - Registry entry has a known license.
    - Non-bijux tools are present in `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
