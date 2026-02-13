@@ -33,6 +33,14 @@ outputs = []
 ci_allowed = true
 
 [[script]]
+id = "check_assets_reference_schema"
+path = "scripts/checks/check-assets-reference-schema.sh"
+purpose = "checks script"
+inputs = []
+outputs = []
+ci_allowed = true
+
+[[script]]
 id = "check_bench_knobs"
 path = "scripts/checks/check-bench-knobs.sh"
 purpose = "checks script"
