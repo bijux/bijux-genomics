@@ -1,0 +1,18 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Frontend Apptainer reproducibility acceptance policy.
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-13
+
+policy = "bijux.apptainer.reproducibility.v1"
+
+# Number of random tools to sample per reproducibility run.
+tool_sample_count = 10
+
+# Determinism confidence threshold across all checks:
+# per tool checks = [same_cache_twice, clean_cache_match, purge_cache_match].
+confidence_min = 1.0
+
+# Determinism must pass all sampled tools in strict mode.
+require_all_tools_deterministic = true
