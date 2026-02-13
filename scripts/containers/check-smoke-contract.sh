@@ -47,10 +47,13 @@ for reg in regs:
         h = str(row.get("smoke_help_cmd", "")).strip()
         m = str(row.get("smoke_minimal_cmd", "")).strip()
         me = row.get("smoke_minimal_exit_code", None)
+        expected_bin = str(row.get("expected_bin", "")).strip()
         if not v:
             errors.append(f"{reg}: {tool_id} missing smoke_version_cmd")
         if not h:
             errors.append(f"{reg}: {tool_id} missing smoke_help_cmd")
+        if not expected_bin:
+            errors.append(f"{reg}: {tool_id} missing expected_bin tool binary contract")
         if reg.name == "tool_registry_vcf_downstream.toml":
             if not m:
                 errors.append(f"{reg}: {tool_id} missing smoke_minimal_cmd")

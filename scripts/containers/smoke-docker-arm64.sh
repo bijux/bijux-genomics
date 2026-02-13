@@ -318,6 +318,8 @@ PY
         fi
       fi
     fi
+    image_size_bytes="$("$DOCKER_BIN" image inspect --format '{{.Size}}' "$image" 2>/dev/null | head -n 1 || echo 0)"
+    packages_hash="$(run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc 'dpkg-query -W 2>/dev/null || true' | shasum -a 256 | awk '{print $1}')"
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
       "$DOCKER_BIN" save "$image" -o "$IMG_DIR/${tool}.tar"
@@ -350,7 +352,10 @@ PY
   "version_command": "$cmd_json",
   "minimal_command": "$(json_escape "$minimal_cmd")",
   "minimal_expected_exit_code": $minimal_exit_code,
+  "minimal_actual_exit_code": ${minimal_rc:-0},
   "version_output": "$version_output_json",
+  "image_size_bytes": $image_size_bytes,
+  "packages_hash": "$(json_escape "$packages_hash")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "built_at_utc": "$built_at"
 }

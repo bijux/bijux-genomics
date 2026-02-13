@@ -77,7 +77,16 @@ for path in sorted(glob.glob(os.path.join(manifest_dir, "*.json"))):
     runtime = data.get("runtime", "")
     status = data.get("status", "")
     log = os.path.join(manifest_dir, "logs", runtime, f"{tool}.log") if tool and runtime else ""
-    rows.append({"tool": tool, "runtime": runtime, "status": status, "log": log, "manifest": path})
+    rows.append({
+      "tool": tool,
+      "runtime": runtime,
+      "status": status,
+      "log": log,
+      "manifest": path,
+      "image_size_bytes": data.get("image_size_bytes"),
+      "packages_hash": data.get("packages_hash"),
+      "self_report_path": data.get("self_report_path"),
+    })
 
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 with open(out_path, "w", encoding="utf-8") as f:
