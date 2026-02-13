@@ -34,12 +34,23 @@ for p in reg_files:
         if tid:
             known.add(tid)
 
+container_ids: set[str] = set()
+for p in (root / "containers/docker/arm64").glob("Dockerfile.*"):
+    container_ids.add(p.name.split("Dockerfile.", 1)[1])
+for p in (root / "containers/apptainer/bijux").glob("*.def"):
+    container_ids.add(p.stem)
+for p in (root / "containers/apptainer/non-bijux").glob("*.def"):
+    container_ids.add(p.stem)
+
 errors: list[str] = []
 for p in req_files:
     data = tomllib.loads(p.read_text(encoding="utf-8"))
     for tid in data.get("required_tools", []):
-        if str(tid) not in known:
+        tid = str(tid)
+        if tid not in known:
             errors.append(f"{p.relative_to(root)}: required_tools entry '{tid}' has no registry definition")
+        if "downstream" in p.name and tid not in container_ids:
+            errors.append(f"{p.relative_to(root)}: required downstream tool '{tid}' has no container definition")
 
 if errors:
     print("registry-required-tools-parity: FAILED", file=sys.stderr)
