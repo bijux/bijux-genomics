@@ -95,6 +95,6 @@ fn policy__contracts__bench_layout_policy__legacy_root_bench_paths_not_hardcoded
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "legacy root bench/suites path must not be hardcoded:\\n{}",
-        offenders.join(\"\\n\")
+        offenders.join("\n")
     );
 }
