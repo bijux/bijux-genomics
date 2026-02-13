@@ -313,6 +313,46 @@ date_pinned = "2026-02-13"
 status = "planned"
 upstream_license = "MIT"
 
+[shapeit5]
+version = "planned"
+source = "https://odelaneau.github.io/shapeit5/"
+date_pinned = "2026-02-13"
+status = "planned"
+upstream_license = "MIT"
+source_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+
+[glimpse]
+version = "planned"
+source = "https://odelaneau.github.io/GLIMPSE/"
+date_pinned = "2026-02-13"
+status = "planned"
+upstream_license = "MIT"
+source_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+
+[impute5]
+version = "planned"
+source = "https://jmarchini.org/software/#impute-5"
+date_pinned = "2026-02-13"
+status = "planned"
+upstream_license = "research-only"
+source_sha256 = "3333333333333333333333333333333333333333333333333333333333333333"
+
+[eagle]
+version = "planned"
+source = "https://alkesgroup.broadinstitute.org/Eagle/"
+date_pinned = "2026-02-13"
+status = "planned"
+upstream_license = "GPL-3.0"
+source_sha256 = "4444444444444444444444444444444444444444444444444444444444444444"
+
+[minimac4]
+version = "planned"
+source = "https://genome.sph.umich.edu/wiki/Minimac4"
+date_pinned = "2026-02-13"
+status = "planned"
+upstream_license = "MIT"
+source_sha256 = "5555555555555555555555555555555555555555555555555555555555555555"
+
 [plink]
 version = "planned"
 source = "https://www.cog-genomics.org/plink/"
