@@ -6,7 +6,7 @@ fn workspace_root() -> std::path::PathBuf {
 }
 
 #[test]
-fn policy__determinism__workspace_determinism__tests_layout_by_intent_is_complete() {
+fn policy__determinism__workspace_determinism_suite__tests_layout_by_intent_is_complete() {
     let root = workspace_root();
     let required = ["boundaries", "contracts", "determinism", "schemas"];
     let mut offenders = Vec::new();
@@ -42,10 +42,12 @@ fn policy__determinism__workspace_determinism__tests_layout_by_intent_is_complet
 }
 
 #[test]
-fn policy__determinism__workspace_determinism__policy_tests_use_repo_relative_paths() {
+fn policy__determinism__workspace_determinism_suite__policy_tests_use_repo_relative_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let tests_root = root.join("crates/bijux-dna-policies/tests");
+    let isolate_path_marker = ["artifacts", "isolates", ""].join("/");
+    let iso_tag_marker = format!("{}_{}", "ISO", "TAG");
     for entry in WalkDir::new(&tests_root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
@@ -55,7 +57,7 @@ fn policy__determinism__workspace_determinism__policy_tests_use_repo_relative_pa
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
-        if raw.contains("artifacts/isolates/") || raw.contains("ISO_TAG") {
+        if raw.contains(&isolate_path_marker) || raw.contains(&iso_tag_marker) {
             offenders.push(
                 path.strip_prefix(&root)
                     .unwrap_or(path)
@@ -72,7 +74,7 @@ fn policy__determinism__workspace_determinism__policy_tests_use_repo_relative_pa
 }
 
 #[test]
-fn policy__determinism__workspace_determinism__six_flake_snapshot_tests_remain_explicit() {
+fn policy__determinism__workspace_determinism_suite__six_flake_snapshot_tests_remain_explicit() {
     let root = workspace_root();
     let file = root.join("crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs");
     let raw = std::fs::read_to_string(&file).expect("read pipeline_e2e");
