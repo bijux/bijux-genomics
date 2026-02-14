@@ -12,7 +12,7 @@ mod contracts {
         assert_bgzip_tabix_artifacts, run_call_diploid_stage, run_call_gl_stage,
         run_call_pseudohaploid_stage, run_chunked_regions, run_damage_filter_stage,
         run_gl_propagation_stage,
-        run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
+        run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
         run_qc_stage, run_stats_stage_real, run_filter_stage_real,
         ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
         DamageFilterStageParams, DamageUdgRegime, GlPropagationStageParams, ImputeStageParams, PhasingBackend,
@@ -1158,6 +1158,8 @@ mod contracts {
                 emit_gp: true,
                 truth_vcf: Some(input.clone()),
                 imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
             },
         )
         .unwrap_or_else(|err| panic!("run glimpse impute: {err}"));
@@ -1216,6 +1218,8 @@ mod contracts {
                 emit_gp: true,
                 truth_vcf: None,
                 imputation_accept_mode: ImputationAcceptMode::Fail,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
             },
         )
         .expect_err("unphased GT should fail minimac4");
@@ -1268,6 +1272,8 @@ mod contracts {
                 emit_gp: true,
                 truth_vcf: None,
                 imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
             },
         )
         .unwrap_or_else(|err| panic!("run glimpse impute: {err}"));
@@ -1280,13 +1286,15 @@ mod contracts {
                 build_id: "GRCh38".to_string(),
                 backend: ImputeBackend::Impute5,
                 panel_id: Some("hsapiens_grch38_mini".to_string()),
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                map_id: None,
                 threads: 2,
                 seed: 42,
                 emit_ds: true,
                 emit_gp: true,
                 truth_vcf: None,
                 imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
             },
         )
         .unwrap_or_else(|err| panic!("run impute5 impute: {err}"));
@@ -1316,6 +1324,101 @@ mod contracts {
             a_keys, b_keys,
             "qc schema keys must remain cross-run stable"
         );
+    }
+
+    #[test]
+    fn impute_manifest_contains_chunk_plan_mode_and_chunk_manifests() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![
+                ContigSpec { name: "chr1".to_string(), length_bp: 1000 },
+                ContigSpec { name: "chr2".to_string(), length_bp: 1000 },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_impute_stage(
+            input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Beagle,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: None,
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: Some(500),
+                chunk_overlap_bp: 50,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run impute with chunk planning: {err}"));
+        let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
+            .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
+        assert_eq!(
+            manifest
+                .get("chunk_plan")
+                .and_then(|v| v.get("mode"))
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "fixed_windows_overlap"
+        );
+        assert!(manifest
+            .get("chunk_manifests")
+            .and_then(|v| v.as_array())
+            .is_some_and(|arr| !arr.is_empty()));
+    }
+
+    #[test]
+    fn imputation_wrapper_runs_orchestration_and_emits_wrapper_manifest() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![
+                ContigSpec { name: "chr1".to_string(), length_bp: 1000 },
+                ContigSpec { name: "chr2".to_string(), length_bp: 1000 },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_imputation_orchestration_stage(
+            input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Beagle,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: None,
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run imputation wrapper: {err}"));
+        assert!(out.orchestration_manifest_json.exists());
     }
 
     #[test]
@@ -1356,6 +1459,8 @@ mod contracts {
                 emit_gp: true,
                 truth_vcf: None,
                 imputation_accept_mode: ImputationAcceptMode::Fail,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
             },
         )
         .expect_err("triploid must be refused");
