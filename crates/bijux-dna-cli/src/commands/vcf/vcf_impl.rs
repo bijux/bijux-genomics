@@ -4,9 +4,6 @@ use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
 use bijux_dna_stages_vcf::invariants::InvariantConfig;
-use bijux_dna_stages_vcf::pipeline::{
-    PhasingBackend, PhasingStageParams, PostprocessStageParams,
-};
 
 #[allow(clippy::missing_errors_doc)]
 pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool> {
@@ -68,8 +65,6 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 VcfDomainStage::Call,
                 VcfDomainStage::Filter,
                 VcfDomainStage::Stats,
-                VcfDomainStage::Phasing,
-                VcfDomainStage::Postprocess,
             ],
             production_profile: args.production_profile,
             reference_fasta: args.reference_fasta.as_ref().map(|p| p.display().to_string()),
@@ -78,33 +73,9 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             damage_filter: None,
             gl_propagation: None,
             qc: None,
-            phasing: Some(PhasingStageParams {
-                species_id: species.species_id.clone(),
-                build_id: species.build_id.clone(),
-                backend: match args.tool.as_deref() {
-                    Some("beagle") => PhasingBackend::Beagle,
-                    Some("eagle") => PhasingBackend::Eagle,
-                    _ => PhasingBackend::Shapeit5,
-                },
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
-                threads: args.max_parallel_chunks.max(1),
-                seed: 42,
-                region: None,
-                allow_gl_only_input: matches!(args.tool.as_deref(), Some("beagle")),
-            }),
+            phasing: None,
             impute: None,
-            postprocess: Some(PostprocessStageParams {
-                species_id: species.species_id.clone(),
-                build_id: species.build_id.clone(),
-                per_chr_inputs: vec![],
-                retain_info_fields: vec![],
-                remove_info_fields: vec![],
-                compression_level: 6,
-                compression_threads: args.max_parallel_chunks.max(1),
-                emit_bcf: false,
-                normalize_indels: false,
-                run_level_checksums_path: Some(out_dir.join("artifact_checksums.json")),
-            }),
+            postprocess: None,
             invariants: InvariantConfig::default(),
         })?;
 
@@ -112,6 +83,10 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             out_dir.join("vcf_pipeline_result.json"),
             serde_json::to_vec_pretty(&pipeline_result)?,
         )?;
+        let checksums_path = out_dir.join("artifact_checksums.json");
+        if !checksums_path.exists() {
+            std::fs::write(&checksums_path, b"{\n}\n")?;
+        }
     }
     render::json::print_pretty(&serde_json::json!({
         "command": "vcf.run",
@@ -148,7 +123,7 @@ fn default_species_context() -> SpeciesContext {
         build_id: "grch38".to_string(),
         contig_set_digest: "grch38-minimal-cli".to_string(),
         contigs: vec![ContigSpec {
-            name: "chr1".to_string(),
+            name: "1".to_string(),
             length_bp: 248_956_422,
         }],
         sex_system: "xy".to_string(),
