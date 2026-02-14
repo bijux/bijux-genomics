@@ -21,7 +21,7 @@ name = "panel_vcf"
 path = "panel.vcf.gz"
 format = "vcf.gz"
 url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz"
-checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+checksum_sha256 = "06e6729cfd8f921f336e9fff0505160afec147456e6f38b4ab9740341f869703"
 required = true
 
 [[panel.files]]
@@ -29,7 +29,7 @@ name = "panel_tbi"
 path = "panel.vcf.gz.tbi"
 format = "tbi"
 url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz.tbi"
-checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111112"
+checksum_sha256 = "f5d16fcb72219559a88a381cd9c05c3f9cce63e8180378ad339a64008bf5bf97"
 required = true
 
 [[panel.files]]
@@ -37,7 +37,7 @@ name = "panel_m3vcf"
 path = "panel.m3vcf.gz"
 format = "m3vcf.gz"
 url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.m3vcf.gz"
-checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111113"
+checksum_sha256 = "00668dd69dc4a008c1727f1a5b10c179416dcb8e952f849af221373780d2dce2"
 required = false
 
 [panel.compatibility]
@@ -63,7 +63,7 @@ name = "panel_vcf"
 path = "panel.vcf.gz"
 format = "vcf.gz"
 url = "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz"
-checksum_sha256 = "2222222222222222222222222222222222222222222222222222222222222221"
+checksum_sha256 = "2ceb5e36188e9a93f6105f2160ac669b3ead5eb4047ecec2d2dab0e6db1191b7"
 required = true
 
 [[panel.files]]
@@ -71,7 +71,7 @@ name = "panel_tbi"
 path = "panel.vcf.gz.tbi"
 format = "tbi"
 url = "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz.tbi"
-checksum_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+checksum_sha256 = "6b85e25f04264338d422dbd1ad995cba39dbcfaa911ecf3f43d28f1c04f3be23"
 required = true
 
 [panel.compatibility]

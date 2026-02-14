@@ -15,11 +15,11 @@ name = "recombination_map_tsv"
 path = "recombination_map.tsv.gz"
 format = "tsv.gz"
 url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz"
-checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+checksum_sha256 = "0aa3e3893e087b40653f6f65ca23c8f493eeff64cbc0871ab6eff6e5131174e6"
 
 [[locks.hsapiens_grch38_chr_map.files]]
 name = "recombination_map_tbi"
 path = "recombination_map.tsv.gz.tbi"
 format = "tbi"
 url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz.tbi"
-checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"
+checksum_sha256 = "b26631ecbc03ac2ed72c6896f988b5039f0a53ca84a2162ce6c2608c155b9414"

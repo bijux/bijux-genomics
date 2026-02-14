@@ -19,6 +19,12 @@ stages = [
 ]
 default_tools = ["beagle", "glimpse", "impute5", "shapeit5", "eagle", "minimac4"]
 reference_panel_path = "examples/data/corpus-01-mini/reference/panel.vcf.gz"
+reference_panel_id = "hsapiens_grch38_mini"
+reference_map_id = "hsapiens_grch38_chr_map"
+reference_species_id = "Homo sapiens"
+reference_build_id = "GRCh38"
+reference_cache_root = "artifacts/vcf/reference_store"
+reference_redownload_policy = "never"
 chunk_size = 5000000
 seed = 42
 output_format = "vcf.gz"
