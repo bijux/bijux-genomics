@@ -20,17 +20,6 @@ fn is_uppercase_stem(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-fn required_headings() -> [&'static str; 6] {
-    [
-        "## What",
-        "## Why",
-        "## Non-goals",
-        "## Contracts",
-        "## Examples",
-        "## Failure modes",
-    ]
-}
-
 #[test]
 fn policy__boundaries__docs_spine__docs_placement_contract() {
     let root = docs_root();

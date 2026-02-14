@@ -97,11 +97,6 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
 fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_per_domain_policy() {
     let root = support::workspace_root();
     let domains = parse_toml(&root.join("configs/ci/registry/domains.toml"));
-    let images = parse_toml(&root.join("configs/ci/tools/images.toml"));
-    let image_ids = images
-        .as_table()
-        .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
-        .unwrap_or_default();
     let mut offenders = Vec::new();
 
     for domain in table_array(&domains, "domains") {
