@@ -2,12 +2,14 @@ mod contracts {
     use std::path::Path;
 
     use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
+    use bijux_dna_domain_vcf::VcfDomainStage;
+    use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
     use bijux_dna_stages_vcf::metrics::{
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
     use bijux_dna_stages_vcf::pipeline::{
         assert_bgzip_tabix_artifacts, run_chunked_regions, run_impute_stage, run_phasing_stage,
-        run_postprocess_stage, run_prepare_reference_panel_stage, run_toy_vcf_pipeline,
+        run_postprocess_stage, run_prepare_reference_panel_stage,
         ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
         ImputeStageParams, PhasingBackend, PhasingStageParams, PostprocessStageParams,
         PrepareReferencePanelParams,
@@ -48,14 +50,58 @@ mod contracts {
     }
 
     #[test]
-    fn vcf_toy_pipeline_runs_end_to_end() {
+    fn vcf_dispatch_pipeline_runs_end_to_end() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let (_call, _filter, stats, metrics) = run_toy_vcf_pipeline(input, dir.path(), "sample1")
-            .unwrap_or_else(|err| panic!("toy vcf pipeline: {err}"));
-        assert!(stats.exists());
-        assert_eq!(metrics.schema_version, "bijux.vcf.stats.v1");
-        assert!(metrics.variants_total > 0);
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input.to_path_buf(),
+            species_context: species,
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![
+                VcfDomainStage::Call,
+                VcfDomainStage::Filter,
+                VcfDomainStage::Stats,
+            ],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            phasing: None,
+            impute: None,
+            postprocess: None,
+        })
+        .unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
+        assert!(out.report_path.exists());
+        assert!(out.stages.iter().any(|s| s.stage_id == "vcf.call"));
+        assert!(out.stages.iter().all(|s| s.stage_manifest.exists()));
     }
 
     #[test]
