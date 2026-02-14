@@ -8,6 +8,8 @@ Files:
 - `configs/ci/tools/apptainer_cache_policy.toml`
 - `configs/ci/tools/apptainer_reproducibility_policy.toml`
 - `configs/ci/tools/apptainer_security_policy.toml`
+- `configs/ci/tools/hpc_frontend_build_policy.toml`
+- `configs/ci/tools/image_size_policy.toml`
 - `configs/ci/tools/toolkit_bundles.toml`
 - `configs/ci/tools/vuln_allowlist.toml`
 - `configs/ci/tools/required_tools.toml`

@@ -14,6 +14,9 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
 - [Configs Index](../configs/index.md)
 
+## Operations
+- [Operations Index](30-operations/index.md)
+
 ## Policy checks
 - [CLI conventions and snapshot](cli/index.md)
 - `api_boundaries.rs`
