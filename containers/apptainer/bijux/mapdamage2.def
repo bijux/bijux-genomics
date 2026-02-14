@@ -42,7 +42,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git clone --depth 1 https://github.com/ginolhac/mapDamage.git /opt/mapdamage2
     cd /opt/mapdamage2
     git checkout 484bb3094de69422c2308385aa2bfaf0ef12fa27
-    python3 -m pip install --break-system-packages --no-cache-dir .
+    python3 -m pip install --no-cache-dir .
 
     cat > /usr/local/bin/mapdamage2 <<'EOS'
 #!/usr/bin/env sh

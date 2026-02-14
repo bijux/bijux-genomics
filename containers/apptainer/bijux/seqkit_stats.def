@@ -36,7 +36,12 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     umask 022
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq && \
-    apt-get install -y --no-install-recommends ca-certificates seqkit && \
+    apt-get install -y --no-install-recommends ca-certificates wget tar && \
+    wget -q -O /tmp/seqkit.tar.gz \
+      "https://github.com/shenwei356/seqkit/releases/download/v2.7.0/seqkit_linux_amd64.tar.gz" && \
+    tar -xzf /tmp/seqkit.tar.gz -C /usr/local/bin && \
+    chmod 0755 /usr/local/bin/seqkit && \
+    rm -f /tmp/seqkit.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
     cat > /usr/local/bin/seqkit_stats <<'EOS'

@@ -43,7 +43,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
         python3-pip \
         python3-dev && \
 
-    pip3 install --no-cache-dir --break-system-packages \
+    pip3 install --no-cache-dir \
         multiqc==1.24 && \
 
     rm -rf /var/lib/apt/lists/*

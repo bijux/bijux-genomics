@@ -50,7 +50,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     # Download ARM64 release tarball and install
     cd /tmp
     wget -q -O seqkit.tar.gz \
-      "https://github.com/shenwei356/seqkit/releases/download/v2.8.2/seqkit_linux_arm64.tar.gz"
+      "https://github.com/shenwei356/seqkit/releases/download/v2.8.2/seqkit_linux_amd64.tar.gz"
 
     tar -xzf seqkit.tar.gz -C /usr/local/bin
     mv /usr/local/bin/seqkit /usr/local/bin/seqkit-bin

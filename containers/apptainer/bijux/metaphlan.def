@@ -52,7 +52,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
         zlib1g-dev \
         libhdf5-dev && \
 
-    pip3 install --no-cache-dir --break-system-packages \
+    pip3 install --no-cache-dir \
         metaphlan==4.1.1 && \
 
     mv /usr/local/bin/metaphlan /usr/local/bin/metaphlan-bin && \
