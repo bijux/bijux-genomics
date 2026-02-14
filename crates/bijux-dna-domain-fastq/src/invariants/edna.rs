@@ -4,10 +4,7 @@ use anyhow::{anyhow, Result};
 ///
 /// # Errors
 /// Returns an error if rows are empty, sample IDs are inconsistent, or required columns are missing.
-pub fn validate_edna_table(
-    rows: &[serde_json::Value],
-    expected_columns: &[&str],
-) -> Result<()> {
+pub fn validate_edna_table(rows: &[serde_json::Value], expected_columns: &[&str]) -> Result<()> {
     if rows.is_empty() {
         return Err(anyhow!("eDNA output table is empty"));
     }

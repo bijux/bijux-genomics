@@ -97,18 +97,18 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
     });
     let amplicon_semantics = match stage_id {
         "fastq.primer_normalization" => Some(serde_json::json!({
-                "orientation_policy": "normalize_to_primer_forward_orientation",
-                "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
-            })),
+            "orientation_policy": "normalize_to_primer_forward_orientation",
+            "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
+        })),
         "fastq.chimera_detection" => Some(serde_json::json!({
-                "chimera_removed_definition": "reads flagged as de_novo/reference chimeras are excluded from downstream abundance tables"
-            })),
+            "chimera_removed_definition": "reads flagged as de_novo/reference chimeras are excluded from downstream abundance tables"
+        })),
         "fastq.asv_inference" => Some(serde_json::json!({
-                "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
-            })),
+            "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
+        })),
         "fastq.otu_clustering" => Some(serde_json::json!({
-                "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
-            })),
+            "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
+        })),
         _ => None,
     };
     if let (Some(map), Some(semantics)) = (payload.as_object_mut(), amplicon_semantics) {
