@@ -1998,6 +1998,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_reference_fetch_paths"
+path = "scripts/checks/check-reference-fetch-paths.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "simulate_coverage_regime"
 path = "scripts/tooling/simulate-coverage-regime.sh"
 purpose = "tooling script"
