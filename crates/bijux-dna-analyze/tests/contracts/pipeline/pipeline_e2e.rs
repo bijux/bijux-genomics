@@ -205,7 +205,7 @@ fn pipeline_bam_capture_report_snapshot() -> Result<()> {
     Ok(())
 }
 
-/// Determinism contract for historical snapshot flakes in pipeline_e2e report generation.
+/// Determinism contract for historical snapshot flakes in `pipeline_e2e` report generation.
 #[test]
 fn pipeline_reports_are_stable_across_repeated_builds() -> Result<()> {
     let cases = [
