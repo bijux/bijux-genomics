@@ -1,0 +1,18 @@
+[package]
+name = "bijux-dna-db-ref"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+toml.workspace = true
+bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+
+[lints]
+workspace = true

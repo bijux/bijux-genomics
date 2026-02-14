@@ -21,3 +21,7 @@ goat = "Capra hircus"
 chicken = "Gallus gallus"
 mouse = "Mus musculus"
 rat = "Rattus norvegicus"
+
+[default_builds]
+"Homo sapiens" = "GRCh38"
+"Canis lupus" = "CanFam4"

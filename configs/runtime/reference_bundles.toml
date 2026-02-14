@@ -1,0 +1,58 @@
+# schema_version = 1
+# owner = bijux-dna-db-ref
+# purpose = Canonical species/build reference bundle registry.
+# authority = bijux-dna-db-ref
+# stability = stable
+
+[[bundle]]
+bundle_id = "hsapiens_grch38_primary"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+fasta = "refs/human/grch38/GRCh38.primary_assembly.genome.fa.gz"
+fai = "refs/human/grch38/GRCh38.primary_assembly.genome.fa.gz.fai"
+dict = "refs/human/grch38/GRCh38.primary_assembly.genome.dict"
+contig_set_digest = "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+mask_bed = "refs/human/grch38/mask.bed.gz"
+regions_bed = "refs/human/grch38/regions.bed.gz"
+source_lock_sha256 = "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a"
+bundle_lock_sha256 = "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf"
+normalization_policy = "strict_only"
+sex_system = "xy"
+par_policy = "grch38_par"
+default_coverage_regime = "diploid"
+contigs = [
+  { name = "1", length_bp = 248956422 },
+  { name = "2", length_bp = 242193529 },
+  { name = "X", length_bp = 156040895 },
+  { name = "Y", length_bp = 57227415 },
+]
+[bundle.supported_features]
+sex_chr = true
+imputation = true
+
+[[bundle]]
+bundle_id = "clupus_canfam4_primary"
+species_id = "Canis lupus"
+build_id = "CanFam4"
+fasta = "refs/canis/canfam4/CanFam4.fa.gz"
+fai = "refs/canis/canfam4/CanFam4.fa.gz.fai"
+dict = "refs/canis/canfam4/CanFam4.dict"
+contig_set_digest = "af7a4c13cb62c2acbe056bfaa4e084b8def42f04ad26ccf2cb51875f10645f84"
+source_lock_sha256 = "9a3b5a953f0ea2dca7a8cdde53e8896bb6a7dfb4fd486468ed2055aa49cf5f0f"
+bundle_lock_sha256 = "53a2ca55be69cefc7a4a86e39fdc7bb4f3be8f6df847fd30b538afadf2fdf655"
+normalization_policy = "deterministic_remap"
+sex_system = "xy"
+par_policy = "unsupported"
+default_coverage_regime = "diploid"
+contigs = [
+  { name = "1", length_bp = 122678785 },
+  { name = "2", length_bp = 85426708 },
+  { name = "X", length_bp = 123869142 },
+]
+[bundle.supported_features]
+sex_chr = false
+imputation = false
+[bundle.remap]
+chr1 = "1"
+chr2 = "2"
+chrX = "X"
