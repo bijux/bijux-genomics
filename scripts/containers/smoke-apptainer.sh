@@ -516,7 +516,7 @@ build_and_smoke_one() {
     fi
     if [ -n "$PYTHON_BASE_SIF" ] && [ -f "$PYTHON_BASE_SIF" ]; then
       if grep -Eq '^Bootstrap:[[:space:]]*docker[[:space:]]*$' "$tmp_def" && \
-         grep -Eq '^From:[[:space:]]*(python(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+|docker\.io/library/python(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+)[[:space:]]*$' "$tmp_def"; then
+         grep -Eq '^From:[[:space:]]*(python:3\.11[[:alnum:]._-]*@sha256:[a-f0-9]+|docker\.io/library/python:3\.11[[:alnum:]._-]*@sha256:[a-f0-9]+)[[:space:]]*$' "$tmp_def"; then
         sed -Ei \
           -e 's#^Bootstrap:[[:space:]]*docker[[:space:]]*$#Bootstrap: localimage#' \
           -e "s#^From:[[:space:]].*\$#From: ${PYTHON_BASE_SIF}#" \
