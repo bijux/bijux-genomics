@@ -338,7 +338,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract
     let mut payload = String::new();
     for rel in inputs {
         let path = root.join(rel);
-        let raw = std::fs::read(&path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        let raw =
+            std::fs::read(&path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         let mut file_hasher = sha2::Sha256::new();
         file_hasher.update(raw);
         payload.push_str(rel);
