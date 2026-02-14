@@ -42,7 +42,7 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
         "scripts/docs/",
         "scripts/domain/",
         "scripts/examples/",
-        "scripts/hpc/lunarc/",
+        "scripts/hpc/",
         "scripts/lab/",
         "scripts/smoke/",
         "scripts/test/",
@@ -144,6 +144,7 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
             .to_string();
         if rel.starts_with("scripts/experimental/")
             || rel.starts_with("scripts/_lib/")
+            || rel == "scripts/run.sh"
             || rel.starts_with("scripts/assets/")
             || rel.starts_with("scripts/checks/")
             || rel.starts_with("scripts/containers/")

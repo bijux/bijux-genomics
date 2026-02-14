@@ -113,7 +113,6 @@ duration_s=$((end_epoch - start_epoch))
 
 timing_dir="${ARTIFACT_DIR:-${ISO_ROOT:-$ROOT_DIR/artifacts}/timing}"
 ensure_artifacts_dir "$timing_dir"
-mkdir -p "$timing_dir"
 timing_file="$timing_dir/${group}__${command//\//_}.json"
 python3 - "$timing_file" <<PY
 import json
