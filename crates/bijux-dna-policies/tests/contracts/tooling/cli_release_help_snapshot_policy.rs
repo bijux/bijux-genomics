@@ -4,6 +4,12 @@ mod support;
 
 use std::process::Command;
 
+fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
+    std::env::var_os("CARGO_TARGET_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| root.join("target"))
+}
+
 #[test]
 fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_snapshot_exactly() {
     let root = support::workspace_root();
@@ -23,7 +29,7 @@ fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_sna
         .unwrap_or_else(|err| panic!("build release bijux binary: {err}"));
     assert!(build.success(), "release build failed");
 
-    let output = Command::new(root.join("target/release/bijux"))
+    let output = Command::new(cargo_target_dir(&root).join("release/bijux"))
         .arg("dna")
         .arg("--help")
         .current_dir(&root)
