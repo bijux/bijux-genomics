@@ -135,6 +135,7 @@ scripts/tooling/make.sh
 scripts/tooling/repo-doctor.sh
 scripts/tooling/setup-docs-venv.sh
 scripts/checks/check-panel-locks.sh
+scripts/checks/check-map-locks.sh
 scripts/checks/check-panel-license-policy.sh
 scripts/checks/check-audit-allowlist.sh
 scripts/checks/check-cargo-config-policy.sh
@@ -143,6 +144,7 @@ scripts/checks/check-make-help-sync.sh
 scripts/checks/check-assets-large-file-allowlist.sh
 scripts/tooling/simulate-coverage-regime.sh
 scripts/tooling/acquire-panels.sh
+scripts/tooling/acquire-maps.sh
 scripts/tooling/make-help.sh
 scripts/checks/check-docs-build-contract.sh
 scripts/checks/check-docs-requirements-lock.sh
