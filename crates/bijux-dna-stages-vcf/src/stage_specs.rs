@@ -20,6 +20,27 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: false,
         },
         VcfStageSpec {
+            stage_id: "vcf.call_gl",
+            metrics_schema: "bijux.vcf.call_gl.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.call_diploid",
+            metrics_schema: "bijux.vcf.call_diploid.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.call_pseudohaploid",
+            metrics_schema: "bijux.vcf.call_pseudohaploid.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
             stage_id: STAGE_FILTER,
             metrics_schema: "bijux.vcf.filter.v1",
             smoke_supported: true,
