@@ -2212,3 +2212,163 @@ purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_security_policy.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "apptainer_build_all"
+path = "scripts/containers/apptainer-build-all.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/lock.json"]
+ci_allowed = true
+
+[[script]]
+id = "docker_build_all"
+path = "scripts/containers/docker-build-all.sh"
+purpose = "containers script"
+inputs = ["configs/ci/registry/tool_registry.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/lock.json"]
+ci_allowed = true
+
+[[script]]
+id = "check_smoke_contract_lock"
+path = "scripts/containers/check-smoke-contract-lock.sh"
+purpose = "containers script"
+inputs = ["containers/versions/lock.json", "artifacts/containers/hpc/frontend-smoke/summary.json"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_smoke_inputs_policy"
+path = "scripts/containers/check-smoke-inputs-policy.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/smoke_inputs_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_tool_invocation_normalization"
+path = "scripts/containers/check-tool-invocation-normalization.sh"
+purpose = "containers script"
+inputs = ["configs/ci/registry/tool_registry.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_vuln_allowlist"
+path = "scripts/containers/check-vuln-allowlist.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/vuln_allowlist.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_planned_actionability"
+path = "scripts/containers/check-planned-actionability.sh"
+purpose = "containers script"
+inputs = ["containers/docs/PLANNED.md"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "tool_lifecycle"
+path = "scripts/containers/tool-lifecycle.sh"
+purpose = "containers script"
+inputs = ["containers/versions/versions.toml", "containers/versions/lock.json"]
+outputs = ["artifacts/", "$ISO_ROOT/", "configs/ci/registry/"]
+ci_allowed = false
+
+[[script]]
+id = "generate_tool_name_map"
+path = "scripts/containers/generate-tool-name-map.sh"
+purpose = "containers script"
+inputs = ["configs/ci/registry/tool_registry.toml"]
+outputs = ["containers/docs/TOOL_NAME_MAP.md"]
+ci_allowed = true
+
+[[script]]
+id = "check_tool_name_map_generated"
+path = "scripts/containers/check-tool-name-map-generated.sh"
+purpose = "containers script"
+inputs = ["containers/docs/TOOL_NAME_MAP.md"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_toolkit_bundle_buildable"
+path = "scripts/containers/check-toolkit-bundle-buildable.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/toolkit_bundles.toml", "configs/ci/tools/images.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_vcf_downstream_bundle_coverage"
+path = "scripts/containers/check-vcf-downstream-bundle-coverage.sh"
+purpose = "containers script"
+inputs = ["configs/ci/tools/toolkit_bundles.toml", "domain/vcf/stages/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_license_index_generated"
+path = "scripts/containers/check-license-index-generated.sh"
+purpose = "containers script"
+inputs = ["docs/30-operations/CONTAINER_LICENSE_INDEX.md"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "validate_frontend_constraints"
+path = "scripts/hpc/validate-frontend-constraints.sh"
+purpose = "hpc script"
+inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "run_frontend_mini_e2e"
+path = "scripts/hpc/run-frontend-mini-e2e.sh"
+purpose = "hpc script"
+inputs = ["examples/fastq/edna-mini/example.toml", "examples/vcf/downstream-vcf-full-mini/example.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "check_hpc_frontend_constraints"
+path = "scripts/checks/check-hpc-frontend-constraints.sh"
+purpose = "checks script"
+inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "check_frontend_mini_artifacts"
+path = "scripts/checks/check-frontend-mini-artifacts.sh"
+purpose = "checks script"
+inputs = ["artifacts/hpc/frontend-mini-e2e/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_frontend_observability_proof"
+path = "scripts/checks/check-frontend-observability-proof.sh"
+purpose = "checks script"
+inputs = ["artifacts/hpc/frontend-mini-e2e/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_frontend_telemetry_sanity"
+path = "scripts/checks/check-frontend-telemetry-sanity.sh"
+purpose = "checks script"
+inputs = ["artifacts/hpc/frontend-mini-e2e/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_bench_knob_discipline_downstream"
+path = "scripts/checks/check-bench-knob-discipline-downstream.sh"
+purpose = "checks script"
+inputs = ["configs/bench/knobs.toml", "examples/vcf/downstream-vcf-full-mini/bench-suite.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
