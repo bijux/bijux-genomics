@@ -136,6 +136,7 @@ scripts/tooling/repo-doctor.sh
 scripts/tooling/setup-docs-venv.sh
 scripts/checks/check-panel-locks.sh
 scripts/checks/check-map-locks.sh
+scripts/checks/check-reference-fetch-paths.sh
 scripts/checks/check-panel-license-policy.sh
 scripts/checks/check-audit-allowlist.sh
 scripts/checks/check-cargo-config-policy.sh
