@@ -1861,6 +1861,62 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "containers_check_imputation_cross_runtime_parity"
+path = "scripts/containers/check-imputation-cross-runtime-parity.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_imputation_hardening"
+path = "scripts/containers/check-imputation-hardening.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_imputation_network_policy"
+path = "scripts/containers/check-imputation-network-policy.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_imputation_release_smoke"
+path = "scripts/containers/check-imputation-release-smoke.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_imputation_runtime_constraints"
+path = "scripts/containers/check-imputation-runtime-constraints.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_runtime_tool_digest_recording"
+path = "scripts/containers/check-runtime-tool-digest-recording.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "containers_check_vcf_imputation_toolchain"
+path = "scripts/containers/check-vcf-imputation-toolchain.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "containers_extract_version_map"
 path = "scripts/containers/extract-version-map.sh"
 purpose = "containers script"
