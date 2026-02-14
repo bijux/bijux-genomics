@@ -23,75 +23,11 @@ pub(crate) fn handle_meta_commands(
     _domain_dir: &Path,
     registry_path: &Path,
 ) -> Result<bool> {
+    if let Some(done) = handle_debug_command(cli, dna_command, registry_path)? {
+        return Ok(done);
+    }
+
     match dna_command {
-        #[cfg(debug_assertions)]
-        DnaCommand::ValidateManifests => {
-            let registry = load_manifests(registry_path)
-                .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-            println!(
-                "validated {} stages and {} tools",
-                registry.stages().len(),
-                registry
-                    .stages()
-                    .keys()
-                    .map(|stage| registry.tools_for_stage(stage).len())
-                    .sum::<usize>()
-            );
-            Ok(true)
-        }
-        #[cfg(debug_assertions)]
-        DnaCommand::Platform => {
-            let platform = load_platform(cli.platform.as_deref())
-                .map_err(|err| anyhow!("failed to load platform: {err}"))?;
-            render::json::print_pretty(&platform)?;
-            Ok(true)
-        }
-        #[cfg(debug_assertions)]
-        DnaCommand::ImageQa => {
-            run_image_qa(cli.platform.as_deref())?;
-            Ok(true)
-        }
-        #[cfg(debug_assertions)]
-        DnaCommand::Replay(args) => {
-            if let Some(manifest_path) = args.manifest.as_ref() {
-                bijux_dna_api::v1::api::run::replay_manifest(manifest_path, args.validate_only)?;
-                return Ok(true);
-            }
-            let manifest_path = args
-                .search_root
-                .join(&args.run_id)
-                .join("run_manifest.json");
-            bijux_dna_api::v1::api::run::replay_manifest(&manifest_path, args.validate_only)?;
-            Ok(true)
-        }
-        #[cfg(debug_assertions)]
-        DnaCommand::Compare(args) => {
-            let objective = objective_spec(Objective::Balanced);
-            let run_a = args.search_root.join(&args.run_a);
-            let run_b = args.search_root.join(&args.run_b);
-            let result = if let Some(baseline) = args.baseline.as_ref() {
-                let baseline_dir = args.search_root.join(baseline);
-                compare_runs_with_baseline(&run_a, &run_b, &baseline_dir, &objective)?
-            } else {
-                compare_runs(&run_a, &run_b, &objective)?
-            };
-            let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-            bijux_dna_api::v1::api::run::ensure_dir(output_dir)?;
-            let path = output_dir.join("compare.json");
-            atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
-                .map_err(anyhow::Error::from)?;
-            render::json::print_pretty(&result)?;
-            Ok(true)
-        }
-        #[cfg(debug_assertions)]
-        DnaCommand::Policies { command } => {
-            match command {
-                PoliciesCommand::Audit { out } => {
-                    workspace_audit(out)?;
-                }
-            }
-            Ok(true)
-        }
         DnaCommand::Pipelines { command } => match command {
             PipelinesCommand::List {
                 domain,
@@ -906,52 +842,6 @@ pub(crate) fn handle_meta_commands(
     }
 }
 
-fn resolve_profile_alias(id: &str) -> &str {
-    match id {
-        "fastq-adna" => "fastq-to-fastq__adna__v1",
-        "fastq-reference-adna" => "fastq-to-fastq__reference_adna__v1",
-        "fastq-default" => "fastq-to-fastq__default__v1",
-        "bam-adna" => "bam-to-bam__adna_shotgun__v1",
-        "bam-default" => "bam-to-bam__default__v1",
-        "vcf-minimal" => "vcf-to-vcf__minimal__v1",
-        other => other,
-    }
-}
 
-fn bench_bam_stage_args_to_api(
-    args: &crate::commands::cli::parse::BenchBamStageArgs,
-) -> bijux_dna_api::v1::api::bench::BenchBamStageArgs {
-    bijux_dna_api::v1::api::bench::BenchBamStageArgs {
-        sample_id: args.sample_id.clone(),
-        stage: args.stage.stage(),
-        bam: args.bam.clone(),
-        out: args.out.clone(),
-        tools: args.tools.clone(),
-        explain: args.explain,
-        allow_silver: args.allow_silver,
-        allow_experimental: args.allow_experimental,
-        replicates: args.replicates,
-        jobs: args.jobs,
-        dry_run: args.dry_run,
-        allow_planned: args.allow_planned,
-    }
-}
-
-fn bench_bam_pipeline_args_to_api(
-    args: &crate::commands::cli::parse::BenchBamPipelineArgs,
-) -> bijux_dna_api::v1::api::bench::BenchBamPipelineArgs {
-    bijux_dna_api::v1::api::bench::BenchBamPipelineArgs {
-        profile: args.profile.clone(),
-        sample_id: args.sample_id.clone(),
-        bam: args.bam.clone(),
-        out: args.out.clone(),
-        tools: args.tools.clone(),
-        explain: args.explain,
-        allow_silver: args.allow_silver,
-        allow_experimental: args.allow_experimental,
-        replicates: args.replicates,
-        jobs: args.jobs,
-        dry_run: args.dry_run,
-        allow_planned: args.allow_planned,
-    }
-}
+include!("fastq_meta_debug_commands.rs");
+include!("fastq_meta_helpers.rs");
