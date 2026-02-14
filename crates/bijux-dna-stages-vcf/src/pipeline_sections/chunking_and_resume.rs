@@ -146,7 +146,7 @@ pub fn run_chunked_regions(
     policy: ChunkFailurePolicy,
     rerun_chunk: Option<&str>,
 ) -> Result<ChunkRunOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let chunks = plan_regions_deterministic(species_context, params)?;
     let input_raw = std::fs::read_to_string(input_vcf)?;
     let panel_raw = std::fs::read_to_string(panel_vcf)?;
@@ -169,7 +169,7 @@ pub fn run_chunked_regions(
         .collect::<Vec<_>>();
 
     let chunks_dir = out_dir.join("chunks");
-    std::fs::create_dir_all(&chunks_dir)?;
+    bijux_dna_infra::ensure_dir(&chunks_dir)?;
     let mut manifest = Vec::new();
     let mut merged_records = std::collections::BTreeMap::<String, String>::new();
 

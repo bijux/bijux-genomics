@@ -36,7 +36,7 @@ pub fn run_pca_stage(
     out_dir: &Path,
     params: &PcaStageParams,
 ) -> Result<PcaStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let mut passing = 0_u64;
@@ -114,7 +114,7 @@ pub fn run_population_structure_stage(
     out_dir: &Path,
     params: &PopulationStructureStageParams,
 ) -> Result<PopulationStructureStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut passing = Vec::<String>::new();
     for line in raw.lines() {
@@ -187,7 +187,7 @@ pub fn run_roh_stage(
     out_dir: &Path,
     params: &RohStageParams,
 ) -> Result<RohStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut sample_ids = Vec::<String>::new();
     let mut variants = Vec::<(String, u64, Option<f64>)>::new();
@@ -340,7 +340,7 @@ fn compute_variant_readiness(raw: &str) -> (usize, f64, f64) {
 /// # Errors
 /// Returns an error if readiness checks fail or IBD outputs cannot be produced.
 pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) -> Result<IbdStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let (sample_count, density, missingness) = compute_variant_readiness(&raw);
     if sample_count < params.min_samples {
@@ -438,7 +438,7 @@ pub fn run_demography_stage(
     out_dir: &Path,
     params: &DemographyStageParams,
 ) -> Result<DemographyStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_ibd_segments)?;
     let lines = raw
         .lines()
@@ -563,7 +563,7 @@ pub fn run_prepare_reference_panel_stage(
         overlap_total as f64 / panel_total as f64
     };
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let lock_seed = format!(
         "{}|{}|{}",
         panel.id, panel.version, panel.build_id
@@ -576,9 +576,9 @@ pub fn run_prepare_reference_panel_stage(
     let local_raw = panel_root.join("raw");
     let local_normalized = panel_root.join("normalized");
     let local_derived = panel_root.join("derived");
-    std::fs::create_dir_all(&local_raw)?;
-    std::fs::create_dir_all(&local_normalized)?;
-    std::fs::create_dir_all(&local_derived)?;
+    bijux_dna_infra::ensure_dir(&local_raw)?;
+    bijux_dna_infra::ensure_dir(&local_normalized)?;
+    bijux_dna_infra::ensure_dir(&local_derived)?;
 
     let local_raw_panel_vcf = local_raw.join(
         panel_vcf

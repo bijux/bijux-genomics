@@ -192,7 +192,7 @@ pub fn run_vcf_preflight(
     species: &SpeciesContext,
     config: &InvariantConfig,
 ) -> Result<VcfPreflightResult> {
-    std::fs::create_dir_all(artifact_dir)?;
+    bijux_dna_infra::ensure_dir(artifact_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
 
     let mut summary = InvariantsSummary {

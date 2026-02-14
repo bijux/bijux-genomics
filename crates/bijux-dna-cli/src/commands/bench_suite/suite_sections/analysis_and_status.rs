@@ -123,7 +123,8 @@ pub fn analyze_suite_with_format(
             "<!doctype html><html><head><meta charset=\"utf-8\"><title>Suite Report</title></head><body><h1>Suite Analysis</h1><pre>{}</pre></body></html>",
             html_escape(&pretty)
         );
-        fs::write(&html_path, html).with_context(|| format!("write {}", html_path.display()))?;
+        bijux_dna_infra::write_string(&html_path, &html)
+            .with_context(|| format!("write {}", html_path.display()))?;
     }
 
     let latest_report = cwd

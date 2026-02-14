@@ -168,7 +168,7 @@ fn write_crash_provenance_artifact(
     input_vcf: &Path,
     err: &anyhow::Error,
 ) -> Result<PathBuf> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let path = out_dir.join("crash_provenance.json");
     let (category, hint) = backend_error_hint(stage_id, backend, err);
     let err_text = format!("{err:#}");
@@ -210,7 +210,7 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
     for rel in ["tmp", "chunks", "intermediate", "scratch"] {
         let candidate = out_dir.join(rel);
         if candidate.exists() {
-            let _ = std::fs::remove_dir_all(candidate);
+            let _ = bijux_dna_infra::remove_dir_all(candidate);
         }
     }
 }

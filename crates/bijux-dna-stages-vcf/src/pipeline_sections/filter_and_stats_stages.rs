@@ -125,7 +125,7 @@ pub fn run_filter_stage_real(
             bail!("vcf.filter production gate failed: retention below fail threshold");
         }
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let filtered_vcf = out_dir.join("filtered.vcf.gz");
     let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
     atomic_write_bytes(&filtered_vcf, out.as_bytes())?;
