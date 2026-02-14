@@ -1,16 +1,25 @@
 use bijux_dna_db_ref::{resolve_coverage_profile, resolve_reference_bundle};
 use bijux_dna_stage_contract::StagePlanV1;
 
-use crate::coverage::{classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds};
+use crate::coverage::{
+    classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds,
+};
 use crate::models::{PlannerExplainStage, PlannerExplainV1, VcfPipelineInputs};
 use crate::planner::resolve_panel_lock;
 
 #[must_use]
 pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> PlannerExplainV1 {
-    let bundle = resolve_reference_bundle(&inputs.species_context.species_id, &inputs.species_context.build_id).ok();
-    let resolved_coverage_profile = resolve_coverage_profile(&inputs.species_context.species_id, &inputs.species_context.build_id)
-        .ok()
-        .flatten();
+    let bundle = resolve_reference_bundle(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )
+    .ok();
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )
+    .ok()
+    .flatten();
     let (resolved_coverage_regime, coverage_resolution_reason, coverage_thresholds) =
         classify_coverage_regime(
             inputs.coverage_regime,

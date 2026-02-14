@@ -13,9 +13,7 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-use crate::metrics::{
-    parse_depth_from_info, parse_vcf_call_summary, parse_vcf_filter_breakdown,
-};
+use crate::metrics::{parse_depth_from_info, parse_vcf_call_summary, parse_vcf_filter_breakdown};
 
 include!("pipeline_sections/call_filter_and_gl.rs");
 include!("pipeline_sections/qc_and_stage_params.rs");

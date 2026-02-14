@@ -176,7 +176,9 @@ pub(crate) fn attach_reference_provenance(
     };
     obj.insert(
         "reference_provenance".to_string(),
-        serde_json::json!(bijux_dna_db_ref::reference_provenance(species_id, build_id, bundle)),
+        serde_json::json!(bijux_dna_db_ref::reference_provenance(
+            species_id, build_id, bundle
+        )),
     );
     serde_json::Value::Object(obj)
 }

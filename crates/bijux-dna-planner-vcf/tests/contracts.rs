@@ -200,11 +200,15 @@ fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
     input.mean_depth_x = Some(0.3);
     let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
     assert!(
-        plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_gl"),
+        plans
+            .iter()
+            .any(|p| p.stage_id.to_string() == "vcf.call_gl"),
         "low-depth run should resolve to lowcov_gl default stages"
     );
     assert!(
-        !plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_diploid"),
+        !plans
+            .iter()
+            .any(|p| p.stage_id.to_string() == "vcf.call_diploid"),
         "low-depth run must not keep diploid default stage list"
     );
     let explain = explain_vcf_plan(&input, &plans);

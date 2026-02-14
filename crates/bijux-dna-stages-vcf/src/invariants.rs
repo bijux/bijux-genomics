@@ -122,7 +122,9 @@ fn detect_regime(records: &[String]) -> RegimeDetection {
         };
         let keys = fmt.split(':').collect::<Vec<_>>();
         let gt_idx = keys.iter().position(|k| *k == "GT");
-        let gl_idx = keys.iter().position(|k| *k == "GL" || *k == "GP" || *k == "PL");
+        let gl_idx = keys
+            .iter()
+            .position(|k| *k == "GL" || *k == "GP" || *k == "PL");
         if gt_idx.is_some() {
             has_gt = true;
         }
@@ -247,7 +249,9 @@ pub fn run_vcf_preflight(
         bail!("vcf.validate_inputs refusal: no records/contigs present");
     }
 
-    summary.checked.push("build_declared_vs_inferred".to_string());
+    summary
+        .checked
+        .push("build_declared_vs_inferred".to_string());
     let inferred = if let Some(v) = infer_build_from_header(&header_lines) {
         v
     } else {
@@ -263,15 +267,21 @@ pub fn run_vcf_preflight(
             .count();
         let frac = overlap as f64 / record_contigs.len() as f64;
         if frac >= config.min_overlap_threshold {
-            summary.fixed.push("build_inferred_from_species_context".to_string());
+            summary
+                .fixed
+                .push("build_inferred_from_species_context".to_string());
             species.build_id.clone()
         } else {
-            summary.refused.push("build_declared_vs_inferred".to_string());
+            summary
+                .refused
+                .push("build_declared_vs_inferred".to_string());
             bail!("vcf.validate_inputs refusal: build cannot be asserted (missing declaration and low contig overlap)");
         }
     };
     if !inferred.eq_ignore_ascii_case(&species.build_id) {
-        summary.refused.push("build_declared_vs_inferred".to_string());
+        summary
+            .refused
+            .push("build_declared_vs_inferred".to_string());
         bail!(
             "vcf.validate_inputs refusal: declared/inferred build {} does not match species build {}",
             inferred,
@@ -316,7 +326,9 @@ pub fn run_vcf_preflight(
         records = sorted;
     }
 
-    summary.checked.push("ploidy_declaration_consistent".to_string());
+    summary
+        .checked
+        .push("ploidy_declaration_consistent".to_string());
     let mut ploidy_counts = BTreeSet::<usize>::new();
     for line in &records {
         let Some(fields) = parse_record_fields(line) else {
@@ -336,7 +348,9 @@ pub fn run_vcf_preflight(
         }
     }
     if ploidy_counts.len() > 1 {
-        summary.refused.push("ploidy_declaration_consistent".to_string());
+        summary
+            .refused
+            .push("ploidy_declaration_consistent".to_string());
         bail!("vcf.validate_inputs refusal: inconsistent ploidy declaration");
     }
 
@@ -359,7 +373,9 @@ pub fn run_vcf_preflight(
     }
 
     sample_ids.sort();
-    summary.fixed.push("deterministic_header_normalization".to_string());
+    summary
+        .fixed
+        .push("deterministic_header_normalization".to_string());
     let mut fileformat = vec![];
     let mut contigs = vec![];
     let mut other_meta = vec![];
@@ -378,7 +394,9 @@ pub fn run_vcf_preflight(
             .nth(1)
             .and_then(|x| x.split([',', '>']).next())
             .unwrap_or_default();
-        rank.get(&canonical_contig_label(id)).copied().unwrap_or(usize::MAX)
+        rank.get(&canonical_contig_label(id))
+            .copied()
+            .unwrap_or(usize::MAX)
     });
     other_meta.sort();
     let chrom = format!(
