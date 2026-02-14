@@ -8,7 +8,8 @@ use bijux_dna_domain_vcf::contracts::{
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
-    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, VcfPanelLock, VcfPipelineInputs,
+    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, ChunkPlanSettings, VcfPanelLock,
+    VcfPipelineInputs,
 };
 
 fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
@@ -74,6 +75,7 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
             checksums_match: true,
         },
         pipeline_domain: "vcf".to_string(),
+        chunking: ChunkPlanSettings::default(),
     }
 }
 

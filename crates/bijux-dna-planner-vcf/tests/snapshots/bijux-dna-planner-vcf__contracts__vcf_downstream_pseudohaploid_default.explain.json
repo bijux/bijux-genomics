@@ -16,6 +16,7 @@
       "reason": "species_id/build_id/contig_set_digest invariants"
     },
     {
+      "chunk_count": 101,
       "id": "decision.chunking_selection",
       "reason": "coverage-regime-specific defaults"
     },
