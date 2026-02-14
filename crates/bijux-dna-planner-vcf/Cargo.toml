@@ -18,3 +18,4 @@ workspace = true
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-runtime = { path = "../bijux-dna-runtime" }
