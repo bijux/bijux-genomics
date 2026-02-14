@@ -8,7 +8,7 @@ fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     let input = root.join("input.vcf");
     std::fs::write(
         &input,
-        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t1\t.\tA\tG\t60\tPASS\tDP=12\n",
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n1\t1\t.\tA\tG\t60\tPASS\tDP=12\tGT\t0/1\n",
     )
     .expect("write vcf");
 
@@ -120,9 +120,8 @@ arch = "x86_64"
     ];
     run_with_args(&args, root).expect("run vcf cli");
 
-    assert!(out_dir.join("called.vcf.gz").exists());
-    assert!(out_dir.join("filtered.vcf.gz").exists());
-    assert!(out_dir.join("filtered.vcf.gz.tbi").exists());
-    assert!(out_dir.join("vcf.stats.tsv").exists());
-    assert!(out_dir.join("vcf_report.json").exists());
+    assert!(out_dir.join("vcf_pipeline_result.json").exists());
+    assert!(out_dir.join("report.json").exists());
+    assert!(out_dir.join("artifact_checksums.json").exists());
+    assert!(out_dir.join("artifacts").join("vcf").exists());
 }
