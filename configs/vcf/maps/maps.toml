@@ -1,0 +1,34 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Species/build-keyed recombination map catalog.
+# authority = bijux-dna-vcf
+# stability = stable
+
+[[map]]
+id = "hsapiens_grch38_chr_map"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+status = "production"
+version = "1.0.0"
+lock_ref = "locks/map_locks.toml#locks.hsapiens_grch38_chr_map"
+citation = "Synthetic recombination map for CI contracts"
+
+[[map.files]]
+name = "recombination_map_tsv"
+path = "recombination_map.tsv.gz"
+format = "tsv.gz"
+url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz"
+checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+required = true
+
+[[map.files]]
+name = "recombination_map_tbi"
+path = "recombination_map.tsv.gz.tbi"
+format = "tbi"
+url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz.tbi"
+checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"
+required = true
+
+[map.compatibility]
+tool_tags = ["shapeit5", "eagle", "impute5", "minimac4", "glimpse"]
+coordinate_system = "bp"

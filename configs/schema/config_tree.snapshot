@@ -75,6 +75,9 @@ configs/schema/config_tree.snapshot
 configs/schema/index.md
 configs/schema/validate.py
 configs/vcf/index.md
+configs/vcf/maps/index.md
+configs/vcf/maps/locks/map_locks.toml
+configs/vcf/maps/maps.toml
 configs/vcf/panels/index.md
 configs/vcf/panels/locks/index.md
 configs/vcf/panels/locks/lock.json

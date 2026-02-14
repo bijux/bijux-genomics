@@ -1,0 +1,25 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Exact map file locks by species/build.
+# authority = bijux-dna-vcf
+# stability = stable
+
+[locks.hsapiens_grch38_chr_map]
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+map_id = "hsapiens_grch38_chr_map"
+version = "1.0.0"
+
+[[locks.hsapiens_grch38_chr_map.files]]
+name = "recombination_map_tsv"
+path = "recombination_map.tsv.gz"
+format = "tsv.gz"
+url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz"
+checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"
+
+[[locks.hsapiens_grch38_chr_map.files]]
+name = "recombination_map_tbi"
+path = "recombination_map.tsv.gz.tbi"
+format = "tbi"
+url = "https://example.org/bijux/maps/hsapiens/grch38/recombination_map.tsv.gz.tbi"
+checksum_sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"
