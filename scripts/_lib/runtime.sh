@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 
 die() {
   local msg="${1:-fatal error}"
