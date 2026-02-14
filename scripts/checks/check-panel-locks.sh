@@ -101,6 +101,26 @@ for panel in panels:
             errors.append(f"panel {pid}: lock.json species_id mismatch")
         if str(j.get("build_id", "")).strip() != bid:
             errors.append(f"panel {pid}: lock.json build_id mismatch")
+        if str(j.get("version", "")).strip() != str(panel.get("version", "")).strip():
+            errors.append(f"panel {pid}: lock.json version mismatch")
+        json_files = j.get("files", [])
+        if not isinstance(json_files, list) or not json_files:
+            errors.append(f"panel {pid}: lock.json files list required")
+        else:
+            by_name = {str(f.get("name", "")).strip(): f for f in json_files}
+            for f in files if isinstance(files, list) else []:
+                name = str(f.get("name", "")).strip()
+                if not name:
+                    continue
+                jf = by_name.get(name)
+                if not jf:
+                    errors.append(f"panel {pid}: lock.json missing file {name}")
+                    continue
+                for field in ("path", "format", "url"):
+                    if str(jf.get(field, "")).strip() != str(f.get(field, "")).strip():
+                        errors.append(f"panel {pid}: file {name} {field} mismatch catalog vs lock.json")
+                if str(jf.get("checksum_sha256", "")).strip() != str(f.get("checksum_sha256", "")).strip():
+                    errors.append(f"panel {pid}: file {name} checksum mismatch catalog vs lock.json")
 
 if errors:
     print("panel-locks: FAILED", file=sys.stderr)
