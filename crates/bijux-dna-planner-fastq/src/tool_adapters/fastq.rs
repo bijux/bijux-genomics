@@ -117,6 +117,31 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
+            id: StageId::from_static("fastq.primer_normalization"),
+            version: StageVersion(1),
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: StageId::from_static("fastq.chimera_detection"),
+            version: StageVersion(1),
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: StageId::from_static("fastq.asv_inference"),
+            version: StageVersion(1),
+            affects_read_counts: false,
+        },
+        StageInfo {
+            id: StageId::from_static("fastq.otu_clustering"),
+            version: StageVersion(1),
+            affects_read_counts: false,
+        },
+        StageInfo {
+            id: StageId::from_static("fastq.abundance_normalization"),
+            version: StageVersion(1),
+            affects_read_counts: false,
+        },
+        StageInfo {
             id: crate::tool_adapters::stages::pre::preprocess::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::pre::preprocess::STAGE_VERSION,
             affects_read_counts: true,

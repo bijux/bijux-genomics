@@ -6,6 +6,7 @@ use bijux_dna_domain_fastq::params::preprocess::{
     LibraryDamageTreatment, PreprocessEffectiveParams,
 };
 use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::STAGE_PREPROCESS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -18,6 +19,7 @@ pub struct PreprocessPlan {
     pub r2: Option<std::path::PathBuf>,
     pub stages: Vec<String>,
     pub enable_contaminant_removal: bool,
+    pub pipeline_mode: FastqPipelineMode,
 }
 
 pub fn plan_preprocess_stage(
@@ -30,6 +32,7 @@ pub fn plan_preprocess_stage(
         PairedMode::SingleEnd
     };
     let effective_params = PreprocessEffectiveParams {
+        pipeline_mode: plan.pipeline_mode,
         enable_contaminant_removal: plan.enable_contaminant_removal,
         paired_mode,
         library_declared_paired: plan.r2.is_some(),
