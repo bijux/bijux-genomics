@@ -1,23 +1,21 @@
 Usage: bijux dna [OPTIONS] <COMMAND>
 
 Commands:
-  environment         
+  env                 
   registry            
   ena                 
   corpus              
-  example             
-  plan                
   tool                
   domain              
   lab                 
   config              
   status              
-  dev                 
-  fastq               
+  run                 
   bam                 
   vcf                 
-  pipelines           
+  plan                
   analyze             
+  explain             
   validate-manifests  
   platform            
   image-qa            
@@ -31,5 +29,8 @@ Commands:
   help                Print this message or the help of the given subcommand(s)
 
 Options:
-      --json  
-  -h, --help  Print help
+  -v, --verbose            
+  -q, --quiet              
+      --log-level <LEVEL>  
+      --json               
+  -h, --help               Print help
