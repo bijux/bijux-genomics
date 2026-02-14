@@ -15,3 +15,4 @@ Files:
 - `configs/ci/tools/required_tools.toml`
 - `configs/ci/tools/required_tools_vcf.toml`
 - `configs/ci/tools/required_tools_vcf_downstream.toml`
+- `configs/ci/tools/smoke_inputs_policy.toml`
