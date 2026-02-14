@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.filter",
   "stage_version": 1,
-  "tool_id": "samtools",
+  "tool_id": "bamtools",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -11,7 +11,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && samtools view -b -q 30 tests/fixtures/plan_inputs/default/sample.bam | samtools sort -o out/filtered.bam && samtools index out/filtered.bam out/filtered.bam.bai && samtools flagstat out/filtered.bam > out/flagstat.after.txt && samtools idxstats out/filtered.bam > out/idxstats.after.txt && python - <<'PY' > out/filter.summary.json\nimport json\npayload = {\"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && bamtools stats -in tests/fixtures/plan_inputs/default/sample.bam >/dev/null && samtools view -b tests/fixtures/plan_inputs/default/sample.bam > out/filtered.bam && samtools index out/filtered.bam && samtools flagstat out/filtered.bam > out/flagstat.after.txt && samtools idxstats out/filtered.bam > out/idxstats.after.txt && python - <<'PY' > out/filter.summary.json\nimport json\nprint(json.dumps({\"filter_tool\": \"bamtools\"}, indent=2))\nPY"
     ]
   },
   "resources": {
@@ -101,7 +101,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool samtools selected by planner",
+    "summary": "tool bamtools selected by planner",
     "details": {
       "contract_hash": "95950b2b1f2552ef94b9322a5eedfc06c3097c92e9c52f50e9077cab56e3281c",
       "defaults_diff": {}
