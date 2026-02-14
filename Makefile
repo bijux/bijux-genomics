@@ -5,6 +5,7 @@ JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 8)
 NEXTEST_JOBS ?= $(JOBS)
 
 include makefiles/cargo.mk
+include makefiles/cargo-dev.mk
 include makefiles/containers.mk
 include makefiles/benchmarks-fastq.mk
 include makefiles/benchmarks-bam.mk
