@@ -12,6 +12,7 @@ serde_json.workspace = true
 regex.workspace = true
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
 
 [lints]
 workspace = true

@@ -1,10 +1,14 @@
 mod contracts {
     use std::path::Path;
 
+    use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
     use bijux_dna_stages_vcf::metrics::{
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
-    use bijux_dna_stages_vcf::pipeline::{assert_bgzip_tabix_artifacts, run_toy_vcf_pipeline};
+    use bijux_dna_stages_vcf::pipeline::{
+        assert_bgzip_tabix_artifacts, run_prepare_reference_panel_stage, run_toy_vcf_pipeline,
+        PrepareReferencePanelParams,
+    };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
 
@@ -90,5 +94,47 @@ mod contracts {
                 );
             }
         }
+    }
+
+    #[test]
+    fn prepare_reference_panel_stage_writes_manifest_and_overlap_artifacts() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let panel = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let outputs = run_prepare_reference_panel_stage(
+            input,
+            panel,
+            dir.path(),
+            &species,
+            &PrepareReferencePanelParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+            },
+        )
+        .unwrap_or_else(|err| panic!("prepare_reference_panel: {err}"));
+        assert!(outputs.panel_manifest_json.exists());
+        assert!(outputs.overlap_json.exists());
+        assert!(outputs.overlap_tsv.exists());
     }
 }
