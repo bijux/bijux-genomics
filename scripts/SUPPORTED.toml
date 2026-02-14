@@ -486,6 +486,7 @@ path = "scripts/containers/check-runtime-downloads.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]
@@ -950,6 +951,7 @@ path = "scripts/containers/check-apptainer-post-pins.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]
@@ -1774,6 +1776,7 @@ path = "scripts/containers/check-apptainer-hardening.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]
@@ -1798,6 +1801,7 @@ path = "scripts/containers/check-docker-hardening.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]
@@ -1854,6 +1858,7 @@ path = "scripts/containers/generate-network-usage.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]

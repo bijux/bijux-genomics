@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: fc2317b5c3852c80d7a604d3a302d96322e451f0
+# source_commit: 3681dcb6ef8db63909e4f90cca61167a93f8203d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -933,9 +933,9 @@ tool_id = "seqkit"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.filter", "fastq.primer_normalization", "fastq.abundance_normalization"]
-bindings = ["fastq.abundance_normalization", "fastq.filter", "fastq.primer_normalization"]
-tool_role = "transform"
+stage_ids = ["fastq.filter", "fastq.primer_normalization"]
+bindings = ["fastq.filter", "fastq.primer_normalization"]
+tool_role = "filter"
 version = "2.8.2"
 default_version = "2.8.2"
 upstream = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
@@ -1378,18 +1378,6 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Validation baseline favors deterministic diagnostics and ubiquity."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "fastq.abundance_normalization"
-required_tool_roles = ["transform"]
-primary_tools = ["seqkit"]
-optional_alternatives = []
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
