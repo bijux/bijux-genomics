@@ -662,6 +662,7 @@ impl VcfStageRunner for DispatchRunner {
                 }
                 artifacts.push(out.artifact_checksums_json);
                 artifacts.push(out.validate_outputs_json);
+                artifacts.push(out.final_manifest_json);
                 artifacts.push(out.logs_txt);
             }
             _ => {
