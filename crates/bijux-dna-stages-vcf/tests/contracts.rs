@@ -14,7 +14,7 @@ mod contracts {
         run_gl_propagation_stage, run_pca_stage, run_population_structure_stage,
         run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
         run_qc_stage, run_stats_stage_real, run_filter_stage_real,
-        AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
+        run_demography_stage, run_ibd_stage, AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams, DemographyStageParams, IbdStageParams, ImputationAcceptMode, ImputeBackend,
         DamageFilterStageParams, DamageUdgRegime, GlPropagationStageParams, ImputeStageParams, PhasingBackend,
         PcaStageParams, PhasingStageParams, PopulationStructureStageParams, PostprocessStageParams,
         PrepareReferencePanelParams, QcStageParams, RohStageParams, run_admixture_stage, run_roh_stage,
@@ -1651,5 +1651,61 @@ mod contracts {
         )
         .expect_err("roh should refuse under impossible density requirement");
         assert!(err.to_string().contains("density"));
+    }
+
+    #[test]
+    fn ibd_stage_emits_segments_filtered_and_metrics() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out = run_ibd_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &IbdStageParams {
+                min_variant_density_per_mb: 0.00001,
+                max_missingness: 1.0,
+                min_samples: 1,
+                min_segment_cm: 1.0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run ibd stage: {err}"));
+        assert!(out.ibd_segments_tsv.exists());
+        assert!(out.ibd_filtered_segments_tsv.exists());
+        assert!(out.ibd_summary_json.exists());
+        assert!(out.ibd_metrics_json.exists());
+    }
+
+    #[test]
+    fn ibd_stage_refuses_when_readiness_fails() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let err = run_ibd_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &IbdStageParams {
+                min_variant_density_per_mb: 1_000_000.0,
+                max_missingness: 0.0,
+                min_samples: 100,
+                min_segment_cm: 2.0,
+            },
+        )
+        .expect_err("ibd must refuse when readiness constraints fail");
+        assert!(err.to_string().contains("refusal"));
+    }
+
+    #[test]
+    fn demography_stage_consumes_ibd_segments_and_emits_ne_metrics() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let ibd_segments = dir.path().join("ibd_segments.tsv");
+        std::fs::write(
+            &ibd_segments,
+            "sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\ns1\ts2\tchr1\t1000\t5000\t3.50\n",
+        )
+        .unwrap_or_else(|err| panic!("write ibd segments fixture: {err}"));
+        let out = run_demography_stage(
+            &ibd_segments,
+            &dir.path().join("demography"),
+            &DemographyStageParams { min_segments: 1 },
+        )
+        .unwrap_or_else(|err| panic!("run demography: {err}"));
+        assert!(out.ne_trajectory_tsv.exists());
+        assert!(out.demography_metrics_json.exists());
     }
 }
