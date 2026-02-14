@@ -808,18 +808,22 @@ else
     local def_file="$1"
     bash "$SELF_SCRIPT" --worker "$def_file" </dev/null &
   }
+  active=0
   while IFS= read -r d; do
-    while [ "$(jobs -pr | wc -l | tr -d ' ')" -ge "$JOBS" ]; do
+    while [ "$active" -ge "$JOBS" ]; do
       if ! wait -n; then
         status=1
       fi
+      active=$((active - 1))
     done
     run_worker_bg "$d"
+    active=$((active + 1))
   done < "$LIST_FILE"
-  while [ "$(jobs -pr | wc -l | tr -d ' ')" -gt 0 ]; do
+  while [ "$active" -gt 0 ]; do
     if ! wait -n; then
       status=1
     fi
+    active=$((active - 1))
   done
 fi
 
