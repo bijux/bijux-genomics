@@ -19,7 +19,7 @@ required=(
   "Provenance"
   "Reproducibility"
   "Smoke quality"
-  "scripts/containers/promote.sh"
+  "scripts/containers/tool-lifecycle.sh"
   "scripts/containers/demote.sh"
 )
 for marker in "${required[@]}"; do

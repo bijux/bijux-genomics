@@ -1,0 +1,80 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- Regenerate with: scripts/containers/generate-tool-name-map.sh -->
+
+# Tool Name Mapping
+
+| Tool ID | Expected Binary | Status |
+|---|---|---|
+| `adapterremoval` | `adapterremoval` | `experimental` |
+| `addeam` | `addeam` | `experimental` |
+| `alientrimmer` | `alientrimmer` | `production` |
+| `angsd` | `angsd` | `planned` |
+| `atropos` | `atropos` | `experimental` |
+| `authenticct` | `authenticct` | `production` |
+| `bamtools` | `bamtools` | `production` |
+| `bayeshammer` | `bayeshammer` | `experimental` |
+| `bbduk` | `bbduk` | `production` |
+| `bbmerge` | `bbmerge` | `experimental` |
+| `bcftools` | `bcftools` | `production` |
+| `beagle` | `beagle` | `experimental` |
+| `bedtools` | `bedtools` | `production` |
+| `bowtie2` | `bowtie2` | `production` |
+| `bracken` | `bracken` | `production` |
+| `bwa` | `bwa` | `production` |
+| `centrifuge` | `centrifuge` | `experimental` |
+| `contammix` | `contammix` | `production` |
+| `cutadapt` | `cutadapt` | `experimental` |
+| `damageprofiler` | `damageprofiler` | `experimental` |
+| `eagle` | `eagle` | `experimental` |
+| `eigensoft` | `smartpca` | `experimental` |
+| `fastp` | `fastp` | `production` |
+| `fastq_screen` | `fastq_screen` | `experimental` |
+| `fastqc` | `fastqc` | `production` |
+| `fastqvalidator` | `fastqvalidator` | `production` |
+| `fastx_clipper` | `fastx_clipper` | `production` |
+| `flash2` | `flash2` | `experimental` |
+| `fqtools` | `fqtools` | `experimental` |
+| `germline` | `germline` | `experimental` |
+| `glimpse` | `glimpse` | `planned` |
+| `ibdhap` | `ibdhap` | `planned` |
+| `ibdne` | `ibdne` | `planned` |
+| `ibdseq` | `ibdseq` | `planned` |
+| `impute5` | `impute5` | `planned` |
+| `kaiju` | `kaiju` | `experimental` |
+| `king` | `king` | `production` |
+| `kraken2` | `kraken2` | `production` |
+| `krakenuniq` | `krakenuniq` | `production` |
+| `leehom` | `leehom` | `experimental` |
+| `lighter` | `lighter` | `experimental` |
+| `mapdamage2` | `mapdamage2` | `production` |
+| `metaphlan` | `metaphlan` | `experimental` |
+| `minimac4` | `minimac4` | `planned` |
+| `mosdepth` | `mosdepth` | `production` |
+| `multiqc` | `multiqc` | `production` |
+| `musket` | `musket` | `experimental` |
+| `pear` | `pear` | `production` |
+| `plink` | `plink` | `experimental` |
+| `plink2` | `plink2` | `experimental` |
+| `pmdtools` | `pmdtools` | `production` |
+| `prinseq` | `prinseq++` | `experimental` |
+| `pydamage` | `pydamage` | `production` |
+| `qualimap` | `qualimap` | `experimental` |
+| `rcorrector` | `rcorrector` | `production` |
+| `rxy` | `rxy` | `production` |
+| `samtools` | `samtools` | `production` |
+| `schmutzi` | `schmutzi` | `production` |
+| `seqkit` | `seqkit` | `production` |
+| `seqkit_stats` | `seqkit_stats` | `production` |
+| `seqtk` | `seqtk` | `experimental` |
+| `shapeit` | `shapeit` | `planned` |
+| `shapeit5` | `shapeit5` | `experimental` |
+| `skewer` | `skewer` | `experimental` |
+| `sortmerna` | `sortmerna` | `production` |
+| `spades` | `spades` | `experimental` |
+| `star` | `star` | `production` |
+| `trim_galore` | `trim_galore` | `experimental` |
+| `trimmomatic` | `trimmomatic` | `experimental` |
+| `umi_tools` | `umi_tools` | `production` |
+| `verifybamid2` | `verifybamid2` | `production` |
+| `vsearch` | `vsearch` | `production` |
+| `yleaf` | `yleaf` | `experimental` |

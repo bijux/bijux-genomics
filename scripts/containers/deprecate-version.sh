@@ -81,4 +81,6 @@ dep.write_text(text, encoding="utf-8")
 PY
 
 "$SCRIPT_DIR/generate-version-lock.sh"
+"$SCRIPT_DIR/generate-index.sh" >/dev/null
+"$SCRIPT_DIR/generate-license-metadata.sh" >/dev/null
 echo "deprecated ${tool}@${version} (compatibility_mode=${compatibility_mode})"
