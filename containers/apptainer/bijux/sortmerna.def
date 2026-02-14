@@ -42,64 +42,16 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    # Section: Build dependencies and pip-installed CMake >= 3.21.
     apt-get update
     apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev \
-        libbz2-dev \
-        python3 \
-        python3-pip
-
-    python3 -m pip install --no-cache-dir "cmake>=3.21"
-
-    # Section: Install concurrentqueue.h for SortMeRNA.
-    wget -qO /usr/local/include/concurrentqueue.h \
-      https://raw.githubusercontent.com/cameron314/concurrentqueue/master/concurrentqueue.h
-
-    # Section: Build RocksDB from source.
-    cd /tmp
-    wget -qO rocksdb.tar.gz \
-      "https://github.com/facebook/rocksdb/archive/refs/tags/v6.20.3.tar.gz"
-    mkdir -p /opt
-    tar -xf rocksdb.tar.gz -C /opt
-    cd /opt/rocksdb-6.20.3
-
-    # Patch include as in the Dockerfile.
-    sed -i '1i#include <cstdint>' db/compaction/compaction_iteration_stats.h
-
-    cmake -S . -B build \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_CXX_FLAGS="-Wno-error=redundant-move -include cstdint -include system_error" \
-      -DWITH_LZ4=OFF \
-      -DWITH_ZSTD=OFF \
-      -DWITH_GFLAGS=OFF \
-      -DWITH_SNAPPY=OFF
-    cmake --build build -j"$(nproc)"
-    cmake --install build
-
-    # Section: Build SortMeRNA from source.
-    cd /tmp
-    wget -qO sortmerna.tar.gz \
-      "https://github.com/biocore/sortmerna/archive/v4.3.7.tar.gz"
-    tar -xf sortmerna.tar.gz -C /opt
-    cd /opt/sortmerna-4.3.7
-
-    cmake -S . -B build \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_PREFIX_PATH=/usr/local \
-      -DTHREADS_PREFER_PTHREAD_FLAG=ON \
-      -DCMAKE_C_FLAGS="-pthread" \
-      -DCMAKE_CXX_FLAGS="-pthread -include cstdint" \
-      -DCMAKE_EXE_LINKER_FLAGS="-pthread"
-    cmake --build build -j"$(nproc)"
-    cmake --install build
+        sortmerna \
+        ca-certificates
 
     # Keep the real binary as sortmerna-bin.
     if [ -x /usr/local/bin/sortmerna ]; then
         mv /usr/local/bin/sortmerna /usr/local/bin/sortmerna-bin
+    elif [ -x /usr/bin/sortmerna ]; then
+        install -m 0755 /usr/bin/sortmerna /usr/local/bin/sortmerna-bin
     fi
 
     # Section: Wrapper for stable --version and --help behavior.
@@ -121,11 +73,6 @@ exec /usr/local/bin/sortmerna-bin "$@"
 EOF
     chmod 0755 /usr/local/bin/sortmerna
 
-    # Section: Clean up build artifacts and build-time tools.
-    python3 -m pip uninstall -y cmake || true
-
-    rm -rf /opt/rocksdb-6.20.3 /opt/sortmerna-4.3.7
-    rm -f /tmp/rocksdb.tar.gz /tmp/sortmerna.tar.gz
     rm -rf /var/lib/apt/lists/*
 
     # Note: do not purge ca-certificates (TLS is useful on HPC and cheap to keep).
