@@ -38,6 +38,7 @@ apptainer_ids |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob
 domain_ids = {p.stem for p in (root / "domain").glob("*/tools/*.yaml") if p.stem != "_schema"}
 
 tools = {}
+bin_to_tool = {}
 for reg in regs:
     if not reg.exists():
         continue
@@ -52,6 +53,12 @@ for reg in regs:
             "expected_bin": str(row.get("expected_bin") or "").strip(),
             "status": str(row.get("status") or "").strip(),
         }
+        b = str(row.get("expected_bin") or "").strip()
+        if b:
+            prev = bin_to_tool.get(b)
+            if prev and prev != tid:
+                errors.append(f"expected_bin collision: '{b}' used by both '{prev}' and '{tid}'")
+            bin_to_tool[b] = tid
 
 errors = []
 
@@ -104,6 +111,16 @@ for sid in sorted(all_ids):
     # domain tools may be external; but every non-domain surface id must exist in registry.
     if "registry" not in present and any(s in present for s in ("images", "versions", "tool_ids", "docker", "apptainer")):
         errors.append(f"id parity: '{sid}' present in {present} but missing from registry")
+
+# Documentation parity: name map must include all registry tool ids.
+name_map = root / "containers/docs/TOOL_NAME_MAP.md"
+if not name_map.exists():
+    errors.append("missing containers/docs/TOOL_NAME_MAP.md")
+else:
+    text = name_map.read_text(encoding="utf-8")
+    for tid in sorted(tools):
+        if f"`{tid}`" not in text:
+            errors.append(f"tool-name-map missing tool id '{tid}'")
 
 if errors:
     print("tool-name-collision: failed", file=sys.stderr)

@@ -23,6 +23,19 @@ regs = [
     root / "configs/ci/registry/tool_registry_experimental.toml",
     root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
 ]
+retired_doc = root / "containers/docs/RETIRED_DEFS.md"
+retired = set()
+if retired_doc.exists():
+    for line in retired_doc.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if not s.startswith("| `"):
+            continue
+        cols = [c.strip() for c in s.strip("|").split("|")]
+        if not cols:
+            continue
+        tool = cols[0].strip("`")
+        if tool:
+            retired.add(tool)
 
 registry_ids = set()
 registry_container_ids = set()
@@ -48,10 +61,10 @@ for d in (root / "containers/apptainer/bijux").glob("*.def"):
 for d in (root / "containers/apptainer/non-bijux").glob("*.def"):
     def_ids.add(d.stem)
 
-orphans = sorted(def_ids - registry_ids)
+orphans = sorted((def_ids - registry_ids) - retired)
 missing = sorted(registry_container_ids - def_ids)
 if orphans:
-    print("registry-vs-defs: defs without registry entry:", file=sys.stderr)
+    print("registry-vs-defs: defs without registry entry (and not retired):", file=sys.stderr)
     for tid in orphans:
         print(f"- {tid}", file=sys.stderr)
 if missing:

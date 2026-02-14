@@ -1,6 +1,6 @@
 # Container Promotion Policy
 
-Purpose: Define required gates for status transitions (`planned` -> `experimental` -> `production`) and demotion.
+Purpose: Define required gates for status transitions (`planned` -> `experimental` -> `stable`) and demotion.
 
 ## Promotion Gates
 0. Ownership/provenance classification:
@@ -21,9 +21,13 @@ Purpose: Define required gates for status transitions (`planned` -> `experimenta
    - Minimal invocation smoke is green where defined.
 
 ## Status Transitions
-- `planned -> experimental`: use `scripts/containers/promote.sh --tool <id> --to experimental`.
-- `experimental -> production`: use `scripts/containers/promote.sh --tool <id> --to production` only after all gates pass.
-- `production -> experimental`: use `scripts/containers/demote.sh --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>`.
+- `planned -> experimental`: use `scripts/containers/tool-lifecycle.sh --tool <id> --to experimental`.
+- `experimental -> stable`: use `scripts/containers/tool-lifecycle.sh --tool <id> --to stable` only after all gates pass.
+- `stable -> experimental`: use `scripts/containers/demote.sh --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>`.
+
+Implementation note:
+- Registry status value remains `production` for stable tools; `stable` is the lifecycle command alias.
+- Manual edits to registry status fields are forbidden; use lifecycle scripts only.
 
 ## Ownership
 - Tool ownership is tracked in `containers/OWNERS.toml`.
