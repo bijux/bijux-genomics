@@ -96,7 +96,8 @@ fn policy__contracts__vcf_coverage_regime_policy__no_incompatible_lowcov_diploid
 }
 
 #[test]
-fn policy__contracts__vcf_coverage_regime_policy__vcf_examples_include_regime_observability_fields() {
+fn policy__contracts__vcf_coverage_regime_policy__vcf_examples_include_regime_observability_fields()
+{
     let root = repo_root();
     let checks = [
         "examples/vcf/imputation-mini/golden/explain.json",

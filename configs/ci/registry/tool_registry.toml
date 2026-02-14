@@ -1,13 +1,13 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 6424feae67b37d12e6fba823e015aa664490197a
+# source_commit: fc2317b5c3852c80d7a604d3a302d96322e451f0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config for configs/ci/registry/tool_registry.toml
+# purpose = Contract config generated from domain/** sources
 # authority = bijux-dna-domain-compiler
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-02-14
 
 [[tools]]
 id = "alientrimmer"
@@ -216,12 +216,12 @@ require_labels = true
 [[tools]]
 id = "bowtie2"
 tool_id = "bowtie2"
-domain = "bam"
-domains = ["bam"]
+domain = "fastq"
+domains = ["fastq"]
 status = "production"
-stage_ids = ["bam.align"]
-bindings = ["bam.align"]
-tool_role = "aligner"
+stage_ids = ["fastq.host_depletion", "fastq.contaminant_screen"]
+bindings = ["fastq.contaminant_screen", "fastq.host_depletion"]
+tool_role = "screen"
 version = "2.5.4"
 default_version = "2.5.4"
 upstream = "https://github.com/BenLangmead/bowtie2"
@@ -240,8 +240,8 @@ smoke_help_cmd = "bowtie2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bowtie2 --help"
 expected_bin = "bowtie2"
-expected_artifacts = ["aligned_bam"]
-metrics_schema = "bijux.bam.align.v1"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
 apptainer_def = "containers/apptainer/bijux/bowtie2.def"
@@ -862,17 +862,17 @@ require_labels = true
 [[tools]]
 id = "samtools"
 tool_id = "samtools"
-domain = "bam"
-domains = ["bam", "fastq"]
+domain = "fastq"
+domains = ["fastq"]
 status = "production"
-stage_ids = ["bam.align", "bam.validate", "bam.qc_pre", "bam.mapping_summary", "bam.filter", "bam.mapq_filter", "bam.length_filter", "bam.markdup", "bam.duplication_metrics", "bam.coverage", "bam.endogenous_content", "bam.overlap_correction", "fastq.prepare_reference", "fastq.qc_post"]
-bindings = ["bam.align", "bam.coverage", "bam.duplication_metrics", "bam.endogenous_content", "bam.filter", "bam.length_filter", "bam.mapping_summary", "bam.mapq_filter", "bam.markdup", "bam.overlap_correction", "bam.qc_pre", "bam.validate", "fastq.prepare_reference", "fastq.qc_post"]
+stage_ids = ["fastq.prepare_reference", "fastq.host_depletion", "fastq.qc_post"]
+bindings = ["fastq.host_depletion", "fastq.prepare_reference", "fastq.qc_post"]
 tool_role = "aligner"
 version = "1.21"
 default_version = "1.21"
 upstream = "https://github.com/samtools/samtools"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "MIT"
 citation = "upstream:https://github.com/samtools/samtools"
 pinned_commit = "release:1.21"
 pin_strategy = "pinned"
@@ -886,9 +886,8 @@ smoke_help_cmd = "samtools --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "samtools --help"
 expected_bin = "samtools"
-smoke_negative_exit_code = 1
-expected_artifacts = ["bam_index", "bam_stats"]
-metrics_schema = "bijux.bam.validation.v1"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.samtools"
 apptainer_def = "containers/apptainer/bijux/samtools.def"
@@ -934,9 +933,9 @@ tool_id = "seqkit"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.filter"]
-bindings = ["fastq.filter"]
-tool_role = "filter"
+stage_ids = ["fastq.filter", "fastq.primer_normalization", "fastq.abundance_normalization"]
+bindings = ["fastq.abundance_normalization", "fastq.filter", "fastq.primer_normalization"]
+tool_role = "transform"
 version = "2.8.2"
 default_version = "2.8.2"
 upstream = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
@@ -1138,9 +1137,9 @@ tool_id = "vsearch"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.merge"]
-bindings = ["fastq.merge"]
-tool_role = "merger"
+stage_ids = ["fastq.merge", "fastq.chimera_detection", "fastq.otu_clustering"]
+bindings = ["fastq.chimera_detection", "fastq.merge", "fastq.otu_clustering"]
+tool_role = "transform"
 version = "2.28.1"
 default_version = "2.28.1"
 upstream = "https://github.com/vsearch/vsearch"
@@ -1159,7 +1158,7 @@ smoke_help_cmd = "vsearch --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "vsearch --help"
 expected_bin = "vsearch"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["report_json", "metrics.json", "otu_table", "otu_representatives"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
@@ -1383,6 +1382,30 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.abundance_normalization"
+required_tool_roles = ["transform"]
+primary_tools = ["seqkit"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.chimera_detection"
+required_tool_roles = ["transform"]
+primary_tools = ["vsearch"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.contaminant_screen"
 required_tool_roles = ["screen"]
 primary_tools = ["bbduk"]
@@ -1479,6 +1502,18 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.otu_clustering"
+required_tool_roles = ["transform"]
+primary_tools = ["vsearch"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.overrepresented_sequences"
 required_tool_roles = ["transform"]
 primary_tools = ["fastqc"]
@@ -1511,6 +1546,18 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Stable index generation baseline for pre-HPC runs."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.primer_normalization"
+required_tool_roles = ["transform"]
+primary_tools = ["seqkit"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -1597,3 +1644,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+

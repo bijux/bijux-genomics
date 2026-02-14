@@ -7,7 +7,9 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value = raw
+        .parse()
+        .expect("parse configs/ci/registry/tool_registry.toml");
     let tools = parsed
         .get("tools")
         .and_then(toml::Value::as_array)

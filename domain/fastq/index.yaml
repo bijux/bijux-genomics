@@ -107,7 +107,7 @@ stage_tool_compatibility:
   fastq.validate_pre:
   - fastqvalidator
   - fastqvalidator
-  - fastq-scan
+  - fastq_scan
   - seqtk
   - fqtools
   - fastqc
@@ -170,7 +170,7 @@ stage_tool_compatibility:
   - bowtie2
   fastq.overrepresented_sequences:
   - fastqc
-  - fastq-scan
+  - fastq_scan
   - seqkit
 active_defaults:
   fastq.prepare_reference: star
@@ -409,7 +409,7 @@ stage_default_settings:
     fastqvalidator:
       profile: adna_sane_default
       notes: official validator baseline preset
-    fastq-scan:
+    fastq_scan:
       profile: adna_sane_default
       notes: fast validation summary preset
     seqtk:
@@ -570,9 +570,9 @@ stage_default_settings:
     fastqc:
       profile: adna_sane_default
       notes: FastQC overrepresented module preset
-    fastq-scan:
+    fastq_scan:
       profile: adna_sane_default
-      notes: fastq-scan overrepresented heuristic preset
+      notes: fastq_scan overrepresented heuristic preset
     seqkit:
       profile: adna_sane_default
       notes: seqkit k-mer overrepresentation heuristic preset
