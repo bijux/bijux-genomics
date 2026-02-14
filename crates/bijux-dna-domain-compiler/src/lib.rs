@@ -2594,7 +2594,11 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             bail!(
                 "{} has invalid domain_version {}; expected v1|v2",
                 index_path.display(),
-                if version.is_empty() { "<empty>" } else { version }
+                if version.is_empty() {
+                    "<empty>"
+                } else {
+                    version
+                }
             );
         }
         if dom == "vcf" && version != "v2" {
