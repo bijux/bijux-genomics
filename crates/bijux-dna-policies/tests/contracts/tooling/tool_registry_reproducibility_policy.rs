@@ -327,11 +327,27 @@ fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profi
 fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract_lock_matches_registry(
 ) {
     let root = workspace_root();
-    let registry_path = root.join("configs/ci/registry/tool_registry.toml");
-    let raw = std::fs::read(&registry_path)
-        .unwrap_or_else(|err| panic!("read {}: {err}", registry_path.display()));
+    let inputs = [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+        "configs/ci/registry/domains.toml",
+        "configs/ci/registry/deprecations.toml",
+    ];
+    let mut payload = String::new();
+    for rel in inputs {
+        let path = root.join(rel);
+        let raw = std::fs::read(&path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        let mut file_hasher = sha2::Sha256::new();
+        file_hasher.update(raw);
+        payload.push_str(rel);
+        payload.push(' ');
+        payload.push_str(&format!("{:x}", file_hasher.finalize()));
+        payload.push('\n');
+    }
     let mut hasher = sha2::Sha256::new();
-    hasher.update(raw);
+    hasher.update(payload.as_bytes());
     let expected_hash = format!("{:x}", hasher.finalize());
     let lock_path = root.join("configs/ci/registry/tool_registry_lock.sha256");
     let actual_hash = std::fs::read_to_string(&lock_path)
