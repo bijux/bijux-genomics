@@ -121,8 +121,6 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
     let tool_raw = fs::read_to_string(root.join("configs/ci/registry/tool_registry_vcf.toml"))
         .expect("read configs/ci/registry/tool_registry_vcf.toml");
     let tool_doc: toml::Value = tool_raw.parse().expect("parse tool_registry_vcf.toml");
-    let planner_source = fs::read_to_string(root.join("crates/bijux-dna-planner-vcf/src/lib.rs"))
-        .expect("read planner vcf source");
     let stages_source = fs::read_to_string(root.join("crates/bijux-dna-stages-vcf/src/lib.rs"))
         .expect("read stages vcf source");
 
