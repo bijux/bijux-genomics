@@ -1114,6 +1114,7 @@ pub struct PrepareReferencePanelOutputs {
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum PhasingBackend {
+    Auto,
     Shapeit5,
     Beagle,
     Eagle,
@@ -1123,6 +1124,7 @@ impl PhasingBackend {
     #[must_use]
     pub fn as_str(self) -> &'static str {
         match self {
+            Self::Auto => "auto",
             Self::Shapeit5 => "shapeit5",
             Self::Beagle => "beagle",
             Self::Eagle => "eagle",
@@ -1140,6 +1142,28 @@ pub struct PhasingStageParams {
     pub seed: u64,
     pub region: Option<String>,
     pub allow_gl_only_input: bool,
+}
+
+fn detect_gl_or_gp_in_vcf(raw: &str) -> bool {
+    raw.lines().any(|line| {
+        let Some(fields) = parse_record_fields(line) else {
+            return false;
+        };
+        fields.len() > 8 && format_has_token(fields[8], &["GL", "GP"])
+    })
+}
+
+fn resolve_phasing_backend(params: &PhasingStageParams, raw_vcf: &str) -> PhasingBackend {
+    if params.backend != PhasingBackend::Auto {
+        return params.backend;
+    }
+    if detect_gl_or_gp_in_vcf(raw_vcf) {
+        return PhasingBackend::Beagle;
+    }
+    if params.map_id.is_some() {
+        return PhasingBackend::Shapeit5;
+    }
+    PhasingBackend::Beagle
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1797,14 +1821,16 @@ fn run_phasing_stage_inner(
         bail!("phasing requires threads > 0");
     }
 
-    let backend_tool = params.backend.as_str();
-    if matches!(params.backend, PhasingBackend::Eagle) && !license_metadata_for_tool_exists("eagle")
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let resolved_backend = resolve_phasing_backend(params, &raw);
+    let backend_tool = resolved_backend.as_str();
+    if matches!(resolved_backend, PhasingBackend::Eagle) && !license_metadata_for_tool_exists("eagle")
     {
         bail!("eagle requires non-bijux license metadata before execution");
     }
 
     let map = if matches!(
-        params.backend,
+        resolved_backend,
         PhasingBackend::Shapeit5 | PhasingBackend::Eagle
     ) {
         Some(resolve_map(
@@ -1834,7 +1860,6 @@ fn run_phasing_stage_inner(
         }
     }
 
-    let raw = std::fs::read_to_string(input_vcf)?;
     let mut out_records = Vec::new();
     let mut header_lines = Vec::new();
     let mut has_gt = false;
@@ -1906,7 +1931,7 @@ fn run_phasing_stage_inner(
         }
     }
     if matches!(
-        params.backend,
+        resolved_backend,
         PhasingBackend::Shapeit5 | PhasingBackend::Eagle
     ) && !diploid_ok
     {
@@ -1954,6 +1979,10 @@ fn run_phasing_stage_inner(
         &serde_json::json!({
             "schema_version": "bijux.vcf.phasing.v1",
             "backend": backend_tool,
+            "backend_selection": {
+                "requested": params.backend.as_str(),
+                "resolved": resolved_backend.as_str()
+            },
             "phase_block_n50": phase_block_n50,
             "switch_error_proxy": switch_proxy,
             "warnings": if has_gl_or_gp { vec!["gl_or_gp_present"] } else { Vec::<&str>::new() },
@@ -1980,6 +2009,7 @@ fn run_phasing_stage_inner(
             "schema_version": "bijux.vcf.phasing.manifest.v1",
             "stage_id": "vcf.phasing",
             "backend": backend_tool,
+            "requested_backend": params.backend.as_str(),
             "tool_digest": tool_digest,
             "species_id": species_context.species_id,
             "build_id": species_context.build_id,
@@ -1998,7 +2028,7 @@ fn run_phasing_stage_inner(
             params.seed,
             params.threads,
             matches!(
-                params.backend,
+                resolved_backend,
                 PhasingBackend::Shapeit5 | PhasingBackend::Eagle
             )
         )
