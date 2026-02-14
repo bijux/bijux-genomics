@@ -38,7 +38,7 @@ fn expected_registry(stage_id: &str) -> (String, String) {
                 descriptor.schema_version.to_string(),
             );
         }
-        return ("paramless".to_string(), "none".to_string());
+        return (stage_id.to_string(), "bijux.fastq.params.v1".to_string());
     }
     if stage_id.starts_with("bam.") {
         if BamStage::try_from(stage_id).is_ok() {
