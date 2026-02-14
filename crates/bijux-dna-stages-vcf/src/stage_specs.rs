@@ -90,6 +90,20 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: false,
         },
         VcfStageSpec {
+            stage_id: "vcf.ibd",
+            metrics_schema: "bijux.vcf.ibd.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.demography",
+            metrics_schema: "bijux.vcf.demography.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
             stage_id: STAGE_FILTER,
             metrics_schema: "bijux.vcf.filter.v1",
             smoke_supported: true,
