@@ -4,7 +4,7 @@
     "metrics.json": "e8889e2aa1cb8ffbd803bc2ac2b91f870e5982683fa45b945dbf6a5e1dbfac85",
     "report.html": "c98280bc38a99a8493427ba25b9230278e1b3f9189349ec9cd4fdb694767b1bd"
   },
-  "generated_at": "2026-02-14T15:50:08.112278+00:00",
+  "generated_at": "1970-01-01T00:00:00+00:00",
   "profile_id": "vcf_reference_basic",
   "schema_version": "bijux.toy.artifact_checksums.v1"
 }
