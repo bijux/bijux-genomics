@@ -1,0 +1,13 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Contract config for configs/ci/tools/required_tools_vcf.toml
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-13
+
+# GENERATED - DO NOT EDIT - source: crates/bijux-dna-domain-vcf
+# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad
+# domain_schema_version: bijux.domain.v1
+
+schema_version = "bijux.required_tools.v1"
+required_tools = ["bcftools"]
