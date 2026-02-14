@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/defaults/defaults_ledger.rs
-assertion_line: 46
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -175,6 +174,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "library_damage_treatment": "no_udg",
       "library_declared_paired": false,
       "paired_mode": "single_end",
+      "pipeline_mode": "shotgun",
       "stages": [
         "fastq.validate_pre",
         "fastq.detect_adapters",

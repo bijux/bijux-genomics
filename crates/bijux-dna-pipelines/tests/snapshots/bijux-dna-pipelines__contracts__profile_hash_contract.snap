@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 217
 expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))"
 ---
 {
@@ -384,7 +383,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -392,7 +391,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
         "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
       },
-      "param_bindings_hash": "b56f6c3585cf1d5a0583b53631f3f16c28e560a467250a076eafc472f3ed9bc4",
+      "param_bindings_hash": "e8e85892dc84f8b772b38dd3ecc8499a75f0f584c7385f65d9546b92d3069af0",
       "tool_bindings": {
         "bam.align": "bwa",
         "bam.authenticity": "authenticct",
@@ -453,7 +452,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -527,7 +526,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "477fbf6e9e81e41549058863b686170dcc92ebe97c7bd42a6d532866ee8d3a38"
+    "profile_hash": "a5f352bb19e245507077220481758d9b6313a280b739e2ac50d147177bdb8605"
   },
   "fastq-to-bam__default__v1": {
     "drift_components": {
@@ -552,7 +551,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -560,7 +559,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
         "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
       },
-      "param_bindings_hash": "b56f6c3585cf1d5a0583b53631f3f16c28e560a467250a076eafc472f3ed9bc4",
+      "param_bindings_hash": "e8e85892dc84f8b772b38dd3ecc8499a75f0f584c7385f65d9546b92d3069af0",
       "tool_bindings": {
         "bam.align": "bwa",
         "bam.authenticity": "authenticct",
@@ -621,7 +620,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -695,7 +694,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "3d294808d515039ecbefd75606f16f16c068573ecb3b3906ee55a27af5c95e4a"
+    "profile_hash": "52fd8ca6f840dac202e3a0daafb2a0cafb3eeb09cb9862432413a01731de7772"
   },
   "fastq-to-fastq__adna__v1": {
     "drift_components": {
@@ -704,7 +703,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -712,7 +711,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
         "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
       },
-      "param_bindings_hash": "5a4db704c767c24487b85c940ed82bd7587883232ecf84bc2a2ac35585a418a5",
+      "param_bindings_hash": "a241f7ab665b23b82b44c7011eca1ea6b57691ecacbec1a2ec6daed1559c66d0",
       "tool_bindings": {
         "fastq.correct": "rcorrector",
         "fastq.detect_adapters": "fastqc",
@@ -741,7 +740,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -783,7 +782,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "3f69f2e1355ff0c713253c1c979e54bd12dc5b0a14576d810d45d8f12031110b"
+    "profile_hash": "d93663649e2ae2cb916304db9595c4cb5401ef80ee804b60743fc0abc8931d5e"
   },
   "fastq-to-fastq__default__v1": {
     "drift_components": {
@@ -792,7 +791,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.preprocess": "585d20e84776009a7618d7381f82a3641161b3b820c7140f28f78bb7550c9fd1",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -800,7 +799,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "4fe98d1f16388e7c7cc6190f4353b9c8631da21cb1d03f569712bf7f7f1ad675",
         "fastq.validate_pre": "9af6412e7305dd5a6ee1e215500c176aba3f6e7e05f3fe376ccadfbd086030f2"
       },
-      "param_bindings_hash": "2d1ba86043247ff6bd153daeb8af76c83f38babd0bd54216bbe0fd1a65d837be",
+      "param_bindings_hash": "5fb8bcf9cdfdd89e9860d50ad79a92314ddf00390531a632bf388ed39afa5779",
       "tool_bindings": {
         "fastq.correct": "rcorrector",
         "fastq.detect_adapters": "fastqc",
@@ -829,7 +828,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.preprocess": "585d20e84776009a7618d7381f82a3641161b3b820c7140f28f78bb7550c9fd1",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -871,7 +870,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "f9775e89290a143f8805c76dd5c8d668001d4c848a0f00f109dcc7dcb66c48d3"
+    "profile_hash": "fa392a7f08aa92da7d0540ab9cc321610d8daaf2eb4106e0f081219614581a72"
   },
   "fastq-to-fastq__minimal__v1": {
     "drift_components": {
@@ -880,7 +879,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.preprocess": "585d20e84776009a7618d7381f82a3641161b3b820c7140f28f78bb7550c9fd1",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -888,7 +887,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "4fe98d1f16388e7c7cc6190f4353b9c8631da21cb1d03f569712bf7f7f1ad675",
         "fastq.validate_pre": "9af6412e7305dd5a6ee1e215500c176aba3f6e7e05f3fe376ccadfbd086030f2"
       },
-      "param_bindings_hash": "2d1ba86043247ff6bd153daeb8af76c83f38babd0bd54216bbe0fd1a65d837be",
+      "param_bindings_hash": "5fb8bcf9cdfdd89e9860d50ad79a92314ddf00390531a632bf388ed39afa5779",
       "tool_bindings": {
         "fastq.correct": "rcorrector",
         "fastq.detect_adapters": "fastqc",
@@ -917,7 +916,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.preprocess": "585d20e84776009a7618d7381f82a3641161b3b820c7140f28f78bb7550c9fd1",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -959,7 +958,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "f23b2727feb899dac9de0901150467fb6402168f0809733d85d39696db6de494"
+    "profile_hash": "f0ba44796c46ead9a94dea5c23ef2b1f054f26b158c040e87683785f38882869"
   },
   "fastq-to-fastq__reference_adna__v1": {
     "drift_components": {
@@ -969,7 +968,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "7e6384522ad5c0b377ffef7ccca91f390a30a0281ebd7ae6afd9d045bfed18af",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -977,7 +976,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
         "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
       },
-      "param_bindings_hash": "e92e21a295c9d27f981bb1ccbe31d1294adc447ab042b6c8cfbe36a6efeaae84",
+      "param_bindings_hash": "0945144514c220bd0ae95b05d76ae5876ff1a0c25e55ea8affbdf3542b9287d4",
       "tool_bindings": {
         "fastq.correct": "rcorrector",
         "fastq.detect_adapters": "fastqc",
@@ -1008,7 +1007,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
         "fastq.low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
         "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
         "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
         "fastq.screen": "7e6384522ad5c0b377ffef7ccca91f390a30a0281ebd7ae6afd9d045bfed18af",
         "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
@@ -1052,7 +1051,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "71f16aa300ade15c46e147cb5d24ed6709f1efe234a7e0fa5030fbf6195e2a68"
+    "profile_hash": "c61be0d4d2b2bf32b26f1ec547178fc9671a1ea12081bf95549b281010e793d6"
   },
   "vcf-to-vcf__minimal__v1": {
     "drift_components": {
