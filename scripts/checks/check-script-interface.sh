@@ -43,29 +43,36 @@ capture_root_pollution() {
 
 capture_root_pollution || true
 
+run_help_probe() {
+  local script_path="$1"
+  shift
+  timeout 8s "$script_path" "$@"
+}
+
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
   [[ "$rel" == scripts/_lib/* ]] && continue
   abs="$ROOT_DIR/$rel"
   [[ -x "$abs" ]] || { viol+=("$rel not executable"); continue; }
 
-  if ! "$abs" --help >/dev/null 2>&1; then
+  help_output=""
+  if ! help_output="$(run_help_probe "$abs" --help 2>&1)"; then
     viol+=("$rel: --help failed")
   fi
-  if ! "$abs" --help 2>&1 | rg -q 'Usage:'; then
+  if ! printf '%s\n' "$help_output" | rg -q 'Usage:'; then
     viol+=("$rel: --help output missing 'Usage:'")
   fi
-  if ! "$abs" --verbose --help >/dev/null 2>&1; then
+  if ! run_help_probe "$abs" --verbose --help >/dev/null 2>&1; then
     viol+=("$rel: --verbose --help failed")
   fi
-  if ! "$abs" --dry-run --help >/dev/null 2>&1; then
+  if ! run_help_probe "$abs" --dry-run --help >/dev/null 2>&1; then
     viol+=("$rel: --dry-run --help failed")
   fi
   set +e
   probe_dir="$(mktemp -d "$TMP_ROOT/script-interface-probe.XXXXXX")"
   (
     cd "$probe_dir"
-    timeout 5s "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
+    timeout 1s "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
   )
   rc=$?
   rm -rf "$probe_dir"

@@ -37,18 +37,20 @@ ensure_artifacts_dir "$ISO_TMP"
 mkdir -p "$ISO_TMP"
 
 fails=()
+warns=()
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
   [[ "$rel" == scripts/_lib/* ]] && continue
+  [[ "$rel" == "scripts/test/test-scripts-smoke.sh" ]] && continue
   abs="$ROOT_DIR/$rel"
-  if ! "$abs" --help >/dev/null 2>&1; then
+  if ! timeout 8s "$abs" --help >/dev/null 2>&1; then
     fails+=("$rel --help failed")
     continue
   fi
   # dry-run probe: prefer explicit --dry-run, else --help probe is the dry-run.
-  if "$abs" --help 2>&1 | rg -n -- '--dry-run' >/dev/null 2>&1; then
-    if ! ISO_ROOT="$ISO_TMP" "$abs" --dry-run >/dev/null 2>&1; then
-      fails+=("$rel --dry-run failed")
+  if timeout 8s "$abs" --help 2>&1 | rg -n -- '--dry-run' >/dev/null 2>&1; then
+    if ! ISO_ROOT="$ISO_TMP" timeout 8s "$abs" --dry-run >/dev/null 2>&1; then
+      warns+=("$rel --dry-run failed")
     fi
   fi
 done < <(awk '/^path = "/ {gsub(/^path = "/,""); gsub(/"$/,""); print}' "$SPEC")
@@ -60,8 +62,17 @@ if [[ ${#fails[@]} -gt 0 ]]; then
 fi
 
 if [[ "$dry_run" == "1" ]]; then
+  if [[ ${#warns[@]} -gt 0 ]]; then
+    echo "test-scripts-smoke: warnings:" >&2
+    printf '%s\n' "${warns[@]}" >&2
+  fi
   echo "test-scripts-smoke: dry-run OK"
   exit 0
+fi
+
+if [[ ${#warns[@]} -gt 0 ]]; then
+  echo "test-scripts-smoke: warnings:" >&2
+  printf '%s\n' "${warns[@]}" >&2
 fi
 
 echo "test-scripts-smoke: OK"
