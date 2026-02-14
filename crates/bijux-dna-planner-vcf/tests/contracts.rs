@@ -163,3 +163,15 @@ fn vcf_downstream_snapshot_requested_subset_with_panel() {
     ]);
     snapshot_plan_and_explain("vcf_downstream_subset_with_panel", &input);
 }
+
+#[test]
+fn vcf_planner_refuses_edna_or_pollen_domain() {
+    let mut input = base_inputs(CoverageRegime::LowCovGl);
+    input.pipeline_domain = "edna".to_string();
+    let err = plan_vcf_stage_plans(&input).expect_err("edna domain must be refused");
+    assert!(
+        err.to_string().contains("eDNA/pollen")
+            || err.to_string().contains("non-applicable domain"),
+        "unexpected refusal message: {err}"
+    );
+}
