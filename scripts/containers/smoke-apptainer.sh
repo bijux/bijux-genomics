@@ -801,7 +801,7 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
   done < "$LIST_FILE"
 else
   xargs -P "$JOBS" -I{} bash -c '
-    bash "$1" --worker "$2"
+    bash "$1" --worker "$2" </dev/null
     rc=$?
     if [ "$rc" -eq 255 ]; then
       rc=1
