@@ -1522,6 +1522,60 @@ mod contracts {
         assert!(out.merged_bcf.is_some());
         assert!(out.artifact_checksums_json.exists());
         assert!(out.validate_outputs_json.exists());
+        assert!(out.final_manifest_json.exists());
         assert!(out.logs_txt.exists());
+    }
+
+    #[test]
+    fn postprocess_removes_invalid_records_and_records_normalization_summary() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("invalid_records.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\t.\t60\t.\tMQ=50\tGT\t0/1\n1\t2\t.\tAA\tA\t60\t.\tMQ=50\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write invalid fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_postprocess_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PostprocessStageParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                per_chr_inputs: vec![],
+                retain_info_fields: vec![],
+                remove_info_fields: vec!["MQ".to_string()],
+                compression_level: 6,
+                compression_threads: 2,
+                emit_bcf: false,
+                normalize_indels: true,
+                run_level_checksums_path: None,
+            },
+        )
+        .unwrap_or_else(|err| panic!("postprocess invalid fixture: {err}"));
+        let manifest_raw = std::fs::read_to_string(&out.final_manifest_json)
+            .unwrap_or_else(|err| panic!("read final manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse final manifest: {err}"));
+        assert_eq!(
+            manifest
+                .get("normalization")
+                .and_then(|v| v.get("invalid_records_removed"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or_default(),
+            1
+        );
     }
 }
