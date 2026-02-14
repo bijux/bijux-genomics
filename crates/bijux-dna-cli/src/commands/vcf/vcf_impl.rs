@@ -1,7 +1,12 @@
 use crate::commands::cli::parse::{DnaCommand, VcfCommand, VcfRunArgs};
 use crate::commands::command_prelude::{anyhow, render, Cli, Path, Result};
+use bijux_dna_db_ref::resolve_species_context;
+use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
-use bijux_dna_stages_vcf::pipeline::{run_call_stage, run_filter_stage, run_stats_stage};
+use bijux_dna_stages_vcf::pipeline::{
+    run_call_stage, run_chunked_regions, run_filter_stage, run_stats_stage, ChunkFailurePolicy,
+    ChunkingPlanParams,
+};
 
 #[allow(clippy::missing_errors_doc)]
 pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool> {
@@ -101,6 +106,40 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             }))?,
         )
         .map_err(|err| anyhow!("write {}: {err}", report_path.display()))?;
+
+        let resolved = resolve_species_context("Homo sapiens", "GRCh38")
+            .map_err(|err| anyhow!("resolve species context: {err}"))?;
+        let species: SpeciesContext = resolved.context;
+        let chunk_outputs = run_chunked_regions(
+            &filtered_vcf,
+            &filtered_vcf,
+            out_dir,
+            &species,
+            &ChunkingPlanParams {
+                window_size_bp: args.chunk_window_size_bp,
+                overlap_bp: args.chunk_overlap_bp,
+                chr_include: if args.chunk_chr_include.is_empty() {
+                    None
+                } else {
+                    Some(args.chunk_chr_include.clone())
+                },
+                chr_exclude: args.chunk_chr_exclude.clone(),
+                max_parallel_chunks: args.max_parallel_chunks,
+                chr_level_threshold_bp: args.chunk_window_size_bp,
+            },
+            if args.partial_allowed {
+                ChunkFailurePolicy::PartialAllowed
+            } else {
+                ChunkFailurePolicy::FailFast
+            },
+            args.rerun_chunk.as_deref(),
+        )?;
+        let chunk_report_path = out_dir.join("chunk_report.json");
+        std::fs::write(
+            &chunk_report_path,
+            serde_json::to_vec_pretty(&chunk_outputs)?,
+        )
+        .map_err(|err| anyhow!("write {}: {err}", chunk_report_path.display()))?;
     }
     render::json::print_pretty(&serde_json::json!({
         "command": "vcf.run",
@@ -116,7 +155,19 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             "filtered_index": out_dir.join("filtered.vcf.gz.tbi"),
             "stats": stats_path,
             "report": out_dir.join("vcf_report.json"),
+            "chunks": out_dir.join("chunks.json"),
+            "chunk_merged_vcf": out_dir.join("merged_chunks.vcf.gz"),
+            "chunk_report": out_dir.join("chunk_report.json"),
         },
+            "chunking": {
+                "window_size_bp": args.chunk_window_size_bp,
+                "overlap_bp": args.chunk_overlap_bp,
+                "chr_include": args.chunk_chr_include.clone(),
+                "chr_exclude": args.chunk_chr_exclude.clone(),
+                "max_parallel_chunks": args.max_parallel_chunks,
+                "partial_allowed": args.partial_allowed,
+                "rerun_chunk": args.rerun_chunk.clone(),
+            },
         "dry_run": args.dry_run,
         "status": if args.dry_run { "planned" } else { "completed" },
     }))?;

@@ -17,6 +17,7 @@ bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-stages-vcf = { path = "../bijux-dna-stages-vcf" }
+bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
 bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
 anyhow = { workspace = true }
 clap = { workspace = true }
