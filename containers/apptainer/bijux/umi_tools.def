@@ -42,51 +42,14 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
 
     apt-get update -qq
     apt-get install -y --no-install-recommends \
-        build-essential \
         ca-certificates \
-        wget \
-        tar \
-        gzip \
-        zlib1g-dev \
-        libbz2-dev \
-        liblzma-dev
+        umi-tools
 
-    # Create a virtual environment.
-    python3 -m venv /opt/venv
-
-    # Pin pip to keep legacy knobs stable (and avoid pip 26 flag removals)
-    /opt/venv/bin/python -m pip install --no-cache-dir --upgrade \
-        "pip==23.3.2" \
-        "setuptools>=65" \
-        "wheel"
-
-    # Section: Patch sdist bootstrap for Python 3.10 compatibility.
-    # UMI-tools 1.1.6 sdist hardcodes ez_setup -> setuptools==10.0.
-    # That crashes on Python 3.10 because `symbol` is removed.
-    # Workaround: fetch sdist without pip, patch setup.py, and install locally.
-    mkdir -p /tmp/umi && cd /tmp/umi
-
-    # Use a direct sdist URL to bypass pip metadata and egg_info.
-    wget -q -O umi_tools-1.1.6.tar.gz \
-      "https://files.pythonhosted.org/packages/source/u/umi-tools/umi_tools-1.1.6.tar.gz"
-
-    tar -xzf umi_tools-1.1.6.tar.gz
-    cd umi_tools-1.1.6
-
-    # Remove ez_setup bootstrapping because it forces setuptools==10.0.
-    # Typical offenders:
-    #   from ez_setup import use_setuptools
-    #   use_setuptools("10.0")
-    #   import ez_setup
-    sed -i '/ez_setup/d' setup.py
-    sed -i '/use_setuptools/d' setup.py
-    sed -i '/setuptools-10\.0/d' setup.py
-
-    # Install from patched source.
-    /opt/venv/bin/pip install --no-cache-dir --no-build-isolation --no-use-pep517 .
-
-    # Keep the real entrypoint as umi_tools-bin.
-    install -m 0755 /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin
+    if [ -x /usr/bin/umi_tools ]; then
+        install -m 0755 /usr/bin/umi_tools /usr/local/bin/umi_tools-bin
+    else
+        install -m 0755 /usr/local/bin/umi_tools /usr/local/bin/umi_tools-bin
+    fi
 
     # Create a wrapper for stable --version and --help behavior.
     cat > /usr/local/bin/umi_tools <<'EOF'
@@ -107,9 +70,6 @@ exec /usr/local/bin/umi_tools-bin "$@"
 EOF
     chmod 0755 /usr/local/bin/umi_tools
 
-    # Clean up.
-    cd /
-    rm -rf /tmp/umi
     rm -rf /var/lib/apt/lists/*
 
 %runscript
