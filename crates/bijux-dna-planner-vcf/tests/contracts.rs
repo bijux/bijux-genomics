@@ -21,37 +21,39 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         requested_stages: None,
         panel_locks: vec![VcfPanelLock {
             panel_id: "1000g_phase3".to_string(),
-            reference_build: "GRCh37".to_string(),
+            reference_build: "GRCh38".to_string(),
             panel_checksum_sha256: "a".repeat(64),
             index_checksum_sha256: "b".repeat(64),
             license_id: "CC-BY-4.0".to_string(),
         }],
         panel_selection: PanelSelectionContext {
-            target_build: "GRCh37".to_string(),
+            target_build: "GRCh38".to_string(),
             ancestry_hint: None,
             use_restricted_license: false,
         },
         species_context: SpeciesContext {
-            species_id: "homo_sapiens".to_string(),
-            build_id: "GRCh37".to_string(),
-            contig_set_digest: "contigs-sha256".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
             contigs: vec![
                 ContigSpec {
                     name: "1".to_string(),
-                    length_bp: 249250621,
+                    length_bp: 248956422,
                 },
                 ContigSpec {
                     name: "2".to_string(),
-                    length_bp: 243199373,
+                    length_bp: 242193529,
                 },
             ],
             sex_system: "xy".to_string(),
-            par_policy: "grch37_par".to_string(),
+            par_policy: "grch38_par".to_string(),
             default_coverage_regime: Some(regime),
         },
         entry_vcf_invariants: EntryVcfInvariantState {
-            build_id: "GRCh37".to_string(),
-            contig_set_digest: "contigs-sha256".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
             sorted_by_contig_and_pos: true,
             bgzip_compressed: true,
             tabix_index_present: true,
@@ -59,15 +61,17 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
             ploidy_constraints_ok: true,
         },
         panel_map_invariants: PanelMapInvariantState {
-            species_id: "homo_sapiens".to_string(),
-            build_id: "GRCh37".to_string(),
-            contig_set_digest: "contigs-sha256".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
             phased_or_gl_compatible: true,
             format_requirements_ok: true,
             sample_count_ok: true,
             license_allowed: true,
             checksums_match: true,
         },
+        pipeline_domain: "vcf".to_string(),
     }
 }
 
@@ -85,7 +89,12 @@ fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     }
     let expected = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
-    assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
+    assert_eq!(
+        actual,
+        expected.trim_end(),
+        "snapshot mismatch for {}",
+        path.display()
+    );
 }
 
 fn snapshot_plan_and_explain(name: &str, inputs: &VcfPipelineInputs) {
