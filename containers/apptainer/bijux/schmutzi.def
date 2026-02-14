@@ -49,7 +49,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 #!/bin/sh
 set -eu
 if [ "${1:-}" = "--version" ]; then
-  echo "d11884c"
+  echo "1.5.4"
   exit 0
 fi
 if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
