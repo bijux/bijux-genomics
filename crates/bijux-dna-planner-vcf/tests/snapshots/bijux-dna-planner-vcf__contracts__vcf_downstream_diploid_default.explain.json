@@ -1,15 +1,36 @@
 {
-  "backend_selection_reason": "selected backend family from coverage regime Diploid and stage tool compatibility",
+  "backend_selection_reason": "selected backend family from resolved coverage regime Diploid and stage/tool compatibility",
   "chunking_selection_reason": "diploid defaults to larger chunks for throughput",
   "coverage_regime": "diploid",
+  "coverage_resolution_reason": "mean_depth_x absent; using caller-requested coverage_regime",
+  "damage_aware_policy": {
+    "filtering": {
+      "ct_ga_transition_bias_filter": false,
+      "min_baseq": 20,
+      "min_mapq": 30
+    },
+    "masking": {
+      "mask_fraction_ends": 0.0,
+      "terminal_damage_sites": false
+    },
+    "mode": "diploid",
+    "policy_id": "damage-aware-genotype-policy.v1",
+    "udg_thresholds": {
+      "non_udg": "strict",
+      "udg": "standard"
+    }
+  },
   "decision_traces": [
     {
       "id": "decision.backend_selection",
-      "reason": "coverage_regime + stage/tool compatibility"
+      "reason": "resolved_coverage_regime + stage/tool compatibility",
+      "resolved_coverage_regime": "diploid",
+      "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless user requested subset"
     },
     {
       "id": "decision.panel_selection",
-      "reason": "build/license/ancestry constraints"
+      "reason": "build/license/ancestry constraints",
+      "why_panel_chosen": "panel selected by policy from species/build and license constraints"
     },
     {
       "id": "decision.map_selection",
@@ -18,7 +39,8 @@
     {
       "chunk_count": 101,
       "id": "decision.chunking_selection",
-      "reason": "coverage-regime-specific defaults"
+      "reason": "coverage-regime-specific defaults",
+      "why_chunking_chosen": "chunk windows/overlap derive from coverage regime and chunking knobs"
     },
     {
       "id": "decision.imputation_accept",
@@ -27,12 +49,46 @@
     {
       "id": "decision.reference_bundle_resolution",
       "reason": "resolve species/build -> canonical bundle + lock"
+    },
+    {
+      "id": "decision.coverage_regime",
+      "mean_depth_x": null,
+      "reason": "configured thresholds + optional empirical mean_depth_x",
+      "requested_coverage_regime": "diploid",
+      "resolved_coverage_regime": "diploid",
+      "thresholds": {
+        "diploid_min_depth": 10.0,
+        "gl_max_depth": 0.5,
+        "pseudohaploid_max_depth": 2.0
+      }
+    },
+    {
+      "id": "decision.damage_aware_genotype_logic",
+      "policy": {
+        "filtering": {
+          "ct_ga_transition_bias_filter": false,
+          "min_baseq": 20,
+          "min_mapq": 30
+        },
+        "masking": {
+          "mask_fraction_ends": 0.0,
+          "terminal_damage_sites": false
+        },
+        "mode": "diploid",
+        "policy_id": "damage-aware-genotype-policy.v1",
+        "udg_thresholds": {
+          "non_udg": "strict",
+          "udg": "standard"
+        }
+      },
+      "reason": "regime-specific filtering/masking policy and UDG threshold profile"
     }
   ],
   "map_selection_reason": "map compatibility enforced by species/build/contig digest (Homo sapiens/GRCh38)",
   "panel_selection_reason": "panel selected by build/license/ancestry policy",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "resolved_coverage_profile": "modern_wgs_shotgun",
+  "resolved_coverage_regime": "diploid",
   "resolved_reference_bundle_id": "hsapiens_grch38_primary",
   "resolved_reference_lock": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
   "schema_version": "bijux.vcf.planner_explain.v1",
