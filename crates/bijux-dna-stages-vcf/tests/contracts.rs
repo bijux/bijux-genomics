@@ -107,6 +107,66 @@ mod contracts {
         assert!(out.report_path.exists());
         assert!(out.stages.iter().any(|s| s.stage_id == "vcf.call"));
         assert!(out.stages.iter().all(|s| s.stage_manifest.exists()));
+        for stage in &out.stages {
+            assert!(stage.artifact_dir.join("tool_invocation.json").exists());
+            assert!(stage.artifact_dir.join("tool_version.txt").exists());
+            assert!(stage.artifact_dir.join("artifact_checksums.json").exists());
+        }
+
+        let resumed = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input.to_path_buf(),
+            species_context: SpeciesContext {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                contig_set_digest:
+                    "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                        .to_string(),
+                contigs: vec![
+                    ContigSpec {
+                        name: "1".to_string(),
+                        length_bp: 248956422,
+                    },
+                    ContigSpec {
+                        name: "2".to_string(),
+                        length_bp: 242193529,
+                    },
+                    ContigSpec {
+                        name: "chr1".to_string(),
+                        length_bp: 248956422,
+                    },
+                    ContigSpec {
+                        name: "chr2".to_string(),
+                        length_bp: 242193529,
+                    },
+                ],
+                sex_system: "xy".to_string(),
+                par_policy: "grch38_par".to_string(),
+                default_coverage_regime: None,
+            },
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![
+                VcfDomainStage::Call,
+                VcfDomainStage::Filter,
+                VcfDomainStage::Stats,
+            ],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            phasing: None,
+            impute: None,
+            postprocess: None,
+            invariants: InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        })
+        .unwrap_or_else(|err| panic!("dispatch resume vcf pipeline: {err}"));
+        assert!(
+            resumed.stages.iter().all(|s| s.runtime.wall_time_ms == 0),
+            "resume run should skip stages with matching checksums"
+        );
     }
 
     #[test]
