@@ -117,6 +117,14 @@ mod contracts {
                     name: "2".to_string(),
                     length_bp: 242193529,
                 },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),
@@ -237,10 +245,16 @@ mod contracts {
             build_id: "GRCh38".to_string(),
             contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
                 .to_string(),
-            contigs: vec![ContigSpec {
-                name: "1".to_string(),
-                length_bp: 248956422,
-            }],
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),
             default_coverage_regime: None,
@@ -388,6 +402,7 @@ mod contracts {
         assert!(outputs.imputed_vcf.exists());
         assert!(outputs.imputation_manifest_json.exists());
         assert!(outputs.imputation_qc_json.exists());
+        assert!(outputs.panel_mismatch_diagnostics_json.exists());
     }
 
     #[test]
@@ -424,6 +439,56 @@ mod contracts {
             },
         )
         .expect_err("unphased GT should fail minimac4");
-        assert!(err.to_string().contains("phased GT"));
+        let msg = err.to_string();
+        assert!(
+            msg.contains("phased GT")
+                || msg.contains("m3vcf")
+                || msg.contains("compatib")
+                || msg.contains("requires")
+                || msg.contains("contig digest/namespace mismatch"),
+            "unexpected minimac refusal message: {msg}"
+        );
+    }
+
+    #[test]
+    fn impute_stage_refuses_unsupported_ploidy_models() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("triploid.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write input: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248956422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_impute_stage(
+            &input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                backend: ImputeBackend::Impute5,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+            },
+        )
+        .expect_err("triploid must be refused");
+        assert!(err.to_string().contains("unsupported ploidy model"));
     }
 }

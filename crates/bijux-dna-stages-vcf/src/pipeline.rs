@@ -358,6 +358,7 @@ pub struct ImputeStageOutputs {
     pub maf_bin_quality_tsv: PathBuf,
     pub overlap_stats_json: PathBuf,
     pub imputation_manifest_json: PathBuf,
+    pub panel_mismatch_diagnostics_json: PathBuf,
     pub logs_txt: PathBuf,
 }
 
@@ -870,12 +871,22 @@ pub fn run_impute_stage(
     };
     validate_imputation_tool_compatibility(params.backend.as_str(), &panel, &map_for_compat)?;
 
+    let run_started = std::time::Instant::now();
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut headers = Vec::new();
     let mut records = Vec::new();
     let mut has_gt = false;
     let mut has_gl_or_gp = false;
     let mut has_phased_gt = false;
+    let mut contig_seen = std::collections::BTreeSet::<String>::new();
+    let species_contigs = species_context
+        .contigs
+        .iter()
+        .map(|c| c.name.clone())
+        .collect::<Vec<_>>();
+    let species_contig_set = species_contigs.iter().cloned().collect::<std::collections::BTreeSet<_>>();
+    let mut allele_flip_like = 0u64;
+    let mut ref_mismatch_like = 0u64;
     for line in raw.lines() {
         if line.starts_with('#') {
             headers.push(line.to_string());
@@ -884,6 +895,13 @@ pub fn run_impute_stage(
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
+        contig_seen.insert(fields[0].to_string());
+        if !species_contig_set.contains(fields[0]) {
+            ref_mismatch_like += 1;
+        }
+        if fields[3].eq_ignore_ascii_case(fields[4]) {
+            allele_flip_like += 1;
+        }
         let gt_idx = parse_format_index(&fields, "GT");
         let gl_idx = parse_format_index(&fields, "GL");
         let gp_idx = parse_format_index(&fields, "GP");
@@ -900,6 +918,10 @@ pub fn run_impute_stage(
                     if gt.contains('|') {
                         has_phased_gt = true;
                     }
+                    let ploidy = gt.split(['/', '|']).count();
+                    if !gt.contains('.') && ploidy != 2 {
+                        bail!("unsupported ploidy model at impute stage: only diploid genotypes are supported");
+                    }
                 }
             }
         }
@@ -907,6 +929,41 @@ pub fn run_impute_stage(
     }
     if records.is_empty() {
         bail!("impute requires non-empty VCF records");
+    }
+    if !contig_seen.is_subset(&species_contig_set) {
+        bail!("contig digest/namespace mismatch between input VCF and SpeciesContext");
+    }
+    let overlap_threshold = 0.1f64;
+    let overlap_fraction = if contig_seen.is_empty() {
+        0.0
+    } else {
+        contig_seen
+            .iter()
+            .filter(|c| species_contig_set.contains(*c))
+            .count() as f64
+            / contig_seen.len() as f64
+    };
+    if overlap_fraction < overlap_threshold {
+        bail!("panel/species overlap below threshold");
+    }
+
+    let sample_header = headers
+        .iter()
+        .find(|line| line.starts_with("#CHROM\t"))
+        .ok_or_else(|| anyhow!("missing #CHROM header in input VCF"))?;
+    let sample_ids = sample_header
+        .split('\t')
+        .skip(9)
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    if sample_ids.is_empty() {
+        bail!("input VCF must contain at least one sample");
+    }
+    if sample_ids
+        .windows(2)
+        .any(|w| w.first().is_some_and(|x| x.is_empty()) || w[0] == w[1])
+    {
+        bail!("sample order stability contract failed: duplicate/empty sample IDs");
     }
 
     match params.backend {
@@ -951,6 +1008,7 @@ pub fn run_impute_stage(
     let maf_bin_quality_tsv = out_dir.join("maf_bin_quality.tsv");
     let overlap_stats_json = out_dir.join("overlap_stats.json");
     let imputation_manifest_json = out_dir.join("imputation_manifest.json");
+    let panel_mismatch_diagnostics_json = out_dir.join("panel_mismatch_diagnostics.json");
     let logs_txt = out_dir.join("logs.txt");
     let checksums = out_dir.join("checksums.sha256");
 
@@ -961,7 +1019,23 @@ pub fn run_impute_stage(
     if params.emit_gp {
         info_tag.push_str(";GP=0.10,0.80,0.10");
     }
-    let imputed_records = records
+    let mut header_sorted = headers.clone();
+    header_sorted.sort();
+    let contig_rank = species_context
+        .contigs
+        .iter()
+        .enumerate()
+        .map(|(idx, c)| (c.name.clone(), idx))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut records_sorted = records.clone();
+    records_sorted.sort_by(|a, b| {
+        let ka = parse_variant_key(a).unwrap_or_default();
+        let kb = parse_variant_key(b).unwrap_or_default();
+        let ra = contig_rank.get(&ka.0).copied().unwrap_or(usize::MAX);
+        let rb = contig_rank.get(&kb.0).copied().unwrap_or(usize::MAX);
+        ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2))
+    });
+    let imputed_records = records_sorted
         .iter()
         .map(|line| {
             if line.contains('\t') {
@@ -971,7 +1045,7 @@ pub fn run_impute_stage(
             }
         })
         .collect::<Vec<_>>();
-    let imputed_payload = format!("{}\n{}\n", headers.join("\n"), imputed_records.join("\n"));
+    let imputed_payload = format!("{}\n{}\n", header_sorted.join("\n"), imputed_records.join("\n"));
     atomic_write_bytes(&imputed_vcf, imputed_payload.as_bytes())?;
     atomic_write_bytes(&imputed_tbi, b"tabix-index-placeholder\n")?;
     assert_bgzip_tabix_artifacts(&imputed_vcf, &imputed_tbi)?;
@@ -1002,9 +1076,50 @@ pub fn run_impute_stage(
             "schema_version": "bijux.vcf.imputation.overlap.v1",
             "panel_sites": panel.files.len(),
             "target_sites": imputed_records.len(),
-            "overlap_fraction": 1.0
+            "overlap_fraction": overlap_fraction,
+            "overlap_threshold": overlap_threshold
         }),
     )?;
+    atomic_write_json(
+        &panel_mismatch_diagnostics_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.panel_mismatch.v1",
+            "allele_flip_like_sites": allele_flip_like,
+            "ref_mismatch_like_sites": ref_mismatch_like,
+            "drop_reasons": if ref_mismatch_like > 0 { vec!["contig_not_in_species_context"] } else { Vec::<&str>::new() },
+        }),
+    )?;
+
+    let field_contract = serde_json::json!({
+        "GT_required": true,
+        "DS_required": params.emit_ds,
+        "GP_required": params.emit_gp,
+        "INFO_required": true,
+    });
+    let mut chunk_manifests = Vec::new();
+    let chunks_dir = out_dir.join("chunks");
+    std::fs::create_dir_all(&chunks_dir)?;
+    for (idx, contig) in contig_seen.iter().enumerate() {
+        let chunk_manifest_path = chunks_dir.join(format!("chunk_{idx:03}.imputation_manifest.json"));
+        let chunk_started = std::time::Instant::now();
+        let chunk_payload = serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.chunk_manifest.v1",
+            "chunk_id": format!("{contig}:{idx:03}"),
+            "contig": contig,
+            "backend": params.backend.as_str(),
+            "tool_digest": resolve_tool_digest(params.backend.as_str())?,
+            "threads_used": params.threads,
+            "wall_time_ms": chunk_started.elapsed().as_millis(),
+            "rss_kb": serde_json::Value::Null,
+            "inputs": {
+                "input_vcf_checksum": checksum_hex(raw.as_bytes()),
+                "panel_id": panel.id,
+            },
+            "output_field_contract": field_contract,
+        });
+        atomic_write_json(&chunk_manifest_path, &chunk_payload)?;
+        chunk_manifests.push(chunk_manifest_path);
+    }
     let map_manifest = map.as_ref().map(|m| {
         serde_json::json!({
             "map_id": m.id,
@@ -1025,6 +1140,14 @@ pub fn run_impute_stage(
             "threads": params.threads,
             "emit_ds": params.emit_ds,
             "emit_gp": params.emit_gp,
+            "sample_order_stable": true,
+            "chunk_manifests": chunk_manifests,
+            "resource_accounting": {
+                "threads_used": params.threads,
+                "wall_time_ms": run_started.elapsed().as_millis(),
+                "rss_kb": serde_json::Value::Null,
+            },
+            "output_field_contract": field_contract,
             "input_checksum": checksum_hex(raw.as_bytes()),
             "output_checksum": checksum_hex(imputed_payload.as_bytes()),
         }),
@@ -1059,6 +1182,7 @@ pub fn run_impute_stage(
         maf_bin_quality_tsv,
         overlap_stats_json,
         imputation_manifest_json,
+        panel_mismatch_diagnostics_json,
         logs_txt,
     })
 }
