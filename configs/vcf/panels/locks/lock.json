@@ -3,25 +3,31 @@
   "panels": [
     {
       "build_id": "GRCh38",
+      "citation": "Bijux synthetic full panel v1 (internal reference corpus)",
       "files": [
         {
-          "expected_sha256": "2222222222222222222222222222222222222222222222222222222222222221",
+          "action": "reuse",
+          "checksum_sha256": "2ceb5e36188e9a93f6105f2160ac669b3ead5eb4047ecec2d2dab0e6db1191b7",
           "format": "vcf.gz",
+          "materialized_path": "Homo sapiens/GRCh38/hsapiens_grch38_full/raw/panel.vcf.gz",
           "name": "panel_vcf",
-          "observed_sha256": "327782bab445cd3a6c22f24f1f2f229931d877326e8c7d558f9437cd9d62aba7",
-          "path": "Homo sapiens/GRCh38/hsapiens_grch38_full/raw/panel.vcf.gz",
+          "observed_sha256": "2ceb5e36188e9a93f6105f2160ac669b3ead5eb4047ecec2d2dab0e6db1191b7",
+          "path": "panel.vcf.gz",
           "url": "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz"
         },
         {
-          "expected_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "action": "reuse",
+          "checksum_sha256": "6b85e25f04264338d422dbd1ad995cba39dbcfaa911ecf3f43d28f1c04f3be23",
           "format": "tbi",
+          "materialized_path": "Homo sapiens/GRCh38/hsapiens_grch38_full/raw/panel.vcf.gz.tbi",
           "name": "panel_tbi",
-          "observed_sha256": "24c23aa0e04c2c8599bb1eb35df6eb4d400090c9634361e19064fdfdfebfa5bc",
-          "path": "Homo sapiens/GRCh38/hsapiens_grch38_full/raw/panel.vcf.gz.tbi",
+          "observed_sha256": "6b85e25f04264338d422dbd1ad995cba39dbcfaa911ecf3f43d28f1c04f3be23",
+          "path": "panel.vcf.gz.tbi",
           "url": "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz.tbi"
         }
       ],
       "id": "hsapiens_grch38_full",
+      "license": "CC-BY-4.0",
       "species_id": "Homo sapiens",
       "storage_layout": {
         "derived": "Homo sapiens/GRCh38/hsapiens_grch38_full/derived",
@@ -32,33 +38,41 @@
     },
     {
       "build_id": "GRCh38",
+      "citation": "Bijux synthetic mini panel v1 (internal reference corpus)",
       "files": [
         {
-          "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "action": "reuse",
+          "checksum_sha256": "06e6729cfd8f921f336e9fff0505160afec147456e6f38b4ab9740341f869703",
           "format": "vcf.gz",
+          "materialized_path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.vcf.gz",
           "name": "panel_vcf",
-          "observed_sha256": "f26212f3538e546730063141bb030c1e952785adc745eaf2acce85c2c0f7dab7",
-          "path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.vcf.gz",
+          "observed_sha256": "06e6729cfd8f921f336e9fff0505160afec147456e6f38b4ab9740341f869703",
+          "path": "panel.vcf.gz",
           "url": "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz"
         },
         {
-          "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111112",
+          "action": "reuse",
+          "checksum_sha256": "f5d16fcb72219559a88a381cd9c05c3f9cce63e8180378ad339a64008bf5bf97",
           "format": "tbi",
+          "materialized_path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.vcf.gz.tbi",
           "name": "panel_tbi",
-          "observed_sha256": "5c3da006eecc80b100ccd54f8c4c4fbe4dde8456fe094e952cbc317264fbacab",
-          "path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.vcf.gz.tbi",
+          "observed_sha256": "f5d16fcb72219559a88a381cd9c05c3f9cce63e8180378ad339a64008bf5bf97",
+          "path": "panel.vcf.gz.tbi",
           "url": "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz.tbi"
         },
         {
-          "expected_sha256": "1111111111111111111111111111111111111111111111111111111111111113",
+          "action": "reuse",
+          "checksum_sha256": "00668dd69dc4a008c1727f1a5b10c179416dcb8e952f849af221373780d2dce2",
           "format": "m3vcf.gz",
+          "materialized_path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.m3vcf.gz",
           "name": "panel_m3vcf",
-          "observed_sha256": "51cb57bf82246833a91a81f3fa0b67eef8e9b7053a6066a3b01b80b266355a6d",
-          "path": "Homo sapiens/GRCh38/hsapiens_grch38_mini/raw/panel.m3vcf.gz",
+          "observed_sha256": "00668dd69dc4a008c1727f1a5b10c179416dcb8e952f849af221373780d2dce2",
+          "path": "panel.m3vcf.gz",
           "url": "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.m3vcf.gz"
         }
       ],
       "id": "hsapiens_grch38_mini",
+      "license": "CC-BY-4.0",
       "species_id": "Homo sapiens",
       "storage_layout": {
         "derived": "Homo sapiens/GRCh38/hsapiens_grch38_mini/derived",
