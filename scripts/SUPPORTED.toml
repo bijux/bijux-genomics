@@ -1347,6 +1347,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "domain_check_ssot_authority"
+path = "scripts/domain/check-ssot-authority.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "domain_generate_index"
 path = "scripts/domain/generate-index.sh"
 purpose = "domain script"

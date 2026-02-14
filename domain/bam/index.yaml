@@ -2,6 +2,7 @@
 # Regenerate with: scripts/domain/generate-index.sh bam
 
 domain: "bam"
+domain_version: v1
 stage_ids:
   - bam.align
   - bam.authenticity

@@ -102,6 +102,16 @@ for dom in domains:
     if s_start is None or t_start is None:
         raise SystemExit(f"{index_path}: missing stage_ids/tool_ids blocks")
 
+    version_match = re.search(
+        r'^domain_version:\s*"?([^"\n#]+)"?\s*$',
+        text,
+        flags=re.MULTILINE,
+    )
+    if version_match:
+        domain_version = version_match.group(1).strip()
+    else:
+        domain_version = "v2" if dom == "vcf" else "v1"
+
     out_lines = text.splitlines()
     stage_block = ["stage_ids:"] + [f"  - {x}" for x in stage_ids]
     tool_block = ["tool_ids:"] + [f"  - {x}" for x in tool_ids]
@@ -124,6 +134,14 @@ for dom in domains:
         "# GENERATED FILE - DO NOT EDIT",
         f"# Regenerate with: scripts/domain/generate-index.sh {dom}",
     ]
+    if not any(line.startswith("domain_version:") for line in out_lines):
+        domain_line_idx = next(
+            (idx for idx, line in enumerate(out_lines) if line.startswith("domain:")),
+            None,
+        )
+        if domain_line_idx is None:
+            raise SystemExit(f"{index_path}: missing domain: field")
+        out_lines.insert(domain_line_idx + 1, f"domain_version: {domain_version}")
     final = "\n".join(header + [""] + out_lines) + "\n"
     index_path.write_text(final, encoding="utf-8")
     print(f"generated {index_path}")
