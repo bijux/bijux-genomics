@@ -3,6 +3,13 @@
 
 use std::path::PathBuf;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FastqPlannerMode {
+    Shotgun,
+    EdnaAmplicon,
+    PollenAmplicon,
+}
+
 #[derive(Debug, Clone)]
 pub struct BenchFastqTrimArgs {
     pub sample_id: String,
@@ -154,4 +161,5 @@ pub struct BenchFastqPreprocessArgs {
     pub force_merge: bool,
     pub enable_correct: bool,
     pub allow_planned: bool,
+    pub mode: FastqPlannerMode,
 }

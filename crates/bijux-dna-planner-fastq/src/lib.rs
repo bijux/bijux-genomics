@@ -11,9 +11,11 @@ use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutio
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_dna_domain_fastq::{
+    FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
     STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
-    STAGE_MERGE, STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX, STAGE_PREPROCESS,
+    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM,
+    STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -28,6 +30,7 @@ pub use bijux_dna_domain_fastq::BenchResultsRepository;
 
 mod report_stage;
 mod selection;
+mod plan_compose;
 pub mod tool_adapters;
 
 pub use report_stage::report_stage_step;
@@ -62,6 +65,7 @@ pub struct DefaultPipelineOptions {
     pub enable_correct: bool,
     pub enable_qc_post: bool,
     pub enable_screen: bool,
+    pub mode: FastqPipelineMode,
 }
 
 impl Default for DefaultPipelineOptions {
@@ -72,18 +76,38 @@ impl Default for DefaultPipelineOptions {
             enable_correct: false,
             enable_qc_post: true,
             enable_screen: false,
+            mode: FastqPipelineMode::Shotgun,
         }
     }
 }
 
 #[must_use]
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
-    let mut stages = required_id_catalog();
+    let mut stages = if options.mode == FastqPipelineMode::Amplicon {
+        vec![
+            STAGE_VALIDATE_PRE.as_str().to_string(),
+            STAGE_DETECT_ADAPTERS.as_str().to_string(),
+            STAGE_PRIMER_NORMALIZATION.as_str().to_string(),
+            STAGE_TRIM.as_str().to_string(),
+            STAGE_FILTER.as_str().to_string(),
+            STAGE_CHIMERA_DETECTION.as_str().to_string(),
+            STAGE_ASV_INFERENCE.as_str().to_string(),
+            STAGE_ABUNDANCE_NORMALIZATION.as_str().to_string(),
+            STAGE_STATS_NEUTRAL.as_str().to_string(),
+        ]
+    } else {
+        required_id_catalog()
+    };
     if options.paired && options.enable_correct {
         stages.push(STAGE_CORRECT.as_str().to_string());
     }
-    if options.paired && options.enable_merge {
+    if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
         stages.push(STAGE_MERGE.as_str().to_string());
+    }
+    if options.mode == FastqPipelineMode::Amplicon
+        && !stages.iter().any(|stage| stage == STAGE_ASV_INFERENCE.as_str())
+    {
+        stages.push(STAGE_OTU_CLUSTERING.as_str().to_string());
     }
     if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN.as_str()) {
         stages.push(STAGE_SCREEN.as_str().to_string());
@@ -304,6 +328,13 @@ pub fn plan_preprocess(
         r2: args.r2.clone(),
         stages: pipeline.stages,
         enable_contaminant_removal: args.enable_contaminant_removal,
+        pipeline_mode: match args.mode {
+            crate::selection::args::FastqPlannerMode::Shotgun => FastqPipelineMode::Shotgun,
+            crate::selection::args::FastqPlannerMode::EdnaAmplicon
+            | crate::selection::args::FastqPlannerMode::PollenAmplicon => {
+                FastqPipelineMode::Amplicon
+            }
+        },
     }
 }
 
@@ -345,6 +376,11 @@ pub fn resolve_preprocess_pipeline(
                     enable_correct,
                     enable_qc_post,
                     enable_screen,
+                    mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
+                        FastqPipelineMode::Shotgun
+                    } else {
+                        FastqPipelineMode::Amplicon
+                    },
                 })
             }
         }
@@ -355,6 +391,11 @@ pub fn resolve_preprocess_pipeline(
             enable_correct,
             enable_qc_post,
             enable_screen,
+            mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
+                FastqPipelineMode::Shotgun
+            } else {
+                FastqPipelineMode::Amplicon
+            },
         })
     }
 }
@@ -607,174 +648,19 @@ where
         Option<&std::path::Path>,
     ) -> Result<PathBuf>,
 {
-    if stages.len() != tools.len() {
-        return Err(anyhow!(
-            "pipeline stages/tools length mismatch: {} vs {}",
-            stages.len(),
-            tools.len()
-        ));
-    }
-    let mut current_r1 = r1.to_path_buf();
-    let raw_r1 = r1.to_path_buf();
-    let mut current_r2 = r2.map(|path| path.to_path_buf());
-    let mut plans = Vec::new();
-    for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
-        let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
-        let stage_id: &str = stage;
-        let (plan, next_r1, next_r2) = match stage_id {
-            stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
-                let plan = crate::tool_adapters::fastq::detect_adapters::plan(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                )?;
-                (plan, current_r1.clone(), current_r2.clone())
-            }
-            stage if stage == STAGE_TRIM.as_str() => {
-                let plan = crate::tool_adapters::fastq::trim::plan(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                    adapter_bank,
-                    polyx_bank,
-                    contaminant_bank,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
-            }
-            stage if stage == STAGE_FILTER.as_str() => {
-                let mut filter_options =
-                    crate::tool_adapters::fastq::filter::FilterPlanOptions::default();
-                if adapter_bank.is_some() {
-                    filter_options.redundant_filters.push("adapter".to_string());
-                }
-                if polyx_bank.is_some() {
-                    filter_options.redundant_filters.push("polyx".to_string());
-                }
-                if enable_contaminant_removal && contaminant_bank.is_some() {
-                    filter_options.kmer_ref =
-                        crate::tool_adapters::fastq::filter::default_kmer_ref();
-                }
-                let plan = crate::tool_adapters::fastq::filter::plan_filter(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                    &filter_options,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
-            }
-            stage if stage == STAGE_DEDUPLICATE.as_str() => {
-                let plan = crate::tool_adapters::fastq::deduplicate::plan_deduplicate(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
-            }
-            stage if stage == STAGE_LOW_COMPLEXITY.as_str() => {
-                let plan = crate::tool_adapters::fastq::low_complexity::plan_low_complexity(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
-            }
-            stage if stage == STAGE_VALIDATE_PRE.as_str() => {
-                let plan =
-                    crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir)?;
-                (plan, current_r1.clone(), current_r2.clone())
-            }
-            stage if stage == STAGE_MERGE.as_str() => {
-                let r2 = current_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("merge requires r2"))?;
-                let plan = crate::tool_adapters::fastq::merge::plan_merge(
-                    tool,
-                    &current_r1,
-                    r2,
-                    &out_dir,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
-            }
-            stage if stage == STAGE_CORRECT.as_str() => {
-                let r2 = current_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("correct requires r2"))?;
-                let plan = crate::tool_adapters::fastq::correct::plan_correct(
-                    tool,
-                    &current_r1,
-                    r2,
-                    &out_dir,
-                )?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = plan.io.outputs[1].path.clone();
-                (plan, next_r1, Some(next_r2))
-            }
-            stage if stage == STAGE_UMI.as_str() => {
-                let r2 = current_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("umi requires r2"))?;
-                let plan =
-                    crate::tool_adapters::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
-                let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = plan.io.outputs[1].path.clone();
-                (plan, next_r1, Some(next_r2))
-            }
-            stage if stage == STAGE_QC_POST.as_str() => {
-                let mut stage_aux_images = std::collections::BTreeMap::new();
-                if tool.tool_id.0 == "multiqc" {
-                    for aux_tool in crate::tool_adapters::fastq::qc_post::aux_tool_ids() {
-                        if let Some(image) = aux_images.get(*aux_tool) {
-                            stage_aux_images.insert(aux_tool.to_string(), image.clone());
-                        }
-                    }
-                }
-                let plan = crate::tool_adapters::fastq::qc_post::plan_qc_post(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                    stage_aux_images,
-                    Some(raw_r1.as_path()),
-                )?;
-                (plan, current_r1.clone(), current_r2.clone())
-            }
-            stage if stage == STAGE_SCREEN.as_str() => {
-                let plan =
-                    crate::tool_adapters::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
-                (plan, current_r1.clone(), current_r2.clone())
-            }
-            stage if stage == STAGE_STATS_NEUTRAL.as_str() => {
-                let plan = crate::tool_adapters::fastq::stats_neutral::plan_stats_neutral(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                )?;
-                (plan, current_r1.clone(), current_r2.clone())
-            }
-            _ => {
-                return Err(anyhow!("unsupported stage in fastq pipeline: {stage}"));
-            }
-        };
-        let mut plan = plan;
-        if let Some(reasons) = tool_reasons {
-            if let Some(reason) = reasons.get(idx) {
-                plan.reason = reason.clone();
-            }
-        } else {
-            plan.reason = PlanDecisionReason::new(
-                PlanReasonKind::Default,
-                format!("tool {} selected by planner", plan.tool_id.0),
-            );
-        }
-        plans.push(plan);
-        current_r1 = next_r1;
-        current_r2 = next_r2;
-    }
-    Ok(plans)
+    plan_compose::compose_fastq_pipeline_steps(
+        stages,
+        tools,
+        aux_images,
+        tool_reasons,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        enable_contaminant_removal,
+        r1,
+        r2,
+        out_dir_for_stage,
+    )
 }
 
 #[derive(Debug, Clone)]
