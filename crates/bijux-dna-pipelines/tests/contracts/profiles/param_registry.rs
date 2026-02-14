@@ -168,7 +168,8 @@ fn supported_stages_do_not_use_wrong_param_kind() {
                 assert!(
                     fastq_param_kind_compatible(&expected_kind, actual_kind),
                     "profile {} stage {} uses wrong param kind",
-                    profile.id, stage
+                    profile.id,
+                    stage
                 );
             }
         }

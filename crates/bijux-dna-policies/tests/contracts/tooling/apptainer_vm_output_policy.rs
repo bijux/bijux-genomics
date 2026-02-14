@@ -13,12 +13,7 @@ fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writ
     let content =
         std::fs::read_to_string(&path).expect("read scripts/containers/build-apptainer-all.sh");
 
-    let required = [
-        "VM_OUT_DIR",
-        "COPY_BACK_DIR",
-        "mkdir -p",
-        "--copy-back",
-    ];
+    let required = ["VM_OUT_DIR", "COPY_BACK_DIR", "mkdir -p", "--copy-back"];
 
     let mut offenders = Vec::new();
     for marker in required {

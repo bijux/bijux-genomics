@@ -37,7 +37,10 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
             eprintln!("generated source_commit drift: {}", checked_in.display());
         }
         if third != "# domain_schema_version: bijux.domain.v1" {
-            eprintln!("generated domain schema header drift: {}", checked_in.display());
+            eprintln!(
+                "generated domain schema header drift: {}",
+                checked_in.display()
+            );
         }
     }
 }
