@@ -179,10 +179,16 @@ pub fn validate_vcf_invariants(stage: VcfDomainStage, state: &VcfInvariantState)
         bail!("{} requires sorted VCF records", stage.as_str());
     }
     if !state.sample_set_consistent {
-        bail!("{} requires sample consistency across inputs", stage.as_str());
+        bail!(
+            "{} requires sample consistency across inputs",
+            stage.as_str()
+        );
     }
     if !state.contig_set_consistent {
-        bail!("{} requires contig consistency across inputs", stage.as_str());
+        bail!(
+            "{} requires contig consistency across inputs",
+            stage.as_str()
+        );
     }
 
     let requires_bgzip = matches!(
@@ -215,7 +221,11 @@ pub const DAMAGE_AWARE_GENOTYPE_LOGIC: DamageAwareGenotypeLogicContract =
     DamageAwareGenotypeLogicContract {
         schema_version: "bijux.vcf.damage_aware_genotype_logic.v1",
         masked_variant_classes: &["ct_transition", "ga_transition", "pmd_suspect"],
-        masking_scope: &["genotype_likelihoods", "called_genotypes", "site_filter_flags"],
+        masking_scope: &[
+            "genotype_likelihoods",
+            "called_genotypes",
+            "site_filter_flags",
+        ],
         provenance_fields: &[
             "damage_strategy",
             "ct_ga_mask_threshold",
@@ -394,7 +404,10 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
     let one = PortCardinality::One;
     let many = PortCardinality::Many;
     let contract = match stage {
-        VcfDomainStage::Call | VcfDomainStage::CallDiploid | VcfDomainStage::CallGl | VcfDomainStage::CallPseudohaploid => StageIoContract {
+        VcfDomainStage::Call
+        | VcfDomainStage::CallDiploid
+        | VcfDomainStage::CallGl
+        | VcfDomainStage::CallPseudohaploid => StageIoContract {
             stage,
             inputs: vec![port("bam", "bam", many)],
             outputs: vec![port("vcf", "vcf", one)],
@@ -418,7 +431,11 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             required_outputs: vec!["vcf_out"],
             required_indices: vec!["vcf.tbi"],
         },
-        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture | VcfDomainStage::Roh | VcfDomainStage::Ibd => StageIoContract {
+        VcfDomainStage::PopulationStructure
+        | VcfDomainStage::Pca
+        | VcfDomainStage::Admixture
+        | VcfDomainStage::Roh
+        | VcfDomainStage::Ibd => StageIoContract {
             stage,
             inputs: vec![port("filtered_vcf", "vcf", one)],
             outputs: vec![port("report_json", "json", one)],
@@ -467,12 +484,20 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         VcfDomainStage::CallPseudohaploid => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.call_pseudohaploid.v1",
-            required_metrics: &["pseudo_called_sites", "pseudo_missing_rate", "pseudo_sampling_seed"],
+            required_metrics: &[
+                "pseudo_called_sites",
+                "pseudo_missing_rate",
+                "pseudo_sampling_seed",
+            ],
         },
         VcfDomainStage::DamageFilter => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.damage_filter.v1",
-            required_metrics: &["ct_ga_masked_sites", "pmd_filtered_reads", "damage_strategy_applied"],
+            required_metrics: &[
+                "ct_ga_masked_sites",
+                "pmd_filtered_reads",
+                "damage_strategy_applied",
+            ],
         },
         VcfDomainStage::Phasing => StageMetricsContract {
             stage,
@@ -482,17 +507,32 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         VcfDomainStage::Imputation | VcfDomainStage::Impute => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.imputation.v1",
-            required_metrics: &["imputed_variant_count", "imputation_info_mean", "rsq_mean"],
+            required_metrics: &[
+                "imputed_variant_count",
+                "imputation_info_mean",
+                "rsq_mean",
+                "missingness_pre",
+                "missingness_post",
+                "shared_variants_count",
+                "per_chr_overlap",
+                "readiness_for_ibd_roh",
+            ],
         },
-        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture => StageMetricsContract {
-            stage,
-            metrics_schema_id: "bijux.vcf.population_structure.v1",
-            required_metrics: &["pc1_variance", "pc2_variance", "cluster_count"],
-        },
+        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture => {
+            StageMetricsContract {
+                stage,
+                metrics_schema_id: "bijux.vcf.population_structure.v1",
+                required_metrics: &["pc1_variance", "pc2_variance", "cluster_count"],
+            }
+        }
         VcfDomainStage::Ibd => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.ibd.v1",
-            required_metrics: &["ibd_segment_count", "ibd_total_length_cM", "pairwise_ibd_sharing_matrix"],
+            required_metrics: &[
+                "ibd_segment_count",
+                "ibd_total_length_cM",
+                "pairwise_ibd_sharing_matrix",
+            ],
         },
         VcfDomainStage::Roh => StageMetricsContract {
             stage,
@@ -507,9 +547,23 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         VcfDomainStage::Qc => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.qc.v1",
-            required_metrics: &["missingness_rate", "heterozygosity", "sample_call_rate"],
+            required_metrics: &[
+                "missingness_post",
+                "imputation_info_mean",
+                "rsq_mean",
+                "strand_flip_like_sites",
+                "allele_frequency_shift_abs_mean",
+                "residual_ct_ga_asymmetry",
+                "lowcov_uncertainty_mean",
+                "concordance",
+                "readiness_for_ibd_roh",
+            ],
         },
-        VcfDomainStage::Postprocess | VcfDomainStage::PrepareReferencePanel | VcfDomainStage::Filter | VcfDomainStage::GlPropagation | VcfDomainStage::Stats => StageMetricsContract {
+        VcfDomainStage::Postprocess
+        | VcfDomainStage::PrepareReferencePanel
+        | VcfDomainStage::Filter
+        | VcfDomainStage::GlPropagation
+        | VcfDomainStage::Stats => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.stats.v1",
             required_metrics: &["variants_total", "ti_tv"],
@@ -544,27 +598,21 @@ pub fn stage_failure_modes(stage: VcfDomainStage) -> &'static [StageFailureMode]
                 triage_hint: "Check panel ancestry fit and pre-imputation QC",
             },
         ],
-        VcfDomainStage::Ibd => &[
-            StageFailureMode {
-                code: "phase_quality_low",
-                meaning: "Phasing quality insufficient for IBD inference",
-                triage_hint: "Re-run phasing with stricter QC or higher marker density",
-            },
-        ],
-        VcfDomainStage::Roh => &[
-            StageFailureMode {
-                code: "roh_call_instability",
-                meaning: "ROH segments unstable under current coverage regime",
-                triage_hint: "Use diploid regime or adjust ROH thresholds",
-            },
-        ],
-        _ => &[
-            StageFailureMode {
-                code: "tool_error",
-                meaning: "Underlying tool invocation failed",
-                triage_hint: "Inspect stderr and command provenance for failing step",
-            },
-        ],
+        VcfDomainStage::Ibd => &[StageFailureMode {
+            code: "phase_quality_low",
+            meaning: "Phasing quality insufficient for IBD inference",
+            triage_hint: "Re-run phasing with stricter QC or higher marker density",
+        }],
+        VcfDomainStage::Roh => &[StageFailureMode {
+            code: "roh_call_instability",
+            meaning: "ROH segments unstable under current coverage regime",
+            triage_hint: "Use diploid regime or adjust ROH thresholds",
+        }],
+        _ => &[StageFailureMode {
+            code: "tool_error",
+            meaning: "Underlying tool invocation failed",
+            triage_hint: "Inspect stderr and command provenance for failing step",
+        }],
     }
 }
 
@@ -572,7 +620,9 @@ pub fn stage_failure_modes(stage: VcfDomainStage) -> &'static [StageFailureMode]
 /// Returns an error if governance records violate required lock metadata.
 pub fn validate_reference_panel_governance(panel: &ReferencePanelGovernance) -> Result<()> {
     if panel.panel_id.trim().is_empty() || panel.reference_build.trim().is_empty() {
-        return Err(anyhow!("panel governance requires non-empty panel_id/reference_build"));
+        return Err(anyhow!(
+            "panel governance requires non-empty panel_id/reference_build"
+        ));
     }
     if panel.panel_checksum_sha256.len() != 64 || panel.index_checksum_sha256.len() != 64 {
         bail!("panel governance requires 64-char sha256 locks for panel/index");

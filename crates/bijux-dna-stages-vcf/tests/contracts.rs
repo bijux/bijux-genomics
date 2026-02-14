@@ -10,6 +10,7 @@ mod contracts {
         run_impute_stage, run_phasing_stage, run_postprocess_stage, run_toy_vcf_pipeline,
         ChunkFailurePolicy, ChunkingPlanParams, ImputeBackend, ImputeStageParams, PhasingBackend,
         PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
+        ImputationAcceptMode,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
@@ -396,13 +397,18 @@ mod contracts {
                 seed: 42,
                 emit_ds: false,
                 emit_gp: true,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
             },
         )
         .unwrap_or_else(|err| panic!("run glimpse impute: {err}"));
         assert!(outputs.imputed_vcf.exists());
         assert!(outputs.imputation_manifest_json.exists());
         assert!(outputs.imputation_qc_json.exists());
+        assert!(outputs.imputation_qc_tsv.exists());
         assert!(outputs.panel_mismatch_diagnostics_json.exists());
+        assert!(outputs.info_hist_json.exists());
+        assert!(outputs.warnings_json.exists());
+        assert!(outputs.imputation_accept_json.exists());
     }
 
     #[test]
@@ -436,6 +442,7 @@ mod contracts {
                 seed: 42,
                 emit_ds: true,
                 emit_gp: true,
+                imputation_accept_mode: ImputationAcceptMode::Fail,
             },
         )
         .expect_err("unphased GT should fail minimac4");
@@ -486,6 +493,7 @@ mod contracts {
                 seed: 42,
                 emit_ds: true,
                 emit_gp: true,
+                imputation_accept_mode: ImputationAcceptMode::Fail,
             },
         )
         .expect_err("triploid must be refused");

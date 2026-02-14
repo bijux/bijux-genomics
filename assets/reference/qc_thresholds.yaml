@@ -15,3 +15,13 @@ retention_warn: 0.7
 retention_fail: 0.4
 mean_q_delta_warn: -1.0
 mean_q_delta_fail: -3.0
+vcf_imputation_info_warn: 0.75
+vcf_imputation_info_fail: 0.60
+vcf_rsq_warn: 0.70
+vcf_rsq_fail: 0.55
+vcf_missingness_post_warn: 0.08
+vcf_missingness_post_fail: 0.15
+vcf_variant_density_warn: 2.0
+vcf_variant_density_fail: 1.0
+vcf_missingness_block_warn: 3.0
+vcf_missingness_block_fail: 6.0
