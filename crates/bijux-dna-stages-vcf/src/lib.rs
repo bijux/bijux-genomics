@@ -1,6 +1,7 @@
 //! VCF stage specs and metrics parser bindings.
 
 pub mod metrics;
+pub mod engine;
 pub mod pipeline;
 pub mod stage_specs;
 pub mod wrappers;
