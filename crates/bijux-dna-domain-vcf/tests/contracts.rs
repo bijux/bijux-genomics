@@ -1,6 +1,5 @@
 mod contracts {
     use bijux_dna_domain_vcf::{
-        coverage::domain_coverage_report,
         contracts::{
             refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
             stage_io_contract, stage_metrics_contract, validate_entry_vcf_invariants,
@@ -8,9 +7,9 @@ mod contracts {
             ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
             EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
             PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
-            OUTPUT_GUARANTEE,
-            DAMAGE_AWARE_GENOTYPE_LOGIC,
+            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
         },
+        coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
         VcfDomainStage, VcfStage, VCF_STAGE_ORDER_DOWNSTREAM,
     };
@@ -59,12 +58,17 @@ mod contracts {
 
     #[test]
     fn vcf_downstream_order_blocks_back_edges() {
-        assert!(validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok());
+        assert!(
+            validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok()
+        );
         assert!(
             validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
                 .is_err()
         );
-        assert_eq!(VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()), Some("vcf.prepare_reference_panel"));
+        assert_eq!(
+            VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()),
+            Some("vcf.prepare_reference_panel")
+        );
     }
 
     #[test]
@@ -78,18 +82,16 @@ mod contracts {
         assert!(metrics.required_metrics.contains(&"rsq_mean"));
 
         let failure_modes = stage_failure_modes(VcfDomainStage::Phasing);
-        assert!(failure_modes.iter().any(|m| m.code == "insufficient_markers"));
+        assert!(failure_modes
+            .iter()
+            .any(|m| m.code == "insufficient_markers"));
     }
 
     #[test]
     fn vcf_damage_and_panel_contracts_are_typed() {
         let damage: DamageAwareGenotypeLogicContract = DAMAGE_AWARE_GENOTYPE_LOGIC.clone();
-        assert!(damage
-            .masked_variant_classes
-            .contains(&"ct_transition"));
-        assert!(damage
-            .provenance_fields
-            .contains(&"masked_site_count"));
+        assert!(damage.masked_variant_classes.contains(&"ct_transition"));
+        assert!(damage.provenance_fields.contains(&"masked_site_count"));
 
         let policy = DefaultPanelSelectionPolicy;
         let available = vec![ReferencePanelGovernance {
@@ -181,7 +183,8 @@ mod contracts {
         let err = refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true)
             .expect_err("pseudohaploid to diploid imputation transition must be refused");
         assert!(
-            err.to_string().contains("UnsupportedPseudohaploidToDiploid"),
+            err.to_string()
+                .contains("UnsupportedPseudohaploidToDiploid"),
             "unexpected refusal error: {err}"
         );
     }
@@ -189,11 +192,9 @@ mod contracts {
     #[test]
     fn imputation_stage_contracts_include_standard_artifacts_and_output_guarantee() {
         let artifact_contract = stage_artifact_contract(VcfDomainStage::Impute);
-        assert!(
-            artifact_contract
-                .required_artifacts
-                .contains(&"imputation_accept_decision.json")
-        );
+        assert!(artifact_contract
+            .required_artifacts
+            .contains(&"imputation_accept_decision.json"));
         assert_eq!(OUTPUT_GUARANTEE.final_primary_format, "vcf.gz");
         assert!(OUTPUT_GUARANTEE.requires_bgzip_tabix);
         assert!(OUTPUT_GUARANTEE.deterministic_header_normalization);

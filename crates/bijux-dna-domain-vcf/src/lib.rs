@@ -1,7 +1,7 @@
 //! VCF domain primitives: stage IDs, typed params, metrics, and registry materialization.
 
-pub mod coverage;
 pub mod contracts;
+pub mod coverage;
 pub mod params;
 pub mod taxonomy;
 
