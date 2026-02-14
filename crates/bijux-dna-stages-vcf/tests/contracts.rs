@@ -10,11 +10,11 @@ mod contracts {
     };
     use bijux_dna_stages_vcf::pipeline::{
         assert_bgzip_tabix_artifacts, run_call_diploid_stage, run_call_gl_stage,
-        run_call_pseudohaploid_stage, run_chunked_regions, run_impute_stage, run_phasing_stage,
-        run_postprocess_stage, run_prepare_reference_panel_stage,
+        run_call_pseudohaploid_stage, run_chunked_regions, run_damage_filter_stage,
+        run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
         ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
-        ImputeStageParams, PhasingBackend, PhasingStageParams, PostprocessStageParams,
-        PrepareReferencePanelParams,
+        DamageFilterStageParams, DamageUdgRegime, ImputeStageParams, PhasingBackend,
+        PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
@@ -96,10 +96,12 @@ mod contracts {
             reference_fasta: None,
             prepare_panel: None,
             panel_vcf: None,
+            damage_filter: None,
             phasing: None,
             impute: None,
             postprocess: None,
             invariants: InvariantConfig {
+                allow_contig_aliasing: true,
                 require_sex_metadata_for_sex_chr: false,
                 ..InvariantConfig::default()
             },
@@ -155,10 +157,12 @@ mod contracts {
             reference_fasta: None,
             prepare_panel: None,
             panel_vcf: None,
+            damage_filter: None,
             phasing: None,
             impute: None,
             postprocess: None,
             invariants: InvariantConfig {
+                allow_contig_aliasing: true,
                 require_sex_metadata_for_sex_chr: false,
                 ..InvariantConfig::default()
             },
@@ -237,6 +241,7 @@ mod contracts {
             reference_fasta: None,
             prepare_panel: None,
             panel_vcf: None,
+            damage_filter: None,
             phasing: None,
             impute: None,
             postprocess: None,
@@ -263,6 +268,111 @@ mod contracts {
                 .unwrap_or_default(),
             "diploid"
         );
+    }
+
+    #[test]
+    fn damage_filter_refuses_unknown_regime_in_strict_mode() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let err = run_damage_filter_stage(
+            input,
+            dir.path(),
+            &DamageFilterStageParams {
+                udg_regime: DamageUdgRegime::Unknown,
+                strict_regime: true,
+                ..DamageFilterStageParams::default()
+            },
+        )
+        .expect_err("strict mode must refuse unknown UDG regime");
+        assert!(err
+            .to_string()
+            .contains("strict mode requires known UDG regime"));
+    }
+
+    #[test]
+    fn damage_filter_emits_expected_artifacts() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let out = run_damage_filter_stage(
+            input,
+            dir.path(),
+            &DamageFilterStageParams {
+                udg_regime: DamageUdgRegime::NonUdg,
+                strict_regime: true,
+                min_qual: 1.0,
+                max_damage_ratio: 1.0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run damage filter stage: {err}"));
+        assert!(out.filtered_vcf.exists());
+        assert!(out.filtered_tbi.exists());
+        assert!(out.damage_filter_summary_json.exists());
+        assert!(out.damage_filter_counts_json.exists());
+    }
+
+    #[test]
+    fn vcf_pipeline_runs_damage_filter_stage() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input.to_path_buf(),
+            species_context: species,
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![VcfDomainStage::DamageFilter],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            damage_filter: Some(DamageFilterStageParams {
+                udg_regime: DamageUdgRegime::NonUdg,
+                strict_regime: true,
+                min_qual: 1.0,
+                max_damage_ratio: 1.0,
+            }),
+            phasing: None,
+            impute: None,
+            postprocess: None,
+            invariants: InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        })
+        .unwrap_or_else(|err| panic!("run damage filter pipeline: {err}"));
+        let stage = out
+            .stages
+            .iter()
+            .find(|s| s.stage_id == "vcf.damage_filter")
+            .unwrap_or_else(|| panic!("missing damage_filter stage"));
+        assert!(stage.artifact_dir.join("damage_filter_summary.json").exists());
+        assert!(stage.artifact_dir.join("damage_filter_counts.json").exists());
     }
 
     #[test]
