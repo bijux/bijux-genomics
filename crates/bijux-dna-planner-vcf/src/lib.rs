@@ -25,8 +25,17 @@ use bijux_dna_stage_contract::{
     execution_step_from_stage_plan, PlanDecisionReason, PlanReasonKind, StagePlanV1,
 };
 use serde::Serialize;
+use sha2::Digest;
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-vcf.v2";
+
+fn short_species_context_digest(species_id: &str, build_id: &str, contig_set_digest: &str) -> String {
+    let seed = format!("{species_id}|{build_id}|{contig_set_digest}");
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(seed.as_bytes());
+    let full = format!("{:x}", hasher.finalize());
+    full.chars().take(12).collect()
+}
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct VcfPanelLock {
@@ -404,7 +413,10 @@ fn choose_tool(
     }
     if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
         if inputs.coverage_regime == CoverageRegime::LowCovGl {
-            return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
+            return Ok((
+                "glimpse".to_string(),
+                "lowcov_gl_default_glimpse".to_string(),
+            ));
         }
         let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
         let big_panel = panel.id.contains("full");
@@ -842,7 +854,11 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         ) {
             if stage == VcfDomainStage::Impute
                 && tool == "beagle"
-                && panel_catalog.compatibility.tool_tags.iter().any(|x| x == "beagle")
+                && panel_catalog
+                    .compatibility
+                    .tool_tags
+                    .iter()
+                    .any(|x| x == "beagle")
             {
                 // Beagle imputation can run without a map asset; only enforce panel compatibility.
             } else {
@@ -923,11 +939,17 @@ pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
             )
         })
         .collect::<Vec<_>>();
-    let flavor = match inputs.coverage_regime {
+    let flavor_base = match inputs.coverage_regime {
         CoverageRegime::LowCovGl => "downstream_lowcov_gl",
         CoverageRegime::Diploid => "downstream_diploid",
         CoverageRegime::Pseudohaploid => "downstream_pseudohaploid",
     };
+    let species_digest = short_species_context_digest(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+        &inputs.species_context.contig_set_digest,
+    );
+    let flavor = format!("{flavor_base}_sctx_{species_digest}");
     Ok(ExecutionGraph::new(
         format!("vcf-to-vcf__{flavor}__v2"),
         PLANNER_VERSION,
