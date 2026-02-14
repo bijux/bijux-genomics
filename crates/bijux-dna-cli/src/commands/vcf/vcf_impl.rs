@@ -80,6 +80,7 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             panel_vcf: None,
             damage_filter: None,
             gl_propagation: None,
+            qc: None,
             phasing: Some(PhasingStageParams {
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
