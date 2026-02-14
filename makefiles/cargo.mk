@@ -242,8 +242,11 @@ _fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta work
 _test-triage: ## Group failed tests from a saved nextest log.
 	@./scripts/run.sh test test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
 
+generate-configs:
+	@./scripts/tooling/generate-configs.sh
+
 _generate-configs:
-	@./scripts/run.sh tooling generate-configs
+	@$(MAKE) generate-configs
 
 _check-generated-configs:
 	./scripts/run.sh checks check-generated-configs
