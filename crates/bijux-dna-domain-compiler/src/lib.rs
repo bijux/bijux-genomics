@@ -11,4 +11,4 @@ include!("compiler_sections/domain_models_and_utils.rs");
 include!("compiler_sections/domain_loading_and_collection.rs");
 include!("compiler_sections/compile_configs.rs");
 include!("compiler_sections/validation.rs");
-include!("compiler_sections/coverage_report_and_tests.rs");
+include!("compiler_sections/coverage_report_and_contracts.rs");
