@@ -11,7 +11,7 @@ use serde::Serialize;
 use crate::pipeline::{
     run_damage_filter_stage, run_gl_propagation_stage,
     run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage_real,
-    run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
+    run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
     run_qc_stage, run_stats_stage_real, DamageFilterStageParams, GlPropagationStageParams,
     ImputeStageParams, PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
     QcStageParams,
@@ -582,7 +582,7 @@ impl VcfStageRunner for DispatchRunner {
                     out.logs_txt,
                 ]);
             }
-            VcfDomainStage::Impute | VcfDomainStage::Imputation => {
+            VcfDomainStage::Impute => {
                 let params = ctx
                     .request
                     .impute
@@ -613,6 +613,33 @@ impl VcfStageRunner for DispatchRunner {
                     out.overlap_stats_json,
                     out.imputation_manifest_json,
                     out.panel_mismatch_diagnostics_json,
+                    out.logs_txt,
+                ]);
+            }
+            VcfDomainStage::Imputation => {
+                let params = ctx
+                    .request
+                    .impute
+                    .clone()
+                    .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing impute params"))?;
+                let out = run_imputation_orchestration_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &ctx.request.species_context,
+                    &params,
+                )
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
+                primary_output = Some(out.imputed_vcf.clone());
+                artifacts.extend([
+                    out.imputed_vcf,
+                    out.imputed_tbi,
+                    out.imputation_qc_json,
+                    out.imputation_accept_json,
+                    out.imputation_manifest_json,
+                    out.orchestration_manifest_json,
                     out.logs_txt,
                 ]);
             }

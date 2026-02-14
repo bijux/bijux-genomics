@@ -1211,6 +1211,8 @@ pub struct ImputeStageParams {
     pub emit_gp: bool,
     pub truth_vcf: Option<PathBuf>,
     pub imputation_accept_mode: ImputationAcceptMode,
+    pub chunk_window_bp: Option<u64>,
+    pub chunk_overlap_bp: u64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
@@ -1233,6 +1235,17 @@ pub struct ImputeStageOutputs {
     pub overlap_stats_json: PathBuf,
     pub imputation_manifest_json: PathBuf,
     pub panel_mismatch_diagnostics_json: PathBuf,
+    pub logs_txt: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ImputationOrchestrationOutputs {
+    pub imputed_vcf: PathBuf,
+    pub imputed_tbi: PathBuf,
+    pub imputation_manifest_json: PathBuf,
+    pub orchestration_manifest_json: PathBuf,
+    pub imputation_qc_json: PathBuf,
+    pub imputation_accept_json: PathBuf,
     pub logs_txt: PathBuf,
 }
 
@@ -2082,6 +2095,107 @@ pub fn run_impute_stage(
     }
 }
 
+/// # Errors
+/// Returns an error if orchestration prerequisites or nested stage runs fail.
+pub fn run_imputation_orchestration_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    species_context: &SpeciesContext,
+    params: &ImputeStageParams,
+) -> Result<ImputationOrchestrationOutputs> {
+    std::fs::create_dir_all(out_dir)?;
+    let orchestration_started = std::time::Instant::now();
+    let mut current_input = input_vcf.to_path_buf();
+    let mut phase_ran = false;
+
+    let prepare_dir = out_dir.join("prepare_reference_panel");
+    std::fs::create_dir_all(&prepare_dir)?;
+    let prepare_marker = prepare_dir.join("orchestration_prepare_panel.json");
+    atomic_write_json(
+        &prepare_marker,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.prepare_marker.v1",
+            "panel_id": params.panel_id,
+            "map_id": params.map_id,
+        }),
+    )?;
+
+    if matches!(params.backend, ImputeBackend::Minimac4) {
+        let raw = std::fs::read_to_string(&current_input)?;
+        let has_phased = raw.lines().any(|line| line.contains("\t0|") || line.contains("\t1|"));
+        if !has_phased {
+            let phase_dir = out_dir.join("phasing");
+            let phasing = run_phasing_stage(
+                &current_input,
+                &phase_dir,
+                species_context,
+                &PhasingStageParams {
+                    species_id: params.species_id.clone(),
+                    build_id: params.build_id.clone(),
+                    backend: PhasingBackend::Auto,
+                    map_id: params.map_id.clone(),
+                    threads: params.threads,
+                    seed: params.seed,
+                    region: None,
+                    allow_gl_only_input: false,
+                },
+            )?;
+            current_input = phasing.phased_vcf;
+            phase_ran = true;
+        }
+    }
+
+    let impute_dir = out_dir.join("impute");
+    let imputed = run_impute_stage(&current_input, &impute_dir, species_context, params)?;
+    let qc_dir = out_dir.join("qc");
+    let qc = run_qc_stage(
+        &imputed.imputed_vcf,
+        &qc_dir,
+        &QcStageParams {
+            sample_name: "sample".to_string(),
+            is_ancient_dna: true,
+            allow_hwe_for_ancient: false,
+            production_profile: params.imputation_accept_mode == ImputationAcceptMode::Fail,
+            pre_filter_vcf: Some(current_input.clone()),
+        },
+    )?;
+    let orchestration_manifest_json = out_dir.join("imputation_orchestration_manifest.json");
+    atomic_write_json(
+        &orchestration_manifest_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.orchestration.v1",
+            "stage_id": "vcf.imputation",
+            "semantics": "wrapper_stage",
+            "substages": [
+                {"id": "prepare_reference_panel", "artifact": prepare_marker},
+                {"id": "phasing", "executed": phase_ran},
+                {"id": "impute", "manifest": imputed.imputation_manifest_json},
+                {"id": "qc", "summary": qc.qc_summary_json}
+            ],
+            "wall_time_ms": orchestration_started.elapsed().as_millis()
+        }),
+    )?;
+    let logs_txt = out_dir.join("logs.txt");
+    atomic_write_bytes(
+        &logs_txt,
+        format!(
+            "wrapper=vcf.imputation\nbackend={}\nphase_ran={}\n",
+            params.backend.as_str(),
+            phase_ran
+        )
+        .as_bytes(),
+    )?;
+    Ok(ImputationOrchestrationOutputs {
+        imputed_vcf: imputed.imputed_vcf,
+        imputed_tbi: imputed.imputed_tbi,
+        imputation_manifest_json: imputed.imputation_manifest_json,
+        orchestration_manifest_json,
+        imputation_qc_json: imputed.imputation_qc_json,
+        imputation_accept_json: imputed.imputation_accept_json,
+        logs_txt,
+    })
+}
+
 fn run_impute_stage_inner(
     input_vcf: &Path,
     out_dir: &Path,
@@ -2122,15 +2236,17 @@ fn run_impute_stage_inner(
             .map(|map_id| resolve_map(&params.species_id, &params.build_id, Some(map_id)))
             .transpose()?
     };
-    let map_for_compat = match &map {
-        Some(m) => m.clone(),
-        None => resolve_map(
-            &params.species_id,
-            &params.build_id,
-            params.map_id.as_deref(),
-        )?,
-    };
-    validate_imputation_tool_compatibility(params.backend.as_str(), &panel, &map_for_compat)?;
+    if !matches!(params.backend, ImputeBackend::Beagle) || params.map_id.is_some() {
+        let map_for_compat = match &map {
+            Some(m) => m.clone(),
+            None => resolve_map(
+                &params.species_id,
+                &params.build_id,
+                params.map_id.as_deref(),
+            )?,
+        };
+        validate_imputation_tool_compatibility(params.backend.as_str(), &panel, &map_for_compat)?;
+    }
 
     let run_started = std::time::Instant::now();
     let raw = std::fs::read_to_string(input_vcf)?;
@@ -2327,6 +2443,15 @@ fn run_impute_stage_inner(
             }
         })
         .collect::<Vec<_>>();
+    let mut seen_keys = std::collections::BTreeSet::<String>::new();
+    for line in &imputed_records {
+        if let Some((chr, pos, key)) = parse_variant_key(line) {
+            let joined = format!("{chr}:{pos}:{key}");
+            if !seen_keys.insert(joined) {
+                bail!("chunk boundary correctness violated: duplicated variants after deterministic merge");
+            }
+        }
+    }
     let imputed_payload = format!(
         "{}\n{}\n",
         header_sorted.join("\n"),
@@ -2610,13 +2735,45 @@ fn run_impute_stage_inner(
     let mut chunk_manifests = Vec::new();
     let chunks_dir = out_dir.join("chunks");
     std::fs::create_dir_all(&chunks_dir)?;
-    for (idx, contig) in contig_seen.iter().enumerate() {
+    let planned_chunks = {
+        let window = params.chunk_window_bp.unwrap_or(0);
+        let overlap = params.chunk_overlap_bp;
+        let mut chunks = Vec::<(String, String)>::new();
+        if window == 0 {
+            for contig in &contig_seen {
+                chunks.push((format!("{contig}:whole"), contig.clone()));
+            }
+        } else {
+            for contig in &contig_seen {
+                let len = species_context
+                    .contigs
+                    .iter()
+                    .find(|c| c.name == *contig)
+                    .map(|c| c.length_bp)
+                    .unwrap_or(window);
+                let mut start = 1_u64;
+                let mut idx = 0_u64;
+                while start <= len {
+                    let end = std::cmp::min(start + window - 1, len);
+                    chunks.push((format!("{contig}:{idx:05}:{start}-{end}"), contig.clone()));
+                    if end == len {
+                        break;
+                    }
+                    start = end.saturating_sub(overlap).saturating_add(1);
+                    idx += 1;
+                }
+            }
+        }
+        chunks.sort();
+        chunks
+    };
+    for (idx, (chunk_id, contig)) in planned_chunks.iter().enumerate() {
         let chunk_manifest_path =
             chunks_dir.join(format!("chunk_{idx:03}.imputation_manifest.json"));
         let chunk_started = std::time::Instant::now();
         let chunk_payload = serde_json::json!({
             "schema_version": "bijux.vcf.imputation.chunk_manifest.v1",
-            "chunk_id": format!("{contig}:{idx:03}"),
+            "chunk_id": chunk_id,
             "contig": contig,
             "backend": params.backend.as_str(),
             "tool_digest": resolve_tool_digest(params.backend.as_str())?,
@@ -2644,6 +2801,7 @@ fn run_impute_stage_inner(
             "schema_version": "bijux.vcf.imputation.manifest.v1",
             "stage_id": "vcf.impute",
             "backend": params.backend.as_str(),
+            "semantics": "vcf.impute heavy engine stage",
             "tool_digest": resolve_tool_digest(params.backend.as_str())?,
             "panel_id": panel.id,
             "panel_checksums": panel.files.iter().map(|f| serde_json::json!({"name":f.name, "checksum_sha256": f.checksum_sha256})).collect::<Vec<_>>(),
@@ -2654,6 +2812,12 @@ fn run_impute_stage_inner(
             "emit_gp": params.emit_gp,
             "sample_order_stable": true,
             "chunk_manifests": chunk_manifests,
+            "chunk_plan": {
+                "mode": if params.chunk_window_bp.unwrap_or(0) == 0 { "per_chromosome" } else { "fixed_windows_overlap" },
+                "window_bp": params.chunk_window_bp,
+                "overlap_bp": params.chunk_overlap_bp,
+                "chunks_total": planned_chunks.len(),
+            },
             "resource_accounting": {
                 "threads_used": params.threads,
                 "wall_time_ms": run_started.elapsed().as_millis(),
@@ -2664,6 +2828,12 @@ fn run_impute_stage_inner(
             "output_checksum": checksum_hex(imputed_payload.as_bytes()),
             "decision_imputation_accept": {
                 "path": imputation_accept_json,
+            },
+            "backend_flow": match params.backend {
+                ImputeBackend::Glimpse => vec!["chunk","ligate","sample"],
+                ImputeBackend::Impute5 => vec!["chunked_impute"],
+                ImputeBackend::Minimac4 => vec!["phased_input","m3vcf_impute"],
+                ImputeBackend::Beagle => vec!["target_reference_joint_impute"],
             },
         }),
     )?;
