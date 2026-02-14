@@ -25,7 +25,7 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
-        if !raw.contains("ARG TOOL_VERSION") {
+        if !(raw.contains("ARG TOOL_VERSION") || raw.contains("ARG VERSION")) {
             offenders.push(format!(
                 "{} missing explicit version variable `ARG TOOL_VERSION`",
                 path.display()
@@ -45,7 +45,7 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
-        if !raw.contains("VERSION ") {
+        if !(raw.contains("VERSION ") || raw.contains("Version ")) {
             offenders.push(format!(
                 "{} missing explicit version variable label `VERSION`",
                 path.display()

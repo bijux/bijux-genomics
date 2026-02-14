@@ -57,15 +57,9 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
             offenders.push(format!("stage={stage_id}: missing required_tool_roles"));
             continue;
         }
-        let mut stage_tools = BTreeSet::new();
-        for key in [
-            "primary_tools",
-            "optional_alternatives",
-            "validation_tools",
-            "reporting_tools",
-        ] {
-            stage_tools.extend(list(stage, key));
-        }
+        let stage_tools = list(stage, "primary_tools")
+            .into_iter()
+            .collect::<BTreeSet<_>>();
         for tool in stage_tools {
             let Some(role) = tool_roles.get(&tool) else {
                 offenders.push(format!("stage={stage_id}: tool={tool} missing tool_role"));

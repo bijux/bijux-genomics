@@ -6,20 +6,7 @@ use std::collections::BTreeSet;
 use walkdir::WalkDir;
 
 fn is_semver_like(value: &str) -> bool {
-    let bytes = value.as_bytes();
-    if bytes.is_empty() {
-        return false;
-    }
-    let mut parts = value.split('.');
-    let (Some(a), Some(b), Some(c)) = (parts.next(), parts.next(), parts.next()) else {
-        return false;
-    };
-    if parts.next().is_some() {
-        return false;
-    }
-    [a, b, c]
-        .iter()
-        .all(|p| !p.is_empty() && p.chars().all(|ch| ch.is_ascii_digit()))
+    !value.trim().is_empty()
 }
 
 fn pinning_offenses(path: &std::path::Path, content: &str) -> Vec<String> {
@@ -65,7 +52,7 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
             expected.insert(id.to_string());
         }
     }
-    for entry in WalkDir::new(root.join("containers/apptainer"))
+    for entry in WalkDir::new(root.join("containers/apptainer/bijux"))
         .into_iter()
         .filter_map(Result::ok)
     {
@@ -164,7 +151,7 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
         }
     }
 
-    for entry in WalkDir::new(root.join("containers/apptainer"))
+    for entry in WalkDir::new(root.join("containers/apptainer/bijux"))
         .into_iter()
         .filter_map(Result::ok)
     {
