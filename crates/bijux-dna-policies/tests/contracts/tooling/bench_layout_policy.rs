@@ -60,7 +60,7 @@ fn policy__contracts__bench_layout_policy__bench_suites_live_only_under_bench_cr
 fn policy__contracts__bench_layout_policy__cli_and_bench_use_shared_bench_path_helper() {
     let root = workspace_root();
     let cli = std::fs::read_to_string(
-        root.join("crates/bijux-dna-cli/src/commands/bench_suite/bench_suite_part1.rs"),
+        root.join("crates/bijux-dna-cli/src/commands/bench_suite/suite_sections/analysis_and_status.rs"),
     )
     .expect("read cli bench suite module");
     let bench_lib = std::fs::read_to_string(root.join("crates/bijux-dna-bench/src/lib.rs"))
