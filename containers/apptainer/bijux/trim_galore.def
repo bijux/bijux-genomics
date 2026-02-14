@@ -73,10 +73,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     # Clean up apt lists.
     rm -rf /var/lib/apt/lists/*
 
-    # Purge build-only deps (keep python3 + pip since cutadapt is python runtime)
-        build-essential \
-        python3-dev \
-        wget || true
+    # Keep runtime dependencies installed; no purge step required here.
 
 %runscript
     if [ $# -eq 0 ]; then
