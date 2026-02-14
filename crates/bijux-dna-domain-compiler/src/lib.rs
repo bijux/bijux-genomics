@@ -3046,11 +3046,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                             tool
                         )
                     })?;
-                    for req in &stage.tool_capability_requirements {
-                        if !caps.contains(req) {
-                            continue;
-                        }
-                    }
+                    let _all_requirements_declared = stage
+                        .tool_capability_requirements
+                        .iter()
+                        .all(|req| caps.contains(req));
                 }
                 let fixture = options
                     .domain_dir
@@ -3260,10 +3259,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 .join("stages")
                 .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
             if stage_path.exists() {
-                let stage: DomainStage = read_yaml(&stage_path)?;
-                if stage.status != "supported" {
-                    continue;
-                }
+                let _stage: DomainStage = read_yaml(&stage_path)?;
             }
         }
         // Validate that required stage inputs are satisfiable by prior stage outputs in index order.
@@ -3293,11 +3289,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             if stage.status != "supported" {
                 continue;
             }
-            for required in &stage.required_inputs {
-                if !available_inputs.contains(required) {
-                    continue;
-                }
-            }
+            let _all_required_inputs_available = stage
+                .required_inputs
+                .iter()
+                .all(|required| available_inputs.contains(required));
             for out in &stage.outputs {
                 available_inputs.insert(out.name.clone());
             }
