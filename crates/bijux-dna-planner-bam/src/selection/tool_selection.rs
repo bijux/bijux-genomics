@@ -15,7 +15,7 @@ fn registry_toml() -> Option<toml::Value> {
         manifest_dir
             .parent()
             .and_then(std::path::Path::parent)
-            .map(|root| bijux_dna_infra::configs_file(&root, "ci/registry/tool_registry.toml"))?,
+            .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?,
     );
     let path = candidates
         .into_iter()
