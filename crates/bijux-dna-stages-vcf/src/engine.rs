@@ -9,6 +9,7 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
+    run_demography_stage, run_ibd_stage,
     run_roh_stage,
     run_admixture_stage, run_pca_stage, run_population_structure_stage,
     run_damage_filter_stage, run_gl_propagation_stage,
@@ -16,7 +17,8 @@ use crate::pipeline::{
     run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
     run_qc_stage, run_stats_stage_real, DamageFilterStageParams, GlPropagationStageParams,
     ImputeStageParams, PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
-    AdmixtureStageParams, PcaStageParams, PopulationStructureStageParams, QcStageParams, RohStageParams,
+    AdmixtureStageParams, DemographyStageParams, IbdStageParams, PcaStageParams,
+    PopulationStructureStageParams, QcStageParams, RohStageParams,
 };
 use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
@@ -269,11 +271,17 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
             "sha256:7777777777777777777777777777777777777777777777777777777777777777",
             "plink2 2.0",
         ),
-        _ => (
-            "contract-only",
+        VcfDomainStage::Ibd => (
+            "germline",
             "docker",
-            "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-            "unknown",
+            "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "germline 1.5.3",
+        ),
+        VcfDomainStage::Demography => (
+            "ibdne",
+            "docker",
+            "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+            "ibdne 23Apr20",
         ),
     }
 }
@@ -720,11 +728,32 @@ impl VcfStageRunner for DispatchRunner {
                     })?;
                 artifacts.extend([out.roh_segments_tsv, out.roh_summary_json, out.roh_metrics_json, out.logs_txt]);
             }
-            _ => {
-                return Err(refusal(
-                    VcfRefusalCode::UnsupportedStage,
-                    format!("stage {} has no real runner in vcf engine", stage.as_str()),
-                ));
+            VcfDomainStage::Ibd => {
+                let out = run_ibd_stage(input_vcf, &stage_dir, &IbdStageParams::default())
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
+                primary_output = Some(out.ibd_filtered_segments_tsv.clone());
+                artifacts.extend([
+                    out.ibd_segments_tsv,
+                    out.ibd_filtered_segments_tsv,
+                    out.ibd_summary_json,
+                    out.ibd_metrics_json,
+                    out.logs_txt,
+                ]);
+            }
+            VcfDomainStage::Demography => {
+                let out = run_demography_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &DemographyStageParams::default(),
+                )
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
+                artifacts.extend([out.ne_trajectory_tsv, out.demography_metrics_json, out.logs_txt]);
             }
         }
 
