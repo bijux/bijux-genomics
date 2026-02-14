@@ -291,7 +291,17 @@ mod contracts {
     fn prepare_reference_panel_stage_writes_manifest_and_overlap_artifacts() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let panel = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("abc123");
+        let panel_raw = panel_root.join("raw");
+        let panel_normalized = panel_root.join("normalized");
+        let panel_derived = panel_root.join("derived");
+        std::fs::create_dir_all(&panel_raw).unwrap_or_else(|err| panic!("mkdir raw: {err}"));
+        std::fs::create_dir_all(&panel_normalized)
+            .unwrap_or_else(|err| panic!("mkdir normalized: {err}"));
+        std::fs::create_dir_all(&panel_derived).unwrap_or_else(|err| panic!("mkdir derived: {err}"));
+        let panel = panel_raw.join("panel.vcf.gz");
+        std::fs::copy("tests/fixtures/vcf/default/input.vcf", &panel)
+            .unwrap_or_else(|err| panic!("copy panel fixture: {err}"));
         let species = SpeciesContext {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
@@ -321,7 +331,7 @@ mod contracts {
         };
         let outputs = run_prepare_reference_panel_stage(
             input,
-            panel,
+            &panel,
             dir.path(),
             &species,
             &PrepareReferencePanelParams {
@@ -334,6 +344,8 @@ mod contracts {
         .unwrap_or_else(|err| panic!("prepare_reference_panel: {err}"));
         assert!(outputs.panel_manifest_json.exists());
         assert!(outputs.overlap_json.exists());
+        assert!(outputs.panel_overlap_json.exists());
+        assert!(outputs.panel_files_json.exists());
         assert!(outputs.overlap_tsv.exists());
         assert!(outputs.chunks_json.exists());
     }
