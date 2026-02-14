@@ -2426,3 +2426,51 @@ purpose = "checks script"
 inputs = ["configs/bench/knobs.toml", "examples/vcf/downstream-vcf-full-mini/bench-suite.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "check_vcf_deprecation_lifecycle"
+path = "scripts/checks/check-vcf-deprecation-lifecycle.sh"
+purpose = "checks script"
+inputs = ["configs/vcf/deprecations/knobs.toml", "configs/vcf/deprecations/panels.toml", "configs/ci/params/param_registry_downstream.toml", "configs/vcf/panels/panels.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "generate_vcf_compatibility_matrix"
+path = "scripts/checks/generate-vcf-compatibility-matrix.sh"
+purpose = "checks script"
+inputs = ["configs/vcf/panels/panels.toml", "configs/ci/registry/tool_registry_vcf_downstream.toml"]
+outputs = ["docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md", "artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_vcf_compatibility_matrix"
+path = "scripts/checks/check-vcf-compatibility-matrix.sh"
+purpose = "checks script"
+inputs = ["docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md", "configs/vcf/panels/panels.toml", "configs/ci/registry/tool_registry_vcf_downstream.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_vcf_downstream_readiness"
+path = "scripts/checks/check-vcf-downstream-readiness.sh"
+purpose = "checks script"
+inputs = ["configs/vcf/downstream_acceptance.toml", "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "vcf_deprecate_knob"
+path = "scripts/vcf/deprecate-knob.sh"
+purpose = "vcf governance script"
+inputs = ["configs/vcf/deprecations/knobs.toml"]
+outputs = ["configs/vcf/deprecations/knobs.toml"]
+ci_allowed = false
+
+[[script]]
+id = "vcf_deprecate_panel"
+path = "scripts/vcf/deprecate-panel.sh"
+purpose = "vcf governance script"
+inputs = ["configs/vcf/deprecations/panels.toml"]
+outputs = ["configs/vcf/deprecations/panels.toml"]
+ci_allowed = false
