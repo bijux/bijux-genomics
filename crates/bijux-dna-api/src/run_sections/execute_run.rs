@@ -345,8 +345,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     )?;
     maybe_write_site_lock(&request.plan.out_dir)?;
     if let Some(tmp) = unique_tmp {
-        let _ = std::fs::remove_dir_all(tmp);
+        let _ = bijux_dna_infra::remove_dir_all(&tmp);
     }
     Ok(ExecuteRunResult)
 }
-
