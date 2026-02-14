@@ -1,5 +1,31 @@
 {
+  "backend_selection_reason": "selected backend family from coverage regime Pseudohaploid and stage tool compatibility",
+  "chunking_selection_reason": "pseudohaploid mode avoids diploid imputation chunking",
   "coverage_regime": "pseudohaploid",
+  "decision_traces": [
+    {
+      "id": "decision.backend_selection",
+      "reason": "coverage_regime + stage/tool compatibility"
+    },
+    {
+      "id": "decision.panel_selection",
+      "reason": "build/license/ancestry constraints"
+    },
+    {
+      "id": "decision.map_selection",
+      "reason": "species_id/build_id/contig_set_digest invariants"
+    },
+    {
+      "id": "decision.chunking_selection",
+      "reason": "coverage-regime-specific defaults"
+    },
+    {
+      "id": "decision.imputation_accept",
+      "reason": "qc thresholds and overlap stats gate acceptance"
+    }
+  ],
+  "map_selection_reason": "map compatibility enforced by species/build/contig digest (homo_sapiens/GRCh37)",
+  "panel_selection_reason": "panel selected by build/license/ancestry policy",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "schema_version": "bijux.vcf.planner_explain.v1",
   "selected_panel": {
