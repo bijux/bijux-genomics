@@ -1364,6 +1364,31 @@ pub struct AdmixtureStageOutputs {
     pub logs_txt: PathBuf,
 }
 
+#[derive(Debug, Clone)]
+pub struct RohStageParams {
+    pub min_snp_density_per_mb: f64,
+    pub min_segment_kb: u64,
+    pub max_gap_bp: u64,
+}
+
+impl Default for RohStageParams {
+    fn default() -> Self {
+        Self {
+            min_snp_density_per_mb: 10.0,
+            min_segment_kb: 500,
+            max_gap_bp: 1_000_000,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RohStageOutputs {
+    pub roh_segments_tsv: PathBuf,
+    pub roh_summary_json: PathBuf,
+    pub roh_metrics_json: PathBuf,
+    pub logs_txt: PathBuf,
+}
+
 fn variant_maf(fields: &[&str]) -> Option<f64> {
     if let Some(v) = parse_info_value_f64(fields[7], "AF") {
         return Some(if v > 0.5 { 1.0 - v } else { v });
@@ -1544,6 +1569,119 @@ pub fn run_admixture_stage(
         bail!("vcf.admixture refusal: ADMIXTURE container/license metadata is not available");
     }
     bail!("vcf.admixture refusal: runtime integration for ADMIXTURE is not enabled");
+}
+
+/// # Errors
+/// Returns an error if ROH density/preprocessing constraints are violated.
+pub fn run_roh_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &RohStageParams,
+) -> Result<RohStageOutputs> {
+    std::fs::create_dir_all(out_dir)?;
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let mut sample_ids = Vec::<String>::new();
+    let mut variants = Vec::<(String, u64, Option<f64>)>::new();
+    for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            sample_ids = line.split('\t').skip(9).map(str::to_string).collect();
+            continue;
+        }
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        let pos = fields[1].parse::<u64>().unwrap_or(0);
+        variants.push((fields[0].to_string(), pos, variant_maf(&fields)));
+    }
+    if variants.is_empty() {
+        bail!("vcf.roh refusal: no variants available for ROH detection");
+    }
+    let contig_span = {
+        let min = variants.iter().map(|(_, p, _)| *p).min().unwrap_or(1);
+        let max = variants.iter().map(|(_, p, _)| *p).max().unwrap_or(min + 1);
+        max.saturating_sub(min).max(1)
+    };
+    let density = (variants.len() as f64) / ((contig_span as f64) / 1_000_000.0);
+    if density < params.min_snp_density_per_mb {
+        bail!("vcf.roh refusal: SNP density below configured threshold");
+    }
+
+    let roh_segments_tsv = out_dir.join("roh_segments.tsv");
+    let roh_summary_json = out_dir.join("roh_summary.json");
+    let roh_metrics_json = out_dir.join("roh_metrics.json");
+    let logs_txt = out_dir.join("logs.txt");
+
+    let mut rows = String::from("sample\tcontig\tstart\tend\tlength_bp\tn_sites\n");
+    let mut total_length = 0_u64;
+    let mut segment_lengths = Vec::<u64>::new();
+    for sample in &sample_ids {
+        let mut start = variants[0].1;
+        let mut last = variants[0].1;
+        let contig = variants[0].0.clone();
+        let mut n_sites = 1_u64;
+        for (chr, pos, maf) in variants.iter().skip(1) {
+            if *chr != contig || pos.saturating_sub(last) > params.max_gap_bp || maf.unwrap_or(0.5) < 0.001 {
+                let len = last.saturating_sub(start).max(1);
+                if len >= params.min_segment_kb * 1000 {
+                    rows.push_str(&format!("{sample}\t{contig}\t{start}\t{last}\t{len}\t{n_sites}\n"));
+                    total_length += len;
+                    segment_lengths.push(len);
+                }
+                start = *pos;
+                n_sites = 1;
+            } else {
+                n_sites += 1;
+            }
+            last = *pos;
+        }
+        let len = last.saturating_sub(start).max(1);
+        if len >= params.min_segment_kb * 1000 {
+            rows.push_str(&format!("{sample}\t{contig}\t{start}\t{last}\t{len}\t{n_sites}\n"));
+            total_length += len;
+            segment_lengths.push(len);
+        }
+    }
+    atomic_write_bytes(&roh_segments_tsv, rows.as_bytes())?;
+    let segment_count = segment_lengths.len() as u64;
+    let mean_len = if segment_lengths.is_empty() {
+        0.0
+    } else {
+        segment_lengths.iter().sum::<u64>() as f64 / segment_lengths.len() as f64
+    };
+    atomic_write_json(
+        &roh_summary_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.roh.summary.v1",
+            "segment_count": segment_count,
+            "total_length_bp": total_length,
+            "mean_length_bp": mean_len
+        }),
+    )?;
+    atomic_write_json(
+        &roh_metrics_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.roh.v1",
+            "roh_count": segment_count,
+            "roh_total_mb": total_length as f64 / 1_000_000.0,
+            "roh_mean_length_mb": mean_len / 1_000_000.0,
+            "distribution_bp": segment_lengths
+        }),
+    )?;
+    atomic_write_bytes(
+        &logs_txt,
+        format!(
+            "runner=plink2_homozyg_like\nmin_snp_density_per_mb={}\nmin_segment_kb={}\nmax_gap_bp={}\n",
+            params.min_snp_density_per_mb, params.min_segment_kb, params.max_gap_bp
+        )
+        .as_bytes(),
+    )?;
+
+    Ok(RohStageOutputs {
+        roh_segments_tsv,
+        roh_summary_json,
+        roh_metrics_json,
+        logs_txt,
+    })
 }
 
 /// # Errors

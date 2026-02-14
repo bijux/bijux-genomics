@@ -9,13 +9,14 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
+    run_roh_stage,
     run_admixture_stage, run_pca_stage, run_population_structure_stage,
     run_damage_filter_stage, run_gl_propagation_stage,
     run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage_real,
     run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
     run_qc_stage, run_stats_stage_real, DamageFilterStageParams, GlPropagationStageParams,
     ImputeStageParams, PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
-    AdmixtureStageParams, PcaStageParams, PopulationStructureStageParams, QcStageParams,
+    AdmixtureStageParams, PcaStageParams, PopulationStructureStageParams, QcStageParams, RohStageParams,
 };
 use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
@@ -261,6 +262,12 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
             "docker",
             "sha256:6666666666666666666666666666666666666666666666666666666666666666",
             "admixture 1.3.0",
+        ),
+        VcfDomainStage::Roh => (
+            "plink2",
+            "docker",
+            "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+            "plink2 2.0",
         ),
         _ => (
             "contract-only",
@@ -704,6 +711,14 @@ impl VcfStageRunner for DispatchRunner {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
                     })?;
+            }
+            VcfDomainStage::Roh => {
+                let out = run_roh_stage(input_vcf, &stage_dir, &RohStageParams::default())
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
+                artifacts.extend([out.roh_segments_tsv, out.roh_summary_json, out.roh_metrics_json, out.logs_txt]);
             }
             _ => {
                 return Err(refusal(
