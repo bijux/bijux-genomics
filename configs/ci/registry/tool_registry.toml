@@ -886,6 +886,7 @@ smoke_help_cmd = "samtools --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "samtools --help"
 expected_bin = "samtools"
+smoke_negative_exit_code = 1
 expected_artifacts = ["bam_index", "bam_stats"]
 metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
