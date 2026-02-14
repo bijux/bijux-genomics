@@ -392,6 +392,7 @@
         ]
       },
       "effective_params": {
+        "allow_gl_only_input": false,
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -1007,6 +1008,8 @@
             "start": 240100001
           }
         ],
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "max_iterations": 10,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -1017,6 +1020,8 @@
           "species_id": "Homo sapiens"
         },
         "schema_version": "bijux.vcf.phasing.params.v1",
+        "seed": 42,
+        "threads": 8,
         "tool": "eagle",
         "use_reference": true
       },
@@ -1044,6 +1049,7 @@
       },
       "out_dir": "out/vcf_phasing",
       "params": {
+        "allow_gl_only_input": false,
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -1659,6 +1665,8 @@
             "start": 240100001
           }
         ],
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "max_iterations": 10,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -1669,6 +1677,8 @@
           "species_id": "Homo sapiens"
         },
         "schema_version": "bijux.vcf.phasing.params.v1",
+        "seed": 42,
+        "threads": 8,
         "tool": "eagle",
         "use_reference": true
       },

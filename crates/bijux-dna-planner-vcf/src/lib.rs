@@ -214,6 +214,7 @@ fn stage_params(
     tool: &str,
     coverage: CoverageRegime,
     panel: Option<&VcfPanelLock>,
+    map: &bijux_dna_db_ref::MapCatalogEntry,
     chunking: &ChunkPlanSettings,
     chunks: &[RegionChunkPlan],
 ) -> serde_json::Value {
@@ -227,13 +228,13 @@ fn stage_params(
         }),
         VcfDomainStage::Phasing => match tool {
             "shapeit5" => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8,"chunking":chunking,"chunks_plan":chunks})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8,"threads":8,"seed":42,"map_id":map.id,"map_coordinate_system":map.compatibility.coordinate_system,"allow_gl_only_input":false,"chunking":chunking,"chunks_plan":chunks})
             }
             "eagle" => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true,"chunking":chunking,"chunks_plan":chunks})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true,"threads":8,"seed":42,"map_id":map.id,"map_coordinate_system":map.compatibility.coordinate_system,"allow_gl_only_input":false,"chunking":chunking,"chunks_plan":chunks})
             }
             _ => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12,"chunking":chunking,"chunks_plan":chunks})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12,"threads":8,"seed":42,"map_id":map.id,"map_coordinate_system":map.compatibility.coordinate_system,"allow_gl_only_input":coverage==CoverageRegime::LowCovGl,"chunking":chunking,"chunks_plan":chunks})
             }
         },
         VcfDomainStage::Imputation | VcfDomainStage::Impute => match tool {
@@ -437,6 +438,20 @@ fn resolve_requested_stages(inputs: &VcfPipelineInputs) -> Result<Vec<VcfDomainS
     Ok(default_stages_for_coverage(inputs.coverage_regime))
 }
 
+fn phasing_backend_supports_gl_only_input(tool: &str) -> bool {
+    tool == "beagle"
+}
+
+fn eagle_license_metadata_present() -> bool {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("containers/licenses/eagle.license.toml")
+        .exists()
+}
+
 fn plan_region_chunks(
     species: &SpeciesContext,
     chunking: &ChunkPlanSettings,
@@ -585,6 +600,7 @@ fn stage_plan(
     tool: &str,
     coverage: CoverageRegime,
     selected_panel: Option<&VcfPanelLock>,
+    map: &bijux_dna_db_ref::MapCatalogEntry,
     bundle: &bijux_dna_db_ref::ReferenceBundle,
     species_id: &str,
     build_id: &str,
@@ -592,7 +608,7 @@ fn stage_plan(
     chunks: &[RegionChunkPlan],
 ) -> StagePlanV1 {
     let params = attach_reference_provenance(
-        stage_params(stage, tool, coverage, selected_panel, chunking, chunks),
+        stage_params(stage, tool, coverage, selected_panel, map, chunking, chunks),
         species_id,
         build_id,
         bundle,
@@ -718,6 +734,29 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         ) {
             validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
         }
+        if stage == VcfDomainStage::Phasing {
+            if inputs.coverage_regime == CoverageRegime::LowCovGl
+                && !phasing_backend_supports_gl_only_input(&tool)
+            {
+                bail!(
+                    "planner refusal: tool {} does not support GL-only input for {}",
+                    tool,
+                    stage.as_str()
+                );
+            }
+            if matches!(tool.as_str(), "shapeit5" | "eagle")
+                && inputs.coverage_regime != CoverageRegime::Diploid
+            {
+                bail!(
+                    "planner refusal: tool {} requires diploid coverage regime for {}",
+                    tool,
+                    stage.as_str()
+                );
+            }
+            if tool == "eagle" && !eagle_license_metadata_present() {
+                bail!("planner refusal: eagle license metadata is missing");
+            }
+        }
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
             bail!(
                 "selected tool {} is not compatible with stage {}",
@@ -732,6 +771,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &tool,
             inputs.coverage_regime,
             selected_panel.as_ref(),
+            &map_catalog,
             &bundle,
             &inputs.species_context.species_id,
             &inputs.species_context.build_id,
