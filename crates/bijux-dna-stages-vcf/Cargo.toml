@@ -19,6 +19,4 @@ workspace = true
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
-sha2.workspace = true
 tempfile.workspace = true

@@ -9,4 +9,5 @@ Public modules exported from src/lib.rs:
 - run
 - run_layout
 - runner
+- stage_runner_contract
 - telemetry

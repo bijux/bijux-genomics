@@ -1,6 +1,4 @@
-use bijux_dna_runtime::stage_runner_contract::{
-    ensure_stage_supported_by_runner, RunnerContractKind,
-};
+use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 
 #[test]
 fn docker_runner_contract_covers_core_domains() {
@@ -26,4 +24,3 @@ fn docker_runner_contract_rejects_unknown_stage_prefixes() {
         "unexpected error: {err}"
     );
 }
-
