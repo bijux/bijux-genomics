@@ -8,9 +8,14 @@ fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let configs_dir = base.join("configs");
     let runtime_dir = configs_dir.join("runtime");
     let ci_dir = configs_dir.join("ci");
+    let ci_registry_dir = ci_dir.join("registry");
+    let ci_stages_dir = ci_dir.join("stages");
+    let ci_tools_dir = ci_dir.join("tools");
     std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
     std::fs::create_dir_all(runtime_dir.join("profiles")).expect("create runtime profile configs");
-    std::fs::create_dir_all(&ci_dir).expect("create ci configs");
+    std::fs::create_dir_all(&ci_registry_dir).expect("create ci registry configs");
+    std::fs::create_dir_all(&ci_stages_dir).expect("create ci stage configs");
+    std::fs::create_dir_all(&ci_tools_dir).expect("create ci tool configs");
     std::fs::write(
         runtime_dir.join("profiles").join("local.toml"),
         r#"
@@ -42,8 +47,9 @@ arch = "x86_64"
         .unwrap()
         .join("configs")
         .join("ci")
+        .join("tools")
         .join("images.toml");
-    std::fs::copy(workspace_images, ci_dir.join("images.toml")).expect("write images");
+    std::fs::copy(workspace_images, ci_tools_dir.join("images.toml")).expect("write images");
     let workspace_tool_registry = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -51,9 +57,13 @@ arch = "x86_64"
         .unwrap()
         .join("configs")
         .join("ci")
+        .join("registry")
         .join("tool_registry.toml");
-    std::fs::copy(workspace_tool_registry, ci_dir.join("tool_registry.toml"))
-        .expect("write tool registry");
+    std::fs::copy(
+        workspace_tool_registry,
+        ci_registry_dir.join("tool_registry.toml"),
+    )
+    .expect("write tool registry");
     let workspace_stages = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -61,8 +71,9 @@ arch = "x86_64"
         .unwrap()
         .join("configs")
         .join("ci")
+        .join("stages")
         .join("stages.toml");
-    std::fs::copy(workspace_stages, ci_dir.join("stages.toml")).expect("write stages");
+    std::fs::copy(workspace_stages, ci_stages_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
     {
