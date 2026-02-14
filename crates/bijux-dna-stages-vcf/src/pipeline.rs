@@ -683,6 +683,106 @@ fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<String, f64> {
     out
 }
 
+fn cleanup_policy() -> String {
+    std::env::var("BIJUX_STAGE_CLEANUP_POLICY")
+        .unwrap_or_else(|_| "keep".to_string())
+        .to_ascii_lowercase()
+}
+
+fn backend_error_hint(stage_id: &str, backend: &str, err: &anyhow::Error) -> (&'static str, String) {
+    let msg = err.to_string();
+    if msg.contains("contig") || msg.contains("SpeciesContext") {
+        return (
+            "species_context_mismatch",
+            "verify species/build/contig digest and input VCF contig namespace before rerun"
+                .to_string(),
+        );
+    }
+    if msg.contains("requires map") || msg.contains("map ") {
+        return (
+            "map_prerequisite_missing",
+            format!("backend `{backend}` requires map compatibility; validate map_id + map locks"),
+        );
+    }
+    if msg.contains("license") {
+        return (
+            "license_policy_block",
+            format!("backend `{backend}` blocked by license metadata policy; add/update license metadata"),
+        );
+    }
+    if msg.contains("ploidy") || msg.contains("GT") || msg.contains("GL/GP") {
+        return (
+            "input_field_contract_violation",
+            format!("backend `{backend}` input field/ploidy contract failed; fix caller inputs (no silent coercions)"),
+        );
+    }
+    if stage_id == "vcf.impute" && msg.contains("imputation_accept") {
+        return (
+            "qc_acceptance_failed",
+            "imputation QC thresholds failed; inspect imputation_qc.json and decision.imputation_accept"
+                .to_string(),
+        );
+    }
+    (
+        "backend_execution_error",
+        format!("inspect stage logs/manifests and rerun with the same backend `{backend}` deterministically"),
+    )
+}
+
+fn write_crash_provenance_artifact(
+    out_dir: &Path,
+    stage_id: &str,
+    backend: &str,
+    input_vcf: &Path,
+    err: &anyhow::Error,
+) -> Result<PathBuf> {
+    std::fs::create_dir_all(out_dir)?;
+    let path = out_dir.join("crash_provenance.json");
+    let (category, hint) = backend_error_hint(stage_id, backend, err);
+    let err_text = format!("{err:#}");
+    let stderr_tail = {
+        let chars = err_text.chars().collect::<Vec<_>>();
+        let keep = 800usize;
+        if chars.len() <= keep {
+            err_text
+        } else {
+            chars[chars.len() - keep..].iter().collect::<String>()
+        }
+    };
+    let digest = resolve_tool_digest(backend).unwrap_or_else(|_| "unknown".to_string());
+    let payload = serde_json::json!({
+        "schema_version": "bijux.vcf.crash_provenance.v1",
+        "stage_id": stage_id,
+        "backend": backend,
+        "error_category": category,
+        "actionable_hint": hint,
+        "command": serde_json::Value::Null,
+        "stderr_tail": stderr_tail,
+        "inputs": {
+            "input_vcf": input_vcf,
+        },
+        "env_summary": {
+            "cleanup_policy": cleanup_policy(),
+            "hostname": std::env::var("HOSTNAME").ok(),
+        },
+        "tool_digest": digest,
+    });
+    atomic_write_json(&path, &payload)?;
+    Ok(path)
+}
+
+fn apply_failure_cleanup_policy(out_dir: &Path) {
+    if cleanup_policy() != "prune" {
+        return;
+    }
+    for rel in ["tmp", "chunks", "intermediate", "scratch"] {
+        let candidate = out_dir.join(rel);
+        if candidate.exists() {
+            let _ = std::fs::remove_dir_all(candidate);
+        }
+    }
+}
+
 /// # Errors
 /// Returns an error if phasing prerequisites or species/map policies are violated.
 pub fn run_phasing_stage(
@@ -691,7 +791,31 @@ pub fn run_phasing_stage(
     species_context: &SpeciesContext,
     params: &PhasingStageParams,
 ) -> Result<PhasingStageOutputs> {
-    if params.species_id != species_context.species_id || params.build_id != species_context.build_id
+    match run_phasing_stage_inner(input_vcf, out_dir, species_context, params) {
+        Ok(out) => Ok(out),
+        Err(err) => {
+            let _ = write_crash_provenance_artifact(
+                out_dir,
+                "vcf.phasing",
+                params.backend.as_str(),
+                input_vcf,
+                &err,
+            );
+            apply_failure_cleanup_policy(out_dir);
+            let (_, hint) = backend_error_hint("vcf.phasing", params.backend.as_str(), &err);
+            Err(anyhow!("{err}; backend hint: {hint}"))
+        }
+    }
+}
+
+fn run_phasing_stage_inner(
+    input_vcf: &Path,
+    out_dir: &Path,
+    species_context: &SpeciesContext,
+    params: &PhasingStageParams,
+) -> Result<PhasingStageOutputs> {
+    if params.species_id != species_context.species_id
+        || params.build_id != species_context.build_id
     {
         bail!("species/build mismatch between phasing params and SpeciesContext");
     }
@@ -705,7 +829,10 @@ pub fn run_phasing_stage(
         bail!("eagle requires non-bijux license metadata before execution");
     }
 
-    let map = if matches!(params.backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) {
+    let map = if matches!(
+        params.backend,
+        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) {
         Some(resolve_map(
             &params.species_id,
             &params.build_id,
@@ -719,7 +846,12 @@ pub fn run_phasing_stage(
             .transpose()?
     };
     if let Some(map_ref) = &map {
-        if !map_ref.compatibility.tool_tags.iter().any(|tag| tag == backend_tool) {
+        if !map_ref
+            .compatibility
+            .tool_tags
+            .iter()
+            .any(|tag| tag == backend_tool)
+        {
             bail!(
                 "map {} is not compatible with backend {}",
                 map_ref.id,
@@ -792,15 +924,25 @@ pub fn run_phasing_stage(
         if has_gl_or_gp && params.allow_gl_only_input {
             // Explicit opt-in path for backends that can phase from GL/GP-only inputs.
         } else if has_gl_or_gp {
-            bail!("GL-only/GP-only inputs are refused for phasing unless backend explicitly allows");
+            bail!(
+                "GL-only/GP-only inputs are refused for phasing unless backend explicitly allows"
+            );
         } else {
             bail!("phasing requires GT field");
         }
     }
-    if matches!(params.backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !diploid_ok {
+    if matches!(
+        params.backend,
+        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) && !diploid_ok
+    {
         bail!("backend {} requires diploid GT genotypes", backend_tool);
     }
-    if has_sex_chr && species_context.par_policy.eq_ignore_ascii_case("unsupported") {
+    if has_sex_chr
+        && species_context
+            .par_policy
+            .eq_ignore_ascii_case("unsupported")
+    {
         bail!("sex chromosome phasing requires explicit PAR policy in SpeciesContext");
     }
 
@@ -881,7 +1023,10 @@ pub fn run_phasing_stage(
             "backend={backend_tool}\nseed={}\nthreads={}\nmap_required={}\n",
             params.seed,
             params.threads,
-            matches!(params.backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle)
+            matches!(
+                params.backend,
+                PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+            )
         )
         .as_bytes(),
     )?;
@@ -916,7 +1061,31 @@ pub fn run_impute_stage(
     species_context: &SpeciesContext,
     params: &ImputeStageParams,
 ) -> Result<ImputeStageOutputs> {
-    if params.species_id != species_context.species_id || params.build_id != species_context.build_id
+    match run_impute_stage_inner(input_vcf, out_dir, species_context, params) {
+        Ok(out) => Ok(out),
+        Err(err) => {
+            let _ = write_crash_provenance_artifact(
+                out_dir,
+                "vcf.impute",
+                params.backend.as_str(),
+                input_vcf,
+                &err,
+            );
+            apply_failure_cleanup_policy(out_dir);
+            let (_, hint) = backend_error_hint("vcf.impute", params.backend.as_str(), &err);
+            Err(anyhow!("{err}; backend hint: {hint}"))
+        }
+    }
+}
+
+fn run_impute_stage_inner(
+    input_vcf: &Path,
+    out_dir: &Path,
+    species_context: &SpeciesContext,
+    params: &ImputeStageParams,
+) -> Result<ImputeStageOutputs> {
+    if params.species_id != species_context.species_id
+        || params.build_id != species_context.build_id
     {
         bail!("species/build mismatch between impute params and SpeciesContext");
     }
@@ -933,7 +1102,10 @@ pub fn run_impute_stage(
         &params.build_id,
         params.panel_id.as_deref(),
     )?;
-    let map = if matches!(params.backend, ImputeBackend::Impute5 | ImputeBackend::Minimac4) {
+    let map = if matches!(
+        params.backend,
+        ImputeBackend::Impute5 | ImputeBackend::Minimac4
+    ) {
         Some(resolve_map(
             &params.species_id,
             &params.build_id,
@@ -948,7 +1120,11 @@ pub fn run_impute_stage(
     };
     let map_for_compat = match &map {
         Some(m) => m.clone(),
-        None => resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?,
+        None => resolve_map(
+            &params.species_id,
+            &params.build_id,
+            params.map_id.as_deref(),
+        )?,
     };
     validate_imputation_tool_compatibility(params.backend.as_str(), &panel, &map_for_compat)?;
 
@@ -965,7 +1141,10 @@ pub fn run_impute_stage(
         .iter()
         .map(|c| c.name.clone())
         .collect::<Vec<_>>();
-    let species_contig_set = species_contigs.iter().cloned().collect::<std::collections::BTreeSet<_>>();
+    let species_contig_set = species_contigs
+        .iter()
+        .cloned()
+        .collect::<std::collections::BTreeSet<_>>();
     let mut allele_flip_like = 0u64;
     let mut ref_mismatch_like = 0u64;
     let mut gt_observed = 0u64;
@@ -1144,7 +1323,11 @@ pub fn run_impute_stage(
             }
         })
         .collect::<Vec<_>>();
-    let imputed_payload = format!("{}\n{}\n", header_sorted.join("\n"), imputed_records.join("\n"));
+    let imputed_payload = format!(
+        "{}\n{}\n",
+        header_sorted.join("\n"),
+        imputed_records.join("\n")
+    );
     atomic_write_bytes(&imputed_vcf, imputed_payload.as_bytes())?;
     atomic_write_bytes(&imputed_tbi, b"tabix-index-placeholder\n")?;
     assert_bgzip_tabix_artifacts(&imputed_vcf, &imputed_tbi)?;
@@ -1234,7 +1417,8 @@ pub fn run_impute_stage(
         reasons
     };
     let accepted = accept_fail_reasons.is_empty();
-    let non_production = !accepted && params.imputation_accept_mode == ImputationAcceptMode::MarkNonProduction;
+    let non_production =
+        !accepted && params.imputation_accept_mode == ImputationAcceptMode::MarkNonProduction;
     if !accepted && params.imputation_accept_mode == ImputationAcceptMode::Fail {
         bail!(
             "decision.imputation_accept failed: {}",
@@ -1375,7 +1559,9 @@ pub fn run_impute_stage(
     qc_tsv.push_str(&format!(
         "variant_density_per_mb\t{variant_density_per_mb:.6}\n"
     ));
-    qc_tsv.push_str(&format!("missingness_block_count\t{missingness_block_count}\n"));
+    qc_tsv.push_str(&format!(
+        "missingness_block_count\t{missingness_block_count}\n"
+    ));
     atomic_write_bytes(&imputation_qc_tsv, qc_tsv.as_bytes())?;
     atomic_write_json(
         &imputation_accept_json,
@@ -1421,7 +1607,8 @@ pub fn run_impute_stage(
     let chunks_dir = out_dir.join("chunks");
     std::fs::create_dir_all(&chunks_dir)?;
     for (idx, contig) in contig_seen.iter().enumerate() {
-        let chunk_manifest_path = chunks_dir.join(format!("chunk_{idx:03}.imputation_manifest.json"));
+        let chunk_manifest_path =
+            chunks_dir.join(format!("chunk_{idx:03}.imputation_manifest.json"));
         let chunk_started = std::time::Instant::now();
         let chunk_payload = serde_json::json!({
             "schema_version": "bijux.vcf.imputation.chunk_manifest.v1",
@@ -1485,7 +1672,8 @@ pub fn run_impute_stage(
         }
     }
     let required_qc_metrics =
-        bijux_dna_domain_vcf::contracts::stage_metrics_contract(VcfDomainStage::Qc).required_metrics;
+        bijux_dna_domain_vcf::contracts::stage_metrics_contract(VcfDomainStage::Qc)
+            .required_metrics;
     for metric in required_qc_metrics {
         if imputation_qc_payload.get(metric).is_none() {
             bail!("metric-contract gate failed: missing qc metric key `{metric}`");
@@ -1545,11 +1733,7 @@ fn normalize_indel_alleles(reference: &str, alternate: &str) -> (String, String)
     (r_chars.iter().collect(), a_chars.iter().collect())
 }
 
-fn normalize_info_fields(
-    info: &str,
-    retain: &[String],
-    remove: &[String],
-) -> String {
+fn normalize_info_fields(info: &str, retain: &[String], remove: &[String]) -> String {
     let retain_set = retain
         .iter()
         .map(|x| x.to_ascii_uppercase())
@@ -1562,7 +1746,11 @@ fn normalize_info_fields(
         .split(';')
         .filter(|token| !token.trim().is_empty())
         .filter(|token| {
-            let key = token.split('=').next().unwrap_or_default().to_ascii_uppercase();
+            let key = token
+                .split('=')
+                .next()
+                .unwrap_or_default()
+                .to_ascii_uppercase();
             if !retain_set.is_empty() {
                 retain_set.contains(&key)
             } else {
@@ -1599,7 +1787,8 @@ pub fn run_postprocess_stage(
     species_context: &SpeciesContext,
     params: &PostprocessStageParams,
 ) -> Result<PostprocessStageOutputs> {
-    if params.species_id != species_context.species_id || params.build_id != species_context.build_id
+    if params.species_id != species_context.species_id
+        || params.build_id != species_context.build_id
     {
         bail!("species/build mismatch between postprocess params and SpeciesContext");
     }
@@ -1695,7 +1884,11 @@ pub fn run_postprocess_stage(
     let validate_outputs_json = out_dir.join("validate_outputs.json");
     let logs_txt = out_dir.join("logs.txt");
 
-    let merged_payload = format!("{}\n{}\n", normalized_headers.join("\n"), merged_records.join("\n"));
+    let merged_payload = format!(
+        "{}\n{}\n",
+        normalized_headers.join("\n"),
+        merged_records.join("\n")
+    );
     atomic_write_bytes(&merged_vcf, merged_payload.as_bytes())?;
     atomic_write_bytes(&merged_tbi, b"tabix-index-placeholder\n")?;
     if let Some(path) = &merged_bcf {

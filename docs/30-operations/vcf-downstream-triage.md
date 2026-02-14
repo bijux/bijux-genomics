@@ -14,6 +14,12 @@ Inspect the stage run directory:
 - `logs/stderr.log`
 
 If `execution_record.json.exit_code != 0`, use `stderr.log` first for tool-level failure.
+For `vcf.phasing` and `vcf.impute`, also inspect `crash_provenance.json` for:
+- structured `error_category`
+- `actionable_hint`
+- `stderr_tail`
+- `tool_digest`
+- captured `cleanup_policy` from `BIJUX_STAGE_CLEANUP_POLICY`
 
 ## 2. Validate Provenance + Locks
 
@@ -67,3 +73,4 @@ Re-run stage after fixing inputs/pins when:
 
 If all three are unchanged and artifacts already exist, treat as suspected nondeterminism and compare `run_manifest.lock.json` and `tool_invocation.json` between runs.
 
+Cleanup policy defaults to `keep` for HPC frontend triage. Set `BIJUX_STAGE_CLEANUP_POLICY=prune` only when you explicitly want to remove temporary/chunk intermediates on failure.
