@@ -1270,6 +1270,7 @@ pub struct PostprocessStageOutputs {
     pub merged_bcf: Option<PathBuf>,
     pub artifact_checksums_json: PathBuf,
     pub validate_outputs_json: PathBuf,
+    pub final_manifest_json: PathBuf,
     pub logs_txt: PathBuf,
 }
 
@@ -2978,6 +2979,9 @@ pub fn run_postprocess_stage(
     let mut all_headers = Vec::<String>::new();
     let mut sample_header: Option<String> = None;
     let mut merged_records = Vec::<String>::new();
+    let mut invalid_record_count = 0_u64;
+    let mut normalized_indel_count = 0_u64;
+    let mut standardized_filter_count = 0_u64;
     for src in &sources {
         let raw = std::fs::read_to_string(src)?;
         for line in raw.lines() {
@@ -2998,7 +3002,21 @@ pub fn run_postprocess_stage(
             let Some(fields) = parse_record_fields(line) else {
                 continue;
             };
+            if fields[3].trim().is_empty()
+                || fields[4].trim().is_empty()
+                || fields[3] == "."
+                || fields[4] == "."
+                || fields[3].contains(',')
+                || fields[4].contains(',')
+            {
+                invalid_record_count += 1;
+                continue;
+            }
             let mut out = fields.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+            if out[6].trim().is_empty() || out[6] == "." {
+                out[6] = "PASS".to_string();
+                standardized_filter_count += 1;
+            }
             out[7] = normalize_info_fields(
                 fields[7],
                 &params.retain_info_fields,
@@ -3006,6 +3024,9 @@ pub fn run_postprocess_stage(
             );
             if params.normalize_indels {
                 let (r, a) = normalize_indel_alleles(fields[3], fields[4]);
+                if r != fields[3] || a != fields[4] {
+                    normalized_indel_count += 1;
+                }
                 out[3] = r;
                 out[4] = a;
             }
@@ -3056,6 +3077,7 @@ pub fn run_postprocess_stage(
     };
     let artifact_checksums_json = out_dir.join("artifact_checksums.json");
     let validate_outputs_json = out_dir.join("validate_outputs.json");
+    let final_manifest_json = out_dir.join("final_manifest.json");
     let logs_txt = out_dir.join("logs.txt");
 
     let merged_payload = format!(
@@ -3093,6 +3115,30 @@ pub fn run_postprocess_stage(
     {
         bail!("postprocess validate outputs failed: contigs mismatch species context");
     }
+    atomic_write_json(
+        &final_manifest_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.postprocess.final_manifest.v1",
+            "stage_id": "vcf.postprocess",
+            "compression": {
+                "codec": "bgzip",
+                "level": params.compression_level,
+                "threads": params.compression_threads
+            },
+            "normalization": {
+                "indel_normalization_enabled": params.normalize_indels,
+                "indels_normalized": normalized_indel_count,
+                "invalid_records_removed": invalid_record_count,
+                "filter_standardized_to_pass": standardized_filter_count
+            },
+            "outputs": {
+                "vcf": merged_vcf,
+                "tbi": merged_tbi,
+                "bcf": merged_bcf
+            },
+            "validate_outputs": validate_outputs_json
+        }),
+    )?;
 
     let mut checksum_map = serde_json::Map::new();
     checksum_map.insert(
@@ -3118,6 +3164,12 @@ pub fn run_postprocess_stage(
             serde_json::to_string(&validate_payload)?.as_bytes(),
         )),
     );
+    checksum_map.insert(
+        "final_manifest.json".to_string(),
+        serde_json::Value::String(checksum_hex(
+            std::fs::read_to_string(&final_manifest_json)?.as_bytes(),
+        )),
+    );
     let checksum_payload = serde_json::Value::Object(checksum_map);
     atomic_write_json(&artifact_checksums_json, &checksum_payload)?;
     if let Some(run_level) = &params.run_level_checksums_path {
@@ -3141,6 +3193,7 @@ pub fn run_postprocess_stage(
         merged_bcf,
         artifact_checksums_json,
         validate_outputs_json,
+        final_manifest_json,
         logs_txt,
     })
 }
