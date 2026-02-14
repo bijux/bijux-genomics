@@ -47,6 +47,7 @@
     "library_damage_treatment": "unknown",
     "library_declared_paired": true,
     "paired_mode": "paired_end",
+    "pipeline_mode": "shotgun",
     "stages": [
       "fastq.trim",
       "fastq.validate_pre"

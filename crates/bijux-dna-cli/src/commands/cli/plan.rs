@@ -330,6 +330,7 @@ pub fn bench_args_preprocess(
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
         allow_planned: args.allow_planned,
+        mode: engine_args::FastqPlannerMode::Shotgun,
     }
 }
 
@@ -435,6 +436,7 @@ pub fn preprocess_args_from_cli(
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
         allow_planned: args.common.allow_planned,
+        mode: engine_args::FastqPlannerMode::Shotgun,
     };
     if let Some(preset) = args.scientific_preset {
         apply_scientific_preset(preset, &mut out_args);
@@ -475,6 +477,7 @@ fn apply_scientific_preset(
                 args.adapter_bank_preset = Some("illumina-default".to_string());
             }
             args.force_merge = true;
+            args.mode = engine_args::FastqPlannerMode::EdnaAmplicon;
         }
         crate::commands::cli::parse::ScientificPresetArg::Metagenomic => {
             args.enable_contaminant_removal = true;

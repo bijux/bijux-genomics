@@ -478,6 +478,7 @@ fn explain_fastq_stage(
             force_merge: false,
             enable_correct: false,
             allow_planned: false,
+            mode: bijux_dna_api::v1::api::bench::fastq_args::FastqPlannerMode::Shotgun,
         };
         let pipeline_id = args
             .profile
