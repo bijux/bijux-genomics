@@ -293,14 +293,19 @@ PY
     return 0
   fi
 
-  # Fallback for VCF-only tools tracked in dedicated VCF registries.
-  value=$(python3 - "$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml" "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml" "$tool" "$field" <<'PY'
+  # Static TOML fallback across all registries; avoids relying on cargo metadata export.
+  value=$(python3 - \
+    "$ROOT_DIR/configs/ci/registry/tool_registry.toml" \
+    "$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml" \
+    "$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml" \
+    "$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml" \
+    "$tool" "$field" <<'PY'
 import sys
 from pathlib import Path
 
-paths = [Path(sys.argv[1]), Path(sys.argv[2])]
-tool = sys.argv[3]
-field = sys.argv[4]
+paths = [Path(p) for p in sys.argv[1:-2]]
+tool = sys.argv[-2]
+field = sys.argv[-1]
 try:
     import tomllib
 except ModuleNotFoundError:
