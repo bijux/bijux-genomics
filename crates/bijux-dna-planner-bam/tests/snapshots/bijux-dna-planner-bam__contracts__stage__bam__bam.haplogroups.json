@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.haplogroups",
   "stage_version": 1,
-  "tool_id": "yleaf",
+  "tool_id": "samtools",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -59,7 +59,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool yleaf selected by planner",
+    "summary": "tool samtools selected by planner",
     "details": {
       "contract_hash": "c6791c0a561fc917b94ba98ccaddd98d27560cc03dba5ee371d3b7af10f10e4a",
       "defaults_diff": {}
