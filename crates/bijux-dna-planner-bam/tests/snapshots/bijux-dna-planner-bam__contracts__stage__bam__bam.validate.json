@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.validate",
   "stage_version": 1,
-  "tool_id": "samtools",
+  "tool_id": "bamtools",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -75,7 +75,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool samtools selected by planner",
+    "summary": "tool bamtools selected by planner",
     "details": {
       "contract_hash": "925cb33211ccc79bc629bcfe4fad807cd594855b39c976795246bf27119d8ae5",
       "defaults_diff": {}
