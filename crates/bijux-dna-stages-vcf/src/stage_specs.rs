@@ -83,6 +83,13 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: true,
         },
         VcfStageSpec {
+            stage_id: "vcf.roh",
+            metrics_schema: "bijux.vcf.roh.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
             stage_id: STAGE_FILTER,
             metrics_schema: "bijux.vcf.filter.v1",
             smoke_supported: true,
