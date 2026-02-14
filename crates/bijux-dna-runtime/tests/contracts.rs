@@ -7,6 +7,8 @@ mod mod_contracts_manifest_integrity_rs;
 mod mod_contracts_reference_rs;
 #[path = "contracts/run_layout_contract.rs"]
 mod mod_contracts_run_layout_contract_rs;
+#[path = "contracts/stage_runner_contract.rs"]
+mod mod_contracts_stage_runner_contract_rs;
 #[path = "contracts/telemetry_contract.rs"]
 mod mod_contracts_telemetry_contract_rs;
 #[path = "contracts/telemetry_golden.rs"]
