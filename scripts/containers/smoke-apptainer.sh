@@ -549,7 +549,7 @@ build_and_smoke_one() {
       echo "version output does not match expected regex: $version_regex"
       exit 1
     fi
-    if [ -n "$declared_version" ] && [ "$declared_version" != "unknown" ] && [ "$declared_version" != "planned" ]; then
+    if [ -n "$declared_version" ] && [ "$declared_version" != "unknown" ] && [ "$declared_version" != "planned" ] && [ "$declared_version" != "latest-pinned" ]; then
       if ! tr '[:upper:]' '[:lower:]' <"$version_output_file" | grep -Fq "$(printf '%s' "$declared_version" | tr '[:upper:]' '[:lower:]')"; then
         cat "$version_output_file"
         echo "version output does not include declared registry version: $declared_version"
