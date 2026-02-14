@@ -359,6 +359,162 @@ fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
     })
 }
 
+#[derive(Debug, Clone)]
+pub struct GlPropagationStageParams {
+    pub require_gl_or_pl: bool,
+    pub expected_ploidy: Option<u8>,
+    pub emit_bcf: bool,
+}
+
+impl Default for GlPropagationStageParams {
+    fn default() -> Self {
+        Self {
+            require_gl_or_pl: true,
+            expected_ploidy: Some(2),
+            emit_bcf: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct GlPropagationOutputs {
+    pub normalized_vcf: PathBuf,
+    pub normalized_tbi: PathBuf,
+    pub normalized_bcf: Option<PathBuf>,
+    pub normalized_bcf_csi: Option<PathBuf>,
+    pub gl_propagation_report_json: PathBuf,
+}
+
+fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
+    let keys = format_field.split(':').collect::<Vec<_>>();
+    let mut vals = sample_field.split(':').map(str::to_string).collect::<Vec<_>>();
+    if vals.len() < keys.len() {
+        vals.resize(keys.len(), ".".to_string());
+    }
+    for (i, key) in keys.iter().enumerate() {
+        if vals.get(i).is_none_or(|v| v.trim().is_empty()) {
+            vals[i] = ".".to_string();
+        }
+        if (*key == "GL" || *key == "PL") && vals[i] == "." {
+            vals[i] = ".,.,.".to_string();
+        }
+    }
+    vals.join(":")
+}
+
+/// # Errors
+/// Returns an error if GL propagation contracts are violated.
+pub fn run_gl_propagation_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &GlPropagationStageParams,
+) -> Result<GlPropagationOutputs> {
+    std::fs::create_dir_all(out_dir)?;
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let mut output_lines = Vec::<String>::new();
+    let mut has_gl_or_pl = false;
+    let mut allele_reordered = 0_u64;
+    let mut ploidy_mismatch = 0_u64;
+    let mut missing_normalized = 0_u64;
+    let mut records = 0_u64;
+
+    for line in raw.lines() {
+        if line.starts_with('#') {
+            output_lines.push(line.to_string());
+            continue;
+        }
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        records += 1;
+        let mut row = fields.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+        if row.len() > 8 {
+            let fmt = row[8].clone();
+            if format_has_token(&fmt, &["GL", "PL"]) {
+                has_gl_or_pl = true;
+            }
+            if row.len() > 9 {
+                let before = row[9].clone();
+                row[9] = normalize_sample_fields(&fmt, &row[9]);
+                if row[9] != before {
+                    missing_normalized += 1;
+                }
+                if let Some(expected) = params.expected_ploidy {
+                    let keys = fmt.split(':').collect::<Vec<_>>();
+                    if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+                        let vals = row[9].split(':').collect::<Vec<_>>();
+                        if let Some(gt) = vals.get(gt_idx) {
+                            let observed = gt.split(['/', '|']).count() as u8;
+                            if !gt.contains('.') && observed != expected {
+                                ploidy_mismatch += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if row.len() > 4 {
+            let mut alts = row[4].split(',').map(str::to_string).collect::<Vec<_>>();
+            let original = alts.clone();
+            alts.sort();
+            if alts != original {
+                if row.len() > 8 && format_has_token(&row[8], &["GL", "PL"]) {
+                    bail!("vcf.gl_propagation refusal: allele ordering mismatch with GL/PL fields");
+                }
+                row[4] = alts.join(",");
+                allele_reordered += 1;
+            }
+        }
+        output_lines.push(row.join("\t"));
+    }
+    if params.require_gl_or_pl && !has_gl_or_pl {
+        bail!("vcf.gl_propagation requires GL/PL in FORMAT for downstream compatibility");
+    }
+    if ploidy_mismatch > 0 {
+        bail!("vcf.gl_propagation refusal: ploidy mismatch detected in GT fields");
+    }
+
+    let normalized_vcf = out_dir.join("gl_normalized.vcf.gz");
+    let normalized_tbi = out_dir.join("gl_normalized.vcf.gz.tbi");
+    atomic_write_bytes(
+        &normalized_vcf,
+        (output_lines.join("\n") + if output_lines.is_empty() { "" } else { "\n" }).as_bytes(),
+    )?;
+    atomic_write_bytes(&normalized_tbi, b"tabix-index-placeholder\n")?;
+
+    let (normalized_bcf, normalized_bcf_csi) = if params.emit_bcf {
+        let bcf = out_dir.join("gl_normalized.bcf");
+        let csi = out_dir.join("gl_normalized.bcf.csi");
+        atomic_write_bytes(&bcf, b"bcf-placeholder\n")?;
+        atomic_write_bytes(&csi, b"csi-placeholder\n")?;
+        (Some(bcf), Some(csi))
+    } else {
+        (None, None)
+    };
+
+    let gl_propagation_report_json = out_dir.join("gl_propagation_report.json");
+    atomic_write_json(
+        &gl_propagation_report_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.gl_propagation_report.v1",
+            "records_seen": records,
+            "has_gl_or_pl": has_gl_or_pl,
+            "allele_reordered_records": allele_reordered,
+            "missing_genotype_fields_normalized": missing_normalized,
+            "expected_ploidy": params.expected_ploidy,
+            "emit_bcf": params.emit_bcf
+        }),
+    )?;
+
+    Ok(GlPropagationOutputs {
+        normalized_vcf,
+        normalized_tbi,
+        normalized_bcf,
+        normalized_bcf_csi,
+        gl_propagation_report_json,
+    })
+}
+
 /// # Errors
 /// Returns an error if damage filtering contracts cannot be satisfied.
 pub fn run_damage_filter_stage(
