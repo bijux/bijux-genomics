@@ -7,6 +7,10 @@ use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
+use bijux_dna_db_ref::{
+    reference_provenance, resolve_coverage_profile, resolve_reference_bundle,
+    resolve_species_context,
+};
 use bijux_dna_domain_vcf::{
     contracts::{
         refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
@@ -48,6 +52,7 @@ pub struct VcfPipelineInputs {
     pub species_context: SpeciesContext,
     pub entry_vcf_invariants: EntryVcfInvariantState,
     pub panel_map_invariants: PanelMapInvariantState,
+    pub pipeline_domain: String,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -68,6 +73,9 @@ pub struct PlannerExplainV1 {
     pub panel_selection_reason: String,
     pub map_selection_reason: String,
     pub chunking_selection_reason: String,
+    pub resolved_reference_bundle_id: String,
+    pub resolved_reference_lock: String,
+    pub resolved_coverage_profile: Option<String>,
     pub selected_panel: Option<VcfPanelLock>,
     pub decision_traces: Vec<serde_json::Value>,
     pub stages: Vec<PlannerExplainStage>,
@@ -166,7 +174,12 @@ fn stage_output_name(stage: VcfDomainStage) -> &'static str {
     }
 }
 
-fn stage_params(stage: VcfDomainStage, tool: &str, coverage: CoverageRegime, panel: Option<&VcfPanelLock>) -> serde_json::Value {
+fn stage_params(
+    stage: VcfDomainStage,
+    tool: &str,
+    coverage: CoverageRegime,
+    panel: Option<&VcfPanelLock>,
+) -> serde_json::Value {
     match stage {
         VcfDomainStage::PrepareReferencePanel => serde_json::json!({
             "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
@@ -176,15 +189,29 @@ fn stage_params(stage: VcfDomainStage, tool: &str, coverage: CoverageRegime, pan
             "require_bgzip_tabix": true,
         }),
         VcfDomainStage::Phasing => match tool {
-            "shapeit5" => serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8}),
-            "eagle" => serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true}),
-            _ => serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12}),
+            "shapeit5" => {
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8})
+            }
+            "eagle" => {
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true})
+            }
+            _ => {
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12})
+            }
         },
         VcfDomainStage::Imputation | VcfDomainStage::Impute => match tool {
-            "glimpse" => serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"glimpse","window_size_mb":2.0,"buffer_mb":0.2,"emit_gp":true}),
-            "impute5" => serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"impute5","ne":20000,"r2_threshold":0.3}),
-            "minimac4" => serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"minimac4","rounds":5,"states":200,"min_rsq":0.3}),
-            _ => serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"beagle","ne":10000,"impute":true}),
+            "glimpse" => {
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"glimpse","window_size_mb":2.0,"buffer_mb":0.2,"emit_gp":true})
+            }
+            "impute5" => {
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"impute5","ne":20000,"r2_threshold":0.3})
+            }
+            "minimac4" => {
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"minimac4","rounds":5,"states":200,"min_rsq":0.3})
+            }
+            _ => {
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"beagle","ne":10000,"impute":true})
+            }
         },
         VcfDomainStage::GlPropagation => serde_json::json!({
             "schema_version": "bijux.vcf.gl_propagation.params.v1",
@@ -234,13 +261,38 @@ fn stage_params(stage: VcfDomainStage, tool: &str, coverage: CoverageRegime, pan
     }
 }
 
+fn attach_reference_provenance(
+    params: serde_json::Value,
+    species_id: &str,
+    build_id: &str,
+    bundle: &bijux_dna_db_ref::ReferenceBundle,
+) -> serde_json::Value {
+    let mut obj = match params {
+        serde_json::Value::Object(map) => map,
+        other => {
+            let mut map = serde_json::Map::new();
+            map.insert("value".to_string(), other);
+            map
+        }
+    };
+    obj.insert(
+        "reference_provenance".to_string(),
+        serde_json::json!(reference_provenance(species_id, build_id, bundle)),
+    );
+    serde_json::Value::Object(obj)
+}
+
 fn choose_tool(stage: VcfDomainStage, inputs: &VcfPipelineInputs) -> Result<String> {
     let key = stage.as_str().to_string();
     if let Some(selected) = inputs.stage_tool_overrides.get(&key) {
         if stage_compat_tools(stage).contains(&selected.as_str()) {
             return Ok(selected.clone());
         }
-        bail!("override tool {} is incompatible with stage {}", selected, key);
+        bail!(
+            "override tool {} is incompatible with stage {}",
+            selected,
+            key
+        );
     }
     Ok(default_tool(stage, inputs.coverage_regime).to_string())
 }
@@ -280,6 +332,12 @@ fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>
 }
 
 fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
+    if inputs.pipeline_domain != "vcf" {
+        bail!(
+            "vcf planner refusal: non-applicable domain `{}`",
+            inputs.pipeline_domain
+        );
+    }
     validate_species_context(&inputs.species_context)?;
     validate_entry_vcf_invariants(&inputs.species_context, &inputs.entry_vcf_invariants)?;
     validate_panel_map_invariants(&inputs.species_context, &inputs.panel_map_invariants)?;
@@ -342,7 +400,11 @@ fn resolve_requested_stages(inputs: &VcfPipelineInputs) -> Result<Vec<VcfDomainS
     Ok(default_stages_for_coverage(inputs.coverage_regime))
 }
 
-fn stage_inputs_for(stage: VcfDomainStage, current_vcf: &Path, out_dir: &Path) -> Vec<ArtifactSpec> {
+fn stage_inputs_for(
+    stage: VcfDomainStage,
+    current_vcf: &Path,
+    out_dir: &Path,
+) -> Vec<ArtifactSpec> {
     let input_path = match stage {
         VcfDomainStage::PrepareReferencePanel => out_dir.join("panel.vcf.gz"),
         VcfDomainStage::Demography => out_dir.join("ibd_segments.json"),
@@ -353,16 +415,21 @@ fn stage_inputs_for(stage: VcfDomainStage, current_vcf: &Path, out_dir: &Path) -
     } else {
         ArtifactRole::Reads
     };
-    vec![ArtifactSpec::required(ArtifactId::new("vcf"), input_path, role)]
+    vec![ArtifactSpec::required(
+        ArtifactId::new("vcf"),
+        input_path,
+        role,
+    )]
 }
 
 fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<ArtifactSpec> {
     let output = stage_output_name(stage);
-    let path = if output.ends_with("json") || output.contains("report") || output.contains("segments") {
-        out_dir.join(format!("{output}.json"))
-    } else {
-        out_dir.join(format!("{output}.vcf.gz"))
-    };
+    let path =
+        if output.ends_with("json") || output.contains("report") || output.contains("segments") {
+            out_dir.join(format!("{output}.json"))
+        } else {
+            out_dir.join(format!("{output}.vcf.gz"))
+        };
     let role = if path.extension().and_then(|e| e.to_str()) == Some("json") {
         ArtifactRole::MetricsJson
     } else {
@@ -374,15 +441,37 @@ fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<ArtifactSpec>
 fn stage_command(stage: VcfDomainStage, tool: &str) -> CommandSpecV1 {
     let mut template = vec![tool.to_string()];
     match stage {
-        VcfDomainStage::PrepareReferencePanel => template.extend(["prepare-panel", "--lock"].into_iter().map(str::to_string)),
-        VcfDomainStage::Phasing => template.extend(["phase", "--input", "vcf"].into_iter().map(str::to_string)),
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => template.extend(["impute", "--input", "vcf"].into_iter().map(str::to_string)),
-        VcfDomainStage::GlPropagation => template.extend(["annotate", "--retain", "GL,PL,GP"].into_iter().map(str::to_string)),
-        VcfDomainStage::DamageFilter => template.extend(["filter", "--damage-aware"].into_iter().map(str::to_string)),
-        VcfDomainStage::PopulationStructure => template.extend(["pca", "--structure"].into_iter().map(str::to_string)),
-        VcfDomainStage::Ibd => template.extend(["ibd", "--min-seg", "3.0"].into_iter().map(str::to_string)),
-        VcfDomainStage::Roh => template.extend(["roh", "--min-kb", "500"].into_iter().map(str::to_string)),
-        VcfDomainStage::Demography => template.extend(["estimate-ne", "--from-ibd"].into_iter().map(str::to_string)),
+        VcfDomainStage::PrepareReferencePanel => {
+            template.extend(["prepare-panel", "--lock"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::Phasing => {
+            template.extend(["phase", "--input", "vcf"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+            template.extend(["impute", "--input", "vcf"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::GlPropagation => template.extend(
+            ["annotate", "--retain", "GL,PL,GP"]
+                .into_iter()
+                .map(str::to_string),
+        ),
+        VcfDomainStage::DamageFilter => {
+            template.extend(["filter", "--damage-aware"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::PopulationStructure => {
+            template.extend(["pca", "--structure"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::Ibd => {
+            template.extend(["ibd", "--min-seg", "3.0"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::Roh => {
+            template.extend(["roh", "--min-kb", "500"].into_iter().map(str::to_string))
+        }
+        VcfDomainStage::Demography => template.extend(
+            ["estimate-ne", "--from-ibd"]
+                .into_iter()
+                .map(str::to_string),
+        ),
         _ => template.push("--help".to_string()),
     }
     CommandSpecV1 { template }
@@ -395,8 +484,16 @@ fn stage_plan(
     tool: &str,
     coverage: CoverageRegime,
     selected_panel: Option<&VcfPanelLock>,
+    bundle: &bijux_dna_db_ref::ReferenceBundle,
+    species_id: &str,
+    build_id: &str,
 ) -> StagePlanV1 {
-    let params = stage_params(stage, tool, coverage, selected_panel);
+    let params = attach_reference_provenance(
+        stage_params(stage, tool, coverage, selected_panel),
+        species_id,
+        build_id,
+        bundle,
+    );
     StagePlanV1 {
         stage_id: StageId::new(stage.as_str().to_string()),
         stage_version: StageVersion(2),
@@ -406,9 +503,20 @@ fn stage_plan(
         command: stage_command(stage, tool),
         resources: ToolConstraints {
             runtime: "docker".to_string(),
-            mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) { 16 } else { 4 },
+            mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) {
+                16
+            } else {
+                4
+            },
             tmp_gb: 8,
-            threads: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing) { 8 } else { 2 },
+            threads: if matches!(
+                stage,
+                VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing
+            ) {
+                8
+            } else {
+                2
+            },
         },
         io: StageIO {
             inputs: stage_inputs_for(stage, input_vcf, out_dir),
@@ -420,7 +528,12 @@ fn stage_plan(
         aux_images: BTreeMap::new(),
         reason: PlanDecisionReason {
             kind: PlanReasonKind::InputAssessed,
-            summary: format!("coverage regime {:?} selected tool {} for {}", coverage, tool, stage.as_str()),
+            summary: format!(
+                "coverage regime {:?} selected tool {} for {}",
+                coverage,
+                tool,
+                stage.as_str()
+            ),
             details: serde_json::json!({
                 "coverage_regime": coverage,
                 "stage_kind": stage.taxonomy().kind,
@@ -433,15 +546,45 @@ fn stage_plan(
 /// Returns an error when stage selection is invalid for downstream execution.
 pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV1>> {
     validate_species_and_invariants(inputs)?;
+    let resolved_species = resolve_species_context(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let bundle = resolve_reference_bundle(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
+        bail!(
+            "reference bundle drift detected: species context digest does not match bundle digest"
+        );
+    }
     let selected_panel = resolve_panel_lock(inputs)?;
     let stages = resolve_requested_stages(inputs)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
     }
-    let requires_diploid_imputation = stages
-        .iter()
-        .any(|s| matches!(s, VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute));
+    let requires_diploid_imputation = stages.iter().any(|s| {
+        matches!(
+            s,
+            VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute
+        )
+    });
+    if requires_diploid_imputation && !resolved_species.supported_features.imputation {
+        bail!(
+            "planner refusal: species/build {}:{} does not support imputation",
+            inputs.species_context.species_id,
+            inputs.species_context.build_id
+        );
+    }
+    if requires_diploid_imputation && inputs.species_context.par_policy == "unsupported" {
+        bail!(
+            "planner refusal: sex/PAR policy unsupported for imputation on {}:{}",
+            inputs.species_context.species_id,
+            inputs.species_context.build_id
+        );
+    }
     refuse_unsupported_regime_transition(inputs.coverage_regime, requires_diploid_imputation)?;
 
     let mut seen = BTreeSet::new();
@@ -453,7 +596,11 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         }
         let tool = choose_tool(stage, inputs)?;
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
-            bail!("selected tool {} is not compatible with stage {}", tool, stage.as_str());
+            bail!(
+                "selected tool {} is not compatible with stage {}",
+                tool,
+                stage.as_str()
+            );
         }
         let plan = stage_plan(
             stage,
@@ -462,6 +609,9 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &tool,
             inputs.coverage_regime,
             selected_panel.as_ref(),
+            &bundle,
+            &inputs.species_context.species_id,
+            &inputs.species_context.build_id,
         );
         if let Some(out) = plan.io.outputs.first() {
             current_vcf = out.path.clone();
@@ -484,7 +634,12 @@ pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
         .collect::<Vec<_>>();
     let edges = plans
         .windows(2)
-        .map(|pair| ExecutionEdge::new(StepId::new(pair[0].stage_id.to_string()), StepId::new(pair[1].stage_id.to_string())))
+        .map(|pair| {
+            ExecutionEdge::new(
+                StepId::new(pair[0].stage_id.to_string()),
+                StepId::new(pair[1].stage_id.to_string()),
+            )
+        })
         .collect::<Vec<_>>();
     let flavor = match inputs.coverage_regime {
         CoverageRegime::LowCovGl => "downstream_lowcov_gl",
@@ -502,6 +657,17 @@ pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
 
 #[must_use]
 pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> PlannerExplainV1 {
+    let bundle = resolve_reference_bundle(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )
+    .ok();
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )
+    .ok()
+    .flatten();
     let selected_panel = resolve_panel_lock(inputs).ok().flatten();
     let stages = plans
         .iter()
@@ -531,10 +697,25 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             inputs.species_context.species_id, inputs.species_context.build_id
         ),
         chunking_selection_reason: match inputs.coverage_regime {
-            CoverageRegime::LowCovGl => "lowcov_gl defaults to smaller windows for imputation stability".to_string(),
-            CoverageRegime::Diploid => "diploid defaults to larger chunks for throughput".to_string(),
-            CoverageRegime::Pseudohaploid => "pseudohaploid mode avoids diploid imputation chunking".to_string(),
+            CoverageRegime::LowCovGl => {
+                "lowcov_gl defaults to smaller windows for imputation stability".to_string()
+            }
+            CoverageRegime::Diploid => {
+                "diploid defaults to larger chunks for throughput".to_string()
+            }
+            CoverageRegime::Pseudohaploid => {
+                "pseudohaploid mode avoids diploid imputation chunking".to_string()
+            }
         },
+        resolved_reference_bundle_id: bundle
+            .as_ref()
+            .map(|b| b.bundle_id.clone())
+            .unwrap_or_else(|| "unresolved".to_string()),
+        resolved_reference_lock: bundle
+            .as_ref()
+            .map(|b| b.bundle_lock_sha256.clone())
+            .unwrap_or_else(|| "unresolved".to_string()),
+        resolved_coverage_profile,
         selected_panel,
         decision_traces: vec![
             serde_json::json!({
@@ -556,6 +737,10 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             serde_json::json!({
                 "id": "decision.imputation_accept",
                 "reason": "qc thresholds and overlap stats gate acceptance",
+            }),
+            serde_json::json!({
+                "id": "decision.reference_bundle_resolution",
+                "reason": "resolve species/build -> canonical bundle + lock",
             }),
         ],
         stages,

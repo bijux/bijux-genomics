@@ -5,6 +5,7 @@ Define what "imputation" means in bijux for VCF workflows and the scientific/ope
 
 ## Scope
 This scope covers planned VCF downstream stages: phasing, impute, postprocess, and reference-panel preparation.
+Planning is species/build-aware via `bijux-dna-db-ref` resolution (`resolve_species_context`, `resolve_reference_bundle`).
 
 ## Non-goals
 - Declaring all imputation tools production-ready.
@@ -18,10 +19,20 @@ Imputation in bijux means: converting partially observed genotypes into inferred
 - PLINK sets (`.bed/.bim/.fam`) when required by specific tools.
 - Reference panel artifacts explicitly versioned and pinned.
 
+## Species/Build Governance
+- Planner admission requires successful `{species_id, build_id}` resolution to a canonical `SpeciesContext`.
+- Planner admission requires successful canonical reference bundle resolution with lock hashes.
+- Bundle drift is lock-governed: when `configs/runtime/reference_bundles.toml` changes, `configs/runtime/reference_bundles.lock.sha256` must update or gates fail.
+- Supported feature flags are keyed by `{species_id, build_id}` (for example `imputation`, `sex_chr`).
+- Contig normalization is policy-governed per bundle:
+  - `strict_only`: chr/no-chr mismatches are refused.
+  - `deterministic_remap`: remap table is explicit and audited as first-class contract metadata.
+
 ## aDNA Constraints
 - Low coverage and pseudo-haploid samples must be treated as constrained inputs.
 - Caller/model assumptions can bias downstream imputation; defaults must declare those assumptions.
 - Phasing/imputation comparisons are valid only within pinned references and fixed preprocessing.
+- Pseudo-haploid to diploid imputation remains a hard refusal in v1 contract mode.
 
 ## Modern DNA Constraints
 - Diploid assumptions are common and must be explicit in stage defaults.
@@ -42,3 +53,5 @@ Imputation in bijux means: converting partially observed genotypes into inferred
 - Reference panel mismatch with target build produces invalid outputs.
 - Unpinned tool/reference versions break comparability.
 - Running outside isolate can leak outputs and violate reproducibility guarantees.
+- Species/build resolution failure blocks planner admission.
+- Non-VCF domains (for example eDNA/pollen) are refused by the VCF imputation planner.

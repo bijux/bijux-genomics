@@ -61,7 +61,15 @@
           "license_id": "CC-BY-4.0",
           "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "panel_id": "1000g_phase3",
-          "reference_build": "GRCh37"
+          "reference_build": "GRCh38"
+        },
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
         },
         "require_bgzip_tabix": true,
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
@@ -97,7 +105,15 @@
           "license_id": "CC-BY-4.0",
           "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "panel_id": "1000g_phase3",
-          "reference_build": "GRCh37"
+          "reference_build": "GRCh38"
+        },
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
         },
         "require_bgzip_tabix": true,
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
@@ -132,6 +148,14 @@
       },
       "effective_params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
@@ -160,6 +184,14 @@
       "out_dir": "out/vcf_call_gl",
       "params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
@@ -195,6 +227,14 @@
         "damage_audit": true,
         "mask_ct_ga_transitions": true,
         "pmd_threshold": 3,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
@@ -225,6 +265,14 @@
         "damage_audit": true,
         "mask_ct_ga_transitions": true,
         "pmd_threshold": 3,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
@@ -259,6 +307,14 @@
       },
       "effective_params": {
         "propagation_scope": "post_filter_pre_impute",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "retain_fields": [
           "GL",
           "PL",
@@ -292,6 +348,14 @@
       "out_dir": "out/vcf_gl_propagation",
       "params": {
         "propagation_scope": "post_filter_pre_impute",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "retain_fields": [
           "GL",
           "PL",
@@ -329,6 +393,14 @@
       },
       "effective_params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
@@ -357,6 +429,14 @@
       "out_dir": "out/vcf_filter",
       "params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
@@ -392,6 +472,14 @@
       "effective_params": {
         "buffer_mb": 0.2,
         "emit_gp": true,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.impute.params.v1",
         "tool": "glimpse",
         "window_size_mb": 2.0
@@ -422,6 +510,14 @@
       "params": {
         "buffer_mb": 0.2,
         "emit_gp": true,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.impute.params.v1",
         "tool": "glimpse",
         "window_size_mb": 2.0
@@ -455,6 +551,14 @@
       },
       "effective_params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
@@ -483,6 +587,14 @@
       "out_dir": "out/vcf_postprocess",
       "params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
@@ -522,6 +634,14 @@
           "cluster_assignments"
         ],
         "ld_prune": true,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
@@ -556,6 +676,14 @@
           "cluster_assignments"
         ],
         "ld_prune": true,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
@@ -591,6 +719,14 @@
       "effective_params": {
         "min_samples": 2,
         "min_segment_cm": 3.0,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "sample_constraints": {
           "allow_related": true,
           "max_missing": 0.05
@@ -624,6 +760,14 @@
       "params": {
         "min_samples": 2,
         "min_segment_cm": 3.0,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "sample_constraints": {
           "allow_related": true,
           "max_missing": 0.05
@@ -661,6 +805,14 @@
       },
       "effective_params": {
         "generation_time_years": 29,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "requires_ibd_input": true,
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
@@ -690,6 +842,14 @@
       "out_dir": "out/vcf_demography",
       "params": {
         "generation_time_years": 29,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "requires_ibd_input": true,
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
@@ -723,6 +883,14 @@
       },
       "effective_params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
@@ -751,6 +919,14 @@
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
