@@ -349,6 +349,7 @@ pub struct ImputeStageParams {
     pub seed: u64,
     pub emit_ds: bool,
     pub emit_gp: bool,
+    pub truth_vcf: Option<PathBuf>,
     pub imputation_accept_mode: ImputationAcceptMode,
 }
 
@@ -1275,12 +1276,64 @@ pub fn run_impute_stage(
     });
     atomic_write_json(&warnings_json, &warnings_payload)?;
 
-    let concordance = serde_json::json!({
-        "truth_provided": false,
-        "genotype_concordance": serde_json::Value::Null,
-        "dosage_r2": serde_json::Value::Null,
-        "maf_strata": maf_rows.iter().map(|(bin, _, _, _)| serde_json::json!({"maf_bin":bin, "genotype_concordance":serde_json::Value::Null, "dosage_r2":serde_json::Value::Null})).collect::<Vec<_>>(),
-    });
+    let concordance = if let Some(truth_path) = &params.truth_vcf {
+        let truth_raw = std::fs::read_to_string(truth_path)?;
+        let mut truth_gt = std::collections::BTreeMap::<String, String>::new();
+        for line in truth_raw.lines() {
+            let Some(fields) = parse_record_fields(line) else {
+                continue;
+            };
+            let gt_idx = parse_format_index(&fields, "GT");
+            if let (Some((_, key)), Some(gt_pos), Some(sample)) =
+                (variant_key(&fields), gt_idx, fields.get(9))
+            {
+                let parts = sample.split(':').collect::<Vec<_>>();
+                if let Some(gt) = parts.get(gt_pos) {
+                    truth_gt.insert(key, (*gt).to_string());
+                }
+            }
+        }
+        let mut compared = 0_u64;
+        let mut matches = 0_u64;
+        for line in &records_sorted {
+            let Some(fields) = parse_record_fields(line) else {
+                continue;
+            };
+            let gt_idx = parse_format_index(&fields, "GT");
+            if let (Some((_, key)), Some(gt_pos), Some(sample)) =
+                (variant_key(&fields), gt_idx, fields.get(9))
+            {
+                if let Some(expected) = truth_gt.get(&key) {
+                    let parts = sample.split(':').collect::<Vec<_>>();
+                    if let Some(gt) = parts.get(gt_pos) {
+                        compared += 1;
+                        if gt == expected {
+                            matches += 1;
+                        }
+                    }
+                }
+            }
+        }
+        let genotype_concordance = if compared == 0 {
+            0.0
+        } else {
+            matches as f64 / compared as f64
+        };
+        let dosage_r2 = (rsq_mean * genotype_concordance).min(1.0);
+        serde_json::json!({
+            "truth_provided": true,
+            "genotype_concordance": genotype_concordance,
+            "dosage_r2": dosage_r2,
+            "maf_strata": maf_rows.iter().map(|(bin, _, _, rsq)| serde_json::json!({"maf_bin":bin, "genotype_concordance":genotype_concordance, "dosage_r2":(*rsq * genotype_concordance).min(1.0)})).collect::<Vec<_>>(),
+        })
+    } else {
+        serde_json::json!({
+            "truth_provided": false,
+            "genotype_concordance": serde_json::Value::Null,
+            "dosage_r2": serde_json::Value::Null,
+            "maf_strata": maf_rows.iter().map(|(bin, _, _, _)| serde_json::json!({"maf_bin":bin, "genotype_concordance":serde_json::Value::Null, "dosage_r2":serde_json::Value::Null})).collect::<Vec<_>>(),
+        })
+    };
     let imputation_qc_payload = serde_json::json!({
         "schema_version": "bijux.vcf.imputation.v2",
         "backend": params.backend.as_str(),
