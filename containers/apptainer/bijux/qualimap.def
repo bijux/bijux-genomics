@@ -59,10 +59,10 @@ if [ "$1" = "--version" ]; then
     echo "2.3"
     exit 0
 elif [ "$1" = "--help" ]; then
-    java -jar /opt/qualimap/qualimap.jar --help
+    /opt/qualimap/qualimap --help
     exit 0
 else
-    java -jar /opt/qualimap/qualimap.jar "$@"
+    /opt/qualimap/qualimap "$@"
 fi
 EOF
     chmod +x /usr/local/bin/qualimap && \

@@ -40,7 +40,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git clone --depth 1 https://github.com/genid/Yleaf.git /opt/yleaf
     cd /opt/yleaf
     git checkout f3aae50653cb685a7c3d6e4c08aa170c47a85263
-    python3 -m pip install --break-system-packages --no-cache-dir .
+    python3 -m pip install --no-cache-dir .
 
     cat > /usr/local/bin/yleaf <<'EOS'
 #!/usr/bin/env sh

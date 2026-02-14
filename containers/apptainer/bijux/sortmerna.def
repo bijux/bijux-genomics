@@ -53,7 +53,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
         python3 \
         python3-pip
 
-    python3 -m pip install --no-cache-dir --break-system-packages "cmake>=3.21"
+    python3 -m pip install --no-cache-dir "cmake>=3.21"
 
     # Section: Install concurrentqueue.h for SortMeRNA.
     wget -qO /usr/local/include/concurrentqueue.h \
@@ -122,7 +122,7 @@ EOF
     chmod 0755 /usr/local/bin/sortmerna
 
     # Section: Clean up build artifacts and build-time tools.
-    python3 -m pip uninstall -y --break-system-packages cmake || true
+    python3 -m pip uninstall -y cmake || true
 
     rm -rf /opt/rocksdb-6.20.3 /opt/sortmerna-4.3.7
     rm -f /tmp/rocksdb.tar.gz /tmp/sortmerna.tar.gz
