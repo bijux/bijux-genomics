@@ -4,8 +4,9 @@ use bijux_dna_db_ref::resolve_species_context;
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
 use bijux_dna_stages_vcf::pipeline::{
-    run_call_stage, run_chunked_regions, run_filter_stage, run_phasing_stage, run_stats_stage,
-    ChunkFailurePolicy, ChunkingPlanParams, PhasingBackend, PhasingStageParams,
+    run_call_stage, run_chunked_regions, run_filter_stage, run_phasing_stage,
+    run_postprocess_stage, run_stats_stage, ChunkFailurePolicy, ChunkingPlanParams,
+    PhasingBackend, PhasingStageParams, PostprocessStageParams,
 };
 
 #[allow(clippy::missing_errors_doc)]
@@ -171,6 +172,34 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             serde_json::to_vec_pretty(&chunk_outputs)?,
         )
         .map_err(|err| anyhow!("write {}: {err}", chunk_report_path.display()))?;
+
+        let postprocess_input = phasing_outputs
+            .as_ref()
+            .map(|x| x.phased_vcf.clone())
+            .unwrap_or_else(|| filtered_vcf.clone());
+        let postprocess_outputs = run_postprocess_stage(
+            &postprocess_input,
+            &out_dir.join("vcf_postprocess"),
+            &species,
+            &PostprocessStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                per_chr_inputs: vec![],
+                retain_info_fields: vec![],
+                remove_info_fields: vec![],
+                compression_level: 6,
+                compression_threads: args.max_parallel_chunks.max(1),
+                emit_bcf: false,
+                normalize_indels: false,
+                run_level_checksums_path: Some(out_dir.join("artifact_checksums.json")),
+            },
+        )?;
+        let postprocess_report_path = out_dir.join("postprocess_report.json");
+        std::fs::write(
+            &postprocess_report_path,
+            serde_json::to_vec_pretty(&postprocess_outputs)?,
+        )
+        .map_err(|err| anyhow!("write {}: {err}", postprocess_report_path.display()))?;
     }
     render::json::print_pretty(&serde_json::json!({
         "command": "vcf.run",
@@ -191,8 +220,13 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 "stats": stats_path,
                 "report": out_dir.join("vcf_report.json"),
                 "chunks": out_dir.join("chunks.json"),
-            "chunk_merged_vcf": out_dir.join("merged_chunks.vcf.gz"),
-            "chunk_report": out_dir.join("chunk_report.json"),
+                "chunk_merged_vcf": out_dir.join("merged_chunks.vcf.gz"),
+                "chunk_report": out_dir.join("chunk_report.json"),
+                "postprocess_vcf": out_dir.join("vcf_postprocess/postprocess.vcf.gz"),
+                "postprocess_bcf": out_dir.join("vcf_postprocess/postprocess.bcf"),
+                "postprocess_validate": out_dir.join("vcf_postprocess/validate_outputs.json"),
+                "postprocess_checksums": out_dir.join("vcf_postprocess/artifact_checksums.json"),
+                "run_checksums": out_dir.join("artifact_checksums.json"),
         },
             "chunking": {
                 "window_size_bp": args.chunk_window_size_bp,
