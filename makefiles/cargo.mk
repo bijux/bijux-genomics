@@ -142,9 +142,22 @@ test:
 		$(MAKE) _test; \
 	fi
 
+test-fast:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-test-fast-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _test-fast; \
+	else \
+		$(MAKE) _test-fast; \
+	fi
+
 _test:
 	@./bin/require-isolate >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
+
+_test-fast: ## Run test suite excluding slow-labeled tests (functions containing slow__).
+	@./bin/require-isolate >/dev/null
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="not test(/::slow__/)" ./scripts/run.sh tooling ci-test
 
 _test-slow: ## Run only slow-labeled tests (functions containing slow__).
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
@@ -352,11 +365,12 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint test audit coverage ci doctor _check _verify-parallel-isolation \
+.PHONY: fmt lint test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
 		_clean-isolates \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
+		_test-fast \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
 		refresh-assets-toy refresh-assets-golden
