@@ -6,12 +6,13 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-python3 - "$ROOT_DIR" <<'PY'
+python3 - "$ROOT_DIR" "${CI:-}" <<'PY'
 from pathlib import Path
 import re
 import sys
 
 root = Path(sys.argv[1])
+ci_mode = str(sys.argv[2]).strip().lower() in {"1", "true", "yes"}
 errors = []
 
 for dockerfile in sorted((root / "containers/docker/arm64").glob("Dockerfile.*")):
@@ -34,10 +35,15 @@ for dockerfile in sorted((root / "containers/docker/arm64").glob("Dockerfile.*")
                 errors.append(f"{dockerfile.relative_to(root)}: unpinned apt package '{tok}'")
 
 if errors:
-    print("docker apt pin check: failed", file=sys.stderr)
+    if ci_mode:
+        print("docker apt pin check: failed", file=sys.stderr)
+        for e in errors:
+            print(f"- {e}", file=sys.stderr)
+        raise SystemExit(1)
+    print("docker apt pin check: WARN (non-CI mode)", file=sys.stderr)
     for e in errors:
         print(f"- {e}", file=sys.stderr)
-    raise SystemExit(1)
+    raise SystemExit(0)
 
 print("docker apt pin check: OK")
 PY

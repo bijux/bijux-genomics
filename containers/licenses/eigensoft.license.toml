@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "eigensoft"
 container_kind = "bijux"
-license = "GPL-2.0"
-upstream_source = "https://github.com/DReichLab/EIG"
+spdx = "GPL-2.0"
+upstream_url = "https://github.com/DReichLab/EIG"
+redistribution_note = "See upstream license terms and redistribution policy."
+citation = "upstream:https://github.com/DReichLab/EIG"
 version = "8.0.0"

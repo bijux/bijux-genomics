@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "glimpse"
 container_kind = "bijux"
-license = "MIT"
-upstream_source = "https://odelaneau.github.io/GLIMPSE/"
+spdx = "MIT"
+upstream_url = "https://odelaneau.github.io/GLIMPSE/"
+redistribution_note = "See upstream license terms and redistribution policy."
+citation = "upstream:https://odelaneau.github.io/GLIMPSE/"
 version = "planned"

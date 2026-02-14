@@ -38,6 +38,11 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
         version = "unknown"
     kind = "bijux" if "/bijux/" in str(path) else "non-bijux"
     out = out_dir / f"{tool}.license.toml"
+    if source == "unknown":
+        source = "https://example.invalid/unknown-source"
+    spdx = license_name if license_name else "NOASSERTION"
+    if spdx == "unknown":
+        spdx = "NOASSERTION"
     out.write_text(
         "\n".join(
             [
@@ -45,8 +50,10 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
                 "# owner = bijux-dna-platform",
                 f'tool_id = "{tool}"',
                 f'container_kind = "{kind}"',
-                f'license = "{license_name}"',
-                f'upstream_source = "{source}"',
+                f'spdx = "{spdx}"',
+                f'upstream_url = "{source}"',
+                'redistribution_note = "See upstream license terms and redistribution policy."',
+                f'citation = "upstream:{source}"',
                 f'version = "{version}"',
                 "",
             ]
