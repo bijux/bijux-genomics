@@ -1,7 +1,6 @@
 use crate::commands::cli::parse::{DnaCommand, VcfCommand, VcfRunArgs};
 use crate::commands::command_prelude::{anyhow, render, Cli, Path, Result};
-use bijux_dna_db_ref::resolve_species_context;
-use bijux_dna_domain_vcf::contracts::SpeciesContext;
+use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
 use bijux_dna_stages_vcf::invariants::InvariantConfig;
@@ -58,9 +57,7 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         ));
     }
     let out_dir = Path::new(&args.out);
-    let resolved = resolve_species_context("Homo sapiens", "GRCh38")
-        .map_err(|err| anyhow!("resolve species context: {err}"))?;
-    let species: SpeciesContext = resolved.context;
+    let species = default_species_context();
     if !args.dry_run {
         let pipeline_result = run_vcf_pipeline(&VcfPipelineRequest {
             run_root: out_dir.to_path_buf(),
@@ -143,4 +140,19 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         "status": if args.dry_run { "planned" } else { "completed" },
     }))?;
     Ok(())
+}
+
+fn default_species_context() -> SpeciesContext {
+    SpeciesContext {
+        species_id: "hsapiens".to_string(),
+        build_id: "grch38".to_string(),
+        contig_set_digest: "grch38-minimal-cli".to_string(),
+        contigs: vec![ContigSpec {
+            name: "chr1".to_string(),
+            length_bp: 248_956_422,
+        }],
+        sex_system: "xy".to_string(),
+        par_policy: "unsupported".to_string(),
+        default_coverage_regime: None,
+    }
 }
