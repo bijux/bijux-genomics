@@ -800,14 +800,23 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
     build_and_smoke_one "$d" || status=1
   done < "$LIST_FILE"
 else
-  xargs -P "$JOBS" -I{} bash -c '
-    bash "$1" --worker "$2" </dev/null
-    rc=$?
-    if [ "$rc" -eq 255 ]; then
-      rc=1
+  run_worker_bg() {
+    local def_file="$1"
+    bash "$SELF_SCRIPT" --worker "$def_file" </dev/null &
+  }
+  while IFS= read -r d; do
+    while [ "$(jobs -pr | wc -l | tr -d ' ')" -ge "$JOBS" ]; do
+      if ! wait -n; then
+        status=1
+      fi
+    done
+    run_worker_bg "$d"
+  done < "$LIST_FILE"
+  while [ "$(jobs -pr | wc -l | tr -d ' ')" -gt 0 ]; do
+    if ! wait -n; then
+      status=1
     fi
-    exit "$rc"
-  ' _ "$SELF_SCRIPT" {} < "$LIST_FILE" || status=1
+  done
 fi
 
 relocate_root_invalid_flag
