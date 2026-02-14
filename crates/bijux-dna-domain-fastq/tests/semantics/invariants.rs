@@ -4,3 +4,5 @@
 mod invariant_specs;
 #[path = "invariants/invariants.rs"]
 mod invariants;
+#[path = "invariants/edna_outputs.rs"]
+mod edna_outputs;
