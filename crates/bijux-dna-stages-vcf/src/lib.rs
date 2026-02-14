@@ -2,6 +2,7 @@
 
 pub mod metrics;
 pub mod engine;
+pub mod invariants;
 pub mod pipeline;
 pub mod stage_specs;
 pub mod wrappers;
