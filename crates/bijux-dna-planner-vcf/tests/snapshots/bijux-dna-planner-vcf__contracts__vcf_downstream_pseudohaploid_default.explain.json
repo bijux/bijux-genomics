@@ -59,7 +59,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
-      "reason": "coverage regime Pseudohaploid selected tool angsd for vcf.call_pseudohaploid",
+      "reason": "coverage regime Pseudohaploid selected tool angsd for vcf.call_pseudohaploid (coverage_regime_default)",
       "selected_tool": "angsd",
       "stage_id": "vcf.call_pseudohaploid"
     },
@@ -80,7 +80,7 @@
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.damage_filter",
+      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.damage_filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.damage_filter"
     },
@@ -99,7 +99,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.filter",
+      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.filter"
     },
@@ -120,7 +120,7 @@
         "schema_version": "bijux.vcf.roh.params.v1",
         "tool": "plink2"
       },
-      "reason": "coverage regime Pseudohaploid selected tool plink2 for vcf.roh",
+      "reason": "coverage regime Pseudohaploid selected tool plink2 for vcf.roh (coverage_regime_default)",
       "selected_tool": "plink2",
       "stage_id": "vcf.roh"
     },
@@ -139,7 +139,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.stats",
+      "reason": "coverage regime Pseudohaploid selected tool bcftools for vcf.stats (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.stats"
     }

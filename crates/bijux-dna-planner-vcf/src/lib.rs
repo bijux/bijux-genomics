@@ -320,11 +320,16 @@ fn attach_reference_provenance(
     serde_json::Value::Object(obj)
 }
 
-fn choose_tool(stage: VcfDomainStage, inputs: &VcfPipelineInputs) -> Result<String> {
+fn choose_tool(
+    stage: VcfDomainStage,
+    inputs: &VcfPipelineInputs,
+    panel: &bijux_dna_db_ref::PanelCatalogEntry,
+    planned_stages: &[VcfDomainStage],
+) -> Result<(String, String)> {
     let key = stage.as_str().to_string();
     if let Some(selected) = inputs.stage_tool_overrides.get(&key) {
         if stage_compat_tools(stage).contains(&selected.as_str()) {
-            return Ok(selected.clone());
+            return Ok((selected.clone(), "stage_tool_override".to_string()));
         }
         bail!(
             "override tool {} is incompatible with stage {}",
@@ -332,7 +337,30 @@ fn choose_tool(stage: VcfDomainStage, inputs: &VcfPipelineInputs) -> Result<Stri
             key
         );
     }
-    Ok(default_tool(stage, inputs.coverage_regime).to_string())
+    if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
+        if inputs.coverage_regime == CoverageRegime::LowCovGl {
+            return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
+        }
+        let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
+        let big_panel = panel.id.contains("full");
+        if phased_gt_ready && big_panel {
+            if panel.compatibility.supports_minimac_m3vcf {
+                return Ok((
+                    "minimac4".to_string(),
+                    "phased_gt_plus_big_panel_minimac4".to_string(),
+                ));
+            }
+            return Ok((
+                "impute5".to_string(),
+                "phased_gt_plus_big_panel_impute5".to_string(),
+            ));
+        }
+        return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
+    }
+    Ok((
+        default_tool(stage, inputs.coverage_regime).to_string(),
+        "coverage_regime_default".to_string(),
+    ))
 }
 
 fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>> {
@@ -606,6 +634,7 @@ fn stage_plan(
     build_id: &str,
     chunking: &ChunkPlanSettings,
     chunks: &[RegionChunkPlan],
+    selection_rule: &str,
 ) -> StagePlanV1 {
     let params = attach_reference_provenance(
         stage_params(stage, tool, coverage, selected_panel, map, chunking, chunks),
@@ -648,14 +677,16 @@ fn stage_plan(
         reason: PlanDecisionReason {
             kind: PlanReasonKind::InputAssessed,
             summary: format!(
-                "coverage regime {:?} selected tool {} for {}",
+                "coverage regime {:?} selected tool {} for {} ({})",
                 coverage,
                 tool,
-                stage.as_str()
+                stage.as_str(),
+                selection_rule
             ),
             details: serde_json::json!({
                 "coverage_regime": coverage,
                 "stage_kind": stage.taxonomy().kind,
+                "selection_rule": selection_rule,
             }),
         },
     }
@@ -717,14 +748,15 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     }
     refuse_unsupported_regime_transition(inputs.coverage_regime, requires_diploid_imputation)?;
 
+    let stage_list = stages.clone();
     let mut seen = BTreeSet::new();
     let mut plans = Vec::new();
     let mut current_vcf = inputs.vcf.clone();
-    for stage in stages {
+    for stage in stage_list {
         if !seen.insert(stage.as_str().to_string()) {
             continue;
         }
-        let tool = choose_tool(stage, inputs)?;
+        let (tool, selection_rule) = choose_tool(stage, inputs, &panel_catalog, &stages)?;
         if matches!(
             stage,
             VcfDomainStage::PrepareReferencePanel
@@ -732,7 +764,14 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
                 | VcfDomainStage::Imputation
                 | VcfDomainStage::Impute
         ) {
-            validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
+            if stage == VcfDomainStage::Impute
+                && tool == "beagle"
+                && panel_catalog.compatibility.tool_tags.iter().any(|x| x == "beagle")
+            {
+                // Beagle imputation can run without a map asset; only enforce panel compatibility.
+            } else {
+                validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
+            }
         }
         if stage == VcfDomainStage::Phasing {
             if inputs.coverage_regime == CoverageRegime::LowCovGl
@@ -777,6 +816,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &inputs.species_context.build_id,
             &inputs.chunking,
             &chunks,
+            &selection_rule,
         );
         if let Some(out) = plan.io.outputs.first() {
             current_vcf = out.path.clone();

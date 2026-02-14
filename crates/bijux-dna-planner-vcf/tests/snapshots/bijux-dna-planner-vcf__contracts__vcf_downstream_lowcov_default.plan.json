@@ -128,10 +128,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "postprocess"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -204,10 +205,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "call_regime"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool angsd for vcf.call_gl"
+        "summary": "coverage regime LowCovGl selected tool angsd for vcf.call_gl (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -285,10 +287,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "damage_filter"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.damage_filter"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.damage_filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -373,10 +376,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "call_regime"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -449,10 +453,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.filter"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -1761,10 +1766,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "lowcov_gl_default_glimpse",
           "stage_kind": "imputation"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool glimpse for vcf.impute"
+        "summary": "coverage regime LowCovGl selected tool glimpse for vcf.impute (lowcov_gl_default_glimpse)"
       },
       "resources": {
         "mem_gb": 16,
@@ -1837,10 +1843,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "postprocess"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.postprocess"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.postprocess (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -1926,10 +1933,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "population_structure"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool plink2 for vcf.population_structure"
+        "summary": "coverage regime LowCovGl selected tool plink2 for vcf.population_structure (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -2014,10 +2022,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "ibd"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool germline for vcf.ibd"
+        "summary": "coverage regime LowCovGl selected tool germline for vcf.ibd (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -2093,10 +2102,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "demography"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool ibdne for vcf.demography"
+        "summary": "coverage regime LowCovGl selected tool ibdne for vcf.demography (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -2169,10 +2179,11 @@
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.stats"
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.stats (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
