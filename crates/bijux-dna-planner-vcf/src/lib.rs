@@ -46,10 +46,12 @@ pub struct VcfPanelLock {
     pub license_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct VcfPipelineInputs {
     pub policy: PlanPolicy,
     pub coverage_regime: CoverageRegime,
+    #[serde(default)]
+    pub mean_depth_x: Option<f64>,
     pub vcf: PathBuf,
     pub out_dir: PathBuf,
     #[serde(default)]
@@ -123,9 +125,43 @@ pub struct PlannerExplainV1 {
     pub resolved_reference_bundle_id: String,
     pub resolved_reference_lock: String,
     pub resolved_coverage_profile: Option<String>,
+    pub resolved_coverage_regime: CoverageRegime,
+    pub coverage_resolution_reason: String,
+    pub damage_aware_policy: serde_json::Value,
     pub selected_panel: Option<VcfPanelLock>,
     pub decision_traces: Vec<serde_json::Value>,
     pub stages: Vec<PlannerExplainStage>,
+}
+
+#[derive(Debug, Clone)]
+struct CoverageThresholds {
+    gl_max_depth: f64,
+    pseudohaploid_max_depth: f64,
+    diploid_min_depth: f64,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CoverageRegimesToml {
+    decision: CoverageDecisionToml,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CoverageDecisionToml {
+    coverage_regime: CoverageDecisionRuleToml,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CoverageDecisionRuleToml {
+    thresholds: CoverageThresholdsToml,
+    #[serde(default)]
+    profiles: BTreeMap<String, CoverageThresholdsToml>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+struct CoverageThresholdsToml {
+    gl_max_depth: f64,
+    pseudohaploid_max_depth: f64,
+    diploid_min_depth: f64,
 }
 
 fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static str] {
@@ -332,6 +368,79 @@ fn workspace_root() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("."))
 }
 
+fn load_coverage_thresholds(profile: Option<&str>) -> Result<CoverageThresholds> {
+    let path = workspace_root().join("configs/runtime/coverage_regimes.toml");
+    let raw = fs::read_to_string(&path)?;
+    let parsed: CoverageRegimesToml = toml::from_str(&raw)?;
+    let selected = profile
+        .and_then(|name| parsed.decision.coverage_regime.profiles.get(name))
+        .cloned()
+        .unwrap_or(parsed.decision.coverage_regime.thresholds);
+    Ok(CoverageThresholds {
+        gl_max_depth: selected.gl_max_depth,
+        pseudohaploid_max_depth: selected.pseudohaploid_max_depth,
+        diploid_min_depth: selected.diploid_min_depth,
+    })
+}
+
+fn classify_coverage_regime(
+    requested: CoverageRegime,
+    mean_depth_x: Option<f64>,
+    profile: Option<&str>,
+) -> Result<(CoverageRegime, String, CoverageThresholds)> {
+    let thresholds = load_coverage_thresholds(profile)?;
+    let Some(depth) = mean_depth_x else {
+        return Ok((
+            requested,
+            "mean_depth_x absent; using caller-requested coverage_regime".to_string(),
+            thresholds,
+        ));
+    };
+    let resolved = if depth <= thresholds.gl_max_depth {
+        CoverageRegime::LowCovGl
+    } else if depth <= thresholds.pseudohaploid_max_depth {
+        CoverageRegime::Pseudohaploid
+    } else if depth >= thresholds.diploid_min_depth {
+        CoverageRegime::Diploid
+    } else {
+        CoverageRegime::Pseudohaploid
+    };
+    Ok((
+        resolved,
+        format!(
+            "classified from mean_depth_x={depth:.3} using thresholds gl<= {:.3}, pseudohaploid<= {:.3}, diploid>= {:.3}",
+            thresholds.gl_max_depth, thresholds.pseudohaploid_max_depth, thresholds.diploid_min_depth
+        ),
+        thresholds,
+    ))
+}
+
+fn damage_aware_policy_for_regime(regime: CoverageRegime) -> serde_json::Value {
+    match regime {
+        CoverageRegime::LowCovGl => serde_json::json!({
+            "policy_id": "damage-aware-genotype-policy.v1",
+            "mode": "ancient_dna_lowcov",
+            "filtering": {"ct_ga_transition_bias_filter": true, "min_baseq": 20, "min_mapq": 30},
+            "masking": {"terminal_damage_sites": true, "mask_fraction_ends": 0.02},
+            "udg_thresholds": {"udg":"relaxed", "non_udg":"strict"},
+        }),
+        CoverageRegime::Pseudohaploid => serde_json::json!({
+            "policy_id": "damage-aware-genotype-policy.v1",
+            "mode": "pseudohaploid",
+            "filtering": {"ct_ga_transition_bias_filter": true, "min_baseq": 20, "min_mapq": 30},
+            "masking": {"terminal_damage_sites": true, "mask_fraction_ends": 0.02},
+            "udg_thresholds": {"udg":"relaxed", "non_udg":"strict"},
+        }),
+        CoverageRegime::Diploid => serde_json::json!({
+            "policy_id": "damage-aware-genotype-policy.v1",
+            "mode": "diploid",
+            "filtering": {"ct_ga_transition_bias_filter": false, "min_baseq": 20, "min_mapq": 30},
+            "masking": {"terminal_damage_sites": false, "mask_fraction_ends": 0.0},
+            "udg_thresholds": {"udg":"standard", "non_udg":"strict"},
+        }),
+    }
+}
+
 fn allowed_params_for_stage(stage_id: &str) -> Result<BTreeSet<String>> {
     let path = workspace_root().join("configs/ci/params/param_registry_downstream.toml");
     let raw = fs::read_to_string(&path)?;
@@ -397,6 +506,7 @@ fn attach_reference_provenance(
 fn choose_tool(
     stage: VcfDomainStage,
     inputs: &VcfPipelineInputs,
+    resolved_coverage: CoverageRegime,
     panel: &bijux_dna_db_ref::PanelCatalogEntry,
     planned_stages: &[VcfDomainStage],
 ) -> Result<(String, String)> {
@@ -412,7 +522,7 @@ fn choose_tool(
         );
     }
     if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
-        if inputs.coverage_regime == CoverageRegime::LowCovGl {
+        if resolved_coverage == CoverageRegime::LowCovGl {
             return Ok((
                 "glimpse".to_string(),
                 "lowcov_gl_default_glimpse".to_string(),
@@ -435,7 +545,7 @@ fn choose_tool(
         return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
     }
     Ok((
-        default_tool(stage, inputs.coverage_regime).to_string(),
+        default_tool(stage, resolved_coverage).to_string(),
         "coverage_regime_default".to_string(),
     ))
 }
@@ -530,7 +640,10 @@ fn default_stages_for_coverage(regime: CoverageRegime) -> Vec<VcfDomainStage> {
     }
 }
 
-fn resolve_requested_stages(inputs: &VcfPipelineInputs) -> Result<Vec<VcfDomainStage>> {
+fn resolve_requested_stages(
+    inputs: &VcfPipelineInputs,
+    resolved_coverage: CoverageRegime,
+) -> Result<Vec<VcfDomainStage>> {
     if let Some(requested) = &inputs.requested_stages {
         let mut out = Vec::new();
         for stage_id in requested {
@@ -544,7 +657,7 @@ fn resolve_requested_stages(inputs: &VcfPipelineInputs) -> Result<Vec<VcfDomainS
         }
         return Ok(out);
     }
-    Ok(default_stages_for_coverage(inputs.coverage_regime))
+    Ok(default_stages_for_coverage(resolved_coverage))
 }
 
 fn phasing_backend_supports_gl_only_input(tool: &str) -> bool {
@@ -802,6 +915,15 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         &inputs.species_context.build_id,
         inputs.map_id.as_deref(),
     )?;
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
+        inputs.coverage_regime,
+        inputs.mean_depth_x,
+        resolved_coverage_profile.as_deref(),
+    )?;
     let chunks = plan_region_chunks(&inputs.species_context, &inputs.chunking)?;
     if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
         bail!(
@@ -809,7 +931,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         );
     }
     let selected_panel = resolve_panel_lock(inputs)?;
-    let stages = resolve_requested_stages(inputs)?;
+    let stages = resolve_requested_stages(inputs, resolved_coverage)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -834,7 +956,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             inputs.species_context.build_id
         );
     }
-    refuse_unsupported_regime_transition(inputs.coverage_regime, requires_diploid_imputation)?;
+    refuse_unsupported_regime_transition(resolved_coverage, requires_diploid_imputation)?;
 
     let stage_list = stages.clone();
     let mut seen = BTreeSet::new();
@@ -844,7 +966,8 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         if !seen.insert(stage.as_str().to_string()) {
             continue;
         }
-        let (tool, selection_rule) = choose_tool(stage, inputs, &panel_catalog, &stages)?;
+        let (tool, selection_rule) =
+            choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &stages)?;
         if matches!(
             stage,
             VcfDomainStage::PrepareReferencePanel
@@ -866,7 +989,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             }
         }
         if stage == VcfDomainStage::Phasing {
-            if inputs.coverage_regime == CoverageRegime::LowCovGl
+            if resolved_coverage == CoverageRegime::LowCovGl
                 && !phasing_backend_supports_gl_only_input(&tool)
             {
                 bail!(
@@ -876,7 +999,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
                 );
             }
             if matches!(tool.as_str(), "shapeit5" | "eagle")
-                && inputs.coverage_regime != CoverageRegime::Diploid
+                && resolved_coverage != CoverageRegime::Diploid
             {
                 bail!(
                     "planner refusal: tool {} requires diploid coverage regime for {}",
@@ -900,7 +1023,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &current_vcf,
             &inputs.out_dir,
             &tool,
-            inputs.coverage_regime,
+            resolved_coverage,
             selected_panel.as_ref(),
             &map_catalog,
             &bundle,
@@ -926,6 +1049,15 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
 /// Returns an error when graph materialization fails.
 pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
     let plans = plan_vcf_stage_plans(inputs)?;
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
+        inputs.coverage_regime,
+        inputs.mean_depth_x,
+        resolved_coverage_profile.as_deref(),
+    )?;
     let steps = plans
         .iter()
         .map(execution_step_from_stage_plan)
@@ -939,7 +1071,7 @@ pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
             )
         })
         .collect::<Vec<_>>();
-    let flavor_base = match inputs.coverage_regime {
+    let flavor_base = match resolved_coverage {
         CoverageRegime::LowCovGl => "downstream_lowcov_gl",
         CoverageRegime::Diploid => "downstream_diploid",
         CoverageRegime::Pseudohaploid => "downstream_pseudohaploid",
@@ -972,6 +1104,21 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
     )
     .ok()
     .flatten();
+    let (resolved_coverage_regime, coverage_resolution_reason, coverage_thresholds) =
+        classify_coverage_regime(
+            inputs.coverage_regime,
+            inputs.mean_depth_x,
+            resolved_coverage_profile.as_deref(),
+        )
+        .unwrap_or((
+            inputs.coverage_regime,
+            "coverage classifier unavailable; using caller-requested coverage_regime".to_string(),
+            CoverageThresholds {
+                gl_max_depth: 0.0,
+                pseudohaploid_max_depth: 0.0,
+                diploid_min_depth: 0.0,
+            },
+        ));
     let selected_panel = resolve_panel_lock(inputs).ok().flatten();
     let chunk_count = plan_region_chunks(&inputs.species_context, &inputs.chunking)
         .map(|c| c.len())
@@ -982,7 +1129,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             stage_id: plan.stage_id.to_string(),
             selected_tool: plan.tool_id.to_string(),
             reason: plan.reason.summary.clone(),
-            coverage_regime: inputs.coverage_regime,
+            coverage_regime: resolved_coverage_regime,
             params_surface: plan.effective_params.clone(),
         })
         .collect::<Vec<_>>();
@@ -990,9 +1137,11 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
         schema_version: "bijux.vcf.planner_explain.v1".to_string(),
         planner_version: PLANNER_VERSION.to_string(),
         coverage_regime: inputs.coverage_regime,
+        resolved_coverage_regime,
+        coverage_resolution_reason,
         backend_selection_reason: format!(
-            "selected backend family from coverage regime {:?} and stage tool compatibility",
-            inputs.coverage_regime
+            "selected backend family from resolved coverage regime {:?} and stage/tool compatibility",
+            resolved_coverage_regime
         ),
         panel_selection_reason: if selected_panel.is_some() {
             "panel selected by build/license/ancestry policy".to_string()
@@ -1003,7 +1152,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             "map compatibility enforced by species/build/contig digest ({}/{})",
             inputs.species_context.species_id, inputs.species_context.build_id
         ),
-        chunking_selection_reason: match inputs.coverage_regime {
+        chunking_selection_reason: match resolved_coverage_regime {
             CoverageRegime::LowCovGl => {
                 "lowcov_gl defaults to smaller windows for imputation stability".to_string()
             }
@@ -1023,15 +1172,19 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             .map(|b| b.bundle_lock_sha256.clone())
             .unwrap_or_else(|| "unresolved".to_string()),
         resolved_coverage_profile,
+        damage_aware_policy: damage_aware_policy_for_regime(resolved_coverage_regime),
         selected_panel,
         decision_traces: vec![
             serde_json::json!({
                 "id": "decision.backend_selection",
-                "reason": "coverage_regime + stage/tool compatibility",
+                "reason": "resolved_coverage_regime + stage/tool compatibility",
+                "resolved_coverage_regime": resolved_coverage_regime,
+                "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless user requested subset",
             }),
             serde_json::json!({
                 "id": "decision.panel_selection",
                 "reason": "build/license/ancestry constraints",
+                "why_panel_chosen": "panel selected by policy from species/build and license constraints",
             }),
             serde_json::json!({
                 "id": "decision.map_selection",
@@ -1041,6 +1194,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
                 "id": "decision.chunking_selection",
                 "reason": "coverage-regime-specific defaults",
                 "chunk_count": chunk_count,
+                "why_chunking_chosen": "chunk windows/overlap derive from coverage regime and chunking knobs",
             }),
             serde_json::json!({
                 "id": "decision.imputation_accept",
@@ -1049,6 +1203,23 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             serde_json::json!({
                 "id": "decision.reference_bundle_resolution",
                 "reason": "resolve species/build -> canonical bundle + lock",
+            }),
+            serde_json::json!({
+                "id": "decision.coverage_regime",
+                "reason": "configured thresholds + optional empirical mean_depth_x",
+                "requested_coverage_regime": inputs.coverage_regime,
+                "resolved_coverage_regime": resolved_coverage_regime,
+                "mean_depth_x": inputs.mean_depth_x,
+                "thresholds": {
+                    "gl_max_depth": coverage_thresholds.gl_max_depth,
+                    "pseudohaploid_max_depth": coverage_thresholds.pseudohaploid_max_depth,
+                    "diploid_min_depth": coverage_thresholds.diploid_min_depth,
+                }
+            }),
+            serde_json::json!({
+                "id": "decision.damage_aware_genotype_logic",
+                "reason": "regime-specific filtering/masking policy and UDG threshold profile",
+                "policy": damage_aware_policy_for_regime(resolved_coverage_regime),
             }),
         ],
         stages,

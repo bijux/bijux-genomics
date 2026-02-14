@@ -16,6 +16,7 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
     VcfPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
         coverage_regime: regime,
+        mean_depth_x: None,
         vcf: PathBuf::from("sample.vcf.gz"),
         out_dir: PathBuf::from("out"),
         stage_tool_overrides: BTreeMap::new(),
@@ -191,4 +192,21 @@ fn vcf_planner_refuses_unknown_stage_knob_override() {
         err.to_string().contains("unknown knob for vcf.impute"),
         "unexpected validation error: {err}"
     );
+}
+
+#[test]
+fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.mean_depth_x = Some(0.3);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    assert!(
+        plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_gl"),
+        "low-depth run should resolve to lowcov_gl default stages"
+    );
+    assert!(
+        !plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_diploid"),
+        "low-depth run must not keep diploid default stage list"
+    );
+    let explain = explain_vcf_plan(&input, &plans);
+    assert_eq!(explain.resolved_coverage_regime, CoverageRegime::LowCovGl);
 }
