@@ -100,7 +100,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-dna | `production` |
 | `samtools` | `aligner` | `fastq.prepare_reference, fastq.host_depletion, fastq.qc_post` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
 | `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | upstream:https://github.com/grenaud/schmutzi | `production` |
-| `seqkit` | `transform` | `fastq.filter, fastq.primer_normalization, fastq.abundance_normalization` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
+| `seqkit` | `filter` | `fastq.filter, fastq.primer_normalization` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
 | `seqkit_stats` | `qc` | `fastq.stats_neutral` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
 | `seqtk` | `validator` | `fastq.validate_pre` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `experimental` |
 | `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
