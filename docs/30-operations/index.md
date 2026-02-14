@@ -7,4 +7,5 @@
 - `DEVELOPER_WORKFLOW.md`
 - `REPRODUCIBILITY.md`
 - `RUN_ARTIFACTS.md`
+- `vcf-downstream-triage.md`
 - `SCOPE_CLOSURE_CHECKLIST.generated.md`
