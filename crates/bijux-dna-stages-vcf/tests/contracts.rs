@@ -17,7 +17,7 @@ mod contracts {
         AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
         DamageFilterStageParams, DamageUdgRegime, GlPropagationStageParams, ImputeStageParams, PhasingBackend,
         PcaStageParams, PhasingStageParams, PopulationStructureStageParams, PostprocessStageParams,
-        PrepareReferencePanelParams, QcStageParams, run_admixture_stage,
+        PrepareReferencePanelParams, QcStageParams, RohStageParams, run_admixture_stage, run_roh_stage,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
@@ -1617,5 +1617,39 @@ mod contracts {
         )
         .expect_err("admixture should refuse until container/runtime is enabled");
         assert!(err.to_string().contains("refusal"));
+    }
+
+    #[test]
+    fn roh_stage_emits_segments_and_metrics() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out = run_roh_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &RohStageParams {
+                min_snp_density_per_mb: 0.00001,
+                min_segment_kb: 0,
+                max_gap_bp: 10_000_000,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run roh stage: {err}"));
+        assert!(out.roh_segments_tsv.exists());
+        assert!(out.roh_summary_json.exists());
+        assert!(out.roh_metrics_json.exists());
+    }
+
+    #[test]
+    fn roh_stage_refuses_when_density_below_threshold() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let err = run_roh_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &RohStageParams {
+                min_snp_density_per_mb: 1_000_000.0,
+                min_segment_kb: 500,
+                max_gap_bp: 1_000_000,
+            },
+        )
+        .expect_err("roh should refuse under impossible density requirement");
+        assert!(err.to_string().contains("density"));
     }
 }
