@@ -57,6 +57,37 @@ pub struct VcfPipelineInputs {
     pub entry_vcf_invariants: EntryVcfInvariantState,
     pub panel_map_invariants: PanelMapInvariantState,
     pub pipeline_domain: String,
+    #[serde(default)]
+    pub chunking: ChunkPlanSettings,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct ChunkPlanSettings {
+    pub window_size_bp: u64,
+    pub overlap_bp: u64,
+    pub chr_include: Vec<String>,
+    pub chr_exclude: Vec<String>,
+    pub max_parallel_chunks: usize,
+}
+
+impl Default for ChunkPlanSettings {
+    fn default() -> Self {
+        Self {
+            window_size_bp: 5_000_000,
+            overlap_bp: 100_000,
+            chr_include: Vec::new(),
+            chr_exclude: Vec::new(),
+            max_parallel_chunks: 8,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct RegionChunkPlan {
+    pub chunk_id: String,
+    pub contig: String,
+    pub start: u64,
+    pub end: u64,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -183,6 +214,8 @@ fn stage_params(
     tool: &str,
     coverage: CoverageRegime,
     panel: Option<&VcfPanelLock>,
+    chunking: &ChunkPlanSettings,
+    chunks: &[RegionChunkPlan],
 ) -> serde_json::Value {
     match stage {
         VcfDomainStage::PrepareReferencePanel => serde_json::json!({
@@ -194,27 +227,27 @@ fn stage_params(
         }),
         VcfDomainStage::Phasing => match tool {
             "shapeit5" => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"shapeit5","window_cM":2.0,"pbwt_depth":8,"chunking":chunking,"chunks_plan":chunks})
             }
             "eagle" => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"eagle","max_iterations":10,"use_reference":true,"chunking":chunking,"chunks_plan":chunks})
             }
             _ => {
-                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12})
+                serde_json::json!({"schema_version":"bijux.vcf.phasing.params.v1","tool":"beagle","burnin":6,"iterations":12,"chunking":chunking,"chunks_plan":chunks})
             }
         },
         VcfDomainStage::Imputation | VcfDomainStage::Impute => match tool {
             "glimpse" => {
-                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"glimpse","window_size_mb":2.0,"buffer_mb":0.2,"emit_gp":true})
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"glimpse","window_size_mb":2.0,"buffer_mb":0.2,"emit_gp":true,"chunking":chunking,"chunks_plan":chunks})
             }
             "impute5" => {
-                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"impute5","ne":20000,"r2_threshold":0.3})
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"impute5","ne":20000,"r2_threshold":0.3,"chunking":chunking,"chunks_plan":chunks})
             }
             "minimac4" => {
-                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"minimac4","rounds":5,"states":200,"min_rsq":0.3})
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"minimac4","rounds":5,"states":200,"min_rsq":0.3,"chunking":chunking,"chunks_plan":chunks})
             }
             _ => {
-                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"beagle","ne":10000,"impute":true})
+                serde_json::json!({"schema_version":"bijux.vcf.impute.params.v1","tool":"beagle","ne":10000,"impute":true,"chunking":chunking,"chunks_plan":chunks})
             }
         },
         VcfDomainStage::GlPropagation => serde_json::json!({
@@ -404,6 +437,62 @@ fn resolve_requested_stages(inputs: &VcfPipelineInputs) -> Result<Vec<VcfDomainS
     Ok(default_stages_for_coverage(inputs.coverage_regime))
 }
 
+fn plan_region_chunks(
+    species: &SpeciesContext,
+    chunking: &ChunkPlanSettings,
+) -> Result<Vec<RegionChunkPlan>> {
+    if chunking.window_size_bp == 0 {
+        bail!("chunk window_size_bp must be > 0");
+    }
+    if chunking.overlap_bp >= chunking.window_size_bp {
+        bail!("chunk overlap_bp must be < window_size_bp");
+    }
+    let mut chunks = Vec::new();
+    let include_all = chunking.chr_include.is_empty();
+    let step = chunking.window_size_bp - chunking.overlap_bp;
+    for contig in &species.contigs {
+        if !include_all && !chunking.chr_include.iter().any(|c| c == &contig.name) {
+            continue;
+        }
+        if chunking.chr_exclude.iter().any(|c| c == &contig.name) {
+            continue;
+        }
+        if contig.length_bp <= chunking.window_size_bp {
+            chunks.push(RegionChunkPlan {
+                chunk_id: format!("{}:whole", contig.name),
+                contig: contig.name.clone(),
+                start: 1,
+                end: contig.length_bp,
+            });
+            continue;
+        }
+        let mut start = 1u64;
+        let mut idx = 0usize;
+        while start <= contig.length_bp {
+            let end = std::cmp::min(start + chunking.window_size_bp - 1, contig.length_bp);
+            chunks.push(RegionChunkPlan {
+                chunk_id: format!("{}:{idx:05}", contig.name),
+                contig: contig.name.clone(),
+                start,
+                end,
+            });
+            if end == contig.length_bp {
+                break;
+            }
+            start = start.saturating_add(step);
+            idx += 1;
+        }
+    }
+    chunks.sort_by(|a, b| {
+        a.contig
+            .cmp(&b.contig)
+            .then(a.start.cmp(&b.start))
+            .then(a.end.cmp(&b.end))
+            .then(a.chunk_id.cmp(&b.chunk_id))
+    });
+    Ok(chunks)
+}
+
 fn stage_inputs_for(
     stage: VcfDomainStage,
     current_vcf: &Path,
@@ -439,7 +528,15 @@ fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<ArtifactSpec>
     } else {
         ArtifactRole::Reads
     };
-    vec![ArtifactSpec::required(ArtifactId::new(output), path, role)]
+    let mut outputs = vec![ArtifactSpec::required(ArtifactId::new(output), path, role)];
+    if stage == VcfDomainStage::PrepareReferencePanel {
+        outputs.push(ArtifactSpec::required(
+            ArtifactId::new("chunks_json"),
+            out_dir.join("chunks.json"),
+            ArtifactRole::MetricsJson,
+        ));
+    }
+    outputs
 }
 
 fn stage_command(stage: VcfDomainStage, tool: &str) -> CommandSpecV1 {
@@ -491,9 +588,11 @@ fn stage_plan(
     bundle: &bijux_dna_db_ref::ReferenceBundle,
     species_id: &str,
     build_id: &str,
+    chunking: &ChunkPlanSettings,
+    chunks: &[RegionChunkPlan],
 ) -> StagePlanV1 {
     let params = attach_reference_provenance(
-        stage_params(stage, tool, coverage, selected_panel),
+        stage_params(stage, tool, coverage, selected_panel, chunking, chunks),
         species_id,
         build_id,
         bundle,
@@ -568,6 +667,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         &inputs.species_context.build_id,
         inputs.map_id.as_deref(),
     )?;
+    let chunks = plan_region_chunks(&inputs.species_context, &inputs.chunking)?;
     if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
         bail!(
             "reference bundle drift detected: species context digest does not match bundle digest"
@@ -635,6 +735,8 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &bundle,
             &inputs.species_context.species_id,
             &inputs.species_context.build_id,
+            &inputs.chunking,
+            &chunks,
         );
         if let Some(out) = plan.io.outputs.first() {
             current_vcf = out.path.clone();
@@ -692,6 +794,9 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
     .ok()
     .flatten();
     let selected_panel = resolve_panel_lock(inputs).ok().flatten();
+    let chunk_count = plan_region_chunks(&inputs.species_context, &inputs.chunking)
+        .map(|c| c.len())
+        .unwrap_or(0);
     let stages = plans
         .iter()
         .map(|plan| PlannerExplainStage {
@@ -756,6 +861,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             serde_json::json!({
                 "id": "decision.chunking_selection",
                 "reason": "coverage-regime-specific defaults",
+                "chunk_count": chunk_count,
             }),
             serde_json::json!({
                 "id": "decision.imputation_accept",
