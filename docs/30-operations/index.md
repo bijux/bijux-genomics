@@ -8,4 +8,5 @@
 - `REPRODUCIBILITY.md`
 - `RUN_ARTIFACTS.md`
 - `vcf-downstream-triage.md`
+- `VCF_REFERENCE_CACHE_POLICY.md`
 - `SCOPE_CLOSURE_CHECKLIST.generated.md`
