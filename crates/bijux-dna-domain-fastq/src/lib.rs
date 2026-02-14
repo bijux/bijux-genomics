@@ -45,8 +45,8 @@ pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
 pub use invariants::{
-    evaluate_invariants, fastq_invariant_specs, thresholds_from_env, InvariantEvaluation,
-    InvariantThresholds,
+    evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,
+    InvariantEvaluation, InvariantThresholds,
 };
 pub use metrics::{
     BrackenClassificationMetricsV1, BrackenRecordV1, ClassificationDbProvenanceV1,
@@ -66,7 +66,8 @@ pub use params::{
     StageParamDescriptor,
 };
 pub use pipeline_contract::{
-    canonical_stage_order, forbidden_transitions, optional_branches, StageCriticality,
+    canonical_stage_order, forbidden_transitions, optional_branches, FastqPipelineMode,
+    StageCriticality,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
@@ -76,9 +77,11 @@ pub use stages::{
     stage_contract_json, HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
 pub use stages::{
-    bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER,
-    STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA,
-    STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    bench_dir_name, STAGES, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE,
+    STAGE_CHIMERA_DETECTION, STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
+    STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
+    STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
+    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 pub use stages::{
     canonical_contract_for_stage, infer_input_kind, qc_class_for_stage, FastqStage,

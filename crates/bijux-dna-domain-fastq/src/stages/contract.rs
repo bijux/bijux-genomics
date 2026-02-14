@@ -29,6 +29,11 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.contaminant_screen" => vec!["bbduk", "bowtie2"],
         "fastq.length_distribution_pre" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
+        "fastq.primer_normalization" => vec!["cutadapt", "seqkit"],
+        "fastq.chimera_detection" => vec!["vsearch"],
+        "fastq.asv_inference" => vec!["dada2"],
+        "fastq.otu_clustering" => vec!["vsearch"],
+        "fastq.abundance_normalization" => vec!["seqfu", "seqkit"],
         "fastq.validate_pre" => vec![
             "seqtk",
             "fastqc",
@@ -69,7 +74,7 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
     });
     let input_kind = format!("{:?}", contract.input_kind);
     let output_kind = format!("{:?}", contract.output_kind);
-    Some(serde_json::json!({
+    let mut payload = serde_json::json!({
         "schema_version": "bijux.stage_contract.v1",
         "stage_id": stage_id,
         "inputs": {
@@ -89,7 +94,27 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
         },
         "metrics": metrics.unwrap_or_else(|| serde_json::json!({})),
         "tool_ids": tool_ids_for_stage(stage_id),
-    }))
+    });
+    let amplicon_semantics = match stage_id {
+        "fastq.primer_normalization" => Some(serde_json::json!({
+                "orientation_policy": "normalize_to_primer_forward_orientation",
+                "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
+            })),
+        "fastq.chimera_detection" => Some(serde_json::json!({
+                "chimera_removed_definition": "reads flagged as de_novo/reference chimeras are excluded from downstream abundance tables"
+            })),
+        "fastq.asv_inference" => Some(serde_json::json!({
+                "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
+            })),
+        "fastq.otu_clustering" => Some(serde_json::json!({
+                "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
+            })),
+        _ => None,
+    };
+    if let (Some(map), Some(semantics)) = (payload.as_object_mut(), amplicon_semantics) {
+        map.insert("amplicon_semantics".to_string(), semantics);
+    }
+    Some(payload)
 }
 
 /// # Errors
@@ -117,6 +142,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     match stage_id {
         "fastq.trim"
         | "fastq.filter"
+        | "fastq.primer_normalization"
+        | "fastq.chimera_detection"
         | "fastq.deduplicate"
         | "fastq.low_complexity"
         | "fastq.polyg_tailing"
@@ -184,6 +211,19 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out == reads_in; bases_out == bases_in",
             retention_units: "reads,bases",
         }),
+        "fastq.asv_inference" | "fastq.otu_clustering" | "fastq.abundance_normalization" => {
+            Some(FastqStageContract {
+                input_kind: FastqArtifactKind::SingleEnd,
+                output_kind: FastqArtifactKind::StatsOnly,
+                may_drop_reads: false,
+                must_preserve_pairing: false,
+                emits_fastq: false,
+                preserves: &["sample_ids", "abundance_units"],
+                may_drop: &[],
+                retention_definition: "non-empty table rows and stable sample identifiers",
+                retention_units: "rows,samples",
+            })
+        }
         _ => None,
     }
 }
@@ -212,7 +252,10 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
                 return Err(anyhow!("stage {stage_id} requires merged input"));
             }
         }
-        FastqArtifactKind::StatsOnly => {}
+        FastqArtifactKind::StatsOnly
+        | FastqArtifactKind::AmpliconTable
+        | FastqArtifactKind::RepresentativeFasta
+        | FastqArtifactKind::TaxonomyMapping => {}
     }
     Ok(())
 }
@@ -407,6 +450,13 @@ pub fn normalize_outputs(
             })
         }
         FastqArtifactKind::StatsOnly => Ok(NormalizedOutputs {
+            r1: None,
+            r2: None,
+            merged: None,
+        }),
+        FastqArtifactKind::AmpliconTable
+        | FastqArtifactKind::RepresentativeFasta
+        | FastqArtifactKind::TaxonomyMapping => Ok(NormalizedOutputs {
             r1: None,
             r2: None,
             merged: None,
