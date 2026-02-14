@@ -42,6 +42,7 @@ INTERRUPTED=0
 PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unknown)"
 PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
 PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
+PROVENANCE_BUILD_SCRIPT_SHA256="$(shasum -a 256 "$0" | awk '{print $1}')"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$SBOM_DIR" "$SMOKE_ARCHIVE_ROOT" "$MANIFEST_DIR"
 
@@ -329,6 +330,7 @@ build_and_smoke_one() {
   manifest="$MANIFEST_DIR/${tool}.json"
   dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
   upstream=$(get_registry_field upstream "$tool")
+  source_sha256=$(get_registry_field source_sha256 "$tool")
   pinned_commit=$(get_registry_field pinned_commit "$tool")
   declared_version=$(get_registry_field version "$tool")
   image_ref="$image"
@@ -472,6 +474,7 @@ PY
     image_json="$(json_escape "$image")"
     declared_version_json="$(json_escape "$declared_version")"
     upstream_json="$(json_escape "$upstream")"
+    source_sha256_json="$(json_escape "$source_sha256")"
     pinned_commit_json="$(json_escape "$pinned_commit")"
     built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     payload=$(cat <<JSON
@@ -486,6 +489,8 @@ PY
   "resolved_image_digest": "$(json_escape "$image_digest")",
   "declared_version": "$declared_version_json",
   "upstream": "$upstream_json",
+  "tool_source_url": "$upstream_json",
+  "tool_source_hash": "$source_sha256_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
   "smoke_output_paths": {
@@ -514,6 +519,7 @@ PY
   "builder": "$(json_escape "$PROVENANCE_BUILDER")",
   "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
   "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
+  "build_script_sha256": "$(json_escape "$PROVENANCE_BUILD_SCRIPT_SHA256")",
   "built_at_utc": "$built_at"
 }
 JSON
@@ -526,6 +532,7 @@ JSON
     image_json="$(json_escape "$image")"
     declared_version_json="$(json_escape "$declared_version")"
     upstream_json="$(json_escape "$upstream")"
+    source_sha256_json="$(json_escape "$source_sha256")"
     pinned_commit_json="$(json_escape "$pinned_commit")"
     built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     payload=$(cat <<JSON
@@ -541,6 +548,8 @@ JSON
   "resolved_image_digest": "$(json_escape "$image_digest")",
   "declared_version": "$declared_version_json",
   "upstream": "$upstream_json",
+  "tool_source_url": "$upstream_json",
+  "tool_source_hash": "$source_sha256_json",
   "upstream_pin": "$pinned_commit_json",
   "version_command": "$cmd_json",
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
@@ -548,6 +557,7 @@ JSON
   "builder": "$(json_escape "$PROVENANCE_BUILDER")",
   "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",
   "versions_toml_sha256": "$(json_escape "$PROVENANCE_VERSIONS_SHA256")",
+  "build_script_sha256": "$(json_escape "$PROVENANCE_BUILD_SCRIPT_SHA256")",
   "version_output": "",
   "built_at_utc": "$built_at"
 }

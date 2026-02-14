@@ -53,6 +53,8 @@ if toolkit:
     allowed_tools &= set(str(t).strip() for t in tools) if allowed_tools else set(str(t).strip() for t in tools)
 
 rows = []
+per_tool_dir = root / "artifacts/containers/vuln"
+per_tool_dir.mkdir(parents=True, exist_ok=True)
 for p in sorted(sbom_root.rglob("*.packages.txt")):
     tool = p.parent.name
     if allowed_tools and tool not in allowed_tools:
@@ -67,6 +69,7 @@ for p in sorted(sbom_root.rglob("*.packages.txt")):
         row["status"] = "ok" if proc.returncode == 0 else "error"
         row["summary"] = proc.stdout[:2000] if proc.stdout else proc.stderr[:500]
     row["tool"] = tool
+    (per_tool_dir / f"{tool}.json").write_text(json.dumps(row, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     rows.append(row)
 
 payload = {

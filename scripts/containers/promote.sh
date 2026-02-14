@@ -55,6 +55,9 @@ if to_status == "production":
     sif_digest = str(by_tool[tool].get("resolved_sif_sha256", "")).strip()
     if not docker_digest and not sif_digest:
         raise SystemExit(f"tool '{tool}' cannot be promoted to production without locked artifact digest")
+    sbom_path = root / "artifacts/containers/sbom" / tool
+    if not sbom_path.exists():
+        raise SystemExit(f"tool '{tool}' cannot be promoted to production without sbom artifacts at {sbom_path}")
 PY
 
 python3 - "$ROOT_DIR" "$tool" "$to_status" <<'PY'
@@ -126,4 +129,7 @@ PY
 
 "$SCRIPT_DIR/generate-version-lock.sh"
 "$ROOT_DIR/scripts/domain/lock-registry.sh"
+if [[ "$to_status" == "production" ]]; then
+  REQUIRE_PROMOTED_SBOM=1 "$SCRIPT_DIR/check-sbom-artifacts.sh"
+fi
 echo "promoted $tool -> $to_status"
