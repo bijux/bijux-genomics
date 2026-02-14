@@ -76,6 +76,7 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         },
         pipeline_domain: "vcf".to_string(),
         chunking: ChunkPlanSettings::default(),
+        stage_param_overrides: BTreeMap::new(),
     }
 }
 
@@ -173,5 +174,21 @@ fn vcf_planner_refuses_edna_or_pollen_domain() {
         err.to_string().contains("eDNA/pollen")
             || err.to_string().contains("non-applicable domain"),
         "unexpected refusal message: {err}"
+    );
+}
+
+#[test]
+fn vcf_planner_refuses_unknown_stage_knob_override() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.stage_param_overrides.insert(
+        "vcf.impute".to_string(),
+        serde_json::json!({
+            "definitely_unknown_knob": 1
+        }),
+    );
+    let err = plan_vcf_stage_plans(&input).expect_err("unknown knob override must fail");
+    assert!(
+        err.to_string().contains("unknown knob for vcf.impute"),
+        "unexpected validation error: {err}"
     );
 }

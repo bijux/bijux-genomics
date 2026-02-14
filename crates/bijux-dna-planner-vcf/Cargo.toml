@@ -9,6 +9,7 @@ rust-version.workspace = true
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+toml.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }

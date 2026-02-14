@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Result};
@@ -59,6 +60,8 @@ pub struct VcfPipelineInputs {
     pub pipeline_domain: String,
     #[serde(default)]
     pub chunking: ChunkPlanSettings,
+    #[serde(default)]
+    pub stage_param_overrides: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -297,6 +300,68 @@ fn stage_params(
             "coverage_regime": coverage,
         }),
     }
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ParamRegistry {
+    #[serde(default)]
+    entries: Vec<ParamRegistryEntry>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct ParamRegistryEntry {
+    stage_id: String,
+    #[serde(default)]
+    params: Vec<String>,
+}
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn allowed_params_for_stage(stage_id: &str) -> Result<BTreeSet<String>> {
+    let path = workspace_root().join("configs/ci/params/param_registry_downstream.toml");
+    let raw = fs::read_to_string(&path)?;
+    let parsed: ParamRegistry = toml::from_str(&raw)?;
+    let mut allow = BTreeSet::new();
+    for entry in parsed.entries {
+        if entry.stage_id == stage_id {
+            for p in entry.params {
+                allow.insert(p);
+            }
+        }
+    }
+    Ok(allow)
+}
+
+fn apply_stage_param_overrides(
+    stage_id: &str,
+    mut base: serde_json::Value,
+    overrides: Option<&serde_json::Value>,
+) -> Result<serde_json::Value> {
+    let Some(override_value) = overrides else {
+        return Ok(base);
+    };
+    let obj = override_value
+        .as_object()
+        .ok_or_else(|| anyhow!("stage_param_overrides[{stage_id}] must be a JSON object"))?;
+    let allowed = allowed_params_for_stage(stage_id)?;
+    for key in obj.keys() {
+        if !allowed.contains(key) {
+            bail!("unknown knob for {stage_id}: `{key}` (not in param_registry_downstream.toml)");
+        }
+    }
+    let base_obj = base
+        .as_object_mut()
+        .ok_or_else(|| anyhow!("internal planner params must be JSON object"))?;
+    for (k, v) in obj {
+        base_obj.insert(k.clone(), v.clone());
+    }
+    Ok(base)
 }
 
 fn attach_reference_provenance(
@@ -636,18 +701,25 @@ fn stage_plan(
     bundle: &bijux_dna_db_ref::ReferenceBundle,
     species_id: &str,
     build_id: &str,
+    stage_param_overrides: &BTreeMap<String, serde_json::Value>,
     chunking: &ChunkPlanSettings,
     chunks: &[RegionChunkPlan],
     selection_rule: &str,
-) -> StagePlanV1 {
+) -> Result<StagePlanV1> {
+    let stage_id = stage.as_str().to_string();
     let params = attach_reference_provenance(
-        stage_params(stage, tool, coverage, selected_panel, map, chunking, chunks),
+        apply_stage_param_overrides(
+            &stage_id,
+            stage_params(stage, tool, coverage, selected_panel, map, chunking, chunks),
+            stage_param_overrides.get(&stage_id),
+        )
+        .map_err(|err| anyhow!("stage param override validation failed for {stage_id}: {err}"))?,
         species_id,
         build_id,
         bundle,
     );
-    StagePlanV1 {
-        stage_id: StageId::new(stage.as_str().to_string()),
+    Ok(StagePlanV1 {
+        stage_id: StageId::new(stage_id),
         stage_version: StageVersion(2),
         tool_id: ToolId::new(tool.to_string()),
         tool_version: "1.0".to_string(),
@@ -693,7 +765,7 @@ fn stage_plan(
                 "selection_rule": selection_rule,
             }),
         },
-    }
+    })
 }
 
 /// # Errors
@@ -818,10 +890,11 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &bundle,
             &inputs.species_context.species_id,
             &inputs.species_context.build_id,
+            &inputs.stage_param_overrides,
             &inputs.chunking,
             &chunks,
             &selection_rule,
-        );
+        )?;
         if let Some(out) = plan.io.outputs.first() {
             current_vcf = out.path.clone();
         }
