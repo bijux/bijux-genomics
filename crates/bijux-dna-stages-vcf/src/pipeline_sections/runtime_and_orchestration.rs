@@ -210,7 +210,7 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
     for rel in ["tmp", "chunks", "intermediate", "scratch"] {
         let candidate = out_dir.join(rel);
         if candidate.exists() {
-            let _ = bijux_dna_infra::remove_dir_all(candidate);
+            let _ = bijux_dna_infra::remove_dir_all(&candidate);
         }
     }
 }
@@ -616,4 +616,3 @@ pub fn run_imputation_orchestration_stage(
         logs_txt,
     })
 }
-
