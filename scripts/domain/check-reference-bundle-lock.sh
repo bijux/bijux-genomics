@@ -6,7 +6,7 @@ export LC_ALL
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 catalog="${ROOT_DIR}/configs/runtime/reference_bundles.toml"
-lock="${ROOT_DIR}/configs/runtime/reference_bundles.lock.sha256"
+lock="${ROOT_DIR}/configs/runtime/reference_bundles_lock.sha256"
 
 if [[ ! -f "$catalog" ]]; then
   echo "reference bundle lock check: missing ${catalog}" >&2
