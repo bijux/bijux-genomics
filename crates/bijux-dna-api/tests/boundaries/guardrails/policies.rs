@@ -28,7 +28,7 @@ fn api_has_no_planning_policy_keywords() {
         "/src/internal/handlers/bam.rs",
         "/src/internal/handlers/fastq/summary.rs",
         "/src/internal/handlers/fastq/summary_rendering.rs",
-        "/src/internal/handlers/fastq/summary_tests.rs",
+        "/src/internal/handlers/fastq/summary_contracts.rs",
     ];
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&src_dir)

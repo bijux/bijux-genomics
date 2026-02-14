@@ -36,4 +36,4 @@ include!("provenance_capture.rs");
 include!("html_rendering.rs");
 
 #[cfg(test)]
-include!("summary_tests.rs");
+include!("summary_contracts.rs");
