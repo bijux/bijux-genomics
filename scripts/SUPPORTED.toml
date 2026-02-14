@@ -1451,6 +1451,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "domain_check_reference_bundle_lock"
+path = "scripts/domain/check-reference-bundle-lock.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "domain_generate_inventory"
 path = "scripts/domain/generate-inventory.sh"
 purpose = "domain script"

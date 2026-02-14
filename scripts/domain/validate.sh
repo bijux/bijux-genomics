@@ -43,6 +43,7 @@ fi
 ./scripts/domain/check-orphan-files.sh
 ./scripts/domain/check-doc-links.sh
 ./scripts/domain/check-external-tool-policy.sh
+./scripts/domain/check-reference-bundle-lock.sh
 ./scripts/domain/check-inventory.sh
 
 cargo run -p bijux-dna-domain-compiler --bin domain_validate -- --domain-dir "$repo_root/domain"
