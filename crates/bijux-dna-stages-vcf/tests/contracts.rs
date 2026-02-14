@@ -262,4 +262,86 @@ mod contracts {
         .expect_err("species/build mismatch must fail");
         assert!(err.to_string().contains("species/build mismatch"));
     }
+
+    #[test]
+    fn phasing_stage_refuses_gl_only_without_backend_opt_in() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_only.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGP\t0.1,0.8,0.1\n",
+        )
+        .unwrap_or_else(|err| panic!("write gl-only fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248956422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_phasing_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                backend: PhasingBackend::Shapeit5,
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 11,
+                region: None,
+                allow_gl_only_input: false,
+            },
+        )
+        .expect_err("GL-only should fail without explicit support");
+        assert!(err.to_string().contains("GL-only/GP-only inputs are refused"));
+    }
+
+    #[test]
+    fn phasing_stage_allows_gl_only_with_backend_opt_in() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_only_allowed.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGL\t-0.1,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write gl-only fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248956422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let outputs = run_phasing_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                backend: PhasingBackend::Beagle,
+                map_id: None,
+                threads: 2,
+                seed: 12,
+                region: None,
+                allow_gl_only_input: true,
+            },
+        )
+        .unwrap_or_else(|err| panic!("GL-only explicit support should pass: {err}"));
+        assert!(outputs.phasing_manifest_json.exists());
+    }
 }

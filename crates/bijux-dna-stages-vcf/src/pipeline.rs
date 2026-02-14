@@ -666,10 +666,13 @@ pub fn run_phasing_stage(
         bail!("phasing requires non-empty VCF records");
     }
     if !has_gt {
-        if has_gl_or_gp && !params.allow_gl_only_input {
+        if has_gl_or_gp && params.allow_gl_only_input {
+            // Explicit opt-in path for backends that can phase from GL/GP-only inputs.
+        } else if has_gl_or_gp {
             bail!("GL-only/GP-only inputs are refused for phasing unless backend explicitly allows");
+        } else {
+            bail!("phasing requires GT field");
         }
-        bail!("phasing requires GT field");
     }
     if matches!(params.backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !diploid_ok {
         bail!("backend {} requires diploid GT genotypes", backend_tool);
