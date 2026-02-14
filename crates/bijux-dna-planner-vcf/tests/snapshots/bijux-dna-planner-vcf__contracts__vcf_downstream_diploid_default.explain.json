@@ -133,6 +133,7 @@
     {
       "coverage_regime": "diploid",
       "params_surface": {
+        "allow_gl_only_input": false,
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -748,6 +749,8 @@
             "start": 240100001
           }
         ],
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "pbwt_depth": 8,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -758,6 +761,8 @@
           "species_id": "Homo sapiens"
         },
         "schema_version": "bijux.vcf.phasing.params.v1",
+        "seed": 42,
+        "threads": 8,
         "tool": "shapeit5",
         "window_cM": 2.0
       },
