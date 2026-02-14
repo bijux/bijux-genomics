@@ -48,7 +48,7 @@ export COV_TMP_DIR=\"\$ISO_ROOT/tmp-cov\"
 export TEST_PROFRAW_DIR=\"\$ISO_ROOT/profraw-test\"
 export COV_PROFRAW_DIR=\"\$ISO_ROOT/profraw-cov\"
 export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"
-if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=\"\$(command -v sccache)\"; fi
+unset RUSTC_WRAPPER
 cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} -E \"${nextest_expr}\"
 ./scripts/checks/check-isolation-contract.sh
 "
