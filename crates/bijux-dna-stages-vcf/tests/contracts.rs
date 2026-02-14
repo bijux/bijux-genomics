@@ -235,6 +235,18 @@ mod contracts {
         assert!(outputs.phasing_manifest_json.exists());
         assert!(outputs.phasing_qc_json.exists());
         assert!(outputs.switch_error_proxy_tsv.exists());
+        let manifest_raw = std::fs::read_to_string(&outputs.phasing_manifest_json)
+            .unwrap_or_else(|err| panic!("read phasing manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse phasing manifest: {err}"));
+        let digest = manifest
+            .get("tool_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        assert!(
+            digest.starts_with("sha256:"),
+            "phasing manifest missing tool_digest sha256"
+        );
     }
 
     #[test]
@@ -410,6 +422,18 @@ mod contracts {
         assert!(outputs.info_hist_json.exists());
         assert!(outputs.warnings_json.exists());
         assert!(outputs.imputation_accept_json.exists());
+        let manifest_raw = std::fs::read_to_string(&outputs.imputation_manifest_json)
+            .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
+        let digest = manifest
+            .get("tool_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        assert!(
+            digest.starts_with("sha256:"),
+            "imputation manifest missing tool_digest sha256"
+        );
     }
 
     #[test]
