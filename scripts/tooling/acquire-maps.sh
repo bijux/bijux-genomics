@@ -87,17 +87,41 @@ for m in maps:
         expected = str(f["checksum_sha256"])
         target = raw_dir / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        if download:
-            if verbose:
-                print(f"[download] {mid}:{name} <- {url}")
-            with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
-                target.write_bytes(resp.read())
-        elif not target.exists():
-            target.write_text(f"placeholder for {mid}/{name}\n", encoding="utf-8")
-        got = hashlib.sha256(target.read_bytes()).hexdigest()
-        if download and got != expected:
+        synthetic = f"synthetic payload for {mid}/{name}\n".encode("utf-8")
+        action = "reuse"
+        if target.exists():
+            got = hashlib.sha256(target.read_bytes()).hexdigest()
+            if got != expected and download:
+                action = "redownload"
+                if verbose:
+                    print(f"[download] {mid}:{name} <- {url}")
+                with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
+                    target.write_bytes(resp.read())
+                got = hashlib.sha256(target.read_bytes()).hexdigest()
+            elif got != expected and not download:
+                action = "rewrite-synthetic"
+                target.write_bytes(synthetic)
+                got = hashlib.sha256(target.read_bytes()).hexdigest()
+        else:
+            if download:
+                action = "download"
+                if verbose:
+                    print(f"[download] {mid}:{name} <- {url}")
+                with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
+                    target.write_bytes(resp.read())
+            else:
+                action = "write-synthetic"
+                target.write_bytes(synthetic)
+            got = hashlib.sha256(target.read_bytes()).hexdigest()
+        if got != expected:
             raise SystemExit(f"checksum mismatch for {mid}:{name}: expected {expected}, got {got}")
-        observed.append({"name": name, "sha256": got, "path": str(target.relative_to(cache_root))})
+        observed.append({
+            "name": name,
+            "checksum_sha256": expected,
+            "observed_sha256": got,
+            "path": str(target.relative_to(cache_root)),
+            "action": action,
+        })
 
     derived_dir.joinpath("chunk_index.tsv").write_text("chunk\tregion\n0\tall\n", encoding="utf-8")
     rows.append({"map_id": mid, "species_id": sid, "build_id": bid, "files": observed})

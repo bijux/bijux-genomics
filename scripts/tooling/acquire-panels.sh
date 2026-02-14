@@ -96,23 +96,44 @@ for panel in panels:
         expected = str(f["checksum_sha256"])
         dest = raw_dir / rel_path
         dest.parent.mkdir(parents=True, exist_ok=True)
-        if download:
-            if verbose:
-                print(f"[download] {pid}:{name} <- {url}")
-            with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
-                dest.write_bytes(resp.read())
-        elif not dest.exists():
-            dest.write_text(f"placeholder for {pid}/{name}\n", encoding="utf-8")
-        got = hashlib.sha256(dest.read_bytes()).hexdigest()
-        if download and got != expected:
+        synthetic = f"synthetic payload for {pid}/{name}\n".encode("utf-8")
+        action = "reuse"
+        if dest.exists():
+            got = hashlib.sha256(dest.read_bytes()).hexdigest()
+            if got != expected and download:
+                action = "redownload"
+                if verbose:
+                    print(f"[download] {pid}:{name} <- {url}")
+                with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
+                    dest.write_bytes(resp.read())
+                got = hashlib.sha256(dest.read_bytes()).hexdigest()
+            elif got != expected and not download:
+                action = "rewrite-synthetic"
+                dest.write_bytes(synthetic)
+                got = hashlib.sha256(dest.read_bytes()).hexdigest()
+        else:
+            if download:
+                action = "download"
+                if verbose:
+                    print(f"[download] {pid}:{name} <- {url}")
+                with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
+                    dest.write_bytes(resp.read())
+            else:
+                action = "write-synthetic"
+                dest.write_bytes(synthetic)
+            got = hashlib.sha256(dest.read_bytes()).hexdigest()
+
+        if got != expected:
             raise SystemExit(f"checksum mismatch for {pid}:{name}: expected {expected}, got {got}")
         manifest_files.append({
             "name": name,
-            "path": str(dest.relative_to(cache_root)),
+            "path": rel_path,
+            "materialized_path": str(dest.relative_to(cache_root)),
             "url": url,
-            "expected_sha256": expected,
+            "checksum_sha256": expected,
             "observed_sha256": got,
             "format": str(f["format"]),
+            "action": action,
         })
 
     overlap_stub = derived_dir / "overlap.tsv"
@@ -126,6 +147,8 @@ for panel in panels:
         "species_id": sid,
         "build_id": bid,
         "version": version,
+        "license": str(panel.get("license", "")),
+        "citation": str(panel.get("citation", "")),
         "files": manifest_files,
         "storage_layout": {
             "raw": str(raw_dir.relative_to(cache_root)),
