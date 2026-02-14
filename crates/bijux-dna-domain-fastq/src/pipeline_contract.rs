@@ -9,6 +9,32 @@ pub enum StageCriticality {
     Experimental,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum FastqPipelineMode {
+    Shotgun,
+    Amplicon,
+}
+
+impl FastqPipelineMode {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Shotgun => "shotgun",
+            Self::Amplicon => "amplicon",
+        }
+    }
+}
+
 #[must_use]
 pub fn canonical_stage_order() -> Vec<StageId> {
     vec![
@@ -16,6 +42,21 @@ pub fn canonical_stage_order() -> Vec<StageId> {
         StageId::from_static("fastq.detect_adapters"),
         StageId::from_static("fastq.trim"),
         StageId::from_static("fastq.filter"),
+        StageId::from_static("fastq.stats_neutral"),
+    ]
+}
+
+#[must_use]
+pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
+    vec![
+        StageId::from_static("fastq.validate_pre"),
+        StageId::from_static("fastq.detect_adapters"),
+        StageId::from_static("fastq.primer_normalization"),
+        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.filter"),
+        StageId::from_static("fastq.chimera_detection"),
+        StageId::from_static("fastq.asv_inference"),
+        StageId::from_static("fastq.abundance_normalization"),
         StageId::from_static("fastq.stats_neutral"),
     ]
 }
@@ -68,6 +109,14 @@ pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
             StageId::from_static("fastq.stats_neutral"),
             StageId::from_static("fastq.merge"),
         ),
+        (
+            StageId::from_static("fastq.asv_inference"),
+            StageId::from_static("fastq.otu_clustering"),
+        ),
+        (
+            StageId::from_static("fastq.otu_clustering"),
+            StageId::from_static("fastq.asv_inference"),
+        ),
     ]
 }
 
@@ -80,7 +129,11 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.merge"
         | "fastq.correct"
         | "fastq.filter"
-        | "fastq.stats_neutral" => Some(StageCriticality::Essential),
+        | "fastq.stats_neutral"
+        | "fastq.primer_normalization"
+        | "fastq.chimera_detection"
+        | "fastq.abundance_normalization" => Some(StageCriticality::Essential),
+        "fastq.asv_inference" | "fastq.otu_clustering" => Some(StageCriticality::Optional),
         "fastq.qc_post" | "fastq.umi" | "fastq.preprocess" => Some(StageCriticality::Optional),
         "fastq.screen" => Some(StageCriticality::Experimental),
         _ => None,
@@ -91,6 +144,20 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
 pub fn preprocess_pipeline() -> PipelineSpec {
     PipelineSpec {
         stages: canonical_stage_order()
+            .into_iter()
+            .map(|stage| stage.as_str().to_string())
+            .collect(),
+    }
+}
+
+#[must_use]
+pub fn preprocess_pipeline_for_mode(mode: FastqPipelineMode) -> PipelineSpec {
+    let stages = match mode {
+        FastqPipelineMode::Shotgun => canonical_stage_order(),
+        FastqPipelineMode::Amplicon => canonical_amplicon_stage_order(),
+    };
+    PipelineSpec {
+        stages: stages
             .into_iter()
             .map(|stage| stage.as_str().to_string())
             .collect(),

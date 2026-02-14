@@ -11,6 +11,7 @@ use super::trim::TrimEffectiveParams;
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use super::validate::ValidateEffectiveParams;
 use super::PairedMode;
+use crate::pipeline_contract::FastqPipelineMode;
 
 fn paired_mode(paired: bool) -> PairedMode {
     if paired {
@@ -110,6 +111,7 @@ pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
 #[must_use]
 pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
     PreprocessEffectiveParams {
+        pipeline_mode: FastqPipelineMode::Shotgun,
         paired_mode: paired_mode(paired),
         library_declared_paired: paired,
         library_damage_treatment: LibraryDamageTreatment::NoUdg,

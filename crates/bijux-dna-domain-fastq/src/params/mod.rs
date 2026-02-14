@@ -5,15 +5,17 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
-    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
-    STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM,
-    STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
+    STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_PREPROCESS,
+    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
+    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE, STAGE_OTU_CLUSTERING,
 };
 use bijux_dna_core::ids::StageId;
 
 pub mod correct;
 pub mod defaults;
 pub mod detect_adapters;
+pub mod edna;
 pub mod filter;
 pub mod merge;
 pub mod preprocess;
@@ -104,6 +106,36 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
+    if stage_id == &STAGE_PRIMER_NORMALIZATION {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.primer_normalization",
+            schema_version: edna::EDNA_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_CHIMERA_DETECTION {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.chimera_detection",
+            schema_version: edna::EDNA_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_ASV_INFERENCE {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.asv_inference",
+            schema_version: edna::EDNA_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_OTU_CLUSTERING {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.otu_clustering",
+            schema_version: edna::EDNA_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_ABUNDANCE_NORMALIZATION {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.abundance_normalization",
+            schema_version: edna::EDNA_SCHEMA_VERSION,
+        });
+    }
     None
 }
 
@@ -147,6 +179,11 @@ pub enum EffectiveParams {
     Screen(screen::ScreenEffectiveParams),
     QcPost(qc_post::QcPostEffectiveParams),
     Preprocess(preprocess::PreprocessEffectiveParams),
+    PrimerNormalization(edna::PrimerNormalizationEffectiveParams),
+    ChimeraDetection(edna::ChimeraDetectionEffectiveParams),
+    AsvInference(edna::AsvInferenceEffectiveParams),
+    OtuClustering(edna::OtuClusteringEffectiveParams),
+    AbundanceNormalization(edna::AbundanceNormalizationEffectiveParams),
 }
 
 impl EffectiveParams {
@@ -165,6 +202,11 @@ impl EffectiveParams {
             Self::Screen(params) => params.missing_required_fields(),
             Self::QcPost(params) => params.missing_required_fields(),
             Self::Preprocess(params) => params.missing_required_fields(),
+            Self::PrimerNormalization(_) => Vec::new(),
+            Self::ChimeraDetection(_) => Vec::new(),
+            Self::AsvInference(_) => Vec::new(),
+            Self::OtuClustering(_) => Vec::new(),
+            Self::AbundanceNormalization(_) => Vec::new(),
         }
     }
 
@@ -183,6 +225,13 @@ impl EffectiveParams {
             Self::Screen(params) => params.retention_conditions(),
             Self::QcPost(params) => params.retention_conditions(),
             Self::Preprocess(params) => params.retention_conditions(),
+            Self::PrimerNormalization(params) => serde_json::to_value(params).unwrap_or_default(),
+            Self::ChimeraDetection(params) => serde_json::to_value(params).unwrap_or_default(),
+            Self::AsvInference(params) => serde_json::to_value(params).unwrap_or_default(),
+            Self::OtuClustering(params) => serde_json::to_value(params).unwrap_or_default(),
+            Self::AbundanceNormalization(params) => {
+                serde_json::to_value(params).unwrap_or_default()
+            }
         }
     }
 }
@@ -258,6 +307,31 @@ pub fn parse_effective_params(
         return serde_json::from_value::<preprocess::PreprocessEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Preprocess);
+    }
+    if stage_id == &STAGE_PRIMER_NORMALIZATION {
+        return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::PrimerNormalization);
+    }
+    if stage_id == &STAGE_CHIMERA_DETECTION {
+        return serde_json::from_value::<edna::ChimeraDetectionEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::ChimeraDetection);
+    }
+    if stage_id == &STAGE_ASV_INFERENCE {
+        return serde_json::from_value::<edna::AsvInferenceEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::AsvInference);
+    }
+    if stage_id == &STAGE_OTU_CLUSTERING {
+        return serde_json::from_value::<edna::OtuClusteringEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::OtuClustering);
+    }
+    if stage_id == &STAGE_ABUNDANCE_NORMALIZATION {
+        return serde_json::from_value::<edna::AbundanceNormalizationEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::AbundanceNormalization);
     }
     None
 }
