@@ -640,7 +640,6 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
- "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "serde",
  "serde_json",
@@ -766,12 +765,10 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
- "bijux-dna-runtime",
  "bijux-dna-testkit",
  "regex",
  "serde",
  "serde_json",
- "sha2",
  "tempfile",
 ]
 
