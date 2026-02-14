@@ -23,7 +23,7 @@ Fields:
 - `configs/runtime/coverage_regimes.toml`
 - `configs/runtime/species_aliases.toml`
 - `configs/runtime/reference_bundles.toml`
-- `configs/runtime/reference_bundles.lock.sha256`
+- `configs/runtime/reference_bundles_lock.sha256`
 - `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
 

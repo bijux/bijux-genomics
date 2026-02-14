@@ -22,7 +22,7 @@ Imputation in bijux means: converting partially observed genotypes into inferred
 ## Species/Build Governance
 - Planner admission requires successful `{species_id, build_id}` resolution to a canonical `SpeciesContext`.
 - Planner admission requires successful canonical reference bundle resolution with lock hashes.
-- Bundle drift is lock-governed: when `configs/runtime/reference_bundles.toml` changes, `configs/runtime/reference_bundles.lock.sha256` must update or gates fail.
+- Bundle drift is lock-governed: when `configs/runtime/reference_bundles.toml` changes, `configs/runtime/reference_bundles_lock.sha256` must update or gates fail.
 - Supported feature flags are keyed by `{species_id, build_id}` (for example `imputation`, `sex_chr`).
 - Contig normalization is policy-governed per bundle:
   - `strict_only`: chr/no-chr mismatches are refused.
