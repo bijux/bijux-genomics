@@ -12,11 +12,6 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Version authority: `containers/docs/VERSION_AUTHORITY.md`
 - Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
 - HPC frontend build authority: `containers/docs/FRONTEND_BUILD_AUTHORITY.md`
-- Frontend rebuild determinism: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY.md`
-- Frontend reproducibility report: `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
-- Frontend security doctrine: `containers/docs/APPTAINER_FRONTEND_SECURITY.md`
-- Frontend security summary: `containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md`
-- Stage freeze record: `containers/docs/HPC_FRONTEND_STAGE1_STABLE.md`
 - Build + style rules: `containers/docs/STYLE.md`
 - Smoke: `containers/docs/SMOKE_CONTRACT.md`
 - Lock/versioning: `containers/versions/LOCK.md`
@@ -42,7 +37,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `adapterremoval` | `experimental` | `bijux` | `arm64` |
 | `addeam` | `experimental` | `bijux` | `arm64` |
 | `alientrimmer` | `production` | `bijux` | `arm64` |
-| `angsd` | `production` | `bijux` | `arm64` |
+| `angsd` | `planned` | `bijux` | `arm64` |
 | `atropos` | `experimental` | `bijux` | `arm64` |
 | `authenticct` | `production` | `bijux` | `arm64` |
 | `bamtools` | `production` | `bijux` | `arm64` |
@@ -112,3 +107,4 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `verifybamid2` | `production` | `bijux` | `arm64` |
 | `vsearch` | `production` | `bijux` | `arm64` |
 | `yleaf` | `experimental` | `bijux` | `arm64` |
+

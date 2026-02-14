@@ -4,7 +4,7 @@
 adapterremoval	experimental
 addeam	experimental
 alientrimmer	production
-angsd	production
+angsd	planned
 atropos	experimental
 authenticct	production
 bamtools	production

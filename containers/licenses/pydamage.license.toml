@@ -2,6 +2,8 @@
 # owner = bijux-dna-platform
 tool_id = "pydamage"
 container_kind = "bijux"
-license = "GPL-3.0"
-upstream_source = "https://github.com/bijux/bijux-dna"
+spdx = "GPL-3.0"
+upstream_url = "https://github.com/bijux/bijux-dna"
+redistribution_note = "See upstream license terms and redistribution policy."
+citation = "upstream:https://github.com/bijux/bijux-dna"
 version = "0.80"

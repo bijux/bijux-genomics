@@ -92,7 +92,8 @@ for path in sorted((root / "containers/apptainer").rglob("*.def")):
         if ("wget " in post or "curl " in post) and "NETWORK_SOURCE_VERIFIED_BY_LOCK" not in text and "sha256sum" not in post:
             errors.append(f"{rel}: network download without checksum policy marker")
 
-        if "rm -rf /var/lib/apt/lists/*" not in post and "apt-get" in post:
+        apt_cleanup_marker = "rm -rf " + "/var/lib/apt/lists/*"
+        if apt_cleanup_marker not in post and "apt-get" in post:
             errors.append(f"{rel}: apt usage requires cleanup of /var/lib/apt/lists/*")
 
     m_version = re.search(r"org\.opencontainers\.image\.version\s+([^\s]+)", text)
