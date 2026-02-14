@@ -1355,6 +1355,38 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "domain_check_rust_stage_catalog_parity"
+path = "scripts/domain/check-rust-stage-catalog-parity.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "domain_check_tool_metadata"
+path = "scripts/domain/check-domain-tool-metadata.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "domain_check_planner_stage_coverage"
+path = "scripts/domain/check-planner-stage-coverage.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "domain_check_planner_fixture_coverage"
+path = "scripts/domain/check-planner-fixture-coverage.sh"
+purpose = "domain script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "domain_generate_index"
 path = "scripts/domain/generate-index.sh"
 purpose = "domain script"
