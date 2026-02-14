@@ -185,7 +185,8 @@ where
             stage if stage == STAGE_PRIMER_NORMALIZATION.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
                     return Err(anyhow!(
-                        "fastq.primer_normalization requires cutadapt/seqkit; got {}",
+                        "{} requires cutadapt/seqkit; got {}",
+                        STAGE_PRIMER_NORMALIZATION.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -205,7 +206,8 @@ where
             stage if stage == STAGE_CHIMERA_DETECTION.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
                     return Err(anyhow!(
-                        "fastq.chimera_detection requires vsearch; got {}",
+                        "{} requires vsearch; got {}",
+                        STAGE_CHIMERA_DETECTION.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -225,7 +227,8 @@ where
             stage if stage == STAGE_ASV_INFERENCE.as_str() => {
                 if tool.tool_id.as_str() != "dada2" {
                     return Err(anyhow!(
-                        "fastq.asv_inference requires dada2 tool binding; got {}",
+                        "{} requires dada2 tool binding; got {}",
+                        STAGE_ASV_INFERENCE.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -244,7 +247,8 @@ where
             stage if stage == STAGE_OTU_CLUSTERING.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
                     return Err(anyhow!(
-                        "fastq.otu_clustering requires vsearch; got {}",
+                        "{} requires vsearch; got {}",
+                        STAGE_OTU_CLUSTERING.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -263,7 +267,8 @@ where
             stage if stage == STAGE_ABUNDANCE_NORMALIZATION.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "seqfu" | "seqkit") {
                     return Err(anyhow!(
-                        "fastq.abundance_normalization requires seqfu/seqkit; got {}",
+                        "{} requires seqfu/seqkit; got {}",
+                        STAGE_ABUNDANCE_NORMALIZATION.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -326,7 +331,11 @@ fn plan_amplicon_stage(
                 bijux_dna_core::prelude::ArtifactId::from_static("stage_output"),
                 out_dir.join(format!(
                     "{}.out",
-                    stage_id.replace("fastq.", "").replace('.', "_")
+                    stage_id
+                        .split_once('.')
+                        .map(|(_, suffix)| suffix)
+                        .unwrap_or(stage_id)
+                        .replace('.', "_")
                 )),
                 bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
             )],
