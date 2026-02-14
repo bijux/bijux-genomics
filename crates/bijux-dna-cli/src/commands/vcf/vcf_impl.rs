@@ -4,6 +4,7 @@ use bijux_dna_db_ref::resolve_species_context;
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
+use bijux_dna_stages_vcf::invariants::InvariantConfig;
 use bijux_dna_stages_vcf::pipeline::{
     PhasingBackend, PhasingStageParams, PostprocessStageParams,
 };
@@ -104,6 +105,7 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 normalize_indels: false,
                 run_level_checksums_path: Some(out_dir.join("artifact_checksums.json")),
             }),
+            invariants: InvariantConfig::default(),
         })?;
 
         std::fs::write(

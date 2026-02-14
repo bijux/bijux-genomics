@@ -13,6 +13,7 @@ use crate::pipeline::{
     run_prepare_reference_panel_stage, run_stats_stage, ImputeStageParams, PhasingStageParams,
     PostprocessStageParams, PrepareReferencePanelParams,
 };
+use crate::invariants::{run_vcf_preflight, InvariantConfig, VcfPreflightResult};
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -56,6 +57,7 @@ pub struct VcfPipelineRequest {
     pub phasing: Option<PhasingStageParams>,
     pub impute: Option<ImputeStageParams>,
     pub postprocess: Option<PostprocessStageParams>,
+    pub invariants: InvariantConfig,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -81,6 +83,7 @@ pub struct VcfPipelineResult {
     pub artifact_root: PathBuf,
     pub stages: Vec<VcfStageOutputs>,
     pub report_path: PathBuf,
+    pub preflight: VcfPreflightResult,
 }
 
 pub struct VcfStageRunContext<'a> {
@@ -393,12 +396,19 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
     let stage_list = deterministic_stage_list(&request.requested_stages)?;
     let artifact_root = request.run_root.join("artifacts").join("vcf");
     std::fs::create_dir_all(&artifact_root)?;
+    let preflight = run_vcf_preflight(
+        &request.input_vcf,
+        &artifact_root.join("validate_inputs"),
+        &request.species_context,
+        &request.invariants,
+    )
+    .map_err(|err| refusal(VcfRefusalCode::InvariantsFailed, err.to_string()))?;
     let ctx = VcfStageRunContext {
         request,
         artifact_root: artifact_root.clone(),
     };
 
-    let mut current = request.input_vcf.clone();
+    let mut current = preflight.normalized_input.clone();
     let mut stage_outputs = Vec::<VcfStageOutputs>::new();
     for stage in stage_list {
         let runner = DispatchRunner { stage };
@@ -426,6 +436,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
         artifact_root,
         stages: stage_outputs,
         report_path,
+        preflight,
     };
     verify_contract_surface(&result)?;
     Ok(result)
