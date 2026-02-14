@@ -86,7 +86,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
                 "id": "decision.backend_selection",
                 "reason": "resolved_coverage_regime + stage/tool compatibility",
                 "resolved_coverage_regime": resolved_coverage_regime,
-                "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless user requested subset"
+                "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless operator requested subset"
             }),
             serde_json::json!({
                 "id": "decision.panel_selection",

@@ -303,7 +303,7 @@ pub fn workspace_edges() -> Result<BTreeSet<(String, String)>> {
         .context("exec cargo metadata")?;
     let workspace_members: HashSet<cargo_metadata::PackageId> =
         metadata.workspace_members.iter().cloned().collect();
-    let mut id_to_name = HashMap::new();
+    let mut id_to_name = BTreeMap::new();
     for pkg in &metadata.packages {
         id_to_name.insert(pkg.id.clone(), pkg.name.clone());
     }

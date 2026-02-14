@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use bijux_dna_policies::GuardrailConfig;
 use walkdir::WalkDir;
 
-include!("workspace_rules/helpers.rs");
+include!("workspace_rules/workspace_paths.rs");
 include!("workspace_rules/layout_contracts.rs");
 include!("workspace_rules/dependency_graph_contracts.rs");
 include!("workspace_rules/boundary_enforcement.rs");

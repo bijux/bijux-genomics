@@ -340,6 +340,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-planner-fastq/src/selection/tool_selection.rs",
         "crates/bijux-dna-planner-bam/src/selection/tool_registry.rs",
         "crates/bijux-dna-planner-bam/src/tool_adapters/tools/mod.rs",
+        "crates/bijux-dna-domain-compiler/src/compiler_sections/domain_models_and_utils.rs",
         "crates/bijux-dna-domain-fastq/src/stages/contract.rs",
         "crates/bijux-dna-domain-bam/src/stage_specs/mod.rs",
     ];

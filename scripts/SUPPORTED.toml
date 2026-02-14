@@ -2461,7 +2461,7 @@ ci_allowed = true
 
 [[script]]
 id = "vcf_deprecate_knob"
-path = "scripts/vcf/deprecate-knob.sh"
+path = "scripts/tooling/deprecate-vcf-knob.sh"
 purpose = "vcf governance script"
 inputs = ["configs/vcf/deprecations/knobs.toml"]
 outputs = ["configs/vcf/deprecations/knobs.toml"]
@@ -2469,7 +2469,7 @@ ci_allowed = false
 
 [[script]]
 id = "vcf_deprecate_panel"
-path = "scripts/vcf/deprecate-panel.sh"
+path = "scripts/tooling/deprecate-vcf-panel.sh"
 purpose = "vcf governance script"
 inputs = ["configs/vcf/deprecations/panels.toml"]
 outputs = ["configs/vcf/deprecations/panels.toml"]

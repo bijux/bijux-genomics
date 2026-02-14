@@ -25,7 +25,7 @@
       "id": "decision.backend_selection",
       "reason": "resolved_coverage_regime + stage/tool compatibility",
       "resolved_coverage_regime": "pseudohaploid",
-      "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless user requested subset"
+      "why_stage_chosen": "stage order comes from resolved coverage regime defaults unless operator requested subset"
     },
     {
       "id": "decision.panel_selection",

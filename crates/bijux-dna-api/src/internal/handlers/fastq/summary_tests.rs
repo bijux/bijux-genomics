@@ -15,6 +15,7 @@ mod tests {
         format!("bijux-dna-api__{group}__{name}")
     }
 
+    /// Contract intent: run manifest serialization always includes defaults ledger metadata.
     #[test]
     fn run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-dna-run-manifest")?;
@@ -86,6 +87,7 @@ mod tests {
         Ok(())
     }
 
+    /// Snapshot intent: scientific provenance JSON remains schema-stable and path-normalized.
     #[test]
     #[allow(clippy::too_many_lines)]
     fn scientific_provenance_contract_is_written() -> anyhow::Result<()> {
