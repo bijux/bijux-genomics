@@ -3,7 +3,7 @@
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "scripts/containers/generate-version-lock.sh",
-  "generator_sha256": "532614171cab6b522f2335c66455bc09050faae592fa4014b81827ad627595f9",
+  "generator_sha256": "406b7af38d274353f89bd147c2e2437a0971b7e383da33ce878f7dda1e3543a1",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
