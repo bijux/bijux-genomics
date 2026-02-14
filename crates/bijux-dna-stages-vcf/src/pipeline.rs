@@ -196,46 +196,6 @@ pub fn run_stats_stage(
 }
 
 /// # Errors
-/// Returns an error if pipeline execution fails.
-pub fn run_toy_vcf_pipeline(
-    input_vcf: &Path,
-    out_dir: &Path,
-    sample_name: &str,
-) -> Result<(PathBuf, PathBuf, PathBuf, VcfStatsMetricsV1)> {
-    let called = out_dir.join("called.vcf");
-    let filtered = out_dir.join("filtered.vcf.gz");
-    let stats = out_dir.join("stats.tsv");
-    let tbi = out_dir.join("filtered.vcf.gz.tbi");
-    run_call_stage(
-        input_vcf,
-        &called,
-        &VcfCallParams {
-            sample_name: sample_name.to_string(),
-            ..VcfCallParams::default()
-        },
-    )?;
-    run_filter_stage(
-        &called,
-        &filtered,
-        &VcfFilterParams {
-            sample_name: sample_name.to_string(),
-            ..VcfFilterParams::default()
-        },
-    )?;
-    let metrics = run_stats_stage(
-        &filtered,
-        &stats,
-        &VcfStatsParams {
-            sample_name: sample_name.to_string(),
-            ..VcfStatsParams::default()
-        },
-    )?;
-    std::fs::write(&tbi, b"tabix-index-placeholder\n")?;
-    assert_bgzip_tabix_artifacts(&filtered, &tbi)?;
-    Ok((called, filtered, stats, metrics))
-}
-
-/// # Errors
 /// Returns an error if VCF/index artifact pairing is invalid.
 pub fn assert_bgzip_tabix_artifacts(vcf_path: &Path, tbi_path: &Path) -> Result<()> {
     if !vcf_path.exists() {
