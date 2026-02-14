@@ -1,10 +1,15 @@
 # Benchmark Variance Policy
 
-Purpose: define acceptable run-to-run variance for frontend mini benchmark integrity checks.
+## Purpose
+Define acceptable run-to-run variance for frontend mini benchmark integrity checks.
 
-Scope: mini benchmark integrity runs executed via `scripts/run.sh tooling benchmark-integrity-mini`.
+## Scope
+Mini benchmark integrity runs executed via `scripts/run.sh tooling benchmark-integrity-mini`.
 
-Contract:
+## Non-goals
+This policy does not define domain-science correctness thresholds.
+
+## Contracts
 - Runtime relative variance threshold: `<= 0.20` (20%).
 - Memory relative variance threshold: `<= 0.25` (25%).
 - `report.html` normalized structure must match across consecutive runs.

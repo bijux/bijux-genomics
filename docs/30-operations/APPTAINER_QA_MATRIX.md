@@ -21,7 +21,7 @@ Derived from tool registries and container metadata fields.
 | `adapterremoval` | `containers/apptainer/bijux/adapterremoval.def` | `adapterremoval --version` | `adapterremoval --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `addeam` | `containers/apptainer/bijux/addeam.def` | `addeam --version` | `addeam --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `alientrimmer` | `containers/apptainer/bijux/alientrimmer.def` | `alientrimmer --version` | `alientrimmer --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `production` |
-| `angsd` | `containers/apptainer/bijux/angsd.def` | `angsd --version` | `angsd --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `production` |
+| `angsd` | `containers/apptainer/non-bijux/bcftools.def` | `angsd 2>&1 | head -n 1` | `angsd -h` | `-` | `0` | `minimal command contract` | `build+smoke required` | `planned` |
 | `atropos` | `containers/apptainer/bijux/atropos.def` | `atropos --version` | `atropos --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `authenticct` | `containers/apptainer/bijux/authenticct.def` | `authenticct --version` | `authenticct --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `production` |
 | `bamtools` | `containers/apptainer/bijux/bamtools.def` | `bamtools --version` | `bamtools --help` | `-` | `0` | `minimal command contract` | `build+smoke required` | `production` |

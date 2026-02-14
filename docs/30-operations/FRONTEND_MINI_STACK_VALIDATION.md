@@ -1,6 +1,16 @@
 # Frontend Mini Stack Validation
 
-Purpose: document mini/test-stack behavioral validation for FASTQ, BAM, and VCF frontend workflows.
+## Purpose
+Document mini/test-stack behavioral validation for FASTQ, BAM, and VCF frontend workflows.
+
+## Scope
+Frontend-only mini/test stacks executed by repository validation scripts.
+
+## Non-goals
+This document does not define heavy-corpus performance or production-scale acceptance criteria.
+
+## Contracts
+The mini validator must enforce all checks listed below.
 
 ## Runner
 - Script: `scripts/tooling/validate-frontend-mini-domain-stacks.sh`

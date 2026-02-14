@@ -6,6 +6,9 @@ Clarify workspace source licensing versus container/runtime tool licensing.
 ## Scope
 Applies to repository source code, generated artifacts, and container recipes/images.
 
+## Non-goals
+This page does not replace legal review for downstream redistribution obligations.
+
 ## Contracts
 - Workspace source code license is defined in root `LICENSE`.
 - Container recipes may package third-party tools with different upstream licenses.

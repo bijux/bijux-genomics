@@ -124,6 +124,7 @@ children = [
   "docs/30-operations/DEVELOPER_WORKFLOW.md",
   "docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md",
   "docs/30-operations/EXPLAINABILITY.md",
+  "docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md",
   "docs/30-operations/HPC_LUNARC_LAYOUT.md",
   "docs/30-operations/ISOLATION.md",
   "docs/30-operations/MKDOCS_BUILD.md",
