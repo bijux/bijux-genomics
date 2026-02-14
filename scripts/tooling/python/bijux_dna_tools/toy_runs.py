@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -20,6 +21,7 @@ PROFILES = {
     "bam": "bam_reference_adna",
     "vcf": "vcf_reference_basic",
 }
+DEFAULT_GENERATED_AT = "1970-01-01T00:00:00+00:00"
 
 
 def sha256_file(path: Path) -> str:
@@ -92,7 +94,8 @@ def generate_profile(profile: str, out_root: Path, checksums: Dict[str, str]) ->
     profile_id = PROFILES[profile]
     out_dir = out_root / profile_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    now = datetime.now(timezone.utc).isoformat()
+    # Keep golden generation deterministic across repeated runs.
+    now = os.environ.get("BIJUX_TOY_GENERATED_AT", DEFAULT_GENERATED_AT)
 
     manifest = {
         "schema_version": "bijux.toy.run_manifest.v1",
@@ -186,9 +189,11 @@ def compare_to_goldens(run_root: Path) -> None:
         raise RuntimeError("golden mismatch:\n" + "\n".join(offenders))
 
 
-def refresh_goldens(run_root: Path, accept: bool) -> None:
+def refresh_goldens(run_root: Path, accept: bool, sync_golden: bool) -> None:
     if not accept:
         raise RuntimeError("golden refresh refused: pass --accept")
+    if not sync_golden:
+        return
     GOLDEN_ROOT.mkdir(parents=True, exist_ok=True)
     for profile_id in PROFILES.values():
         src = run_root / profile_id
@@ -228,6 +233,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--profile", choices=["fastq", "bam", "vcf", "all"], default="all")
     p.add_argument("--out", default=str(ROOT / "artifacts" / "toy_runs"))
     p.add_argument("--accept", action="store_true")
+    p.add_argument("--sync-golden", action="store_true")
     return p.parse_args()
 
 
@@ -245,8 +251,11 @@ def main() -> int:
         print("golden-check: ok")
         return 0
     if args.command == "refresh":
-        refresh_goldens(run_root, args.accept)
-        print("golden-refresh: updated")
+        refresh_goldens(run_root, args.accept, args.sync_golden)
+        if args.sync_golden:
+            print("golden-refresh: updated")
+        else:
+            print(f"golden-refresh: generated in {run_root} (no repo sync)")
         return 0
     if args.command == "demo":
         report = build_combined_report(run_root)
