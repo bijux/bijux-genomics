@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_dna_core::contract::PlanPolicy;
-use bijux_dna_domain_vcf::contracts::PanelSelectionContext;
+use bijux_dna_domain_vcf::contracts::{
+    ContigSpec, EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
+    SpeciesContext,
+};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
     explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, VcfPanelLock, VcfPipelineInputs,
@@ -27,6 +30,43 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
             target_build: "GRCh37".to_string(),
             ancestry_hint: None,
             use_restricted_license: false,
+        },
+        species_context: SpeciesContext {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 249250621,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 243199373,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch37_par".to_string(),
+            default_coverage_regime: Some(regime),
+        },
+        entry_vcf_invariants: EntryVcfInvariantState {
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            sorted_by_contig_and_pos: true,
+            bgzip_compressed: true,
+            tabix_index_present: true,
+            sample_ids_non_empty_unique: true,
+            ploidy_constraints_ok: true,
+        },
+        panel_map_invariants: PanelMapInvariantState {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            phased_or_gl_compatible: true,
+            format_requirements_ok: true,
+            sample_count_ok: true,
+            license_allowed: true,
+            checksums_match: true,
         },
     }
 }

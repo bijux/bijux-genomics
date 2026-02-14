@@ -8,7 +8,12 @@ use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
 use bijux_dna_domain_vcf::{
-    contracts::{DefaultPanelSelectionPolicy, PanelSelectionContext, PanelSelectionPolicy, ReferencePanelGovernance},
+    contracts::{
+        refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
+        validate_panel_map_invariants, validate_species_context, DefaultPanelSelectionPolicy,
+        EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
+        PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
+    },
     taxonomy::{CoverageRegime, DomainSupportStatus, VcfDomainStage},
 };
 use bijux_dna_stage_contract::{
@@ -40,6 +45,9 @@ pub struct VcfPipelineInputs {
     #[serde(default)]
     pub panel_locks: Vec<VcfPanelLock>,
     pub panel_selection: PanelSelectionContext,
+    pub species_context: SpeciesContext,
+    pub entry_vcf_invariants: EntryVcfInvariantState,
+    pub panel_map_invariants: PanelMapInvariantState,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -56,7 +64,12 @@ pub struct PlannerExplainV1 {
     pub schema_version: String,
     pub planner_version: String,
     pub coverage_regime: CoverageRegime,
+    pub backend_selection_reason: String,
+    pub panel_selection_reason: String,
+    pub map_selection_reason: String,
+    pub chunking_selection_reason: String,
     pub selected_panel: Option<VcfPanelLock>,
+    pub decision_traces: Vec<serde_json::Value>,
     pub stages: Vec<PlannerExplainStage>,
 }
 
@@ -266,6 +279,13 @@ fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>
     }))
 }
 
+fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
+    validate_species_context(&inputs.species_context)?;
+    validate_entry_vcf_invariants(&inputs.species_context, &inputs.entry_vcf_invariants)?;
+    validate_panel_map_invariants(&inputs.species_context, &inputs.panel_map_invariants)?;
+    Ok(())
+}
+
 fn default_stages_for_coverage(regime: CoverageRegime) -> Vec<VcfDomainStage> {
     match regime {
         CoverageRegime::LowCovGl => vec![
@@ -412,12 +432,17 @@ fn stage_plan(
 /// # Errors
 /// Returns an error when stage selection is invalid for downstream execution.
 pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV1>> {
+    validate_species_and_invariants(inputs)?;
     let selected_panel = resolve_panel_lock(inputs)?;
     let stages = resolve_requested_stages(inputs)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
     }
+    let requires_diploid_imputation = stages
+        .iter()
+        .any(|s| matches!(s, VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute));
+    refuse_unsupported_regime_transition(inputs.coverage_regime, requires_diploid_imputation)?;
 
     let mut seen = BTreeSet::new();
     let mut plans = Vec::new();
@@ -492,7 +517,47 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
         schema_version: "bijux.vcf.planner_explain.v1".to_string(),
         planner_version: PLANNER_VERSION.to_string(),
         coverage_regime: inputs.coverage_regime,
+        backend_selection_reason: format!(
+            "selected backend family from coverage regime {:?} and stage tool compatibility",
+            inputs.coverage_regime
+        ),
+        panel_selection_reason: if selected_panel.is_some() {
+            "panel selected by build/license/ancestry policy".to_string()
+        } else {
+            "no panel required by resolved stage set".to_string()
+        },
+        map_selection_reason: format!(
+            "map compatibility enforced by species/build/contig digest ({}/{})",
+            inputs.species_context.species_id, inputs.species_context.build_id
+        ),
+        chunking_selection_reason: match inputs.coverage_regime {
+            CoverageRegime::LowCovGl => "lowcov_gl defaults to smaller windows for imputation stability".to_string(),
+            CoverageRegime::Diploid => "diploid defaults to larger chunks for throughput".to_string(),
+            CoverageRegime::Pseudohaploid => "pseudohaploid mode avoids diploid imputation chunking".to_string(),
+        },
         selected_panel,
+        decision_traces: vec![
+            serde_json::json!({
+                "id": "decision.backend_selection",
+                "reason": "coverage_regime + stage/tool compatibility",
+            }),
+            serde_json::json!({
+                "id": "decision.panel_selection",
+                "reason": "build/license/ancestry constraints",
+            }),
+            serde_json::json!({
+                "id": "decision.map_selection",
+                "reason": "species_id/build_id/contig_set_digest invariants",
+            }),
+            serde_json::json!({
+                "id": "decision.chunking_selection",
+                "reason": "coverage-regime-specific defaults",
+            }),
+            serde_json::json!({
+                "id": "decision.imputation_accept",
+                "reason": "qc thresholds and overlap stats gate acceptance",
+            }),
+        ],
         stages,
     }
 }
