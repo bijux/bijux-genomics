@@ -88,6 +88,9 @@ _containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output an
 apptainer-build-all: ## Build+smoke every Apptainer runtime tool on frontend and refresh lock.
 	@ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/hpc/frontend-smoke" ./scripts/run.sh containers apptainer-build-all
 
+docker-build-all: ## Build+smoke every docker-arm64 runtime tool and refresh lock.
+	@ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/docker-arm64" ./scripts/run.sh containers docker-build-all
+
 _apptainer-ensure: ## Ensure apptainer images from SSOT stage list. Use DOMAIN=<domain> STAGES=<s1,s2>
 	@DOMAIN="$(DOMAIN)" STAGES="$(STAGES)" BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" BIJUX_BIN="$(BIJUX_BIN)" ./scripts/run.sh containers apptainer-ensure
 
@@ -114,4 +117,5 @@ _containers: ## Print tools/runtime/result/log summary from target-containers ma
 	_smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run _smoke-cntainers-apptainer-verify \
 	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
 	_containers-apptainer-build apptainer-build-all _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _containers \
+	docker-build-all \
 	_apptainer-ensure _apptainer-ensure-stage

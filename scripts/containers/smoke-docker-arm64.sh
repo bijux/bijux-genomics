@@ -27,6 +27,7 @@ VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-contract}"
+SMOKE_INPUT_POLICY="${SMOKE_INPUT_POLICY:-$ROOT_DIR/configs/ci/tools/smoke_inputs_policy.toml}"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
@@ -259,6 +260,29 @@ get_negative_exit_code() {
   printf '%s\n' "$value"
 }
 
+get_smoke_input_path() {
+  tool="$1"
+  if [ ! -f "$SMOKE_INPUT_POLICY" ]; then
+    printf '%s\n' ""
+    return 0
+  fi
+  python3 - "$SMOKE_INPUT_POLICY" "$tool" <<'PY'
+import sys
+from pathlib import Path
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+path = Path(sys.argv[1])
+tool = sys.argv[2]
+data = tomllib.loads(path.read_text(encoding="utf-8"))
+inputs = data.get("tool_inputs", {})
+value = inputs.get(tool, "")
+print(str(value) if value else "")
+PY
+}
+
 get_negative_pattern() {
   tool="$1"
   value=$(get_registry_field smoke_negative_expected_pattern "$tool")
@@ -309,10 +333,22 @@ build_and_smoke_one() {
   declared_version=$(get_registry_field version "$tool")
   image_ref="$image"
   image_digest="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image" 2>/dev/null | head -n 1 || true)"
+  smoke_input_path="$(get_smoke_input_path "$tool")"
+  smoke_input_ok=true
+  if [ -n "$smoke_input_path" ]; then
+    if [ ! -s "$ROOT_DIR/$smoke_input_path" ]; then
+      echo "smoke input path missing or empty: $smoke_input_path"
+      smoke_input_ok=false
+      phase="smoke_input"
+    fi
+  fi
   phase="build"
 
   mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   {
+    if [ "$smoke_input_ok" != "true" ]; then
+      exit 1
+    fi
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
     echo "image: $image"
@@ -472,6 +508,8 @@ PY
   "sbom_path": "$(json_escape "$sbom_file")",
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
+  "smoke_input_path": "$(json_escape "$smoke_input_path")",
+  "smoke_input_ok": $([[ "$smoke_input_ok" == "true" ]] && echo "true" || echo "false"),
   "self_report_path": "$(json_escape "$self_report_file")",
   "builder": "$(json_escape "$PROVENANCE_BUILDER")",
   "git_sha": "$(json_escape "$PROVENANCE_GIT_SHA")",

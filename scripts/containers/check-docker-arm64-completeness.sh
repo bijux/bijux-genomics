@@ -17,9 +17,25 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 root = Path(sys.argv[1])
-apptainer = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
-apptainer |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
 docker = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
+registry_paths = [
+    root / "configs/ci/registry/tool_registry.toml",
+    root / "configs/ci/registry/tool_registry_vcf.toml",
+    root / "configs/ci/registry/tool_registry_experimental.toml",
+    root / "configs/ci/registry/tool_registry_vcf_downstream.toml",
+]
+required = set()
+for rp in registry_paths:
+    if not rp.exists():
+        continue
+    data = tomllib.loads(rp.read_text(encoding="utf-8"))
+    for row in data.get("tools", []):
+        if not isinstance(row, dict):
+            continue
+        tool = str(row.get("id") or row.get("tool_id") or "").strip()
+        runtimes = row.get("runtimes", [])
+        if tool and isinstance(runtimes, list) and "docker" in runtimes:
+            required.add(tool)
 
 waiver_path = root / "containers/docker/arm64/WAIVERS.toml"
 waived = set()
@@ -38,13 +54,12 @@ if waiver_path.exists():
             raise SystemExit(1)
         waived.add(tool)
 
-missing = sorted((apptainer - docker) - waived)
+missing = sorted((required - docker) - waived)
 if missing:
-    print("docker arm64 completeness: missing dockerfile for apptainer tools:", file=sys.stderr)
+    print("docker arm64 completeness: missing dockerfile for docker runtime registry tools:", file=sys.stderr)
     for tool in missing:
         print(f"- {tool}", file=sys.stderr)
     raise SystemExit(1)
 
 print("docker arm64 completeness: OK")
 PY
-

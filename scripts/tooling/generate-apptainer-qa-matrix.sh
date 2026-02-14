@@ -20,8 +20,9 @@ REG2="$ROOT_DIR/configs/ci/registry/tool_registry_vcf.toml"
 REG3="$ROOT_DIR/configs/ci/registry/tool_registry_experimental.toml"
 REG4="$ROOT_DIR/configs/ci/registry/tool_registry_vcf_downstream.toml"
 SUMMARY_JSON="$ROOT_DIR/artifacts/containers/summary.json"
+LOCK_JSON="$ROOT_DIR/containers/versions/lock.json"
 
-python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$SUMMARY_JSON" "$OUT"
+python3 - <<'PY' "$REG1" "$REG2" "$REG3" "$REG4" "$SUMMARY_JSON" "$LOCK_JSON" "$OUT"
 from pathlib import Path
 import sys
 import json
@@ -54,9 +55,14 @@ def parse_tools(path: Path):
 
 regs = [Path(p) for p in sys.argv[1:5]]
 summary_json = Path(sys.argv[5])
-out = Path(sys.argv[6])
+lock_json = Path(sys.argv[6])
+out = Path(sys.argv[7])
 rows = {}
 status_from_summary = {}
+docker_digest_from_summary = {}
+appt_digest_from_summary = {}
+lock_docker_digest = {}
+lock_appt_digest = {}
 
 if summary_json.exists():
     try:
@@ -65,8 +71,32 @@ if summary_json.exists():
             tool = item.get("tool")
             runtime = item.get("runtime")
             status = item.get("status")
-            if tool and runtime == "apptainer" and status:
-                status_from_summary[tool] = status
+            digest = str(item.get("resolved_image_digest") or "").strip()
+            if not tool:
+                continue
+            if runtime == "apptainer":
+                if status:
+                    status_from_summary[tool] = status
+                if digest:
+                    appt_digest_from_summary[tool] = digest
+            elif runtime == "docker-arm64" and digest:
+                docker_digest_from_summary[tool] = digest
+    except Exception:
+        pass
+
+if lock_json.exists():
+    try:
+        lock_payload = json.loads(lock_json.read_text(encoding="utf-8"))
+        for item in lock_payload.get("items", []):
+            tool = str(item.get("tool", "")).strip()
+            if not tool:
+                continue
+            d = str(item.get("resolved_image_digest", "")).strip()
+            a = str(item.get("sif_digest_sha256", "")).strip()
+            if d:
+                lock_docker_digest[tool] = d
+            if a:
+                lock_appt_digest[tool] = a
     except Exception:
         pass
 for rp in regs:
@@ -86,6 +116,8 @@ for rp in regs:
             'smoke_minimal_rationale': t.get('smoke_minimal_rationale', 'minimal command contract'),
             'status': status_from_summary.get(tool, t.get('status', 'unknown')),
             'qa_rule': 'build+smoke required',
+            'docker_digest': docker_digest_from_summary.get(tool, lock_docker_digest.get(tool, '-')),
+            'apptainer_digest': appt_digest_from_summary.get(tool, lock_appt_digest.get(tool, '-')),
         }
 
 lines = [
@@ -107,14 +139,15 @@ lines = [
     '- Tool row exists iff registry runtimes include `apptainer`.',
     '- `apptainer_def` and smoke command fields are surfaced for QA checks.',
     '',
-    '| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Minimal Rationale | QA Rule | Status |',
-    '|---|---|---|---|---|---|---|---|---|',
+    '| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Status |',
+    '|---|---|---|---|---|---|---|---|---|---|---|',
 ]
 for tool in sorted(rows):
     r = rows[tool]
     lines.append(
         f"| `{tool}` | `{r['apptainer_def']}` | `{r['smoke_version_cmd']}` | "
         f"`{r['smoke_help_cmd']}` | `{r['smoke_minimal_cmd']}` | `{r['smoke_minimal_exit_code']}` | "
+        f"`{r['docker_digest']}` | `{r['apptainer_digest']}` | "
         f"`{r['smoke_minimal_rationale']}` | "
         f"`{r['qa_rule']}` | `{r['status']}` |"
     )
