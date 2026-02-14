@@ -82,6 +82,7 @@ scripts/domain/check-rust-stage-catalog-parity.sh
 scripts/domain/check-domain-tool-metadata.sh
 scripts/domain/check-planner-stage-coverage.sh
 scripts/domain/check-planner-fixture-coverage.sh
+scripts/domain/check-reference-bundle-lock.sh
 scripts/domain/validate.sh
 scripts/examples/check-drift.sh
 scripts/examples/check-index.sh
