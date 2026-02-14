@@ -1,5 +1,8 @@
 mod contracts {
-    use bijux_dna_domain_vcf::{param_registry_toml, required_tools_toml, VcfStage};
+    use bijux_dna_domain_vcf::{
+        param_registry_toml, required_tools_toml, validate_downstream_transition, VcfDomainStage,
+        VcfStage, VCF_STAGE_ORDER_DOWNSTREAM,
+    };
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
@@ -8,6 +11,49 @@ mod contracts {
             .map(|s| s.as_str())
             .collect::<Vec<_>>();
         assert_eq!(ids, vec!["vcf.call", "vcf.filter", "vcf.stats"]);
+    }
+
+    #[test]
+    fn vcf_domain_stage_taxonomy_covers_domain_index_set() {
+        let ids = VcfDomainStage::all()
+            .iter()
+            .map(|stage| stage.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            ids,
+            vec![
+                "vcf.admixture",
+                "vcf.call",
+                "vcf.call_diploid",
+                "vcf.call_gl",
+                "vcf.call_pseudohaploid",
+                "vcf.damage_filter",
+                "vcf.demography",
+                "vcf.filter",
+                "vcf.gl_propagation",
+                "vcf.ibd",
+                "vcf.imputation",
+                "vcf.impute",
+                "vcf.pca",
+                "vcf.phasing",
+                "vcf.population_structure",
+                "vcf.postprocess",
+                "vcf.prepare_reference_panel",
+                "vcf.qc",
+                "vcf.roh",
+                "vcf.stats",
+            ]
+        );
+    }
+
+    #[test]
+    fn vcf_downstream_order_blocks_back_edges() {
+        assert!(validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok());
+        assert!(
+            validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
+                .is_err()
+        );
+        assert_eq!(VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()), Some("vcf.prepare_reference_panel"));
     }
 
     #[test]
