@@ -11,9 +11,10 @@ mod contracts {
     use bijux_dna_stages_vcf::pipeline::{
         assert_bgzip_tabix_artifacts, run_call_diploid_stage, run_call_gl_stage,
         run_call_pseudohaploid_stage, run_chunked_regions, run_damage_filter_stage,
+        run_gl_propagation_stage,
         run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
         ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
-        DamageFilterStageParams, DamageUdgRegime, ImputeStageParams, PhasingBackend,
+        DamageFilterStageParams, DamageUdgRegime, GlPropagationStageParams, ImputeStageParams, PhasingBackend,
         PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
@@ -97,6 +98,7 @@ mod contracts {
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
+            gl_propagation: None,
             phasing: None,
             impute: None,
             postprocess: None,
@@ -158,6 +160,7 @@ mod contracts {
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
+            gl_propagation: None,
             phasing: None,
             impute: None,
             postprocess: None,
@@ -242,6 +245,7 @@ mod contracts {
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
+            gl_propagation: None,
             phasing: None,
             impute: None,
             postprocess: None,
@@ -357,6 +361,7 @@ mod contracts {
                 min_qual: 1.0,
                 max_damage_ratio: 1.0,
             }),
+            gl_propagation: None,
             phasing: None,
             impute: None,
             postprocess: None,
@@ -373,6 +378,98 @@ mod contracts {
             .unwrap_or_else(|| panic!("missing damage_filter stage"));
         assert!(stage.artifact_dir.join("damage_filter_summary.json").exists());
         assert!(stage.artifact_dir.join("damage_filter_counts.json").exists());
+    }
+
+    #[test]
+    fn gl_propagation_requires_gl_or_pl_when_configured() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let err = run_gl_propagation_stage(
+            input,
+            dir.path(),
+            &GlPropagationStageParams {
+                require_gl_or_pl: true,
+                expected_ploidy: Some(2),
+                emit_bcf: true,
+            },
+        )
+        .expect_err("expected GL/PL requirement to fail on GT-only fixture");
+        assert!(err.to_string().contains("requires GL/PL"));
+    }
+
+    #[test]
+    fn gl_propagation_emits_normalized_outputs_and_report() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write gl fixture: {err}"));
+        let out = run_gl_propagation_stage(
+            &input,
+            dir.path(),
+            &GlPropagationStageParams::default(),
+        )
+        .unwrap_or_else(|err| panic!("run gl propagation: {err}"));
+        assert!(out.normalized_vcf.exists());
+        assert!(out.normalized_tbi.exists());
+        assert!(out.normalized_bcf.as_ref().is_some_and(|p| p.exists()));
+        assert!(out
+            .normalized_bcf_csi
+            .as_ref()
+            .is_some_and(|p| p.exists()));
+        assert!(out.gl_propagation_report_json.exists());
+    }
+
+    #[test]
+    fn vcf_pipeline_runs_gl_propagation_stage() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_pipeline_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write gl pipeline fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248956422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input,
+            species_context: species,
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![VcfDomainStage::GlPropagation],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            damage_filter: None,
+            gl_propagation: Some(GlPropagationStageParams::default()),
+            phasing: None,
+            impute: None,
+            postprocess: None,
+            invariants: InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        })
+        .unwrap_or_else(|err| panic!("run gl_propagation pipeline: {err}"));
+        let stage = out
+            .stages
+            .iter()
+            .find(|s| s.stage_id == "vcf.gl_propagation")
+            .unwrap_or_else(|| panic!("missing gl_propagation stage"));
+        assert!(stage.artifact_dir.join("gl_propagation_report.json").exists());
     }
 
     #[test]
