@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_domain_fastq::{STAGE_TRIM, STAGE_VALIDATE_PRE};
 use bijux_dna_domain_fastq::FastqPipelineMode;
+use bijux_dna_domain_fastq::{STAGE_TRIM, STAGE_VALIDATE_PRE};
 use bijux_dna_stage_contract::StagePlanV1;
 
 fn snapshot_name(group: &str, name: &str) -> String {

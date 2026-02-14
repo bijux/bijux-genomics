@@ -1,6 +1,6 @@
 use anyhow::Result;
-use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
 use bijux_dna_domain_fastq::FastqPipelineMode;
+use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
 use bijux_dna_planner_fastq::{default_pipeline_spec, DefaultPipelineOptions};
 use std::collections::BTreeSet;
 
@@ -41,7 +41,10 @@ fn fastq_domain_yaml_matches_rust_stage_catalog() -> Result<()> {
         .iter()
         .map(|s| s.to_string())
         .collect::<BTreeSet<_>>();
-    assert_eq!(yaml, rust, "domain fastq stage IDs drifted from Rust catalog");
+    assert_eq!(
+        yaml, rust,
+        "domain fastq stage IDs drifted from Rust catalog"
+    );
     Ok(())
 }
 

@@ -111,7 +111,10 @@ mod stage_runner_contract {
         let contracts: &[PrefixDomainStageRunnerContract] = match runner {
             RunnerContractKind::Docker => DOCKER_DOMAIN_CONTRACTS,
         };
-        if contracts.iter().any(|contract| contract.supports_stage(stage_id)) {
+        if contracts
+            .iter()
+            .any(|contract| contract.supports_stage(stage_id))
+        {
             return Ok(());
         }
         Err(anyhow!(
