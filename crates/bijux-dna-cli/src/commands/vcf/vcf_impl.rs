@@ -2,10 +2,9 @@ use crate::commands::cli::parse::{DnaCommand, VcfCommand, VcfRunArgs};
 use crate::commands::command_prelude::{anyhow, render, Cli, Path, Result};
 use bijux_dna_db_ref::resolve_species_context;
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
-use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
+use bijux_dna_domain_vcf::VcfDomainStage;
+use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
 use bijux_dna_stages_vcf::pipeline::{
-    run_call_stage, run_chunked_regions, run_filter_stage, run_phasing_stage,
-    run_postprocess_stage, run_stats_stage, ChunkFailurePolicy, ChunkingPlanParams,
     PhasingBackend, PhasingStageParams, PostprocessStageParams,
 };
 
@@ -58,130 +57,42 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         ));
     }
     let out_dir = Path::new(&args.out);
-    let called_vcf = out_dir.join("called.vcf.gz");
-    let filtered_vcf = out_dir.join("filtered.vcf.gz");
-    let stats_path = out_dir.join("vcf.stats.tsv");
+    let resolved = resolve_species_context("Homo sapiens", "GRCh38")
+        .map_err(|err| anyhow!("resolve species context: {err}"))?;
+    let species: SpeciesContext = resolved.context;
     if !args.dry_run {
-        run_call_stage(
-            Path::new(&args.vcf),
-            &called_vcf,
-            &VcfCallParams {
-                sample_name: args.sample_name.clone(),
-                reference_fasta: args
-                    .reference_fasta
-                    .as_ref()
-                    .map(|p| p.display().to_string()),
-                ..VcfCallParams::default()
-            },
-        )?;
-        run_filter_stage(
-            &called_vcf,
-            &filtered_vcf,
-            &VcfFilterParams {
-                sample_name: args.sample_name.clone(),
-                production_profile: args.production_profile,
-                ..VcfFilterParams::default()
-            },
-        )?;
-        let metrics = run_stats_stage(
-            &filtered_vcf,
-            &stats_path,
-            &VcfStatsParams {
-                sample_name: args.sample_name.clone(),
-                ..VcfStatsParams::default()
-            },
-        )?;
-        let tbi_path = out_dir.join("filtered.vcf.gz.tbi");
-        std::fs::write(&tbi_path, b"tabix-index-placeholder\n")
-            .map_err(|err| anyhow!("write {}: {err}", tbi_path.display()))?;
-        let resolved = resolve_species_context("Homo sapiens", "GRCh38")
-            .map_err(|err| anyhow!("resolve species context: {err}"))?;
-        let species: SpeciesContext = resolved.context;
-        let report_path = out_dir.join("vcf_report.json");
-        let phasing_backend = match args.tool.as_deref() {
-            Some("beagle") => PhasingBackend::Beagle,
-            Some("eagle") => PhasingBackend::Eagle,
-            _ => PhasingBackend::Shapeit5,
-        };
-        let phasing_outputs = match run_phasing_stage(
-            &filtered_vcf,
-            &out_dir.join("vcf_phasing"),
-            &species,
-            &PhasingStageParams {
+        let pipeline_result = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: out_dir.to_path_buf(),
+            input_vcf: Path::new(&args.vcf).to_path_buf(),
+            species_context: species.clone(),
+            sample_name: args.sample_name.clone(),
+            requested_stages: vec![
+                VcfDomainStage::Call,
+                VcfDomainStage::Filter,
+                VcfDomainStage::Stats,
+                VcfDomainStage::Phasing,
+                VcfDomainStage::Postprocess,
+            ],
+            production_profile: args.production_profile,
+            reference_fasta: args.reference_fasta.as_ref().map(|p| p.display().to_string()),
+            prepare_panel: None,
+            panel_vcf: None,
+            phasing: Some(PhasingStageParams {
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
-                backend: phasing_backend,
+                backend: match args.tool.as_deref() {
+                    Some("beagle") => PhasingBackend::Beagle,
+                    Some("eagle") => PhasingBackend::Eagle,
+                    _ => PhasingBackend::Shapeit5,
+                },
                 map_id: Some("hsapiens_grch38_chr_map".to_string()),
                 threads: args.max_parallel_chunks.max(1),
                 seed: 42,
                 region: None,
-                allow_gl_only_input: matches!(phasing_backend, PhasingBackend::Beagle),
-            },
-        ) {
-            Ok(outputs) => Some(outputs),
-            Err(err)
-                if err.to_string().contains("phasing requires GT field")
-                    || err.to_string().contains("GL-only/GP-only inputs are refused") =>
-            {
-                None
-            }
-            Err(err) => return Err(err),
-        };
-        std::fs::write(
-            &report_path,
-            serde_json::to_vec_pretty(&serde_json::json!({
-                "schema_version": "bijux.report.section.vcf.v1",
-                "sample_name": args.sample_name,
-                "call_summary": metrics.call_summary,
-                "filter_summary": metrics.filter_summary,
-                "ti_tv": metrics.ti_tv,
-                "depth_distribution": metrics.depth_distribution,
-                "phasing_backend": phasing_backend.as_str(),
-                "phasing_manifest": phasing_outputs.as_ref().map(|x| x.phasing_manifest_json.clone()),
-            }))?,
-        )
-        .map_err(|err| anyhow!("write {}: {err}", report_path.display()))?;
-
-        let chunk_outputs = run_chunked_regions(
-            &filtered_vcf,
-            &filtered_vcf,
-            out_dir,
-            &species,
-            &ChunkingPlanParams {
-                window_size_bp: args.chunk_window_size_bp,
-                overlap_bp: args.chunk_overlap_bp,
-                chr_include: if args.chunk_chr_include.is_empty() {
-                    None
-                } else {
-                    Some(args.chunk_chr_include.clone())
-                },
-                chr_exclude: args.chunk_chr_exclude.clone(),
-                max_parallel_chunks: args.max_parallel_chunks,
-                chr_level_threshold_bp: args.chunk_window_size_bp,
-            },
-            if args.partial_allowed {
-                ChunkFailurePolicy::PartialAllowed
-            } else {
-                ChunkFailurePolicy::FailFast
-            },
-            args.rerun_chunk.as_deref(),
-        )?;
-        let chunk_report_path = out_dir.join("chunk_report.json");
-        std::fs::write(
-            &chunk_report_path,
-            serde_json::to_vec_pretty(&chunk_outputs)?,
-        )
-        .map_err(|err| anyhow!("write {}: {err}", chunk_report_path.display()))?;
-
-        let postprocess_input = phasing_outputs
-            .as_ref()
-            .map(|x| x.phased_vcf.clone())
-            .unwrap_or_else(|| filtered_vcf.clone());
-        let postprocess_outputs = run_postprocess_stage(
-            &postprocess_input,
-            &out_dir.join("vcf_postprocess"),
-            &species,
-            &PostprocessStageParams {
+                allow_gl_only_input: matches!(args.tool.as_deref(), Some("beagle")),
+            }),
+            impute: None,
+            postprocess: Some(PostprocessStageParams {
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 per_chr_inputs: vec![],
@@ -192,14 +103,13 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 emit_bcf: false,
                 normalize_indels: false,
                 run_level_checksums_path: Some(out_dir.join("artifact_checksums.json")),
-            },
-        )?;
-        let postprocess_report_path = out_dir.join("postprocess_report.json");
+            }),
+        })?;
+
         std::fs::write(
-            &postprocess_report_path,
-            serde_json::to_vec_pretty(&postprocess_outputs)?,
-        )
-        .map_err(|err| anyhow!("write {}: {err}", postprocess_report_path.display()))?;
+            out_dir.join("vcf_pipeline_result.json"),
+            serde_json::to_vec_pretty(&pipeline_result)?,
+        )?;
     }
     render::json::print_pretty(&serde_json::json!({
         "command": "vcf.run",
@@ -210,22 +120,9 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         "sample_name": args.sample_name,
         "reference_fasta": args.reference_fasta.as_ref().map(|p| p.display().to_string()),
             "outputs": {
-                "called_vcf": called_vcf,
-                "filtered_vcf": filtered_vcf,
-                "filtered_index": out_dir.join("filtered.vcf.gz.tbi"),
-                "phased_vcf": out_dir.join("vcf_phasing/phased.vcf.gz"),
-                "phased_index": out_dir.join("vcf_phasing/phased.vcf.gz.tbi"),
-                "phasing_manifest": out_dir.join("vcf_phasing/phasing_manifest.json"),
-                "phasing_qc": out_dir.join("vcf_phasing/phasing_qc.json"),
-                "stats": stats_path,
-                "report": out_dir.join("vcf_report.json"),
-                "chunks": out_dir.join("chunks.json"),
-                "chunk_merged_vcf": out_dir.join("merged_chunks.vcf.gz"),
-                "chunk_report": out_dir.join("chunk_report.json"),
-                "postprocess_vcf": out_dir.join("vcf_postprocess/postprocess.vcf.gz"),
-                "postprocess_bcf": out_dir.join("vcf_postprocess/postprocess.bcf"),
-                "postprocess_validate": out_dir.join("vcf_postprocess/validate_outputs.json"),
-                "postprocess_checksums": out_dir.join("vcf_postprocess/artifact_checksums.json"),
+                "artifact_root": out_dir.join("artifacts/vcf"),
+                "report": out_dir.join("report.json"),
+                "pipeline_result": out_dir.join("vcf_pipeline_result.json"),
                 "run_checksums": out_dir.join("artifact_checksums.json"),
         },
             "chunking": {
