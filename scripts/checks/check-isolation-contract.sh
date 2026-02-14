@@ -30,14 +30,14 @@ tag_printed="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -
 }
 
 case "$root_a" in
-  "$ROOT_DIR"/artifacts/isolates/*) ;;
+  "$ROOT_DIR"/artifacts/isolates/*|"${ISO_ROOT:-$ROOT_DIR/artifacts/isolates}"/*) ;;
   *)
     echo "isolation-contract: ISO_ROOT must be inside artifacts/isolates: $root_a" >&2
     exit 1
     ;;
 esac
 case "$root_b" in
-  "$ROOT_DIR"/artifacts/isolates/*) ;;
+  "$ROOT_DIR"/artifacts/isolates/*|"${ISO_ROOT:-$ROOT_DIR/artifacts/isolates}"/*) ;;
   *)
     echo "isolation-contract: ISO_ROOT must be inside artifacts/isolates: $root_b" >&2
     exit 1

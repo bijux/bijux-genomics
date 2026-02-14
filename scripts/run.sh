@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
+LC_ALL=C
+export LC_ALL
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/.." && pwd)
@@ -107,7 +111,7 @@ end_epoch="$(date +%s)"
 end_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 duration_s=$((end_epoch - start_epoch))
 
-timing_dir="${ISO_ROOT:-$ROOT_DIR/artifacts}/timing"
+timing_dir="${ARTIFACT_DIR:-${ISO_ROOT:-$ROOT_DIR/artifacts}/timing}"
 ensure_artifacts_dir "$timing_dir"
 mkdir -p "$timing_dir"
 timing_file="$timing_dir/${group}__${command//\//_}.json"

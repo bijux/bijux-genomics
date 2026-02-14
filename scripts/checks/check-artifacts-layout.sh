@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
@@ -19,7 +21,7 @@ while IFS= read -r rel; do
     case "$path" in
       artifacts/[a-z0-9_-]*/[a-zA-Z0-9._-]*|artifacts/[a-z0-9_-]*/[a-zA-Z0-9._-]*/[A-Za-z0-9._/-]*)
         ;;
-      artifacts/isolates|artifacts/isolates/*|artifacts/tmp|artifacts/tmp/*|artifacts/docs|artifacts/docs/*|artifacts/coverage|artifacts/coverage/*|artifacts/inventory|artifacts/inventory/*|artifacts/test-logs|artifacts/test-logs/*|artifacts/assets-refresh|artifacts/assets-refresh/*|artifacts/policies|artifacts/policies/*)
+      artifacts/isolates|artifacts/isolates/*|artifacts/tmp|artifacts/tmp/*|artifacts/docs|artifacts/docs/*|artifacts/coverage|artifacts/coverage/*|artifacts/inventory|artifacts/inventory/*|artifacts/test-logs|artifacts/test-logs/*|artifacts/assets-refresh|artifacts/assets-refresh/*|artifacts/policies|artifacts/policies/*|${ISO_ROOT:-}/*)
         ;;
       *)
         viol+=("$rel -> non-standard artifact path literal: $path")

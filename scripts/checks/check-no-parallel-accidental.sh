@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
@@ -26,7 +28,7 @@ while IFS= read -r rel; do
   while IFS= read -r p; do
     [[ -n "$p" ]] || continue
     case "$p" in
-      artifacts/isolates/*|artifacts/tmp/*|artifacts/inventory/*|artifacts/test-logs/*|artifacts/coverage/*|artifacts/docs/*|artifacts/policies/*|artifacts/assets-refresh/*)
+      artifacts/isolates/*|artifacts/tmp/*|artifacts/inventory/*|artifacts/test-logs/*|artifacts/coverage/*|artifacts/docs/*|artifacts/policies/*|artifacts/assets-refresh/*|${ISO_ROOT:-}/*)
         continue
         ;;
     esac

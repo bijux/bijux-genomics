@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+LC_ALL=C
+export LC_ALL
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
@@ -22,14 +24,14 @@ root_b="$(isolate_cmd --tag "$tag_b" --print-root)"
 }
 
 case "$root_a" in
-  "$ROOT_DIR"/artifacts/isolates/*"$tag_a"*) ;;
+  "$ROOT_DIR"/artifacts/isolates/*"$tag_a"*|"${ISO_ROOT:-$ROOT_DIR/artifacts/isolates}"/*"$tag_a"*) ;;
   *)
     echo "isolate-strong: root_a does not include expected tag/path: $root_a" >&2
     exit 1
     ;;
 esac
 case "$root_b" in
-  "$ROOT_DIR"/artifacts/isolates/*"$tag_b"*) ;;
+  "$ROOT_DIR"/artifacts/isolates/*"$tag_b"*|"${ISO_ROOT:-$ROOT_DIR/artifacts/isolates}"/*"$tag_b"*) ;;
   *)
     echo "isolate-strong: root_b does not include expected tag/path: $root_b" >&2
     exit 1
