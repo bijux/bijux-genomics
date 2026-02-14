@@ -9,4 +9,5 @@
 - `RUN_ARTIFACTS.md`
 - `vcf-downstream-triage.md`
 - `VCF_REFERENCE_CACHE_POLICY.md`
+- `VCF_DOWNSTREAM_READINESS_CHECKLIST.md`
 - `SCOPE_CLOSURE_CHECKLIST.generated.md`

@@ -1,0 +1,28 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Stage-level acceptance criteria and production badge contract for downstream VCF.
+# authority = bijux-dna-vcf
+# stability = stable
+
+schema_version = "bijux.vcf.downstream_acceptance.v1"
+
+[production_badge]
+require_panel_lock = true
+require_map_lock = true
+require_qc_accept = true
+
+[[stage]]
+stage_id = "vcf.prepare_reference_panel"
+acceptance = ["panel_lock_resolved", "map_lock_resolved", "overlap_stats_present"]
+
+[[stage]]
+stage_id = "vcf.phasing"
+acceptance = ["phased_vcf_bgzip_tabix", "phasing_manifest_with_tool_digest", "phase_block_stats_present"]
+
+[[stage]]
+stage_id = "vcf.impute"
+acceptance = ["imputed_vcf_bgzip_tabix", "imputation_manifest_with_tool_digest", "decision_imputation_accept_present", "imputation_qc_present"]
+
+[[stage]]
+stage_id = "vcf.postprocess"
+acceptance = ["final_vcf_bgzip_tabix", "artifact_checksums_updated", "contig_consistency_validated"]

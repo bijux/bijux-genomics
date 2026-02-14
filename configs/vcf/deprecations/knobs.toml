@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Downstream VCF knob deprecation lifecycle contract.
+# authority = bijux-dna-vcf
+# stability = stable
+
+schema_version = "bijux.vcf.knob_deprecations.v1"
+
+[[deprecation]]
+stage_id = "vcf.impute"
+knob = "legacy_chunk_size"
+phase = "remove"
+replacement = "chunk_window_size_bp"
+rationale = "unified deterministic chunking knobs across backends"
+
+[[deprecation]]
+stage_id = "vcf.phasing"
+knob = "legacy_region"
+phase = "warn"
+replacement = "chunk_chr_include"
+rationale = "region selection moved to chunk planner surface"

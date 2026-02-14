@@ -1,0 +1,13 @@
+# schema_version = 1
+# owner = bijux-dna-vcf
+# purpose = Downstream VCF panel deprecation lifecycle contract.
+# authority = bijux-dna-vcf
+# stability = stable
+
+schema_version = "bijux.vcf.panel_deprecations.v1"
+
+[[deprecation]]
+panel_id = "hsapiens_grch38_legacy"
+phase = "remove"
+replacement = "hsapiens_grch38_mini"
+rationale = "legacy synthetic panel retired; lock/governance moved to keyed panel catalog"
