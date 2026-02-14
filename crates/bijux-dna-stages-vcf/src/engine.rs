@@ -443,6 +443,8 @@ impl VcfStageRunner for DispatchRunner {
                     out.prepared_panel_tbi,
                     out.panel_manifest_json,
                     out.overlap_json,
+                    out.panel_overlap_json,
+                    out.panel_files_json,
                     out.overlap_tsv,
                     out.chunks_json,
                 ]);

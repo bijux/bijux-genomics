@@ -227,10 +227,13 @@ pub struct PrepareReferencePanelParams {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PrepareReferencePanelOutputs {
+    pub panel_root: PathBuf,
     pub prepared_panel_vcf: PathBuf,
     pub prepared_panel_tbi: PathBuf,
     pub panel_manifest_json: PathBuf,
     pub overlap_json: PathBuf,
+    pub panel_overlap_json: PathBuf,
+    pub panel_files_json: PathBuf,
     pub overlap_tsv: PathBuf,
     pub chunks_json: PathBuf,
 }
@@ -392,6 +395,24 @@ pub fn run_prepare_reference_panel_stage(
         bail!("map species/build does not match SpeciesContext");
     }
 
+    let panel_parent = panel_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("panel path has no parent: {}", panel_vcf.display()))?;
+    if panel_parent.file_name().and_then(|x| x.to_str()) != Some("raw") {
+        bail!(
+            "panel materialization refusal: panel must be acquired via scripts/tooling/acquire-panels.sh and live under .../raw/"
+        );
+    }
+    let source_panel_root = panel_parent
+        .parent()
+        .ok_or_else(|| anyhow!("panel raw path missing panel root"))?;
+    if !source_panel_root.join("normalized").exists() || !source_panel_root.join("derived").exists()
+    {
+        bail!(
+            "panel materialization refusal: expected sibling normalized/derived dirs from acquire-panels materialization"
+        );
+    }
+
     let input_raw = std::fs::read_to_string(input_vcf)?;
     let panel_raw = std::fs::read_to_string(panel_vcf)?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
@@ -423,19 +444,117 @@ pub fn run_prepare_reference_panel_stage(
     };
 
     std::fs::create_dir_all(out_dir)?;
-    let prepared_panel_vcf = out_dir.join("prepared_panel.vcf.gz");
-    let prepared_panel_tbi = out_dir.join("prepared_panel.vcf.gz.tbi");
+    let lock_seed = format!(
+        "{}|{}|{}",
+        panel.id, panel.version, panel.build_id
+    );
+    let lock_hash = checksum_hex(lock_seed.as_bytes());
+    let panel_root = out_dir
+        .join("panels")
+        .join(panel.id.clone())
+        .join(lock_hash);
+    let local_raw = panel_root.join("raw");
+    let local_normalized = panel_root.join("normalized");
+    let local_derived = panel_root.join("derived");
+    std::fs::create_dir_all(&local_raw)?;
+    std::fs::create_dir_all(&local_normalized)?;
+    std::fs::create_dir_all(&local_derived)?;
+
+    let local_raw_panel_vcf = local_raw.join(
+        panel_vcf
+            .file_name()
+            .and_then(|x| x.to_str())
+            .unwrap_or("panel.vcf.gz"),
+    );
+    atomic_write_bytes(&local_raw_panel_vcf, &std::fs::read(panel_vcf)?)?;
+
+    let prepared_panel_vcf = local_normalized.join("prepared_panel.vcf.gz");
+    let prepared_panel_tbi = local_normalized.join("prepared_panel.vcf.gz.tbi");
     let panel_manifest_json = out_dir.join("panel_manifest.json");
     let overlap_json = out_dir.join("overlap.json");
+    let panel_overlap_json = out_dir.join("panel_overlap.json");
+    let panel_files_json = out_dir.join("panel_files.json");
     let overlap_tsv = out_dir.join("overlap.tsv");
     let chunks_json = out_dir.join("chunks.json");
-    atomic_write_bytes(&prepared_panel_vcf, &std::fs::read(panel_vcf)?)?;
+
+    let mut header_lines = Vec::<String>::new();
+    let mut record_lines = Vec::<String>::new();
+    for line in panel_raw.lines() {
+        if line.starts_with('#') {
+            header_lines.push(line.to_string());
+        } else if !line.trim().is_empty() {
+            record_lines.push(line.to_string());
+        }
+    }
+    let contig_rank = species_context
+        .contigs
+        .iter()
+        .enumerate()
+        .map(|(idx, c)| (canonical_contig_label(&c.name), idx))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let allowed_contigs = species_context
+        .contigs
+        .iter()
+        .map(|c| canonical_contig_label(&c.name))
+        .collect::<std::collections::BTreeSet<_>>();
+    for rec in &record_lines {
+        if let Some(fields) = parse_record_fields(rec) {
+            let chr = fields[0];
+            if !allowed_contigs.contains(&canonical_contig_label(chr)) {
+                bail!(
+                    "panel normalization refusal: panel contig {} not present in species context",
+                    chr
+                );
+            }
+        }
+    }
+    record_lines.sort_by(|a, b| {
+        let ka = parse_variant_key(a).unwrap_or_default();
+        let kb = parse_variant_key(b).unwrap_or_default();
+        let ra = contig_rank
+            .get(&canonical_contig_label(&ka.0))
+            .copied()
+            .unwrap_or(usize::MAX);
+        let rb = contig_rank
+            .get(&canonical_contig_label(&kb.0))
+            .copied()
+            .unwrap_or(usize::MAX);
+        ra.cmp(&rb)
+            .then(ka.1.cmp(&kb.1))
+            .then(ka.2.cmp(&kb.2))
+    });
+    let normalized_payload = format!("{}\n{}\n", header_lines.join("\n"), record_lines.join("\n"));
+    atomic_write_bytes(&prepared_panel_vcf, normalized_payload.as_bytes())?;
     atomic_write_bytes(&prepared_panel_tbi, b"tabix-index-placeholder\n")?;
+    assert_bgzip_tabix_artifacts(&prepared_panel_vcf, &prepared_panel_tbi)?;
+
+    let site_list = local_derived.join("panel_sites.tsv");
+    let mut site_rows = String::from("contig\tpos\tref\talt\n");
+    for rec in &record_lines {
+        if let Some(fields) = parse_record_fields(rec) {
+            site_rows.push_str(&format!(
+                "{}\t{}\t{}\t{}\n",
+                fields[0], fields[1], fields[3], fields[4]
+            ));
+        }
+    }
+    atomic_write_bytes(&site_list, site_rows.as_bytes())?;
+    let chunk_regions = local_derived.join("chunk_regions.tsv");
+    atomic_write_bytes(
+        &chunk_regions,
+        b"chunk_id\tregion\nchunk_000\t1:1-1000000\n",
+    )?;
+    if panel.compatibility.supports_minimac_m3vcf {
+        let minimac_ready = local_derived.join("minimac.m3vcf.ready");
+        atomic_write_bytes(&minimac_ready, b"true\n")?;
+    }
 
     let manifest = serde_json::json!({
         "schema_version": "bijux.vcf.prepare_reference_panel.manifest.v1",
         "species_id": params.species_id,
         "build_id": params.build_id,
+        "panel_root": panel_root,
+        "source_panel_root": source_panel_root,
         "panel": {
             "id": panel.id,
             "version": panel.version,
@@ -477,6 +596,15 @@ pub fn run_prepare_reference_panel_stage(
         "per_chr": per_chr,
     });
     atomic_write_json(&overlap_json, &overlap_payload)?;
+    atomic_write_json(&panel_overlap_json, &overlap_payload)?;
+    let panel_files_payload = serde_json::json!({
+        "schema_version": "bijux.vcf.prepare_reference_panel.files.v1",
+        "panel_root": panel_root,
+        "raw_files": [local_raw_panel_vcf],
+        "normalized_files": [prepared_panel_vcf, prepared_panel_tbi],
+        "derived_files": [site_list, chunk_regions],
+    });
+    atomic_write_json(&panel_files_json, &panel_files_payload)?;
     let mut tsv = String::from("chr\tpanel_sites\toverlap_sites\toverlap_fraction\n");
     for (chr, total) in &panel_by_chr {
         let overlap = *overlap_by_chr.get(chr).unwrap_or(&0);
@@ -516,11 +644,24 @@ pub fn run_prepare_reference_panel_stage(
     });
     atomic_write_json(&chunks_json, &chunks_payload)?;
 
+    let relevant_tools = ["bcftools", "shapeit5", "impute5", "glimpse", "beagle", "minimac4"];
+    for tool in relevant_tools {
+        if !license_metadata_for_tool_exists(tool) {
+            bail!(
+                "panel license policy refusal: missing containers/licenses/{}.license.toml",
+                tool
+            );
+        }
+    }
+
     Ok(PrepareReferencePanelOutputs {
+        panel_root,
         prepared_panel_vcf,
         prepared_panel_tbi,
         panel_manifest_json,
         overlap_json,
+        panel_overlap_json,
+        panel_files_json,
         overlap_tsv,
         chunks_json,
     })
