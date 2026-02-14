@@ -73,7 +73,11 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
 }
 
 fn configured_domains(root: &Path) -> Vec<String> {
-    let path = root.join("configs").join("ci").join("domains.toml");
+    let path = root
+        .join("configs")
+        .join("ci")
+        .join("registry")
+        .join("domains.toml");
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
     let parsed: TomlValue = raw

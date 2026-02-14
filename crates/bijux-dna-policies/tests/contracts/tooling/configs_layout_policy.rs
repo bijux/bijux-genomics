@@ -32,7 +32,7 @@ fn policy__contracts__configs_layout_policy__configs_root_contains_only_index_an
             .unwrap_or(&path)
             .display()
             .to_string();
-        if rel != "configs/index.md" {
+        if rel != "configs/index.md" && rel != "configs/OWNERS.toml" {
             offenders.push(rel);
         }
     }
