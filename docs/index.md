@@ -22,6 +22,7 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - `api_boundaries.rs`
 - `architecture_pointer_policy.rs`
 - `benchmark_dependency_policy.rs`
+- `boundary_enforcement.rs`
 - `cli_dependency_policy.rs`
 - `core_layering.rs`
 - `core_purity.rs`
@@ -30,6 +31,7 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - `dependency_boundaries.rs`
 - `dependency_budgets.rs`
 - `dependency_graph.rs`
+- `dependency_graph_contracts.rs`
 - `dev_deps_policy.rs`
 - `docs_index_quality.rs`
 - `docs_placement_policy.rs`
@@ -72,7 +74,10 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - `ssot_catalog_authority.rs`
 - `stage_specs_purity.rs`
 - `style_policy.rs`
+- `surface_safety_policies.rs`
 - `test_grouping_policy.rs`
 - `tests_taxonomy_policy.rs`
 - `tool_id_uniqueness.rs`
 - `workspace.rs`
+- `workspace_paths.rs`
+- `layout_contracts.rs`

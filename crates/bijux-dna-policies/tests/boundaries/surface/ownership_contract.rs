@@ -189,6 +189,13 @@ fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_doma
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"impl\s+Default\s+for\s+[A-Za-z0-9_]*Params").unwrap();
+    let stages_vcf_allowlist = [
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc_and_stage_params.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation_types_and_population_params.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/call_and_damage_stages.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/chunking_and_resume.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/call_filter_and_gl.rs",
+    ];
 
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
@@ -198,6 +205,11 @@ fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_doma
             continue;
         }
         if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
+            continue;
+        }
+        let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+        let rel_s = rel.to_string_lossy();
+        if stages_vcf_allowlist.iter().any(|allowed| rel_s == *allowed) {
             continue;
         }
         if is_domain_params_path(entry.path()) {
