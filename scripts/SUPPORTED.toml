@@ -1990,6 +1990,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_map_locks"
+path = "scripts/checks/check-map-locks.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "simulate_coverage_regime"
 path = "scripts/tooling/simulate-coverage-regime.sh"
 purpose = "tooling script"
@@ -2003,6 +2011,14 @@ path = "scripts/tooling/acquire-panels.sh"
 purpose = "tooling script"
 inputs = ["configs/vcf/panels/panels.toml"]
 outputs = ["configs/vcf/panels/locks/", "artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "acquire_maps"
+path = "scripts/tooling/acquire-maps.sh"
+purpose = "tooling script"
+inputs = ["configs/vcf/maps/maps.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]

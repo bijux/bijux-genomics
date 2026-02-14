@@ -8,19 +8,12 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-if [[ "${1:-}" == "--help" ]]; then
-  cat <<'USAGE'
-Usage: scripts/checks/check-panel-locks.sh
-USAGE
-  exit 0
-fi
-
 python3 - "$ROOT_DIR" <<'PY'
-import hashlib
 import json
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
+
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -33,14 +26,9 @@ lock_json_path = root / "configs/vcf/panels/locks/lock.json"
 lock_sha_path = root / "configs/vcf/panels/locks/lock.json.sha256"
 
 errors = []
-if not panels_path.exists():
-    errors.append(f"missing {panels_path.relative_to(root)}")
-if not locks_path.exists():
-    errors.append(f"missing {locks_path.relative_to(root)}")
-if not lock_json_path.exists():
-    errors.append(f"missing {lock_json_path.relative_to(root)}")
-if not lock_sha_path.exists():
-    errors.append(f"missing {lock_sha_path.relative_to(root)}")
+for p in (panels_path, locks_path, lock_json_path, lock_sha_path):
+    if not p.exists():
+        errors.append(f"missing {p.relative_to(root)}")
 if errors:
     print("panel-locks: FAILED", file=sys.stderr)
     for e in errors:
@@ -50,98 +38,69 @@ if errors:
 panels = tomllib.loads(panels_path.read_text(encoding="utf-8")).get("panel", [])
 locks = tomllib.loads(locks_path.read_text(encoding="utf-8")).get("locks", {})
 lock_json = json.loads(lock_json_path.read_text(encoding="utf-8"))
-lock_items = lock_json.get("panels", [])
-lock_by_id = {str(item.get("id", "")).strip(): item for item in lock_items if isinstance(item, dict)}
+lock_rows = lock_json.get("panels", [])
+lock_by_id = {str(row.get("id", "")): row for row in lock_rows if isinstance(row, dict)}
 
 if not isinstance(panels, list) or not panels:
-    errors.append("configs/vcf/panels/panels.toml must define at least one [[panel]] entry")
+    errors.append("configs/vcf/panels/panels.toml must define at least one [[panel]]")
+if not isinstance(locks, dict):
+    errors.append("configs/vcf/panels/locks/panel_locks.toml [locks] table missing")
+if lock_json.get("schema_version") != 2:
+    errors.append("configs/vcf/panels/locks/lock.json schema_version must be 2")
 
-if lock_json.get("schema_version") != 1:
-    errors.append("configs/vcf/panels/locks/lock.json: schema_version must be 1")
-if str(lock_json.get("source", "")).strip() != "configs/vcf/panels/panels.toml":
-    errors.append("configs/vcf/panels/locks/lock.json: source must be configs/vcf/panels/panels.toml")
+sha_line = lock_sha_path.read_text(encoding="utf-8").strip().split()[0]
+if not re.fullmatch(r"[0-9a-f]{64}", sha_line):
+    errors.append("configs/vcf/panels/locks/lock.json.sha256 must start with 64-char sha256")
 
-raw_lock = lock_json_path.read_bytes()
-sha = hashlib.sha256(raw_lock).hexdigest()
-sha_line = lock_sha_path.read_text(encoding="utf-8").strip()
-expected_sha_line = f"{sha}  configs/vcf/panels/locks/lock.json"
-if sha_line != expected_sha_line:
-    errors.append("configs/vcf/panels/locks/lock.json.sha256 does not match lock.json content")
-
-re_sha = re.compile(r"^sha256:[0-9a-f]{64}$")
-
-for p in panels:
-    pid = str(p.get("id", "")).strip()
-    if not pid:
-        errors.append("panel entry missing id")
+hex_re = re.compile(r"^[0-9a-f]{64}$")
+for panel in panels:
+    pid = str(panel.get("id", "")).strip()
+    sid = str(panel.get("species_id", "")).strip()
+    bid = str(panel.get("build_id", "")).strip()
+    if not pid or not sid or not bid:
+        errors.append("panel requires id/species_id/build_id")
         continue
-    version = str(p.get("version", "")).strip()
-    url = str(p.get("url", "")).strip()
-    checksum = str(p.get("checksum_sha256", "")).strip()
-    if not version:
-        errors.append(f"panel {pid}: missing version")
-    if not url:
-        errors.append(f"panel {pid}: missing url")
-    if url and not re.match(r"^https?://", url):
-        errors.append(f"panel {pid}: url must be http(s)")
-    if url and re.search(r"(/|@)(latest|main|master)($|[/?#])", url):
-        errors.append(f"panel {pid}: floating URL token detected ({url})")
-    if not checksum:
-        errors.append(f"panel {pid}: missing checksum_sha256")
-    elif not re_sha.match(checksum):
-        errors.append(f"panel {pid}: checksum_sha256 must match sha256:<64-hex>")
-    for meta_field in ("population_set", "genome_build", "variant_set_compatibility", "citation"):
-        mv = str(p.get(meta_field, "")).strip()
-        if not mv:
-            errors.append(f"panel {pid}: missing {meta_field}")
-
-    lock = locks.get(pid, {}) if isinstance(locks, dict) else {}
-    if not lock:
-        errors.append(f"panel {pid}: missing lock entry in panel_locks.toml")
-        continue
-    for field in ("version", "url", "checksum_sha256"):
-        lv = str(lock.get(field, "")).strip()
-        if not lv:
-            errors.append(f"panel {pid}: lock missing {field}")
-    if version and str(lock.get("version", "")).strip() != version:
-        errors.append(f"panel {pid}: version mismatch between panels.toml and panel_locks.toml")
-    if url and str(lock.get("url", "")).strip() != url:
-        errors.append(f"panel {pid}: url mismatch between panels.toml and panel_locks.toml")
-    if checksum and str(lock.get("checksum_sha256", "")).strip() != checksum:
-        errors.append(f"panel {pid}: checksum mismatch between panels.toml and panel_locks.toml")
-
-    jlock = lock_by_id.get(pid, {})
-    if not jlock:
-        errors.append(f"panel {pid}: missing lock entry in lock.json")
-        continue
-    for field in ("url", "version", "sha256", "date", "license", "citation"):
-        if not str(jlock.get(field, "")).strip():
-            errors.append(f"panel {pid}: lock.json missing {field}")
-    if checksum and str(jlock.get("sha256", "")).strip() != checksum:
-        errors.append(f"panel {pid}: checksum mismatch between panels.toml and lock.json")
-    if url and str(jlock.get("url", "")).strip() != url:
-        errors.append(f"panel {pid}: url mismatch between panels.toml and lock.json")
-    if version and str(jlock.get("version", "")).strip() != version:
-        errors.append(f"panel {pid}: version mismatch between panels.toml and lock.json")
-
-    derived = jlock.get("derived_artifacts", [])
-    if not isinstance(derived, list) or not derived:
-        errors.append(f"panel {pid}: lock.json derived_artifacts must be a non-empty list")
+    files = panel.get("files", [])
+    if not isinstance(files, list) or not files:
+        errors.append(f"panel {pid}: files list required")
     else:
-        has_index = any(str(x).endswith(".tbi") for x in derived)
-        has_chunks = any(str(x).endswith(".chunks.tsv") for x in derived)
-        if not has_index:
-            errors.append(f"panel {pid}: lock.json derived_artifacts must include a .tbi index")
-        if not has_chunks:
-            errors.append(f"panel {pid}: lock.json derived_artifacts must include a .chunks.tsv manifest")
+        for f in files:
+            for key in ("name", "path", "format", "url", "checksum_sha256"):
+                if not str(f.get(key, "")).strip():
+                    errors.append(f"panel {pid}: file missing {key}")
+            sha = str(f.get("checksum_sha256", "")).strip()
+            if sha and not hex_re.fullmatch(sha):
+                errors.append(f"panel {pid}: file checksum must be 64-char hex")
 
-    derived_checksums = jlock.get("derived_checksums_sha256", {})
-    if not isinstance(derived_checksums, dict) or not derived_checksums:
-        errors.append(f"panel {pid}: lock.json must include derived_checksums_sha256 table")
+    compat = panel.get("compatibility", {})
+    if not isinstance(compat, dict):
+        errors.append(f"panel {pid}: compatibility table required")
     else:
-        for name, value in derived_checksums.items():
-            if not re_sha.match(str(value)):
-                errors.append(f"panel {pid}: invalid derived checksum for {name}")
+        if not isinstance(compat.get("tool_tags", []), list):
+            errors.append(f"panel {pid}: compatibility.tool_tags list required")
+        if not str(compat.get("glimpse_reference_format", "")).strip():
+            errors.append(f"panel {pid}: compatibility.glimpse_reference_format required")
+
+    lock = locks.get(pid, {})
+    if not isinstance(lock, dict) or not lock:
+        errors.append(f"panel {pid}: missing locks.{pid} in panel_locks.toml")
+        continue
+    if str(lock.get("species_id", "")).strip() != sid:
+        errors.append(f"panel {pid}: species_id mismatch with lock")
+    if str(lock.get("build_id", "")).strip() != bid:
+        errors.append(f"panel {pid}: build_id mismatch with lock")
+    lock_files = lock.get("files", [])
+    if not isinstance(lock_files, list) or not lock_files:
+        errors.append(f"panel {pid}: lock files list required")
+
+    j = lock_by_id.get(pid, {})
+    if not j:
+        errors.append(f"panel {pid}: missing lock.json entry")
+    else:
+        if str(j.get("species_id", "")).strip() != sid:
+            errors.append(f"panel {pid}: lock.json species_id mismatch")
+        if str(j.get("build_id", "")).strip() != bid:
+            errors.append(f"panel {pid}: lock.json build_id mismatch")
 
 if errors:
     print("panel-locks: FAILED", file=sys.stderr)

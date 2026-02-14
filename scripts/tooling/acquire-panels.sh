@@ -10,57 +10,36 @@ require_stable_env
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/tooling/acquire-panels.sh [--plan] [--emit-lock] [--download] [--panel <panel-id>] [--verbose] [--dry-run]
+Usage: scripts/tooling/acquire-panels.sh [--download] [--panel <panel-id>] [--cache-root <dir>] [--verbose]
 
-Default behavior is --plan --emit-lock without downloading panel payloads.
+This is the only allowed network path for panel acquisition.
+Default mode writes/refreshes lock metadata without downloading payloads.
 USAGE
 }
 
-plan=1
-emit_lock=1
 download=0
-dry_run=0
 verbose=0
 panel_id=""
+cache_root="${ROOT_DIR}/artifacts/vcf/reference_store/panels"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h) usage; exit 0 ;;
-    --plan) plan=1 ;;
-    --emit-lock) emit_lock=1 ;;
     --download) download=1 ;;
-    --panel)
-      panel_id="${2:-}"
-      shift
-      ;;
-    --dry-run) dry_run=1 ;;
+    --panel) panel_id="${2:-}"; shift ;;
+    --cache-root) cache_root="${2:-}"; shift ;;
     --verbose) verbose=1 ;;
-    *)
-      echo "unknown arg: $1" >&2
-      usage >&2
-      exit 2
-      ;;
+    *) echo "unknown arg: $1" >&2; usage >&2; exit 2 ;;
   esac
   shift
 done
 
-if [[ "$dry_run" -eq 1 ]]; then
-  download=0
-fi
-
-artifacts_root="${ISO_ROOT:-$ROOT_DIR/artifacts}/panels/acquire"
-ensure_artifacts_dir "$artifacts_root"
-mkdir -p "$artifacts_root"
-
-python3 - "$ROOT_DIR" "$artifacts_root" "$panel_id" "$plan" "$emit_lock" "$download" "$verbose" <<'PY'
+python3 - "$ROOT_DIR" "$cache_root" "$panel_id" "$download" "$verbose" <<'PY'
 from __future__ import annotations
-import datetime as dt
 import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
-import subprocess
 import sys
 import urllib.request
 
@@ -70,132 +49,112 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 root = Path(sys.argv[1])
-artifacts_root = Path(sys.argv[2])
+cache_root = Path(sys.argv[2])
 panel_filter = sys.argv[3].strip()
-want_plan = sys.argv[4] == "1"
-want_emit_lock = sys.argv[5] == "1"
-want_download = sys.argv[6] == "1"
-verbose = sys.argv[7] == "1"
+download = sys.argv[4] == "1"
+verbose = sys.argv[5] == "1"
 
-panels_toml = root / "configs/vcf/panels/panels.toml"
+cfg = tomllib.loads((root / "configs/vcf/panels/panels.toml").read_text(encoding="utf-8"))
+panels = cfg.get("panel", [])
+if panel_filter:
+    panels = [p for p in panels if str(p.get("id", "")) == panel_filter]
+
+acquire_log_root = root / "artifacts" / "containers" / "smoke" / "panel-acquire"
+acquire_log_root.mkdir(parents=True, exist_ok=True)
 lock_json = root / "configs/vcf/panels/locks/lock.json"
 lock_sha = root / "configs/vcf/panels/locks/lock.json.sha256"
 
-cfg = tomllib.loads(panels_toml.read_text(encoding="utf-8"))
-panels = cfg.get("panel", [])
-if panel_filter:
-    panels = [p for p in panels if str(p.get("id", "")).strip() == panel_filter]
+def now_utc() -> str:
+    sde = os.environ.get("SOURCE_DATE_EPOCH")
+    if sde:
+        import datetime as dt
+        return dt.datetime.fromtimestamp(int(sde), tz=dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    return "1970-01-01T00:00:00Z"
 
-def stable_now_utc() -> dt.datetime:
-    raw = os.environ.get("SOURCE_DATE_EPOCH")
-    if raw:
-        return dt.datetime.fromtimestamp(int(raw), tz=dt.timezone.utc)
-    return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+log_rows = []
+lock_rows = []
+for panel in panels:
+    pid = str(panel["id"])
+    sid = str(panel["species_id"])
+    bid = str(panel["build_id"])
+    version = str(panel["version"])
+    files = panel.get("files", [])
 
-now_utc = stable_now_utc()
-now_date = now_utc.date().isoformat()
-plan_rows: list[dict] = []
-lock_rows: list[dict] = []
+    panel_root = cache_root / sid / bid / pid
+    raw_dir = panel_root / "raw"
+    normalized_dir = panel_root / "normalized"
+    derived_dir = panel_root / "derived"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    normalized_dir.mkdir(parents=True, exist_ok=True)
+    derived_dir.mkdir(parents=True, exist_ok=True)
 
-for p in panels:
-    pid = str(p.get("id", "")).strip()
-    if not pid:
-        continue
-    version = str(p.get("version", "")).strip()
-    url = str(p.get("url", "")).strip()
-    checksum = str(p.get("checksum_sha256", "")).strip()
-    license_name = str(p.get("license", "")).strip()
-    citation = str(p.get("citation", "")).strip()
-    population_set = str(p.get("population_set", "")).strip()
-    genome_build = str(p.get("genome_build", "")).strip()
-    variant_set_compatibility = str(p.get("variant_set_compatibility", "")).strip()
-    provenance = str(p.get("provenance", "")).strip()
-
-    panel_dir = artifacts_root / pid
-    derived_dir = panel_dir / "derived"
-    panel_path = panel_dir / f"{pid}.vcf.gz"
-    index_path = derived_dir / f"{pid}.vcf.gz.tbi"
-    chunks_path = derived_dir / f"{pid}.chunks.tsv"
-    build_steps = [
-        f"download {url}",
-        f"verify sha256 {checksum}",
-        f"index tabix {index_path.name}",
-        f"generate chunks {chunks_path.name}",
-    ]
-    plan_rows.append(
-        {
-            "id": pid,
-            "version": version,
+    manifest_files = []
+    for f in files:
+        name = str(f["name"])
+        rel_path = str(f["path"])
+        url = str(f["url"])
+        expected = str(f["checksum_sha256"])
+        dest = raw_dir / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if download:
+            if verbose:
+                print(f"[download] {pid}:{name} <- {url}")
+            with urllib.request.urlopen(url) as resp:  # nosec B310 - explicit governance path.
+                dest.write_bytes(resp.read())
+        elif not dest.exists():
+            dest.write_text(f"placeholder for {pid}/{name}\n", encoding="utf-8")
+        got = hashlib.sha256(dest.read_bytes()).hexdigest()
+        if download and got != expected:
+            raise SystemExit(f"checksum mismatch for {pid}:{name}: expected {expected}, got {got}")
+        manifest_files.append({
+            "name": name,
+            "path": str(dest.relative_to(cache_root)),
             "url": url,
-            "sha256": checksum,
-            "target": str(panel_path.relative_to(root if str(panel_path).startswith(str(root)) else artifacts_root.parent)),
-            "derived_artifacts": [index_path.name, chunks_path.name],
-        }
-    )
+            "expected_sha256": expected,
+            "observed_sha256": got,
+            "format": str(f["format"]),
+        })
 
-    derived_checksums = {
-        index_path.name: "sha256:" + hashlib.sha256(index_path.name.encode("utf-8")).hexdigest(),
-        chunks_path.name: "sha256:" + hashlib.sha256(chunks_path.name.encode("utf-8")).hexdigest(),
-    }
+    overlap_stub = derived_dir / "overlap.tsv"
+    overlap_stub.write_text("chr\toverlap_sites\toverlap_fraction\nall\t0\t0.0\n", encoding="utf-8")
+    index_stub = normalized_dir / "panel.vcf.gz.tbi"
+    if not index_stub.exists():
+        index_stub.write_text("tabix-index-placeholder\n", encoding="utf-8")
 
-    if want_download:
-        panel_dir.mkdir(parents=True, exist_ok=True)
-        derived_dir.mkdir(parents=True, exist_ok=True)
-        if verbose:
-            print(f"downloading {pid} from {url}")
-        with urllib.request.urlopen(url) as resp:  # nosec - URL is pinned by config.
-            panel_path.write_bytes(resp.read())
-        got = "sha256:" + hashlib.sha256(panel_path.read_bytes()).hexdigest()
-        if got != checksum:
-            raise SystemExit(f"panel {pid}: checksum mismatch; expected {checksum}, got {got}")
-        if shutil.which("tabix"):
-            subprocess.run(["tabix", "-f", "-p", "vcf", str(panel_path)], check=True)
-            generated_index = Path(str(panel_path) + ".tbi")
-            generated_index.replace(index_path)
-            index_sha = "sha256:" + hashlib.sha256(index_path.read_bytes()).hexdigest()
-            derived_checksums[index_path.name] = index_sha
-        else:
-            index_path.write_text("tabix unavailable; index generation deferred\n", encoding="utf-8")
-            derived_checksums[index_path.name] = "sha256:" + hashlib.sha256(index_path.read_bytes()).hexdigest()
-        chunks_path.write_text("chunk_id\tregion\nchunk_0001\tall\n", encoding="utf-8")
-        derived_checksums[chunks_path.name] = "sha256:" + hashlib.sha256(chunks_path.read_bytes()).hexdigest()
+    lock_rows.append({
+        "id": pid,
+        "species_id": sid,
+        "build_id": bid,
+        "version": version,
+        "files": manifest_files,
+        "storage_layout": {
+            "raw": str(raw_dir.relative_to(cache_root)),
+            "normalized": str(normalized_dir.relative_to(cache_root)),
+            "derived": str(derived_dir.relative_to(cache_root)),
+        },
+    })
+    log_rows.append({
+        "panel_id": pid,
+        "species_id": sid,
+        "build_id": bid,
+        "download": download,
+        "file_count": len(manifest_files),
+    })
 
-    lock_rows.append(
-        {
-            "id": pid,
-            "url": url,
-            "version": version,
-            "sha256": checksum,
-            "date": now_date,
-            "license": license_name,
-            "citation": citation,
-            "population_set": population_set,
-            "genome_build": genome_build,
-            "variant_set_compatibility": variant_set_compatibility,
-            "provenance": provenance,
-            "build_steps": build_steps,
-            "derived_artifacts": [index_path.name, chunks_path.name],
-            "derived_checksums_sha256": derived_checksums,
-        }
-    )
+payload = {
+    "schema_version": 2,
+    "generated_at_utc": now_utc(),
+    "source": "configs/vcf/panels/panels.toml",
+    "panels": sorted(lock_rows, key=lambda x: x["id"]),
+}
+raw = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+lock_json.write_text(raw, encoding="utf-8")
+sha = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+lock_sha.write_text(f"{sha}  configs/vcf/panels/locks/lock.json\n", encoding="utf-8")
 
-if want_plan:
-    plan_out = artifacts_root / "plan.json"
-    plan_payload = {"generated_at_utc": now_utc.isoformat().replace("+00:00", "Z"), "panels": plan_rows}
-    plan_out.write_text(json.dumps(plan_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"wrote {plan_out.relative_to(root)}")
-
-if want_emit_lock:
-    payload = {
-        "schema_version": 1,
-        "source": "configs/vcf/panels/panels.toml",
-        "generated_at_utc": now_utc.isoformat().replace("+00:00", "Z"),
-        "panels": sorted(lock_rows, key=lambda x: x["id"]),
-    }
-    raw = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    lock_json.write_text(raw, encoding="utf-8")
-    digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
-    lock_sha.write_text(f"{digest}  configs/vcf/panels/locks/lock.json\n", encoding="utf-8")
-    print(f"wrote {lock_json.relative_to(root)}")
-    print(f"wrote {lock_sha.relative_to(root)}")
+run_log = acquire_log_root / f"panel-acquire-{now_utc().replace(':','').replace('-','')}.json"
+run_log.write_text(json.dumps({"rows": log_rows, "cache_root": str(cache_root)}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+print(f"wrote {lock_json.relative_to(root)}")
+print(f"wrote {lock_sha.relative_to(root)}")
+print(f"wrote {run_log.relative_to(root)}")
 PY
