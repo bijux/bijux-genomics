@@ -9,7 +9,8 @@ mod contracts {
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
     use bijux_dna_stages_vcf::pipeline::{
-        assert_bgzip_tabix_artifacts, run_chunked_regions, run_impute_stage, run_phasing_stage,
+        assert_bgzip_tabix_artifacts, run_call_diploid_stage, run_call_gl_stage,
+        run_call_pseudohaploid_stage, run_chunked_regions, run_impute_stage, run_phasing_stage,
         run_postprocess_stage, run_prepare_reference_panel_stage,
         ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
         ImputeStageParams, PhasingBackend, PhasingStageParams, PostprocessStageParams,
@@ -166,6 +167,101 @@ mod contracts {
         assert!(
             resumed.stages.iter().all(|s| s.runtime.wall_time_ms == 0),
             "resume run should skip stages with matching checksums"
+        );
+    }
+
+    #[test]
+    fn vcf_call_family_enforces_input_contracts_and_outputs_manifests() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let params = bijux_dna_domain_vcf::params::VcfCallParams {
+            sample_name: "sample1".to_string(),
+            ..bijux_dna_domain_vcf::params::VcfCallParams::default()
+        };
+
+        let dip = run_call_diploid_stage(input, &dir.path().join("diploid"), &params)
+            .unwrap_or_else(|err| panic!("diploid call stage: {err}"));
+        assert!(dip.called_vcf.exists());
+        assert!(dip.called_tbi.exists());
+        assert!(dip.call_metrics_json.exists());
+        assert!(dip.call_manifest_json.exists());
+
+        let pseudo = run_call_pseudohaploid_stage(input, &dir.path().join("pseudo"), &params)
+            .unwrap_or_else(|err| panic!("pseudo call stage: {err}"));
+        assert!(pseudo.called_vcf.exists());
+        assert!(pseudo.call_metrics_tsv.exists());
+
+        let gl_err = run_call_gl_stage(input, &dir.path().join("gl"), &params)
+            .expect_err("gl stage must reject fixture without GL/GP/PL");
+        assert!(gl_err.to_string().contains("GL/GP/PL"));
+    }
+
+    #[test]
+    fn vcf_call_alias_dispatches_to_regime_specific_stage() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input.to_path_buf(),
+            species_context: species,
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![VcfDomainStage::Call],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            phasing: None,
+            impute: None,
+            postprocess: None,
+            invariants: InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        })
+        .unwrap_or_else(|err| panic!("vcf call alias pipeline: {err}"));
+        let call_stage = out
+            .stages
+            .iter()
+            .find(|s| s.stage_id == "vcf.call")
+            .unwrap_or_else(|| panic!("call stage missing"));
+        let manifest = call_stage.artifact_dir.join("call_manifest.json");
+        let payload = std::fs::read_to_string(&manifest)
+            .unwrap_or_else(|err| panic!("read call_manifest: {err}"));
+        let manifest_json: serde_json::Value = serde_json::from_str(&payload)
+            .unwrap_or_else(|err| panic!("parse call_manifest json: {err}"));
+        assert_eq!(
+            manifest_json
+                .get("stage_kind")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "diploid"
         );
     }
 
