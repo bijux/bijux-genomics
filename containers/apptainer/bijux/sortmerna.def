@@ -129,12 +129,6 @@ EOF
     rm -rf /var/lib/apt/lists/*
 
     # Note: do not purge ca-certificates (TLS is useful on HPC and cheap to keep).
-        python3-pip \
-        python3 \
-        wget \
-        build-essential \
-        zlib1g-dev \
-        libbz2-dev || true
 
 %runscript
     if [ $# -eq 0 ]; then
