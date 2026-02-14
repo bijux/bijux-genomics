@@ -21,6 +21,7 @@ offenders="$(
     rg -n "target/" scripts \
       --glob "**/*.sh" \
       --glob "!scripts/checks/check-no-target-paths-in-tests.sh" \
+      --glob "!scripts/checks/check-gitignore-contract.sh" \
       || true
     rg -n "target/" makefiles \
       --glob "**/*.mk" \

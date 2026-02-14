@@ -929,6 +929,174 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "build_apptainer_hpc_frontend"
+path = "scripts/containers/build-apptainer-hpc-frontend.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_frontend_smoke_proof"
+path = "scripts/containers/check-apptainer-frontend-smoke-proof.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_post_pins"
+path = "scripts/containers/check-apptainer-post-pins.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_rebuild_repro"
+path = "scripts/containers/check-apptainer-rebuild-repro.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_apptainer_version_label_sync"
+path = "scripts/containers/check-apptainer-version-label-sync.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_bijux_apptainer_built"
+path = "scripts/containers/check-bijux-apptainer-built.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_cross_runtime_representative"
+path = "scripts/containers/check-cross-runtime-representative.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_digest_changes_on_version_change"
+path = "scripts/containers/check-digest-changes-on-version-change.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_docker_unpinned_apt"
+path = "scripts/containers/check-docker-unpinned-apt.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_docker_version_sync"
+path = "scripts/containers/check-docker-version-sync.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_dockerfiles_built"
+path = "scripts/containers/check-dockerfiles-built.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_lock_change_discipline"
+path = "scripts/containers/check-lock-change-discipline.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_lock_drift"
+path = "scripts/containers/check-lock-drift.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_lock_schema"
+path = "scripts/containers/check-lock-schema.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_promotion_lock_integrity"
+path = "scripts/containers/check-promotion-lock-integrity.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_smoke_failure_classification"
+path = "scripts/containers/check-smoke-failure-classification.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_version_immutability"
+path = "scripts/containers/check-version-immutability.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_versions_index_sha"
+path = "scripts/containers/check-versions-index-sha.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "compare_frontend_local_sif_hash"
+path = "scripts/containers/compare-frontend-local-sif-hash.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "generate_local_apptainer_digests"
+path = "scripts/containers/generate-local-apptainer-digests.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "generate_versions_index_sha"
+path = "scripts/containers/generate-versions-index-sha.sh"
+purpose = "containers script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "inventory"
 path = "scripts/tooling/inventory.sh"
 purpose = "tooling script"
@@ -1973,7 +2141,7 @@ id = "run_apptainer_frontend_reproducibility"
 path = "scripts/containers/run-apptainer-frontend-reproducibility.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/apptainer_cache_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
 ci_allowed = true
 
 [[script]]
@@ -1989,7 +2157,7 @@ id = "run_apptainer_frontend_security"
 path = "scripts/containers/run-apptainer-frontend-security.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_security_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/vuln_allowlist.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
 ci_allowed = true
 
 [[script]]

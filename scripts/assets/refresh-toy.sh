@@ -55,7 +55,39 @@ DATA
 (
   cd "${STAGE_DIR}"
   shasum -a 256 bam/toy.sam fastq/reads_1.fastq fastq/reads_2.fastq vcf/toy.vcf > CHECKSUMS.sha256
+  (
+    cd bam
+    shasum -a 256 toy.sam > CHECKSUMS.sha256
+  )
+  (
+    cd fastq
+    shasum -a 256 reads_1.fastq reads_2.fastq > CHECKSUMS.sha256
+  )
+  (
+    cd vcf
+    shasum -a 256 toy.vcf > CHECKSUMS.sha256
+  )
 )
+
+cat > "${STAGE_DIR}/GENERATE.md" <<'MD'
+# GENERATE
+
+## Command(s)
+Generated via `scripts/assets/refresh-toy.sh`.
+
+## Tool versions
+- `python3` and `shasum` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
+
+## Input origins
+- Synthetic deterministic toy records authored in `scripts/assets/refresh-toy.sh`.
+
+## Expected outputs
+- `fastq/reads_1.fastq`
+- `fastq/reads_2.fastq`
+- `bam/toy.sam`
+- `vcf/toy.vcf`
+- `CHECKSUMS.sha256`
+MD
 
 python3 - "$STAGE_DIR" "$REPORT_DIR/report.json" <<'PY'
 import hashlib

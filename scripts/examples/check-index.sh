@@ -27,7 +27,7 @@ mkdir -p "$TMP_ROOT"
 expected="$(mktemp "$TMP_ROOT/examples-index.XXXXXX")"
 trap 'rm -f "$expected"' EXIT INT TERM
 
-"$ROOT_DIR/scripts/examples/generate-index.sh" "$expected" >/dev/null
+"$ROOT_DIR/scripts/examples/generate-index.sh" --out "$expected" >/dev/null
 if ! diff -u "$IDX" "$expected" >/dev/null; then
   echo "examples/index.yaml drift; regenerate with scripts/examples/generate-index.sh" >&2
   exit 1

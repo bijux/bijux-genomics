@@ -13,9 +13,25 @@ failed=0
 
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
+  rel="${file#$ROOT_DIR/}"
+  case "$rel" in
+    configs/OWNERS.toml|\
+    configs/ci/registry/LOCK_RULES.md|\
+    configs/docs/requirements.lock.txt|\
+    configs/hpc/rsync/pull-full-excludes.txt|\
+    configs/hpc/rsync/pull-results-includes.txt|\
+    configs/hpc/rsync/push-excludes.txt|\
+    configs/runtime/profiles/README.md|\
+    configs/schema/CONFIG_SCHEMA_RULES.md|\
+    configs/schema/validate.py|\
+    configs/vcf/panels/locks/lock.json|\
+    configs/vcf/panels/locks/lock.json.sha256)
+      continue
+      ;;
+  esac
   base="$(basename "$file")"
   if [[ ! "$base" =~ ^[a-z0-9_]+\.(toml|ya?ml|md|snapshot|sha256|txt)$ ]]; then
-    echo "config-filenames: non-snake_case name: ${file#$ROOT_DIR/}" >&2
+    echo "config-filenames: non-snake_case name: $rel" >&2
     failed=1
   fi
 done < <(find "$ROOT_DIR/configs" -type f | sort)

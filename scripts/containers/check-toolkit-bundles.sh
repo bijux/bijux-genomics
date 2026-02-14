@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 
 root = Path(sys.argv[1])
 bundles_path = root / "configs/ci/tools/toolkit_bundles.toml"
-images_paths = [root / "configs/ci/tools/images.toml", root / "configs/ci/images.toml"]
+images_paths = [root / "configs/ci/tools/images.toml"]
 registry_paths = [
     root / "configs/ci/registry/tool_registry.toml",
     root / "configs/ci/registry/tool_registry_vcf.toml",

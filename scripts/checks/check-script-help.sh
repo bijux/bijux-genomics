@@ -8,6 +8,23 @@ require_stable_env
 
 SPEC="$ROOT_DIR/scripts/SUPPORTED.toml"
 
+usage() {
+  cat <<'USAGE'
+Usage: scripts/checks/check-script-help.sh
+USAGE
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  echo "unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
 viol=()
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue

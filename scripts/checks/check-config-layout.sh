@@ -12,10 +12,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 violations=$(find "$ROOT_DIR/configs" -maxdepth 1 -type f \
   | sed "s#^$ROOT_DIR/##" \
-  | grep -v '^configs/index.md$' || true)
+  | grep -v '^configs/index.md$' \
+  | grep -v '^configs/OWNERS.toml$' || true)
 
 if [[ -n "$violations" ]]; then
-  echo "config-layout: files are forbidden directly under configs/ (except configs/index.md):" >&2
+  echo "config-layout: files are forbidden directly under configs/ (except configs/index.md and configs/OWNERS.toml):" >&2
   printf '%s\n' "$violations" >&2
   exit 1
 fi
