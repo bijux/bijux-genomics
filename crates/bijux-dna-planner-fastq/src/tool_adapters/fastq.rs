@@ -1,4 +1,5 @@
 use bijux_dna_core::prelude::{StageId, StageVersion};
+use bijux_dna_domain_fastq::stages::ids as fastq_ids;
 
 pub mod preprocess {
     pub use crate::tool_adapters::stages::pre::preprocess::*;
@@ -117,27 +118,27 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static("fastq.primer_normalization"),
+            id: fastq_ids::STAGE_PRIMER_NORMALIZATION,
             version: StageVersion(1),
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static("fastq.chimera_detection"),
+            id: fastq_ids::STAGE_CHIMERA_DETECTION,
             version: StageVersion(1),
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static("fastq.asv_inference"),
+            id: fastq_ids::STAGE_ASV_INFERENCE,
             version: StageVersion(1),
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static("fastq.otu_clustering"),
+            id: fastq_ids::STAGE_OTU_CLUSTERING,
             version: StageVersion(1),
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static("fastq.abundance_normalization"),
+            id: fastq_ids::STAGE_ABUNDANCE_NORMALIZATION,
             version: StageVersion(1),
             affects_read_counts: false,
         },

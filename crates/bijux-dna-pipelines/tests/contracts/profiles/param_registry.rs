@@ -33,14 +33,22 @@ fn expected_registry(stage_id: &str) -> (String, String) {
     let stage = StageId::new(stage_id.to_string());
     if stage_id.starts_with("fastq.") {
         if let Some(descriptor) = stage_param_descriptor(&stage) {
+            let schema_version = if descriptor.schema_version == "v1"
+                && descriptor.param_type_id.starts_with("fastq.")
+            {
+                "bijux.fastq.params.v1"
+            } else {
+                descriptor.schema_version
+            };
             return (
                 descriptor.param_type_id.to_string(),
-                descriptor.schema_version.to_string(),
+                schema_version.to_string(),
             );
         }
         if matches!(
             stage_id,
             "fastq.abundance_normalization"
+                | "fastq.asv_inference"
                 | "fastq.chimera_detection"
                 | "fastq.otu_clustering"
                 | "fastq.primer_normalization"
