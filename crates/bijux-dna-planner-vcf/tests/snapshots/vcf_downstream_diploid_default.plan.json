@@ -1,0 +1,839 @@
+{
+  "coverage_regime": "diploid",
+  "edges": [
+    {
+      "from": "vcf.call_diploid",
+      "to": "vcf.damage_filter"
+    },
+    {
+      "from": "vcf.damage_filter",
+      "to": "vcf.filter"
+    },
+    {
+      "from": "vcf.demography",
+      "to": "vcf.stats"
+    },
+    {
+      "from": "vcf.filter",
+      "to": "vcf.phasing"
+    },
+    {
+      "from": "vcf.ibd",
+      "to": "vcf.demography"
+    },
+    {
+      "from": "vcf.impute",
+      "to": "vcf.postprocess"
+    },
+    {
+      "from": "vcf.phasing",
+      "to": "vcf.impute"
+    },
+    {
+      "from": "vcf.population_structure",
+      "to": "vcf.roh"
+    },
+    {
+      "from": "vcf.postprocess",
+      "to": "vcf.population_structure"
+    },
+    {
+      "from": "vcf.prepare_reference_panel",
+      "to": "vcf.call_diploid"
+    },
+    {
+      "from": "vcf.roh",
+      "to": "vcf.ibd"
+    }
+  ],
+  "pipeline_id": "vcf-to-vcf__downstream_diploid__v2",
+  "planner_version": "bijux-dna-planner-vcf.v2",
+  "stage_plans": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "prepare-panel",
+          "--lock"
+        ]
+      },
+      "effective_params": {
+        "normalize": true,
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh37"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/panel.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "prepared_panel",
+            "optional": false,
+            "path": "out/prepared_panel.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_prepare_reference_panel",
+      "params": {
+        "normalize": true,
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh37"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "postprocess"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.prepare_reference_panel"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.prepare_reference_panel",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/prepared_panel.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "diploid_vcf",
+            "optional": false,
+            "path": "out/diploid_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_call_diploid",
+      "params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "call_regime"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.call_diploid"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.call_diploid",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "filter",
+          "--damage-aware"
+        ]
+      },
+      "effective_params": {
+        "damage_audit": true,
+        "mask_ct_ga_transitions": true,
+        "pmd_threshold": 3,
+        "schema_version": "bijux.vcf.damage_filter.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/diploid_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "damage_filtered_vcf",
+            "optional": false,
+            "path": "out/damage_filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_damage_filter",
+      "params": {
+        "damage_audit": true,
+        "mask_ct_ga_transitions": true,
+        "pmd_threshold": 3,
+        "schema_version": "bijux.vcf.damage_filter.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "damage_filter"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.damage_filter"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.damage_filter",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/damage_filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_vcf",
+            "optional": false,
+            "path": "out/filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_filter",
+      "params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "qc"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.filter"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.filter",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "shapeit5",
+          "phase",
+          "--input",
+          "vcf"
+        ]
+      },
+      "effective_params": {
+        "pbwt_depth": 8,
+        "schema_version": "bijux.vcf.phasing.params.v1",
+        "tool": "shapeit5",
+        "window_cM": 2.0
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/shapeit5:5.1.1--h9948957_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "phased_vcf",
+            "optional": false,
+            "path": "out/phased_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_phasing",
+      "params": {
+        "pbwt_depth": 8,
+        "schema_version": "bijux.vcf.phasing.params.v1",
+        "tool": "shapeit5",
+        "window_cM": 2.0
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "phasing"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool shapeit5 for vcf.phasing"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 8,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.phasing",
+      "stage_version": 2,
+      "tool_id": "shapeit5",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "minimac4",
+          "impute",
+          "--input",
+          "vcf"
+        ]
+      },
+      "effective_params": {
+        "min_rsq": 0.3,
+        "rounds": 5,
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "states": 200,
+        "tool": "minimac4"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/minimac4:4.1.6--h7d875b9_4"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/phased_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "imputed_vcf",
+            "optional": false,
+            "path": "out/imputed_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_impute",
+      "params": {
+        "min_rsq": 0.3,
+        "rounds": 5,
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "states": 200,
+        "tool": "minimac4"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "imputation"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool minimac4 for vcf.impute"
+      },
+      "resources": {
+        "mem_gb": 16,
+        "runtime": "docker",
+        "threads": 8,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.impute",
+      "stage_version": 2,
+      "tool_id": "minimac4",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/imputed_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "postprocess_vcf",
+            "optional": false,
+            "path": "out/postprocess_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_postprocess",
+      "params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "postprocess"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.postprocess"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.postprocess",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "plink2",
+          "pca",
+          "--structure"
+        ]
+      },
+      "effective_params": {
+        "components": 10,
+        "emit_artifacts": [
+          "eigenvec",
+          "eigenval",
+          "cluster_assignments"
+        ],
+        "ld_prune": true,
+        "schema_version": "bijux.vcf.population_structure.params.v1",
+        "tool": "plink2"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/postprocess_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "population_structure_report",
+            "optional": false,
+            "path": "out/population_structure_report.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_population_structure",
+      "params": {
+        "components": 10,
+        "emit_artifacts": [
+          "eigenvec",
+          "eigenval",
+          "cluster_assignments"
+        ],
+        "ld_prune": true,
+        "schema_version": "bijux.vcf.population_structure.params.v1",
+        "tool": "plink2"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "population_structure"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool plink2 for vcf.population_structure"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.population_structure",
+      "stage_version": 2,
+      "tool_id": "plink2",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "plink2",
+          "roh",
+          "--min-kb",
+          "500"
+        ]
+      },
+      "effective_params": {
+        "het_per_window": 1,
+        "max_gap_kb": 100,
+        "min_kb": 500,
+        "schema_version": "bijux.vcf.roh.params.v1",
+        "tool": "plink2"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/population_structure_report.json",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "roh_report",
+            "optional": false,
+            "path": "out/roh_report.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_roh",
+      "params": {
+        "het_per_window": 1,
+        "max_gap_kb": 100,
+        "min_kb": 500,
+        "schema_version": "bijux.vcf.roh.params.v1",
+        "tool": "plink2"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "roh"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool plink2 for vcf.roh"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.roh",
+      "stage_version": 2,
+      "tool_id": "plink2",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "germline",
+          "ibd",
+          "--min-seg",
+          "3.0"
+        ]
+      },
+      "effective_params": {
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/roh_report.json",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "ibd_segments",
+            "optional": false,
+            "path": "out/ibd_segments.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_ibd",
+      "params": {
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "ibd"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool germline for vcf.ibd"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.ibd",
+      "stage_version": 2,
+      "tool_id": "germline",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "ibdne",
+          "estimate-ne",
+          "--from-ibd"
+        ]
+      },
+      "effective_params": {
+        "generation_time_years": 29,
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/ibd_segments.json",
+            "role": "metrics_json"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "demography_report",
+            "optional": false,
+            "path": "out/demography_report.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_demography",
+      "params": {
+        "generation_time_years": 29,
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "demography"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool ibdne for vcf.demography"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.demography",
+      "stage_version": 2,
+      "tool_id": "ibdne",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/demography_report.json",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "stats_json",
+            "optional": false,
+            "path": "out/stats_json.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_stats",
+      "params": {
+        "coverage_regime": "diploid",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "diploid",
+          "stage_kind": "qc"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.stats"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.stats",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    }
+  ]
+}

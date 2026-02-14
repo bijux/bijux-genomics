@@ -1,0 +1,164 @@
+{
+  "coverage_regime": "low_cov_gl",
+  "planner_version": "bijux-dna-planner-vcf.v2",
+  "schema_version": "bijux.vcf.planner_explain.v1",
+  "selected_panel": {
+    "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "license_id": "CC-BY-4.0",
+    "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "panel_id": "1000g_phase3",
+    "reference_build": "GRCh37"
+  },
+  "stages": [
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "normalize": true,
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh37"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.prepare_reference_panel"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "angsd"
+      },
+      "reason": "coverage regime LowCovGl selected tool angsd for vcf.call_gl",
+      "selected_tool": "angsd",
+      "stage_id": "vcf.call_gl"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "damage_audit": true,
+        "mask_ct_ga_transitions": true,
+        "pmd_threshold": 3,
+        "schema_version": "bijux.vcf.damage_filter.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.damage_filter",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.damage_filter"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "propagation_scope": "post_filter_pre_impute",
+        "retain_fields": [
+          "GL",
+          "PL",
+          "GP"
+        ],
+        "schema_version": "bijux.vcf.gl_propagation.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.gl_propagation"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.filter",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.filter"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "buffer_mb": 0.2,
+        "emit_gp": true,
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "tool": "glimpse",
+        "window_size_mb": 2.0
+      },
+      "reason": "coverage regime LowCovGl selected tool glimpse for vcf.impute",
+      "selected_tool": "glimpse",
+      "stage_id": "vcf.impute"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.postprocess",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.postprocess"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "components": 10,
+        "emit_artifacts": [
+          "eigenvec",
+          "eigenval",
+          "cluster_assignments"
+        ],
+        "ld_prune": true,
+        "schema_version": "bijux.vcf.population_structure.params.v1",
+        "tool": "plink2"
+      },
+      "reason": "coverage regime LowCovGl selected tool plink2 for vcf.population_structure",
+      "selected_tool": "plink2",
+      "stage_id": "vcf.population_structure"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "reason": "coverage regime LowCovGl selected tool germline for vcf.ibd",
+      "selected_tool": "germline",
+      "stage_id": "vcf.ibd"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "generation_time_years": 29,
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "reason": "coverage regime LowCovGl selected tool ibdne for vcf.demography",
+      "selected_tool": "ibdne",
+      "stage_id": "vcf.demography"
+    },
+    {
+      "coverage_regime": "low_cov_gl",
+      "params_surface": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.stats",
+      "selected_tool": "bcftools",
+      "stage_id": "vcf.stats"
+    }
+  ]
+}

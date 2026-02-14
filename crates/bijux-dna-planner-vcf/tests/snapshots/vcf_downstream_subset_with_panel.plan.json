@@ -1,0 +1,503 @@
+{
+  "coverage_regime": "low_cov_gl",
+  "edges": [
+    {
+      "from": "vcf.call_gl",
+      "to": "vcf.gl_propagation"
+    },
+    {
+      "from": "vcf.demography",
+      "to": "vcf.stats"
+    },
+    {
+      "from": "vcf.gl_propagation",
+      "to": "vcf.impute"
+    },
+    {
+      "from": "vcf.ibd",
+      "to": "vcf.demography"
+    },
+    {
+      "from": "vcf.impute",
+      "to": "vcf.ibd"
+    },
+    {
+      "from": "vcf.prepare_reference_panel",
+      "to": "vcf.call_gl"
+    }
+  ],
+  "pipeline_id": "vcf-to-vcf__downstream_lowcov_gl__v2",
+  "planner_version": "bijux-dna-planner-vcf.v2",
+  "stage_plans": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "prepare-panel",
+          "--lock"
+        ]
+      },
+      "effective_params": {
+        "normalize": true,
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh37"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/panel.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "prepared_panel",
+            "optional": false,
+            "path": "out/prepared_panel.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_prepare_reference_panel",
+      "params": {
+        "normalize": true,
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh37"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "postprocess"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.prepare_reference_panel",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "angsd",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "angsd"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/angsd:0.940--h2e03b76_2"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/prepared_panel.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "gl_sites_vcf",
+            "optional": false,
+            "path": "out/gl_sites_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_call_gl",
+      "params": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "angsd"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "call_regime"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool angsd for vcf.call_gl"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.call_gl",
+      "stage_version": 2,
+      "tool_id": "angsd",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "annotate",
+          "--retain",
+          "GL,PL,GP"
+        ]
+      },
+      "effective_params": {
+        "propagation_scope": "post_filter_pre_impute",
+        "retain_fields": [
+          "GL",
+          "PL",
+          "GP"
+        ],
+        "schema_version": "bijux.vcf.gl_propagation.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/gl_sites_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "gl_propagated_vcf",
+            "optional": false,
+            "path": "out/gl_propagated_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_gl_propagation",
+      "params": {
+        "propagation_scope": "post_filter_pre_impute",
+        "retain_fields": [
+          "GL",
+          "PL",
+          "GP"
+        ],
+        "schema_version": "bijux.vcf.gl_propagation.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "call_regime"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.gl_propagation",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "glimpse",
+          "impute",
+          "--input",
+          "vcf"
+        ]
+      },
+      "effective_params": {
+        "buffer_mb": 0.2,
+        "emit_gp": true,
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "tool": "glimpse",
+        "window_size_mb": 2.0
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/glimpse:2.0.0--h9ee0642_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/gl_propagated_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "imputed_vcf",
+            "optional": false,
+            "path": "out/imputed_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_impute",
+      "params": {
+        "buffer_mb": 0.2,
+        "emit_gp": true,
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "tool": "glimpse",
+        "window_size_mb": 2.0
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "imputation"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool glimpse for vcf.impute"
+      },
+      "resources": {
+        "mem_gb": 16,
+        "runtime": "docker",
+        "threads": 8,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.impute",
+      "stage_version": 2,
+      "tool_id": "glimpse",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "germline",
+          "ibd",
+          "--min-seg",
+          "3.0"
+        ]
+      },
+      "effective_params": {
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/imputed_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "ibd_segments",
+            "optional": false,
+            "path": "out/ibd_segments.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_ibd",
+      "params": {
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "ibd"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool germline for vcf.ibd"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.ibd",
+      "stage_version": 2,
+      "tool_id": "germline",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "ibdne",
+          "estimate-ne",
+          "--from-ibd"
+        ]
+      },
+      "effective_params": {
+        "generation_time_years": 29,
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/ibd_segments.json",
+            "role": "metrics_json"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "demography_report",
+            "optional": false,
+            "path": "out/demography_report.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_demography",
+      "params": {
+        "generation_time_years": 29,
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "demography"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool ibdne for vcf.demography"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.demography",
+      "stage_version": 2,
+      "tool_id": "ibdne",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/demography_report.json",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "stats_json",
+            "optional": false,
+            "path": "out/stats_json.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_stats",
+      "params": {
+        "coverage_regime": "low_cov_gl",
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "stage_kind": "qc"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.stats"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.stats",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    }
+  ]
+}
