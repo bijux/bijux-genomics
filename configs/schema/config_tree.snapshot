@@ -67,6 +67,8 @@ configs/runtime/profiles/README.md
 configs/runtime/profiles/index.md
 configs/runtime/profiles/local.toml
 configs/runtime/profiles/vcf_downstream_local.toml
+configs/runtime/reference_bundles.lock.sha256
+configs/runtime/reference_bundles.toml
 configs/runtime/species_aliases.toml
 configs/schema/CONFIG_SCHEMA_RULES.md
 configs/schema/config_tree.snapshot

@@ -57,3 +57,7 @@ pseudohaploid_max_depth = 2.0
 diploid_min_depth = 10.0
 capture = false
 shotgun = true
+
+[species_profile]
+"Homo sapiens:GRCh38" = "modern_wgs_shotgun"
+"Canis lupus:CanFam4" = "modern_wgs_shotgun"

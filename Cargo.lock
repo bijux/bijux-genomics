@@ -417,6 +417,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-db-ref"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-policies",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "bijux-dna-domain-bam"
 version = "0.1.0"
 dependencies = [
@@ -638,6 +649,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-core",
+ "bijux-dna-db-ref",
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "bijux-dna-stage-contract",
