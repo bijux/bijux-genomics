@@ -1,5 +1,6 @@
 mod contracts {
     use bijux_dna_domain_vcf::{
+        coverage::domain_coverage_report,
         contracts::{
             stage_failure_modes, stage_io_contract, stage_metrics_contract, validate_vcf_invariants,
             DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, PanelSelectionContext,
@@ -123,6 +124,21 @@ mod contracts {
             ..ok
         };
         assert!(validate_vcf_invariants(VcfDomainStage::Stats, &bad).is_err());
+    }
+
+    #[test]
+    fn domain_coverage_report_marks_contract_vs_execution() {
+        let report = domain_coverage_report();
+        assert_eq!(report.schema_version, "bijux.vcf.domain_coverage.v1");
+        assert!(report
+            .stages
+            .iter()
+            .any(|row| row.stage_id == "vcf.call" && row.execution_in_code));
+        assert!(report
+            .stages
+            .iter()
+            .any(|row| row.stage_id == "vcf.imputation" && row.domain_only));
+        assert!(report.tools.iter().any(|row| row.tool_id == "bcftools"));
     }
 
     #[test]
