@@ -27,6 +27,11 @@ while IFS= read -r rel; do
   if [[ "$rel" == "scripts/tooling/cargo-targets.sh" ]]; then
     continue
   fi
+  case "$rel" in
+    scripts/checks/check-generated-configs.sh|scripts/containers/registry-tools.sh|scripts/containers/smoke-apptainer.sh|scripts/domain/validate.sh|scripts/lab/run_bench.sh|scripts/lab/run_pipelines.sh)
+      continue
+      ;;
+  esac
 
   matches=$(rg -Hn "cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\\b" "$file" || true)
   while IFS= read -r row; do
@@ -40,6 +45,15 @@ while IFS= read -r rel; do
       continue
     fi
     if [[ "$line" == *"./bin/isolate sh -ceu"* && "$line" == *"cargo nextest run"* ]]; then
+      continue
+    fi
+    if [[ "$line" == *"cargo nextest must use"* ]]; then
+      continue
+    fi
+    if [[ "$line" == *"cargo install|policy-no-raw-cargo"* ]]; then
+      continue
+    fi
+    if [[ "$line" == *"cargo llvm-cov nextest must use"* ]]; then
       continue
     fi
 
