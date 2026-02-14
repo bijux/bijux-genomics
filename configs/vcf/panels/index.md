@@ -8,11 +8,11 @@ Reference panel catalog and lock metadata for downstream VCF workflows.
 - `configs/vcf/panels/locks/index.md`
 
 ## Contracts
-- Panel inputs are locked artifacts with pinned version, URL, and checksum.
+- Panels are keyed by `{species_id, build_id}` and have locked artifacts per file.
 - No floating URLs or branch-style identifiers are allowed.
 - Required metadata for ancestry matching and compatibility:
   - `population_set`
-  - `genome_build`
-  - `variant_set_compatibility`
+  - `species_id`
+  - `build_id`
   - `license`
   - `citation`

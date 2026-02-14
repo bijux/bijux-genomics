@@ -1,34 +1,82 @@
-# schema_version = 1
+# schema_version = 2
 # owner = bijux-dna-vcf
-# purpose = Contract config for configs/vcf/panels/panels.toml
+# purpose = Species/build-keyed panel catalog contract.
 # authority = bijux-dna-vcf
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-02-14
 
 [[panel]]
-id = "corpus_01_mini_panel"
+id = "hsapiens_grch38_mini"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
 status = "production"
 version = "1.0.0"
-url = "https://example.org/bijux/panels/corpus-01-mini/panel.vcf.gz"
-checksum_sha256 = "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-lock_ref = "locks/panel_locks.toml#corpus_01_mini_panel"
 license = "CC-BY-4.0"
 citation = "Bijux synthetic mini panel v1 (internal reference corpus)"
 population_set = "mixed_global_synthetic"
-genome_build = "GRCh38"
-variant_set_compatibility = "vcf_biallelic_snv"
-provenance = "examples/data/corpus-01-mini/reference/panel.vcf.gz"
+lock_ref = "locks/panel_locks.toml#locks.hsapiens_grch38_mini"
+
+[[panel.files]]
+name = "panel_vcf"
+path = "panel.vcf.gz"
+format = "vcf.gz"
+url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz"
+checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+required = true
+
+[[panel.files]]
+name = "panel_tbi"
+path = "panel.vcf.gz.tbi"
+format = "tbi"
+url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.vcf.gz.tbi"
+checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111112"
+required = true
+
+[[panel.files]]
+name = "panel_m3vcf"
+path = "panel.m3vcf.gz"
+format = "m3vcf.gz"
+url = "https://example.org/bijux/panels/hsapiens/grch38/mini/panel.m3vcf.gz"
+checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111113"
+required = false
+
+[panel.compatibility]
+tool_tags = ["shapeit5", "impute5", "glimpse", "beagle", "minimac4"]
+requires_phased = true
+supports_gl_input = true
+supports_minimac_m3vcf = true
+glimpse_reference_format = "bcf+sites"
 
 [[panel]]
-id = "corpus_01_panel"
+id = "hsapiens_grch38_full"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
 status = "planned"
 version = "1.0.0"
-url = "https://example.org/bijux/panels/corpus-01/panel.vcf.gz"
-checksum_sha256 = "sha256:2222222222222222222222222222222222222222222222222222222222222222"
-lock_ref = "locks/panel_locks.toml#corpus_01_panel"
 license = "CC-BY-4.0"
-citation = "Bijux synthetic panel v1 (internal reference corpus)"
+citation = "Bijux synthetic full panel v1 (internal reference corpus)"
 population_set = "mixed_global_synthetic"
-genome_build = "GRCh38"
-variant_set_compatibility = "vcf_biallelic_snv"
-provenance = "examples/data/corpus-01/reference/panel.vcf.gz"
+lock_ref = "locks/panel_locks.toml#locks.hsapiens_grch38_full"
+
+[[panel.files]]
+name = "panel_vcf"
+path = "panel.vcf.gz"
+format = "vcf.gz"
+url = "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz"
+checksum_sha256 = "2222222222222222222222222222222222222222222222222222222222222221"
+required = true
+
+[[panel.files]]
+name = "panel_tbi"
+path = "panel.vcf.gz.tbi"
+format = "tbi"
+url = "https://example.org/bijux/panels/hsapiens/grch38/full/panel.vcf.gz.tbi"
+checksum_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+required = true
+
+[panel.compatibility]
+tool_tags = ["shapeit5", "impute5", "glimpse", "beagle", "minimac4"]
+requires_phased = true
+supports_gl_input = true
+supports_minimac_m3vcf = false
+glimpse_reference_format = "bcf+sites"
