@@ -9,11 +9,12 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
-    run_call_stage, run_filter_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage,
-    run_prepare_reference_panel_stage, run_stats_stage, ImputeStageParams, PhasingStageParams,
-    PostprocessStageParams, PrepareReferencePanelParams,
+    run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage,
+    run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
+    run_stats_stage, ImputeStageParams, PhasingStageParams, PostprocessStageParams,
+    PrepareReferencePanelParams,
 };
-use crate::invariants::{run_vcf_preflight, InvariantConfig, VcfPreflightResult};
+use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -150,6 +151,7 @@ impl ToolInvocationBuilder {
 pub struct VcfStageRunContext<'a> {
     pub request: &'a VcfPipelineRequest,
     pub artifact_root: PathBuf,
+    pub preflight: &'a VcfPreflightResult,
 }
 
 pub trait VcfStageRunner {
@@ -215,6 +217,9 @@ fn write_stage_manifest(
 fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'static str, &'static str) {
     match stage {
         VcfDomainStage::Call
+        | VcfDomainStage::CallDiploid
+        | VcfDomainStage::CallGl
+        | VcfDomainStage::CallPseudohaploid
         | VcfDomainStage::Filter
         | VcfDomainStage::Stats
         | VcfDomainStage::Postprocess
@@ -242,6 +247,24 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
             "sha256:4444444444444444444444444444444444444444444444444444444444444444",
             "unknown",
         ),
+    }
+}
+
+fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
+    match ctx.preflight.regime.regime {
+        InputRegime::GlOnly => Ok(VcfDomainStage::CallGl),
+        InputRegime::GtOnly => {
+            if ctx.preflight.regime.pseudohaploid_hint {
+                Ok(VcfDomainStage::CallPseudohaploid)
+            } else {
+                Ok(VcfDomainStage::CallDiploid)
+            }
+        }
+        InputRegime::Mixed => Ok(VcfDomainStage::CallGl),
+        InputRegime::Unknown => Err(refusal(
+            VcfRefusalCode::PlanningFailed,
+            "vcf.call alias could not resolve stage: input regime unknown",
+        )),
     }
 }
 
@@ -363,23 +386,39 @@ impl VcfStageRunner for DispatchRunner {
         let mut argv = vec![tool_id.to_string(), stage.as_str().to_string()];
 
         match stage {
-            VcfDomainStage::Call => {
-                let out = stage_dir.join("called.vcf.gz");
-                run_call_stage(
-                    input_vcf,
-                    &out,
-                    &VcfCallParams {
+            VcfDomainStage::Call | VcfDomainStage::CallGl | VcfDomainStage::CallDiploid | VcfDomainStage::CallPseudohaploid => {
+                let params = VcfCallParams {
                         sample_name: ctx.request.sample_name.clone(),
                         reference_fasta: ctx.request.reference_fasta.clone(),
                         ..VcfCallParams::default()
-                    },
-                )
+                };
+                let effective = if stage == VcfDomainStage::Call {
+                    resolve_call_alias(ctx)?
+                } else {
+                    stage
+                };
+                let out = match effective {
+                    VcfDomainStage::CallGl => run_call_gl_stage(input_vcf, &stage_dir, &params),
+                    VcfDomainStage::CallDiploid => {
+                        run_call_diploid_stage(input_vcf, &stage_dir, &params)
+                    }
+                    VcfDomainStage::CallPseudohaploid => {
+                        run_call_pseudohaploid_stage(input_vcf, &stage_dir, &params)
+                    }
+                    _ => Err(anyhow!("unsupported call stage {}", effective.as_str())),
+                }
                 .map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
                 })?;
-                primary_output = Some(out.clone());
-                artifacts.push(out);
+                primary_output = Some(out.called_vcf.clone());
+                artifacts.extend([
+                    out.called_vcf,
+                    out.called_tbi,
+                    out.call_metrics_json,
+                    out.call_metrics_tsv,
+                    out.call_manifest_json,
+                ]);
             }
             VcfDomainStage::Filter => {
                 let out = stage_dir.join("filtered.vcf.gz");
@@ -660,6 +699,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
     let ctx = VcfStageRunContext {
         request,
         artifact_root: artifact_root.clone(),
+        preflight: &preflight,
     };
 
     let mut current = preflight.normalized_input.clone();

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_db_ref::{resolve_map, resolve_panel, validate_imputation_tool_compatibility};
@@ -43,15 +44,195 @@ fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
     )
 }
 
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum CallStageKind {
+    Alias,
+    Gl,
+    Diploid,
+    Pseudohaploid,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CallStageOutputs {
+    pub called_vcf: PathBuf,
+    pub called_tbi: PathBuf,
+    pub call_metrics_json: PathBuf,
+    pub call_metrics_tsv: PathBuf,
+    pub call_manifest_json: PathBuf,
+}
+
+fn format_has_token(fmt: &str, tokens: &[&str]) -> bool {
+    fmt.split(':').any(|key| tokens.iter().any(|token| token == &key))
+}
+
+fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
+    let keys = fmt.split(':').collect::<Vec<_>>();
+    let Some(gt_idx) = keys.iter().position(|k| *k == "GT") else {
+        return false;
+    };
+    let vals = sample.split(':').collect::<Vec<_>>();
+    let Some(gt) = vals.get(gt_idx) else {
+        return false;
+    };
+    gt.split(['/', '|']).count() == 2
+}
+
+fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
+    let keys = fmt.split(':').collect::<Vec<_>>();
+    let Some(gt_idx) = keys.iter().position(|k| *k == "GT") else {
+        return sample.to_string();
+    };
+    let mut vals = sample.split(':').map(str::to_string).collect::<Vec<_>>();
+    if let Some(gt) = vals.get(gt_idx).cloned() {
+        let first = gt
+            .split(['/', '|'])
+            .next()
+            .unwrap_or(".")
+            .to_string();
+        vals[gt_idx] = first;
+    }
+    vals.join(":")
+}
+
+fn write_call_outputs(
+    out_dir: &Path,
+    kind: CallStageKind,
+    input_vcf: &Path,
+    output_vcf: &Path,
+    params: &VcfCallParams,
+) -> Result<CallStageOutputs> {
+    let call = parse_vcf_call_summary(output_vcf, &params.sample_name)?;
+    let filter = parse_vcf_filter_breakdown(output_vcf, &params.sample_name)?;
+    let raw = std::fs::read_to_string(output_vcf)?;
+    let mut depth = std::collections::BTreeMap::<String, u64>::new();
+    for line in raw.lines() {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        if let Some(dp) = parse_depth_from_info(fields[7]) {
+            let bucket = if dp < 10 {
+                "0-9"
+            } else if dp < 20 {
+                "10-19"
+            } else if dp < 30 {
+                "20-29"
+            } else {
+                "30+"
+            };
+            *depth.entry(bucket.to_string()).or_insert(0) += 1;
+        }
+    }
+
+    let called_tbi = output_vcf.with_extension("vcf.gz.tbi");
+    atomic_write_bytes(&called_tbi, b"index-placeholder\n")?;
+    let call_metrics_json = out_dir.join("call_metrics.json");
+    atomic_write_json(
+        &call_metrics_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.call_metrics.v1",
+            "stage_kind": kind,
+            "variants_called": call.variants_called,
+            "snps": call.snps,
+            "indels": call.indels,
+            "filter_breakdown": filter.filter_breakdown,
+            "depth_histogram": depth,
+        }),
+    )?;
+    let call_metrics_tsv = out_dir.join("call_metrics.tsv");
+    let mut metric_rows = vec![
+        format!("stage_kind\t{}", serde_json::to_string(&kind)?.trim_matches('"')),
+        format!("variants_called\t{}", call.variants_called),
+        format!("snps\t{}", call.snps),
+        format!("indels\t{}", call.indels),
+    ];
+    for (k, v) in &depth {
+        metric_rows.push(format!("depth.{k}\t{v}"));
+    }
+    atomic_write_bytes(&call_metrics_tsv, (metric_rows.join("\n") + "\n").as_bytes())?;
+    let call_manifest_json = out_dir.join("call_manifest.json");
+    atomic_write_json(
+        &call_manifest_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.call_manifest.v1",
+            "stage_kind": kind,
+            "caller": params.caller,
+            "sample_name": params.sample_name,
+            "reference_fasta": params.reference_fasta,
+            "input": input_vcf,
+            "output": output_vcf,
+            "metrics": call_metrics_json,
+            "generated_unix_seconds": SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |x| x.as_secs()),
+        }),
+    )?;
+    Ok(CallStageOutputs {
+        called_vcf: output_vcf.to_path_buf(),
+        called_tbi,
+        call_metrics_json,
+        call_metrics_tsv,
+        call_manifest_json,
+    })
+}
+
 /// # Errors
-/// Returns an error if input cannot be read or output cannot be written.
-pub fn run_call_stage(input_vcf: &Path, output_vcf: &Path, params: &VcfCallParams) -> Result<()> {
+/// Returns an error if inputs do not satisfy GL calling contracts.
+pub fn run_call_gl_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &VcfCallParams,
+) -> Result<CallStageOutputs> {
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
+    let mut has_gl = false;
     let mut has_records = false;
     for line in raw.lines() {
         if let Some(mut fields) = parse_record_fields(line) {
             has_records = true;
+            if fields.len() > 9 && format_has_token(fields[8], &["GL", "GP", "PL"]) {
+                has_gl = true;
+            }
+            if fields[5] == "." {
+                fields[5] = "50";
+            }
+            out.push_str(&fields.join("\t"));
+            out.push('\n');
+        } else {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    if !has_records {
+        bail!("vcf.call_gl requires non-empty VCF records");
+    }
+    if !has_gl {
+        bail!("vcf.call_gl requires GL/GP/PL fields in FORMAT");
+    }
+    if params.sample_name.trim().is_empty() {
+        bail!("vcf.call_gl requires non-empty sample_name");
+    }
+    std::fs::create_dir_all(out_dir)?;
+    let out_vcf = out_dir.join("called_gl.vcf.gz");
+    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    write_call_outputs(out_dir, CallStageKind::Gl, input_vcf, &out_vcf, params)
+}
+
+/// # Errors
+/// Returns an error if inputs do not satisfy diploid calling contracts.
+pub fn run_call_diploid_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &VcfCallParams,
+) -> Result<CallStageOutputs> {
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let mut out = String::new();
+    let mut has_records = false;
+    let mut has_diploid = false;
+    for line in raw.lines() {
+        if let Some(mut fields) = parse_record_fields(line) {
+            has_records = true;
+            if fields.len() > 9 && sample_has_diploid_gt(fields[8], fields[9]) {
+                has_diploid = true;
+            }
             if fields[5] == "." {
                 fields[5] = "60";
             }
@@ -63,15 +244,73 @@ pub fn run_call_stage(input_vcf: &Path, output_vcf: &Path, params: &VcfCallParam
         }
     }
     if !has_records {
-        return Err(anyhow!("vcf.call received empty VCF records"));
+        bail!("vcf.call_diploid requires non-empty VCF records");
+    }
+    if !has_diploid {
+        bail!("vcf.call_diploid requires diploid GT fields");
     }
     if params.sample_name.trim().is_empty() {
-        return Err(anyhow!("vcf.call requires non-empty sample_name"));
+        bail!("vcf.call_diploid requires non-empty sample_name");
     }
-    if let Some(parent) = output_vcf.parent() {
-        std::fs::create_dir_all(parent)?;
+    std::fs::create_dir_all(out_dir)?;
+    let out_vcf = out_dir.join("called_diploid.vcf.gz");
+    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params)
+}
+
+/// # Errors
+/// Returns an error if pseudo-haploid output cannot be produced.
+pub fn run_call_pseudohaploid_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &VcfCallParams,
+) -> Result<CallStageOutputs> {
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let mut out = String::new();
+    let mut has_records = false;
+    for line in raw.lines() {
+        if let Some(fields) = parse_record_fields(line) {
+            has_records = true;
+            let mut row = fields.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+            if fields.len() > 9 {
+                row[9] = sample_to_haploid_gt(fields[8], fields[9]);
+            }
+            if row[5] == "." {
+                row[5] = "45".to_string();
+            }
+            out.push_str(&row.join("\t"));
+            out.push('\n');
+        } else {
+            out.push_str(line);
+            out.push('\n');
+        }
     }
-    std::fs::write(output_vcf, out)?;
+    if !has_records {
+        bail!("vcf.call_pseudohaploid requires non-empty VCF records");
+    }
+    if params.sample_name.trim().is_empty() {
+        bail!("vcf.call_pseudohaploid requires non-empty sample_name");
+    }
+    std::fs::create_dir_all(out_dir)?;
+    let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
+    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    write_call_outputs(
+        out_dir,
+        CallStageKind::Pseudohaploid,
+        input_vcf,
+        &out_vcf,
+        params,
+    )
+}
+
+/// # Errors
+/// Returns an error if input cannot be read or output cannot be written.
+pub fn run_call_stage(input_vcf: &Path, output_vcf: &Path, params: &VcfCallParams) -> Result<()> {
+    let out_dir = output_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("vcf.call output path has no parent directory"))?;
+    let out = run_call_diploid_stage(input_vcf, out_dir, params)?;
+    std::fs::copy(out.called_vcf, output_vcf)?;
     Ok(())
 }
 
