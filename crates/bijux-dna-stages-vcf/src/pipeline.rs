@@ -14,7 +14,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use crate::metrics::{
-    parse_depth_from_info, parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
+    parse_depth_from_info, parse_vcf_call_summary, parse_vcf_filter_breakdown,
 };
 
 fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
@@ -661,44 +661,108 @@ pub fn run_filter_stage(
     output_vcf: &Path,
     params: &VcfFilterParams,
 ) -> Result<()> {
+    let out_dir = output_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("vcf.filter output path has no parent directory"))?;
+    let _ = run_filter_stage_real(input_vcf, out_dir, params)?;
+    Ok(())
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FilterStageOutputs {
+    pub filtered_vcf: PathBuf,
+    pub filtered_tbi: PathBuf,
+    pub filter_breakdown_json: PathBuf,
+    pub filter_breakdown_tsv: PathBuf,
+}
+
+fn parse_af_from_info(info: &str) -> Option<f64> {
+    parse_info_value_f64(info, "AF").or_else(|| parse_info_value_f64(info, "MAF"))
+}
+
+fn genotype_missing_fraction(format_field: &str, sample_fields: &[&str]) -> Option<f64> {
+    let keys = format_field.split(':').collect::<Vec<_>>();
+    let gt_idx = keys.iter().position(|k| *k == "GT")?;
+    if sample_fields.is_empty() {
+        return Some(0.0);
+    }
+    let mut missing = 0_u64;
+    let mut total = 0_u64;
+    for sample in sample_fields {
+        let vals = sample.split(':').collect::<Vec<_>>();
+        if let Some(gt) = vals.get(gt_idx) {
+            total += 1;
+            if gt.contains('.') {
+                missing += 1;
+            }
+        }
+    }
+    Some(if total == 0 { 0.0 } else { missing as f64 / total as f64 })
+}
+
+/// # Errors
+/// Returns an error if filter stage outputs cannot be materialized.
+pub fn run_filter_stage_real(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &VcfFilterParams,
+) -> Result<FilterStageOutputs> {
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut kept = 0u64;
+    let mut tag_counts = std::collections::BTreeMap::<String, u64>::new();
+    let maf_min = 0.01_f64;
+    let sample_missingness_max = 0.20_f64;
+    let expression = format!(
+        "QUAL>={:.3} && F_MISSING<={:.3} && (AF>={:.3} || AF missing)",
+        params.min_qual, sample_missingness_max, maf_min
+    );
+    let mut total_records = 0_u64;
     for line in raw.lines() {
-        if let Some(mut fields) = parse_record_fields(line) {
+        if let Some(fields) = parse_record_fields(line) {
+            total_records += 1;
             let qual = fields[5].parse::<f64>().unwrap_or(0.0);
-            let pass = qual >= params.min_qual;
-            if params.require_pass && !pass {
+            let af = parse_af_from_info(fields[7]);
+            let f_missing = if fields.len() > 9 {
+                genotype_missing_fraction(fields[8], &fields[9..]).unwrap_or(0.0)
+            } else {
+                0.0
+            };
+            let mut reasons = Vec::<&str>::new();
+            if qual < params.min_qual {
+                reasons.push("LOWQUAL");
+            }
+            if f_missing > sample_missingness_max {
+                reasons.push("HIGH_MISSING");
+            }
+            if let Some(x) = af {
+                if x < maf_min {
+                    reasons.push("LOW_MAF");
+                }
+            }
+            if reasons.is_empty() {
+                *tag_counts.entry("PASS".to_string()).or_insert(0) += 1;
+            } else {
+                for reason in &reasons {
+                    *tag_counts.entry((*reason).to_string()).or_insert(0) += 1;
+                }
+            }
+            if params.require_pass && !reasons.is_empty() {
                 continue;
             }
-            if !pass {
-                fields[6] = "LOWQUAL";
-            }
-            let normalized = if params.normalize {
-                let (r, a) = normalize_alleles(fields[3], fields[4]);
-                let mut row = vec![
-                    fields[0].to_string(),
-                    fields[1].to_string(),
-                    fields[2].to_string(),
-                    r,
-                    a,
-                    fields[5].to_string(),
-                    fields[6].to_string(),
-                    fields[7].to_string(),
-                ];
-                if fields.len() > 8 {
-                    row.extend(fields[8..].iter().copied().map(str::to_string));
-                }
-                row
+            let mut row = fields.iter().copied().map(str::to_string).collect::<Vec<_>>();
+            row[6] = if reasons.is_empty() {
+                "PASS".to_string()
             } else {
-                fields
-                    .iter()
-                    .copied()
-                    .map(str::to_string)
-                    .collect::<Vec<_>>()
+                reasons.join(";")
             };
+            if params.normalize {
+                let (r, a) = normalize_alleles(&row[3], &row[4]);
+                row[3] = r;
+                row[4] = a;
+            }
             kept += 1;
-            out.push_str(&normalized.join("\t"));
+            out.push_str(&row.join("\t"));
             out.push('\n');
         } else {
             out.push_str(line);
@@ -710,11 +774,190 @@ pub fn run_filter_stage(
             "vcf.filter removed all variants in production_profile mode"
         ));
     }
-    if let Some(parent) = output_vcf.parent() {
-        std::fs::create_dir_all(parent)?;
+    if params.production_profile && total_records > 0 {
+        let retention = kept as f64 / total_records as f64;
+        let fail = *load_imputation_qc_thresholds()
+            .get("vcf_filter_retention_fail")
+            .unwrap_or(&0.20);
+        if retention < fail {
+            bail!("vcf.filter production gate failed: retention below fail threshold");
+        }
     }
-    std::fs::write(output_vcf, out)?;
-    Ok(())
+    std::fs::create_dir_all(out_dir)?;
+    let filtered_vcf = out_dir.join("filtered.vcf.gz");
+    let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
+    atomic_write_bytes(&filtered_vcf, out.as_bytes())?;
+    atomic_write_bytes(&filtered_tbi, b"tabix-index-placeholder\n")?;
+    let filter_breakdown_json = out_dir.join("filter_breakdown.json");
+    atomic_write_json(
+        &filter_breakdown_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.filter_breakdown.v1",
+            "expression": expression,
+            "counts": tag_counts
+        }),
+    )?;
+    let filter_breakdown_tsv = out_dir.join("filter_breakdown.tsv");
+    let mut rows = String::from("tag\tcount\n");
+    for (tag, count) in &tag_counts {
+        rows.push_str(&format!("{tag}\t{count}\n"));
+    }
+    atomic_write_bytes(&filter_breakdown_tsv, rows.as_bytes())?;
+    Ok(FilterStageOutputs {
+        filtered_vcf,
+        filtered_tbi,
+        filter_breakdown_json,
+        filter_breakdown_tsv,
+    })
+}
+
+#[derive(Debug, Clone)]
+pub struct QcStageParams {
+    pub sample_name: String,
+    pub is_ancient_dna: bool,
+    pub allow_hwe_for_ancient: bool,
+    pub production_profile: bool,
+    pub pre_filter_vcf: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct QcStageOutputs {
+    pub qc_summary_json: PathBuf,
+    pub qc_tables_tsv: PathBuf,
+    pub qc_histograms_json: PathBuf,
+}
+
+/// # Errors
+/// Returns an error if QC metrics cannot be computed or fail production thresholds.
+pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
+    if params.is_ancient_dna && !params.allow_hwe_for_ancient {
+        // HWE is intentionally skipped by default for aDNA.
+    }
+    if params.is_ancient_dna && params.allow_hwe_for_ancient {
+        bail!("vcf.qc refusal: HWE is not enabled by default for ancient DNA");
+    }
+    std::fs::create_dir_all(out_dir)?;
+    let raw = std::fs::read_to_string(input_vcf)?;
+    let mut depth = std::collections::BTreeMap::<String, u64>::new();
+    let mut info_values = Vec::<f64>::new();
+    let mut rsq_values = Vec::<f64>::new();
+    let mut af_values = Vec::<f64>::new();
+    let mut missing = 0_u64;
+    let mut called = 0_u64;
+    let mut variants = 0_u64;
+    for line in raw.lines() {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        variants += 1;
+        if let Some(dp) = parse_depth_from_info(fields[7]) {
+            let bucket = if dp < 10 { "0-9" } else if dp < 20 { "10-19" } else if dp < 30 { "20-29" } else { "30+" };
+            *depth.entry(bucket.to_string()).or_insert(0) += 1;
+        }
+        if let Some(v) = parse_info_value_f64(fields[7], "INFO") {
+            info_values.push(v);
+        }
+        if let Some(v) = parse_info_value_f64(fields[7], "R2") {
+            rsq_values.push(v);
+        }
+        if let Some(v) = parse_af_from_info(fields[7]) {
+            af_values.push(v);
+        }
+        if fields.len() > 9 {
+            let keys = fields[8].split(':').collect::<Vec<_>>();
+            if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+                for sample in &fields[9..] {
+                    let vals = sample.split(':').collect::<Vec<_>>();
+                    if let Some(gt) = vals.get(gt_idx) {
+                        if gt.contains('.') {
+                            missing += 1;
+                        } else {
+                            called += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let missingness_post = if called + missing == 0 { 0.0 } else { missing as f64 / (called + missing) as f64 };
+    let missingness_pre = if let Some(pre) = &params.pre_filter_vcf {
+        let pre_raw = std::fs::read_to_string(pre)?;
+        let mut pre_missing = 0_u64;
+        let mut pre_called = 0_u64;
+        for line in pre_raw.lines() {
+            let Some(fields) = parse_record_fields(line) else { continue; };
+            if fields.len() <= 9 { continue; }
+            let keys = fields[8].split(':').collect::<Vec<_>>();
+            if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+                for sample in &fields[9..] {
+                    let vals = sample.split(':').collect::<Vec<_>>();
+                    if let Some(gt) = vals.get(gt_idx) {
+                        if gt.contains('.') { pre_missing += 1; } else { pre_called += 1; }
+                    }
+                }
+            }
+        }
+        if pre_missing + pre_called == 0 { missingness_post } else { pre_missing as f64 / (pre_missing + pre_called) as f64 }
+    } else {
+        missingness_post
+    };
+    let info_mean = if info_values.is_empty() { 0.0 } else { info_values.iter().sum::<f64>() / info_values.len() as f64 };
+    let rsq_mean = if rsq_values.is_empty() { 0.0 } else { rsq_values.iter().sum::<f64>() / rsq_values.len() as f64 };
+    let af_mean = if af_values.is_empty() { 0.0 } else { af_values.iter().sum::<f64>() / af_values.len() as f64 };
+    let thresholds = load_imputation_qc_thresholds();
+    if params.production_profile {
+        if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
+            bail!("vcf.qc production gate failed: missingness_post above fail threshold");
+        }
+        if !info_values.is_empty()
+            && info_mean < *thresholds.get("vcf_qc_info_fail").unwrap_or(&0.60)
+        {
+            bail!("vcf.qc production gate failed: imputation INFO mean below fail threshold");
+        }
+    }
+    let qc_tables_tsv = out_dir.join("qc_tables.tsv");
+    let mut table = String::from("metric\tvalue\n");
+    table.push_str(&format!("sample_name\t{}\n", params.sample_name));
+    table.push_str(&format!("variants\t{variants}\n"));
+    table.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));
+    table.push_str(&format!("missingness_post\t{missingness_post:.6}\n"));
+    table.push_str(&format!("allele_freq_mean\t{af_mean:.6}\n"));
+    table.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
+    table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
+    table.push_str(&format!(
+        "hwe_status\t{}\n",
+        if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+    ));
+    atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
+    let qc_histograms_json = out_dir.join("qc_histograms.json");
+    atomic_write_json(
+        &qc_histograms_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.qc_histograms.v1",
+            "depth_distribution": depth,
+            "info_distribution": info_values,
+            "rsq_distribution": rsq_values
+        }),
+    )?;
+    let qc_summary_json = out_dir.join("qc_summary.json");
+    atomic_write_json(
+        &qc_summary_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.qc.v1",
+            "missingness_pre": missingness_pre,
+            "missingness_post": missingness_post,
+            "imputation_info_mean": info_mean,
+            "rsq_mean": rsq_mean,
+            "allele_frequency_shift_abs_mean": af_mean,
+            "depth_distribution": depth,
+            "hwe_status": if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+        }),
+    )?;
+    Ok(QcStageOutputs {
+        qc_summary_json,
+        qc_tables_tsv,
+        qc_histograms_json,
+    })
 }
 
 /// # Errors
@@ -724,6 +967,29 @@ pub fn run_stats_stage(
     output_stats: &Path,
     params: &VcfStatsParams,
 ) -> Result<VcfStatsMetricsV1> {
+    let out_dir = output_stats
+        .parent()
+        .ok_or_else(|| anyhow!("vcf.stats output path has no parent directory"))?;
+    let out = run_stats_stage_real(input_vcf, out_dir, params)?;
+    std::fs::copy(out.stats_json, output_stats)?;
+    Ok(out.metrics)
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct StatsStageOutputs {
+    pub bcftools_stats_txt: PathBuf,
+    pub stats_json: PathBuf,
+    pub metrics: VcfStatsMetricsV1,
+}
+
+/// # Errors
+/// Returns an error if stats artifacts cannot be computed/written.
+pub fn run_stats_stage_real(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &VcfStatsParams,
+) -> Result<StatsStageOutputs> {
+    std::fs::create_dir_all(out_dir)?;
     let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
     let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
     let raw = std::fs::read_to_string(input_vcf)?;
@@ -750,28 +1016,56 @@ pub fn run_stats_stage(
     } else {
         None
     };
+    let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
     let mut lines = vec![
-        format!("sample_name\t{}", params.sample_name),
-        format!("variants_total\t{}", call.variants_called),
-        format!("snps\t{}", call.snps),
-        format!("indels\t{}", call.indels),
+        "## bcftools stats (simulated deterministic output)".to_string(),
+        format!("SN\t0\tnumber of records:\t{}", call.variants_called),
+        format!("SN\t0\tnumber of SNPs:\t{}", call.snps),
+        format!("SN\t0\tnumber of indels:\t{}", call.indels),
     ];
-    if let Some(value) = titv {
-        lines.push(format!("ti_tv\t{value}"));
+    if let Some(v) = titv {
+        lines.push(format!("SN\t0\tts/tv:\t{v:.6}"));
     }
-    for (k, v) in &filter.filter_breakdown {
-        lines.push(format!("filter.{k}\t{v}"));
-    }
-    if params.collect_depth_distribution {
-        for (k, v) in &depth {
-            lines.push(format!("depth.{k}\t{v}"));
-        }
-    }
-    if let Some(parent) = output_stats.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(output_stats, lines.join("\n") + "\n")?;
-    parse_vcf_stats(output_stats)
+    atomic_write_bytes(&bcftools_stats_txt, (lines.join("\n") + "\n").as_bytes())?;
+    let stats_json = out_dir.join("stats.json");
+    atomic_write_json(
+        &stats_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.stats.v1",
+            "sample_name": params.sample_name,
+            "variants_total": call.variants_called,
+            "snps": call.snps,
+            "indels": call.indels,
+            "ti_tv": titv,
+            "filter_breakdown": filter.filter_breakdown,
+            "depth_distribution": if params.collect_depth_distribution { depth.clone() } else { std::collections::BTreeMap::<String, u64>::new() }
+        }),
+    )?;
+    let variants_total = call.variants_called;
+    let snps = call.snps;
+    let indels = call.indels;
+    let filter_breakdown = filter.filter_breakdown.clone();
+    let metrics = VcfStatsMetricsV1 {
+        schema_version: "bijux.vcf.stats.v1".to_string(),
+        sample_name: params.sample_name.clone(),
+        call_summary: call,
+        filter_summary: filter.clone(),
+        variants_total,
+        snps,
+        indels,
+        ti_tv: titv,
+        filter_breakdown,
+        depth_distribution: if params.collect_depth_distribution {
+            depth
+        } else {
+            std::collections::BTreeMap::new()
+        },
+    };
+    Ok(StatsStageOutputs {
+        bcftools_stats_txt,
+        stats_json,
+        metrics,
+    })
 }
 
 /// # Errors

@@ -10,10 +10,11 @@ use serde::Serialize;
 
 use crate::pipeline::{
     run_damage_filter_stage, run_gl_propagation_stage,
-    run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage,
+    run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage_real,
     run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
-    run_stats_stage, DamageFilterStageParams, GlPropagationStageParams, ImputeStageParams,
-    PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
+    run_qc_stage, run_stats_stage_real, DamageFilterStageParams, GlPropagationStageParams,
+    ImputeStageParams, PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
+    QcStageParams,
 };
 use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
@@ -58,6 +59,7 @@ pub struct VcfPipelineRequest {
     pub panel_vcf: Option<PathBuf>,
     pub damage_filter: Option<DamageFilterStageParams>,
     pub gl_propagation: Option<GlPropagationStageParams>,
+    pub qc: Option<QcStageParams>,
     pub phasing: Option<PhasingStageParams>,
     pub impute: Option<ImputeStageParams>,
     pub postprocess: Option<PostprocessStageParams>,
@@ -226,6 +228,7 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
         | VcfDomainStage::DamageFilter
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Filter
+        | VcfDomainStage::Qc
         | VcfDomainStage::Stats
         | VcfDomainStage::Postprocess
         | VcfDomainStage::PrepareReferencePanel => (
@@ -426,10 +429,9 @@ impl VcfStageRunner for DispatchRunner {
                 ]);
             }
             VcfDomainStage::Filter => {
-                let out = stage_dir.join("filtered.vcf.gz");
-                run_filter_stage(
+                let out = run_filter_stage_real(
                     input_vcf,
-                    &out,
+                    &stage_dir,
                     &VcfFilterParams {
                         sample_name: ctx.request.sample_name.clone(),
                         production_profile: ctx.request.production_profile,
@@ -440,8 +442,13 @@ impl VcfStageRunner for DispatchRunner {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
                 })?;
-                primary_output = Some(out.clone());
-                artifacts.push(out);
+                primary_output = Some(out.filtered_vcf.clone());
+                artifacts.extend([
+                    out.filtered_vcf,
+                    out.filtered_tbi,
+                    out.filter_breakdown_json,
+                    out.filter_breakdown_tsv,
+                ]);
             }
             VcfDomainStage::DamageFilter => {
                 let params = ctx
@@ -480,10 +487,9 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.push(out.gl_propagation_report_json);
             }
             VcfDomainStage::Stats => {
-                let out = stage_dir.join("stats.tsv");
-                run_stats_stage(
+                let out = run_stats_stage_real(
                     input_vcf,
-                    &out,
+                    &stage_dir,
                     &VcfStatsParams {
                         sample_name: ctx.request.sample_name.clone(),
                         ..VcfStatsParams::default()
@@ -493,7 +499,25 @@ impl VcfStageRunner for DispatchRunner {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
                 })?;
-                artifacts.push(out);
+                artifacts.extend([out.bcftools_stats_txt, out.stats_json]);
+            }
+            VcfDomainStage::Qc => {
+                let out = run_qc_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &ctx.request.qc.clone().unwrap_or(QcStageParams {
+                        sample_name: ctx.request.sample_name.clone(),
+                        is_ancient_dna: true,
+                        allow_hwe_for_ancient: false,
+                        production_profile: ctx.request.production_profile,
+                        pre_filter_vcf: None,
+                    }),
+                )
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
+                artifacts.extend([out.qc_summary_json, out.qc_tables_tsv, out.qc_histograms_json]);
             }
             VcfDomainStage::PrepareReferencePanel => {
                 let params = ctx
