@@ -112,6 +112,68 @@ struct CoverageRegimesConfig {
     species_profile: BTreeMap<String, String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct PanelCatalogEntry {
+    pub id: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub version: String,
+    #[serde(default)]
+    pub files: Vec<CatalogFileEntry>,
+    pub compatibility: CatalogCompatibility,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct MapCatalogEntry {
+    pub id: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub version: String,
+    #[serde(default)]
+    pub files: Vec<CatalogFileEntry>,
+    pub compatibility: MapCompatibility,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct CatalogFileEntry {
+    pub name: String,
+    pub path: String,
+    pub format: String,
+    pub url: String,
+    pub checksum_sha256: String,
+    #[serde(default)]
+    pub required: bool,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct CatalogCompatibility {
+    #[serde(default)]
+    pub tool_tags: Vec<String>,
+    pub requires_phased: bool,
+    pub supports_gl_input: bool,
+    pub supports_minimac_m3vcf: bool,
+    pub glimpse_reference_format: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct MapCompatibility {
+    #[serde(default)]
+    pub tool_tags: Vec<String>,
+    pub coordinate_system: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct PanelsConfig {
+    #[serde(default)]
+    panel: Vec<PanelCatalogEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MapsConfig {
+    #[serde(default)]
+    map: Vec<MapCatalogEntry>,
+}
+
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -259,6 +321,76 @@ pub fn reference_provenance(
     }
 }
 
+/// # Errors
+/// Returns an error if panel resolution fails.
+pub fn resolve_panel(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+) -> Result<PanelCatalogEntry> {
+    let path = workspace_root().join("configs/vcf/panels/panels.toml");
+    let cfg: PanelsConfig = load_toml(&path)?;
+    let mut candidates = cfg
+        .panel
+        .into_iter()
+        .filter(|p| p.species_id == species && p.build_id == build)
+        .collect::<Vec<_>>();
+    if let Some(id) = panel_id {
+        candidates.retain(|p| p.id == id);
+    }
+    candidates
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("no panel found for {species}:{build}"))
+}
+
+/// # Errors
+/// Returns an error if map resolution fails.
+pub fn resolve_map(species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
+    let path = workspace_root().join("configs/vcf/maps/maps.toml");
+    let cfg: MapsConfig = load_toml(&path)?;
+    let mut candidates = cfg
+        .map
+        .into_iter()
+        .filter(|m| m.species_id == species && m.build_id == build)
+        .collect::<Vec<_>>();
+    if let Some(id) = map_id {
+        candidates.retain(|m| m.id == id);
+    }
+    candidates
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("no map found for {species}:{build}"))
+}
+
+/// # Errors
+/// Returns an error if tool compatibility requirements are not satisfied.
+pub fn validate_imputation_tool_compatibility(
+    tool_id: &str,
+    panel: &PanelCatalogEntry,
+    map: &MapCatalogEntry,
+) -> Result<()> {
+    if !panel.compatibility.tool_tags.iter().any(|x| x == tool_id) {
+        bail!("panel {} not compatible with tool {}", panel.id, tool_id);
+    }
+    if !map.compatibility.tool_tags.iter().any(|x| x == tool_id) {
+        bail!("map {} not compatible with tool {}", map.id, tool_id);
+    }
+    if tool_id == "minimac4" && !panel.compatibility.supports_minimac_m3vcf {
+        bail!("minimac4 requires m3vcf-compatible panel representation");
+    }
+    if tool_id == "glimpse"
+        && panel
+            .compatibility
+            .glimpse_reference_format
+            .trim()
+            .is_empty()
+    {
+        bail!("GLIMPSE requires declared reference format");
+    }
+    Ok(())
+}
+
 fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -307,5 +439,15 @@ mod tests {
         let mapped = normalize_contig_name(&bundle, "chr1")
             .unwrap_or_else(|err| panic!("normalize contig: {err}"));
         assert_eq!(mapped, "1");
+    }
+
+    #[test]
+    fn panel_and_map_resolution_work() {
+        let panel = resolve_panel("Homo sapiens", "GRCh38", None)
+            .unwrap_or_else(|err| panic!("resolve panel: {err}"));
+        let map = resolve_map("Homo sapiens", "GRCh38", None)
+            .unwrap_or_else(|err| panic!("resolve map: {err}"));
+        validate_imputation_tool_compatibility("glimpse", &panel, &map)
+            .unwrap_or_else(|err| panic!("compatibility: {err}"));
     }
 }

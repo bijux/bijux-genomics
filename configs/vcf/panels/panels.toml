@@ -41,7 +41,7 @@ checksum_sha256 = "1111111111111111111111111111111111111111111111111111111111111
 required = false
 
 [panel.compatibility]
-tool_tags = ["shapeit5", "impute5", "glimpse", "beagle", "minimac4"]
+tool_tags = ["bcftools", "shapeit5", "eagle", "impute5", "glimpse", "beagle", "minimac4"]
 requires_phased = true
 supports_gl_input = true
 supports_minimac_m3vcf = true
@@ -75,7 +75,7 @@ checksum_sha256 = "2222222222222222222222222222222222222222222222222222222222222
 required = true
 
 [panel.compatibility]
-tool_tags = ["shapeit5", "impute5", "glimpse", "beagle", "minimac4"]
+tool_tags = ["bcftools", "shapeit5", "eagle", "impute5", "glimpse", "beagle", "minimac4"]
 requires_phased = true
 supports_gl_input = true
 supports_minimac_m3vcf = false
