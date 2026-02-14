@@ -6,6 +6,7 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::{STAGE_TRIM, STAGE_VALIDATE_PRE};
+use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_stage_contract::StagePlanV1;
 
 fn snapshot_name(group: &str, name: &str) -> String {
@@ -118,6 +119,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
                 STAGE_VALIDATE_PRE.as_str().to_string(),
             ],
             enable_contaminant_removal: false,
+            pipeline_mode: FastqPipelineMode::Shotgun,
         };
     let plan =
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::plan_preprocess_stage(
