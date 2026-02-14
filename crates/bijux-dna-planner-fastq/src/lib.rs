@@ -13,9 +13,8 @@ use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_dna_domain_fastq::{
     FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
     STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
-    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX, STAGE_PREPROCESS,
-    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM,
-    STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX, STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION,
+    STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -28,9 +27,9 @@ pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggrega
 
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
 
+mod plan_compose;
 mod report_stage;
 mod selection;
-mod plan_compose;
 pub mod tool_adapters;
 
 pub use report_stage::report_stage_step;
@@ -105,7 +104,9 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
         stages.push(STAGE_MERGE.as_str().to_string());
     }
     if options.mode == FastqPipelineMode::Amplicon
-        && !stages.iter().any(|stage| stage == STAGE_ASV_INFERENCE.as_str())
+        && !stages
+            .iter()
+            .any(|stage| stage == STAGE_ASV_INFERENCE.as_str())
     {
         stages.push(STAGE_OTU_CLUSTERING.as_str().to_string());
     }
