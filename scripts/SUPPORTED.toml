@@ -2030,10 +2030,32 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "generate_panel_compatibility_matrix"
+path = "scripts/tooling/generate-panel-compatibility-matrix.sh"
+purpose = "tooling script"
+inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/maps/maps.toml"]
+outputs = ["docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md", "artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_panel_license_policy"
 path = "scripts/checks/check-panel-license-policy.sh"
 purpose = "checks script"
 inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/panels/locks/lock.json"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_vcf_reference_governance"
+path = "scripts/checks/check-vcf-reference-governance.sh"
+purpose = "checks script"
+inputs = [
+  "configs/runtime/profiles/vcf_downstream_local.toml",
+  "configs/vcf/panels/panels.toml",
+  "configs/vcf/panels/locks/panel_locks.toml",
+  "configs/vcf/maps/maps.toml",
+  "configs/vcf/maps/locks/map_locks.toml",
+]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
