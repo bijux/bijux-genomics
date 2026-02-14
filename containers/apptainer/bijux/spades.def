@@ -40,38 +40,27 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    # Section 1: Install build and runtime dependencies.
+    # Section 1: Install runtime dependencies.
     apt-get update
     apt-get install -y --no-install-recommends \
-        build-essential \
-        cmake \
-        g++ \
         wget \
-        zlib1g-dev \
-        libbz2-dev \
-        libboost-all-dev \
-        libgomp1 \
         python3 \
-        python3-setuptools \
         ca-certificates \
         grep
 
-    # Section 2: Fetch and compile SPAdes.
+    # Section 2: Fetch prebuilt SPAdes release.
     cd /tmp
     wget -q -O spades.tar.gz \
-      "https://github.com/ablab/spades/archive/refs/tags/v4.2.0.tar.gz"
+      "https://github.com/ablab/spades/releases/download/v4.2.0/SPAdes-4.2.0-Linux.tar.gz"
 
     mkdir -p /opt
     tar -xzf spades.tar.gz -C /opt
-    cd /opt/spades-4.2.0
-
-    ./spades_compile.sh
 
     # Section 3: Install binaries and shared assets.
-    cp -r bin/* /usr/local/bin/
+    cp -r /opt/SPAdes-4.2.0-Linux/bin/* /usr/local/bin/
     ln -sf spades.py /usr/local/bin/spades
     mkdir -p /usr/local/share
-    cp -r share/spades /usr/local/share/
+    cp -r /opt/SPAdes-4.2.0-Linux/share/spades /usr/local/share/
 
     # Section 4: Run sanity checks and fail on version mismatch.
     /usr/local/bin/spades --version | grep -q "4.2.0"
@@ -96,7 +85,7 @@ EOF
 
     # Section 6: Clean up build tree.
     cd /
-    rm -rf /opt/spades-4.2.0 /tmp/spades.tar.gz
+    rm -rf /opt/SPAdes-4.2.0-Linux /tmp/spades.tar.gz
 
     rm -rf /var/lib/apt/lists/*
 
