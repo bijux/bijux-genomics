@@ -20,7 +20,6 @@ fn normalize_whitespace(text: &str) -> String {
 }
 
 #[test]
-#[ignore = "TODO: reconcile help snapshot normalization with current CLI output"]
 fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     let root = support::workspace_root();
     let snapshot_path = root.join("docs/cli/command_snapshot.txt");
@@ -28,23 +27,22 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
     let output = Command::new(cargo_target_dir(&root).join("debug/bijux"))
-        .arg("dna")
         .arg("--help")
         .current_dir(&root)
         .output()
-        .unwrap_or_else(|err| panic!("run 'bijux dna --help' via workspace binary: {err}"));
+        .unwrap_or_else(|err| panic!("run 'bijux --help' via workspace binary: {err}"));
 
     assert!(
         output.status.success(),
-        "failed to run dna help command: status={} stderr={}",
+        "failed to run root help command: status={} stderr={}",
         output.status,
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let actual = String::from_utf8(output.stdout).expect("dna help output must be valid UTF-8");
+    let actual = String::from_utf8(output.stdout).expect("root help output must be valid UTF-8");
     assert_eq!(
         normalize_whitespace(&actual),
         normalize_whitespace(&expected),
-        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux dna --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
+        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
     );
 }

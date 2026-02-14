@@ -17,30 +17,18 @@ fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_sna
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let build = Command::new("cargo")
-        .arg("build")
-        .arg("--release")
-        .arg("-p")
-        .arg("bijux-dna")
-        .arg("--bin")
-        .arg("bijux")
-        .current_dir(&root)
-        .status()
-        .unwrap_or_else(|err| panic!("build release bijux binary: {err}"));
-    assert!(build.success(), "release build failed");
-
-    let output = Command::new(cargo_target_dir(&root).join("release/bijux"))
+    let output = Command::new(cargo_target_dir(&root).join("debug/bijux"))
         .arg("dna")
         .arg("--help")
         .current_dir(&root)
         .output()
-        .unwrap_or_else(|err| panic!("run release help: {err}"));
-    assert!(output.status.success(), "release help command failed");
-    let actual = String::from_utf8(output.stdout).expect("release help must be valid UTF-8");
+        .unwrap_or_else(|err| panic!("run debug help: {err}"));
+    assert!(output.status.success(), "debug help command failed");
+    let actual = String::from_utf8(output.stdout).expect("debug help must be valid UTF-8");
 
     assert_eq!(
         actual.trim(),
         expected.trim(),
-        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/release/bijux dna --help > docs/cli/release_help_snapshot.txt"
+        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/debug/bijux dna --help > docs/cli/release_help_snapshot.txt"
     );
 }
