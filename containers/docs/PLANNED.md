@@ -15,17 +15,17 @@ Contracts:
 
 ## Planned Tool List
 
-| Tool | Primary Stage(s) | Shipping Policy | Justification |
-|---|---|---|---|
-| `beagle` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Standard population-genetics phasing/imputation baseline. |
-| `shapeit` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Alternate phasing path for scientific comparability. |
-| `plink` | `vcf.qc`, `vcf.admixture` | `docker_apptainer` | Broad QC/admixture preprocessing compatibility. |
-| `plink2` | `vcf.qc`, `vcf.pca`, `vcf.relatedness` | `docker_apptainer` | Modern PLINK runtime for downstream analysis. |
-| `eigensoft` | `vcf.pca` | `apptainer_only` | PCA lineage consistency with aDNA population workflows. |
-| `germline` | `vcf.ibd` | `apptainer_only` | IBD segment discovery path for relatedness checks. |
-| `ibdseq` | `vcf.ibd` | `apptainer_only` | Alternate IBD segment inference for cross-method checks. |
-| `ibdhap` | `vcf.ibd` | `apptainer_only` | Planned haplotype-oriented IBD analysis path. |
-| `ibdne` | `vcf.relatedness` | `apptainer_only` | Planned demographic inference from IBD segments. |
+| Tool | Primary Stage(s) | Shipping Policy | Justification | Owner |
+|---|---|---|---|---|
+| `beagle` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Standard population-genetics phasing/imputation baseline. | `@bijux-dna-platform` |
+| `shapeit` | `vcf.phasing`, `vcf.imputation` | `apptainer_only` | Alternate phasing path for scientific comparability. | `@bijux-dna-platform` |
+| `plink` | `vcf.qc`, `vcf.admixture` | `docker_apptainer` | Broad QC/admixture preprocessing compatibility. | `@bijux-dna-platform` |
+| `plink2` | `vcf.qc`, `vcf.pca`, `vcf.relatedness` | `docker_apptainer` | Modern PLINK runtime for downstream analysis. | `@bijux-dna-platform` |
+| `eigensoft` | `vcf.pca` | `apptainer_only` | PCA lineage consistency with aDNA population workflows. | `@bijux-dna-platform` |
+| `germline` | `vcf.ibd` | `apptainer_only` | IBD segment discovery path for relatedness checks. | `@bijux-dna-platform` |
+| `ibdseq` | `vcf.ibd` | `apptainer_only` | Alternate IBD segment inference for cross-method checks. | `@bijux-dna-platform` |
+| `ibdhap` | `vcf.ibd` | `apptainer_only` | Planned haplotype-oriented IBD analysis path. | `@bijux-dna-platform` |
+| `ibdne` | `vcf.relatedness` | `apptainer_only` | Planned demographic inference from IBD segments. | `@bijux-dna-platform` |
 
 ## VCF Downstream Stack Admission Checklist
 
