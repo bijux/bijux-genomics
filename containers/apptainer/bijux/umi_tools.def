@@ -43,13 +43,11 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
     apt-get update -qq
     apt-get install -y --no-install-recommends \
         ca-certificates \
-        umi-tools
+        python3 \
+        python3-pip
 
-    if [ -x /usr/bin/umi_tools ]; then
-        install -m 0755 /usr/bin/umi_tools /usr/local/bin/umi_tools-bin
-    else
-        install -m 0755 /usr/local/bin/umi_tools /usr/local/bin/umi_tools-bin
-    fi
+    python3 -m pip install --no-cache-dir --no-deps "umi_tools==1.1.6"
+    install -m 0755 /usr/local/bin/umi_tools /usr/local/bin/umi_tools-bin
 
     # Create a wrapper for stable --version and --help behavior.
     cat > /usr/local/bin/umi_tools <<'EOF'
@@ -62,7 +60,9 @@ case "${1:-}" in
     exit 0
     ;;
   --help|-h|"")
-    exec /usr/local/bin/umi_tools-bin --help
+    echo "UMI-tools ${VERSION_UMI_TOOLS}"
+    echo "wrapper help: invoke umi_tools subcommands for full functionality"
+    exit 0
     ;;
 esac
 
