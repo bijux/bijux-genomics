@@ -67,7 +67,7 @@
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.prepare_reference_panel",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.prepare_reference_panel (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.prepare_reference_panel"
     },
@@ -86,7 +86,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.call_diploid",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.call_diploid (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.call_diploid"
     },
@@ -107,7 +107,7 @@
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.damage_filter",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.damage_filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.damage_filter"
     },
@@ -126,7 +126,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.filter",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.filter"
     },
@@ -766,7 +766,7 @@
         "tool": "eagle",
         "use_reference": true
       },
-      "reason": "coverage regime Diploid selected tool eagle for vcf.phasing",
+      "reason": "coverage regime Diploid selected tool eagle for vcf.phasing (stage_tool_override)",
       "selected_tool": "eagle",
       "stage_id": "vcf.phasing"
     },
@@ -1402,7 +1402,7 @@
         "states": 200,
         "tool": "minimac4"
       },
-      "reason": "coverage regime Diploid selected tool minimac4 for vcf.impute",
+      "reason": "coverage regime Diploid selected tool minimac4 for vcf.impute (stage_tool_override)",
       "selected_tool": "minimac4",
       "stage_id": "vcf.impute"
     },
@@ -1421,7 +1421,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.postprocess",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.postprocess (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.postprocess"
     },
@@ -1446,7 +1446,7 @@
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
-      "reason": "coverage regime Diploid selected tool plink2 for vcf.population_structure",
+      "reason": "coverage regime Diploid selected tool plink2 for vcf.population_structure (coverage_regime_default)",
       "selected_tool": "plink2",
       "stage_id": "vcf.population_structure"
     },
@@ -1467,7 +1467,7 @@
         "schema_version": "bijux.vcf.roh.params.v1",
         "tool": "plink2"
       },
-      "reason": "coverage regime Diploid selected tool plink2 for vcf.roh",
+      "reason": "coverage regime Diploid selected tool plink2 for vcf.roh (coverage_regime_default)",
       "selected_tool": "plink2",
       "stage_id": "vcf.roh"
     },
@@ -1491,7 +1491,7 @@
         "schema_version": "bijux.vcf.ibd.params.v1",
         "tool": "germline"
       },
-      "reason": "coverage regime Diploid selected tool germline for vcf.ibd",
+      "reason": "coverage regime Diploid selected tool germline for vcf.ibd (coverage_regime_default)",
       "selected_tool": "germline",
       "stage_id": "vcf.ibd"
     },
@@ -1511,7 +1511,7 @@
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
       },
-      "reason": "coverage regime Diploid selected tool ibdne for vcf.demography",
+      "reason": "coverage regime Diploid selected tool ibdne for vcf.demography (coverage_regime_default)",
       "selected_tool": "ibdne",
       "stage_id": "vcf.demography"
     },
@@ -1530,7 +1530,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime Diploid selected tool bcftools for vcf.stats",
+      "reason": "coverage regime Diploid selected tool bcftools for vcf.stats (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.stats"
     }

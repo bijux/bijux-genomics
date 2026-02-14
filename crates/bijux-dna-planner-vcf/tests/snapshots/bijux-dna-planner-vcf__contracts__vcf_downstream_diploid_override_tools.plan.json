@@ -132,10 +132,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "postprocess"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.prepare_reference_panel"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.prepare_reference_panel (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -208,10 +209,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "call_regime"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.call_diploid"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.call_diploid (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -289,10 +291,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "damage_filter"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.damage_filter"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.damage_filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -365,10 +368,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.filter"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -1685,10 +1689,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "stage_tool_override",
           "stage_kind": "phasing"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool eagle for vcf.phasing"
+        "summary": "coverage regime Diploid selected tool eagle for vcf.phasing (stage_tool_override)"
       },
       "resources": {
         "mem_gb": 4,
@@ -2997,10 +3002,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "stage_tool_override",
           "stage_kind": "imputation"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool minimac4 for vcf.impute"
+        "summary": "coverage regime Diploid selected tool minimac4 for vcf.impute (stage_tool_override)"
       },
       "resources": {
         "mem_gb": 16,
@@ -3073,10 +3079,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "postprocess"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.postprocess"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.postprocess (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -3162,10 +3169,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "population_structure"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool plink2 for vcf.population_structure"
+        "summary": "coverage regime Diploid selected tool plink2 for vcf.population_structure (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -3244,10 +3252,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "roh"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool plink2 for vcf.roh"
+        "summary": "coverage regime Diploid selected tool plink2 for vcf.roh (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -3332,10 +3341,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "ibd"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool germline for vcf.ibd"
+        "summary": "coverage regime Diploid selected tool germline for vcf.ibd (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -3411,10 +3421,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "demography"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool ibdne for vcf.demography"
+        "summary": "coverage regime Diploid selected tool ibdne for vcf.demography (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -3487,10 +3498,11 @@
       "reason": {
         "details": {
           "coverage_regime": "diploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Diploid selected tool bcftools for vcf.stats"
+        "summary": "coverage regime Diploid selected tool bcftools for vcf.stats (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,

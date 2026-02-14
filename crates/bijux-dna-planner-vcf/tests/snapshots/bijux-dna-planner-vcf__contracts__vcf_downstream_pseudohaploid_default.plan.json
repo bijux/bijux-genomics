@@ -81,10 +81,11 @@
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "call_regime"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Pseudohaploid selected tool angsd for vcf.call_pseudohaploid"
+        "summary": "coverage regime Pseudohaploid selected tool angsd for vcf.call_pseudohaploid (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -162,10 +163,11 @@
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "damage_filter"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.damage_filter"
+        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.damage_filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -238,10 +240,11 @@
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.filter"
+        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.filter (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -320,10 +323,11 @@
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "roh"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Pseudohaploid selected tool plink2 for vcf.roh"
+        "summary": "coverage regime Pseudohaploid selected tool plink2 for vcf.roh (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,
@@ -396,10 +400,11 @@
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
+          "selection_rule": "coverage_regime_default",
           "stage_kind": "qc"
         },
         "kind": "input_assessed",
-        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.stats"
+        "summary": "coverage regime Pseudohaploid selected tool bcftools for vcf.stats (coverage_regime_default)"
       },
       "resources": {
         "mem_gb": 4,

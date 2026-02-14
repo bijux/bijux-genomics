@@ -67,7 +67,7 @@
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.prepare_reference_panel (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.prepare_reference_panel"
     },
@@ -86,7 +86,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
-      "reason": "coverage regime LowCovGl selected tool angsd for vcf.call_gl",
+      "reason": "coverage regime LowCovGl selected tool angsd for vcf.call_gl (coverage_regime_default)",
       "selected_tool": "angsd",
       "stage_id": "vcf.call_gl"
     },
@@ -107,7 +107,7 @@
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.damage_filter",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.damage_filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.damage_filter"
     },
@@ -131,7 +131,7 @@
         "schema_version": "bijux.vcf.gl_propagation.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.gl_propagation (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.gl_propagation"
     },
@@ -150,7 +150,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.filter",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.filter (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.filter"
     },
@@ -786,7 +786,7 @@
         "tool": "glimpse",
         "window_size_mb": 2.0
       },
-      "reason": "coverage regime LowCovGl selected tool glimpse for vcf.impute",
+      "reason": "coverage regime LowCovGl selected tool glimpse for vcf.impute (lowcov_gl_default_glimpse)",
       "selected_tool": "glimpse",
       "stage_id": "vcf.impute"
     },
@@ -805,7 +805,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.postprocess",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.postprocess (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.postprocess"
     },
@@ -830,7 +830,7 @@
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
-      "reason": "coverage regime LowCovGl selected tool plink2 for vcf.population_structure",
+      "reason": "coverage regime LowCovGl selected tool plink2 for vcf.population_structure (coverage_regime_default)",
       "selected_tool": "plink2",
       "stage_id": "vcf.population_structure"
     },
@@ -854,7 +854,7 @@
         "schema_version": "bijux.vcf.ibd.params.v1",
         "tool": "germline"
       },
-      "reason": "coverage regime LowCovGl selected tool germline for vcf.ibd",
+      "reason": "coverage regime LowCovGl selected tool germline for vcf.ibd (coverage_regime_default)",
       "selected_tool": "germline",
       "stage_id": "vcf.ibd"
     },
@@ -874,7 +874,7 @@
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
       },
-      "reason": "coverage regime LowCovGl selected tool ibdne for vcf.demography",
+      "reason": "coverage regime LowCovGl selected tool ibdne for vcf.demography (coverage_regime_default)",
       "selected_tool": "ibdne",
       "stage_id": "vcf.demography"
     },
@@ -893,7 +893,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
-      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.stats",
+      "reason": "coverage regime LowCovGl selected tool bcftools for vcf.stats (coverage_regime_default)",
       "selected_tool": "bcftools",
       "stage_id": "vcf.stats"
     }
