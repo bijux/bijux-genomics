@@ -1006,6 +1006,121 @@ mod contracts {
     }
 
     #[test]
+    fn phasing_auto_backend_selects_shapeit5_when_map_present() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248_956_422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242_193_529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_phasing_stage(
+            input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Auto,
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                region: None,
+                allow_gl_only_input: false,
+            },
+        )
+        .unwrap_or_else(|err| panic!("phasing auto with map: {err}"));
+        let manifest = std::fs::read_to_string(&out.phasing_manifest_json)
+            .unwrap_or_else(|err| panic!("read phasing manifest: {err}"));
+        let payload: serde_json::Value = serde_json::from_str(&manifest)
+            .unwrap_or_else(|err| panic!("parse phasing manifest json: {err}"));
+        assert_eq!(
+            payload
+                .get("requested_backend")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "auto"
+        );
+        assert_eq!(
+            payload
+                .get("backend")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "shapeit5"
+        );
+    }
+
+    #[test]
+    fn phasing_auto_backend_selects_beagle_for_gl_regime() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_only.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t100\t.\tA\tG\t60\tPASS\t.\tGL\t0.0,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write gl fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "chr1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_phasing_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Auto,
+                map_id: None,
+                threads: 2,
+                seed: 42,
+                region: None,
+                allow_gl_only_input: true,
+            },
+        )
+        .unwrap_or_else(|err| panic!("phasing auto for gl: {err}"));
+        let manifest = std::fs::read_to_string(&out.phasing_manifest_json)
+            .unwrap_or_else(|err| panic!("read phasing manifest: {err}"));
+        let payload: serde_json::Value = serde_json::from_str(&manifest)
+            .unwrap_or_else(|err| panic!("parse phasing manifest json: {err}"));
+        assert_eq!(
+            payload
+                .get("requested_backend")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "auto"
+        );
+        assert_eq!(
+            payload
+                .get("backend")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "beagle"
+        );
+    }
+
+    #[test]
     fn impute_stage_runs_glimpse_for_lowcov_gl_input() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = dir.path().join("gl_input.vcf");
