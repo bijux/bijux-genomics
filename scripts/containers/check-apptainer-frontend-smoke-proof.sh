@@ -58,8 +58,17 @@ for t in sorted(apptainer_tools):
         errors.append(f"{t}: runtime network access detected")
     if row.get("home_write_detected") is True:
         errors.append(f"{t}: write to HOME detected")
+    if row.get("home_policy_ok") is not True:
+        errors.append(f"{t}: home_policy_ok is false")
+    if row.get("filesystem_policy_ok") is not True:
+        errors.append(f"{t}: filesystem_policy_ok is false")
     if row.get("write_policy_ok") is not True:
         errors.append(f"{t}: write_policy_ok is false")
+    log_dir = str(row.get("smoke_log_dir", "")).strip()
+    if not log_dir:
+        errors.append(f"{t}: missing smoke_log_dir")
+    elif f"/smoke/{t}/" not in Path(log_dir).as_posix():
+        errors.append(f"{t}: smoke_log_dir path layout mismatch")
 
 if errors:
     print("frontend smoke proof: failed", file=sys.stderr)
