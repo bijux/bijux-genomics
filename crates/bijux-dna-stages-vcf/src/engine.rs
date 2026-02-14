@@ -9,12 +9,13 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
+    run_admixture_stage, run_pca_stage, run_population_structure_stage,
     run_damage_filter_stage, run_gl_propagation_stage,
     run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage_real,
     run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
     run_qc_stage, run_stats_stage_real, DamageFilterStageParams, GlPropagationStageParams,
     ImputeStageParams, PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
-    QcStageParams,
+    AdmixtureStageParams, PcaStageParams, PopulationStructureStageParams, QcStageParams,
 };
 use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
@@ -248,6 +249,18 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
             "docker",
             "sha256:3333333333333333333333333333333333333333333333333333333333333333",
             "glimpse 2.0.0",
+        ),
+        VcfDomainStage::Pca | VcfDomainStage::PopulationStructure => (
+            "plink2",
+            "docker",
+            "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "plink2 2.0",
+        ),
+        VcfDomainStage::Admixture => (
+            "admixture",
+            "docker",
+            "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+            "admixture 1.3.0",
         ),
         _ => (
             "contract-only",
@@ -664,6 +677,33 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.push(out.validate_outputs_json);
                 artifacts.push(out.final_manifest_json);
                 artifacts.push(out.logs_txt);
+            }
+            VcfDomainStage::Pca => {
+                let out = run_pca_stage(input_vcf, &stage_dir, &PcaStageParams::default())
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
+                artifacts.extend([out.eigenvec_tsv, out.eigenval_tsv, out.pca_manifest_json, out.logs_txt]);
+            }
+            VcfDomainStage::PopulationStructure => {
+                let out = run_population_structure_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &PopulationStructureStageParams::default(),
+                )
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
+                artifacts.extend([out.pruned_variants_tsv, out.population_structure_json, out.logs_txt]);
+            }
+            VcfDomainStage::Admixture => {
+                let _ = run_admixture_stage(input_vcf, &stage_dir, &AdmixtureStageParams::default())
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
             }
             _ => {
                 return Err(refusal(
