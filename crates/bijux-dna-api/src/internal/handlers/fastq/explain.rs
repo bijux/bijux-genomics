@@ -4,6 +4,21 @@ use std::path::Path;
 use crate::explain::{ExplainExclusion, ExplainPlan, ExplainSelectionNote};
 use anyhow::{Context, Result};
 
+fn read_domain_snapshot_hash() -> Option<String> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let registry = root.join("configs/ci/registry/tool_registry.toml");
+    let raw = std::fs::read_to_string(registry).ok()?;
+    for line in raw.lines().take(8) {
+        if let Some(rest) = line.strip_prefix("# source_commit: ") {
+            let hash = rest.trim();
+            if hash.len() == 40 && hash.chars().all(|ch| ch.is_ascii_hexdigit()) {
+                return Some(hash.to_string());
+            }
+        }
+    }
+    None
+}
+
 /// Write a human-readable plan explanation.
 ///
 /// # Errors
@@ -79,6 +94,7 @@ pub fn write_explain_plan_json(
         .collect();
     let plan = ExplainPlan {
         stage: stage.to_string(),
+        domain_snapshot_hash: read_domain_snapshot_hash(),
         selected_tools: selected.to_vec(),
         tool_selection: selection,
         excluded_tools: excluded,

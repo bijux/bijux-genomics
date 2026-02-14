@@ -11,6 +11,8 @@ pub(crate) struct ExplainExclusion {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ExplainPlan {
     pub stage: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub domain_snapshot_hash: Option<String>,
     pub selected_tools: Vec<String>,
     pub tool_selection: Vec<ExplainSelectionNote>,
     pub excluded_tools: Vec<ExplainExclusion>,
