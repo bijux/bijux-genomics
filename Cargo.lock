@@ -656,6 +656,8 @@ dependencies = [
  "bijux-dna-stage-contract",
  "serde",
  "serde_json",
+ "sha2",
+ "toml",
 ]
 
 [[package]]

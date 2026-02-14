@@ -46,7 +46,7 @@
       "to": "vcf.ibd"
     }
   ],
-  "pipeline_id": "vcf-to-vcf__downstream_diploid__v2",
+  "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "stage_plans": [
     {
