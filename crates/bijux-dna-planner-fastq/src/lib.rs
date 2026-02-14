@@ -638,7 +638,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     enable_contaminant_removal: bool,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
-    mut out_dir_for_stage: F,
+    out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
     F: FnMut(
