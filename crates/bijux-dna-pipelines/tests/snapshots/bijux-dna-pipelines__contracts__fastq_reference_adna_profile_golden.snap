@@ -9,7 +9,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
     "fastq.low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
     "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
-    "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+    "fastq.preprocess": "99b0a7c19f60dc1a8839c42e0dbef22bcbd4df21d1bd106fc12d245ed2ad49ae",
     "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
     "fastq.screen": "7e6384522ad5c0b377ffef7ccca91f390a30a0281ebd7ae6afd9d045bfed18af",
     "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",

@@ -199,6 +199,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "library_damage_treatment": "no_udg",
       "library_declared_paired": true,
       "paired_mode": "paired_end",
+      "pipeline_mode": "shotgun",
       "stages": [
         "fastq.validate_pre",
         "fastq.detect_adapters",
