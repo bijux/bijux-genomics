@@ -121,10 +121,12 @@ children = [
   "docs/30-operations/BENCHMARK_VARIANCE.md",
   "docs/30-operations/CI.md",
   "docs/30-operations/CONTAINERS.md",
+  "docs/30-operations/CONTAINER_LICENSE_INDEX.md",
   "docs/30-operations/DEVELOPER_WORKFLOW.md",
   "docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md",
   "docs/30-operations/EXPLAINABILITY.md",
   "docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md",
+  "docs/30-operations/HPC_FRONTEND_RUNBOOK.md",
   "docs/30-operations/HPC_LUNARC_LAYOUT.md",
   "docs/30-operations/ISOLATION.md",
   "docs/30-operations/MKDOCS_BUILD.md",
@@ -137,8 +139,13 @@ children = [
   "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
   "docs/30-operations/SECURITY.md",
   "docs/30-operations/SECURITY_POLICY.md",
+  "docs/30-operations/SLURM_PHASE_ENTRY_CRITERIA.md",
   "docs/30-operations/TEST_FAILURE_TRIAGE.md",
   "docs/30-operations/THREAT_MODEL.md",
+  "docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md",
+  "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md",
+  "docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md",
+  "docs/30-operations/vcf-downstream-triage.md",
 ]
 
 [[edge]]
@@ -176,10 +183,12 @@ children = [
   "docs/50-reference/LICENSING.md",
   "docs/50-reference/MANIFEST_MIGRATION.md",
   "docs/50-reference/NO_ORPHANS.md",
+  "docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md",
   "docs/50-reference/PIPELINES.md",
   "docs/50-reference/REFERENCE_INDEX.md",
   "docs/50-reference/SCHEMAS_INDEX.md",
   "docs/50-reference/TOOL_ADMISSION.md",
+  "docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md",
 ]
 
 [[edge]]
