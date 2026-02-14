@@ -9,10 +9,11 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
+    run_damage_filter_stage,
     run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage, run_filter_stage,
     run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
-    run_stats_stage, ImputeStageParams, PhasingStageParams, PostprocessStageParams,
-    PrepareReferencePanelParams,
+    run_stats_stage, DamageFilterStageParams, ImputeStageParams, PhasingStageParams,
+    PostprocessStageParams, PrepareReferencePanelParams,
 };
 use crate::invariants::{run_vcf_preflight, InvariantConfig, InputRegime, VcfPreflightResult};
 
@@ -55,6 +56,7 @@ pub struct VcfPipelineRequest {
     pub reference_fasta: Option<String>,
     pub prepare_panel: Option<PrepareReferencePanelParams>,
     pub panel_vcf: Option<PathBuf>,
+    pub damage_filter: Option<DamageFilterStageParams>,
     pub phasing: Option<PhasingStageParams>,
     pub impute: Option<ImputeStageParams>,
     pub postprocess: Option<PostprocessStageParams>,
@@ -220,6 +222,7 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
         | VcfDomainStage::CallDiploid
         | VcfDomainStage::CallGl
         | VcfDomainStage::CallPseudohaploid
+        | VcfDomainStage::DamageFilter
         | VcfDomainStage::Filter
         | VcfDomainStage::Stats
         | VcfDomainStage::Postprocess
@@ -437,6 +440,24 @@ impl VcfStageRunner for DispatchRunner {
                 })?;
                 primary_output = Some(out.clone());
                 artifacts.push(out);
+            }
+            VcfDomainStage::DamageFilter => {
+                let params = ctx
+                    .request
+                    .damage_filter
+                    .clone()
+                    .unwrap_or_default();
+                let out = run_damage_filter_stage(input_vcf, &stage_dir, &params).map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
+                primary_output = Some(out.filtered_vcf.clone());
+                artifacts.extend([
+                    out.filtered_vcf,
+                    out.filtered_tbi,
+                    out.damage_filter_summary_json,
+                    out.damage_filter_counts_json,
+                ]);
             }
             VcfDomainStage::Stats => {
                 let out = stage_dir.join("stats.tsv");
