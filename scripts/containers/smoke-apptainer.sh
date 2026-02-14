@@ -788,9 +788,13 @@ if [ ! -s "$LIST_FILE" ]; then
   exit 2
 fi
 
+defs_count="$(wc -l < "$LIST_FILE" | tr -d ' ')"
+
 : >"$SUMMARY"
 echo "Apptainer smoke run" | tee -a "$SUMMARY"
 echo "mode: $SMOKE_RUN_MODE" | tee -a "$SUMMARY"
+echo "tools_filter: ${TOOLS:-<all>}" | tee -a "$SUMMARY"
+echo "defs_count: ${defs_count}" | tee -a "$SUMMARY"
 echo "logs: $LOG_DIR" | tee -a "$SUMMARY"
 echo "images: $IMG_DIR" | tee -a "$SUMMARY"
 
