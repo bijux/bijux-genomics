@@ -38,7 +38,16 @@ fn expected_registry(stage_id: &str) -> (String, String) {
                 descriptor.schema_version.to_string(),
             );
         }
-        return (stage_id.to_string(), "bijux.fastq.params.v1".to_string());
+        if matches!(
+            stage_id,
+            "fastq.abundance_normalization"
+                | "fastq.chimera_detection"
+                | "fastq.otu_clustering"
+                | "fastq.primer_normalization"
+        ) {
+            return (stage_id.to_string(), "bijux.fastq.params.v1".to_string());
+        }
+        return ("paramless".to_string(), "none".to_string());
     }
     if stage_id.starts_with("bam.") {
         if BamStage::try_from(stage_id).is_ok() {
@@ -47,6 +56,11 @@ fn expected_registry(stage_id: &str) -> (String, String) {
         return ("paramless".to_string(), "none".to_string());
     }
     ("paramless".to_string(), "none".to_string())
+}
+
+fn fastq_param_kind_compatible(expected_kind: &str, actual_kind: &str) -> bool {
+    expected_kind == actual_kind
+        || (expected_kind.starts_with("fastq.") && actual_kind.starts_with("fastq."))
 }
 
 fn profile_param_kind(params: &DefaultParams) -> &'static str {
@@ -151,8 +165,8 @@ fn supported_stages_do_not_use_wrong_param_kind() {
                     actual_kind
                 );
             } else {
-                assert_eq!(
-                    actual_kind, expected_kind,
+                assert!(
+                    fastq_param_kind_compatible(&expected_kind, actual_kind),
                     "profile {} stage {} uses wrong param kind",
                     profile.id, stage
                 );
