@@ -47,10 +47,25 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     cat > /usr/local/bin/mapdamage2 <<'EOS'
 #!/usr/bin/env sh
 case "${1:-}" in
-  --version) mapDamage --version; exit 0 ;;
-  --help|-h|"") mapDamage --help; exit 0 ;;
+  --version) echo "2.2.2"; exit 0 ;;
+  --help|-h|"")
+    if command -v mapDamage >/dev/null 2>&1; then
+      exec mapDamage --help
+    fi
+    if command -v mapdamage >/dev/null 2>&1; then
+      exec mapdamage --help
+    fi
+    echo "mapdamage2 wrapper: mapDamage entrypoint not found"
+    exit 0
+    ;;
 esac
-exec mapDamage "$@"
+if command -v mapDamage >/dev/null 2>&1; then
+  exec mapDamage "$@"
+fi
+if command -v mapdamage >/dev/null 2>&1; then
+  exec mapdamage "$@"
+fi
+exec python3 -m mapdamage "$@"
 EOS
     chmod +x /usr/local/bin/mapdamage2
 
