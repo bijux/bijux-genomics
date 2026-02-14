@@ -1,0 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Minimal shared input assets required by selected container smoke checks.
+# authority = bijux-dna-platform
+# stability = stable
+# last_updated = 2026-02-14
+
+[tool_inputs]
+plink = { path = "assets/golden/smoke-inputs-v1/vcf/toy.vcf" }
+plink2 = { path = "assets/golden/smoke-inputs-v1/vcf/toy.vcf" }

@@ -30,16 +30,18 @@ TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
 FRONTEND_PROOF_MODE="${FRONTEND_PROOF_MODE:-0}"
+SMOKE_DISABLE_NETWORK="${SMOKE_DISABLE_NETWORK:-1}"
 UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-${UBUNTU_BASE_SIF:-}}"
 PYTHON_BASE_SIF="${APPTAINER_PYTHON_BASE_SIF:-${PYTHON_BASE_SIF:-}}"
 CACHE_POLICY_TOML="$ROOT_DIR/configs/ci/tools/apptainer_cache_policy.toml"
 HPC_BUILD_POLICY_TOML="$ROOT_DIR/configs/ci/tools/hpc_frontend_build_policy.toml"
+SMOKE_INPUTS_POLICY_TOML="$ROOT_DIR/configs/ci/tools/smoke_inputs_policy.toml"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/containers}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
 SBOM_DIR="$ARTIFACT_DIR/sbom"
-SMOKE_ARCHIVE_ROOT="$ARTIFACT_DIR/smoke/apptainer"
+SMOKE_ARCHIVE_ROOT="$ARTIFACT_DIR/smoke"
 RUN_TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SUMMARY="$LOG_DIR/summary.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
@@ -47,7 +49,7 @@ PROVENANCE_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unkn
 PROVENANCE_VERSIONS_SHA256="$(shasum -a 256 "$ROOT_DIR/containers/versions/versions.toml" | awk '{print $1}')"
 PROVENANCE_BUILDER="${USER:-unknown}@$(hostname -s 2>/dev/null || hostname || echo unknown)"
 APPTAINER_RUN_ARGS=(--pwd /tmp)
-if [[ "$FRONTEND_PROOF_MODE" == "1" ]]; then
+if [[ "$SMOKE_DISABLE_NETWORK" == "1" || "$FRONTEND_PROOF_MODE" == "1" ]]; then
   APPTAINER_RUN_ARGS+=(--no-home --net --network none)
 fi
 
@@ -84,6 +86,7 @@ mkdir -p "$TMP_ROOT"
 
 [[ -f "$CACHE_POLICY_TOML" ]] || { echo "missing $CACHE_POLICY_TOML" >&2; exit 1; }
 [[ -f "$HPC_BUILD_POLICY_TOML" ]] || { echo "missing $HPC_BUILD_POLICY_TOML" >&2; exit 1; }
+[[ -f "$SMOKE_INPUTS_POLICY_TOML" ]] || { echo "missing $SMOKE_INPUTS_POLICY_TOML" >&2; exit 1; }
 host_name="$(hostname -f 2>/dev/null || hostname)"
 if python3 - "$HPC_BUILD_POLICY_TOML" "$host_name" <<'PY'
 import re
@@ -398,6 +401,33 @@ get_negative_pattern() {
   printf '%s\n' "$value"
 }
 
+get_smoke_input_path() {
+  tool="$1"
+  value=$(python3 - "$SMOKE_INPUTS_POLICY_TOML" "$tool" <<'PY'
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+path = sys.argv[1]
+tool = sys.argv[2]
+with open(path, "rb") as fh:
+    data = tomllib.load(fh)
+entry = (data.get("tool_inputs", {}) or {}).get(tool)
+if not isinstance(entry, dict):
+    print("")
+    raise SystemExit(0)
+rel = str(entry.get("path", "")).strip()
+print(rel)
+PY
+)
+  if [ -z "$value" ]; then
+    printf '%s\n' ""
+  else
+    printf '%s\n' "$ROOT_DIR/$value"
+  fi
+}
+
 derive_runscript_args() {
   cmd="$1"
   expected_bin="$2"
@@ -480,9 +510,9 @@ build_and_smoke_one() {
   negative_output_file="$LOG_DIR/${tool}.negative.out"
   self_report_file="$LOG_DIR/${tool}.self_report.json"
   sbom_file="$SBOM_DIR/${tool}/apptainer.packages.txt"
-  smoke_archive_dir="$SMOKE_ARCHIVE_ROOT/$tool"
-  smoke_archive_log="$smoke_archive_dir/${RUN_TIMESTAMP}.log"
-  smoke_archive_checksum="$smoke_archive_log.sha256"
+  smoke_archive_dir="$SMOKE_ARCHIVE_ROOT/$tool/$RUN_TIMESTAMP"
+  smoke_archive_log="$smoke_archive_dir/smoke.log"
+  smoke_archive_checksum="$smoke_archive_dir/smoke.log.sha256"
   manifest="$MANIFEST_DIR/${tool}.json"
   base_image=$(awk '/^From: /{print $2; exit}' "$def_file")
   upstream=$(get_registry_field upstream "$tool")
@@ -493,6 +523,13 @@ build_and_smoke_one() {
   network_runtime_detected=false
   home_write_detected=false
   write_policy_ok=true
+  home_policy_ok=false
+  filesystem_policy_ok=false
+  smoke_input_path="$(get_smoke_input_path "$tool")"
+  smoke_input_ok=true
+  if [ -n "$smoke_input_path" ] && [ ! -s "$smoke_input_path" ]; then
+    smoke_input_ok=false
+  fi
 
   mkdir -p "$(dirname "$sbom_file")" "$smoke_archive_dir"
   rm -f "$vm_sif" "$vm_log" "$out_log" "$out_sif" "$version_output_file" "$help_output_file" "$minimal_output_file" "$self_report_file"
@@ -569,6 +606,37 @@ build_and_smoke_one() {
       fi
       echo "=== [$tool] smoke-bin: $expected_bin"
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
+      echo "=== [$tool] smoke-home-policy: HOME readonly/empty + version command"
+      ro_home="$(mktemp -d "$TMP_ROOT/appt-home-ro-${tool}.XXXXXX")"
+      chmod 0555 "$ro_home"
+      set +e
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" --home "$ro_home:/home/smoke" "$vm_sif" sh -lc "HOME=/home/smoke $cmd" >/dev/null 2>&1
+      home_policy_rc=$?
+      set -e
+      rm -rf "$ro_home"
+      if [ "$home_policy_rc" -ne 0 ]; then
+        echo "home policy check failed for version command"
+        exit 1
+      fi
+      home_policy_ok=true
+      echo "=== [$tool] smoke-filesystem-policy: containall + version command"
+      set +e
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec --containall --no-home --net --network none "$vm_sif" sh -lc "$cmd" >/dev/null 2>&1
+      fs_policy_rc=$?
+      set -e
+      if [ "$fs_policy_rc" -ne 0 ]; then
+        echo "filesystem policy check failed (containall run of version command)"
+        exit 1
+      fi
+      filesystem_policy_ok=true
+      if [ -n "$smoke_input_path" ]; then
+        echo "=== [$tool] smoke-input-policy: $smoke_input_path"
+        if [ "$smoke_input_ok" != "true" ]; then
+          echo "smoke input missing or empty: $smoke_input_path"
+          exit 1
+        fi
+        run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "${APPTAINER_RUN_ARGS[@]}" "$vm_sif" sh -lc "test -s \"$(printf '%s' "$smoke_input_path")\""
+      fi
       echo "=== [$tool] healthcheck: $health_cmd"
       run_tool_command "$vm_sif" "$health_cmd" "$expected_bin" >/dev/null
       echo "=== [$tool] smoke-minimal: $minimal_cmd (expected_exit=$minimal_exit_code)"
@@ -654,13 +722,20 @@ PY
   "help_actual_exit_code": ${help_rc:-0},
   "version_output": "$version_output_json",
   "normalized_version_output": "$normalized_version_output_json",
+  "sif_digest_sha256": "$(json_escape "$image_digest")",
   "network_runtime_detected": $network_runtime_detected,
+  "network_policy_enforced": $([[ "$SMOKE_DISABLE_NETWORK" == "1" ]] && echo "true" || echo "false"),
   "home_write_detected": $home_write_detected,
+  "home_policy_ok": $home_policy_ok,
+  "filesystem_policy_ok": $filesystem_policy_ok,
+  "smoke_input_path": "$(json_escape "$smoke_input_path")",
+  "smoke_input_ok": $smoke_input_ok,
   "write_policy_ok": $write_policy_ok,
   "image_size_bytes": $image_size_bytes,
   "packages_hash": "$(json_escape "$packages_hash")",
   "sbom_path": "$(json_escape "$sbom_file")",
   "smoke_log_path": "$(json_escape "$smoke_archive_log")",
+  "smoke_log_dir": "$(json_escape "$smoke_archive_dir")",
   "smoke_log_checksum_path": "$(json_escape "$smoke_archive_checksum")",
   "self_report_path": "$(json_escape "$self_report_file")",
   "builder": "$(json_escape "$PROVENANCE_BUILDER")",
