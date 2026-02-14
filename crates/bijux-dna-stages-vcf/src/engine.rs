@@ -1,11 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
 use bijux_dna_domain_vcf::{VcfDomainStage, VCF_STAGE_ORDER_DOWNSTREAM};
-use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
+use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::pipeline::{
@@ -86,6 +86,67 @@ pub struct VcfPipelineResult {
     pub preflight: VcfPreflightResult,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct ToolInvocation {
+    pub tool_id: String,
+    pub runtime: String,
+    pub image_digest: String,
+    pub argv: Vec<String>,
+    pub inputs: Vec<PathBuf>,
+    pub outputs: Vec<PathBuf>,
+}
+
+#[derive(Debug, Clone)]
+struct ToolInvocationBuilder {
+    tool_id: String,
+    runtime: String,
+    image_digest: String,
+    argv: Vec<String>,
+    inputs: Vec<PathBuf>,
+    outputs: Vec<PathBuf>,
+}
+
+impl ToolInvocationBuilder {
+    fn new(tool_id: &str, runtime: &str, image_digest: &str) -> Self {
+        Self {
+            tool_id: tool_id.to_string(),
+            runtime: runtime.to_string(),
+            image_digest: image_digest.to_string(),
+            argv: vec![],
+            inputs: vec![],
+            outputs: vec![],
+        }
+    }
+
+    fn argv(mut self, argv: Vec<String>) -> Self {
+        self.argv = argv;
+        self
+    }
+
+    fn io(mut self, inputs: Vec<PathBuf>, outputs: Vec<PathBuf>) -> Self {
+        self.inputs = inputs;
+        self.outputs = outputs;
+        self
+    }
+
+    fn build(self) -> Result<ToolInvocation> {
+        if self.image_digest.trim().is_empty() || !self.image_digest.starts_with("sha256:") {
+            bail!("tool invocation requires pinned image digest");
+        }
+        if self.argv.is_empty() {
+            bail!("tool invocation requires argv (no shell string)");
+        }
+        Ok(ToolInvocation {
+            tool_id: self.tool_id,
+            runtime: self.runtime,
+            image_digest: self.image_digest,
+            argv: self.argv,
+            inputs: self.inputs,
+            outputs: self.outputs,
+        })
+    }
+}
+
 pub struct VcfStageRunContext<'a> {
     pub request: &'a VcfPipelineRequest,
     pub artifact_root: PathBuf,
@@ -101,11 +162,22 @@ struct DispatchRunner {
     stage: VcfDomainStage,
 }
 
-fn write_sidecars(out_dir: &Path, stage: VcfDomainStage, command: &str) -> Result<()> {
-    atomic_write_bytes(&out_dir.join("command.txt"), command.as_bytes())?;
+fn write_sidecars(
+    out_dir: &Path,
+    stage: VcfDomainStage,
+    argv: &[String],
+    tmp_dir: &Path,
+) -> Result<()> {
+    atomic_write_bytes(&out_dir.join("command.txt"), argv.join("\n").as_bytes())?;
     atomic_write_bytes(
         &out_dir.join("env.txt"),
-        format!("stage={}\nhostname={}\n", stage.as_str(), std::env::var("HOSTNAME").unwrap_or_else(|_| "unknown".to_string())).as_bytes(),
+        format!(
+            "stage={}\nhostname={}\nLC_ALL=C\nTZ=UTC\nTMPDIR={}\nNO_NETWORK=true\n",
+            stage.as_str(),
+            std::env::var("HOSTNAME").unwrap_or_else(|_| "unknown".to_string()),
+            tmp_dir.display()
+        )
+        .as_bytes(),
     )?;
     atomic_write_bytes(&out_dir.join("stdout.log"), b"captured-by-dispatch-runner\n")?;
     atomic_write_bytes(&out_dir.join("stderr.log"), b"")?;
@@ -118,7 +190,7 @@ fn write_stage_manifest(
     input: &Path,
     artifacts: &[PathBuf],
     runtime: &StageRuntimeStats,
-    command: &str,
+    invocation: &ToolInvocation,
 ) -> Result<PathBuf> {
     let manifest = out_dir.join("stage_manifest.json");
     atomic_write_json(
@@ -126,14 +198,10 @@ fn write_stage_manifest(
         &serde_json::json!({
             "schema_version": "bijux.vcf.stage_manifest.v1",
             "stage_id": stage.as_str(),
-            "tool_id": match stage {
-                VcfDomainStage::Call | VcfDomainStage::Filter | VcfDomainStage::Stats | VcfDomainStage::Postprocess | VcfDomainStage::PrepareReferencePanel => "bcftools",
-                VcfDomainStage::Phasing => "shapeit5",
-                VcfDomainStage::Impute | VcfDomainStage::Imputation => "glimpse",
-                _ => "contract-only",
-            },
-            "image_digest": serde_json::Value::Null,
-            "command": command,
+            "tool_id": invocation.tool_id,
+            "runtime": invocation.runtime,
+            "image_digest": invocation.image_digest,
+            "command_argv": invocation.argv,
             "inputs": [input],
             "outputs": artifacts,
             "timings": runtime,
@@ -142,6 +210,124 @@ fn write_stage_manifest(
         }),
     )?;
     Ok(manifest)
+}
+
+fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'static str, &'static str) {
+    match stage {
+        VcfDomainStage::Call
+        | VcfDomainStage::Filter
+        | VcfDomainStage::Stats
+        | VcfDomainStage::Postprocess
+        | VcfDomainStage::PrepareReferencePanel => (
+            "bcftools",
+            "docker",
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "bcftools 1.20",
+        ),
+        VcfDomainStage::Phasing => (
+            "shapeit5",
+            "docker",
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "shapeit5 5.1.1",
+        ),
+        VcfDomainStage::Impute | VcfDomainStage::Imputation => (
+            "glimpse",
+            "docker",
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "glimpse 2.0.0",
+        ),
+        _ => (
+            "contract-only",
+            "docker",
+            "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "unknown",
+        ),
+    }
+}
+
+fn map_runner_error(msg: &str) -> (VcfRefusalCode, String) {
+    if msg.contains("tabix index missing") {
+        return (
+            VcfRefusalCode::RunnerFailed,
+            "missing tabix index; run ensure_bgzip_tabix or provide indexed input".to_string(),
+        );
+    }
+    if msg.contains("contig") && msg.contains("mismatch") {
+        return (
+            VcfRefusalCode::InvariantsFailed,
+            "contig mismatch detected; align contig naming/build or disable aliasing only with explicit policy".to_string(),
+        );
+    }
+    if msg.contains("requires map") || msg.contains("map asset") {
+        return (
+            VcfRefusalCode::PlanningFailed,
+            "map missing/incompatible; resolve map_id and lock before stage execution".to_string(),
+        );
+    }
+    (VcfRefusalCode::RunnerFailed, msg.to_string())
+}
+
+fn write_artifact_checksums(stage_dir: &Path, artifacts: &[PathBuf]) -> Result<PathBuf> {
+    let path = stage_dir.join("artifact_checksums.json");
+    let mut rows = Vec::<serde_json::Value>::new();
+    for a in artifacts {
+        if a.exists() {
+            rows.push(serde_json::json!({
+                "path": a,
+                "sha256": hash_file_sha256(a).map_err(|e| anyhow!(e.to_string()))?,
+            }));
+        }
+    }
+    atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.stage_artifact_checksums.v1",
+            "artifacts": rows,
+        }),
+    )?;
+    Ok(path)
+}
+
+fn try_resume_stage(stage: VcfDomainStage, stage_dir: &Path) -> Result<Option<VcfStageOutputs>> {
+    let manifest = stage_dir.join("stage_manifest.json");
+    let checksums = stage_dir.join("artifact_checksums.json");
+    if !manifest.exists() || !checksums.exists() {
+        return Ok(None);
+    }
+    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&checksums)?)?;
+    let rows = payload
+        .get("artifacts")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+    for row in rows {
+        let path = row.get("path").and_then(|v| v.as_str()).unwrap_or_default();
+        let expected = row
+            .get("sha256")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string();
+        let path_buf = PathBuf::from(path);
+        if !path_buf.exists() {
+            return Ok(None);
+        }
+        let actual = hash_file_sha256(&path_buf).map_err(|e| anyhow!(e.to_string()))?;
+        if actual != expected {
+            return Ok(None);
+        }
+    }
+    Ok(Some(VcfStageOutputs {
+        stage_id: stage.as_str().to_string(),
+        artifact_dir: stage_dir.to_path_buf(),
+        primary_output: None,
+        artifacts: vec![manifest.clone(), checksums],
+        stage_manifest: manifest,
+        runtime: StageRuntimeStats {
+            wall_time_ms: 0,
+            exit_code: 0,
+            rss_kb: None,
+        },
+    }))
 }
 
 impl VcfStageRunner for DispatchRunner {
@@ -155,10 +341,26 @@ impl VcfStageRunner for DispatchRunner {
             .artifact_root
             .join(stage.as_str().replace('.', "_"));
         std::fs::create_dir_all(&stage_dir)?;
+        if std::env::var("BIJUX_VCF_ALLOW_NETWORK").ok().as_deref() == Some("1") {
+            return Err(refusal(
+                VcfRefusalCode::PlanningFailed,
+                "no-network policy violation: BIJUX_VCF_ALLOW_NETWORK=1 is not permitted",
+            ));
+        }
+        if let Some(resumed) = try_resume_stage(stage, &stage_dir)? {
+            return Ok(resumed);
+        }
+        let stage_tmp_dir = ctx
+            .request
+            .run_root
+            .join("tmp")
+            .join(stage.as_str().replace('.', "_"));
+        std::fs::create_dir_all(&stage_tmp_dir)?;
         let started = Instant::now();
         let mut artifacts = Vec::<PathBuf>::new();
         let mut primary_output = None;
-        let command = format!("dispatch::{}", stage.as_str());
+        let (tool_id, runtime, image_digest, version) = stage_tool_spec(stage);
+        let mut argv = vec![tool_id.to_string(), stage.as_str().to_string()];
 
         match stage {
             VcfDomainStage::Call => {
@@ -172,7 +374,10 @@ impl VcfStageRunner for DispatchRunner {
                         ..VcfCallParams::default()
                     },
                 )
-                .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
                 primary_output = Some(out.clone());
                 artifacts.push(out);
             }
@@ -187,7 +392,10 @@ impl VcfStageRunner for DispatchRunner {
                         ..VcfFilterParams::default()
                     },
                 )
-                .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
                 primary_output = Some(out.clone());
                 artifacts.push(out);
             }
@@ -201,7 +409,10 @@ impl VcfStageRunner for DispatchRunner {
                         ..VcfStatsParams::default()
                     },
                 )
-                .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
                 artifacts.push(out);
             }
             VcfDomainStage::PrepareReferencePanel => {
@@ -222,7 +433,10 @@ impl VcfStageRunner for DispatchRunner {
                     &ctx.request.species_context,
                     &params,
                 )
-                .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                .map_err(|err| {
+                    let (code, hint) = map_runner_error(&err.to_string());
+                    refusal(code, hint)
+                })?;
                 primary_output = Some(out.prepared_panel_vcf.clone());
                 artifacts.extend([
                     out.prepared_panel_vcf,
@@ -239,8 +453,18 @@ impl VcfStageRunner for DispatchRunner {
                     .phasing
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing phasing params"))?;
+                if params.seed == 0 {
+                    return Err(refusal(
+                        VcfRefusalCode::PlanningFailed,
+                        "deterministic seed required for vcf.phasing",
+                    ));
+                }
+                argv.push(format!("--seed={}", params.seed));
                 let out = run_phasing_stage(input_vcf, &stage_dir, &ctx.request.species_context, &params)
-                    .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
                 primary_output = Some(out.phased_vcf.clone());
                 artifacts.extend([
                     out.phased_vcf,
@@ -258,8 +482,18 @@ impl VcfStageRunner for DispatchRunner {
                     .impute
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing impute params"))?;
+                if params.seed == 0 {
+                    return Err(refusal(
+                        VcfRefusalCode::PlanningFailed,
+                        "deterministic seed required for vcf.impute",
+                    ));
+                }
+                argv.push(format!("--seed={}", params.seed));
                 let out = run_impute_stage(input_vcf, &stage_dir, &ctx.request.species_context, &params)
-                    .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
                 primary_output = Some(out.imputed_vcf.clone());
                 artifacts.extend([
                     out.imputed_vcf,
@@ -283,7 +517,10 @@ impl VcfStageRunner for DispatchRunner {
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing postprocess params"))?;
                 let out = run_postprocess_stage(input_vcf, &stage_dir, &ctx.request.species_context, &params)
-                    .map_err(|err| refusal(VcfRefusalCode::RunnerFailed, err.to_string()))?;
+                    .map_err(|err| {
+                        let (code, hint) = map_runner_error(&err.to_string());
+                        refusal(code, hint)
+                    })?;
                 primary_output = Some(out.merged_vcf.clone());
                 artifacts.push(out.merged_vcf);
                 artifacts.push(out.merged_tbi);
@@ -302,13 +539,28 @@ impl VcfStageRunner for DispatchRunner {
             }
         }
 
-        write_sidecars(&stage_dir, stage, &command)?;
+        let invocation = ToolInvocationBuilder::new(tool_id, runtime, image_digest)
+            .argv(argv.clone())
+            .io(
+                vec![input_vcf.to_path_buf()],
+                artifacts.clone(),
+            )
+            .build()
+            .map_err(|err| refusal(VcfRefusalCode::PlanningFailed, err.to_string()))?;
+        atomic_write_json(&stage_dir.join("tool_invocation.json"), &invocation)?;
+        atomic_write_bytes(
+            &stage_dir.join("tool_version.txt"),
+            format!("{version}\n").as_bytes(),
+        )?;
+        write_sidecars(&stage_dir, stage, &argv, &stage_tmp_dir)?;
         let runtime = StageRuntimeStats {
             wall_time_ms: started.elapsed().as_millis(),
             exit_code: 0,
             rss_kb: None,
         };
-        let stage_manifest = write_stage_manifest(&stage_dir, stage, input_vcf, &artifacts, &runtime, &command)?;
+        let checksums_path = write_artifact_checksums(&stage_dir, &artifacts)?;
+        artifacts.push(checksums_path);
+        let stage_manifest = write_stage_manifest(&stage_dir, stage, input_vcf, &artifacts, &runtime, &invocation)?;
 
         Ok(VcfStageOutputs {
             stage_id: stage.as_str().to_string(),
