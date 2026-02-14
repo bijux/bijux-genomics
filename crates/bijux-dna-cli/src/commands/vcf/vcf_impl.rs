@@ -78,6 +78,7 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             reference_fasta: args.reference_fasta.as_ref().map(|p| p.display().to_string()),
             prepare_panel: None,
             panel_vcf: None,
+            damage_filter: None,
             phasing: Some(PhasingStageParams {
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
