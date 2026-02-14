@@ -309,8 +309,11 @@ field = sys.argv[-1]
 try:
     import tomllib
 except ModuleNotFoundError:
-    print("unknown")
-    raise SystemExit(0)
+    try:
+        import tomli as tomllib  # type: ignore
+    except ModuleNotFoundError:
+        print("unknown")
+        raise SystemExit(0)
 for path in paths:
     if not path.exists():
         continue
