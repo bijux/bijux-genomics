@@ -4,6 +4,7 @@ mod contracts {
     use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
     use bijux_dna_domain_vcf::VcfDomainStage;
     use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
+    use bijux_dna_stages_vcf::invariants::{run_vcf_preflight, InvariantConfig, InputRegime};
     use bijux_dna_stages_vcf::metrics::{
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
@@ -97,11 +98,92 @@ mod contracts {
             phasing: None,
             impute: None,
             postprocess: None,
+            invariants: InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
         })
         .unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
         assert!(out.report_path.exists());
         assert!(out.stages.iter().any(|s| s.stage_id == "vcf.call"));
         assert!(out.stages.iter().all(|s| s.stage_manifest.exists()));
+    }
+
+    #[test]
+    fn vcf_preflight_emits_invariants_and_normalized_index_artifacts() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 1_000_000,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 1_000_000,
+                },
+                ContigSpec {
+                    name: "X".to_string(),
+                    length_bp: 1_000_000,
+                },
+                ContigSpec {
+                    name: "Y".to_string(),
+                    length_bp: 1_000_000,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_preflight(
+            input,
+            dir.path(),
+            &species,
+            &InvariantConfig {
+                allow_contig_aliasing: true,
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run_vcf_preflight: {err}"));
+        assert!(out.normalized_input.exists());
+        assert!(out.index_path.exists());
+        assert!(out.invariants_json.exists());
+        assert!(out.overlap_json.exists());
+        assert!(matches!(
+            out.regime.regime,
+            InputRegime::GtOnly | InputRegime::Mixed | InputRegime::GlOnly
+        ));
+    }
+
+    #[test]
+    fn vcf_preflight_refuses_chr_prefix_mismatch_by_default() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("chr_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 1_000_000,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_vcf_preflight(&input, &dir.path().join("out"), &species, &InvariantConfig::default())
+            .expect_err("chr prefix mismatch must refuse by default");
+        assert!(err.to_string().contains("chr prefix mismatch"));
     }
 
     #[test]
