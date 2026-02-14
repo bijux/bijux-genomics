@@ -6,11 +6,11 @@ mod contracts {
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
     use bijux_dna_stages_vcf::pipeline::{
-        assert_bgzip_tabix_artifacts, run_chunked_regions, run_prepare_reference_panel_stage,
-        run_impute_stage, run_phasing_stage, run_postprocess_stage, run_toy_vcf_pipeline,
-        ChunkFailurePolicy, ChunkingPlanParams, ImputeBackend, ImputeStageParams, PhasingBackend,
-        PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams,
-        ImputationAcceptMode,
+        assert_bgzip_tabix_artifacts, run_chunked_regions, run_impute_stage, run_phasing_stage,
+        run_postprocess_stage, run_prepare_reference_panel_stage, run_toy_vcf_pipeline,
+        ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
+        ImputeStageParams, PhasingBackend, PhasingStageParams, PostprocessStageParams,
+        PrepareReferencePanelParams,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
@@ -329,7 +329,9 @@ mod contracts {
             },
         )
         .expect_err("GL-only should fail without explicit support");
-        assert!(err.to_string().contains("GL-only/GP-only inputs are refused"));
+        assert!(err
+            .to_string()
+            .contains("GL-only/GP-only inputs are refused"));
     }
 
     #[test]
@@ -565,7 +567,10 @@ mod contracts {
             .collect::<Vec<_>>();
         a_keys.sort();
         b_keys.sort();
-        assert_eq!(a_keys, b_keys, "qc schema keys must remain cross-run stable");
+        assert_eq!(
+            a_keys, b_keys,
+            "qc schema keys must remain cross-run stable"
+        );
     }
 
     #[test]
@@ -656,7 +661,9 @@ mod contracts {
                 compression_threads: 2,
                 emit_bcf: true,
                 normalize_indels: true,
-                run_level_checksums_path: Some(dir.path().join("run_level_artifact_checksums.json")),
+                run_level_checksums_path: Some(
+                    dir.path().join("run_level_artifact_checksums.json"),
+                ),
             },
         )
         .unwrap_or_else(|err| panic!("postprocess stage: {err}"));
