@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "ibdseq"
+container_kind = "bijux"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
+upstream_url = "https://faculty.washington.edu/browning/ibdseq.shtml"
+upstream_version = "3.0"
+upstream_checksum = "sha256:64459e82afddffc02a8dc092862c200568b2971b7b9b3fb401468e0d898a4aff"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://faculty.washington.edu/browning/ibdseq.shtml"
+version = "3.0"

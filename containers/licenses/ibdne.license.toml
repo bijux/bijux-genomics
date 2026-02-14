@@ -1,9 +1,12 @@
 # schema_version = 1
 # owner = bijux-dna-platform
 tool_id = "ibdne"
-container_kind = "bijux"
+container_kind = "non-bijux"
 spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://faculty.washington.edu/browning/ibdne.shtml"
-redistribution_note = "See upstream license terms and redistribution policy."
+upstream_version = "1.0"
+upstream_checksum = "sha256:50251f307444800f7b37254cc41dbc5da221b704eb7a944d761627f7cac3a751"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://faculty.washington.edu/browning/ibdne.shtml"
-version = "1.0-planned"
+version = "1.0"

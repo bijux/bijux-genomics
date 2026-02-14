@@ -1,9 +1,12 @@
 # schema_version = 1
 # owner = bijux-dna-platform
 tool_id = "angsd"
-container_kind = "bijux"
-spdx = "GPL-3.0"
-upstream_url = "https://github.com/bijux/bijux-dna"
-redistribution_note = "See upstream license terms and redistribution policy."
-citation = "upstream:https://github.com/bijux/bijux-dna"
+container_kind = "non-bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/ANGSD/angsd"
+upstream_version = "0.940"
+upstream_checksum = "sha256:c0c7f752a60e08102b81ef2955038ac89731e10e5828046afbe1cbcd4978e51d"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/ANGSD/angsd"
 version = "0.940"

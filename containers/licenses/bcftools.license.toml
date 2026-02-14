@@ -1,9 +1,12 @@
 # schema_version = 1
 # owner = bijux-dna-platform
 tool_id = "bcftools"
-container_kind = "bijux"
-spdx = "MIT"
-upstream_url = "https://github.com/bijux/bijux-dna"
-redistribution_note = "See upstream license terms and redistribution policy."
-citation = "upstream:https://github.com/bijux/bijux-dna"
+container_kind = "non-bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/samtools/bcftools"
+upstream_version = "1.20"
+upstream_checksum = "sha256:25b6c8ab18ad5eb053c969d2640f9eb58d4638a37f51e5188f9f09d8753ae923"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/samtools/bcftools"
 version = "1.20"

@@ -1,9 +1,12 @@
 # schema_version = 1
 # owner = bijux-dna-platform
 tool_id = "ibdhap"
-container_kind = "bijux"
-spdx = "NOASSERTION"
+container_kind = "non-bijux"
+spdx = "unknown"
+upstream_license_id = "unknown"
 upstream_url = "https://example.invalid/ibdhap"
-redistribution_note = "See upstream license terms and redistribution policy."
+upstream_version = "0.1.0"
+upstream_checksum = "sha256:51e7c8d86fdd055b4b990896cd4efada4cc27556c6e4073235dc24899140a6e3"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://example.invalid/ibdhap"
-version = "0.1.0-planned"
+version = "0.1.0"
