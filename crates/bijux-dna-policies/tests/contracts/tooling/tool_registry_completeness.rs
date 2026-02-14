@@ -36,7 +36,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
             for required in ["id", "version", "upstream"] {
                 let value = as_str_field(entry, required).unwrap_or("").trim();
                 if value.is_empty() {
-                    offenders.push(format!("{rel}: tool={id} missing required field `{required}`"));
+                    offenders.push(format!(
+                        "{rel}: tool={id} missing required field `{required}`"
+                    ));
                 }
             }
         }
