@@ -6,6 +6,11 @@ use crate::types::FastqArtifactKind;
 pub enum FastqStage {
     Preprocess,
     ValidatePre,
+    PrimerNormalization,
+    ChimeraDetection,
+    AsvInference,
+    OtuClustering,
+    AbundanceNormalization,
     Trim,
     Filter,
     Merge,
@@ -41,6 +46,7 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
             },
         },
         FastqStage::ValidatePre
+        | FastqStage::PrimerNormalization
         | FastqStage::Trim
         | FastqStage::Filter
         | FastqStage::Correct
@@ -70,6 +76,57 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
                 ],
                 outputs: vec![FastqArtifactKind::StatsOnly],
                 optional_outputs: None,
+            },
+        },
+        FastqStage::ChimeraDetection => StageContract {
+            stage,
+            io: StageIO {
+                inputs: vec![
+                    FastqArtifactKind::SingleEnd,
+                    FastqArtifactKind::PairedEnd,
+                    FastqArtifactKind::Merged,
+                ],
+                outputs: vec![
+                    FastqArtifactKind::SingleEnd,
+                    FastqArtifactKind::PairedEnd,
+                    FastqArtifactKind::Merged,
+                ],
+                optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
+            },
+        },
+        FastqStage::AsvInference => StageContract {
+            stage,
+            io: StageIO {
+                inputs: vec![
+                    FastqArtifactKind::SingleEnd,
+                    FastqArtifactKind::PairedEnd,
+                    FastqArtifactKind::Merged,
+                ],
+                outputs: vec![FastqArtifactKind::AmpliconTable],
+                optional_outputs: Some(vec![FastqArtifactKind::RepresentativeFasta]),
+            },
+        },
+        FastqStage::OtuClustering => StageContract {
+            stage,
+            io: StageIO {
+                inputs: vec![
+                    FastqArtifactKind::SingleEnd,
+                    FastqArtifactKind::PairedEnd,
+                    FastqArtifactKind::Merged,
+                ],
+                outputs: vec![
+                    FastqArtifactKind::AmpliconTable,
+                    FastqArtifactKind::RepresentativeFasta,
+                ],
+                optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
+            },
+        },
+        FastqStage::AbundanceNormalization => StageContract {
+            stage,
+            io: StageIO {
+                inputs: vec![FastqArtifactKind::AmpliconTable],
+                outputs: vec![FastqArtifactKind::AmpliconTable],
+                optional_outputs: Some(vec![FastqArtifactKind::TaxonomyMapping]),
             },
         },
     }

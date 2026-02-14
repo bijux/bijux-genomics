@@ -9,6 +9,7 @@ pub enum FastqStageKind {
     Core,
     Optional,
     Meta,
+    Amplicon,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -62,7 +63,7 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
     },
 ];
 
-pub const STAGES: [StageDefinition; 11] = [
+pub const STAGES: [StageDefinition; 16] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.validate_pre"),
         kind: FastqStageKind::Core,
@@ -83,6 +84,17 @@ pub const STAGES: [StageDefinition; 11] = [
             consumes_pairs: false,
             produces_reports_only: true,
             affects_metrics: &[MetricClass::Composition],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.primer_normalization"),
+        kind: FastqStageKind::Amplicon,
+        criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
         },
     },
     StageDefinition {
@@ -146,6 +158,50 @@ pub const STAGES: [StageDefinition; 11] = [
             consumes_pairs: true,
             produces_reports_only: false,
             affects_metrics: &[MetricClass::Integrity, MetricClass::QualityShift],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.chimera_detection"),
+        kind: FastqStageKind::Amplicon,
+        criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: false,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.asv_inference"),
+        kind: FastqStageKind::Amplicon,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Composition],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.otu_clustering"),
+        kind: FastqStageKind::Amplicon,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Composition],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.abundance_normalization"),
+        kind: FastqStageKind::Amplicon,
+        criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Composition],
         },
     },
     StageDefinition {

@@ -9,6 +9,9 @@ pub enum FastqArtifactKind {
     PairedEnd,
     Merged,
     StatsOnly,
+    AmpliconTable,
+    RepresentativeFasta,
+    TaxonomyMapping,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
