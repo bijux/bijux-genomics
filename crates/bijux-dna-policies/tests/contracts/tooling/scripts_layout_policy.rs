@@ -49,6 +49,7 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
         "scripts/tooling/",
         "scripts/_lib/",
         "scripts/experimental/",
+        "scripts/run.sh",
     ];
 
     let mut offenders = Vec::new();
@@ -210,7 +211,7 @@ fn policy__contracts__scripts_layout_policy__arg_parsing_reuses_shared_lib() {
             .to_string();
         if rel.starts_with("scripts/_lib/")
             || rel.starts_with("scripts/experimental/")
-            || rel == "scripts/containers/apptainer_build_all.sh"
+            || rel == "scripts/containers/build-apptainer-all.sh"
         {
             continue;
         }

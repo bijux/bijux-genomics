@@ -49,8 +49,8 @@ fn policy__contracts__toy_golden_runs_policy__make_refresh_targets_use_assets_sc
     let mk = std::fs::read_to_string(root.join("makefiles/cargo.mk"))
         .unwrap_or_else(|err| panic!("read makefiles/cargo.mk: {err}"));
     assert!(
-        mk.contains("./scripts/assets/refresh-toy.sh")
-            && mk.contains("./scripts/assets/refresh-golden.sh"),
+        mk.contains("./scripts/run.sh assets refresh-toy")
+            && mk.contains("./scripts/run.sh assets refresh-golden"),
         "toy.mk refresh targets must call scripts/assets refresh entrypoints"
     );
 }

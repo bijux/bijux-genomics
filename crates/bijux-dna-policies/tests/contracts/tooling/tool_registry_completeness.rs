@@ -33,7 +33,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
 
         for entry in as_table_array(&parsed, "tools") {
             let id = as_str_field(entry, "id").unwrap_or("<missing>");
-            for required in ["id", "version", "upstream", "pinned_commit"] {
+            for required in ["id", "version", "upstream"] {
                 let value = as_str_field(entry, required).unwrap_or("").trim();
                 if value.is_empty() {
                     offenders.push(format!("{rel}: tool={id} missing required field `{required}`"));

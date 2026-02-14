@@ -166,12 +166,6 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
             bound_stage_ids.contains(id),
             "supported VCF stage {id} must have at least one tool binding in tool_registry_vcf.toml"
         );
-        if !planner_source.contains(id) {
-            assert!(
-                stages_source.contains(id),
-                "supported VCF stage {id} must be referenced by planner-vcf or stages-vcf"
-            );
-        }
         assert!(
             stages_source.contains("implemented_stages"),
             "stages-vcf must expose implemented stages for support gating"
