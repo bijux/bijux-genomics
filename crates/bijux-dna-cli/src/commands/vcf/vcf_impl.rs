@@ -4,8 +4,8 @@ use bijux_dna_db_ref::resolve_species_context;
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
 use bijux_dna_stages_vcf::pipeline::{
-    run_call_stage, run_chunked_regions, run_filter_stage, run_stats_stage, ChunkFailurePolicy,
-    ChunkingPlanParams,
+    run_call_stage, run_chunked_regions, run_filter_stage, run_phasing_stage, run_stats_stage,
+    ChunkFailurePolicy, ChunkingPlanParams, PhasingBackend, PhasingStageParams,
 };
 
 #[allow(clippy::missing_errors_doc)]
@@ -93,7 +93,39 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         let tbi_path = out_dir.join("filtered.vcf.gz.tbi");
         std::fs::write(&tbi_path, b"tabix-index-placeholder\n")
             .map_err(|err| anyhow!("write {}: {err}", tbi_path.display()))?;
+        let resolved = resolve_species_context("Homo sapiens", "GRCh38")
+            .map_err(|err| anyhow!("resolve species context: {err}"))?;
+        let species: SpeciesContext = resolved.context;
         let report_path = out_dir.join("vcf_report.json");
+        let phasing_backend = match args.tool.as_deref() {
+            Some("beagle") => PhasingBackend::Beagle,
+            Some("eagle") => PhasingBackend::Eagle,
+            _ => PhasingBackend::Shapeit5,
+        };
+        let phasing_outputs = match run_phasing_stage(
+            &filtered_vcf,
+            &out_dir.join("vcf_phasing"),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: phasing_backend,
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: args.max_parallel_chunks.max(1),
+                seed: 42,
+                region: None,
+                allow_gl_only_input: matches!(phasing_backend, PhasingBackend::Beagle),
+            },
+        ) {
+            Ok(outputs) => Some(outputs),
+            Err(err)
+                if err.to_string().contains("phasing requires GT field")
+                    || err.to_string().contains("GL-only/GP-only inputs are refused") =>
+            {
+                None
+            }
+            Err(err) => return Err(err),
+        };
         std::fs::write(
             &report_path,
             serde_json::to_vec_pretty(&serde_json::json!({
@@ -103,13 +135,12 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 "filter_summary": metrics.filter_summary,
                 "ti_tv": metrics.ti_tv,
                 "depth_distribution": metrics.depth_distribution,
+                "phasing_backend": phasing_backend.as_str(),
+                "phasing_manifest": phasing_outputs.as_ref().map(|x| x.phasing_manifest_json.clone()),
             }))?,
         )
         .map_err(|err| anyhow!("write {}: {err}", report_path.display()))?;
 
-        let resolved = resolve_species_context("Homo sapiens", "GRCh38")
-            .map_err(|err| anyhow!("resolve species context: {err}"))?;
-        let species: SpeciesContext = resolved.context;
         let chunk_outputs = run_chunked_regions(
             &filtered_vcf,
             &filtered_vcf,
@@ -149,13 +180,17 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
         "out_dir": args.out,
         "sample_name": args.sample_name,
         "reference_fasta": args.reference_fasta.as_ref().map(|p| p.display().to_string()),
-        "outputs": {
-            "called_vcf": called_vcf,
-            "filtered_vcf": filtered_vcf,
-            "filtered_index": out_dir.join("filtered.vcf.gz.tbi"),
-            "stats": stats_path,
-            "report": out_dir.join("vcf_report.json"),
-            "chunks": out_dir.join("chunks.json"),
+            "outputs": {
+                "called_vcf": called_vcf,
+                "filtered_vcf": filtered_vcf,
+                "filtered_index": out_dir.join("filtered.vcf.gz.tbi"),
+                "phased_vcf": out_dir.join("vcf_phasing/phased.vcf.gz"),
+                "phased_index": out_dir.join("vcf_phasing/phased.vcf.gz.tbi"),
+                "phasing_manifest": out_dir.join("vcf_phasing/phasing_manifest.json"),
+                "phasing_qc": out_dir.join("vcf_phasing/phasing_qc.json"),
+                "stats": stats_path,
+                "report": out_dir.join("vcf_report.json"),
+                "chunks": out_dir.join("chunks.json"),
             "chunk_merged_vcf": out_dir.join("merged_chunks.vcf.gz"),
             "chunk_report": out_dir.join("chunk_report.json"),
         },
