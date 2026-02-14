@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "shapeit"
+container_kind = "bijux"
+spdx = "MIT"
+upstream_license_id = "MIT"
+upstream_url = "https://odelaneau.github.io/shapeit4/"
+upstream_version = "4.2.2"
+upstream_checksum = "sha256:b5d22b48e530a42923b45677eb66db572195e149ae6f96a52bc1f99371dba130"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://odelaneau.github.io/shapeit4/"
+version = "4.2.2"

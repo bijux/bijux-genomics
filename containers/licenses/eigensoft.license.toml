@@ -1,9 +1,12 @@
 # schema_version = 1
 # owner = bijux-dna-platform
 tool_id = "eigensoft"
-container_kind = "bijux"
+container_kind = "non-bijux"
 spdx = "GPL-2.0"
+upstream_license_id = "GPL-2.0"
 upstream_url = "https://github.com/DReichLab/EIG"
-redistribution_note = "See upstream license terms and redistribution policy."
+upstream_version = "8.0.0"
+upstream_checksum = "sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/DReichLab/EIG"
 version = "8.0.0"
