@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -27,7 +28,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.overrepresented_sequences",
   "tool_ids": [
     "fastqc",
-    "fastq-scan",
+    "fastq_scan",
     "seqkit"
   ]
 }
