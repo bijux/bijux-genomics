@@ -41,7 +41,9 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let mut offenders = Vec::new();
     for tool in vcf_tools {
         let Some(tool_id) = tool.get("id").and_then(toml::Value::as_str) else {
-            offenders.push("configs/ci/registry/tool_registry_vcf.toml has tool row missing id".to_string());
+            offenders.push(
+                "configs/ci/registry/tool_registry_vcf.toml has tool row missing id".to_string(),
+            );
             continue;
         };
         if !image_ids.contains(tool_id) {

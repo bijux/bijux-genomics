@@ -11,6 +11,9 @@ outputs:
   - name: "filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "trimmed_reads"
+    data_type: "fastq"
+    cardinality: "Many"
 parameters:
   - name: "min_quality"
     param_type: "int"

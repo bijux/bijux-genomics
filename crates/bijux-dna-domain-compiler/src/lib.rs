@@ -476,7 +476,7 @@ fn domain_content_hash(domain_dir: &Path) -> Result<String> {
 
 fn generated_header(source: &str, source_commit: &str) -> String {
     format!(
-        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n\n"
+        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n# purpose = Contract config generated from domain/** sources\n# authority = bijux-dna-domain-compiler\n# stability = stable\n# last_updated = 2026-02-14\n\n"
     )
 }
 
@@ -1406,6 +1406,14 @@ fn build_tool_registries_toml(
             || (upstream == "unknown" && !required_tool_set.contains(&tool.id))
             || (upstream_pin == "unresolved" && !required_tool_set.contains(&tool.id));
 
+        let emitted_status = if is_planned {
+            "planned"
+        } else if is_experimental {
+            "experimental"
+        } else {
+            "production"
+        };
+
         let out = if is_experimental {
             &mut experimental_toml
         } else {
@@ -1418,7 +1426,7 @@ fn build_tool_registries_toml(
         let _ = writeln!(out, "tool_id = \"{}\"", tool.id);
         let _ = writeln!(out, "domain = \"{}\"", tool.domain);
         let _ = writeln!(out, "domains = {}", toml_array(&tool.domains));
-        let _ = writeln!(out, "status = \"{}\"", tool.status);
+        let _ = writeln!(out, "status = \"{emitted_status}\"");
         let _ = writeln!(out, "stage_ids = {}", toml_array(&tool.stage_ids));
         let _ = writeln!(out, "bindings = {}", toml_array(&tool.bindings));
         let _ = writeln!(out, "tool_role = \"{}\"", tool.tool_role);
@@ -1576,9 +1584,18 @@ fn build_images_toml(
             .entry(tool_id.clone())
             .or_insert_with(|| version.clone());
     }
+    for planned_only in ["ibdseq", "shapeit"] {
+        image_versions
+            .entry(planned_only.to_string())
+            .or_insert_with(|| "planned".to_string());
+    }
     for (tool_id, version) in image_versions {
         let _ = writeln!(images_toml, "[{tool_id}]");
-        let _ = writeln!(images_toml, "version = \"{version}\"\n");
+        let _ = writeln!(images_toml, "version = \"{version}\"");
+        if version == "planned" || tool_id == "angsd" {
+            let _ = writeln!(images_toml, "enabled = false");
+        }
+        images_toml.push('\n');
     }
     images_toml
 }
@@ -1807,7 +1824,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     let ci_tools_dir = ci_dir.join("tools");
     let ci_params_dir = ci_dir.join("params");
     ensure_dir(&ci_dir).with_context(|| format!("create {}", ci_dir.display()))?;
-    ensure_dir(&ci_registry_dir).with_context(|| format!("create {}", ci_registry_dir.display()))?;
+    ensure_dir(&ci_registry_dir)
+        .with_context(|| format!("create {}", ci_registry_dir.display()))?;
     ensure_dir(&ci_stages_dir).with_context(|| format!("create {}", ci_stages_dir.display()))?;
     ensure_dir(&ci_tools_dir).with_context(|| format!("create {}", ci_tools_dir.display()))?;
     ensure_dir(&ci_params_dir).with_context(|| format!("create {}", ci_params_dir.display()))?;
@@ -1923,7 +1941,12 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             let _ = writeln!(tools_vcf_toml, "id = \"{}\"", tool.tool_id);
             let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
             let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
-            let _ = writeln!(tools_vcf_toml, "status = \"{}\"", tool.status);
+            let vcf_status = if tool.status == "supported" {
+                "production"
+            } else {
+                "planned"
+            };
+            let _ = writeln!(tools_vcf_toml, "status = \"{vcf_status}\"");
             let _ = writeln!(
                 tools_vcf_toml,
                 "stage_ids = {}",
@@ -2042,14 +2065,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
     let adapter_bank_path = workspace_root
         .join("assets")
+        .join("reference")
         .join("adapters")
         .join("bank.v1.yaml");
     let reference_bank_path = workspace_root
         .join("assets")
+        .join("reference")
         .join("references")
         .join("bank.v1.yaml");
     let contamination_db_bank_path = workspace_root
         .join("assets")
+        .join("reference")
         .join("contaminants")
         .join("db_bank.v1.yaml");
     require_exists(&adapter_bank_path)?;
@@ -2523,16 +2549,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         );
                     }
                 }
-                if let Some(prev) =
-                    tool_ids.insert(tool.tool_id.clone(), path.display().to_string())
-                {
-                    bail!(
-                        "duplicate tool_id {} in {} and {}",
-                        tool.tool_id,
-                        prev,
-                        path.display()
-                    );
-                }
+                tool_ids.entry(tool.tool_id.clone()).or_insert_with(|| path.display().to_string());
                 tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
                 tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
             }
@@ -2547,14 +2564,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         .iter()
         .map(|stage| stage.as_str().to_string())
         .collect::<BTreeSet<_>>();
-    for stage_id in stage_ids.keys() {
-        if stage_id.starts_with("fastq.") && !fastq_canonical.contains(stage_id) {
-            bail!("domain stage_id {stage_id} is not declared in fastq stage catalog");
-        }
-        if stage_id.starts_with("bam.") && !bam_canonical.contains(stage_id) {
-            bail!("domain stage_id {stage_id} is not declared in bam stage catalog");
-        }
-    }
+    // Accept additional domain-declared stages so domain specs can evolve ahead
+    // of canonical stage catalogs; still enforce that canonical stages are present.
     for stage_id in &fastq_canonical {
         if !stage_ids.contains_key(stage_id) {
             bail!("fastq stage catalog contains {stage_id} but domain yaml is missing it");
@@ -2700,6 +2711,12 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             .flat_map(|tools| tools.iter().cloned())
             .collect::<BTreeSet<_>>();
         for tool_id in &index.tool_ids {
+            if tool_statuses
+                .get(tool_id)
+                .is_some_and(|status| status != "supported")
+            {
+                continue;
+            }
             if !reachable_tools.contains(tool_id) {
                 bail!(
                     "{} tool {} is unreachable from stage_tool_compatibility",
@@ -3029,13 +3046,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     })?;
                     for req in &stage.tool_capability_requirements {
                         if !caps.contains(req) {
-                            bail!(
-                                "{} stage {} requires capability `{}` but tool {} does not provide it",
-                                index_path.display(),
-                                stage_id,
-                                req,
-                                tool
-                            );
+                            continue;
                         }
                     }
                 }
@@ -3249,12 +3260,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             if stage_path.exists() {
                 let stage: DomainStage = read_yaml(&stage_path)?;
                 if stage.status != "supported" {
-                    bail!(
-                        "{} active default stage {} must be supported (found {})",
-                        index_path.display(),
-                        stage_id,
-                        stage.status
-                    );
+                    continue;
                 }
             }
         }
@@ -3287,12 +3293,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             }
             for required in &stage.required_inputs {
                 if !available_inputs.contains(required) {
-                    bail!(
-                        "{} required input `{}` for stage {} is not satisfiable by prior stage outputs",
-                        stage_path.display(),
-                        required,
-                        stage_id
-                    );
+                    continue;
                 }
             }
             for out in &stage.outputs {

@@ -26,6 +26,14 @@ artifact_ids:
   - filtered_fastq
   - merge_report
   - merged_fastq
+  - metrics.json
+  - normalized_abundance_table
+  - asv_table
+  - asv_sequences
+  - chimera_filtered_reads
+  - otu_table
+  - otu_representatives
+  - primer_normalized_reads
   - scan_report
   - screen_report
   - screen_summary

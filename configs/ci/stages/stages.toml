@@ -1,13 +1,13 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 6424feae67b37d12e6fba823e015aa664490197a
+# source_commit: fc2317b5c3852c80d7a604d3a302d96322e451f0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config for configs/ci/stages/stages.toml
+# purpose = Contract config generated from domain/** sources
 # authority = bijux-dna-domain-compiler
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-02-14
 
 [[stages]]
 id = "bam.align"
@@ -629,3 +629,4 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
+

@@ -166,12 +166,12 @@ mod mod_contracts_tooling_tool_registry_stage_domain_policy_rs;
 mod mod_contracts_tooling_tool_role_capability_policy_rs;
 #[path = "contracts/tooling/toy_golden_runs_policy.rs"]
 mod mod_contracts_tooling_toy_golden_runs_policy_rs;
-#[path = "contracts/tooling/vcf_image_smoke_policy.rs"]
-mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 #[path = "contracts/tooling/vcf_coverage_regime_policy.rs"]
 mod mod_contracts_tooling_vcf_coverage_regime_policy_rs;
 #[path = "contracts/tooling/vcf_gl_propagation_policy.rs"]
 mod mod_contracts_tooling_vcf_gl_propagation_policy_rs;
+#[path = "contracts/tooling/vcf_image_smoke_policy.rs"]
+mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 #[path = "contracts/tooling/vcf_support_gate_policy.rs"]
 mod mod_contracts_tooling_vcf_support_gate_policy_rs;
 #[path = "contracts/workspace.rs"]

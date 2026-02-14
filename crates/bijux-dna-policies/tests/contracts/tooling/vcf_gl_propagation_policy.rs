@@ -13,8 +13,8 @@ fn repo_root() -> PathBuf {
 fn policy__contracts__vcf_gl_propagation_policy__stage_contract_requires_gl_field_retention() {
     let root = repo_root();
     let stage = root.join("domain/vcf/stages/gl_propagation.yaml");
-    let content =
-        std::fs::read_to_string(&stage).unwrap_or_else(|e| panic!("failed to read {}: {e}", stage.display()));
+    let content = std::fs::read_to_string(&stage)
+        .unwrap_or_else(|e| panic!("failed to read {}: {e}", stage.display()));
 
     bijux_dna_policies::policy_assert!(
         content.contains("gl_fields_present"),
@@ -32,8 +32,8 @@ fn policy__contracts__vcf_gl_propagation_policy__stage_contract_requires_gl_fiel
 fn policy__contracts__vcf_gl_propagation_policy__fixture_contract_asserts_gl_pl_survival() {
     let root = repo_root();
     let fx = root.join("domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt");
-    let content =
-        std::fs::read_to_string(&fx).unwrap_or_else(|e| panic!("failed to read {}: {e}", fx.display()));
+    let content = std::fs::read_to_string(&fx)
+        .unwrap_or_else(|e| panic!("failed to read {}: {e}", fx.display()));
 
     bijux_dna_policies::policy_assert!(
         content.contains("expected_outputs=gl_propagated.vcf,gl_propagation_report.json"),

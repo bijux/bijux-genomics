@@ -1,13 +1,13 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 6424feae67b37d12e6fba823e015aa664490197a
+# source_commit: fc2317b5c3852c80d7a604d3a302d96322e451f0
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config for configs/ci/tools/images.toml
+# purpose = Contract config generated from domain/** sources
 # authority = bijux-dna-domain-compiler
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-02-14
 
 [adapterremoval]
 version = "latest-pinned"
@@ -20,6 +20,7 @@ version = "0.4.0"
 
 [angsd]
 version = "0.940"
+enabled = false
 
 [atropos]
 version = "latest-pinned"
@@ -41,6 +42,10 @@ version = "latest-pinned"
 
 [bcftools]
 version = "1.20"
+
+[beagle]
+version = "planned"
+enabled = false
 
 [bedtools]
 version = "2.31.1"
@@ -66,6 +71,14 @@ version = "latest-pinned"
 [damageprofiler]
 version = "latest-pinned"
 
+[eagle]
+version = "planned"
+enabled = false
+
+[eigensoft]
+version = "planned"
+enabled = false
+
 [fastp]
 version = "latest-pinned"
 
@@ -86,6 +99,30 @@ version = "latest-pinned"
 
 [fqtools]
 version = "latest-pinned"
+
+[germline]
+version = "planned"
+enabled = false
+
+[glimpse]
+version = "planned"
+enabled = false
+
+[ibdhap]
+version = "planned"
+enabled = false
+
+[ibdne]
+version = "planned"
+enabled = false
+
+[ibdseq]
+version = "planned"
+enabled = false
+
+[impute5]
+version = "planned"
+enabled = false
 
 [kaiju]
 version = "latest-pinned"
@@ -111,6 +148,10 @@ version = "2.2.2"
 [metaphlan]
 version = "latest-pinned"
 
+[minimac4]
+version = "planned"
+enabled = false
+
 [mosdepth]
 version = "0.3.10"
 
@@ -122,6 +163,14 @@ version = "latest-pinned"
 
 [pear]
 version = "latest-pinned"
+
+[plink]
+version = "planned"
+enabled = false
+
+[plink2]
+version = "planned"
+enabled = false
 
 [pmdtools]
 version = "0.60"
@@ -156,6 +205,14 @@ version = "latest-pinned"
 [seqtk]
 version = "latest-pinned"
 
+[shapeit]
+version = "planned"
+enabled = false
+
+[shapeit5]
+version = "planned"
+enabled = false
+
 [skewer]
 version = "latest-pinned"
 
@@ -186,73 +243,3 @@ version = "latest-pinned"
 [yleaf]
 version = "latest-pinned"
 
-
-[beagle]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[shapeit]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[shapeit5]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[glimpse]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[impute5]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[eagle]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[minimac4]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[plink]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[plink2]
-version = "planned"
-enabled = false
-shipping_policy = "docker_apptainer"
-
-[eigensoft]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[ibdseq]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[germline]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[ibdhap]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"
-
-[ibdne]
-version = "planned"
-enabled = false
-shipping_policy = "apptainer_only"

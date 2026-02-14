@@ -43,8 +43,9 @@ fn stage_tools_from_matrix(stage: &toml::Value) -> Vec<String> {
 #[test]
 fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_tools_are_complete() {
     let root = support::workspace_root();
-    let tool_registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
-        .expect("read configs/ci/registry/tool_registry.toml");
+    let tool_registry_raw =
+        std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
+            .expect("read configs/ci/registry/tool_registry.toml");
     let stages_raw = std::fs::read_to_string(root.join("configs/ci/stages/stages.toml"))
         .expect("read configs/ci/stages/stages.toml");
     let images_raw = std::fs::read_to_string(root.join("configs/ci/tools/images.toml"))

@@ -159,7 +159,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_p
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_valid_production_tools(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(
+        &root.join("configs/ci/registry/tool_registry.toml"),
+    ));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -211,7 +213,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_va
 #[test]
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_readiness_gate() {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(
+        &root.join("configs/ci/registry/tool_registry.toml"),
+    ));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -281,7 +285,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_rea
 fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profile_uses_production_tools_only(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
+    let production = tools_by_id(&parse_registry(
+        &root.join("configs/ci/registry/tool_registry.toml"),
+    ));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -397,7 +403,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
 fn policy__contracts__tool_registry_reproducibility_policy__stable_profiles_must_not_use_unknown_declared_versions(
 ) {
     let root = workspace_root();
-    let mut tools = tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
+    let mut tools = tools_by_id(&parse_registry(
+        &root.join("configs/ci/registry/tool_registry.toml"),
+    ));
     for (id, value) in tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_vcf.toml"),
     )) {

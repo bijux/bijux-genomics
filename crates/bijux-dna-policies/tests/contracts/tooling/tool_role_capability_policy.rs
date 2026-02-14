@@ -21,8 +21,8 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 #[test]
 fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_roles() {
     let root = support::workspace_root();
-    let raw =
-        std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml")).expect("read registry");
+    let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
+        .expect("read registry");
     let parsed: toml::Value = raw.parse().expect("parse registry");
 
     let tools = parsed
