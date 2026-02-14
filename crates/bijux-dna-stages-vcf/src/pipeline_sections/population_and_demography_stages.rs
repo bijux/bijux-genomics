@@ -36,7 +36,7 @@ pub fn run_pca_stage(
     out_dir: &Path,
     params: &PcaStageParams,
 ) -> Result<PcaStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let mut passing = 0_u64;
@@ -114,7 +114,7 @@ pub fn run_population_structure_stage(
     out_dir: &Path,
     params: &PopulationStructureStageParams,
 ) -> Result<PopulationStructureStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut passing = Vec::<String>::new();
     for line in raw.lines() {
@@ -187,7 +187,7 @@ pub fn run_roh_stage(
     out_dir: &Path,
     params: &RohStageParams,
 ) -> Result<RohStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut sample_ids = Vec::<String>::new();
     let mut variants = Vec::<(String, u64, Option<f64>)>::new();
@@ -340,7 +340,7 @@ fn compute_variant_readiness(raw: &str) -> (usize, f64, f64) {
 /// # Errors
 /// Returns an error if readiness checks fail or IBD outputs cannot be produced.
 pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) -> Result<IbdStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let (sample_count, density, missingness) = compute_variant_readiness(&raw);
     if sample_count < params.min_samples {
@@ -438,7 +438,7 @@ pub fn run_demography_stage(
     out_dir: &Path,
     params: &DemographyStageParams,
 ) -> Result<DemographyStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_ibd_segments)?;
     let lines = raw
         .lines()

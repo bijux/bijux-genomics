@@ -23,7 +23,7 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     if params.is_ancient_dna && params.allow_hwe_for_ancient {
         bail!("vcf.qc refusal: HWE is not enabled by default for ancient DNA");
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut depth = std::collections::BTreeMap::<String, u64>::new();
     let mut info_values = Vec::<f64>::new();
@@ -176,7 +176,7 @@ pub fn run_stats_stage_real(
     out_dir: &Path,
     params: &VcfStatsParams,
 ) -> Result<StatsStageOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
     let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
     let raw = std::fs::read_to_string(input_vcf)?;

@@ -197,7 +197,7 @@ fn run_impute_stage_inner(
         }
     }
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let imputed_vcf = out_dir.join("imputed.vcf.gz");
     let imputed_tbi = out_dir.join("imputed.vcf.gz.tbi");
     let imputation_qc_json = out_dir.join("imputation_qc.json");
@@ -536,7 +536,7 @@ fn run_impute_stage_inner(
     });
     let mut chunk_manifests = Vec::new();
     let chunks_dir = out_dir.join("chunks");
-    std::fs::create_dir_all(&chunks_dir)?;
+    bijux_dna_infra::ensure_dir(&chunks_dir)?;
     let planned_chunks = {
         let window = params.chunk_window_bp.unwrap_or(0);
         let overlap = params.chunk_overlap_bp;

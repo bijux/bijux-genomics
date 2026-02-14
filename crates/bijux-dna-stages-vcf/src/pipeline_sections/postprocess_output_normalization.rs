@@ -172,7 +172,7 @@ pub fn run_postprocess_stage(
     );
     normalized_headers.push(sample_header.ok_or_else(|| anyhow!("missing #CHROM header"))?);
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let merged_vcf = out_dir.join("postprocess.vcf.gz");
     let merged_tbi = out_dir.join("postprocess.vcf.gz.tbi");
     let merged_bcf = if params.emit_bcf {

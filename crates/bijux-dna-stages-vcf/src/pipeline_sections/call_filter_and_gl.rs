@@ -191,7 +191,7 @@ pub fn run_call_gl_stage(
     if params.sample_name.trim().is_empty() {
         bail!("vcf.call_gl requires non-empty sample_name");
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_gl.vcf.gz");
     atomic_write_bytes(&out_vcf, out.as_bytes())?;
     write_call_outputs(out_dir, CallStageKind::Gl, input_vcf, &out_vcf, params)
@@ -233,7 +233,7 @@ pub fn run_call_diploid_stage(
     if params.sample_name.trim().is_empty() {
         bail!("vcf.call_diploid requires non-empty sample_name");
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_diploid.vcf.gz");
     atomic_write_bytes(&out_vcf, out.as_bytes())?;
     write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params)
@@ -272,7 +272,7 @@ pub fn run_call_pseudohaploid_stage(
     if params.sample_name.trim().is_empty() {
         bail!("vcf.call_pseudohaploid requires non-empty sample_name");
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
     atomic_write_bytes(&out_vcf, out.as_bytes())?;
     write_call_outputs(
@@ -390,7 +390,7 @@ pub fn run_gl_propagation_stage(
     out_dir: &Path,
     params: &GlPropagationStageParams,
 ) -> Result<GlPropagationOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut output_lines = Vec::<String>::new();
     let mut has_gl_or_pl = false;
@@ -506,7 +506,7 @@ pub fn run_damage_filter_stage(
     if params.strict_regime && params.udg_regime == DamageUdgRegime::Unknown {
         bail!("vcf.damage_filter refusal: strict mode requires known UDG regime");
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut headers = Vec::<String>::new();
     let mut kept = Vec::<String>::new();
@@ -764,7 +764,7 @@ pub fn run_filter_stage_real(
             bail!("vcf.filter production gate failed: retention below fail threshold");
         }
     }
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let filtered_vcf = out_dir.join("filtered.vcf.gz");
     let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
     atomic_write_bytes(&filtered_vcf, out.as_bytes())?;

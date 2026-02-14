@@ -168,7 +168,7 @@ fn write_crash_provenance_artifact(
     input_vcf: &Path,
     err: &anyhow::Error,
 ) -> Result<PathBuf> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let path = out_dir.join("crash_provenance.json");
     let (category, hint) = backend_error_hint(stage_id, backend, err);
     let err_text = format!("{err:#}");
@@ -210,7 +210,7 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
     for rel in ["tmp", "chunks", "intermediate", "scratch"] {
         let candidate = out_dir.join(rel);
         if candidate.exists() {
-            let _ = std::fs::remove_dir_all(candidate);
+            let _ = bijux_dna_infra::remove_dir_all(candidate);
         }
     }
 }
@@ -379,7 +379,7 @@ fn run_phasing_stage_inner(
         bail!("sex chromosome phasing requires explicit PAR policy in SpeciesContext");
     }
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let phased_vcf = out_dir.join("phased.vcf.gz");
     let phased_tbi = out_dir.join("phased.vcf.gz.tbi");
     let phase_block_stats_tsv = out_dir.join("phase_block_stats.tsv");
@@ -524,13 +524,13 @@ pub fn run_imputation_orchestration_stage(
     species_context: &SpeciesContext,
     params: &ImputeStageParams,
 ) -> Result<ImputationOrchestrationOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let orchestration_started = std::time::Instant::now();
     let mut current_input = input_vcf.to_path_buf();
     let mut phase_ran = false;
 
     let prepare_dir = out_dir.join("prepare_reference_panel");
-    std::fs::create_dir_all(&prepare_dir)?;
+    bijux_dna_infra::ensure_dir(&prepare_dir)?;
     let prepare_marker = prepare_dir.join("orchestration_prepare_panel.json");
     atomic_write_json(
         &prepare_marker,

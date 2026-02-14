@@ -72,7 +72,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
     validate_request(request)?;
     let stage_list = deterministic_stage_list(&request.requested_stages)?;
     let artifact_root = request.run_root.join("artifacts").join("vcf");
-    std::fs::create_dir_all(&artifact_root)?;
+    bijux_dna_infra::ensure_dir(&artifact_root)?;
     let preflight = run_vcf_preflight(
         &request.input_vcf,
         &artifact_root.join("validate_inputs"),

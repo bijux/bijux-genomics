@@ -76,7 +76,7 @@ pub fn run_prepare_reference_panel_stage(
         overlap_total as f64 / panel_total as f64
     };
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let lock_seed = format!(
         "{}|{}|{}",
         panel.id, panel.version, panel.build_id
@@ -89,9 +89,9 @@ pub fn run_prepare_reference_panel_stage(
     let local_raw = panel_root.join("raw");
     let local_normalized = panel_root.join("normalized");
     let local_derived = panel_root.join("derived");
-    std::fs::create_dir_all(&local_raw)?;
-    std::fs::create_dir_all(&local_normalized)?;
-    std::fs::create_dir_all(&local_derived)?;
+    bijux_dna_infra::ensure_dir(&local_raw)?;
+    bijux_dna_infra::ensure_dir(&local_normalized)?;
+    bijux_dna_infra::ensure_dir(&local_derived)?;
 
     let local_raw_panel_vcf = local_raw.join(
         panel_vcf

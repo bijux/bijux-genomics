@@ -137,7 +137,7 @@ fn run_phasing_stage_inner(
         bail!("sex chromosome phasing requires explicit PAR policy in SpeciesContext");
     }
 
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let phased_vcf = out_dir.join("phased.vcf.gz");
     let phased_tbi = out_dir.join("phased.vcf.gz.tbi");
     let phase_block_stats_tsv = out_dir.join("phase_block_stats.tsv");
@@ -282,13 +282,13 @@ pub fn run_imputation_orchestration_stage(
     species_context: &SpeciesContext,
     params: &ImputeStageParams,
 ) -> Result<ImputationOrchestrationOutputs> {
-    std::fs::create_dir_all(out_dir)?;
+    bijux_dna_infra::ensure_dir(out_dir)?;
     let orchestration_started = std::time::Instant::now();
     let mut current_input = input_vcf.to_path_buf();
     let mut phase_ran = false;
 
     let prepare_dir = out_dir.join("prepare_reference_panel");
-    std::fs::create_dir_all(&prepare_dir)?;
+    bijux_dna_infra::ensure_dir(&prepare_dir)?;
     let prepare_marker = prepare_dir.join("orchestration_prepare_panel.json");
     atomic_write_json(
         &prepare_marker,

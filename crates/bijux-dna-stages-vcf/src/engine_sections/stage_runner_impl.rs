@@ -8,7 +8,7 @@ impl VcfStageRunner for DispatchRunner {
         let stage_dir = ctx
             .artifact_root
             .join(stage.as_str().replace('.', "_"));
-        std::fs::create_dir_all(&stage_dir)?;
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
         if std::env::var("BIJUX_VCF_ALLOW_NETWORK").ok().as_deref() == Some("1") {
             return Err(refusal(
                 VcfRefusalCode::PlanningFailed,
@@ -23,7 +23,7 @@ impl VcfStageRunner for DispatchRunner {
             .run_root
             .join("tmp")
             .join(stage.as_str().replace('.', "_"));
-        std::fs::create_dir_all(&stage_tmp_dir)?;
+        bijux_dna_infra::ensure_dir(&stage_tmp_dir)?;
         let started = Instant::now();
         let mut artifacts = Vec::<PathBuf>::new();
         let mut primary_output = None;
