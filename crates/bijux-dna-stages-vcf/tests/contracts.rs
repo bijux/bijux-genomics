@@ -11,12 +11,13 @@ mod contracts {
     use bijux_dna_stages_vcf::pipeline::{
         assert_bgzip_tabix_artifacts, run_call_diploid_stage, run_call_gl_stage,
         run_call_pseudohaploid_stage, run_chunked_regions, run_damage_filter_stage,
-        run_gl_propagation_stage,
+        run_gl_propagation_stage, run_pca_stage, run_population_structure_stage,
         run_imputation_orchestration_stage, run_impute_stage, run_phasing_stage, run_postprocess_stage, run_prepare_reference_panel_stage,
         run_qc_stage, run_stats_stage_real, run_filter_stage_real,
-        ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
+        AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams, ImputationAcceptMode, ImputeBackend,
         DamageFilterStageParams, DamageUdgRegime, GlPropagationStageParams, ImputeStageParams, PhasingBackend,
-        PhasingStageParams, PostprocessStageParams, PrepareReferencePanelParams, QcStageParams,
+        PcaStageParams, PhasingStageParams, PopulationStructureStageParams, PostprocessStageParams,
+        PrepareReferencePanelParams, QcStageParams, run_admixture_stage,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
@@ -1577,5 +1578,44 @@ mod contracts {
                 .unwrap_or_default(),
             1
         );
+    }
+
+    #[test]
+    fn pca_stage_emits_eigen_artifacts_with_preprocessing_contract() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out = run_pca_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &PcaStageParams::default(),
+        )
+        .unwrap_or_else(|err| panic!("run pca stage: {err}"));
+        assert!(out.eigenvec_tsv.exists());
+        assert!(out.eigenval_tsv.exists());
+        assert!(out.pca_manifest_json.exists());
+    }
+
+    #[test]
+    fn population_structure_stage_emits_structured_outputs() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out = run_population_structure_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &PopulationStructureStageParams::default(),
+        )
+        .unwrap_or_else(|err| panic!("run population_structure stage: {err}"));
+        assert!(out.pruned_variants_tsv.exists());
+        assert!(out.population_structure_json.exists());
+    }
+
+    #[test]
+    fn admixture_stage_refuses_when_runtime_not_available() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let err = run_admixture_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &AdmixtureStageParams::default(),
+        )
+        .expect_err("admixture should refuse until container/runtime is enabled");
+        assert!(err.to_string().contains("refusal"));
     }
 }
