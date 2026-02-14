@@ -7,7 +7,6 @@
 
 schema_version = "bijux.required_tools.v1"
 required_tools = [
-  "bcftools",
   "beagle",
   "eagle",
   "eigensoft",
@@ -20,5 +19,6 @@ required_tools = [
   "minimac4",
   "plink",
   "plink2",
+  "shapeit",
   "shapeit5",
 ]
