@@ -138,6 +138,8 @@ struct DomainStage {
 struct DomainIndex {
     domain: String,
     #[serde(default)]
+    domain_version: String,
+    #[serde(default)]
     stage_ids: Vec<String>,
     #[serde(default)]
     tool_ids: Vec<String>,
@@ -2051,14 +2053,19 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     for rel in [
         "fastq/stages/_schema.yaml",
         "bam/stages/_schema.yaml",
+        "vcf/stages/_schema.yaml",
         "fastq/tools/_schema.yaml",
         "bam/tools/_schema.yaml",
+        "vcf/tools/_schema.yaml",
         "fastq/artifacts.yaml",
         "bam/artifacts.yaml",
+        "vcf/artifacts.yaml",
         "fastq/metrics.yaml",
         "bam/metrics.yaml",
+        "vcf/metrics.yaml",
         "fastq/index.yaml",
         "bam/index.yaml",
+        "vcf/index.yaml",
     ] {
         require_exists(&options.domain_dir.join(rel))?;
     }
@@ -2576,6 +2583,22 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     for stage_id in &bam_canonical {
         if !stage_ids.contains_key(stage_id) {
             bail!("bam stage catalog contains {stage_id} but domain yaml is missing it");
+        }
+    }
+
+    for dom in ["fastq", "bam", "vcf"] {
+        let index_path = options.domain_dir.join(dom).join("index.yaml");
+        let index: DomainIndex = read_yaml(&index_path)?;
+        let version = index.domain_version.trim();
+        if version != "v1" && version != "v2" {
+            bail!(
+                "{} has invalid domain_version {}; expected v1|v2",
+                index_path.display(),
+                if version.is_empty() { "<empty>" } else { version }
+            );
+        }
+        if dom == "vcf" && version != "v2" {
+            bail!("{} must declare domain_version=v2", index_path.display());
         }
     }
 

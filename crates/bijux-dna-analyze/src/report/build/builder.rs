@@ -640,8 +640,29 @@ fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
                 manifest_signature.unwrap_or_else(|| "unknown".to_string()),
             ),
         );
+        if let Some(hash) = read_domain_snapshot_hash() {
+            obj.insert(
+                "domain_snapshot_hash".to_string(),
+                serde_json::Value::String(hash),
+            );
+        }
     }
     base
+}
+
+fn read_domain_snapshot_hash() -> Option<String> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let registry = root.join("configs/ci/registry/tool_registry.toml");
+    let raw = std::fs::read_to_string(registry).ok()?;
+    for line in raw.lines().take(8) {
+        if let Some(rest) = line.strip_prefix("# source_commit: ") {
+            let hash = rest.trim();
+            if hash.len() == 40 && hash.chars().all(|ch| ch.is_ascii_hexdigit()) {
+                return Some(hash.to_string());
+            }
+        }
+    }
+    None
 }
 
 fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
