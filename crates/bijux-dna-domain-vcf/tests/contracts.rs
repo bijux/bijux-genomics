@@ -2,13 +2,17 @@ mod contracts {
     use bijux_dna_domain_vcf::{
         coverage::domain_coverage_report,
         contracts::{
-            stage_failure_modes, stage_io_contract, stage_metrics_contract, validate_vcf_invariants,
-            DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, PanelSelectionContext,
-            PanelSelectionPolicy, ReferencePanelGovernance, VcfInvariantState,
+            refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
+            stage_io_contract, stage_metrics_contract, validate_entry_vcf_invariants,
+            validate_panel_map_invariants, validate_species_context, validate_vcf_invariants,
+            ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
+            EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
+            PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
+            OUTPUT_GUARANTEE,
             DAMAGE_AWARE_GENOTYPE_LOGIC,
         },
-        param_registry_toml, required_tools_toml, validate_downstream_transition, VcfDomainStage,
-        VcfStage, VCF_STAGE_ORDER_DOWNSTREAM,
+        param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
+        VcfDomainStage, VcfStage, VCF_STAGE_ORDER_DOWNSTREAM,
     };
 
     #[test]
@@ -124,6 +128,75 @@ mod contracts {
             ..ok
         };
         assert!(validate_vcf_invariants(VcfDomainStage::Stats, &bad).is_err());
+    }
+
+    #[test]
+    fn species_context_and_species_keyed_invariants_are_enforced() {
+        let species = SpeciesContext {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 249250621,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 243199373,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch37_par".to_string(),
+            default_coverage_regime: Some(CoverageRegime::LowCovGl),
+        };
+        assert!(validate_species_context(&species).is_ok());
+
+        let entry = EntryVcfInvariantState {
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            sorted_by_contig_and_pos: true,
+            bgzip_compressed: true,
+            tabix_index_present: true,
+            sample_ids_non_empty_unique: true,
+            ploidy_constraints_ok: true,
+        };
+        assert!(validate_entry_vcf_invariants(&species, &entry).is_ok());
+
+        let panel_map = PanelMapInvariantState {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            phased_or_gl_compatible: true,
+            format_requirements_ok: true,
+            sample_count_ok: true,
+            license_allowed: true,
+            checksums_match: true,
+        };
+        assert!(validate_panel_map_invariants(&species, &panel_map).is_ok());
+    }
+
+    #[test]
+    fn pseudohaploid_to_diploid_imputation_is_refused() {
+        let err = refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true)
+            .expect_err("pseudohaploid to diploid imputation transition must be refused");
+        assert!(
+            err.to_string().contains("UnsupportedPseudohaploidToDiploid"),
+            "unexpected refusal error: {err}"
+        );
+    }
+
+    #[test]
+    fn imputation_stage_contracts_include_standard_artifacts_and_output_guarantee() {
+        let artifact_contract = stage_artifact_contract(VcfDomainStage::Impute);
+        assert!(
+            artifact_contract
+                .required_artifacts
+                .contains(&"imputation_accept_decision.json")
+        );
+        assert_eq!(OUTPUT_GUARANTEE.final_primary_format, "vcf.gz");
+        assert!(OUTPUT_GUARANTEE.requires_bgzip_tabix);
+        assert!(OUTPUT_GUARANTEE.deterministic_header_normalization);
     }
 
     #[test]

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use serde::Serialize;
 
-use crate::taxonomy::VcfDomainStage;
+use crate::taxonomy::{CoverageRegime, VcfDomainStage};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -59,6 +59,70 @@ pub struct PanelSelectionContext {
     pub target_build: String,
     pub ancestry_hint: Option<String>,
     pub use_restricted_license: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct SpeciesContext {
+    pub species_id: String,
+    pub build_id: String,
+    pub contig_set_digest: String,
+    pub contigs: Vec<ContigSpec>,
+    pub sex_system: String,
+    pub par_policy: String,
+    pub default_coverage_regime: Option<CoverageRegime>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContigSpec {
+    pub name: String,
+    pub length_bp: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct EntryVcfInvariantState {
+    pub build_id: String,
+    pub contig_set_digest: String,
+    pub sorted_by_contig_and_pos: bool,
+    pub bgzip_compressed: bool,
+    pub tabix_index_present: bool,
+    pub sample_ids_non_empty_unique: bool,
+    pub ploidy_constraints_ok: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct PanelMapInvariantState {
+    pub species_id: String,
+    pub build_id: String,
+    pub contig_set_digest: String,
+    pub phased_or_gl_compatible: bool,
+    pub format_requirements_ok: bool,
+    pub sample_count_ok: bool,
+    pub license_allowed: bool,
+    pub checksums_match: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum RefusalReason {
+    BuildMismatch,
+    ContigMismatch,
+    LowOverlap,
+    UnsupportedSexParPolicy,
+    MissingBackendRequiredFields,
+    UnsupportedPseudohaploidToDiploid,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct StageOutputGuarantee {
+    pub final_primary_format: &'static str,
+    pub requires_bgzip_tabix: bool,
+    pub bcf_optional: bool,
+    pub deterministic_header_normalization: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct StageArtifactContract {
+    pub stage: VcfDomainStage,
+    pub required_artifacts: &'static [&'static str],
 }
 
 pub trait PanelSelectionPolicy {
@@ -160,6 +224,158 @@ pub const DAMAGE_AWARE_GENOTYPE_LOGIC: DamageAwareGenotypeLogicContract =
             "masked_site_fraction",
         ],
     };
+
+pub const OUTPUT_GUARANTEE: StageOutputGuarantee = StageOutputGuarantee {
+    final_primary_format: "vcf.gz",
+    requires_bgzip_tabix: true,
+    bcf_optional: true,
+    deterministic_header_normalization: true,
+};
+
+#[must_use]
+pub fn stage_artifact_contract(stage: VcfDomainStage) -> StageArtifactContract {
+    match stage {
+        VcfDomainStage::PrepareReferencePanel => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "panel_overlap_stats.json",
+                "panel_lock_resolution.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        VcfDomainStage::Phasing => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "phasing_qc.json",
+                "switch_error_proxy.tsv",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        VcfDomainStage::Imputation | VcfDomainStage::Impute => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "imputation_qc.json",
+                "maf_bin_quality.tsv",
+                "overlap_stats.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+                "imputation_accept_decision.json",
+            ],
+        },
+        VcfDomainStage::Postprocess => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "header_normalization_report.json",
+                "filter_counts.tsv",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        VcfDomainStage::Qc => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "qc_summary.json",
+                "qc_tables.tsv",
+                "qc_histograms.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        _ => StageArtifactContract {
+            stage,
+            required_artifacts: &["provenance.json", "checksums.sha256", "logs.txt"],
+        },
+    }
+}
+
+/// # Errors
+/// Returns an error when species context is incomplete.
+pub fn validate_species_context(species: &SpeciesContext) -> Result<()> {
+    if species.species_id.trim().is_empty()
+        || species.build_id.trim().is_empty()
+        || species.contig_set_digest.trim().is_empty()
+    {
+        bail!("species context requires species_id/build_id/contig_set_digest");
+    }
+    if species.contigs.is_empty() {
+        bail!("species context requires non-empty contig list");
+    }
+    if species.par_policy.eq_ignore_ascii_case("unsupported")
+        && !species.sex_system.eq_ignore_ascii_case("unknown")
+    {
+        bail!("unsupported PAR policy must use sex_system=unknown");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if entry VCF invariants are violated for a species context.
+pub fn validate_entry_vcf_invariants(
+    species: &SpeciesContext,
+    state: &EntryVcfInvariantState,
+) -> Result<()> {
+    if state.build_id != species.build_id {
+        bail!("{:?}", RefusalReason::BuildMismatch);
+    }
+    if state.contig_set_digest != species.contig_set_digest {
+        bail!("{:?}", RefusalReason::ContigMismatch);
+    }
+    if !state.sorted_by_contig_and_pos {
+        bail!("entry VCF must be sorted");
+    }
+    if !state.bgzip_compressed || !state.tabix_index_present {
+        bail!("entry VCF must be bgzip + tabix indexed");
+    }
+    if !state.sample_ids_non_empty_unique {
+        bail!("entry VCF sample IDs must be unique and non-empty");
+    }
+    if !state.ploidy_constraints_ok {
+        bail!("entry VCF ploidy constraints failed");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if panel/map invariants violate species/build compatibility.
+pub fn validate_panel_map_invariants(
+    species: &SpeciesContext,
+    state: &PanelMapInvariantState,
+) -> Result<()> {
+    if state.species_id != species.species_id || state.build_id != species.build_id {
+        bail!("{:?}", RefusalReason::BuildMismatch);
+    }
+    if state.contig_set_digest != species.contig_set_digest {
+        bail!("{:?}", RefusalReason::ContigMismatch);
+    }
+    if !state.phased_or_gl_compatible
+        || !state.format_requirements_ok
+        || !state.sample_count_ok
+        || !state.license_allowed
+        || !state.checksums_match
+    {
+        bail!("panel/map invariants failed");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error when pseudo-haploid to diploid conversion is requested.
+pub fn refuse_unsupported_regime_transition(
+    coverage: CoverageRegime,
+    requires_diploid_imputation: bool,
+) -> Result<()> {
+    if coverage == CoverageRegime::Pseudohaploid && requires_diploid_imputation {
+        bail!("{:?}", RefusalReason::UnsupportedPseudohaploidToDiploid);
+    }
+    Ok(())
+}
 
 #[must_use]
 pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
