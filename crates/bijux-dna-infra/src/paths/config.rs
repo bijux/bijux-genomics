@@ -22,8 +22,9 @@ pub fn configs_file(root: &Path, relative: &str) -> PathBuf {
             "ci/tool_registry.toml" => "ci/registry/tool_registry.toml",
             "ci/tool_registry_experimental.toml" => "ci/registry/tool_registry_experimental.toml",
             "ci/tool_registry_vcf.toml" => "ci/registry/tool_registry_vcf.toml",
-            "ci/tool_registry.lock.sha256" => "ci/registry/tool_registry_lock.sha256",
-            "ci/tool_registry_lock.sha256" => "ci/registry/tool_registry_lock.sha256",
+            "ci/tool_registry.lock.sha256" | "ci/tool_registry_lock.sha256" => {
+                "ci/registry/tool_registry_lock.sha256"
+            }
             "ci/domains.toml" => "ci/registry/domains.toml",
             "ci/stages.toml" => "ci/stages/stages.toml",
             "ci/stages_vcf.toml" => "ci/stages/stages_vcf.toml",
