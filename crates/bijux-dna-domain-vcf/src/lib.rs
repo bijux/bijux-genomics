@@ -1,11 +1,16 @@
 //! VCF domain primitives: stage IDs, typed params, metrics, and registry materialization.
 
 pub mod params;
+pub mod taxonomy;
 
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+pub use taxonomy::{
+    validate_downstream_transition, CoverageRegime, DomainSupportStatus, VcfDomainStage,
+    VcfStageKind, VCF_FORBIDDEN_TRANSITIONS, VCF_STAGE_ORDER_DOWNSTREAM, VCF_STAGE_TAXONOMY,
+};
 
 pub const STAGE_PREFIX: &str = "vcf.";
 pub const STAGE_CALL: &str = "vcf.call";
