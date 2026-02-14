@@ -28,7 +28,7 @@ required_tools_ssot = "configs/required_tools.toml"
 
 [[domains]]
 id = "vcf"
-experimental = false
+experimental = true
 stages_ssot = "configs/stages_vcf.toml"
 tool_registry_ssot = "configs/tool_registry_vcf.toml"
 param_registry_ssot = "configs/param_registry_vcf.toml"
