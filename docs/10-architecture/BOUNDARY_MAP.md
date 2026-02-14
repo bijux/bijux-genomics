@@ -31,6 +31,7 @@ bijux-dna-bench: bijux-dna-analyze bijux-dna-bench-model bijux-dna-core bijux-dn
 bijux-dna-bench-model: bijux-dna-analyze bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-db-ena: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
+bijux-dna-db-ref: bijux-dna-domain-vcf bijux-dna-policies
 bijux-dna-domain-bam: bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-compiler: bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra
 bijux-dna-domain-fastq: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
@@ -42,14 +43,14 @@ bijux-dna-infra: bijux-dna-policies bijux-dna-testkit
 bijux-dna-pipelines: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
 bijux-dna-planner-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux-dna-pipelines bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-bam bijux-dna-testkit
 bijux-dna-planner-fastq: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-testkit
-bijux-dna-planner-vcf: bijux-dna-core bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract
+bijux-dna-planner-vcf: bijux-dna-core bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract
 bijux-dna-policies: bijux-dna-core bijux-dna-pipelines bijux-dna-runtime bijux-dna-testkit
 bijux-dna-runner: bijux-dna-core bijux-dna-environment bijux-dna-infra bijux-dna-policies bijux-dna-runtime
 bijux-dna-runtime: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-stage-contract: bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-stages-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-stages-fastq: bijux-dna-core bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
-bijux-dna-stages-vcf: bijux-dna-core bijux-dna-domain-vcf bijux-dna-policies bijux-dna-testkit
+bijux-dna-stages-vcf: bijux-dna-core bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-testkit: bijux-dna-policies
 ```
 
