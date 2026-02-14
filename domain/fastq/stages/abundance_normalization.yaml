@@ -23,7 +23,6 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 compatible_tools:
-  - seqkit
   - seqfu
 assumptions:
   - "Compositional transforms are interpreted as relative, not absolute abundance."

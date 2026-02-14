@@ -15,9 +15,16 @@ fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     let configs_dir = root.join("configs");
     let runtime_dir = configs_dir.join("runtime");
     let ci_dir = configs_dir.join("ci");
+    let ci_registry_dir = ci_dir.join("registry");
+    let ci_stages_dir = ci_dir.join("stages");
+    let ci_tools_dir = ci_dir.join("tools");
+    let ci_params_dir = ci_dir.join("params");
     std::fs::create_dir_all(&runtime_dir).expect("create runtime configs");
     std::fs::create_dir_all(runtime_dir.join("profiles")).expect("create runtime profile configs");
-    std::fs::create_dir_all(&ci_dir).expect("create ci configs");
+    std::fs::create_dir_all(&ci_registry_dir).expect("create ci registry configs");
+    std::fs::create_dir_all(&ci_stages_dir).expect("create ci stage configs");
+    std::fs::create_dir_all(&ci_tools_dir).expect("create ci tool configs");
+    std::fs::create_dir_all(&ci_params_dir).expect("create ci param configs");
     std::fs::write(
         runtime_dir.join("profiles").join("local.toml"),
         r#"
@@ -60,21 +67,41 @@ arch = "x86_64"
         .unwrap()
         .parent()
         .unwrap();
-    for file in [
-        "images.toml",
-        "tool_registry.toml",
-        "stages.toml",
-        "domains.toml",
-        "tool_registry_vcf.toml",
-        "stages_vcf.toml",
-        "param_registry_vcf.toml",
-        "required_tools_vcf.toml",
+    for (src, dest) in [
+        (
+            ws_root.join("configs/ci/tools/images.toml"),
+            ci_tools_dir.join("images.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/registry/tool_registry.toml"),
+            ci_registry_dir.join("tool_registry.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/stages/stages.toml"),
+            ci_stages_dir.join("stages.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/registry/domains.toml"),
+            ci_registry_dir.join("domains.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/registry/tool_registry_vcf.toml"),
+            ci_registry_dir.join("tool_registry_vcf.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/stages/stages_vcf.toml"),
+            ci_stages_dir.join("stages_vcf.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/params/param_registry_vcf.toml"),
+            ci_params_dir.join("param_registry_vcf.toml"),
+        ),
+        (
+            ws_root.join("configs/ci/tools/required_tools_vcf.toml"),
+            ci_tools_dir.join("required_tools_vcf.toml"),
+        ),
     ] {
-        std::fs::copy(
-            ws_root.join("configs").join("ci").join(file),
-            ci_dir.join(file),
-        )
-        .unwrap_or_else(|err| panic!("copy {file}: {err}"));
+        std::fs::copy(&src, &dest).unwrap_or_else(|err| panic!("copy {}: {err}", src.display()));
     }
 
     let args = [

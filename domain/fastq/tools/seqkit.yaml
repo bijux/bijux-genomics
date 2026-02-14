@@ -33,7 +33,7 @@ constraints:
   threads: 2
 execution_contract:
   required_inputs:
-    - "reads_r1"
+    - "reads"
   expected_outputs:
     - "seqkit.fastq.gz"
   forbidden_outputs: []
@@ -49,7 +49,6 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.filter"
   - "fastq.primer_normalization"
-  - "fastq.abundance_normalization"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
