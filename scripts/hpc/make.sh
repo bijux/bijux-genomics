@@ -8,7 +8,7 @@ require_stable_env
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/<group>/make.sh <command> [args...]
+Usage: scripts/<group>/make.sh [--dry-run|--confirm] <command> [args...]
 USAGE
 }
 
@@ -16,6 +16,31 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   usage
   exit 0
 fi
+
+dry_run=1
+confirm=0
+
+while [[ $# -gt 0 ]]; do
+  case "${1:-}" in
+    --dry-run)
+      dry_run=1
+      confirm=0
+      shift
+      ;;
+    --confirm)
+      dry_run=0
+      confirm=1
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 if [[ $# -lt 1 ]]; then
   usage >&2
@@ -38,6 +63,15 @@ fi
 
 if [[ ! -x "$target" ]]; then
   chmod +x "$target"
+fi
+
+if [[ "$confirm" -eq 1 ]]; then
+  exec "$target" --confirm "$@"
+fi
+
+if [[ "$dry_run" -eq 1 ]]; then
+  echo "[dry-run] $cmd (pass --confirm to execute)"
+  exec "$target" --dry-run "$@"
 fi
 
 exec "$target" "$@"
