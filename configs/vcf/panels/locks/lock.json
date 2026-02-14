@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-02-13T19:38:44.341344Z",
+  "generated_at_utc": "2026-02-14T09:49:57.471515Z",
   "panels": [
     {
       "build_steps": [
@@ -9,7 +9,7 @@
         "generate chunks corpus_01_mini_panel.chunks.tsv"
       ],
       "citation": "Bijux synthetic mini panel v1 (internal reference corpus)",
-      "date": "2026-02-13",
+      "date": "2026-02-14",
       "derived_artifacts": [
         "corpus_01_mini_panel.vcf.gz.tbi",
         "corpus_01_mini_panel.chunks.tsv"
@@ -36,7 +36,7 @@
         "generate chunks corpus_01_panel.chunks.tsv"
       ],
       "citation": "Bijux synthetic panel v1 (internal reference corpus)",
-      "date": "2026-02-13",
+      "date": "2026-02-14",
       "derived_artifacts": [
         "corpus_01_panel.vcf.gz.tbi",
         "corpus_01_panel.chunks.tsv"

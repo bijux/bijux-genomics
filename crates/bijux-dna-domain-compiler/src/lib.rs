@@ -2549,7 +2549,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         );
                     }
                 }
-                tool_ids.entry(tool.tool_id.clone()).or_insert_with(|| path.display().to_string());
+                tool_ids
+                    .entry(tool.tool_id.clone())
+                    .or_insert_with(|| path.display().to_string());
                 tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
                 tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
             }

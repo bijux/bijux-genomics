@@ -12,8 +12,11 @@ LOCK="$ROOT_DIR/configs/docs/requirements.lock.txt"
 [[ -f "$REQ" ]] || { echo "docs-req-lock: missing $REQ" >&2; exit 1; }
 [[ -f "$LOCK" ]] || { echo "docs-req-lock: missing $LOCK" >&2; exit 1; }
 
-tmp_req="$(mktemp)"
-tmp_lock="$(mktemp)"
+tmp_root="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$tmp_root"
+mkdir -p "$tmp_root"
+tmp_req="$(mktemp "$tmp_root/tmp-docs-req.XXXXXX")"
+tmp_lock="$(mktemp "$tmp_root/tmp-docs-lock.XXXXXX")"
 trap 'rm -f "$tmp_req" "$tmp_lock"' EXIT
 
 sed '/^\s*#/d;/^\s*$/d' "$REQ" | sort >"$tmp_req"
