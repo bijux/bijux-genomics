@@ -57,6 +57,7 @@ from __future__ import annotations
 import datetime as dt
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -85,7 +86,14 @@ panels = cfg.get("panel", [])
 if panel_filter:
     panels = [p for p in panels if str(p.get("id", "")).strip() == panel_filter]
 
-now_date = dt.date.today().isoformat()
+def stable_now_utc() -> dt.datetime:
+    raw = os.environ.get("SOURCE_DATE_EPOCH")
+    if raw:
+        return dt.datetime.fromtimestamp(int(raw), tz=dt.timezone.utc)
+    return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+
+now_utc = stable_now_utc()
+now_date = now_utc.date().isoformat()
 plan_rows: list[dict] = []
 lock_rows: list[dict] = []
 
@@ -173,7 +181,7 @@ for p in panels:
 
 if want_plan:
     plan_out = artifacts_root / "plan.json"
-    plan_payload = {"generated_at_utc": dt.datetime.utcnow().isoformat() + "Z", "panels": plan_rows}
+    plan_payload = {"generated_at_utc": now_utc.isoformat().replace("+00:00", "Z"), "panels": plan_rows}
     plan_out.write_text(json.dumps(plan_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"wrote {plan_out.relative_to(root)}")
 
@@ -181,7 +189,7 @@ if want_emit_lock:
     payload = {
         "schema_version": 1,
         "source": "configs/vcf/panels/panels.toml",
-        "generated_at_utc": dt.datetime.utcnow().isoformat() + "Z",
+        "generated_at_utc": now_utc.isoformat().replace("+00:00", "Z"),
         "panels": sorted(lock_rows, key=lambda x: x["id"]),
     }
     raw = json.dumps(payload, indent=2, sort_keys=True) + "\n"
