@@ -295,7 +295,7 @@ fn stage_requires_banks(stage_id: &str) -> bool {
         || key.contains("detect_adapters")
 }
 
-fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
+fn handle_observability_commands(dna_command: &cli::DnaCommand, _cwd: &Path) -> Result<bool> {
     match dna_command {
         #[cfg(debug_assertions)]
         cli::DnaCommand::Debug(args) => {
@@ -305,7 +305,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                     args.view
                 ));
             }
-            let run_dir = cwd.join(&args.search_root).join(&args.run_id);
+            let run_dir = _cwd.join(&args.search_root).join(&args.run_id);
             let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
@@ -342,7 +342,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
         }
         #[cfg(debug_assertions)]
         cli::DnaCommand::Collect(args) => {
-            let run_dir = cwd.join(&args.search_root).join(&args.run);
+            let run_dir = _cwd.join(&args.search_root).join(&args.run);
             let out = args
                 .out
                 .clone()
