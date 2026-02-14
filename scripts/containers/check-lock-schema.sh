@@ -37,7 +37,19 @@ else:
         if not isinstance(row, dict):
             errors.append(f"items[{i}] must be object")
             continue
-        for k in ["tool", "version", "status", "source", "entry_sha256", "resolved_image_digest", "resolved_sif_sha256", "frontend_resolved_sif_sha256", "frontend_smoke_version_output_sha256"]:
+        for k in [
+            "tool",
+            "version",
+            "status",
+            "source",
+            "entry_sha256",
+            "resolved_image_digest",
+            "resolved_sif_sha256",
+            "sif_digest_sha256",
+            "frontend_resolved_sif_sha256",
+            "frontend_sif_digest_sha256",
+            "frontend_smoke_version_output_sha256",
+        ]:
             if k not in row:
                 errors.append(f"items[{i}] missing key: {k}")
         tool = str(row.get("tool", "")).strip()

@@ -96,6 +96,10 @@ for tool, expected_version in sorted(prod.items()):
     lock_digest = str(lock_row.get(tool, {}).get("resolved_image_digest", "")).strip()
     if lock_digest and digest and lock_digest != digest:
         errors.append(f"{tool}: built digest '{digest}' does not match lock digest '{lock_digest}'")
+    lock_sif = str(lock_row.get(tool, {}).get("sif_digest_sha256", "")).strip()
+    if str(manifest.get("runtime", "")).strip() == "apptainer":
+        if lock_sif and digest and lock_sif != digest:
+            errors.append(f"{tool}: built apptainer sif digest '{digest}' does not match lock sif_digest_sha256 '{lock_sif}'")
 
 if errors:
     print("lock-vs-built: failed", file=sys.stderr)

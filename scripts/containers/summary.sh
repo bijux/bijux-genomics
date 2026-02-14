@@ -83,10 +83,17 @@ for path in sorted(glob.glob(os.path.join(manifest_dir, "*.json"))):
       "status": status,
       "log": log,
       "manifest": path,
+      "declared_version": data.get("declared_version"),
+      "version_output": data.get("version_output"),
+      "normalized_version_output": data.get("normalized_version_output"),
+      "resolved_image_digest": data.get("resolved_image_digest"),
+      "sif_digest_sha256": data.get("sif_digest_sha256"),
       "image_size_bytes": data.get("image_size_bytes"),
       "packages_hash": data.get("packages_hash"),
       "sbom_path": data.get("sbom_path"),
       "self_report_path": data.get("self_report_path"),
+      "smoke_log_path": data.get("smoke_log_path"),
+      "smoke_log_dir": data.get("smoke_log_dir"),
     })
 
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
