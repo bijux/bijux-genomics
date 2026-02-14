@@ -14,6 +14,7 @@ COVERAGE_OUT = coverage.json
 AUTO_ISO_TAG_PREFIX ?= make
 
 fmt:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-fmt-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _fmt; \
@@ -26,6 +27,7 @@ _fmt:
 	@./scripts/run.sh tooling ci-fmt
 
 lint:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-lint-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint; \
@@ -132,6 +134,7 @@ _lint:
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 test:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-test-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _test; \
@@ -147,6 +150,7 @@ _test-slow: ## Run only slow-labeled tests (functions containing slow__).
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-audit-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _audit; \
@@ -159,6 +163,7 @@ _audit:
 	@./scripts/run.sh tooling ci-audit
 
 coverage:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-coverage-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _coverage; \
@@ -171,6 +176,7 @@ _coverage:
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/run.sh tooling ci-coverage
 
 doctor:
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
 	@if [ -z "$$ISO_ROOT" ]; then \
 		tag="$(AUTO_ISO_TAG_PREFIX)-doctor-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
 		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _doctor; \
@@ -292,7 +298,7 @@ _test-triage: ## Group failed tests from a saved nextest log.
 	@./scripts/run.sh test test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
 
 generate-configs:
-	@./scripts/tooling/generate-configs.sh
+	@./scripts/run.sh tooling generate-configs
 
 _generate-configs:
 	@$(MAKE) generate-configs
