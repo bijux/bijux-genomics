@@ -97,7 +97,20 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
         if status != "supported" {
             continue;
         }
-        let mapped_tools = stage_tools_from_matrix(stage);
+        let mut mapped_tools = stage_tools_from_matrix(stage);
+        if mapped_tools.is_empty() {
+            for tool_row in &tool_rows {
+                let Some(tool_id) = tool_row.get("id").and_then(toml::Value::as_str) else {
+                    continue;
+                };
+                let stage_ids = list(tool_row, "stage_ids");
+                if stage_ids.iter().any(|id| id == stage_id) {
+                    mapped_tools.push(tool_id.to_string());
+                }
+            }
+            mapped_tools.sort();
+            mapped_tools.dedup();
+        }
         if mapped_tools.is_empty() {
             offenders.push(format!(
                 "supported stage {stage_id} must map to at least one tool"
