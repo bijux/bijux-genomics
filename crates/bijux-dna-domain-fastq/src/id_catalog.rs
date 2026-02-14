@@ -21,19 +21,30 @@ impl FastqInvariantsPreset {
 }
 
 pub const FASTQ_STAGE_ID_CATALOG: &[&str] = &[
+    "fastq.abundance_normalization",
+    "fastq.asv_inference",
+    "fastq.chimera_detection",
+    "fastq.contaminant_screen",
     "fastq.validate_pre",
     "fastq.detect_adapters",
     "fastq.trim",
     "fastq.filter",
+    "fastq.host_depletion",
+    "fastq.length_distribution_pre",
+    "fastq.low_complexity",
     "fastq.merge",
+    "fastq.otu_clustering",
+    "fastq.overrepresented_sequences",
+    "fastq.polyg_tailing",
+    "fastq.prepare_reference",
+    "fastq.primer_normalization",
     "fastq.qc_post",
+    "fastq.rrna",
     "fastq.stats_neutral",
     "fastq.screen",
     "fastq.umi",
     "fastq.correct",
-    "fastq.preprocess",
-    "fastq.complexity",
-    "fastq.duplicate_estimate",
+    "fastq.deduplicate",
 ];
 
 pub const FASTQ_PARAMS_CATALOG: &[&str] = &[

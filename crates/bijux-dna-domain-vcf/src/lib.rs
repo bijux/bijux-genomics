@@ -27,7 +27,28 @@ impl VcfInvariantsPreset {
     }
 }
 
-pub const VCF_STAGE_ID_CATALOG: &[&str] = &[STAGE_CALL, STAGE_FILTER, STAGE_STATS];
+pub const VCF_STAGE_ID_CATALOG: &[&str] = &[
+    "vcf.admixture",
+    "vcf.call",
+    "vcf.call_diploid",
+    "vcf.call_gl",
+    "vcf.call_pseudohaploid",
+    "vcf.damage_filter",
+    "vcf.demography",
+    "vcf.filter",
+    "vcf.gl_propagation",
+    "vcf.ibd",
+    "vcf.imputation",
+    "vcf.impute",
+    "vcf.pca",
+    "vcf.phasing",
+    "vcf.population_structure",
+    "vcf.postprocess",
+    "vcf.prepare_reference_panel",
+    "vcf.qc",
+    "vcf.roh",
+    "vcf.stats",
+];
 pub const VCF_PARAMS_CATALOG: &[&str] = &[
     "bijux.vcf.call.params",
     "bijux.vcf.filter.params",

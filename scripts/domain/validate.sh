@@ -32,8 +32,12 @@ fi
 ./scripts/domain/check-domain-schema.sh
 ./scripts/domain/check-domain-index.sh
 ./scripts/domain/check-ssot-authority.sh
+./scripts/domain/check-rust-stage-catalog-parity.sh
 ./scripts/domain/check-shared-tools.sh
 ./scripts/domain/check-tool-container-parity.sh
+./scripts/domain/check-domain-tool-metadata.sh
+./scripts/domain/check-planner-stage-coverage.sh
+./scripts/domain/check-planner-fixture-coverage.sh
 ./scripts/domain/check-default-settings-docs.sh
 ./scripts/domain/check-fixture-contracts.sh
 ./scripts/domain/check-orphan-files.sh
