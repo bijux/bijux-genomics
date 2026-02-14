@@ -17,6 +17,9 @@ use bijux_dna_engine::Engine;
 use bijux_dna_pipelines::registry::PipelineRegistry;
 use bijux_dna_pipelines::{Domain, PipelineProfile};
 use bijux_dna_runner::DockerRunner;
+use bijux_dna_runtime::stage_runner_contract::{
+    ensure_stage_supported_by_runner, RunnerContractKind,
+};
 use bijux_dna_stage_contract::{build_run_execution_plan, RunExecutionPlan};
 use cargo_metadata::MetadataCommand;
 
@@ -183,6 +186,15 @@ fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
 /// Returns an error if execution fails.
 #[allow(clippy::too_many_lines)]
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
+    let runner_contract = match request.runner {
+        bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
+        other => {
+            return Err(anyhow!(
+                "runner {other} not supported for execute_run stage coverage"
+            ));
+        }
+    };
+    ensure_stage_supported_by_runner(runner_contract, request.plan.stage_id.as_str())?;
     if hpc_context_enabled() {
         enforce_hpc_results_layout(&request.plan.out_dir)?;
     }
@@ -673,6 +685,13 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
+    let runner_contract = match request.runner {
+        bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
+        other => return Err(anyhow!("runner {other} not supported for execute")),
+    };
+    for step in request.graph.steps() {
+        ensure_stage_supported_by_runner(runner_contract, step.stage_id.as_str())?;
+    }
     let (run_id, layout) = bijux_dna_runtime::run_layout::create_run_layout(&request.run_dir)?;
     let runner: Box<dyn bijux_dna_runtime::Runner> = match request.runner {
         bijux_dna_environment::api::RuntimeKind::Docker => Box::new(DockerRunner::new(None)),
