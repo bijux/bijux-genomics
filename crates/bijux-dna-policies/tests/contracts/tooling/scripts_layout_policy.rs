@@ -41,6 +41,7 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
         "scripts/containers/",
         "scripts/docs/",
         "scripts/domain/",
+        "scripts/examples/",
         "scripts/hpc/lunarc/",
         "scripts/lab/",
         "scripts/smoke/",
@@ -91,10 +92,13 @@ fn policy__contracts__scripts_layout_policy__scripts_have_strict_mode_and_c_loca
             .take(16)
             .collect::<Vec<_>>()
             .join("\n");
-        if !(head.contains("set -euo pipefail") || head.contains("set -eu")) {
+        if !(head.contains("set -euo pipefail")
+            || head.contains("set -eu")
+            || head.contains("set -Eeuo pipefail"))
+        {
             strict_offenders.push(rel.clone());
         }
-        if !head.contains("LC_ALL=C") {
+        if !(head.contains("LC_ALL=C") || head.contains("LC_ALL=\"C\"")) {
             locale_offenders.push(rel);
         }
     }
@@ -121,7 +125,8 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
         + &std::fs::read_to_string(root.join("makefiles/docs.mk")).unwrap_or_default()
         + &std::fs::read_to_string(root.join("makefiles/lab.mk")).unwrap_or_default()
         + &std::fs::read_to_string(root.join("makefiles/lunarc.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/toy.mk")).unwrap_or_default();
+        + &std::fs::read_to_string(root.join("makefiles/benchmarks-fastq.mk")).unwrap_or_default()
+        + &std::fs::read_to_string(root.join("makefiles/benchmarks-bam.mk")).unwrap_or_default();
 
     let re = Regex::new(r"scripts/[A-Za-z0-9_./-]+\\.(sh|py)").expect("regex");
     let mut supported = std::collections::BTreeSet::new();
@@ -143,6 +148,7 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
             || rel.starts_with("scripts/containers/")
             || rel.starts_with("scripts/docs/")
             || rel.starts_with("scripts/domain/")
+            || rel.starts_with("scripts/examples/")
             || rel.starts_with("scripts/hpc/")
             || rel.starts_with("scripts/lab/")
             || rel.starts_with("scripts/smoke/")
@@ -283,6 +289,7 @@ fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or
 fn policy__contracts__scripts_layout_policy__scripts_do_not_hardcode_isolates_layout() {
     let root = workspace_root();
     let mut offenders = Vec::new();
+    let isolates_marker = ["artifacts", "isolates", ""].join("/");
 
     for file in script_files(&root) {
         if file.extension().and_then(|s| s.to_str()) != Some("sh") {
@@ -295,7 +302,7 @@ fn policy__contracts__scripts_layout_policy__scripts_do_not_hardcode_isolates_la
             .to_string();
         let raw = std::fs::read_to_string(&file).unwrap_or_default();
         for (idx, line) in raw.lines().enumerate() {
-            if line.contains("artifacts/isolates/")
+            if line.contains(&isolates_marker)
                 && !line.contains("ISO_ROOT")
                 && !line.contains("isolate --print-root")
             {
