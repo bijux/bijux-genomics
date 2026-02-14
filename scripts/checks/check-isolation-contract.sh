@@ -15,9 +15,9 @@ fi
 
 tag_a="contract-a-$$"
 tag_b="contract-b-$$"
-root_a="$(ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" --print-root)"
-root_b="$(ISO_TAG="$tag_b" "$ROOT_DIR/bin/isolate" --print-root)"
-tag_printed="$(ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" --print-tag)"
+root_a="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" --print-root)"
+root_b="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$tag_b" "$ROOT_DIR/bin/isolate" --print-root)"
+tag_printed="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" --print-tag)"
 
 [[ "$tag_printed" == "$tag_a" ]] || {
   echo "isolation-contract: --print-tag returned unexpected value: $tag_printed" >&2
@@ -44,7 +44,7 @@ case "$root_b" in
     ;;
 esac
 
-env_line="$(ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" sh -ceu 'printf "%s|%s|%s|%s|%s|%s|%s\n" "$ISO_TAG" "$ISO_ROOT" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR" "$TMP" "$TEMP"')"
+env_line="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$tag_a" "$ROOT_DIR/bin/isolate" sh -ceu 'printf "%s|%s|%s|%s|%s|%s|%s\n" "$ISO_TAG" "$ISO_ROOT" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR" "$TMP" "$TEMP"')"
 IFS='|' read -r env_tag env_root env_target env_home env_tmpdir env_tmp env_temp <<< "$env_line"
 
 [[ -n "$env_tag" && -n "$env_root" && -n "$env_target" && -n "$env_home" && -n "$env_tmpdir" && -n "$env_tmp" && -n "$env_temp" ]] || {
@@ -66,12 +66,12 @@ for path in "$env_target" "$env_home" "$env_tmpdir" "$env_tmp" "$env_temp"; do
 done
 
 require_tag="contract-require-empty-$$"
-ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" sh -ceu 'mkdir -p "$ISO_ROOT/target-test"'
-if ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" --require-empty-target-dir sh -ceu 'true' >/dev/null 2>&1; then
+env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" sh -ceu 'mkdir -p "$ISO_ROOT/target-test"'
+if env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" --require-empty-target-dir sh -ceu 'true' >/dev/null 2>&1; then
   echo "isolation-contract: --require-empty-target-dir should fail when target-* exists and --reuse is not passed" >&2
   exit 1
 fi
-ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" --require-empty-target-dir --reuse sh -ceu 'true' >/dev/null
+env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME -u TMPDIR -u TMP -u TEMP ISO_TAG="$require_tag" "$ROOT_DIR/bin/isolate" --require-empty-target-dir --reuse sh -ceu 'true' >/dev/null
 
 if rg -n "/Users/|[A-Za-z]:\\\\Users\\\\" crates/*/tests/snapshots >/dev/null 2>&1; then
   echo "absolute host paths leaked into snapshots" >&2
