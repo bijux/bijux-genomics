@@ -17,6 +17,12 @@ Guarantees reports are complete and comparable.
   - `selected`
   - `thresholds_used`
   - `observed_coverage_stats`
+- VCF downstream reports must include QC artifact links for:
+  - `imputation_qc.tsv`
+  - `maf_bins.tsv`
+  - `info_hist.json`
+  - `warnings.json`
+  - `imputation_accept.json`
 
 ## Examples
 - FASTQ reports include trimming/retention metrics with units.

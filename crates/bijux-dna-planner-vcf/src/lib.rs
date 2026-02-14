@@ -404,6 +404,10 @@ fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
             inputs.pipeline_domain
         );
     }
+    let lowered = inputs.pipeline_domain.to_ascii_lowercase();
+    if lowered.contains("edna") || lowered.contains("pollen") {
+        bail!("vcf planner refusal: imputation is not applicable to eDNA/pollen domains");
+    }
     validate_species_context(&inputs.species_context)?;
     validate_entry_vcf_invariants(&inputs.species_context, &inputs.entry_vcf_invariants)?;
     validate_panel_map_invariants(&inputs.species_context, &inputs.panel_map_invariants)?;
