@@ -1,7 +1,7 @@
 ##@ Lunarc Sync
 
 LUNARC_HOST ?= lunarc
-LUNARC_ROOT ?= /home/bijan/bijux
+LUNARC_ROOT ?= $(HOME)/bijux
 LUNARC_REPO_DIR ?= $(LUNARC_ROOT)/bijux-dna
 LUNARC_PULL_BASE ?= $(HOME)/bijux
 CLEAN_CONTEXT ?= 1
@@ -12,8 +12,8 @@ LUNARC_APPTAINER_DIR ?= $(LUNARC_ROOT)/bijux-dna-apptainer
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
-LUNARC_FRONTEND_SENTINEL ?= /home/bijan/bijux/bijux-dna
-LUNARC_APPTAINER_BASE_SEED_DIR ?= /home/bijan/bijux/apptainer-build/base
+LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_ROOT)/bijux-dna
+LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_ROOT)/apptainer-build/base
 
 _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	@LUNARC_HOST="$(LUNARC_HOST)" \

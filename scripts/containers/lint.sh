@@ -11,6 +11,23 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 DOCKER_ROOT="$ROOT_DIR/containers/docker"
 APPTAINER_ROOT="$ROOT_DIR/containers/apptainer"
 
+usage() {
+  cat <<'USAGE'
+Usage: scripts/containers/lint.sh
+USAGE
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  echo "unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"

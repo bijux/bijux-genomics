@@ -24,6 +24,11 @@ rg -N --no-filename '^\s*id\s*=\s*"' \
   | awk -F'"' '{print $2}' \
   | sort -u > "$stage_ids_file"
 
+rg -N --no-filename '^\s*-\s*(fastq|bam|vcf)\.[a-z0-9_]+' domain/*/index.yaml \
+  | sed -E 's/^[[:space:]]*-[[:space:]]*//g' \
+  | sort -u >> "$stage_ids_file"
+sort -u "$stage_ids_file" -o "$stage_ids_file"
+
 rg -N --no-filename '^\s*(id|tool_id)\s*=\s*"' \
   configs/ci/registry/tool_registry.toml \
   configs/ci/registry/tool_registry_vcf.toml \

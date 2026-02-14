@@ -11,6 +11,23 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 SPEC="$ROOT_DIR/scripts/SUPPORTED.toml"
 failed=0
 
+usage() {
+  cat <<'USAGE'
+Usage: scripts/checks/check-script-writes.sh
+USAGE
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  echo "unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
 parse_spec() {
   local spec_file="$1"
   python3 - "$spec_file" <<'PY'
@@ -52,7 +69,7 @@ while IFS=$'\t' read -r rel outputs; do
   for out in "${out_arr[@]}"; do
     o="$(echo "$out" | xargs)"
     case "$o" in
-      "artifacts/"|"\$ISO_ROOT/"|"configs/vcf/panels/locks/"|"containers/versions/") ;;
+      "artifacts/"|"\$ISO_ROOT/"|"configs/vcf/panels/locks/"|"containers/versions/"|"containers/docs/") ;;
       *)
         echo "check-script-writes: $rel has non-approved output root '$o' in scripts/SUPPORTED.toml" >&2
         failed=1

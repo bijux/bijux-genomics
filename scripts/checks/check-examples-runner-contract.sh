@@ -11,7 +11,8 @@ example_id="$(awk -F'=' '/^id[[:space:]]*=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,
 
 run_once() {
   local tag="$1"
-  ISO_TAG="$tag" "$ROOT_DIR/bin/isolate" sh -ceu "
+  env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME \
+    ISO_TAG="$tag" "$ROOT_DIR/bin/isolate" sh -ceu "
     ./scripts/examples/run.sh ${example_id} >/dev/null
   "
 }
@@ -19,8 +20,8 @@ run_once() {
 run_once "examples-runner-a"
 run_once "examples-runner-b"
 
-a_root="$(ISO_TAG=examples-runner-a "$ROOT_DIR/bin/isolate" --print-root)"
-b_root="$(ISO_TAG=examples-runner-b "$ROOT_DIR/bin/isolate" --print-root)"
+a_root="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME ISO_TAG=examples-runner-a "$ROOT_DIR/bin/isolate" --print-root)"
+b_root="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME ISO_TAG=examples-runner-b "$ROOT_DIR/bin/isolate" --print-root)"
 a_dir="$a_root/examples/${example_id}"
 b_dir="$b_root/examples/${example_id}"
 

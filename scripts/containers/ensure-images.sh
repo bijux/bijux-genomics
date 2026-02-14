@@ -6,8 +6,7 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-IMAGES_TOML_PRIMARY="$ROOT_DIR/configs/ci/images.toml"
-IMAGES_TOML_FALLBACK="$ROOT_DIR/configs/ci/tools/images.toml"
+IMAGES_TOML="$ROOT_DIR/configs/ci/tools/images.toml"
 LOCK_SHA_FILE="$ROOT_DIR/configs/ci/registry/tool_registry_lock.sha256"
 HPC_NAMING_TOML="$ROOT_DIR/configs/ci/tools/hpc_image_naming.toml"
 OUT_DIR="$ROOT_DIR/artifacts/containers/ensure-images"
@@ -49,13 +48,7 @@ if [[ -n "$only_tool" && "$changed_only" == "1" ]]; then
   exit 2
 fi
 
-if [[ -f "$IMAGES_TOML_PRIMARY" ]]; then
-  IMAGES_TOML="$IMAGES_TOML_PRIMARY"
-else
-  IMAGES_TOML="$IMAGES_TOML_FALLBACK"
-fi
-
-[[ -f "$IMAGES_TOML" ]] || { echo "missing $IMAGES_TOML_PRIMARY and $IMAGES_TOML_FALLBACK" >&2; exit 1; }
+[[ -f "$IMAGES_TOML" ]] || { echo "missing $IMAGES_TOML" >&2; exit 1; }
 [[ -f "$LOCK_SHA_FILE" ]] || { echo "missing $LOCK_SHA_FILE" >&2; exit 1; }
 [[ -f "$HPC_NAMING_TOML" ]] || { echo "missing $HPC_NAMING_TOML" >&2; exit 1; }
 

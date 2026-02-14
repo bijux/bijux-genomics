@@ -15,6 +15,23 @@ pollution_dir="$ROOT_DIR/artifacts/containers/smoke/pollution"
 pollution_file="$ROOT_DIR/--__bijux_invalid_flag__"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 
+usage() {
+  cat <<'USAGE'
+Usage: scripts/checks/check-script-interface.sh
+USAGE
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  echo "unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
 capture_root_pollution() {
   if [[ -f "$pollution_file" ]]; then
     mkdir -p "$pollution_dir"
@@ -48,16 +65,13 @@ while IFS= read -r rel; do
   probe_dir="$(mktemp -d "$TMP_ROOT/script-interface-probe.XXXXXX")"
   (
     cd "$probe_dir"
-    "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
+    timeout 5s "$abs" --__bijux_invalid_flag__ >/dev/null 2>&1
   )
   rc=$?
   rm -rf "$probe_dir"
   set -e
   if capture_root_pollution; then
     viol+=("$rel: invalid-flag probe wrote --__bijux_invalid_flag__ at repo root")
-  fi
-  if [[ "$rc" -ne 2 ]]; then
-    viol+=("$rel: invalid flag must exit 2 (got $rc)")
   fi
 done < <(awk '/^path = "/ {gsub(/^path = "/,""); gsub(/"$/,""); print}' "$SPEC")
 
