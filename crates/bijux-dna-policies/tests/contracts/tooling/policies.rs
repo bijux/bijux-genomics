@@ -64,6 +64,13 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
     if parts.len() >= 2 && parts[0] == "tests" {
         parts.remove(0);
     }
+    if parts.len() >= 4
+        && parts[0] == "boundaries"
+        && parts[1] == "surface"
+        && parts[2] == "workspace_rules"
+    {
+        return "policy__boundaries__workspace__".to_string();
+    }
     let suite = if parts.len() > 1 { parts[0] } else { "root" };
     let stem = path
         .file_stem()

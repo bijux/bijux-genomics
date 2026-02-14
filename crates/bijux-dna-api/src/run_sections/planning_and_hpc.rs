@@ -1,3 +1,6 @@
+/// Run execution mode for API pipeline execution.
+///
+/// Stability: v1 (stable).
 pub enum RunMode {
     PlanOnly,
     Execute,
