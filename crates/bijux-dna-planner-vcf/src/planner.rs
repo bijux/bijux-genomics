@@ -10,19 +10,24 @@ use bijux_dna_db_ref::{
     resolve_species_context, validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::contracts::{
-    refuse_unsupported_regime_transition, validate_entry_vcf_invariants, validate_panel_map_invariants,
-    validate_species_context, DefaultPanelSelectionPolicy, PanelSelectionPolicy,
-    ReferencePanelGovernance, SpeciesContext,
+    refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
+    validate_panel_map_invariants, validate_species_context, DefaultPanelSelectionPolicy,
+    PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
 };
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
-use bijux_dna_stage_contract::{execution_step_from_stage_plan, PlanDecisionReason, PlanReasonKind, StagePlanV1};
+use bijux_dna_stage_contract::{
+    execution_step_from_stage_plan, PlanDecisionReason, PlanReasonKind, StagePlanV1,
+};
 
 use crate::coverage::classify_coverage_regime;
-use crate::models::{short_species_context_digest, RegionChunkPlan, VcfPanelLock, VcfPipelineInputs};
+use crate::models::{
+    short_species_context_digest, RegionChunkPlan, VcfPanelLock, VcfPipelineInputs,
+};
 use crate::params::{apply_stage_param_overrides, attach_reference_provenance, stage_params};
 use crate::stage_catalog::{
-    default_tool, eagle_license_metadata_present, image_for_tool, phasing_backend_supports_gl_only_input,
-    resolve_requested_stages, stage_command, stage_compat_tools, stage_inputs_for, stage_outputs_for,
+    default_tool, eagle_license_metadata_present, image_for_tool,
+    phasing_backend_supports_gl_only_input, resolve_requested_stages, stage_command,
+    stage_compat_tools, stage_inputs_for, stage_outputs_for,
 };
 
 pub(crate) fn choose_tool(
@@ -37,23 +42,39 @@ pub(crate) fn choose_tool(
         if stage_compat_tools(stage).contains(&selected.as_str()) {
             return Ok((selected.clone(), "stage_tool_override".to_string()));
         }
-        bail!("override tool {} is incompatible with stage {}", selected, key);
+        bail!(
+            "override tool {} is incompatible with stage {}",
+            selected,
+            key
+        );
     }
     if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
         if resolved_coverage == CoverageRegime::LowCovGl {
-            return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
+            return Ok((
+                "glimpse".to_string(),
+                "lowcov_gl_default_glimpse".to_string(),
+            ));
         }
         let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
         let big_panel = panel.id.contains("full");
         if phased_gt_ready && big_panel {
             if panel.compatibility.supports_minimac_m3vcf {
-                return Ok(("minimac4".to_string(), "phased_gt_plus_big_panel_minimac4".to_string()));
+                return Ok((
+                    "minimac4".to_string(),
+                    "phased_gt_plus_big_panel_minimac4".to_string(),
+                ));
             }
-            return Ok(("impute5".to_string(), "phased_gt_plus_big_panel_impute5".to_string()));
+            return Ok((
+                "impute5".to_string(),
+                "phased_gt_plus_big_panel_impute5".to_string(),
+            ));
         }
         return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
     }
-    Ok((default_tool(stage, resolved_coverage).to_string(), "coverage_regime_default".to_string()))
+    Ok((
+        default_tool(stage, resolved_coverage).to_string(),
+        "coverage_regime_default".to_string(),
+    ))
 }
 
 pub(crate) fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>> {
@@ -92,7 +113,10 @@ pub(crate) fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<Vc
 
 fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
     if inputs.pipeline_domain != "vcf" {
-        bail!("vcf planner refusal: non-applicable domain `{}`", inputs.pipeline_domain);
+        bail!(
+            "vcf planner refusal: non-applicable domain `{}`",
+            inputs.pipeline_domain
+        );
     }
     let lowered = inputs.pipeline_domain.to_ascii_lowercase();
     if lowered.contains("edna") || lowered.contains("pollen") {
@@ -137,7 +161,12 @@ pub(crate) fn plan_region_chunks(
         let mut idx = 0usize;
         while start <= contig.length_bp {
             let end = std::cmp::min(start + chunking.window_size_bp - 1, contig.length_bp);
-            chunks.push(RegionChunkPlan { chunk_id: format!("{}:{idx:05}", contig.name), contig: contig.name.clone(), start, end });
+            chunks.push(RegionChunkPlan {
+                chunk_id: format!("{}:{idx:05}", contig.name),
+                contig: contig.name.clone(),
+                start,
+                end,
+            });
             if end == contig.length_bp {
                 break;
             }
@@ -192,9 +221,20 @@ fn stage_plan(
         command: stage_command(stage, tool),
         resources: ToolConstraints {
             runtime: "docker".to_string(),
-            mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) { 16 } else { 4 },
+            mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) {
+                16
+            } else {
+                4
+            },
             tmp_gb: 8,
-            threads: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing) { 8 } else { 2 },
+            threads: if matches!(
+                stage,
+                VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing
+            ) {
+                8
+            } else {
+                2
+            },
         },
         io: StageIO {
             inputs: stage_inputs_for(stage, input_vcf, out_dir),
@@ -226,15 +266,38 @@ fn stage_plan(
 /// Returns an error when stage selection is invalid for downstream execution.
 pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV1>> {
     validate_species_and_invariants(inputs)?;
-    let resolved_species = resolve_species_context(&inputs.species_context.species_id, &inputs.species_context.build_id)?;
-    let bundle = resolve_reference_bundle(&inputs.species_context.species_id, &inputs.species_context.build_id)?;
-    let panel_catalog = resolve_panel(&inputs.species_context.species_id, &inputs.species_context.build_id, inputs.panel_id.as_deref())?;
-    let map_catalog = resolve_map(&inputs.species_context.species_id, &inputs.species_context.build_id, inputs.map_id.as_deref())?;
-    let resolved_coverage_profile = resolve_coverage_profile(&inputs.species_context.species_id, &inputs.species_context.build_id)?;
-    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(inputs.coverage_regime, inputs.mean_depth_x, resolved_coverage_profile.as_deref())?;
+    let resolved_species = resolve_species_context(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let bundle = resolve_reference_bundle(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let panel_catalog = resolve_panel(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+        inputs.panel_id.as_deref(),
+    )?;
+    let map_catalog = resolve_map(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+        inputs.map_id.as_deref(),
+    )?;
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
+        inputs.coverage_regime,
+        inputs.mean_depth_x,
+        resolved_coverage_profile.as_deref(),
+    )?;
     let chunks = plan_region_chunks(&inputs.species_context, &inputs.chunking)?;
     if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
-        bail!("reference bundle drift detected: species context digest does not match bundle digest");
+        bail!(
+            "reference bundle drift detected: species context digest does not match bundle digest"
+        );
     }
     let selected_panel = resolve_panel_lock(inputs)?;
     let stages = resolve_requested_stages(&inputs.requested_stages, resolved_coverage)?;
@@ -243,13 +306,24 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
     }
     let requires_diploid_imputation = stages.iter().any(|s| {
-        matches!(s, VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute)
+        matches!(
+            s,
+            VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute
+        )
     });
     if requires_diploid_imputation && !resolved_species.supported_features.imputation {
-        bail!("planner refusal: species/build {}:{} does not support imputation", inputs.species_context.species_id, inputs.species_context.build_id);
+        bail!(
+            "planner refusal: species/build {}:{} does not support imputation",
+            inputs.species_context.species_id,
+            inputs.species_context.build_id
+        );
     }
     if requires_diploid_imputation && inputs.species_context.par_policy == "unsupported" {
-        bail!("planner refusal: sex/PAR policy unsupported for imputation on {}:{}", inputs.species_context.species_id, inputs.species_context.build_id);
+        bail!(
+            "planner refusal: sex/PAR policy unsupported for imputation on {}:{}",
+            inputs.species_context.species_id,
+            inputs.species_context.build_id
+        );
     }
     refuse_unsupported_regime_transition(resolved_coverage, requires_diploid_imputation)?;
 
@@ -261,28 +335,55 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         if !seen.insert(stage.as_str().to_string()) {
             continue;
         }
-        let (tool, selection_rule) = choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &stages)?;
-        if matches!(stage, VcfDomainStage::PrepareReferencePanel | VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute) {
+        let (tool, selection_rule) =
+            choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &stages)?;
+        if matches!(
+            stage,
+            VcfDomainStage::PrepareReferencePanel
+                | VcfDomainStage::Phasing
+                | VcfDomainStage::Imputation
+                | VcfDomainStage::Impute
+        ) {
             if !(stage == VcfDomainStage::Impute
                 && tool == "beagle"
-                && panel_catalog.compatibility.tool_tags.iter().any(|x| x == "beagle"))
+                && panel_catalog
+                    .compatibility
+                    .tool_tags
+                    .iter()
+                    .any(|x| x == "beagle"))
             {
                 validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
             }
         }
         if stage == VcfDomainStage::Phasing {
-            if resolved_coverage == CoverageRegime::LowCovGl && !phasing_backend_supports_gl_only_input(&tool) {
-                bail!("planner refusal: tool {} does not support GL-only input for {}", tool, stage.as_str());
+            if resolved_coverage == CoverageRegime::LowCovGl
+                && !phasing_backend_supports_gl_only_input(&tool)
+            {
+                bail!(
+                    "planner refusal: tool {} does not support GL-only input for {}",
+                    tool,
+                    stage.as_str()
+                );
             }
-            if matches!(tool.as_str(), "shapeit5" | "eagle") && resolved_coverage != CoverageRegime::Diploid {
-                bail!("planner refusal: tool {} requires diploid coverage regime for {}", tool, stage.as_str());
+            if matches!(tool.as_str(), "shapeit5" | "eagle")
+                && resolved_coverage != CoverageRegime::Diploid
+            {
+                bail!(
+                    "planner refusal: tool {} requires diploid coverage regime for {}",
+                    tool,
+                    stage.as_str()
+                );
             }
             if tool == "eagle" && !eagle_license_metadata_present() {
                 bail!("planner refusal: eagle license metadata is missing");
             }
         }
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
-            bail!("selected tool {} is not compatible with stage {}", tool, stage.as_str());
+            bail!(
+                "selected tool {} is not compatible with stage {}",
+                tool,
+                stage.as_str()
+            );
         }
         let plan = stage_plan(
             stage,
@@ -315,9 +416,19 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
 /// Returns an error when graph materialization fails.
 pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
     let plans = plan_vcf_stage_plans(inputs)?;
-    let resolved_coverage_profile = resolve_coverage_profile(&inputs.species_context.species_id, &inputs.species_context.build_id)?;
-    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(inputs.coverage_regime, inputs.mean_depth_x, resolved_coverage_profile.as_deref())?;
-    let steps = plans.iter().map(execution_step_from_stage_plan).collect::<Vec<_>>();
+    let resolved_coverage_profile = resolve_coverage_profile(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
+        inputs.coverage_regime,
+        inputs.mean_depth_x,
+        resolved_coverage_profile.as_deref(),
+    )?;
+    let steps = plans
+        .iter()
+        .map(execution_step_from_stage_plan)
+        .collect::<Vec<_>>();
     let edges = plans
         .windows(2)
         .map(|pair| {

@@ -2,9 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_core::ids::ArtifactId;
-use bijux_dna_core::prelude::{
-    ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1,
-};
+use bijux_dna_core::prelude::{ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1};
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 
 pub(crate) fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static str] {
@@ -46,9 +44,7 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
             CoverageRegime::LowCovGl => "glimpse",
             CoverageRegime::Pseudohaploid => "beagle",
         },
-        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Roh => {
-            "plink2"
-        }
+        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Roh => "plink2",
         VcfDomainStage::Ibd => "germline",
         VcfDomainStage::Demography => "ibdne",
         _ => "bcftools",
