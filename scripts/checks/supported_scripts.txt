@@ -77,6 +77,7 @@ scripts/docs/make.sh
 scripts/domain/inventory-drift.sh
 scripts/domain/lock-registry.sh
 scripts/domain/make.sh
+scripts/domain/check-ssot-authority.sh
 scripts/domain/validate.sh
 scripts/examples/check-drift.sh
 scripts/examples/check-index.sh

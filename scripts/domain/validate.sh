@@ -31,6 +31,7 @@ fi
 ./scripts/domain/check-domain-layout.sh
 ./scripts/domain/check-domain-schema.sh
 ./scripts/domain/check-domain-index.sh
+./scripts/domain/check-ssot-authority.sh
 ./scripts/domain/check-shared-tools.sh
 ./scripts/domain/check-tool-container-parity.sh
 ./scripts/domain/check-default-settings-docs.sh

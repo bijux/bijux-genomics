@@ -14,6 +14,7 @@ Applies to repository-wide ownership and consumption boundaries for typed contra
 
 ## What
 Single Source of Truth for IDs, stage specs, tool selection, and metrics definitions.
+Authority rule: `domain/*/**/*.yaml` is the authored source of truth for domain stage/tool contracts.
 
 ## Why
 Prevents duplicated semantics and inconsistent identifiers.
@@ -26,6 +27,8 @@ Prevents duplicated semantics and inconsistent identifiers.
 - Stage specs in `bijux-dna-stages-*`.
 - Metrics definitions in domain crates.
 - Domain metadata is authored in `domain/**`; generated config views are produced by `bijux-dna-domain-compiler`.
+- Domain versioning is explicit in `domain/*/index.yaml` with `domain_version: v1|v2`.
+- VCF downstream policy baseline is `domain_version: v2`.
 - Generated config scope is fixed to:
   - `configs/ci/registry/tool_registry.toml`
   - `configs/ci/stages/stages.toml`

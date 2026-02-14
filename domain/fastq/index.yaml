@@ -2,6 +2,7 @@
 # Regenerate with: scripts/domain/generate-index.sh fastq
 
 domain: fastq
+domain_version: v1
 stage_ids:
   - fastq.abundance_normalization
   - fastq.asv_inference
