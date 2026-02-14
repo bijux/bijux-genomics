@@ -1,3 +1,3 @@
-include!("common_sections/root_and_analyze.rs");
-include!("common_sections/env_and_pipeline.rs");
-include!("common_sections/bench_args.rs");
+include!("parse_root_and_analyze.rs");
+include!("parse_env_and_pipeline.rs");
+include!("parse_bench_args.rs");

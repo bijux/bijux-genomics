@@ -196,8 +196,8 @@ pub enum CorpusCommand {
     },
 }
 
-include!("../common_example_args.rs");
-include!("../common_root_args.rs");
+include!("common_example_args.rs");
+include!("common_root_args.rs");
 
 #[derive(Debug, Subcommand)]
 pub enum DomainCommand {
