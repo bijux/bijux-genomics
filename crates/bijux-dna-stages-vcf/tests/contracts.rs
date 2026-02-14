@@ -1,6 +1,8 @@
 mod contracts {
     use std::path::Path;
 
+    use bijux_dna_runtime::recording::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
+    use bijux_dna_runtime::RunProvenanceV1;
     use bijux_dna_stages_vcf::metrics::{
         parse_vcf_call_summary, parse_vcf_filter_breakdown, parse_vcf_stats,
     };
@@ -89,6 +91,147 @@ mod contracts {
                     spec.stage_id
                 );
             }
+        }
+    }
+
+    #[test]
+    fn vcf_toy_downstream_manifest_is_deterministic_and_hashed() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out_dir = dir.path().join("pipeline_out");
+        std::fs::create_dir_all(&out_dir).unwrap_or_else(|err| panic!("mkdir out: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let (called, filtered, stats, _metrics) = run_toy_vcf_pipeline(input, &out_dir, "sample1")
+            .unwrap_or_else(|err| panic!("toy vcf pipeline: {err}"));
+
+        // Downstream placeholders to validate artifact layout/checksum support for new stage kinds.
+        let phased = out_dir.join("phased.vcf.gz");
+        let imputed = out_dir.join("imputed.vcf.gz");
+        let ibd = out_dir.join("ibd_segments.tsv");
+        let roh = out_dir.join("roh_segments.tsv");
+        std::fs::write(&phased, b"phased\n").unwrap_or_else(|err| panic!("write phased: {err}"));
+        std::fs::write(&imputed, b"imputed\n")
+            .unwrap_or_else(|err| panic!("write imputed: {err}"));
+        std::fs::write(&ibd, b"sample_a\tsample_b\tcm\n")
+            .unwrap_or_else(|err| panic!("write ibd: {err}"));
+        std::fs::write(&roh, b"sample\tchr\tstart\tend\n")
+            .unwrap_or_else(|err| panic!("write roh: {err}"));
+
+        let tools_root = dir.path().join("tools");
+        let run_dirs = prepare_tool_run_dirs(&tools_root, "bcftools", "deterministic-run")
+            .unwrap_or_else(|err| panic!("prepare run dirs: {err}"));
+        std::fs::write(&run_dirs.manifest_path, b"{}\n")
+            .unwrap_or_else(|err| panic!("write execution manifest: {err}"));
+        std::fs::write(&run_dirs.metrics_path, b"{}\n")
+            .unwrap_or_else(|err| panic!("write metrics: {err}"));
+
+        let tbi = out_dir.join("filtered.vcf.gz.tbi");
+        let provenance = RunProvenanceV1 {
+            schema_version: "bijux.run_provenance.v1".to_string(),
+            pipeline_id: "vcf-to-vcf__downstream_toy__v2".to_string(),
+            tool_version: "1.20".to_string(),
+            tool_image_digest: Some("sha256:toy".to_string()),
+            params_hash: "sha256:params".to_string(),
+            input_hashes: vec!["sha256:input".to_string()],
+            git_commit: "dev".to_string(),
+            build_profile: "test".to_string(),
+            reference_genome: Some("GRCh37".to_string()),
+            plan_hash: Some("sha256:plan".to_string()),
+        };
+        let extra_artifacts = vec![
+            RunArtifactInput {
+                name: "vcf.called",
+                path: called,
+            },
+            RunArtifactInput {
+                name: "vcf.filtered",
+                path: filtered,
+            },
+            RunArtifactInput {
+                name: "vcf.filtered_index",
+                path: tbi,
+            },
+            RunArtifactInput {
+                name: "vcf.stats",
+                path: stats,
+            },
+            RunArtifactInput {
+                name: "vcf.phased",
+                path: phased,
+            },
+            RunArtifactInput {
+                name: "vcf.imputed",
+                path: imputed,
+            },
+            RunArtifactInput {
+                name: "vcf.ibd_segments",
+                path: ibd,
+            },
+            RunArtifactInput {
+                name: "vcf.roh_segments",
+                path: roh,
+            },
+        ];
+
+        write_run_manifest(
+            &run_dirs,
+            "vcf.postprocess",
+            "bcftools",
+            &provenance,
+            None,
+            &extra_artifacts,
+        )
+        .unwrap_or_else(|err| panic!("write run manifest: {err}"));
+        let first_hash = {
+            use sha2::Digest;
+            let bytes = std::fs::read(&run_dirs.run_manifest_path)
+                .unwrap_or_else(|err| panic!("read run manifest first: {err}"));
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(bytes);
+            format!("{:x}", hasher.finalize())
+        };
+        write_run_manifest(
+            &run_dirs,
+            "vcf.postprocess",
+            "bcftools",
+            &provenance,
+            None,
+            &extra_artifacts,
+        )
+        .unwrap_or_else(|err| panic!("rewrite run manifest: {err}"));
+        let second_hash = {
+            use sha2::Digest;
+            let bytes = std::fs::read(&run_dirs.run_manifest_path)
+                .unwrap_or_else(|err| panic!("read run manifest second: {err}"));
+            let mut hasher = sha2::Sha256::new();
+            hasher.update(bytes);
+            format!("{:x}", hasher.finalize())
+        };
+        assert_eq!(first_hash, second_hash, "manifest hash must be deterministic");
+
+        let raw = std::fs::read_to_string(&run_dirs.run_manifest_path)
+            .unwrap_or_else(|err| panic!("read run manifest: {err}"));
+        let manifest: serde_json::Value =
+            serde_json::from_str(&raw).unwrap_or_else(|err| panic!("parse run manifest: {err}"));
+        let outputs = manifest
+            .get("output_artifacts")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("missing output_artifacts"));
+        for required in [
+            "vcf.phased",
+            "vcf.imputed",
+            "vcf.ibd_segments",
+            "vcf.roh_segments",
+        ] {
+            assert!(
+                outputs.iter().any(|entry| {
+                    entry.get("name").and_then(serde_json::Value::as_str) == Some(required)
+                        && entry
+                            .get("sha256")
+                            .and_then(serde_json::Value::as_str)
+                            .is_some_and(|sha| sha.len() == 64)
+                }),
+                "missing hashed output artifact record for {required}"
+            );
         }
     }
 }

@@ -7,6 +7,9 @@ use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
     explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, VcfPanelLock, VcfPipelineInputs,
 };
+use bijux_dna_runtime::stage_runner_contract::{
+    ensure_stage_supported_by_runner, RunnerContractKind,
+};
 
 fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
     VcfPipelineInputs {
@@ -107,4 +110,14 @@ fn vcf_downstream_snapshot_requested_subset_with_panel() {
         "vcf.stats".to_string(),
     ]);
     snapshot_plan_and_explain("vcf_downstream_subset_with_panel", &input);
+}
+
+#[test]
+fn planner_stages_have_runtime_runner_coverage() {
+    let graph =
+        plan_vcf_pipeline(&base_inputs(CoverageRegime::Diploid)).expect("build vcf execution plan");
+    for step in graph.steps() {
+        ensure_stage_supported_by_runner(RunnerContractKind::Docker, step.stage_id.as_str())
+            .unwrap_or_else(|err| panic!("missing runner for {}: {err}", step.stage_id.as_str()));
+    }
 }
