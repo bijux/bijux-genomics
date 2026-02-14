@@ -579,7 +579,7 @@ smoke_version_cmd = "prinseq++ --version"
 smoke_help_cmd = "prinseq++ --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "prinseq++ --help"
-expected_bin = "prinseq"
+expected_bin = "prinseq++"
 expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
@@ -824,4 +824,3 @@ comparability_notes = "Comparable only within same stage contract and input cons
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
 apptainer_def = "containers/apptainer/bijux/yleaf.def"
 require_labels = true
-
