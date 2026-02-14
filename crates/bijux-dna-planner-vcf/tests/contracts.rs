@@ -26,6 +26,8 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
             index_checksum_sha256: "b".repeat(64),
             license_id: "CC-BY-4.0".to_string(),
         }],
+        panel_id: None,
+        map_id: None,
         panel_selection: PanelSelectionContext {
             target_build: "GRCh38".to_string(),
             ancestry_hint: None,

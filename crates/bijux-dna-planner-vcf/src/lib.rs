@@ -8,8 +8,8 @@ use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
 use bijux_dna_db_ref::{
-    reference_provenance, resolve_coverage_profile, resolve_reference_bundle,
-    resolve_species_context,
+    reference_provenance, resolve_coverage_profile, resolve_map, resolve_panel,
+    resolve_reference_bundle, resolve_species_context, validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::{
     contracts::{
@@ -48,6 +48,10 @@ pub struct VcfPipelineInputs {
     pub requested_stages: Option<Vec<String>>,
     #[serde(default)]
     pub panel_locks: Vec<VcfPanelLock>,
+    #[serde(default)]
+    pub panel_id: Option<String>,
+    #[serde(default)]
+    pub map_id: Option<String>,
     pub panel_selection: PanelSelectionContext,
     pub species_context: SpeciesContext,
     pub entry_vcf_invariants: EntryVcfInvariantState,
@@ -554,6 +558,16 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
+    let panel_catalog = resolve_panel(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+        inputs.panel_id.as_deref(),
+    )?;
+    let map_catalog = resolve_map(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+        inputs.map_id.as_deref(),
+    )?;
     if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
         bail!(
             "reference bundle drift detected: species context digest does not match bundle digest"
@@ -595,6 +609,15 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             continue;
         }
         let tool = choose_tool(stage, inputs)?;
+        if matches!(
+            stage,
+            VcfDomainStage::PrepareReferencePanel
+                | VcfDomainStage::Phasing
+                | VcfDomainStage::Imputation
+                | VcfDomainStage::Impute
+        ) {
+            validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
+        }
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
             bail!(
                 "selected tool {} is not compatible with stage {}",
