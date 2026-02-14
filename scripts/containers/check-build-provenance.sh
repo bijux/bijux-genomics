@@ -85,7 +85,15 @@ if artifacts.exists() and promoted:
         if payload.get("status") != "ok":
             errors.append(f"{tid}: manifest status is not ok")
             continue
-        for key in ("builder", "built_at_utc", "git_sha", "versions_toml_sha256"):
+        for key in (
+            "builder",
+            "built_at_utc",
+            "git_sha",
+            "versions_toml_sha256",
+            "tool_source_url",
+            "tool_source_hash",
+            "build_script_sha256",
+        ):
             if not str(payload.get(key, "")).strip():
                 errors.append(f"{tid}: manifest missing provenance key '{key}'")
         sha = str(payload.get("versions_toml_sha256", "")).strip()
@@ -94,6 +102,12 @@ if artifacts.exists() and promoted:
         git_sha = str(payload.get("git_sha", "")).strip()
         if git_sha and git_sha != "unknown" and not re.fullmatch(r"[0-9a-f]{40}", git_sha):
             errors.append(f"{tid}: git_sha must be 40 hex chars or 'unknown'")
+        source_hash = str(payload.get("tool_source_hash", "")).strip()
+        if source_hash and source_hash != "unknown" and not re.fullmatch(r"[0-9a-f]{64}", source_hash):
+            errors.append(f"{tid}: tool_source_hash must be 64 hex chars")
+        script_hash = str(payload.get("build_script_sha256", "")).strip()
+        if script_hash and not re.fullmatch(r"[0-9a-f]{64}", script_hash):
+            errors.append(f"{tid}: build_script_sha256 must be 64 hex chars")
 
 if errors:
     print("build-provenance: failed", file=sys.stderr)

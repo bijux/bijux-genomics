@@ -63,6 +63,13 @@ for tool in tools_to_check:
             continue
         if not Path(sbom).exists():
             errors.append(f"{mf.name}: sbom_path does not exist: {sbom}")
+        elif Path(sbom).stat().st_size == 0:
+            errors.append(f"{mf.name}: sbom_path is empty: {sbom}")
+        else:
+            # Contract: artifacts/containers/sbom/<tool>/...
+            sbom_norm = Path(sbom).as_posix()
+            if f"/sbom/{tool}/" not in sbom_norm:
+                errors.append(f"{mf.name}: sbom_path not in required layout /sbom/{tool}/: {sbom}")
         if not smoke_log or not Path(smoke_log).exists():
             errors.append(f"{mf.name}: missing smoke_log_path or file not found: {smoke_log}")
         if not smoke_log_sha or not Path(smoke_log_sha).exists():

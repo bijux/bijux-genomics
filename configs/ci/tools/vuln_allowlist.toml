@@ -5,7 +5,4 @@
 # stability = experimental
 # last_updated = 2026-02-13
 
-[[allowlist]]
-cve = "CVE-EXAMPLE-0000"
-reason = "placeholder; remove when real allowlisted CVEs are approved"
-expires_utc = "2099-12-31T00:00:00Z"
+# Keep empty unless a real approved temporary exception is needed.
