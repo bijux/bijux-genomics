@@ -293,7 +293,6 @@ pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
             }
             if let Some(value) = trimmed.strip_prefix("version = ") {
                 version = Some(value.trim_matches('"').to_string());
-                continue;
             }
         }
         if let Some(found) =
