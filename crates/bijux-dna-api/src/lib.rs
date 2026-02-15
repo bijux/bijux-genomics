@@ -15,6 +15,7 @@ pub(crate) mod api_internal {
     use crate::internal as internal_mod;
     pub(crate) use internal_mod::handlers;
 }
+pub(crate) mod execution_kernel;
 pub(crate) mod qa;
 pub(crate) mod request_args;
 pub(crate) mod run;
