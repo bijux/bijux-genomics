@@ -64,7 +64,8 @@ fn classify_bam_failure_hint(
         || stderr.contains("killed")
     {
         code = "bam_resource_exhausted";
-        hint = "Resource exhaustion. Increase memory/tmp allocation or lower threads for this stage.";
+        hint =
+            "Resource exhaustion. Increase memory/tmp allocation or lower threads for this stage.";
     } else if command.contains("samtools") && stderr.contains("truncated") {
         code = "bam_corrupt_input";
         hint = "Corrupt/truncated BAM likely. Validate upstream BAM and rerun from previous stage.";
@@ -137,10 +138,14 @@ fn enforce_stage_refusal_rules(
                 fai.display()
             ));
         }
-        let raw = std::fs::read_to_string(&fai)
-            .with_context(|| format!("read {}", fai.display()))?;
-        let has_x = raw.lines().any(|line| line.starts_with("X\t") || line.starts_with("chrX\t"));
-        let has_y = raw.lines().any(|line| line.starts_with("Y\t") || line.starts_with("chrY\t"));
+        let raw =
+            std::fs::read_to_string(&fai).with_context(|| format!("read {}", fai.display()))?;
+        let has_x = raw
+            .lines()
+            .any(|line| line.starts_with("X\t") || line.starts_with("chrX\t"));
+        let has_y = raw
+            .lines()
+            .any(|line| line.starts_with("Y\t") || line.starts_with("chrY\t"));
         if !(has_x && has_y) {
             return Err(anyhow!(
                 "bam.sex refusal: reference lacks required X/Y contigs in {}",
@@ -217,7 +222,14 @@ fn parse_flagstat_counts(path: &Path) -> Result<serde_json::Value> {
         "mapped_reads": mapped,
         "duplicate_reads": duplicates,
         "mapped_fraction": match (total, mapped) {
-            (Some(t), Some(m)) if t > 0 => Some(m as f64 / t as f64),
+            (Some(t), Some(m)) if t > 0 => {
+                let mapped_f = m.to_string().parse::<f64>().ok();
+                let total_f = t.to_string().parse::<f64>().ok();
+                match (mapped_f, total_f) {
+                    (Some(mapped_reads), Some(total_reads)) => Some(mapped_reads / total_reads),
+                    _ => None,
+                }
+            }
             _ => None
         }
     }))
@@ -252,10 +264,14 @@ fn parse_mean_depth_from_depth_file(path: &Path) -> Result<Option<f64>> {
     if n == 0 {
         return Ok(None);
     }
-    Ok(Some(sum / n as f64))
+    let n_f = n.to_string().parse::<f64>().ok();
+    Ok(n_f.map(|count| sum / count))
 }
 
-fn write_udg_metadata(stage_dir: &Path, plan: &bijux_dna_stage_contract::StagePlanV1) -> Result<()> {
+fn write_udg_metadata(
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<()> {
     let udg_model = plan
         .params
         .get("udg_model")
@@ -294,10 +310,10 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
             measurements.push(("mapdamage2", parsed));
         }
     }
-    let canonical = measurements
-        .first()
-        .map(|(_, metric)| metric.clone())
-        .unwrap_or_else(bijux_dna_domain_bam::metrics::DamageMetricsV1::empty);
+    let canonical = measurements.first().map_or_else(
+        bijux_dna_domain_bam::metrics::DamageMetricsV1::empty,
+        |(_, metric)| metric.clone(),
+    );
     let comparison = if measurements.len() >= 2 {
         Some(bijux_dna_domain_bam::metrics::compare_damage_metrics(
             measurements[0].0,
@@ -322,9 +338,12 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
 }
 
 fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
-    let bam_root = stage_dir
-        .parent()
-        .ok_or_else(|| anyhow!("authenticity stage path has no BAM root: {}", stage_dir.display()))?;
+    let bam_root = stage_dir.parent().ok_or_else(|| {
+        anyhow!(
+            "authenticity stage path has no BAM root: {}",
+            stage_dir.display()
+        )
+    })?;
     let damage_unified = bam_root.join("damage").join("damage.unified_metrics.json");
     let damage_value: serde_json::Value = if damage_unified.exists() {
         serde_json::from_str(
@@ -346,7 +365,9 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         .get("g_to_a_3p")
         .and_then(serde_json::Value::as_f64)
         .unwrap_or(0.0);
-    let contamination_path = bam_root.join("contamination").join("contamination.summary.json");
+    let contamination_path = bam_root
+        .join("contamination")
+        .join("contamination.summary.json");
     let contamination_estimate = if contamination_path.exists() {
         let contamination =
             bijux_dna_domain_bam::metrics::parse_contamination_json(&contamination_path)?;
@@ -355,8 +376,8 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         0.0
     };
     let damage_signal = c_to_t.max(g_to_a);
-    let score = (damage_signal.min(0.3) / 0.3 * 0.7)
-        + ((1.0 - contamination_estimate.min(1.0)) * 0.3);
+    let score =
+        (damage_signal.min(0.3) / 0.3 * 0.7) + ((1.0 - contamination_estimate.min(1.0)) * 0.3);
     let path = stage_dir.join("authenticity_composite.json");
     bijux_dna_infra::atomic_write_json(
         &path,
@@ -365,91 +386,6 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
             "contamination_estimate": contamination_estimate,
             "composite_score": score,
             "confidence": (0.5 + score / 2.0).min(1.0),
-        }),
-    )
-    .with_context(|| format!("write {}", path.display()))
-}
-
-fn classify_bam_output_artifacts(stage_dir: &Path) -> serde_json::Value {
-    let mut bam_files = Vec::new();
-    let mut index_files = Vec::new();
-    let candidates = [
-        "align.bam",
-        "filter.bam",
-        "mapq_filter.bam",
-        "length_filter.bam",
-        "markdup.bam",
-        "overlap_corrected.bam",
-        "output.bam",
-    ];
-    for name in candidates {
-        let path = stage_dir.join(name);
-        if path.exists() {
-            bam_files.push(path.display().to_string());
-            let bai = PathBuf::from(format!("{}.bai", path.display()));
-            let csi = PathBuf::from(format!("{}.csi", path.display()));
-            if bai.exists() {
-                index_files.push(bai.display().to_string());
-            }
-            if csi.exists() {
-                index_files.push(csi.display().to_string());
-            }
-        }
-    }
-    serde_json::json!({
-        "bam_files": bam_files,
-        "index_files": index_files,
-        "bam_present": !bam_files.is_empty(),
-        "index_present": !index_files.is_empty(),
-    })
-}
-
-fn write_bam_stage_contract(stage_dir: &Path, stage: &str) -> Result<()> {
-    let contract_path = stage_dir.join("bam_output_contract.json");
-    bijux_dna_infra::atomic_write_json(
-        &contract_path,
-        &serde_json::json!({
-            "stage_id": stage,
-            "artifacts": classify_bam_output_artifacts(stage_dir),
-            "metrics_present": stage_dir.join("metrics.json").exists() || stage_dir.join("summary.json").exists(),
-            "logs_present": stage_dir.join("stdout.log").exists() || stage_dir.join("stderr.log").exists(),
-            "provenance_present": stage_dir.join("stage_manifest.json").exists(),
-        }),
-    )
-    .with_context(|| format!("write {}", contract_path.display()))
-}
-
-fn write_qc_pre_summary(stage_dir: &Path) -> Result<()> {
-    let flagstat = parse_flagstat_counts(&stage_dir.join("flagstat.txt"))?;
-    let summary = stage_dir.join("qc_pre.summary.json");
-    bijux_dna_infra::atomic_write_json(
-        &summary,
-        &serde_json::json!({
-            "schema_version": "bijux.bam.qc_pre.v1",
-            "flagstat": flagstat,
-            "idxstats_present": stage_dir.join("idxstats.txt").exists(),
-            "stats_present": stage_dir.join("samtools_stats.txt").exists(),
-        }),
-    )
-    .with_context(|| format!("write {}", summary.display()))
-}
-
-fn write_filter_action_summary(
-    stage_dir: &Path,
-    mapq: Option<serde_json::Value>,
-    min_length: Option<serde_json::Value>,
-    include_flags: Option<serde_json::Value>,
-    exclude_flags: Option<serde_json::Value>,
-) -> Result<()> {
-    let path = stage_dir.join("filter.actions.json");
-    bijux_dna_infra::atomic_write_json(
-        &path,
-        &serde_json::json!({
-            "mapq_threshold": mapq,
-            "min_length": min_length,
-            "include_flags": include_flags,
-            "exclude_flags": exclude_flags,
-            "subactions": ["mapq_filter", "flag_filter", "length_filter"],
         }),
     )
     .with_context(|| format!("write {}", path.display()))

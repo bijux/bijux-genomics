@@ -41,7 +41,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use std::io::BufRead;
 use std::path::PathBuf;
 
-
 include!("preprocess/helpers.rs");
 include!("preprocess/stage_artifacts.rs");
 
@@ -205,7 +204,9 @@ fn write_taxonomy_db_drift_report(
     contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<()> {
     let report_path = run_root.join("taxonomy_db_drift.json");
-    let current = contaminant_bank.cloned().unwrap_or_else(|| serde_json::json!({}));
+    let current = contaminant_bank
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
     let lock_path = run_root.join("taxonomy_db.lock.json");
     let previous = if lock_path.exists() {
         let raw = std::fs::read_to_string(&lock_path).unwrap_or_default();
@@ -233,7 +234,6 @@ fn write_taxonomy_db_drift_report(
     Ok(())
 }
 
-
 /// Run the preprocess pipeline.
 ///
 /// # Errors
@@ -258,7 +258,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    let normalized_sample_id = normalize_sample_identity(&args.sample_id);
+    let normalized_sample_id = canonical_sample_identity(&args.sample_id);
     let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS)
         .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS.as_str()))?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
@@ -591,30 +591,30 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
         let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
-        let invocation = execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
-            step: planned.clone(),
-            runner: platform.runner,
-            context: execution_kernel::ToolContext {
-                run_id: format!("fastq-preprocess-{}", planned.step_id),
-                stage_id: planned.step_id.to_string(),
-                tool_id: planned.image.image.clone(),
-                sample_id: Some(normalized_sample_id.clone()),
-                stage_root: stage_root.clone(),
-                input_root: args
-                    .r1
-                    .parent()
-                    .map(std::path::Path::to_path_buf)
-                    .unwrap_or_else(|| out_dir.clone()),
-                output_root: out_dir.clone(),
-                tmp_root: stage_root.join("tmp"),
-                threads: 1,
-                memory_hint_mb: None,
-                seed: None,
-                network_policy: stage_network_policy(&stage_id),
-            },
-            timeout: None,
-            mode: execution_kernel::ToolExecMode::Execute,
-        });
+        let invocation =
+            execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
+                step: planned.clone(),
+                runner: platform.runner,
+                context: execution_kernel::ToolContext {
+                    run_id: format!("fastq-preprocess-{}", planned.step_id),
+                    stage_id: planned.step_id.to_string(),
+                    tool_id: planned.image.image.clone(),
+                    sample_id: Some(normalized_sample_id.clone()),
+                    stage_root: stage_root.clone(),
+                    input_root: args
+                        .r1
+                        .parent()
+                        .map_or_else(|| out_dir.clone(), std::path::Path::to_path_buf),
+                    output_root: out_dir.clone(),
+                    tmp_root: stage_root.join("tmp"),
+                    threads: 1,
+                    memory_hint_mb: None,
+                    seed: None,
+                    network_policy: stage_network_policy(&stage_id),
+                },
+                timeout: None,
+                mode: execution_kernel::ToolExecMode::Execute,
+            });
         stage_span.end();
         let execution = invocation?.stage_result;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
@@ -643,7 +643,10 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: stage_id,
                 tool: tool.clone(),
-                reason: format!("tool failed with status {}. hint: {}", execution.exit_code, hint),
+                reason: format!(
+                    "tool failed with status {}. hint: {}",
+                    execution.exit_code, hint
+                ),
                 category: ErrorCategory::ToolError,
             });
             fail_fast_triggered = true;

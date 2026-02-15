@@ -1,4 +1,4 @@
-fn normalize_sample_identity(sample_id: &str) -> String {
+fn canonical_sample_identity(sample_id: &str) -> String {
     let mut out = String::with_capacity(sample_id.len());
     for ch in sample_id.chars() {
         if ch.is_ascii_alphanumeric() || ch == '-' {
@@ -65,7 +65,14 @@ fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value
                 .pointer("/summary/before_filtering/total_reads")
                 .and_then(serde_json::Value::as_u64);
             let fraction = match (adapter_cut, total) {
-                (Some(cut), Some(t)) if t > 0 => Some((cut as f64) / (t as f64)),
+                (Some(cut), Some(t)) if t > 0 => {
+                    let cut_f = cut.to_string().parse::<f64>().ok();
+                    let total_f = t.to_string().parse::<f64>().ok();
+                    match (cut_f, total_f) {
+                        (Some(c), Some(total_reads)) => Some(c / total_reads),
+                        _ => None,
+                    }
+                }
                 _ => None,
             };
             return serde_json::json!({
@@ -129,7 +136,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.abundance_normalization" => &["seqfu", "seqkit"],
         _ => return Ok(()),
     };
-    if allowed.iter().any(|x| *x == tool_id) {
+    if allowed.contains(&tool_id) {
         return Ok(());
     }
     Err(anyhow!(
@@ -142,8 +149,7 @@ fn workspace_root_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(std::path::Path::parent)
-        .map(std::path::Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."))
+        .map_or_else(|| PathBuf::from("."), std::path::Path::to_path_buf)
 }
 
 fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
@@ -247,8 +253,7 @@ fn write_retention_report(stage_root: &std::path::Path, planned: &ExecutionStep)
                 .unwrap_or("unknown")
                 .to_string();
             let reads = count_fastq_reads_if_plain(&path)
-                .map(|x| x.to_string())
-                .unwrap_or_else(|| "na".to_string());
+                .map_or_else(|| "na".to_string(), |x| x.to_string());
             rows.push(format!("{name}\t{reads}"));
         }
     }

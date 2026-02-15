@@ -292,11 +292,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         tool_id: tool.to_string(),
         sample_id: None,
         stage_root: run_dirs.logs_dir.clone(),
-        input_root: bench_inputs
-            .r1
-            .parent()
-            .map(std::path::Path::to_path_buf)
-            .unwrap_or_else(|| bench_inputs.bench_dir.clone()),
+        input_root: bench_inputs.r1.parent().map_or_else(
+            || bench_inputs.bench_dir.clone(),
+            std::path::Path::to_path_buf,
+        ),
         output_root: out_dir.clone(),
         tmp_root: run_dirs.logs_dir.join("tmp"),
         threads: plan.resources.threads.max(1),

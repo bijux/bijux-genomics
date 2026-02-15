@@ -130,26 +130,28 @@ mod tests {
         let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let bam = temp.path().join("x.bam");
         std::fs::write(&bam, b"bam").unwrap_or_else(|err| panic!("write bam: {err}"));
-        let err = enforce_stage_refusal_rules(
+        let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Align,
             &bam,
             None,
             None,
-        )
-        .expect_err("align must require reference");
+        ) else {
+            panic!("align must require reference");
+        };
         assert!(err.to_string().contains("requires resolved reference fasta"));
 
         let ref_fa = temp.path().join("ref.fa");
         let ref_fai = temp.path().join("ref.fa.fai");
         std::fs::write(&ref_fa, b">1\nACGT\n").unwrap_or_else(|err| panic!("write ref: {err}"));
         std::fs::write(&ref_fai, b"1\t4\t0\t4\t5\n").unwrap_or_else(|err| panic!("write fai: {err}"));
-        let err = enforce_stage_refusal_rules(
+        let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Sex,
             &bam,
             Some(&temp.path().join("x.bam.bai")),
             Some(&ref_fa),
-        )
-        .expect_err("sex must require X/Y contigs");
+        ) else {
+            panic!("sex must require X/Y contigs");
+        };
         assert!(err.to_string().contains("lacks required X/Y contigs"));
     }
 

@@ -253,10 +253,10 @@ fn resolve_alignment_reference(args: &FastqCrossArgs) -> Result<std::path::PathB
     let resolver = LocalReferenceResolver::default();
     let species = alignment_meta_value(args, "species_id").unwrap_or_else(|| "human".to_string());
     let build = alignment_meta_value(args, "build_id").unwrap_or_else(|| "hg38".to_string());
-    let resolved = resolver.resolve(&species, &build).with_context(|| {
+    let resolved_ref = resolver.resolve(&species, &build).with_context(|| {
         format!(
             "--alignment-reference not provided and resolver failed for species/build {species}/{build}"
         )
     })?;
-    Ok(resolved.fasta)
+    Ok(resolved_ref.fasta)
 }

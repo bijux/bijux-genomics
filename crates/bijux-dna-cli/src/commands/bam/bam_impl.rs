@@ -9,7 +9,10 @@ use bijux_dna_api::v1::api::run::RuntimeKind;
 use bijux_dna_api::v1::api::run::ToolRegistry;
 use bijux_dna_api::v1::api::run::{build_tool_execution_spec, execute_run};
 
-#[allow(clippy::missing_errors_doc)]
+/// Handle top-level BAM command dispatch.
+///
+/// # Errors
+/// Returns an error when manifest lookup, plan building, or execution fails.
 pub fn handle_bam_commands(
     cli: &Cli,
     dna_command: &DnaCommand,

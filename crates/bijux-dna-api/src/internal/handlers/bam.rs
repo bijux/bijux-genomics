@@ -129,14 +129,13 @@ pub fn bench_bam_stage(
                 let ctx = execution_kernel::ToolContext {
                     run_id: format!("bam-bench-{stage_id}-{tool}-rep-{rep}"),
                     stage_id: stage_id.to_string(),
-                    tool_id: tool.to_string(),
+                    tool_id: tool.clone(),
                     sample_id: Some(args.sample_id.clone()),
                     stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&run_dir),
                     input_root: args
                         .bam
                         .parent()
-                        .map(std::path::Path::to_path_buf)
-                        .unwrap_or_else(|| args.out.clone()),
+                        .map_or_else(|| args.out.clone(), std::path::Path::to_path_buf),
                     output_root: run_dir.clone(),
                     tmp_root: run_dir.join("tmp"),
                     threads: plan.resources.threads.max(1),

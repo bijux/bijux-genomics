@@ -14,7 +14,10 @@ use bijux_dna_planner_vcf::{
 use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
 use bijux_dna_stages_vcf::invariants::InvariantConfig;
 
-#[allow(clippy::missing_errors_doc)]
+/// Handle top-level VCF command dispatch.
+///
+/// # Errors
+/// Returns an error when planning or executing requested VCF actions fails.
 pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool> {
     let DnaCommand::Vcf { command } = dna_command else {
         return Ok(false);
@@ -46,7 +49,7 @@ pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool>
             Ok(true)
         }
         VcfCommand::Run(args) => {
-            run_vcf(args)?;
+            run_vcf(args.as_ref())?;
             Ok(true)
         }
     }
