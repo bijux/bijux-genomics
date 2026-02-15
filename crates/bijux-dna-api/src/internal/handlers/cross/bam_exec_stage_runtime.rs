@@ -430,6 +430,11 @@ fn write_duplicate_policy_split(
         .get("duplicate_action")
         .and_then(serde_json::Value::as_str)
         .unwrap_or("mark");
+    let library_type = plan
+        .params
+        .get("library_type")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("dsdna");
     let selected = match umi_policy {
         "collapse" => "bam.collapse",
         "use_tag" => "bam.umi_dedup",
@@ -441,8 +446,13 @@ fn write_duplicate_policy_split(
         &serde_json::json!({
             "schema_version": "bijux.bam.duplicate_policy_split.v1",
             "selected_executor": selected,
+            "library_type": library_type,
             "duplicate_action": duplicate_action,
             "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
+            "library_policy": {
+                "dsdna": "markdup interprets duplicates as PCR/optical duplicates in double-stranded libraries",
+                "ssdna": "markdup is conservative for single-stranded libraries; downstream authenticity metrics should be consulted",
+            },
             "modes": {
                 "bam.markdup": {
                     "supported": true,

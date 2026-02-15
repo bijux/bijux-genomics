@@ -294,7 +294,8 @@ mod tests {
         plan.params = serde_json::json!({
             "umi_policy": "collapse",
             "duplicate_action": "mark",
-            "optical_duplicates": "mark_only"
+            "optical_duplicates": "mark_only",
+            "library_type": "ssdna"
         });
         write_duplicate_policy_split(temp.path(), &plan)?;
         let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
@@ -311,6 +312,12 @@ mod tests {
                 .pointer("/modes/bam.collapse/supported")
                 .and_then(serde_json::Value::as_bool),
             Some(false)
+        );
+        assert_eq!(
+            payload
+                .get("library_type")
+                .and_then(serde_json::Value::as_str),
+            Some("ssdna")
         );
         Ok(())
     }
