@@ -59,6 +59,23 @@ fn canonical_contig_label(raw: &str) -> String {
     }
 }
 
+fn write_postprocess_vcf_with_best_effort_index(out_vcf: &Path, payload: &str) -> Result<PathBuf> {
+    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcf.display()));
+    let plain_vcf = out_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("postprocess output path has no parent"))?
+        .join("postprocess.tmp.vcf");
+    atomic_write_bytes(&plain_vcf, payload.as_bytes())?;
+    if crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).is_ok() && out_tbi.exists() {
+        let _ = std::fs::remove_file(&plain_vcf);
+        return Ok(out_tbi);
+    }
+    let _ = std::fs::remove_file(&plain_vcf);
+    atomic_write_bytes(out_vcf, payload.as_bytes())?;
+    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
+    Ok(out_tbi)
+}
+
 /// # Errors
 /// Returns an error if merge/normalization/output validation fails.
 pub fn run_postprocess_stage(
@@ -174,7 +191,6 @@ pub fn run_postprocess_stage(
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let merged_vcf = out_dir.join("postprocess.vcf.gz");
-    let merged_tbi = out_dir.join("postprocess.vcf.gz.tbi");
     let merged_bcf = if params.emit_bcf {
         Some(out_dir.join("postprocess.bcf"))
     } else {
@@ -190,12 +206,28 @@ pub fn run_postprocess_stage(
         normalized_headers.join("\n"),
         merged_records.join("\n")
     );
-    atomic_write_bytes(&merged_vcf, merged_payload.as_bytes())?;
-    atomic_write_bytes(&merged_tbi, b"tabix-index-placeholder\n")?;
+    let merged_tbi_real = write_postprocess_vcf_with_best_effort_index(&merged_vcf, &merged_payload)?;
     if let Some(path) = &merged_bcf {
-        atomic_write_bytes(path, merged_payload.as_bytes())?;
+        let merged_vcf_s = merged_vcf
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 merged vcf path"))?;
+        let path_s = path
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 merged bcf path"))?;
+        if std::process::Command::new("bcftools")
+            .args(["view", "-Ob", "-o", path_s, merged_vcf_s])
+            .output()
+            .map(|x| x.status.success())
+            .unwrap_or(false)
+        {
+            let _ = std::process::Command::new("bcftools")
+                .args(["index", "-f", path_s])
+                .output();
+        } else {
+            atomic_write_bytes(path, merged_payload.as_bytes())?;
+        }
     }
-    assert_bgzip_tabix_artifacts(&merged_vcf, &merged_tbi)?;
+    assert_bgzip_tabix_artifacts(&merged_vcf, &merged_tbi_real)?;
 
     let observed_contigs = merged_records
         .iter()
@@ -209,7 +241,7 @@ pub fn run_postprocess_stage(
     let validate_payload = serde_json::json!({
         "schema_version": "bijux.vcf.postprocess.validate.v1",
         "readable_vcf": !merged_records.is_empty(),
-        "tabix_present": merged_tbi.exists(),
+        "tabix_present": merged_tbi_real.exists(),
         "contigs_consistent_with_species_context": observed_contigs.is_subset(&species_contigs),
     });
     atomic_write_json(&validate_outputs_json, &validate_payload)?;
@@ -238,7 +270,7 @@ pub fn run_postprocess_stage(
             },
             "outputs": {
                 "vcf": merged_vcf,
-                "tbi": merged_tbi,
+                "tbi": merged_tbi_real,
                 "bcf": merged_bcf
             },
             "validate_outputs": validate_outputs_json
@@ -246,7 +278,7 @@ pub fn run_postprocess_stage(
     )?;
 
     let mut checksum_map = serde_json::Map::new();
-    let mut paths = vec![merged_vcf.clone(), merged_tbi.clone()];
+    let mut paths = vec![merged_vcf.clone(), merged_tbi_real.clone()];
     if let Some(path) = &merged_bcf {
         paths.push(path.clone());
     }
@@ -290,7 +322,7 @@ pub fn run_postprocess_stage(
 
     Ok(PostprocessStageOutputs {
         merged_vcf,
-        merged_tbi,
+        merged_tbi: merged_tbi_real,
         merged_bcf,
         artifact_checksums_json,
         validate_outputs_json,

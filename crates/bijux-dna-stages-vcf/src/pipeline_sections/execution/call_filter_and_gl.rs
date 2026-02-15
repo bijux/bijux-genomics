@@ -233,6 +233,27 @@ fn run_bcftools_mpileup_call(
     Ok(())
 }
 
+fn write_vcf_with_best_effort_index(
+    out_vcf: &Path,
+    payload: &str,
+    stage_label: &str,
+) -> Result<PathBuf> {
+    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcf.display()));
+    let plain_vcf = out_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("{stage_label}: output path has no parent"))?
+        .join(format!("{stage_label}.tmp.vcf"));
+    atomic_write_bytes(&plain_vcf, payload.as_bytes())?;
+    if crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).is_ok() && out_tbi.exists() {
+        let _ = std::fs::remove_file(&plain_vcf);
+        return Ok(out_tbi);
+    }
+    let _ = std::fs::remove_file(&plain_vcf);
+    atomic_write_bytes(out_vcf, payload.as_bytes())?;
+    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
+    Ok(out_tbi)
+}
+
 fn write_call_outputs(
     out_dir: &Path,
     kind: CallStageKind,
@@ -703,19 +724,29 @@ pub fn run_gl_propagation_stage(
     }
 
     let normalized_vcf = out_dir.join("gl_normalized.vcf.gz");
-    let normalized_tbi = out_dir.join("gl_normalized.vcf.gz.tbi");
-    atomic_write_bytes(
-        &normalized_vcf,
-        (output_lines.join("\n") + if output_lines.is_empty() { "" } else { "\n" }).as_bytes(),
-    )?;
-    atomic_write_bytes(&normalized_tbi, b"tabix-index-placeholder\n")?;
+    let normalized_payload = output_lines.join("\n") + if output_lines.is_empty() { "" } else { "\n" };
+    let normalized_tbi =
+        write_vcf_with_best_effort_index(&normalized_vcf, &normalized_payload, "gl_propagation")?;
 
     let (normalized_bcf, normalized_bcf_csi) = if params.emit_bcf {
         let bcf = out_dir.join("gl_normalized.bcf");
         let csi = out_dir.join("gl_normalized.bcf.csi");
-        atomic_write_bytes(&bcf, b"bcf-placeholder\n")?;
-        atomic_write_bytes(&csi, b"csi-placeholder\n")?;
-        (Some(bcf), Some(csi))
+        let normalized_vcf_s = normalized_vcf
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 gl normalized vcf path"))?;
+        let bcf_s = bcf
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 gl normalized bcf path"))?;
+        if run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s]).is_ok()
+            && run_checked_command("bcftools", &["index", "-f", bcf_s]).is_ok()
+            && csi.exists()
+        {
+            (Some(bcf), Some(csi))
+        } else {
+            atomic_write_bytes(&bcf, b"bcf-placeholder\n")?;
+            atomic_write_bytes(&csi, b"csi-placeholder\n")?;
+            (Some(bcf), Some(csi))
+        }
     } else {
         (None, None)
     };
@@ -821,7 +852,6 @@ pub fn run_damage_filter_stage(
     }
 
     let filtered_vcf = out_dir.join("damage_filtered.vcf.gz");
-    let filtered_tbi = out_dir.join("damage_filtered.vcf.gz.tbi");
     let mut payload = String::new();
     if !headers.is_empty() {
         payload.push_str(&headers.join("\n"));
@@ -831,8 +861,8 @@ pub fn run_damage_filter_stage(
         payload.push_str(&kept.join("\n"));
         payload.push('\n');
     }
-    atomic_write_bytes(&filtered_vcf, payload.as_bytes())?;
-    atomic_write_bytes(&filtered_tbi, b"tabix-index-placeholder\n")?;
+    let filtered_tbi =
+        write_vcf_with_best_effort_index(&filtered_vcf, &payload, "damage_filter")?;
 
     let total_damage = pre_damage_ct + pre_damage_ga;
     let asymmetry = if total_damage == 0 {
@@ -1013,9 +1043,7 @@ pub fn run_filter_stage_real(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let filtered_vcf = out_dir.join("filtered.vcf.gz");
-    let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
-    atomic_write_bytes(&filtered_vcf, out.as_bytes())?;
-    atomic_write_bytes(&filtered_tbi, b"tabix-index-placeholder\n")?;
+    let filtered_tbi = write_vcf_with_best_effort_index(&filtered_vcf, &out, "vcf_filter")?;
     let filter_breakdown_json = out_dir.join("filter_breakdown.json");
     atomic_write_json(
         &filter_breakdown_json,
