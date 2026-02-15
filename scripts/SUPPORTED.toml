@@ -2103,6 +2103,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_coverage_regimes_schema"
+path = "scripts/checks/check-coverage-regimes-schema.sh"
+purpose = "checks script"
+inputs = ["configs/runtime/coverage_regimes.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "simulate_coverage_regime"
 path = "scripts/tooling/simulate-coverage-regime.sh"
 purpose = "tooling script"
