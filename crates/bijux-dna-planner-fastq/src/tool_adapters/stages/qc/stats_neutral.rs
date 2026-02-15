@@ -31,7 +31,9 @@ pub fn plan_stats_neutral(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 { template: tool.command.template.to_vec() },
+        command: bijux_dna_core::prelude::CommandSpecV1 {
+            template: tool.command.template.to_vec(),
+        },
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
