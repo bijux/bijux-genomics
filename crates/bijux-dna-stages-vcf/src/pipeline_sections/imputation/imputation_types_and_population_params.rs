@@ -179,17 +179,33 @@ pub struct AdmixtureStageOutputs {
 
 #[derive(Debug, Clone)]
 pub struct RohStageParams {
+    pub toolchain: String,
     pub min_snp_density_per_mb: f64,
+    pub max_missingness: f64,
+    pub low_coverage_missingness_threshold: f64,
+    pub allow_pseudohaploid_low_coverage: bool,
     pub min_segment_kb: u64,
     pub max_gap_bp: u64,
+    pub max_segment_count: u64,
+    pub plink_homozyg_window_snp: u64,
+    pub plink_homozyg_kb: u64,
+    pub plink_homozyg_gap_kb: u64,
 }
 
 impl Default for RohStageParams {
     fn default() -> Self {
         Self {
+            toolchain: "plink2".to_string(),
             min_snp_density_per_mb: 10.0,
+            max_missingness: 0.2,
+            low_coverage_missingness_threshold: 0.35,
+            allow_pseudohaploid_low_coverage: false,
             min_segment_kb: 500,
             max_gap_bp: 1_000_000,
+            max_segment_count: 20_000,
+            plink_homozyg_window_snp: 50,
+            plink_homozyg_kb: 500,
+            plink_homozyg_gap_kb: 1000,
         }
     }
 }
@@ -197,6 +213,9 @@ impl Default for RohStageParams {
 #[derive(Debug, Clone, Serialize)]
 pub struct RohStageOutputs {
     pub roh_segments_tsv: PathBuf,
+    pub roh_per_sample_tsv: PathBuf,
+    pub roh_json: PathBuf,
+    pub metrics_json: PathBuf,
     pub roh_summary_json: PathBuf,
     pub roh_metrics_json: PathBuf,
     pub logs_txt: PathBuf,
