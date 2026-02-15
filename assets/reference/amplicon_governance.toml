@@ -1,24 +1,28 @@
 [markers.16S]
 primer_set_id = "16S_universal_v1"
 primer_fasta = "assets/reference/primers/16S_universal_v1.fasta"
+primer_sha256 = "6247ebb9c7729a2561b82c1e443921a372e597ff8b47e68274b84956a964735f"
 expected_amplicon_min_bp = 120
 expected_amplicon_max_bp = 320
 
 [markers.COI]
 primer_set_id = "COI_folmer_v1"
 primer_fasta = "assets/reference/primers/COI_folmer_v1.fasta"
+primer_sha256 = "698ce1754083d57a6c4d77317b41b34d3cd8838714f9f7aa303253a03012c30b"
 expected_amplicon_min_bp = 240
 expected_amplicon_max_bp = 720
 
 [markers.ITS]
 primer_set_id = "ITS2_plant_v1"
 primer_fasta = "assets/reference/primers/ITS2_plant_v1.fasta"
+primer_sha256 = "72af9752d4c421160da1f6559a7d55d876a1cc934098a7b22fdae2f8b9a2e7de"
 expected_amplicon_min_bp = 150
 expected_amplicon_max_bp = 450
 
 [taxonomy]
 provider = "kraken2"
 db_path = "assets/reference/contaminants/db_bank.v1.yaml"
+db_sha256 = "36f4e21ae1087b67149a80148a3e2ca10cfeeaa2beacdcce850b0bd7fa83ae62"
 license = "CC-BY-4.0"
 
 [merge_policy]

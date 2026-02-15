@@ -83,12 +83,22 @@ fn enforce_primer_governance(
         ));
     }
     let primer_db_sha256 = bijux_dna_infra::hash_file_sha256(&primer_path)?;
+    let primer_sha256_locked = marker_cfg
+        .get("primer_sha256")
+        .and_then(toml::Value::as_str)
+        .ok_or_else(|| anyhow!("marker `{marker_id}` missing primer_sha256 lock"))?;
+    if primer_db_sha256 != primer_sha256_locked {
+        return Err(anyhow!(
+            "primer governance refusal: checksum mismatch for marker `{marker_id}` (expected {primer_sha256_locked}, observed {primer_db_sha256})"
+        ));
+    }
     let lock_path = run_root.join("primer_db.lock.json");
     let lock_payload = serde_json::json!({
         "schema_version": "bijux.fastq.primer_db_lock.v1",
         "marker_id": marker_id,
         "primer_set_id": primer_set_id,
         "primer_fasta": primer_path,
+        "primer_sha256_locked": primer_sha256_locked,
         "primer_db_sha256": primer_db_sha256,
         "expected_amplicon_min_bp": expected_amplicon_min_bp,
         "expected_amplicon_max_bp": expected_amplicon_max_bp
@@ -145,15 +155,26 @@ fn write_reference_db_validation_artifact(
         .get("license")
         .and_then(toml::Value::as_str)
         .unwrap_or("unspecified");
+    let db_sha256_locked = taxonomy_cfg
+        .get("db_sha256")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default();
     let db_exists = db_path.as_ref().is_some_and(|p| p.exists());
     let db_sha256 = db_path
         .as_ref()
         .and_then(|p| bijux_dna_infra::hash_file_sha256(p).ok());
+    let db_hash_match = db_sha256
+        .as_ref()
+        .is_some_and(|computed| !db_sha256_locked.is_empty() && computed == db_sha256_locked);
     let has_bank_meta = contaminant_bank
         .and_then(|v| v.get("hash"))
         .and_then(serde_json::Value::as_str)
         .is_some();
-    let pass = db_exists && db_sha256.is_some() && db_license != "unspecified";
+    let pass = db_exists
+        && db_sha256.is_some()
+        && db_license != "unspecified"
+        && !db_sha256_locked.is_empty()
+        && db_hash_match;
     let payload = serde_json::json!({
         "schema_version": "bijux.reference.db_validation.v1",
         "stage_id": "reference.db_validation",
@@ -161,6 +182,8 @@ fn write_reference_db_validation_artifact(
             "path": db_path,
             "exists": db_exists,
             "sha256": db_sha256,
+            "sha256_locked": db_sha256_locked,
+            "sha256_match": db_hash_match,
             "license": db_license,
             "bank_hash_present": has_bank_meta
         },
