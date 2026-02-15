@@ -69,7 +69,7 @@ while IFS=$'\t' read -r rel outputs; do
   for out in "${out_arr[@]}"; do
     o="$(echo "$out" | xargs)"
     case "$o" in
-      "artifacts/"|"\$ISO_ROOT/"|"configs/vcf/panels/locks/"|"containers/versions/"|"containers/docs/") ;;
+      "artifacts/"|"\$ISO_ROOT/"|"configs/vcf/panels/locks/"|"configs/vcf/deprecations/"|"configs/ci/registry/"|"containers/versions/"|"containers/docs/"|"docs/30-operations/"|"docs/50-reference/") ;;
       *)
         echo "check-script-writes: $rel has non-approved output root '$o' in scripts/SUPPORTED.toml" >&2
         failed=1

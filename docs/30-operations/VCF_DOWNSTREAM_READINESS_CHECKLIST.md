@@ -1,7 +1,17 @@
 # VCF Downstream Readiness Checklist
 
+## Purpose
+Defines required gates for promoting VCF downstream workflows to compute-node execution readiness.
+
 ## Scope
 Gate for promoting VCF downstream runs from frontend-only validation to compute-node execution.
+
+## Non-goals
+- Defining per-stage implementation details already covered by stage contracts.
+
+## Contracts
+- Every required check in this file must pass for readiness.
+- Production badge eligibility requires lock validity and acceptance criteria success.
 
 ## Required Green Checks
 - `scripts/checks/check-vcf-reference-governance.sh`

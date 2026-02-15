@@ -3,6 +3,17 @@
 ## Purpose
 Operational runbook for frontend-only (no Slurm) container builds, mini-runs, and validation.
 
+## Scope
+Defines required paths, permissions, frontend-only constraints, and the canonical validation command sequence.
+
+## Non-goals
+- Defining Slurm orchestration or compute-node execution policy.
+
+## Contracts
+- All frontend validation runs must execute from declared repo/output roots.
+- Frontend validation must not use Slurm in this phase.
+- Validation evidence must be written under documented artifact paths.
+
 ## Paths
 - SIF root: `${BIJUX_HPC_ROOT:-$HOME/bijux}/bijux-dna-containers/apptainer`
 - Apptainer cache: `${BIJUX_HPC_ROOT:-$HOME/bijux}/bijux-dna-containers/cache`

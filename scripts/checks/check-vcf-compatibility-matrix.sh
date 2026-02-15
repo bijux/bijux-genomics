@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+source "${ROOT_DIR}/scripts/_lib/common.sh"
+require_stable_env
 LC_ALL=C
 export LC_ALL
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-TMP=$(mktemp)
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
+TMP=$(mktemp "$TMP_ROOT/check-vcf-compatibility-matrix.XXXXXX")
 trap 'rm -f "$TMP"' EXIT
 "$ROOT_DIR/scripts/checks/generate-vcf-compatibility-matrix.sh" >/dev/null
 cp "$ROOT_DIR/docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md" "$TMP"

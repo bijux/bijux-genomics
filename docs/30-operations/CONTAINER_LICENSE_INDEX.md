@@ -3,6 +3,19 @@
 
 # Container License Index
 
+## Purpose
+Defines the generated index of container-related license metadata for registered tools.
+
+## Scope
+Covers tool id, container kind, SPDX identifier, upstream source, version, and checksum evidence.
+
+## Non-goals
+- Providing legal advice or replacing upstream license texts.
+
+## Contracts
+- Every containerized tool in registry scope must have a corresponding license metadata row.
+- Regenerated output is the sole authority for this index document.
+
 | Tool | Kind | SPDX | Upstream | Version | Checksum |
 |---|---|---|---|---|---|
 | `adapterremoval` | `bijux` | `NOASSERTION` | `https://github.com/MikkelSchubert/adapterremoval` | `2.3.4` | `sha256:7cc6ca48cf54b9061a3cf1c82e8262f1deb06b5ccbace1ae69a7f1a3a8f0c13a` |
