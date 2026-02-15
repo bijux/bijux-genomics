@@ -39,6 +39,7 @@ use bijux_dna_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 use std::io::BufRead;
+use std::path::PathBuf;
 
 fn normalize_sample_identity(sample_id: &str) -> String {
     let mut out = String::with_capacity(sample_id.len());
@@ -178,6 +179,32 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "unsupported backend for {stage_id}: `{tool_id}` not in allowlist {}",
         allowed.join(",")
     ))
+}
+
+fn workspace_root_path() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
+    let raw = std::fs::read_to_string(
+        workspace_root_path().join("configs/ci/tools/required_tools.toml"),
+    )?;
+    let parsed: toml::Value = toml::from_str(&raw)?;
+    let mut set = std::collections::BTreeSet::new();
+    let items = parsed
+        .get("required_tools")
+        .and_then(toml::Value::as_array)
+        .ok_or_else(|| anyhow!("missing required_tools in required_tools.toml"))?;
+    for item in items {
+        if let Some(id) = item.as_str() {
+            set.insert(id.to_string());
+        }
+    }
+    Ok(set)
 }
 
 fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
@@ -1006,6 +1033,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let mut stage_runs = Vec::new();
     let mut fail_fast_triggered = false;
+    let required_tools = required_fastq_tools()?;
     for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
         let tool = planned.image.image.clone();
@@ -1017,6 +1045,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .unwrap_or_default();
         enforce_stage_applicability(planned, args)?;
         enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
+        if !required_tools.contains(tool_id) {
+            return Err(anyhow!(
+                "tool `{tool_id}` for stage `{stage_id}` is not declared in configs/ci/tools/required_tools.toml"
+            ));
+        }
         enforce_screen_db_governance(planned)?;
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
