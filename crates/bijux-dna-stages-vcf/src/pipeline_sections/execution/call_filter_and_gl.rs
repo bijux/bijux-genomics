@@ -558,11 +558,19 @@ pub fn run_filter_stage_real(
     let mut out = String::new();
     let mut kept = 0u64;
     let mut tag_counts = std::collections::BTreeMap::<String, u64>::new();
-    let maf_min = 0.01_f64;
-    let sample_missingness_max = 0.20_f64;
+    let thresholds = load_imputation_qc_thresholds();
+    let maf_min = *thresholds.get("vcf_filter_maf_min").unwrap_or(&0.01);
+    let sample_missingness_max = *thresholds
+        .get("vcf_filter_sample_missingness_max")
+        .unwrap_or(&0.20);
+    let dp_min = *thresholds.get("vcf_filter_dp_min").unwrap_or(&8.0);
+    let mq_min = *thresholds.get("vcf_filter_mq_min").unwrap_or(&30.0);
+    let strand_bias_max = *thresholds
+        .get("vcf_filter_strand_bias_max")
+        .unwrap_or(&60.0);
     let expression = format!(
-        "QUAL>={:.3} && F_MISSING<={:.3} && (AF>={:.3} || AF missing)",
-        params.min_qual, sample_missingness_max, maf_min
+        "QUAL>={:.3} && DP>={:.3} && MQ>={:.3} && FS<={:.3} && F_MISSING<={:.3} && (AF>={:.3} || AF missing)",
+        params.min_qual, dp_min, mq_min, strand_bias_max, sample_missingness_max, maf_min
     );
     let mut total_records = 0_u64;
     for line in raw.lines() {
@@ -570,6 +578,11 @@ pub fn run_filter_stage_real(
             total_records += 1;
             let qual = fields[5].parse::<f64>().unwrap_or(0.0);
             let af = parse_af_from_info(fields[7]);
+            let dp = parse_depth_from_info(fields[7]).map_or(0.0, f64::from);
+            let mq = parse_info_value_f64(fields[7], "MQ").unwrap_or(f64::INFINITY);
+            let strand_bias = parse_info_value_f64(fields[7], "FS")
+                .or_else(|| parse_info_value_f64(fields[7], "SOR"))
+                .unwrap_or(0.0);
             let f_missing = if fields.len() > 9 {
                 genotype_missing_fraction(fields[8], &fields[9..]).unwrap_or(0.0)
             } else {
@@ -578,6 +591,15 @@ pub fn run_filter_stage_real(
             let mut reasons = Vec::<&str>::new();
             if qual < params.min_qual {
                 reasons.push("LOWQUAL");
+            }
+            if dp < dp_min {
+                reasons.push("LOW_DP");
+            }
+            if mq < mq_min {
+                reasons.push("LOW_MQ");
+            }
+            if strand_bias > strand_bias_max {
+                reasons.push("STRAND_BIAS");
             }
             if f_missing > sample_missingness_max {
                 reasons.push("HIGH_MISSING");
@@ -623,9 +645,7 @@ pub fn run_filter_stage_real(
     }
     if params.production_profile && total_records > 0 {
         let retention = kept as f64 / total_records as f64;
-        let fail = *load_imputation_qc_thresholds()
-            .get("vcf_filter_retention_fail")
-            .unwrap_or(&0.20);
+        let fail = *thresholds.get("vcf_filter_retention_fail").unwrap_or(&0.20);
         if retention < fail {
             bail!("vcf.filter production gate failed: retention below fail threshold");
         }

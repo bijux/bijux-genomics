@@ -56,6 +56,17 @@ fn parse_gt_counts(format_field: &str, sample_fields: &[&str]) -> Option<(u64, u
     Some((hom_ref, het, hom_alt, total))
 }
 
+fn is_transition(reference: &str, alt: &str) -> bool {
+    matches!(
+        (reference.to_ascii_uppercase().as_str(), alt.to_ascii_uppercase().as_str()),
+        ("A", "G") | ("G", "A") | ("C", "T") | ("T", "C")
+    )
+}
+
+fn is_transversion(reference: &str, alt: &str) -> bool {
+    !is_transition(reference, alt)
+}
+
 /// # Errors
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
 pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
@@ -74,11 +85,23 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     let mut variants = 0_u64;
     let mut site_missingness = Vec::<f64>::new();
     let mut hwe_p_values = Vec::<f64>::new();
+    let mut ti_count = 0_u64;
+    let mut tv_count = 0_u64;
+    let mut het_total = 0_u64;
+    let mut hom_alt_total = 0_u64;
+    let mut per_sample = std::collections::BTreeMap::<String, (u64, u64)>::new();
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
         variants += 1;
+        if let (Some(reference), Some(alt)) = (fields.get(3), fields.get(4)) {
+            if is_transition(reference, alt) {
+                ti_count += 1;
+            } else if is_transversion(reference, alt) {
+                tv_count += 1;
+            }
+        }
         if let Some(dp) = parse_depth_from_info(fields[7]) {
             let bucket = if dp < 10 { "0-9" } else if dp < 20 { "10-19" } else if dp < 30 { "20-29" } else { "30+" };
             *depth.entry(bucket.to_string()).or_insert(0) += 1;
@@ -102,11 +125,20 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
                     let vals = sample.split(':').collect::<Vec<_>>();
                     if let Some(gt) = vals.get(gt_idx) {
                         site_total += 1;
+                        let name = format!("sample{}", site_total);
+                        let entry = per_sample.entry(name).or_insert((0, 0));
+                        entry.0 += 1;
                         if gt.contains('.') {
                             missing += 1;
                             site_missing += 1;
+                            entry.1 += 1;
                         } else {
                             called += 1;
+                            match gt.replace('|', "/").as_str() {
+                                "0/1" | "1/0" => het_total += 1,
+                                "1/1" => hom_alt_total += 1,
+                                _ => {}
+                            }
                         }
                     }
                 }
@@ -170,6 +202,16 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     } else {
         Some(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64)
     };
+    let ti_tv = if tv_count == 0 {
+        None
+    } else {
+        Some(ti_count as f64 / tv_count as f64)
+    };
+    let het_hom_ratio = if hom_alt_total == 0 {
+        None
+    } else {
+        Some(het_total as f64 / hom_alt_total as f64)
+    };
     let thresholds = load_imputation_qc_thresholds();
     if params.production_profile {
         if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
@@ -206,11 +248,41 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
     let warnings_json = out_dir.join("warnings.json");
+    let mut sample_missingness = per_sample
+        .iter()
+        .map(|(sample, (total, miss))| {
+            let frac = if *total == 0 { 0.0 } else { *miss as f64 / *total as f64 };
+            (sample.clone(), frac)
+        })
+        .collect::<Vec<_>>();
+    sample_missingness.sort_by(|a, b| a.0.cmp(&b.0));
+    let mean_sample_missing = if sample_missingness.is_empty() {
+        0.0
+    } else {
+        sample_missingness.iter().map(|(_, v)| *v).sum::<f64>() / sample_missingness.len() as f64
+    };
+    let var_sample_missing = if sample_missingness.len() < 2 {
+        0.0
+    } else {
+        sample_missingness
+            .iter()
+            .map(|(_, v)| (v - mean_sample_missing).powi(2))
+            .sum::<f64>()
+            / sample_missingness.len() as f64
+    };
+    let std_sample_missing = var_sample_missing.sqrt();
+    let outlier_cutoff = mean_sample_missing + (3.0 * std_sample_missing);
+    let per_sample_outliers = sample_missingness
+        .iter()
+        .filter(|(_, miss)| *miss > outlier_cutoff && std_sample_missing > 0.0)
+        .map(|(sample, miss)| serde_json::json!({"sample": sample, "missingness": miss}))
+        .collect::<Vec<_>>();
     atomic_write_json(
         &warnings_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.qc_warnings.v1",
             "warnings": Vec::<String>::new(),
+            "per_sample_outliers": per_sample_outliers,
         }),
     )?;
     let qc_histograms_json = out_dir.join("qc_histograms.json");
@@ -239,6 +311,8 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "site_missingness_mean": site_missingness_mean,
             "depth_distribution": depth,
             "hwe_pvalue_mean": hwe_p_mean,
+            "ti_tv": ti_tv,
+            "het_hom_ratio": het_hom_ratio,
             "hwe_status": if params.is_ancient_dna && !params.allow_hwe_for_ancient { "skipped_ancient_default" } else { "computed_modern" }
         }),
     )?;
