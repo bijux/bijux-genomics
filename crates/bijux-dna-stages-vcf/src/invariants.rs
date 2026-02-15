@@ -490,6 +490,44 @@ pub fn run_vcf_preflight(
         bail!("vcf.validate_inputs refusal: overlap below configured threshold");
     }
 
+    let mut contig_max_bp = BTreeMap::<String, u64>::new();
+    for line in &records {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        let pos = fields
+            .get(1)
+            .and_then(|x| x.parse::<u64>().ok())
+            .unwrap_or(0);
+        let entry = contig_max_bp.entry(fields[0].to_string()).or_insert(0);
+        *entry = (*entry).max(pos);
+    }
+    let variant_count = records.len() as u64;
+    let span_bp = contig_max_bp.values().copied().sum::<u64>();
+    let variant_density_per_mb = if span_bp > 0 {
+        variant_count as f64 / (span_bp as f64 / 1_000_000_f64)
+    } else {
+        0.0
+    };
+    let downstream_readiness = if variant_density_per_mb >= 1_000.0 {
+        "dense"
+    } else if variant_density_per_mb >= 100.0 {
+        "moderate"
+    } else {
+        "sparse"
+    };
+    let density_json = artifact_dir.join("vcf_density.json");
+    atomic_write_json(
+        &density_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.variant_density.v1",
+            "variant_count": variant_count,
+            "span_bp": span_bp,
+            "variant_density_per_mb": variant_density_per_mb,
+            "downstream_readiness": downstream_readiness,
+        }),
+    )?;
+
     let invariants_json = artifact_dir.join("vcf_invariants.json");
     atomic_write_json(
         &invariants_json,
@@ -501,6 +539,7 @@ pub fn run_vcf_preflight(
             "normalized_input": normalized_input,
             "index": index_path,
             "overlap": overlap_json,
+            "variant_density": density_json,
         }),
     )?;
 

@@ -315,6 +315,15 @@ pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
 }
 
 fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
+    if let Some(coverage_regime) = ctx.request.species_context.default_coverage_regime {
+        return Ok(match coverage_regime {
+            bijux_dna_domain_vcf::taxonomy::CoverageRegime::LowCovGl => VcfDomainStage::CallGl,
+            bijux_dna_domain_vcf::taxonomy::CoverageRegime::Pseudohaploid => {
+                VcfDomainStage::CallPseudohaploid
+            }
+            bijux_dna_domain_vcf::taxonomy::CoverageRegime::Diploid => VcfDomainStage::CallDiploid,
+        });
+    }
     match ctx.preflight.regime.regime {
         InputRegime::GlOnly => Ok(VcfDomainStage::CallGl),
         InputRegime::GtOnly => {

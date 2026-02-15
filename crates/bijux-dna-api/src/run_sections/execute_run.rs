@@ -17,6 +17,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let run_artifacts_dir = request.plan.out_dir.join("run_artifacts");
     bijux_dna_infra::ensure_dir(&run_artifacts_dir)?;
     maybe_emit_reference_manifest(request, &run_artifacts_dir)?;
+    let regime_stamp = resolve_and_write_regime_stamp(request, &run_artifacts_dir)?;
     let telemetry_path = run_artifacts_dir.join("telemetry.jsonl");
     let trace_id = format!("trace-{}", request.plan.stage_id);
     let span_id = format!("span-{}", request.plan.tool_id);
@@ -345,7 +346,8 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         "io": {
             "inputs": request.plan.io.inputs,
             "outputs": request.plan.io.outputs,
-        }
+        },
+        "coverage_regime": regime_stamp,
     });
     bijux_dna_infra::atomic_write_json(&explain_path, &explain_payload)?;
     let resume_payload = serde_json::json!({
@@ -581,4 +583,293 @@ fn maybe_emit_reference_manifest(
     });
     bijux_dna_infra::atomic_write_json(&run_artifacts_dir.join("reference_manifest.json"), &payload)?;
     Ok(())
+}
+
+fn resolve_and_write_regime_stamp(
+    request: &ExecuteRunRequest,
+    run_artifacts_dir: &std::path::Path,
+) -> Result<serde_json::Value> {
+    let stamp = resolve_regime_stamp(request)?;
+    bijux_dna_infra::atomic_write_json(&run_artifacts_dir.join("regime_stamp.json"), &stamp)?;
+    Ok(stamp)
+}
+
+fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value> {
+    let requested = request
+        .plan
+        .params
+        .get("coverage_regime")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+    let profile = request
+        .plan
+        .params
+        .get("regime_profile")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("default");
+    let thresholds = load_coverage_thresholds(profile)?;
+
+    let observed_bam_mean_depth = request
+        .plan
+        .params
+        .get("mean_depth_x")
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| {
+            let path = request
+                .plan
+                .out_dir
+                .join("bam")
+                .join("coverage")
+                .join("coverage.regime.json");
+            if !path.exists() {
+                return None;
+            }
+            std::fs::read_to_string(path).ok().and_then(|raw| {
+                serde_json::from_str::<serde_json::Value>(&raw)
+                    .ok()
+                    .and_then(|json| json.get("mean_depth").and_then(serde_json::Value::as_f64))
+            })
+        });
+
+    let observed_fastq_estimated_depth = classify_fastq_only_estimated_depth(request);
+    let observed_mean_depth = observed_bam_mean_depth.or(observed_fastq_estimated_depth);
+    let observed_variant_density = classify_vcf_variant_density(request);
+
+    let (selected, trigger) = if let Some(mean_depth) = observed_mean_depth {
+        classify_depth_to_regime(mean_depth, thresholds)
+    } else if let Some(regime) = requested.as_deref() {
+        (regime, "requested coverage_regime used because observed mean depth is unavailable".to_string())
+    } else if stage_requires_regime(request.plan.stage_id.as_str()) {
+        return Err(anyhow!(
+            "coverage regime required for stage {} but cannot be resolved: provide coverage_regime or mean_depth_x/FASTQ expected genome size inputs",
+            request.plan.stage_id
+        ));
+    } else {
+        ("unknown", "regime not required for stage and no observed/requested signal available".to_string())
+    };
+
+    let (impute_backend_default, chunk_size_bp_default) = match selected {
+        "gl" => ("glimpse", 2_000_000_u64),
+        "pseudohaploid" => ("beagle", 3_000_000_u64),
+        "diploid" => ("minimac4", 5_000_000_u64),
+        _ => ("unknown", 0_u64),
+    };
+
+    Ok(serde_json::json!({
+        "schema_version": "bijux.coverage_regime_stamp.v1",
+        "stage_id": request.plan.stage_id.to_string(),
+        "selected_regime": selected,
+        "requested_regime": requested,
+        "regime_profile": profile,
+        "trigger": trigger,
+        "thresholds_used": {
+            "gl_max_depth": thresholds.gl_max_depth,
+            "pseudohaploid_max_depth": thresholds.pseudohaploid_max_depth,
+            "diploid_min_depth": thresholds.diploid_min_depth,
+        },
+        "observed_coverage_stats": {
+            "mean_depth_x": observed_mean_depth,
+            "bam_mean_depth_x": observed_bam_mean_depth,
+            "fastq_estimated_depth_x": observed_fastq_estimated_depth,
+            "variant_density_per_mb": observed_variant_density,
+        },
+        "routing": {
+            "call_stage": match selected {
+                "gl" => "vcf.call_gl",
+                "pseudohaploid" => "vcf.call_pseudohaploid",
+                "diploid" => "vcf.call_diploid",
+                _ => "unknown",
+            },
+            "imputation_backend_default": impute_backend_default,
+            "chunk_size_bp_default": chunk_size_bp_default,
+        }
+    }))
+}
+
+fn classify_depth_to_regime(mean_depth: f64, thresholds: CoverageThresholds) -> (&'static str, String) {
+    if mean_depth <= thresholds.gl_max_depth {
+        (
+            "gl",
+            format!(
+                "mean_depth_x <= gl_max_depth ({mean_depth:.4} <= {})",
+                thresholds.gl_max_depth
+            ),
+        )
+    } else if mean_depth <= thresholds.pseudohaploid_max_depth {
+        (
+            "pseudohaploid",
+            format!(
+                "gl_max_depth < mean_depth_x <= pseudohaploid_max_depth ({} < {mean_depth:.4} <= {})",
+                thresholds.gl_max_depth, thresholds.pseudohaploid_max_depth
+            ),
+        )
+    } else if mean_depth >= thresholds.diploid_min_depth {
+        (
+            "diploid",
+            format!(
+                "mean_depth_x >= diploid_min_depth ({mean_depth:.4} >= {})",
+                thresholds.diploid_min_depth
+            ),
+        )
+    } else {
+        (
+            "pseudohaploid",
+            "fallback band between pseudohaploid_max_depth and diploid_min_depth".to_string(),
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct CoverageThresholds {
+    gl_max_depth: f64,
+    pseudohaploid_max_depth: f64,
+    diploid_min_depth: f64,
+}
+
+fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .map_or_else(|| PathBuf::from("."), std::path::Path::to_path_buf);
+    let raw = std::fs::read_to_string(root.join("configs/runtime/coverage_regimes.toml"))?;
+    let parsed: toml::Value = toml::from_str(&raw)?;
+    let decision = parsed
+        .get("decision")
+        .and_then(|v| v.get("coverage_regime"))
+        .ok_or_else(|| anyhow!("missing decision.coverage_regime in coverage_regimes.toml"))?;
+    let base = decision
+        .get("thresholds")
+        .ok_or_else(|| anyhow!("missing decision.coverage_regime.thresholds"))?;
+    let profile_thresholds = decision
+        .get("profiles")
+        .and_then(|v| v.get(profile))
+        .unwrap_or(base);
+    let read_f = |obj: &toml::Value, key: &str| -> Result<f64> {
+        obj.get(key)
+            .and_then(toml::Value::as_float)
+            .or_else(|| obj.get(key).and_then(toml::Value::as_integer).map(|v| v as f64))
+            .ok_or_else(|| anyhow!("missing or invalid threshold key `{key}`"))
+    };
+    Ok(CoverageThresholds {
+        gl_max_depth: read_f(profile_thresholds, "gl_max_depth")?,
+        pseudohaploid_max_depth: read_f(profile_thresholds, "pseudohaploid_max_depth")?,
+        diploid_min_depth: read_f(profile_thresholds, "diploid_min_depth")?,
+    })
+}
+
+fn stage_requires_regime(stage_id: &str) -> bool {
+    matches!(
+        stage_id,
+        "vcf.call"
+            | "vcf.call_gl"
+            | "vcf.call_diploid"
+            | "vcf.call_pseudohaploid"
+            | "vcf.impute"
+            | "vcf.phasing"
+    )
+}
+
+fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f64> {
+    let expected_genome_size_bp = request
+        .plan
+        .params
+        .get("expected_genome_size_bp")
+        .and_then(serde_json::Value::as_u64)
+        .or_else(|| std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP").ok()?.parse::<u64>().ok())?;
+    if expected_genome_size_bp == 0 {
+        return None;
+    }
+    let mut read_count: u64 = 0;
+    let mut mean_len_sum: f64 = 0.0;
+    let mut files: u64 = 0;
+    for artifact in &request.plan.io.inputs {
+        let p = request.plan.out_dir.join(&artifact.path);
+        let ext = p.extension().and_then(|x| x.to_str()).unwrap_or_default();
+        if !(ext.eq_ignore_ascii_case("fq")
+            || ext.eq_ignore_ascii_case("fastq")
+            || ext.eq_ignore_ascii_case("gz"))
+        {
+            continue;
+        }
+        let inv = request.plan.out_dir.join("fastq_invariants.json");
+        if inv.exists() {
+            if let Ok(raw) = std::fs::read_to_string(&inv) {
+                if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {
+                    let r1_count = json.pointer("/r1/read_count").and_then(serde_json::Value::as_u64);
+                    let r1_len = json
+                        .pointer("/r1/read_length_mean")
+                        .and_then(serde_json::Value::as_f64);
+                    if let (Some(c), Some(l)) = (r1_count, r1_len) {
+                        read_count = read_count.saturating_add(c);
+                        mean_len_sum += l;
+                        files = files.saturating_add(1);
+                    }
+                }
+            }
+        }
+    }
+    if read_count == 0 || files == 0 {
+        return None;
+    }
+    let avg_len = mean_len_sum / files as f64;
+    Some((read_count as f64 * avg_len) / expected_genome_size_bp as f64)
+}
+
+fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
+    let mut variants: u64 = 0;
+    let mut span_bp: u64 = 0;
+    for artifact in &request.plan.io.inputs {
+        let p = request.plan.out_dir.join(&artifact.path);
+        let name = p.file_name().and_then(|x| x.to_str()).unwrap_or_default();
+        if !(name.ends_with(".vcf") || name.ends_with(".vcf.gz")) {
+            continue;
+        }
+        let raw = if name.ends_with(".gz") {
+            std::process::Command::new("gzip")
+                .args(["-cd", p.to_string_lossy().as_ref()])
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+                .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+        } else {
+            std::fs::read_to_string(&p).ok()
+        }?;
+        let mut contig_max = std::collections::BTreeMap::<String, u64>::new();
+        for line in raw.lines() {
+            if line.starts_with('#') || line.trim().is_empty() {
+                continue;
+            }
+            let mut cols = line.split('\t');
+            let chr = cols.next()?.to_string();
+            let pos = cols.next()?.parse::<u64>().ok()?;
+            variants = variants.saturating_add(1);
+            let entry = contig_max.entry(chr).or_insert(0);
+            *entry = (*entry).max(pos);
+        }
+        span_bp = span_bp.saturating_add(contig_max.values().sum::<u64>());
+    }
+    if variants == 0 || span_bp == 0 {
+        return None;
+    }
+    Some(variants as f64 / (span_bp as f64 / 1_000_000_f64))
+}
+
+#[cfg(test)]
+mod coverage_regime_tests {
+    use super::{classify_depth_to_regime, CoverageThresholds};
+
+    #[test]
+    fn same_input_depth_yields_same_regime_deterministically() {
+        let t = CoverageThresholds {
+            gl_max_depth: 1.5,
+            pseudohaploid_max_depth: 6.0,
+            diploid_min_depth: 8.0,
+        };
+        let (a, _) = classify_depth_to_regime(1.2, t);
+        let (b, _) = classify_depth_to_regime(1.2, t);
+        let (c, _) = classify_depth_to_regime(1.2, t);
+        assert_eq!(a, "gl");
+        assert_eq!(a, b);
+        assert_eq!(b, c);
+    }
 }

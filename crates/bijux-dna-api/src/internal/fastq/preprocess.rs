@@ -248,6 +248,116 @@ fn write_fastq_entry_invariants(
     Ok(report)
 }
 
+fn maybe_write_fastq_coverage_classifier(
+    root: &std::path::Path,
+    invariants: &FastqInvariantsReport,
+) -> Result<()> {
+    let expected_genome_size_bp = std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok());
+    let Some(genome_bp) = expected_genome_size_bp else {
+        return Ok(());
+    };
+    if genome_bp == 0 {
+        return Ok(());
+    }
+    let reads = invariants.r1.read_count + invariants.r2.as_ref().map_or(0, |r2| r2.read_count);
+    let mean_len = if let Some(r2) = invariants.r2.as_ref() {
+        (invariants.r1.read_length_mean + r2.read_length_mean) / 2.0
+    } else {
+        invariants.r1.read_length_mean
+    };
+    let estimated_depth_x = (reads as f64 * mean_len) / genome_bp as f64;
+    let thresholds = load_coverage_thresholds_for_fastq("default")?;
+    let (selected_regime, trigger) = if estimated_depth_x <= thresholds.gl_max_depth {
+        (
+            "gl",
+            format!(
+                "estimated_depth_x <= gl_max_depth ({estimated_depth_x:.4} <= {})",
+                thresholds.gl_max_depth
+            ),
+        )
+    } else if estimated_depth_x <= thresholds.pseudohaploid_max_depth {
+        (
+            "pseudohaploid",
+            format!(
+                "gl_max_depth < estimated_depth_x <= pseudohaploid_max_depth ({} < {estimated_depth_x:.4} <= {})",
+                thresholds.gl_max_depth, thresholds.pseudohaploid_max_depth
+            ),
+        )
+    } else if estimated_depth_x >= thresholds.diploid_min_depth {
+        (
+            "diploid",
+            format!(
+                "estimated_depth_x >= diploid_min_depth ({estimated_depth_x:.4} >= {})",
+                thresholds.diploid_min_depth
+            ),
+        )
+    } else {
+        (
+            "pseudohaploid",
+            "fallback band between pseudohaploid_max_depth and diploid_min_depth".to_string(),
+        )
+    };
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.coverage_classifier.v1",
+        "expected_genome_size_bp": genome_bp,
+        "reads": reads,
+        "mean_read_length": mean_len,
+        "estimated_depth_x": estimated_depth_x,
+        "selected_regime": selected_regime,
+        "trigger": trigger,
+        "thresholds_used": {
+            "gl_max_depth": thresholds.gl_max_depth,
+            "pseudohaploid_max_depth": thresholds.pseudohaploid_max_depth,
+            "diploid_min_depth": thresholds.diploid_min_depth,
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&root.join("coverage_regime.fastq.json"), &payload)
+        .context("write coverage_regime.fastq.json")?;
+    bijux_dna_infra::atomic_write_json(&root.join("coverage_explain.fastq.json"), &payload)
+        .context("write coverage_explain.fastq.json")
+}
+
+#[derive(Debug, Clone, Copy)]
+struct FastqCoverageThresholds {
+    gl_max_depth: f64,
+    pseudohaploid_max_depth: f64,
+    diploid_min_depth: f64,
+}
+
+fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThresholds> {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .map_or_else(|| PathBuf::from("."), std::path::Path::to_path_buf);
+    let raw = std::fs::read_to_string(root.join("configs/runtime/coverage_regimes.toml"))?;
+    let parsed: toml::Value = toml::from_str(&raw)?;
+    let decision = parsed
+        .get("decision")
+        .and_then(|v| v.get("coverage_regime"))
+        .ok_or_else(|| anyhow!("missing decision.coverage_regime"))?;
+    let base = decision
+        .get("thresholds")
+        .ok_or_else(|| anyhow!("missing decision.coverage_regime.thresholds"))?;
+    let profile_thresholds = decision
+        .get("profiles")
+        .and_then(|v| v.get(profile))
+        .unwrap_or(base);
+    let read_f = |key: &str| -> Result<f64> {
+        profile_thresholds
+            .get(key)
+            .and_then(toml::Value::as_float)
+            .or_else(|| profile_thresholds.get(key).and_then(toml::Value::as_integer).map(|v| v as f64))
+            .ok_or_else(|| anyhow!("missing threshold key `{key}`"))
+    };
+    Ok(FastqCoverageThresholds {
+        gl_max_depth: read_f("gl_max_depth")?,
+        pseudohaploid_max_depth: read_f("pseudohaploid_max_depth")?,
+        diploid_min_depth: read_f("diploid_min_depth")?,
+    })
+}
+
 fn write_stage_path_contract(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -819,6 +929,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let run_root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&run_root).context("create preprocess run dir")?;
     let entry_invariants = write_fastq_entry_invariants(&run_root, &args.r1, args.r2.as_deref())?;
+    maybe_write_fastq_coverage_classifier(&run_root, &entry_invariants)?;
     if args.r2.is_some() && !entry_invariants.paired_consistent {
         return Err(anyhow!(
             "fastq entry invariants failed: {}",
