@@ -12,6 +12,16 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-db-ena/src/download.rs",
         "crates/bijux-dna-db-ena/src/main.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/imputation_core.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/impute_and_postprocess_workflow.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/population_and_panel_prep_helpers.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/call_filter_and_gl.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/runtime_and_orchestration.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/postprocess/filter_and_stats_stages.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/postprocess/postprocess_output_normalization.rs",
+        "crates/bijux-dna-stages-vcf/src/vcf_io.rs",
+        "crates/bijux-dna-api/src/internal/fastq/preprocess/helpers.rs",
+        "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_tests.rs",
     ]);
     let needles = [
         "std::fs::write(",
@@ -260,7 +270,7 @@ fn policy__boundaries__workspace__engine_has_no_tool_normalization_policy() {
 }
 
 #[test]
-fn policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
+fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)

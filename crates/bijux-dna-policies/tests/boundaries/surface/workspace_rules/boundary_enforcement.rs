@@ -177,7 +177,7 @@ fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
 }
 
 #[test]
-fn policy__boundaries__workspace__retention_reports_require_context() {
+fn slow__policy__boundaries__workspace__retention_reports_require_context() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)

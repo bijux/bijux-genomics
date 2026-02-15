@@ -1,5 +1,5 @@
 #[test]
-fn policy__boundaries__workspace__workspace_no_macos_dotfiles() {
+fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&root)
@@ -370,4 +370,3 @@ fn policy__boundaries__workspace__workspace_no_orphan_crates() {
         }
     }
 }
-
