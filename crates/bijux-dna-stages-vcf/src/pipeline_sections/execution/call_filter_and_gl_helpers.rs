@@ -68,15 +68,51 @@ fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
 
 fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     let keys = fmt.split(':').collect::<Vec<_>>();
-    let Some(gt_idx) = keys.iter().position(|k| *k == "GT") else {
-        return sample.to_string();
-    };
     let mut vals = sample.split(':').map(str::to_string).collect::<Vec<_>>();
-    if let Some(gt) = vals.get(gt_idx).cloned() {
-        let first = gt.split(['/', '|']).next().unwrap_or(".").to_string();
-        vals[gt_idx] = first;
+    if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+        if let Some(gt) = vals.get(gt_idx).cloned() {
+            let first = gt.split(['/', '|']).next().unwrap_or(".").to_string();
+            vals[gt_idx] = first;
+            return vals.join(":");
+        }
     }
-    vals.join(":")
+    if let Some(gp_idx) = keys.iter().position(|k| *k == "GP") {
+        if let Some(gp) = vals.get(gp_idx) {
+            let probs = gp
+                .split(',')
+                .filter_map(|x| x.parse::<f64>().ok())
+                .collect::<Vec<_>>();
+            if probs.len() >= 3 {
+                let best_idx = probs
+                    .iter()
+                    .enumerate()
+                    .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(1);
+                let hap = if best_idx == 0 { "0" } else { "1" };
+                return hap.to_string();
+            }
+        }
+    }
+    if let Some(pl_idx) = keys.iter().position(|k| *k == "PL") {
+        if let Some(pl) = vals.get(pl_idx) {
+            let scores = pl
+                .split(',')
+                .filter_map(|x| x.parse::<f64>().ok())
+                .collect::<Vec<_>>();
+            if scores.len() >= 3 {
+                let best_idx = scores
+                    .iter()
+                    .enumerate()
+                    .min_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(1);
+                let hap = if best_idx == 0 { "0" } else { "1" };
+                return hap.to_string();
+            }
+        }
+    }
+    sample.to_string()
 }
 
 fn normalize_header_sample_order(vcf_text: &str) -> String {

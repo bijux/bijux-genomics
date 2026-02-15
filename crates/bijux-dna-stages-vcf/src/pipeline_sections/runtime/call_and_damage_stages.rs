@@ -61,19 +61,51 @@ fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
 
 fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     let keys = fmt.split(':').collect::<Vec<_>>();
-    let Some(gt_idx) = keys.iter().position(|k| *k == "GT") else {
-        return sample.to_string();
-    };
     let mut vals = sample.split(':').map(str::to_string).collect::<Vec<_>>();
-    if let Some(gt) = vals.get(gt_idx).cloned() {
-        let first = gt
-            .split(['/', '|'])
-            .next()
-            .unwrap_or(".")
-            .to_string();
-        vals[gt_idx] = first;
+    if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+        if let Some(gt) = vals.get(gt_idx).cloned() {
+            let first = gt.split(['/', '|']).next().unwrap_or(".").to_string();
+            vals[gt_idx] = first;
+            return vals.join(":");
+        }
     }
-    vals.join(":")
+    if let Some(gp_idx) = keys.iter().position(|k| *k == "GP") {
+        if let Some(gp) = vals.get(gp_idx) {
+            let probs = gp
+                .split(',')
+                .filter_map(|x| x.parse::<f64>().ok())
+                .collect::<Vec<_>>();
+            if probs.len() >= 3 {
+                let best_idx = probs
+                    .iter()
+                    .enumerate()
+                    .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(1);
+                let hap = if best_idx == 0 { "0" } else { "1" };
+                return hap.to_string();
+            }
+        }
+    }
+    if let Some(pl_idx) = keys.iter().position(|k| *k == "PL") {
+        if let Some(pl) = vals.get(pl_idx) {
+            let scores = pl
+                .split(',')
+                .filter_map(|x| x.parse::<f64>().ok())
+                .collect::<Vec<_>>();
+            if scores.len() >= 3 {
+                let best_idx = scores
+                    .iter()
+                    .enumerate()
+                    .min_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(1);
+                let hap = if best_idx == 0 { "0" } else { "1" };
+                return hap.to_string();
+            }
+        }
+    }
+    sample.to_string()
 }
 
 fn write_call_outputs(
@@ -328,6 +360,8 @@ pub struct DamageFilterOutputs {
     pub filtered_tbi: PathBuf,
     pub damage_filter_summary_json: PathBuf,
     pub damage_filter_counts_json: PathBuf,
+    pub warnings_json: PathBuf,
+    pub damage_genotype_manifest_json: PathBuf,
 }
 
 fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
@@ -338,6 +372,14 @@ fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
             _ => None,
         }
     })
+}
+
+fn env_library_type() -> String {
+    std::env::var("BIJUX_LIBRARY_TYPE")
+        .ok()
+        .map(|v| v.to_ascii_lowercase())
+        .filter(|v| matches!(v.as_str(), "ssdna" | "dsdna"))
+        .unwrap_or_else(|| "unknown".to_string())
 }
 
 fn env_damage_mask_mode() -> String {
@@ -555,8 +597,15 @@ pub fn run_damage_filter_stage(
     let mut marked_lowconf = 0_u64;
 
     let mask_mode = env_damage_mask_mode();
-    let terminal_threshold = env_terminal_damage_threshold();
+    let library_type = env_library_type();
+    let terminal_threshold = if library_type == "ssdna" {
+        env_terminal_damage_threshold().min(0.40)
+    } else {
+        env_terminal_damage_threshold()
+    };
     let pmd_min = env_pmd_min_default(params.udg_regime);
+    let mut has_gl_like_field = false;
+    let mut has_damage_info_field = false;
 
     let threshold = match params.udg_regime {
         DamageUdgRegime::Udg => params.max_damage_ratio.min(0.60),
@@ -593,6 +642,18 @@ pub fn run_damage_filter_stage(
             continue;
         }
         let info = fields[7];
+        if fields.len() > 8 && format_has_token(fields[8], &["GL", "GP", "PL"]) {
+            has_gl_like_field = true;
+        }
+        if info.contains("CT_GA_DAMAGE_RATIO=")
+            || info.contains("DEAM5P=")
+            || info.contains("DEAM3P=")
+            || info.contains("PMD_SCORE=")
+            || info.contains("PMD=")
+            || info.contains("PMDSCORE=")
+        {
+            has_damage_info_field = true;
+        }
         let ratio = if let Some(v) = parse_info_value_f64(info, "CT_GA_DAMAGE_RATIO") {
             v
         } else {
@@ -653,6 +714,7 @@ pub fn run_damage_filter_stage(
         *counts.entry("kept".to_string()).or_insert(0) += 1;
         kept.push(line.to_string());
     }
+    let proxy_only_mode = pre_total > 0 && !has_gl_like_field && !has_damage_info_field;
 
     let filtered_vcf = out_dir.join("damage_filtered.vcf.gz");
     let filtered_tbi = out_dir.join("damage_filtered.vcf.gz.tbi");
@@ -734,12 +796,68 @@ pub fn run_damage_filter_stage(
             "counts": counts
         }),
     )?;
+    let warnings_json = out_dir.join("warnings.json");
+    let mut warnings = vec![serde_json::json!({
+        "code": "W_VCF_DAMAGE_FILTER_EXPLAINED",
+        "message": "damage_filter reports explicit reasons for each filtered category",
+        "filtered_and_why": {
+            "damage_ratio_exceeded": counts.get("damage_ratio_exceeded").copied().unwrap_or(0),
+            "terminal_damage_filtered": counts.get("terminal_damage_filtered").copied().unwrap_or(0),
+            "pmd_below_threshold": counts.get("pmd_below_threshold").copied().unwrap_or(0),
+            "low_qual": counts.get("low_qual").copied().unwrap_or(0)
+        }
+    })];
+    if proxy_only_mode {
+        warnings.push(serde_json::json!({
+            "code": "W_VCF_DAMAGE_FILTER_PROXY_ONLY",
+            "message": "neither GL/GP/PL nor damage INFO tags were found; proxy transition heuristic was used",
+            "required_fields_alignment": {
+                "call_gl_format_any_of": ["GL", "GP", "PL"],
+                "damage_filter_info_any_of": ["CT_GA_DAMAGE_RATIO", "DEAM5P", "DEAM3P", "PMD_SCORE"]
+            }
+        }));
+    }
+    atomic_write_json(
+        &warnings_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.damage_filter.warnings.v1",
+            "warnings": warnings
+        }),
+    )?;
+    let damage_genotype_manifest_json = out_dir.join("damage_genotype_manifest.json");
+    atomic_write_json(
+        &damage_genotype_manifest_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.damage_genotype_manifest.v1",
+            "udg_regime": params.udg_regime,
+            "library_type": library_type,
+            "masking_mode": mask_mode,
+            "thresholds": {
+                "min_qual": params.min_qual,
+                "max_damage_ratio": threshold,
+                "terminal_damage_threshold": terminal_threshold,
+                "pmd_min": pmd_min
+            },
+            "required_fields_contract": {
+                "format_any_of": ["GL", "GP", "PL"],
+                "info_any_of": ["CT_GA_DAMAGE_RATIO", "DEAM5P", "DEAM3P", "PMD_SCORE", "PMD", "PMDSCORE"],
+                "observed_has_gl_like": has_gl_like_field,
+                "observed_has_damage_info": has_damage_info_field
+            },
+            "counts": counts,
+            "asymmetry": {
+                "ct_ga_asymmetry": asymmetry
+            }
+        }),
+    )?;
 
     Ok(DamageFilterOutputs {
         filtered_vcf,
         filtered_tbi,
         damage_filter_summary_json,
         damage_filter_counts_json,
+        warnings_json,
+        damage_genotype_manifest_json,
     })
 }
 
