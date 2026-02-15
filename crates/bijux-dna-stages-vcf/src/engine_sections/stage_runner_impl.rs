@@ -87,8 +87,11 @@ impl VcfStageRunner for DispatchRunner {
         let started = Instant::now();
         let mut artifacts = Vec::<PathBuf>::new();
         let mut primary_output = None;
-        let (tool_id, runtime, image_digest, version) = stage_tool_spec(stage);
-        let mut argv = vec![tool_id.to_string(), stage.as_str().to_string()];
+        let mut tool_id = stage_default_tool_id(stage).to_string();
+        let runtime = std::env::var("BIJUX_CONTAINER_RUNTIME")
+            .unwrap_or_else(|_| "apptainer".to_string());
+        let mut version = "captured-in-stage-artifacts".to_string();
+        let mut argv = vec![tool_id.clone(), stage.as_str().to_string()];
 
         match stage {
             VcfDomainStage::Call | VcfDomainStage::CallGl | VcfDomainStage::CallDiploid | VcfDomainStage::CallPseudohaploid => {
@@ -256,6 +259,8 @@ impl VcfStageRunner for DispatchRunner {
                     .phasing
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing phasing params"))?;
+                tool_id = params.backend.as_str().to_string();
+                argv[0] = tool_id.clone();
                 if params.seed == 0 {
                     return Err(refusal(
                         VcfRefusalCode::PlanningFailed,
@@ -285,6 +290,8 @@ impl VcfStageRunner for DispatchRunner {
                     .impute
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing impute params"))?;
+                tool_id = params.backend.as_str().to_string();
+                argv[0] = tool_id.clone();
                 if params.seed == 0 {
                     return Err(refusal(
                         VcfRefusalCode::PlanningFailed,
@@ -319,6 +326,8 @@ impl VcfStageRunner for DispatchRunner {
                     .impute
                     .clone()
                     .ok_or_else(|| refusal(VcfRefusalCode::PlanningFailed, "missing impute params"))?;
+                tool_id = params.backend.as_str().to_string();
+                argv[0] = tool_id.clone();
                 let out = run_imputation_orchestration_stage(
                     input_vcf,
                     &stage_dir,
@@ -438,7 +447,12 @@ impl VcfStageRunner for DispatchRunner {
             }
         }
 
-        let invocation = ToolInvocationBuilder::new(tool_id, runtime, image_digest)
+        let image_digest = resolve_stage_tool_digest(&tool_id)
+            .map_err(|err| refusal(VcfRefusalCode::PlanningFailed, err.to_string()))?;
+        if stage == VcfDomainStage::Admixture {
+            version = "refused-or-captured-in-stage-artifacts".to_string();
+        }
+        let invocation = ToolInvocationBuilder::new(&tool_id, &runtime, &image_digest)
             .argv(argv.clone())
             .io(
                 vec![input_vcf.to_path_buf()],
