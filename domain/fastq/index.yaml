@@ -170,6 +170,9 @@ stage_tool_compatibility:
   fastq.contaminant_screen:
   - bbduk
   - bowtie2
+  fastq.damage_aware_pretrim:
+  - cutadapt
+  - seqkit
   fastq.overrepresented_sequences:
   - fastqc
   - fastq_scan
@@ -193,6 +196,7 @@ active_defaults:
   fastq.length_distribution_pre: seqkit_stats
   fastq.polyg_tailing: fastp
   fastq.contaminant_screen: bbduk
+  fastq.damage_aware_pretrim: cutadapt
   fastq.overrepresented_sequences: fastqc
 active_default_rationale:
   fastq.prepare_reference: Stable index generation baseline for pre-HPC runs.
@@ -218,6 +222,7 @@ active_default_rationale:
   fastq.polyg_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
     sequencer artifacts.
   fastq.contaminant_screen: Default contaminant screen uses k-mer depletion against
+  fastq.damage_aware_pretrim: Damage-aware pretrim default uses deterministic terminal trimming/masking baseline.
     configured decoy references.
   fastq.overrepresented_sequences: Default overrepresented-sequence detector uses
     FastQC module output.
@@ -325,6 +330,12 @@ stage_completeness_checklist:
   - fixtures_present
   - compatible_tools_declared
   fastq.contaminant_screen:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.damage_aware_pretrim:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -568,6 +579,13 @@ stage_default_settings:
     bowtie2:
       profile: adna_sane_default
       notes: mapping-based decoy contamination screen preset
+  fastq.damage_aware_pretrim:
+    cutadapt:
+      profile: adna_sane_default
+      notes: terminal trim/mask baseline for aDNA damage-aware preprocessing
+    seqkit:
+      profile: adna_sane_default
+      notes: deterministic post-trim length and composition summary preset
   fastq.overrepresented_sequences:
     fastqc:
       profile: adna_sane_default
@@ -630,6 +648,9 @@ stage_comparability_mapping:
   fastq.contaminant_screen:
   - contamination_rate
   - reads_removed_contaminant_kmer
+  fastq.damage_aware_pretrim:
+  - reads_in
+  - reads_out
   fastq.overrepresented_sequences:
   - reads_total
   - reads_removed_contaminant_kmer
@@ -671,6 +692,8 @@ stage_min_quality_gates:
   - post_trim_read_count>0
   fastq.contaminant_screen:
   - reads_removed_contaminant_kmer>=0.0
+  fastq.damage_aware_pretrim:
+  - reads_out>0
   fastq.overrepresented_sequences:
   - reads_total>0
 stage_failure_diagnosis_hints:
@@ -710,6 +733,8 @@ stage_failure_diagnosis_hints:
   - review polyG/polyX thresholds and platform-specific tailing patterns
   fastq.contaminant_screen:
   - check contaminant bank/decoy reference selection and k-mer thresholds
+  fastq.damage_aware_pretrim:
+  - review terminal trim/mask parameters and UDG classification inputs
   fastq.overrepresented_sequences:
   - inspect overrepresented table and adapter/contaminant sequence banks
 pipeline_compositions:
@@ -764,6 +789,8 @@ stage_ordering_constraints:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
+  fastq.damage_aware_pretrim:
+  - fastq.validate_pre
   fastq.overrepresented_sequences:
   - fastq.qc_post
 stage_prerequisites:
@@ -802,6 +829,8 @@ stage_prerequisites:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
+  fastq.damage_aware_pretrim:
+  - fastq.validate_pre
   fastq.overrepresented_sequences:
   - fastq.qc_post
 stage_resource_hints:
@@ -877,6 +906,10 @@ stage_resource_hints:
     memory_gb: 10.0
     time_minutes: 30
     threads: 6
+  fastq.damage_aware_pretrim:
+    memory_gb: 4.0
+    time_minutes: 20
+    threads: 4
   fastq.overrepresented_sequences:
     memory_gb: 4.0
     time_minutes: 15
@@ -932,6 +965,9 @@ stage_output_size_estimates_mb:
   fastq.contaminant_screen:
     filtered_fastq: 900.0
     screen_report: 10.0
+  fastq.damage_aware_pretrim:
+    trimmed_fastq: 1800.0
+    pretrim_report: 4.0
   fastq.overrepresented_sequences:
     screen_report_tsv: 4.0
     report_json: 2.0
@@ -975,6 +1011,9 @@ stage_sanity_metrics:
   - trimmed_read_fraction
   fastq.contaminant_screen:
   - reads_removed_contaminant_kmer
+  fastq.damage_aware_pretrim:
+  - reads_in
+  - reads_out
   fastq.overrepresented_sequences:
   - reads_total
 stage_qc_thresholds:
@@ -1050,6 +1089,10 @@ stage_qc_thresholds:
     reads_removed_contaminant_kmer:
       warn: '>0.8'
       fail: '>0.95'
+  fastq.damage_aware_pretrim:
+    reads_out:
+      warn: <100
+      fail: <=0
   fastq.overrepresented_sequences:
     reads_removed_contaminant_kmer:
       warn: '>0.2'
@@ -1127,6 +1170,10 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
+  fastq.damage_aware_pretrim:
+    contamination_rate:
+      warn: ">=0.05"
+      fail: ">=0.2"
   fastq.overrepresented_sequences:
     contamination_rate:
       warn: '>=0.05'
@@ -1204,6 +1251,10 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <0.2
       fail: <0.1
+  fastq.damage_aware_pretrim:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
   fastq.overrepresented_sequences:
     authenticity_score:
       warn: <=1.0
@@ -1281,6 +1332,10 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
+  fastq.damage_aware_pretrim:
+    duplication_rate:
+      warn: ">=0.7"
+      fail: ">=0.9"
   fastq.overrepresented_sequences:
     duplication_rate:
       warn: '>=0.7'
@@ -1322,6 +1377,8 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.contaminant_screen:
   - not_applicable
+  fastq.damage_aware_pretrim:
+  - not_applicable
   fastq.overrepresented_sequences:
   - not_applicable
 stage_sex_kinship_sufficiency:
@@ -1360,6 +1417,8 @@ stage_sex_kinship_sufficiency:
   fastq.polyg_tailing:
   - not_applicable
   fastq.contaminant_screen:
+  - not_applicable
+  fastq.damage_aware_pretrim:
   - not_applicable
   fastq.overrepresented_sequences:
   - not_applicable
