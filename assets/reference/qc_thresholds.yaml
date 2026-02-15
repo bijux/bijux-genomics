@@ -31,3 +31,13 @@ vcf_variant_density_warn: 2.0
 vcf_variant_density_fail: 1.0
 vcf_missingness_block_warn: 3.0
 vcf_missingness_block_fail: 6.0
+fastq_primer_trimmed_fraction_warn: 0.90
+fastq_primer_trimmed_fraction_fail: 0.80
+fastq_chimera_fraction_warn: 0.20
+fastq_chimera_fraction_fail: 0.30
+fastq_otu_count_warn: 2.0
+fastq_otu_count_fail: 1.0
+fastq_asv_count_warn: 2.0
+fastq_asv_count_fail: 1.0
+fastq_abundance_zero_fraction_warn: 0.80
+fastq_abundance_zero_fraction_fail: 0.95
