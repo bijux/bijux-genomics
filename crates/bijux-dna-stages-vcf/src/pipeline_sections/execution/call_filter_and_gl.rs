@@ -131,6 +131,108 @@ fn normalize_header_sample_order(vcf_text: &str) -> String {
     out
 }
 
+fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<()> {
+    if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
+        bail!("call stage BAM flow requires .bam input: {}", input_bam.display());
+    }
+    let bai = input_bam.with_extension("bam.bai");
+    if !bai.exists() {
+        bail!("call stage BAM flow requires BAM index: {}", bai.display());
+    }
+    let reference = params
+        .reference_fasta
+        .as_deref()
+        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
+    let reference_path = Path::new(reference);
+    if !reference_path.exists() {
+        bail!(
+            "call stage BAM flow reference_fasta does not exist: {}",
+            reference_path.display()
+        );
+    }
+    Ok(())
+}
+
+fn run_checked_command(bin: &str, args: &[&str]) -> Result<()> {
+    let output = std::process::Command::new(bin)
+        .args(args)
+        .output()
+        .map_err(|err| anyhow!("{bin} invocation failed: {err}"))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!("{bin} failed: {stderr}");
+    }
+    Ok(())
+}
+
+fn run_bcftools_mpileup_call(
+    input_bam: &Path,
+    out_vcf: &Path,
+    params: &VcfCallParams,
+    include_gl_fields: bool,
+) -> Result<()> {
+    ensure_bam_prerequisites(input_bam, params)?;
+    let reference = params
+        .reference_fasta
+        .as_deref()
+        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
+    let mpileup_bcf = out_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("output path has no parent"))?
+        .join("mpileup.bcf");
+    let min_map_q = params.min_mapping_quality.to_string();
+    let min_base_q = params.min_base_quality.to_string();
+    let mpileup_out = mpileup_bcf
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 mpileup output path"))?;
+    let input_bam_s = input_bam
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let out_vcf_s = out_vcf
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
+    if include_gl_fields {
+        let mpileup_args = [
+            "mpileup",
+            "-a",
+            "FORMAT/PL,FORMAT/DP",
+            "-Ob",
+            "-f",
+            reference,
+            "-q",
+            min_map_q.as_str(),
+            "-Q",
+            min_base_q.as_str(),
+            "-o",
+            mpileup_out,
+            input_bam_s,
+        ];
+        run_checked_command("bcftools", &mpileup_args)?;
+        let call_args = ["call", "-Aim", "-Oz", "-o", out_vcf_s, mpileup_out];
+        run_checked_command("bcftools", &call_args)?;
+    } else {
+        let mpileup_args = [
+            "mpileup",
+            "-Ob",
+            "-f",
+            reference,
+            "-q",
+            min_map_q.as_str(),
+            "-Q",
+            min_base_q.as_str(),
+            "-o",
+            mpileup_out,
+            input_bam_s,
+        ];
+        run_checked_command("bcftools", &mpileup_args)?;
+        let call_args = ["call", "-mv", "-Oz", "-o", out_vcf_s, mpileup_out];
+        run_checked_command("bcftools", &call_args)?;
+    }
+    let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
+    run_checked_command("tabix", &tabix_args)?;
+    Ok(())
+}
+
 fn write_call_outputs(
     out_dir: &Path,
     kind: CallStageKind,
@@ -172,8 +274,10 @@ fn write_call_outputs(
         }
     }
 
-    let called_tbi = output_vcf.with_extension("vcf.gz.tbi");
-    atomic_write_bytes(&called_tbi, b"index-placeholder\n")?;
+    let called_tbi = PathBuf::from(format!("{}.tbi", output_vcf.display()));
+    if !called_tbi.exists() {
+        atomic_write_bytes(&called_tbi, b"index-placeholder\n")?;
+    }
     let call_metrics_json = out_dir.join("call_metrics.json");
     atomic_write_json(
         &call_metrics_json,
@@ -233,6 +337,9 @@ pub fn run_call_gl_stage(
     if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
         bail!("vcf.call_gl requires caller=angsd|bcftools");
     }
+    if input_vcf.extension().and_then(|x| x.to_str()) == Some("bam") {
+        return run_call_gl_from_bam_stage(input_vcf, out_dir, params);
+    }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut has_gl = false;
@@ -276,27 +383,12 @@ pub fn run_call_gl_from_bam_stage(
     out_dir: &Path,
     params: &VcfCallParams,
 ) -> Result<CallStageOutputs> {
-    if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
-        bail!("vcf.call_gl (bam flow) requires .bam input");
-    }
-    let bai = input_bam.with_extension("bam.bai");
-    if !bai.exists() {
-        bail!("vcf.call_gl (bam flow) requires BAM index: {}", bai.display());
-    }
     if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
         bail!("vcf.call_gl (bam flow) requires caller=angsd|bcftools");
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let sample = if params.sample_name.trim().is_empty() {
-        "sample"
-    } else {
-        params.sample_name.as_str()
-    };
-    let mock_gl = format!(
-        "##fileformat=VCFv4.2\n##source=angsd-bcftools-mock\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{sample}\n1\t100\t.\tA\tG\t50\tPASS\tDP=12\tGT:GL\t0/1:-1.2,-0.2,-1.8\n1\t200\t.\tC\tT\t42\tPASS\tDP=8;CT_GA_DAMAGE_RATIO=0.18\tGT:GL\t0/1:-1.1,-0.1,-1.7\n"
-    );
     let out_vcf = out_dir.join("called_gl.vcf.gz");
-    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&mock_gl).as_bytes())?;
+    run_bcftools_mpileup_call(input_bam, &out_vcf, params, true)?;
     write_call_outputs(out_dir, CallStageKind::Gl, input_bam, &out_vcf, params)
 }
 
@@ -309,6 +401,12 @@ pub fn run_call_diploid_stage(
 ) -> Result<CallStageOutputs> {
     if !matches!(params.caller.as_str(), "bcftools" | "gatk") {
         bail!("vcf.call_diploid requires caller=bcftools|gatk");
+    }
+    if input_vcf.extension().and_then(|x| x.to_str()) == Some("bam") {
+        bijux_dna_infra::ensure_dir(out_dir)?;
+        let out_vcf = out_dir.join("called_diploid.vcf.gz");
+        run_bcftools_mpileup_call(input_vcf, &out_vcf, params, false)?;
+        return write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params);
     }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
@@ -355,6 +453,40 @@ pub fn run_call_pseudohaploid_stage(
     if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
         bail!("vcf.call_pseudohaploid requires caller=angsd|bcftools");
     }
+    if input_vcf.extension().and_then(|x| x.to_str()) == Some("bam") {
+        bijux_dna_infra::ensure_dir(out_dir)?;
+        let source_vcf = out_dir.join("called_pseudohaploid_source.vcf.gz");
+        run_bcftools_mpileup_call(input_vcf, &source_vcf, params, false)?;
+        let raw = std::fs::read_to_string(&source_vcf)?;
+        let mut out = String::new();
+        for line in raw.lines() {
+            if let Some(fields) = parse_record_fields(line) {
+                let mut row = fields.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+                if fields.len() > 9 {
+                    row[9] = sample_to_haploid_gt(fields[8], fields[9]);
+                }
+                out.push_str(&row.join("\t"));
+                out.push('\n');
+            } else {
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+        let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
+        atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
+        let out_vcf_s = out_vcf
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
+        let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
+        run_checked_command("tabix", &tabix_args)?;
+        return write_call_outputs(
+            out_dir,
+            CallStageKind::Pseudohaploid,
+            input_vcf,
+            &out_vcf,
+            params,
+        );
+    }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut has_records = false;
@@ -399,7 +531,13 @@ pub fn run_call_stage(input_vcf: &Path, output_vcf: &Path, params: &VcfCallParam
     let out_dir = output_vcf
         .parent()
         .ok_or_else(|| anyhow!("vcf.call output path has no parent directory"))?;
-    let out = run_call_diploid_stage(input_vcf, out_dir, params)?;
+    let out = if params.caller.contains("pseudo") {
+        run_call_pseudohaploid_stage(input_vcf, out_dir, params)?
+    } else if params.caller.contains("gl") || params.caller == "angsd" {
+        run_call_gl_stage(input_vcf, out_dir, params)?
+    } else {
+        run_call_diploid_stage(input_vcf, out_dir, params)?
+    };
     std::fs::copy(out.called_vcf, output_vcf)?;
     Ok(())
 }
