@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -6,7 +5,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runner::execute::{execute_step, StageResultV1};
-use bijux_dna_runtime::recording::{hash_file_sha256, write_execution_logs_bounded};
+use bijux_dna_runtime::recording::{write_artifact_checksums_json, write_execution_logs_bounded};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -112,16 +111,20 @@ fn network_policy_violation(policy: &NetworkPolicy) -> bool {
             .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
 }
 
-fn output_checksums(step: &ExecutionStep) -> BTreeMap<String, String> {
-    let mut checksums = BTreeMap::new();
+fn validate_required_outputs(step: &ExecutionStep) -> Result<()> {
     for artifact in &step.io.outputs {
-        if artifact.path.exists() {
-            if let Ok(sum) = hash_file_sha256(&artifact.path) {
-                checksums.insert(artifact.name.to_string(), sum);
-            }
+        if artifact.optional {
+            continue;
+        }
+        if !artifact.path.exists() {
+            bail!(
+                "stage contract violation: required output '{}' was not produced at {}",
+                artifact.name,
+                artifact.path.display()
+            );
         }
     }
-    checksums
+    Ok(())
 }
 
 /// # Errors
@@ -136,6 +139,16 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     }
     bijux_dna_infra::ensure_dir(&req.context.stage_root)?;
     bijux_dna_infra::ensure_dir(&req.context.tmp_root)?;
+    std::env::set_var("LC_ALL", "C");
+    std::env::set_var("LANG", "C");
+    std::env::set_var("TZ", "UTC");
+    std::env::set_var("BIJUX_STAGE_THREADS", req.context.threads.to_string());
+    if let Some(memory_hint_mb) = req.context.memory_hint_mb {
+        std::env::set_var("BIJUX_STAGE_MEMORY_MB", memory_hint_mb.to_string());
+    }
+    if let Some(seed) = req.context.seed {
+        std::env::set_var("BIJUX_STAGE_SEED", seed.to_string());
+    }
     std::env::set_var("TMPDIR", &req.context.tmp_root);
 
     let logs_dir = req.context.stage_root.join("logs");
@@ -156,6 +169,16 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     )?;
 
     let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
+    validate_required_outputs(&req.step)?;
+    let output_spec = req
+        .step
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| (artifact.name.to_string(), artifact.path.clone()))
+        .collect::<Vec<_>>();
+    let output_checksums = write_artifact_checksums_json(&req.context.stage_root, &output_spec)
+        .context("write stage artifact checksums")?;
     let log_paths = write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
         .context("write stage logs")?;
     let stdout_path = logs_dir.join("tool.stdout.log");
@@ -212,7 +235,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "network_policy": req.context.network_policy,
         "inputs": req.step.io.inputs,
         "outputs": req.step.io.outputs,
-        "output_checksums": output_checksums(&req.step),
+        "output_checksums": output_checksums,
         "runtime": {
             "runtime_s": stage_result.runtime_s,
             "memory_mb": stage_result.memory_mb,
