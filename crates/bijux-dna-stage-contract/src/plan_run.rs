@@ -41,7 +41,6 @@ impl Executor for DryRunExecutor {
 
 /// # Errors
 /// Returns an error if the registry is missing the requested stage or tool.
-#[allow(clippy::too_many_lines)]
 pub fn build_run_execution_plan(
     run_spec: &RunSpec,
     registry: &ToolRegistry,
@@ -64,20 +63,7 @@ pub fn build_run_execution_plan(
     );
     let logs_dir = run_dir.join("logs");
     let artifacts_dir = run_dir.join("artifacts");
-    if stage_spec.outputs.is_empty() {
-        return Err(anyhow!(
-            "stage {} has no declared outputs; planning requires explicit output contract",
-            run_spec.stage.0
-        ));
-    }
-    for output in &stage_spec.outputs {
-        if output.name.trim().is_empty() || output.data_type.trim().is_empty() {
-            return Err(anyhow!(
-                "stage {} has invalid output contract entry (name/data_type must be non-empty)",
-                run_spec.stage.0
-            ));
-        }
-    }
+    validate_stage_outputs(stage_spec, run_spec)?;
 
     let inputs = stage_spec
         .inputs
@@ -102,7 +88,68 @@ pub fn build_run_execution_plan(
         })
         .collect();
 
-    let stage = StagePlanV1 {
+    let stage = build_stage_plan(run_spec, tool_manifest, stage_spec, run_dir.clone(), inputs, outputs)?;
+
+    let planned_artifacts = stage
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| {
+            let role = artifact.role.as_str().to_string();
+            let (kind, schema) = artifact_kind_schema(&role);
+            PlannedArtifactV1 {
+                artifact_id: artifact.name.0.to_string(),
+                role,
+                path: artifact.path.to_string_lossy().to_string(),
+                kind: kind.to_string(),
+                schema: schema.to_string(),
+            }
+        })
+        .collect();
+
+    let tool = build_tool_execution_spec(run_spec, tool_manifest);
+
+    Ok(RunExecutionPlan {
+        run_id,
+        run_dir,
+        logs_dir,
+        artifacts_dir,
+        planned_artifacts,
+        stage,
+        tool,
+    })
+}
+
+fn validate_stage_outputs(
+    stage_spec: &bijux_dna_core::contract::StageSpec,
+    run_spec: &RunSpec,
+) -> Result<()> {
+    if stage_spec.outputs.is_empty() {
+        return Err(anyhow!(
+            "stage {} has no declared outputs; planning requires explicit output contract",
+            run_spec.stage.0
+        ));
+    }
+    for output in &stage_spec.outputs {
+        if output.name.trim().is_empty() || output.data_type.trim().is_empty() {
+            return Err(anyhow!(
+                "stage {} has invalid output contract entry (name/data_type must be non-empty)",
+                run_spec.stage.0
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn build_stage_plan(
+    run_spec: &RunSpec,
+    tool_manifest: &bijux_dna_core::contract::ToolManifest,
+    stage_spec: &bijux_dna_core::contract::StageSpec,
+    run_dir: PathBuf,
+    inputs: Vec<ArtifactRef>,
+    outputs: Vec<ArtifactRef>,
+) -> Result<StagePlanV1> {
+    Ok(StagePlanV1 {
         stage_id: run_spec.stage.clone(),
         stage_version: StageVersion(1),
         tool_id: run_spec.tool.clone(),
@@ -133,26 +180,14 @@ pub fn build_run_execution_plan(
                 "semantic_kind": stage_spec.semantic_kind,
             }),
         },
-    };
+    })
+}
 
-    let planned_artifacts = stage
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| {
-            let role = artifact.role.as_str().to_string();
-            let (kind, schema) = artifact_kind_schema(&role);
-            PlannedArtifactV1 {
-                artifact_id: artifact.name.0.to_string(),
-                role,
-                path: artifact.path.to_string_lossy().to_string(),
-                kind: kind.to_string(),
-                schema: schema.to_string(),
-            }
-        })
-        .collect();
-
-    let tool = ToolExecutionSpecV1 {
+fn build_tool_execution_spec(
+    run_spec: &RunSpec,
+    tool_manifest: &bijux_dna_core::contract::ToolManifest,
+) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
         tool_id: run_spec.tool.clone(),
         tool_version: "unknown".to_string(),
         image: ContainerImageRefV1 {
@@ -163,17 +198,7 @@ pub fn build_run_execution_plan(
             template: tool_manifest.command_template.clone(),
         },
         resources: tool_manifest.constraints.clone(),
-    };
-
-    Ok(RunExecutionPlan {
-        run_id,
-        run_dir,
-        logs_dir,
-        artifacts_dir,
-        planned_artifacts,
-        stage,
-        tool,
-    })
+    }
 }
 
 fn artifact_kind_schema(role: &str) -> (&'static str, &'static str) {
