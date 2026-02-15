@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
-    STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING,
-    STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
+    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST,
+    STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -80,6 +80,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_TRIM {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_DAMAGE_AWARE_PRETRIM {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.damage_aware_pretrim",
             schema_version: "legacy.unversioned",
         });
     }
@@ -282,6 +288,11 @@ pub fn parse_effective_params(
         .map(EffectiveParams::DetectAdapters);
     }
     if stage_id == &STAGE_TRIM {
+        return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Trim);
+    }
+    if stage_id == &STAGE_DAMAGE_AWARE_PRETRIM {
         return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Trim);

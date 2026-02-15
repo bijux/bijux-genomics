@@ -55,6 +55,7 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
         .map(|s| s.id.to_string())
         .collect::<BTreeSet<_>>();
     for required in [
+        "fastq.damage_aware_pretrim",
         "fastq.primer_normalization",
         "fastq.chimera_detection",
         "fastq.asv_inference",
@@ -79,6 +80,7 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         mode: FastqPipelineMode::Amplicon,
     });
     for required in [
+        "fastq.damage_aware_pretrim",
         "fastq.primer_normalization",
         "fastq.chimera_detection",
         "fastq.abundance_normalization",

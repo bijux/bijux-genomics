@@ -25,6 +25,7 @@ pub const FASTQ_STAGE_ID_CATALOG: &[&str] = &[
     "fastq.asv_inference",
     "fastq.chimera_detection",
     "fastq.contaminant_screen",
+    "fastq.damage_aware_pretrim",
     "fastq.validate_pre",
     "fastq.detect_adapters",
     "fastq.trim",

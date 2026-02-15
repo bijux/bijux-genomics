@@ -9,6 +9,7 @@ stage_ids:
   - fastq.chimera_detection
   - fastq.contaminant_screen
   - fastq.correct
+  - fastq.damage_aware_pretrim
   - fastq.deduplicate
   - fastq.detect_adapters
   - fastq.filter

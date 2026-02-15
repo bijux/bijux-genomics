@@ -10,10 +10,10 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
-    STAGE_CONTAMINANT_SCREEN, STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
-    STAGE_FILTER, STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING,
-    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_CONTAMINANT_SCREEN, STAGE_CORRECT, STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DEDUPLICATE,
+    STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
+    STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
+    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -86,6 +86,33 @@ where
                     polyx_bank,
                     contaminant_bank,
                 )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            stage if stage == STAGE_DAMAGE_AWARE_PRETRIM.as_str() => {
+                if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
+                    return Err(anyhow!(
+                        "{} requires cutadapt/seqkit; got {}",
+                        STAGE_DAMAGE_AWARE_PRETRIM.as_str(),
+                        tool.tool_id
+                    ));
+                }
+                let plan = plan_fastq_transform_stage(
+                    stage,
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    "damage_aware_pretrim.fastq.gz",
+                    serde_json::json!({
+                        "mode": "damage_aware",
+                        "policy": {
+                            "trim_5p_bases": 2,
+                            "trim_3p_bases": 2,
+                            "transition_masking": "CT_GA_terminal_windows"
+                        },
+                        "udg_classification_source": "config_or_inferred"
+                    }),
+                );
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
@@ -376,6 +403,47 @@ where
         current_r2 = next_r2;
     }
     Ok(plans)
+}
+
+fn plan_fastq_transform_stage(
+    stage_id: &str,
+    tool: &ToolExecutionSpecV1,
+    input: &std::path::Path,
+    out_dir: &std::path::Path,
+    output_name: &str,
+    effective_params: serde_json::Value,
+) -> StagePlanV1 {
+    StagePlanV1 {
+        stage_id: StageId::new(stage_id),
+        stage_version: bijux_dna_core::prelude::StageVersion(1),
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: bijux_dna_core::prelude::CommandSpecV1 {
+            template: tool.command.template.to_vec(),
+        },
+        resources: tool.resources.clone(),
+        io: bijux_dna_stage_contract::StageIO {
+            inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                bijux_dna_core::prelude::ArtifactId::from_static("reads"),
+                input.to_path_buf(),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            )],
+            outputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                bijux_dna_core::prelude::ArtifactId::from_static("trimmed_reads"),
+                out_dir.join(output_name),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            )],
+        },
+        out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({}),
+        effective_params,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: PlanDecisionReason::new(
+            PlanReasonKind::Fallback,
+            "fastq transform stage contract default".to_string(),
+        ),
+    }
 }
 
 fn plan_amplicon_stage(
