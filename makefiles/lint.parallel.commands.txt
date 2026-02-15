@@ -9,6 +9,7 @@ make _examples-validate
 ./scripts/run.sh checks check-docs-requirements-lock
 ./scripts/run.sh checks check-nextest-profile-contract
 ./scripts/run.sh checks check-runtime-profiles-contract
+./scripts/run.sh checks check-runtime-execution-kernel-config
 ./scripts/run.sh checks check-logging-contract
 ./scripts/run.sh checks check-run-directory-layout
 ./scripts/run.sh checks check-benchmark-integrity-policy

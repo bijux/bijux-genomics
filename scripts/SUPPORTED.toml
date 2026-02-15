@@ -169,6 +169,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_runtime_execution_kernel_config"
+path = "scripts/checks/check-runtime-execution-kernel-config.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_isolation_contract"
 path = "scripts/checks/check-isolation-contract.sh"
 purpose = "checks script"
