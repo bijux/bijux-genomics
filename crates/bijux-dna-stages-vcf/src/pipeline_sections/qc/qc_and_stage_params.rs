@@ -14,6 +14,46 @@ pub struct QcStageOutputs {
     pub qc_histograms_json: PathBuf,
 }
 
+fn maf_bin_label(maf: f64) -> &'static str {
+    if maf < 0.01 {
+        "0-0.01"
+    } else if maf < 0.05 {
+        "0.01-0.05"
+    } else if maf < 0.1 {
+        "0.05-0.1"
+    } else if maf < 0.2 {
+        "0.1-0.2"
+    } else {
+        "0.2-0.5"
+    }
+}
+
+fn parse_gt_counts(format_field: &str, sample_fields: &[&str]) -> Option<(u64, u64, u64, u64)> {
+    let keys = format_field.split(':').collect::<Vec<_>>();
+    let gt_idx = keys.iter().position(|k| *k == "GT")?;
+    let mut hom_ref = 0_u64;
+    let mut het = 0_u64;
+    let mut hom_alt = 0_u64;
+    let mut total = 0_u64;
+    for sample in sample_fields {
+        let vals = sample.split(':').collect::<Vec<_>>();
+        let Some(gt) = vals.get(gt_idx) else {
+            continue;
+        };
+        if gt.contains('.') {
+            continue;
+        }
+        total += 1;
+        match gt.replace('|', "/").as_str() {
+            "0/0" => hom_ref += 1,
+            "0/1" | "1/0" => het += 1,
+            "1/1" => hom_alt += 1,
+            _ => {}
+        }
+    }
+    Some((hom_ref, het, hom_alt, total))
+}
+
 /// # Errors
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
 pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
@@ -29,9 +69,12 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     let mut info_values = Vec::<f64>::new();
     let mut rsq_values = Vec::<f64>::new();
     let mut af_values = Vec::<f64>::new();
+    let mut maf_bins = std::collections::BTreeMap::<String, u64>::new();
     let mut missing = 0_u64;
     let mut called = 0_u64;
     let mut variants = 0_u64;
+    let mut site_missingness = Vec::<f64>::new();
+    let mut hwe_p_values = Vec::<f64>::new();
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
             continue;
@@ -49,17 +92,44 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
         }
         if let Some(v) = parse_af_from_info(fields[7]) {
             af_values.push(v);
+            *maf_bins.entry(maf_bin_label(v).to_string()).or_insert(0) += 1;
         }
         if fields.len() > 9 {
             let keys = fields[8].split(':').collect::<Vec<_>>();
             if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+                let mut site_missing = 0_u64;
+                let mut site_total = 0_u64;
                 for sample in &fields[9..] {
                     let vals = sample.split(':').collect::<Vec<_>>();
                     if let Some(gt) = vals.get(gt_idx) {
+                        site_total += 1;
                         if gt.contains('.') {
                             missing += 1;
+                            site_missing += 1;
                         } else {
                             called += 1;
+                        }
+                    }
+                }
+                if site_total > 0 {
+                    site_missingness.push(site_missing as f64 / site_total as f64);
+                }
+            }
+            if !params.is_ancient_dna {
+                if let Some((hom_ref, het, hom_alt, total)) = parse_gt_counts(fields[8], &fields[9..]) {
+                    if total > 0 {
+                        let n = total as f64;
+                        let p = (2.0 * hom_ref as f64 + het as f64) / (2.0 * n);
+                        let q = 1.0 - p;
+                        let e_hom_ref = n * p * p;
+                        let e_het = 2.0 * n * p * q;
+                        let e_hom_alt = n * q * q;
+                        if e_hom_ref > 0.0 && e_het > 0.0 && e_hom_alt > 0.0 {
+                            let chi2 = (hom_ref as f64 - e_hom_ref).powi(2) / e_hom_ref
+                                + (het as f64 - e_het).powi(2) / e_het
+                                + (hom_alt as f64 - e_hom_alt).powi(2) / e_hom_alt;
+                            let p_approx = (-0.5 * chi2).exp();
+                            hwe_p_values.push(p_approx);
                         }
                     }
                 }
@@ -91,6 +161,16 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     let info_mean = if info_values.is_empty() { 0.0 } else { info_values.iter().sum::<f64>() / info_values.len() as f64 };
     let rsq_mean = if rsq_values.is_empty() { 0.0 } else { rsq_values.iter().sum::<f64>() / rsq_values.len() as f64 };
     let af_mean = if af_values.is_empty() { 0.0 } else { af_values.iter().sum::<f64>() / af_values.len() as f64 };
+    let site_missingness_mean = if site_missingness.is_empty() {
+        0.0
+    } else {
+        site_missingness.iter().sum::<f64>() / site_missingness.len() as f64
+    };
+    let hwe_p_mean = if hwe_p_values.is_empty() {
+        None
+    } else {
+        Some(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64)
+    };
     let thresholds = load_imputation_qc_thresholds();
     if params.production_profile {
         if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
@@ -109,8 +189,12 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     table.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));
     table.push_str(&format!("missingness_post\t{missingness_post:.6}\n"));
     table.push_str(&format!("allele_freq_mean\t{af_mean:.6}\n"));
+    table.push_str(&format!("site_missingness_mean\t{site_missingness_mean:.6}\n"));
     table.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
     table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
+    if let Some(hwe) = hwe_p_mean {
+        table.push_str(&format!("hwe_pvalue_mean\t{hwe:.6}\n"));
+    }
     table.push_str(&format!(
         "hwe_status\t{}\n",
         if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
@@ -123,7 +207,9 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "schema_version": "bijux.vcf.qc_histograms.v1",
             "depth_distribution": depth,
             "info_distribution": info_values,
-            "rsq_distribution": rsq_values
+            "rsq_distribution": rsq_values,
+            "maf_bins": maf_bins,
+            "site_missingness_distribution": site_missingness,
         }),
     )?;
     let qc_summary_json = out_dir.join("qc_summary.json");
@@ -136,7 +222,10 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "imputation_info_mean": info_mean,
             "rsq_mean": rsq_mean,
             "allele_frequency_shift_abs_mean": af_mean,
+            "maf_bins": maf_bins,
+            "site_missingness_mean": site_missingness_mean,
             "depth_distribution": depth,
+            "hwe_pvalue_mean": hwe_p_mean,
             "hwe_status": if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
         }),
     )?;
