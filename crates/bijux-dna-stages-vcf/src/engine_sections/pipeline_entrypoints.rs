@@ -39,6 +39,30 @@ fn validate_request(req: &VcfPipelineRequest) -> Result<()> {
 }
 
 fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> {
+    fn expected_stage_artifacts(stage_id: &str) -> &'static [&'static str] {
+        match stage_id {
+            "vcf.call" | "vcf.call_gl" | "vcf.call_diploid" | "vcf.call_pseudohaploid" => &[
+                "call_metrics.json",
+                "call_metrics.tsv",
+                "call_manifest.json",
+            ],
+            "vcf.filter" => &[
+                "filtered.vcf.gz",
+                "filtered.vcf.gz.tbi",
+                "filter_breakdown.json",
+                "filter_breakdown.tsv",
+            ],
+            "vcf.stats" => &["bcftools_stats.txt", "stats.json"],
+            "vcf.postprocess" => &[
+                "postprocess.vcf.gz",
+                "postprocess.vcf.gz.tbi",
+                "validate_outputs.json",
+                "final_manifest.json",
+            ],
+            _ => &[],
+        }
+    }
+
     for stage in &result.stages {
         if !stage
             .artifact_dir
@@ -55,6 +79,15 @@ fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> {
                 return Err(refusal(
                     VcfRefusalCode::ContractViolation,
                     format!("missing stage sidecar {}", p.display()),
+                ));
+            }
+        }
+        for required in expected_stage_artifacts(&stage.stage_id) {
+            let p = stage.artifact_dir.join(required);
+            if !p.exists() {
+                return Err(refusal(
+                    VcfRefusalCode::ContractViolation,
+                    format!("stage {} missing required artifact {}", stage.stage_id, p.display()),
                 ));
             }
         }
