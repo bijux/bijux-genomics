@@ -8,6 +8,7 @@ pub use core::{
     addeam, damageprofiler, mapdamage2, mosdepth, ngsbriggs, pmdtools, preseq, pydamage,
 };
 pub use downstream::{
-    angsd_sex, authenticity, contammix, gatk, genotyping, kinship, rxy, schmutzi, verifybamid2,
+    angsd_sex, authenticity, authenticity_signal, contammix, gatk, genotyping, kinship, rxy,
+    schmutzi, verifybamid2,
 };
 pub use pre::{bamtools, bedtools, bowtie2, bwa, samtools};

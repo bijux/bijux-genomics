@@ -390,7 +390,9 @@ pub mod insert_size {
                     bam, &report, &histogram,
                 )
             }
-            _ => tool.command.template.clone(),
+            _ => crate::tool_adapters::tools::core::picard::collect_insert_size_metrics_args(
+                bam, &report, &histogram,
+            ),
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
@@ -465,7 +467,9 @@ pub mod gc_bias {
             "picard" => crate::tool_adapters::tools::core::picard::collect_gc_bias_metrics_args(
                 bam, reference, &report, &summary, &chart,
             ),
-            _ => tool.command.template.clone(),
+            _ => crate::tool_adapters::tools::core::picard::collect_gc_bias_metrics_args(
+                bam, reference, &report, &summary, &chart,
+            ),
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
