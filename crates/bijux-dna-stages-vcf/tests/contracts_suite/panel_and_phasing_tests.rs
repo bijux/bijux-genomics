@@ -381,8 +381,9 @@
         let phased_raw = std::process::Command::new("bcftools")
             .args(["view", &outputs.phased_vcf.to_string_lossy()])
             .output()
-            .map(|out| String::from_utf8_lossy(&out.stdout).to_string())
-            .unwrap_or_else(|_| String::new());
+            .map_or_else(|_| String::new(), |out| {
+                String::from_utf8_lossy(&out.stdout).to_string()
+            });
         assert!(
             phased_raw.contains("\tGT:GL\t0|1:"),
             "beagle GL-only path must emit GT in output FORMAT/sample"

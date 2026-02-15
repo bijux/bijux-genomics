@@ -379,6 +379,7 @@ pub trait RefService: Send + Sync {
     ) -> Result<MapCatalogEntry>;
 }
 
+#[allow(clippy::missing_errors_doc)]
 pub trait ReferenceProvider: Send + Sync {
     fn resolve_species_authority(&self, species: &str) -> Result<SpeciesAuthorityEntry>;
     fn resolve_reference_bank(&self, species: &str, build: &str) -> Result<ReferenceBankEntry>;
@@ -394,6 +395,7 @@ pub trait ReferenceProvider: Send + Sync {
     fn resolve_default_reference_set(&self, species: &str, usecase: &str) -> Result<ReferenceSet>;
 }
 
+#[allow(clippy::missing_errors_doc)]
 pub trait PanelProvider: Send + Sync {
     fn resolve_panel(
         &self,
@@ -403,8 +405,14 @@ pub trait PanelProvider: Send + Sync {
     ) -> Result<PanelCatalogEntry>;
 }
 
+#[allow(clippy::missing_errors_doc)]
 pub trait MapProvider: Send + Sync {
-    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry>;
+    fn resolve_map(
+        &self,
+        species: &str,
+        build: &str,
+        map_id: Option<&str>,
+    ) -> Result<MapCatalogEntry>;
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -485,7 +493,12 @@ impl PanelProvider for RuntimeRefService {
 }
 
 impl MapProvider for RuntimeRefService {
-    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
+    fn resolve_map(
+        &self,
+        species: &str,
+        build: &str,
+        map_id: Option<&str>,
+    ) -> Result<MapCatalogEntry> {
         resolve_map(species, build, map_id)
     }
 }
@@ -834,8 +847,14 @@ pub fn resolve_panel_lock(panel: &PanelCatalogEntry) -> Result<PanelLockEntry> {
         .get(key)
         .ok_or_else(|| anyhow!("panel lock entry `{key}` not found in {}", path.display()))?
         .clone();
-    if entry.panel_id != panel.id || entry.species_id != panel.species_id || entry.build_id != panel.build_id {
-        bail!("panel lock entry does not match panel identity {}", panel.id);
+    if entry.panel_id != panel.id
+        || entry.species_id != panel.species_id
+        || entry.build_id != panel.build_id
+    {
+        bail!(
+            "panel lock entry does not match panel identity {}",
+            panel.id
+        );
     }
     if entry.files.is_empty() {
         bail!("panel lock entry {} has no files", panel.id);
@@ -857,7 +876,10 @@ pub fn resolve_map_lock(map: &MapCatalogEntry) -> Result<MapLockEntry> {
         .get(key)
         .ok_or_else(|| anyhow!("map lock entry `{key}` not found in {}", path.display()))?
         .clone();
-    if entry.map_id != map.id || entry.species_id != map.species_id || entry.build_id != map.build_id {
+    if entry.map_id != map.id
+        || entry.species_id != map.species_id
+        || entry.build_id != map.build_id
+    {
         bail!("map lock entry does not match map identity {}", map.id);
     }
     if entry.files.is_empty() {
@@ -942,7 +964,6 @@ fn parse_coverage_regime(raw: &str) -> Result<bijux_dna_domain_vcf::taxonomy::Co
         _ => bail!("unknown coverage regime value: {raw}"),
     }
 }
-
 
 #[cfg(test)]
 mod lib_tests {

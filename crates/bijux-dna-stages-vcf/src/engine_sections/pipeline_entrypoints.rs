@@ -265,10 +265,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
     let allow_skip_damage = std::env::var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER")
         .ok()
         .is_some_and(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes"));
-    if adna_mode
-        && !allow_skip_damage
-        && !stage_list.iter().any(|stage| *stage == VcfDomainStage::DamageFilter)
-    {
+    if adna_mode && !allow_skip_damage && !stage_list.contains(&VcfDomainStage::DamageFilter) {
         return Err(refusal(
             VcfRefusalCode::PlanningFailed,
             "aDNA mode requires vcf.damage_filter; set BIJUX_ALLOW_SKIP_DAMAGE_FILTER=1 only with explicit override rationale",

@@ -164,12 +164,13 @@
             .output()
             .ok()
             .filter(|o| o.status.success())
-            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
-            .unwrap_or_else(|| {
+            .map_or_else(|| {
                 panic!(
                     "bcftools view failed for {}",
                     out.merged_vcf.display()
                 )
+            }, |o| {
+                String::from_utf8_lossy(&o.stdout).to_string()
             });
         let record_lines = merged
             .lines()

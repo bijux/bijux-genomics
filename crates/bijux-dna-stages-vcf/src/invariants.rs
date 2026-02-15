@@ -305,9 +305,14 @@ pub fn run_vcf_preflight(
     enforce_declared_build_and_contigs(
         &species.species_id,
         &species.build_id,
-        &record_contigs.iter().map(|c| (*c).to_string()).collect::<Vec<_>>(),
+        &record_contigs
+            .iter()
+            .map(|c| (*c).clone())
+            .collect::<Vec<_>>(),
     )
-    .map_err(|err| anyhow!("vcf.validate_inputs refusal: declared build/contigs incompatible: {err}"))?;
+    .map_err(|err| {
+        anyhow!("vcf.validate_inputs refusal: declared build/contigs incompatible: {err}")
+    })?;
 
     summary.checked.push("chr_prefix_mismatch".to_string());
     let input_has_chr = record_contigs.iter().any(|c| c.starts_with("chr"));
