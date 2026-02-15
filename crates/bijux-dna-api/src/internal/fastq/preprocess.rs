@@ -65,6 +65,96 @@ fn parse_low_complexity_filtered_count(stdout: &str, stderr: &str) -> Option<u64
     None
 }
 
+fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
+    for line in text.lines() {
+        if !line.to_ascii_lowercase().contains(&key.to_ascii_lowercase()) {
+            continue;
+        }
+        let digits: String = line.chars().filter(char::is_ascii_digit).collect();
+        if let Ok(parsed) = digits.parse::<u64>() {
+            return Some(parsed);
+        }
+    }
+    None
+}
+
+fn parse_validate_pre_metrics(execution: &StageResultV1) -> serde_json::Value {
+    let merged = format!("{}\n{}", execution.stdout, execution.stderr);
+    let read_count = parse_first_u64_after_key(&merged, "read")
+        .or_else(|| parse_first_u64_after_key(&merged, "sequences"));
+    let base_count =
+        parse_first_u64_after_key(&merged, "base").or_else(|| parse_first_u64_after_key(&merged, "bp"));
+    let errors = parse_first_u64_after_key(&merged, "error");
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.validate_pre",
+        "validator": "tool_stdout_stderr_parser",
+        "read_count": read_count,
+        "base_count": base_count,
+        "error_count": errors,
+        "strict_pass": execution.exit_code == 0,
+    })
+}
+
+fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
+    match stage_id {
+        "fastq.validate_pre"
+        | "fastq.detect_adapters"
+        | "fastq.trim"
+        | "fastq.merge"
+        | "fastq.deduplicate"
+        | "fastq.correct"
+        | "fastq.filter"
+        | "fastq.low_complexity"
+        | "fastq.polyg_tailing"
+        | "fastq.screen" => NetworkPolicy::Forbid,
+        _ => NetworkPolicy::Allow,
+    }
+}
+
+fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
+    let allowed: &[&str] = match stage_id {
+        "fastq.validate_pre" => &["fastqvalidator", "fqtools", "seqtk", "seqkit"],
+        "fastq.detect_adapters" => &["fastp", "fastqc"],
+        "fastq.trim" => &["adapterremoval", "cutadapt", "atropos", "fastp", "bbduk", "trimmomatic"],
+        "fastq.merge" => &["bbmerge", "flash2", "leehom", "pear"],
+        "fastq.deduplicate" => &["clumpify", "fastuniq", "prinseq"],
+        "fastq.correct" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
+        "fastq.filter" => &["bbduk", "fastp", "prinseq", "seqkit"],
+        "fastq.low_complexity" => &["bbduk", "prinseq", "dustmasker"],
+        "fastq.polyg_tailing" => &["fastp", "bbduk"],
+        "fastq.screen" => &["kraken2", "bracken", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
+        _ => return Ok(()),
+    };
+    if allowed.iter().any(|x| *x == tool_id) {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "unsupported backend for {stage_id}: `{tool_id}` not in allowlist {}",
+        allowed.join(",")
+    ))
+}
+
+fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
+    if planned.step_id.as_str() != "fastq.screen" {
+        return Ok(());
+    }
+    let template = planned.command.template.join(" ");
+    if template.contains("http://") || template.contains("https://") {
+        return Err(anyhow!(
+            "fastq.screen governance refusal: remote URL database not allowed at runtime; materialize locally first"
+        ));
+    }
+    let lower = template.to_ascii_lowercase();
+    let has_db_flag = [" --db ", "--database", "--index", "kraken_db", "db_path"]
+        .iter()
+        .any(|needle| lower.contains(needle));
+    if !has_db_flag {
+        return Ok(());
+    }
+    Ok(())
+}
+
 fn write_stage_standardized_metrics(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -72,6 +162,7 @@ fn write_stage_standardized_metrics(
     execution: &StageResultV1,
 ) -> Result<()> {
     let metrics = match stage_id {
+        "fastq.validate_pre" => parse_validate_pre_metrics(execution),
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -287,6 +378,7 @@ fn write_taxonomy_db_drift_report(
 fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
+        "fastq.validate_pre" => &["schema_version", "stage", "strict_pass"],
         "fastq.length_distribution_pre" => &["schema_version", "stage", "fields"],
         "fastq.overrepresented_sequences" => &["schema_version", "stage", "fields"],
         "fastq.polyg_tailing" => &["schema_version", "stage", "applicability"],
@@ -730,6 +822,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
         let tool = planned.image.image.clone();
+        let tool_id = planned
+            .command
+            .template
+            .first()
+            .map(String::as_str)
+            .unwrap_or_default();
+        enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
+        enforce_screen_db_governance(planned)?;
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
@@ -754,7 +854,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 threads: 1,
                 memory_hint_mb: None,
                 seed: None,
-                network_policy: NetworkPolicy::Allow,
+                network_policy: stage_network_policy(&stage_id),
             },
             timeout: None,
             mode: execution_kernel::ToolExecMode::Execute,
