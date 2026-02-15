@@ -1,5 +1,18 @@
 # VCF Downstream Triage
 
+## Purpose
+Defines a deterministic triage workflow for failed VCF downstream stages.
+
+## Scope
+Applies to stage-level failures across phasing, imputation, IBD, ROH, and demography runs.
+
+## Non-goals
+- Defining scientific acceptance thresholds; use QC contracts for those rules.
+
+## Contracts
+- Triage must start from stage artifacts and provenance manifests before reruns.
+- Rerun decisions must account for params/tool/panel lock identity changes.
+
 This guide is for failures in downstream VCF stages such as `vcf.phasing`, `vcf.impute`, `vcf.ibd`, `vcf.roh`, and `vcf.demography`.
 
 ## 1. Start With Stage Artifacts

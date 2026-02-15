@@ -13,10 +13,10 @@ OUT_MD="$ROOT_DIR/artifacts/domain/inventory.md"
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
-tmp1="$(mktemp "$TMP_ROOT/domain-inv-1.XXXXXX.json")"
-tmp2="$(mktemp "$TMP_ROOT/domain-inv-2.XXXXXX.json")"
-tmpm1="$(mktemp "$TMP_ROOT/domain-inv-1.XXXXXX.md")"
-tmpm2="$(mktemp "$TMP_ROOT/domain-inv-2.XXXXXX.md")"
+tmp1="$(mktemp "$TMP_ROOT/domain-inv-1.XXXXXX")"
+tmp2="$(mktemp "$TMP_ROOT/domain-inv-2.XXXXXX")"
+tmpm1="$(mktemp "$TMP_ROOT/domain-inv-1-md.XXXXXX")"
+tmpm2="$(mktemp "$TMP_ROOT/domain-inv-2-md.XXXXXX")"
 trap 'rm -f "$tmp1" "$tmp2" "$tmpm1" "$tmpm2"' EXIT INT TERM
 
 "$ROOT_DIR/scripts/domain/generate-inventory.sh" "$tmp1" "$tmpm1" >/dev/null

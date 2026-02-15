@@ -1,7 +1,17 @@
 # Frontend Traceability Proof
 
-## Goal
+## Purpose
 Given `report.html` (or `report.json`) from a frontend mini run, trace back to exact tool/container/config authority.
+
+## Scope
+Defines required inputs and deterministic proof steps for frontend mini runs.
+
+## Non-goals
+- Defining report rendering or dashboard UX behavior.
+
+## Contracts
+- Proof must bind run artifacts to lock hash, domain hash, config hash, and tool digests.
+- Missing traceability fields are a contract violation.
 
 ## Inputs
 - `artifacts/hpc/frontend-mini-e2e/<run-id>/<mini>/report.json`

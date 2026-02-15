@@ -2059,6 +2059,7 @@ path = "scripts/checks/check-reference-fetch-paths.sh"
 purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
+network_allowed = true
 ci_allowed = true
 
 [[script]]
@@ -2090,7 +2091,7 @@ id = "generate_panel_compatibility_matrix"
 path = "scripts/tooling/generate-panel-compatibility-matrix.sh"
 purpose = "tooling script"
 inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/maps/maps.toml"]
-outputs = ["docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md", "artifacts/", "$ISO_ROOT/"]
+outputs = ["docs/50-reference/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -2328,7 +2329,7 @@ id = "apptainer_build_all"
 path = "scripts/containers/apptainer-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/lock.json"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
 ci_allowed = true
 
 [[script]]
@@ -2336,7 +2337,7 @@ id = "docker_build_all"
 path = "scripts/containers/docker-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/registry/tool_registry.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/lock.json"]
+outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
 ci_allowed = true
 
 [[script]]
@@ -2392,7 +2393,7 @@ id = "generate_tool_name_map"
 path = "scripts/containers/generate-tool-name-map.sh"
 purpose = "containers script"
 inputs = ["configs/ci/registry/tool_registry.toml"]
-outputs = ["containers/docs/TOOL_NAME_MAP.md"]
+outputs = ["containers/docs/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -2496,7 +2497,7 @@ id = "generate_vcf_compatibility_matrix"
 path = "scripts/checks/generate-vcf-compatibility-matrix.sh"
 purpose = "checks script"
 inputs = ["configs/vcf/panels/panels.toml", "configs/ci/registry/tool_registry_vcf_downstream.toml"]
-outputs = ["docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md", "artifacts/", "$ISO_ROOT/"]
+outputs = ["docs/50-reference/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -2520,7 +2521,7 @@ id = "vcf_deprecate_knob"
 path = "scripts/tooling/deprecate-vcf-knob.sh"
 purpose = "vcf governance script"
 inputs = ["configs/vcf/deprecations/knobs.toml"]
-outputs = ["configs/vcf/deprecations/knobs.toml"]
+outputs = ["configs/vcf/deprecations/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -2528,5 +2529,5 @@ id = "vcf_deprecate_panel"
 path = "scripts/tooling/deprecate-vcf-panel.sh"
 purpose = "vcf governance script"
 inputs = ["configs/vcf/deprecations/panels.toml"]
-outputs = ["configs/vcf/deprecations/panels.toml"]
+outputs = ["configs/vcf/deprecations/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = false

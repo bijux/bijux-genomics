@@ -1,5 +1,18 @@
 # VCF Reference Cache Policy
 
+## Purpose
+Defines immutable acquisition and reuse policy for VCF panel/map reference assets.
+
+## Scope
+Applies to panel/map acquisition, cache layout, and runtime reuse for VCF downstream workflows.
+
+## Non-goals
+- Defining panel scientific suitability criteria or backend selection policy.
+
+## Contracts
+- Runtime and planner stages must not fetch panel/map assets from network.
+- Asset materialization and lock checksums must match enabled panel/map configuration.
+
 VCF panel/map assets are acquired once on frontend/shared storage and reused by pipelines.
 
 Rules:

@@ -1,5 +1,18 @@
 # Slurm Phase Entry Criteria
 
+## Purpose
+Defines the mandatory entry gate for enabling Slurm execution phase.
+
+## Scope
+Specifies required green checks and evidence artifacts before starting Slurm work.
+
+## Non-goals
+- Defining Slurm job templates or scheduler tuning parameters.
+
+## Contracts
+- Slurm phase must not start until every required green-state check passes.
+- Evidence artifacts listed here must exist and be current.
+
 ## Required Green State
 All items below must be true before enabling Slurm execution phase:
 
@@ -23,5 +36,5 @@ All items below must be true before enabling Slurm execution phase:
 - `containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md`
 - `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
 
-## Non-goal
-This document does not define Slurm job templates; it defines the gate to start that phase.
+## Notes
+This document defines only the gate to start Slurm phase.
