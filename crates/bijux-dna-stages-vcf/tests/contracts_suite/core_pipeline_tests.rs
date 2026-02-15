@@ -190,7 +190,7 @@
         let bai = dir.path().join("mini.bam.bai");
         std::fs::write(&bam, b"BAM_PLACEHOLDER\n").unwrap_or_else(|err| panic!("write bam: {err}"));
         std::fs::write(&bai, b"BAI_PLACEHOLDER\n").unwrap_or_else(|err| panic!("write bai: {err}"));
-        let call = run_call_gl_from_bam_stage(
+        let err = run_call_gl_from_bam_stage(
             &bam,
             &dir.path().join("call_gl"),
             &bijux_dna_domain_vcf::params::VcfCallParams {
@@ -199,48 +199,8 @@
                 ..bijux_dna_domain_vcf::params::VcfCallParams::default()
             },
         )
-        .unwrap_or_else(|err| panic!("bam->gl call stage: {err}"));
-        assert!(call.called_vcf.exists());
-
-        let species = SpeciesContext {
-            species_id: "Homo sapiens".to_string(),
-            build_id: "GRCh38".to_string(),
-            contig_set_digest: "x".repeat(64),
-            contigs: vec![
-                ContigSpec {
-                    name: "1".to_string(),
-                    length_bp: 1_000_000,
-                },
-                ContigSpec {
-                    name: "2".to_string(),
-                    length_bp: 1_000_000,
-                },
-            ],
-            sex_system: "xy".to_string(),
-            par_policy: "grch38_par".to_string(),
-            default_coverage_regime: None,
-        };
-        let post = run_postprocess_stage(
-            &call.called_vcf,
-            &dir.path().join("postprocess"),
-            &species,
-            &PostprocessStageParams {
-                species_id: "Homo sapiens".to_string(),
-                build_id: "GRCh38".to_string(),
-                per_chr_inputs: vec![],
-                retain_info_fields: vec![],
-                remove_info_fields: vec!["MQ".to_string()],
-                compression_level: 6,
-                compression_threads: 2,
-                emit_bcf: false,
-                normalize_indels: true,
-                run_level_checksums_path: None,
-            },
-        )
-        .unwrap_or_else(|err| panic!("postprocess after bam->gl: {err}"));
-        assert!(post.merged_vcf.exists());
-        assert!(post.merged_tbi.exists());
-        assert!(post.final_manifest_json.exists());
+        .expect_err("bam->gl call must require reference_fasta in real backend flow");
+        assert!(err.to_string().contains("reference_fasta"));
     }
 
     #[test]
