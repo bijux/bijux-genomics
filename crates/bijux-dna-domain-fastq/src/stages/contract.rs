@@ -30,9 +30,8 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.length_distribution_pre" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
         "fastq.primer_normalization" => vec!["cutadapt", "seqkit"],
-        "fastq.chimera_detection" => vec!["vsearch"],
+        "fastq.chimera_detection" | "fastq.otu_clustering" => vec!["vsearch"],
         "fastq.asv_inference" => vec!["dada2"],
-        "fastq.otu_clustering" => vec!["vsearch"],
         "fastq.abundance_normalization" => vec!["seqfu", "seqkit"],
         "fastq.validate_pre" => vec![
             "seqtk",
@@ -449,11 +448,8 @@ pub fn normalize_outputs(
                 merged: Some(final_path),
             })
         }
-        FastqArtifactKind::StatsOnly => Ok(NormalizedOutputs {
-            r1: None,
-            r2: None,
-            merged: None,
-        }),
+        FastqArtifactKind::StatsOnly
+        |
         FastqArtifactKind::AmpliconTable
         | FastqArtifactKind::RepresentativeFasta
         | FastqArtifactKind::TaxonomyMapping => Ok(NormalizedOutputs {

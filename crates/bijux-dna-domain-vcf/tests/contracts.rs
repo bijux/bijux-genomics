@@ -73,7 +73,9 @@ mod contracts {
 
     #[test]
     fn vcf_stage_contracts_expose_io_metrics_and_failure_modes() {
-        let io = stage_io_contract(VcfDomainStage::Imputation).expect("contract");
+        let Some(io) = stage_io_contract(VcfDomainStage::Imputation) else {
+            panic!("missing stage IO contract for imputation");
+        };
         assert!(io.required_inputs.contains(&"vcf"));
         assert!(io.required_indices.contains(&"vcf.tbi"));
 
@@ -141,11 +143,11 @@ mod contracts {
             contigs: vec![
                 ContigSpec {
                     name: "1".to_string(),
-                    length_bp: 249250621,
+                    length_bp: 249_250_621,
                 },
                 ContigSpec {
                     name: "2".to_string(),
-                    length_bp: 243199373,
+                    length_bp: 243_199_373,
                 },
             ],
             sex_system: "xy".to_string(),
@@ -180,8 +182,10 @@ mod contracts {
 
     #[test]
     fn pseudohaploid_to_diploid_imputation_is_refused() {
-        let err = refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true)
-            .expect_err("pseudohaploid to diploid imputation transition must be refused");
+        let err = match refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true) {
+            Ok(()) => panic!("pseudohaploid to diploid imputation transition must be refused"),
+            Err(err) => err,
+        };
         assert!(
             err.to_string()
                 .contains("UnsupportedPseudohaploidToDiploid"),
@@ -196,8 +200,11 @@ mod contracts {
             .required_artifacts
             .contains(&"imputation_accept_decision.json"));
         assert_eq!(OUTPUT_GUARANTEE.final_primary_format, "vcf.gz");
-        assert!(OUTPUT_GUARANTEE.requires_bgzip_tabix);
-        assert!(OUTPUT_GUARANTEE.deterministic_header_normalization);
+        let requires_bgzip_tabix = OUTPUT_GUARANTEE.requires_bgzip_tabix;
+        let deterministic_header_normalization =
+            OUTPUT_GUARANTEE.deterministic_header_normalization;
+        assert_eq!(requires_bgzip_tabix, true);
+        assert_eq!(deterministic_header_normalization, true);
     }
 
     #[test]

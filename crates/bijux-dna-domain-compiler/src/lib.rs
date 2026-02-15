@@ -1,3 +1,9 @@
+#![allow(
+    clippy::map_unwrap_or,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args
+)]
+
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;

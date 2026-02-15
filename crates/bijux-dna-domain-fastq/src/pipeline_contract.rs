@@ -126,8 +126,11 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.primer_normalization"
         | "fastq.chimera_detection"
         | "fastq.abundance_normalization" => Some(StageCriticality::Essential),
-        "fastq.asv_inference" | "fastq.otu_clustering" => Some(StageCriticality::Optional),
-        "fastq.qc_post" | "fastq.umi" | "fastq.preprocess" => Some(StageCriticality::Optional),
+        "fastq.asv_inference"
+        | "fastq.otu_clustering"
+        | "fastq.qc_post"
+        | "fastq.umi"
+        | "fastq.preprocess" => Some(StageCriticality::Optional),
         "fastq.screen" => Some(StageCriticality::Experimental),
         _ => None,
     }

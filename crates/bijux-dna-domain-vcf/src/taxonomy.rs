@@ -292,11 +292,14 @@ impl VcfDomainStage {
     }
 
     #[must_use]
+    /// # Panics
+    /// Panics if the static taxonomy table does not contain an entry for this stage.
     pub fn taxonomy(self) -> &'static VcfStageTaxonomyRecord {
-        VCF_STAGE_TAXONOMY
-            .iter()
-            .find(|record| record.stage == self)
-            .expect("taxonomy entry must exist for every stage")
+        if let Some(record) = VCF_STAGE_TAXONOMY.iter().find(|record| record.stage == self) {
+            return record;
+        }
+
+        unreachable!("taxonomy entry must exist for every stage")
     }
 }
 
