@@ -1,6 +1,5 @@
 /// # Errors
 /// Returns an error if execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let runner_contract = match request.runner {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,

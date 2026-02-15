@@ -11,13 +11,13 @@ use serde::{Deserialize, Serialize};
 use crate::writers::{ArtifactWriter, MetricsWriter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum NetworkPolicy {
+pub(crate) enum NetworkPolicy {
     Allow,
     Forbid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolContext {
+pub(crate) struct ToolContext {
     pub run_id: String,
     pub stage_id: String,
     pub tool_id: String,
@@ -33,7 +33,7 @@ pub struct ToolContext {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolInvocationRequest {
+pub(crate) struct ToolInvocationRequest {
     pub step: ExecutionStep,
     pub runner: RuntimeKind,
     pub context: ToolContext,
@@ -44,7 +44,7 @@ pub struct ToolInvocationRequest {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum ToolExecMode {
+pub(crate) enum ToolExecMode {
     #[default]
     Execute,
     DryRun,
@@ -53,7 +53,7 @@ pub enum ToolExecMode {
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
-pub struct ToolInvocationResult {
+pub(crate) struct ToolInvocationResult {
     pub stage_result: StageResultV1,
     pub runtime_provenance_path: PathBuf,
     pub stage_manifest_path: PathBuf,
@@ -63,7 +63,7 @@ pub struct ToolInvocationResult {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct ToolExec;
+pub(crate) struct ToolExec;
 
 impl ToolExec {
     /// # Errors
@@ -74,7 +74,7 @@ impl ToolExec {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum ExitTaxonomy {
+pub(crate) enum ExitTaxonomy {
     ToolFailure,
     UserError,
     ContractViolation,
@@ -109,7 +109,11 @@ fn ensure_subpath(path: &Path, root: &Path, label: &str) -> Result<()> {
 }
 
 fn enforce_path_contracts(req: &ToolInvocationRequest) -> Result<()> {
-    ensure_subpath(&req.context.stage_root, &req.context.output_root, "stage_root")?;
+    ensure_subpath(
+        &req.context.stage_root,
+        &req.context.output_root,
+        "stage_root",
+    )?;
     ensure_subpath(&req.context.tmp_root, &req.context.output_root, "tmp_root")?;
     for artifact in &req.step.io.outputs {
         ensure_subpath(&artifact.path, &req.context.output_root, "output")?;
@@ -121,11 +125,12 @@ fn enforce_path_contracts(req: &ToolInvocationRequest) -> Result<()> {
 }
 
 fn require_pinned_digest(step: &ExecutionStep) -> Result<()> {
-    let digest = step
-        .image
-        .digest
-        .as_deref()
-        .ok_or_else(|| anyhow!("tool resolution failed: missing image digest for {}", step.image.image))?;
+    let digest = step.image.digest.as_deref().ok_or_else(|| {
+        anyhow!(
+            "tool resolution failed: missing image digest for {}",
+            step.image.image
+        )
+    })?;
     if !digest.starts_with("sha256:") || digest.len() < 16 {
         bail!(
             "tool resolution failed: unpinned/invalid digest `{digest}` for {}",
@@ -136,9 +141,7 @@ fn require_pinned_digest(step: &ExecutionStep) -> Result<()> {
 }
 
 fn classify_exit_code(exit_code: i32) -> ExitTaxonomy {
-    match exit_code {
-        0 => ExitTaxonomy::ToolFailure,
-        2 | 64..=78 => ExitTaxonomy::UserError,
+    match exit_code {        2 | 64..=78 => ExitTaxonomy::UserError,
         126 | 127 => ExitTaxonomy::ContractViolation,
         _ => ExitTaxonomy::ToolFailure,
     }
@@ -211,7 +214,10 @@ fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
     }
     let raw = std::fs::read_to_string(&manifest_path)?;
     let manifest: serde_json::Value = serde_json::from_str(&raw)?;
-    let stored = manifest.get("output_checksums").cloned().unwrap_or(serde_json::Value::Null);
+    let stored = manifest
+        .get("output_checksums")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null);
     let current = output_checksums(&req.step)?;
     Ok(stored == current && stored != serde_json::Value::Null)
 }
@@ -226,7 +232,8 @@ fn write_crash_bundle(
     let mut inputs = serde_json::Map::new();
     for artifact in &req.step.io.inputs {
         if artifact.path.exists() {
-            let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path).unwrap_or_else(|_| "unknown".to_string());
+            let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path)
+                .unwrap_or_else(|_| "unknown".to_string());
             inputs.insert(
                 artifact.name.to_string(),
                 serde_json::json!({"path": artifact.path, "sha256": checksum}),
@@ -376,8 +383,9 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
     validate_required_outputs(&req.step)?;
     let stage_metrics_path = req.context.stage_root.join("stage.metrics.json");
-    let log_paths = write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
-        .context("write stage logs")?;
+    let log_paths =
+        write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
+            .context("write stage logs")?;
     let stdout_path = logs_dir.join("tool.stdout.log");
     let stderr_path = logs_dir.join("tool.stderr.log");
     let stderr_tail = std::fs::read_to_string(&stderr_path).unwrap_or_default();
@@ -385,7 +393,12 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 
     let exit_taxonomy = classify_exit_code(stage_result.exit_code);
     if stage_result.exit_code != 0 {
-        let _ = write_crash_bundle(req, &stderr_tail, stage_result.exit_code, &stage_result.command);
+        let _ = write_crash_bundle(
+            req,
+            &stderr_tail,
+            stage_result.exit_code,
+            &stage_result.command,
+        );
         let message = format!(
             "tool {} failed with exit code {} ({exit_taxonomy:?})\nstdout_tail:\n{}\nstderr_tail:\n{}",
             req.context.tool_id,
@@ -522,8 +535,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 mod tests {
     use super::*;
     use bijux_dna_core::contract::{ArtifactRole, ArtifactSpec, StageIO, ToolConstraints};
-    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
     use tempfile::TempDir;
 
     #[test]

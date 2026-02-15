@@ -6,7 +6,6 @@
 //! - Any power-user/internal exports must be behind a feature gate.
 
 #![allow(hidden_glob_reexports)]
-#![allow(clippy::match_same_arms, clippy::too_many_lines)]
 
 pub(crate) mod explain;
 pub(crate) mod fastq_stats_neutral;
@@ -18,9 +17,9 @@ pub(crate) mod api_internal {
 pub(crate) mod cross_runtime;
 pub(crate) mod execution_kernel;
 pub(crate) mod input_validation;
-pub(crate) mod support;
 pub(crate) mod request_args;
 pub(crate) mod run;
+pub(crate) mod support;
 pub(crate) mod writers;
 pub(crate) use support::qa;
 pub(crate) use support::reference_resolution;

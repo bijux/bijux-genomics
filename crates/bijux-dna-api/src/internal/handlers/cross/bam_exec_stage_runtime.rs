@@ -1,4 +1,3 @@
-#[allow(clippy::too_many_lines)]
 pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -51,7 +50,6 @@ fn should_skip_bam_truth_stage(stage: bijux_dna_planner_bam::stage_api::BamStage
     false
 }
 
-#[allow(clippy::too_many_arguments)]
 fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -152,7 +150,6 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     Ok(StageExecutionSummary { plan: step, result })
 }
 
-#[allow(clippy::too_many_lines)]
 pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,

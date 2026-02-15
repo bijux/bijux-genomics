@@ -251,7 +251,6 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 ///
 /// # Errors
 /// Returns an error if planning or execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

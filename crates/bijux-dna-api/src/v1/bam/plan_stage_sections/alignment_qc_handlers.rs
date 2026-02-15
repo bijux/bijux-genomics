@@ -89,30 +89,21 @@ fn plan_alignment_qc_stage(
             sample_id: args.sample_id.as_deref(),
             params: None,
         }),
-        bijux_dna_planner_bam::stage_api::BamStage::QcPre => plan(StagePlanRequest {
-            stage_id: stage.as_str(),
-            tool: spec,
-            out_dir,
-            bam: Some(&args.bam),
-            bam_index: args.bai.as_deref(),
-            r1: None,
-            r2: None,
-            reference: None,
-            sample_id: args.sample_id.as_deref(),
-            params: None,
-        }),
-        bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => plan(StagePlanRequest {
-            stage_id: stage.as_str(),
-            tool: spec,
-            out_dir,
-            bam: Some(&args.bam),
-            bam_index: args.bai.as_deref(),
-            r1: None,
-            r2: None,
-            reference: None,
-            sample_id: args.sample_id.as_deref(),
-            params: None,
-        }),
+        bijux_dna_planner_bam::stage_api::BamStage::QcPre
+        | bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: None,
+            })
+        }
         bijux_dna_planner_bam::stage_api::BamStage::Filter => {
             let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
             let default_params = profile

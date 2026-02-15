@@ -93,7 +93,6 @@ fn infer_alignment_regime(profile: &PipelineProfile, args: &FastqCrossArgs) -> A
         return match explicit.as_str() {
             "adna" => AlignmentRegime::Adna,
             "edna" | "pollen" => AlignmentRegime::Edna,
-            "modern" => AlignmentRegime::Modern,
             _ => AlignmentRegime::Modern,
         };
     }

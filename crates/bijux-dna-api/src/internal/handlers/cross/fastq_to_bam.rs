@@ -21,7 +21,6 @@ use bijux_dna_pipelines::{Domain, InvariantsPreset, PipelineProfile};
 use bijux_dna_planner_bam::stage_api::BamStage;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 
-#[allow(clippy::too_many_lines)]
 /// # Errors
 /// Returns an error if pipeline planning or execution fails.
 pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(

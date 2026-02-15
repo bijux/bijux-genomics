@@ -4,7 +4,7 @@ use bijux_dna_environment::api::RuntimeKind;
 use crate::execution_kernel::{invoke_tool, ToolInvocationRequest};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct RuntimeParityResult {
+pub(crate) struct RuntimeParityResult {
     pub primary_runtime: String,
     pub secondary_runtime: String,
     pub primary_exit: i32,

@@ -81,13 +81,14 @@ pub(crate) fn render_bam_summary(
     })
 }
 
-fn find_authenticity_composite(
-    stage_runs: &[StageExecutionSummary],
-) -> Option<serde_json::Value> {
+fn find_authenticity_composite(stage_runs: &[StageExecutionSummary]) -> Option<serde_json::Value> {
     let authenticity = stage_runs
         .iter()
         .find(|entry| entry.plan.step_id.0 == "bam.authenticity")?;
-    let path = authenticity.plan.out_dir.join("authenticity_composite.json");
+    let path = authenticity
+        .plan
+        .out_dir
+        .join("authenticity_composite.json");
     let raw = std::fs::read_to_string(path).ok()?;
     serde_json::from_str(&raw).ok()
 }
@@ -100,7 +101,10 @@ fn read_json_if_exists(path: &std::path::Path) -> Option<serde_json::Value> {
     serde_json::from_str(&raw).ok()
 }
 
-fn stage_dir_for(stage_runs: &[StageExecutionSummary], stage_id: &str) -> Option<std::path::PathBuf> {
+fn stage_dir_for(
+    stage_runs: &[StageExecutionSummary],
+    stage_id: &str,
+) -> Option<std::path::PathBuf> {
     Some(
         stage_runs
             .iter()
