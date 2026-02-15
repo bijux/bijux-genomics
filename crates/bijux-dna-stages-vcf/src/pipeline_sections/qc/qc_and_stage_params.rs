@@ -589,6 +589,7 @@ pub struct PostprocessStageParams {
     pub compression_threads: usize,
     pub emit_bcf: bool,
     pub normalize_indels: bool,
+    pub split_multiallelic: bool,
     pub run_level_checksums_path: Option<PathBuf>,
 }
 

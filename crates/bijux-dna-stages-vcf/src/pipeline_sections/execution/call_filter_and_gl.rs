@@ -652,7 +652,9 @@ pub fn run_filter_stage_real(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let filtered_vcf = out_dir.join("filtered.vcf.gz");
-    let filtered_tbi = write_vcf_with_best_effort_index(&filtered_vcf, &out, "vcf_filter")?;
+    let normalized = normalize_header_sample_order(&out);
+    let filtered_tbi =
+        write_vcf_with_best_effort_index(&filtered_vcf, &normalized, "vcf_filter")?;
     let filter_breakdown_json = out_dir.join("filter_breakdown.json");
     atomic_write_json(
         &filter_breakdown_json,
