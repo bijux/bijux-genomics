@@ -5,21 +5,14 @@ use bijux_dna_core::ids::ToolId;
 use bijux_dna_domain_bam::BamStage;
 
 fn registry_toml() -> Option<toml::Value> {
-    let cwd = std::env::current_dir().ok()?;
-    let mut candidates = vec![bijux_dna_infra::configs_file(
-        &cwd,
-        "ci/registry/tool_registry.toml",
-    )];
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    candidates.push(
-        manifest_dir
-            .parent()
-            .and_then(std::path::Path::parent)
-            .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?,
-    );
-    let path = candidates
-        .into_iter()
-        .find(|candidate| candidate.exists())?;
+    let path = manifest_dir
+        .parent()
+        .and_then(std::path::Path::parent)
+        .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?;
+    if !path.exists() {
+        return None;
+    }
     let raw = std::fs::read_to_string(path).ok()?;
     raw.parse::<toml::Value>().ok()
 }
