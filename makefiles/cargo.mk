@@ -138,7 +138,7 @@ _lint:
 	@log_dir="$(ARTIFACTS_DIR)/lint-parallel"; \
 	rm -rf "$$log_dir"; \
 	mkdir -p "$$log_dir"; \
-	printf '%s\n' '$(LINT_SCRIPT_COMMANDS)' > "$$log_dir/commands.txt"
+	printf '%s\n' "$(LINT_SCRIPT_COMMANDS)" > "$$log_dir/commands.txt"
 	@echo "Running lint script gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@xargs -I{} -P "$(LINT_PARALLEL_JOBS)" sh -c '\
 		cmd="$$1"; \
