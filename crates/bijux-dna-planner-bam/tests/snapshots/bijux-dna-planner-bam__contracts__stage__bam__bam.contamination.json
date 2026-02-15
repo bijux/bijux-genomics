@@ -1,52 +1,50 @@
 {
-  "stage_id": "bam.contamination",
-  "stage_version": 1,
-  "tool_id": "schmutzi",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
       "-c",
-      "schmutzi --bam tests/fixtures/plan_inputs/default/sample.bam > out/contamination.json && python - <<'PY' > out/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
+      "schmutzi --bam tests/fixtures/plan_inputs/default/sample.bam --outdir out && if [ -f out/contamination.txt ]; then cp out/contamination.txt out/contamination.json; else : > out/contamination.json; fi && python - <<'PY' > out/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "assumptions": null,
+    "prior": null,
+    "reference_panels": [],
+    "scope": "both",
+    "sex_specific": false
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "contamination_report",
+        "optional": false,
         "path": "out/contamination.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/contamination.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -60,20 +58,22 @@
     "sex_specific": false,
     "tool_scope": "mt"
   },
-  "effective_params": {
-    "assumptions": null,
-    "prior": null,
-    "reference_panels": [],
-    "scope": "both",
-    "sex_specific": false
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool schmutzi selected by planner",
     "details": {
       "contract_hash": "8df77206163efea7385ccca601f4b5ed9479d6eba1b72978f32d50c9f961894b",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool schmutzi selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.contamination",
+  "stage_version": 1,
+  "tool_id": "schmutzi",
+  "tool_version": "1.0.0"
 }

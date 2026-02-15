@@ -1,52 +1,46 @@
 {
-  "stage_id": "bam.authenticity",
-  "stage_version": 1,
-  "tool_id": "authenticct",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
       "-c",
-      "authenticity_tool --input tests/fixtures/plan_inputs/default/sample.bam --mode aggregate > out/authenticity.json && python - <<'PY' > out/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"authenticity_tool\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
+      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/authenticity.flagstat.txt && samtools stats tests/fixtures/plan_inputs/default/sample.bam > out/authenticity.stats.txt && python - <<'PY' out/authenticity.flagstat.txt out/authenticity.stats.txt > out/authenticity.json\nimport json,sys\nflagstat,stats=sys.argv[1],sys.argv[2]\nprint(json.dumps({\"method\":\"signal_aggregate\",\"flagstat\":flagstat,\"stats\":stats,\"mode\":\"aggregate\"}, indent=2))\nPY && python - <<'PY' > out/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"signal_aggregate\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "mode": "aggregate"
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "authenticity_report",
+        "optional": false,
         "path": "out/authenticity.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/authenticity.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -56,16 +50,22 @@
     "mode": "aggregate",
     "pmd_filter_enabled": false
   },
-  "effective_params": {
-    "mode": "aggregate"
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool authenticct selected by planner",
     "details": {
       "contract_hash": "84e5f63b61c5ab607b9fc5e16f094f7aa2c90e649f7615f0dc8119632c741927",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool authenticct selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.authenticity",
+  "stage_version": 1,
+  "tool_id": "authenticct",
+  "tool_version": "1.0.0"
 }

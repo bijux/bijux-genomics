@@ -73,8 +73,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "echo",
-          "bam.authenticity"
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -87,7 +88,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -142,7 +143,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -182,10 +183,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "mosdepth",
-          "-n",
-          "coverage",
-          "markdup.bam"
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -198,7 +198,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -235,7 +235,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "pydamage",
           "analyze",
           "--input",
-          "markdup.bam",
+          "filtered.bam",
           "--output",
           "damage.pydamage.json",
           "--min-mapq",
@@ -252,7 +252,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -313,45 +313,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
-            "name": "markdup_bam",
+            "name": "duplication_report",
             "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          },
-          {
-            "name": "markdup_bai",
-            "optional": false,
-            "path": "markdup.bam.bai",
-            "role": "index"
-          },
-          {
-            "name": "flagstat_before",
-            "optional": false,
-            "path": "flagstat.before.txt",
+            "path": "duplication.metrics.json",
             "role": "report_json"
           },
           {
-            "name": "flagstat_after",
+            "name": "duplication_histogram",
             "optional": false,
-            "path": "flagstat.after.txt",
-            "role": "report_json"
-          },
-          {
-            "name": "idxstats_before",
-            "optional": false,
-            "path": "idxstats.before.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "idxstats_after",
-            "optional": false,
-            "path": "idxstats.after.txt",
+            "path": "duplication.histogram.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "markdup.summary.json",
+            "path": "duplication.summary.json",
             "role": "report_json"
           },
           {
@@ -377,10 +353,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "mosdepth",
-          "-n",
-          "coverage",
-          "markdup.bam"
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -393,7 +368,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -512,8 +487,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "echo",
-          "bam.kinship"
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -526,7 +502,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -653,7 +629,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "sh",
           "-c",
-          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt"
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -688,6 +664,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "samtools_stats.txt",
             "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "mapping.summary.json",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
@@ -812,7 +794,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "markdup.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
