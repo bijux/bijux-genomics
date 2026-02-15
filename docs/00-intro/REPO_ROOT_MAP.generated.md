@@ -27,6 +27,7 @@ Top-level workspace paths only.
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `bin` | `dir` | `-` | runtime boundary helpers for strict isolated execution. |
+| `clippy.toml` | `file` | `-` | - |
 | `configs` | `dir` | `-` | - |
 | `containers` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |
