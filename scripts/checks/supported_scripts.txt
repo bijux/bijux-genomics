@@ -44,6 +44,7 @@ scripts/checks/check-output-roots.sh
 scripts/checks/check-readme-links.sh
 scripts/checks/check-registry-split.sh
 scripts/checks/check-root-layout.sh
+scripts/checks/check-run-directory-layout.sh
 scripts/checks/check-script-arg-style.sh
 scripts/checks/check-script-deps.sh
 scripts/checks/check-script-help.sh
