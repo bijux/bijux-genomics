@@ -199,9 +199,10 @@ fn vcf_planner_refuses_unknown_stage_knob_override() {
 #[test]
 fn vcf_planner_refuses_tool_not_declared_in_required_tools_lists() {
     let mut input = base_inputs(CoverageRegime::Diploid);
-    input
-        .stage_tool_overrides
-        .insert("vcf.impute".to_string(), "not_a_real_required_tool".to_string());
+    input.stage_tool_overrides.insert(
+        "vcf.impute".to_string(),
+        "not_a_real_required_tool".to_string(),
+    );
     let err = plan_vcf_stage_plans(&input).expect_err("unknown required tool override must fail");
     assert!(
         err.to_string().contains("required_tools_vcf"),

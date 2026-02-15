@@ -147,7 +147,9 @@ pub(crate) fn validate_generated_stage_params(
         .ok_or_else(|| anyhow!("internal planner params for {stage_id} must be a JSON object"))?;
     for key in obj.keys() {
         if !allowed.contains(key) {
-            bail!("unregistered knob for {stage_id}: `{key}` (add to param_registry_downstream.toml)");
+            bail!(
+                "unregistered knob for {stage_id}: `{key}` (add to param_registry_downstream.toml)"
+            );
         }
     }
     Ok(())

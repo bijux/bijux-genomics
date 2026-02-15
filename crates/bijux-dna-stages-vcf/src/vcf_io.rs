@@ -53,7 +53,10 @@ fn parse_key(line: &str) -> Option<(String, u64)> {
 }
 
 fn read_vcf_text(path: &Path) -> Result<String> {
-    let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
+    let ext = path
+        .extension()
+        .and_then(|x| x.to_str())
+        .unwrap_or_default();
     if ext == "gz" || ext == "bcf" {
         return run_cmd(
             "bcftools",
@@ -89,7 +92,10 @@ pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfV
         .and_then(|x| x.to_str())
         .is_some_and(|x| x == "gz" || x == "bcf");
     if !bgzip {
-        bail!("vcf_validate_input: expected .vcf.gz or .bcf input: {}", input.display());
+        bail!(
+            "vcf_validate_input: expected .vcf.gz or .bcf input: {}",
+            input.display()
+        );
     }
     let tabix = if input.extension().and_then(|x| x.to_str()) == Some("bcf") {
         input.with_extension("bcf.csi").exists() || input.with_extension("csi").exists()
@@ -98,7 +104,10 @@ pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfV
         tbi.exists()
     };
     if !tabix {
-        bail!("vcf_validate_input: missing tabix/csi index for {}", input.display());
+        bail!(
+            "vcf_validate_input: missing tabix/csi index for {}",
+            input.display()
+        );
     }
     let raw = read_vcf_text(input)?;
     let headers = raw
@@ -243,7 +252,10 @@ pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<Pa
     ];
     let _ = run_cmd("tabix", &tabix_args)?;
     if !output_tbi.exists() {
-        bail!("vcf_index_bgzip_tabix: tabix did not create {}", output_tbi.display());
+        bail!(
+            "vcf_index_bgzip_tabix: tabix did not create {}",
+            output_tbi.display()
+        );
     }
     Ok(output_tbi)
 }
@@ -363,7 +375,11 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
 
 /// # Errors
 /// Returns an error if region extraction fails or boundaries look inconsistent.
-pub fn vcf_region_extract(input_vcfgz: &Path, regions_file: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
+pub fn vcf_region_extract(
+    input_vcfgz: &Path,
+    regions_file: &Path,
+    output_vcfgz: &Path,
+) -> Result<PathBuf> {
     let _ = run_cmd(
         "bcftools",
         &[

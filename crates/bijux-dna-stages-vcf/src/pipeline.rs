@@ -6,7 +6,6 @@ use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
 use bijux_dna_domain_vcf::{
     contracts::SpeciesContext,
     params::{VcfCallParams, VcfFilterParams, VcfStatsParams},
-    taxonomy::VcfDomainStage,
     VcfStatsMetricsV1,
 };
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
