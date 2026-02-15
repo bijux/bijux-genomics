@@ -45,6 +45,7 @@ pub struct StageParamDescriptor {
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
     if stage_id == &STAGE_VALIDATE_PRE {
         return Some(StageParamDescriptor {
@@ -214,11 +215,11 @@ impl EffectiveParams {
             Self::Screen(params) => params.missing_required_fields(),
             Self::QcPost(params) => params.missing_required_fields(),
             Self::Preprocess(params) => params.missing_required_fields(),
-            Self::PrimerNormalization(_) => Vec::new(),
-            Self::ChimeraDetection(_) => Vec::new(),
-            Self::AsvInference(_) => Vec::new(),
-            Self::OtuClustering(_) => Vec::new(),
-            Self::AbundanceNormalization(_) => Vec::new(),
+            Self::PrimerNormalization(_)
+            | Self::ChimeraDetection(_)
+            | Self::AsvInference(_)
+            | Self::OtuClustering(_)
+            | Self::AbundanceNormalization(_) => Vec::new(),
         }
     }
 

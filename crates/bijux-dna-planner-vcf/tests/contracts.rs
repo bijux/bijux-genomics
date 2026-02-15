@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::unreadable_literal)]
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 

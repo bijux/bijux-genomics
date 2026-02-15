@@ -79,6 +79,7 @@ pub struct ContigSpec {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct EntryVcfInvariantState {
     pub build_id: String,
     pub contig_set_digest: String,
@@ -90,6 +91,7 @@ pub struct EntryVcfInvariantState {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PanelMapInvariantState {
     pub species_id: String,
     pub build_id: String,
@@ -153,7 +155,7 @@ impl PanelSelectionPolicy for DefaultPanelSelectionPolicy {
                         .any(|entry| entry.contains("restricted"))
             })
             .find(|panel| {
-                context.ancestry_hint.as_ref().is_none_or(|hint| {
+                context.ancestry_hint.as_ref().map_or(true, |hint| {
                     panel
                         .ancestry_tags
                         .iter()
@@ -164,6 +166,7 @@ impl PanelSelectionPolicy for DefaultPanelSelectionPolicy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct VcfInvariantState {
     pub sorted_by_contig_and_pos: bool,
     pub bgzip_compressed: bool,
@@ -174,17 +177,20 @@ pub struct VcfInvariantState {
 
 /// # Errors
 /// Returns an error when required VCF invariants are violated for the stage.
-pub fn validate_vcf_invariants(stage: VcfDomainStage, state: &VcfInvariantState) -> Result<()> {
-    if !state.sorted_by_contig_and_pos {
+pub fn validate_vcf_invariants(
+    stage: VcfDomainStage,
+    invariants: &VcfInvariantState,
+) -> Result<()> {
+    if !invariants.sorted_by_contig_and_pos {
         bail!("{} requires sorted VCF records", stage.as_str());
     }
-    if !state.sample_set_consistent {
+    if !invariants.sample_set_consistent {
         bail!(
             "{} requires sample consistency across inputs",
             stage.as_str()
         );
     }
-    if !state.contig_set_consistent {
+    if !invariants.contig_set_consistent {
         bail!(
             "{} requires contig consistency across inputs",
             stage.as_str()
@@ -201,10 +207,10 @@ pub fn validate_vcf_invariants(stage: VcfDomainStage, state: &VcfInvariantState)
             | VcfDomainStage::Postprocess
             | VcfDomainStage::Stats
     );
-    if requires_bgzip && !state.bgzip_compressed {
+    if requires_bgzip && !invariants.bgzip_compressed {
         bail!("{} requires bgzip-compressed VCF", stage.as_str());
     }
-    if requires_bgzip && !state.tabix_index_present {
+    if requires_bgzip && !invariants.tabix_index_present {
         bail!("{} requires tabix index", stage.as_str());
     }
     Ok(())
@@ -464,100 +470,115 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
+    const CALL_METRICS: &[&str] = &["variants_called", "snps", "indels"];
+    const CALL_DIPLOID_METRICS: &[&str] = &["diploid_called_variants", "het_rate"];
+    const CALL_GL_METRICS: &[&str] = &["gl_sites_count", "mean_gl_depth", "gl_parameter_profile"];
+    const CALL_PSEUDOHAPLOID_METRICS: &[&str] = &[
+        "pseudo_called_sites",
+        "pseudo_missing_rate",
+        "pseudo_sampling_seed",
+    ];
+    const DAMAGE_FILTER_METRICS: &[&str] = &[
+        "ct_ga_masked_sites",
+        "pmd_filtered_reads",
+        "damage_strategy_applied",
+    ];
+    const PHASING_METRICS: &[&str] = &["switch_error_proxy", "phase_block_n50"];
+    const IMPUTATION_METRICS: &[&str] = &[
+        "imputed_variant_count",
+        "imputation_info_mean",
+        "rsq_mean",
+        "missingness_pre",
+        "missingness_post",
+        "shared_variants_count",
+        "per_chr_overlap",
+        "readiness_for_ibd_roh",
+    ];
+    const POP_STRUCTURE_METRICS: &[&str] = &["pc1_variance", "pc2_variance", "cluster_count"];
+    const IBD_METRICS: &[&str] = &[
+        "ibd_segment_count",
+        "ibd_total_length_cM",
+        "pairwise_ibd_sharing_matrix",
+    ];
+    const ROH_METRICS: &[&str] = &["roh_count", "roh_total_mb", "roh_mean_length_mb"];
+    const DEMOGRAPHY_METRICS: &[&str] = &["ne_recent", "ne_time_series", "ne_confidence_interval"];
+    const QC_METRICS: &[&str] = &[
+        "missingness_post",
+        "imputation_info_mean",
+        "rsq_mean",
+        "strand_flip_like_sites",
+        "allele_frequency_shift_abs_mean",
+        "residual_ct_ga_asymmetry",
+        "lowcov_uncertainty_mean",
+        "concordance",
+        "readiness_for_ibd_roh",
+    ];
+    const STATS_METRICS: &[&str] = &["variants_total", "ti_tv"];
+
     match stage {
         VcfDomainStage::Call => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.call.v1",
-            required_metrics: &["variants_called", "snps", "indels"],
+            required_metrics: CALL_METRICS,
         },
         VcfDomainStage::CallDiploid => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.call_diploid.v1",
-            required_metrics: &["diploid_called_variants", "het_rate"],
+            required_metrics: CALL_DIPLOID_METRICS,
         },
         VcfDomainStage::CallGl => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.call_gl.v1",
-            required_metrics: &["gl_sites_count", "mean_gl_depth", "gl_parameter_profile"],
+            required_metrics: CALL_GL_METRICS,
         },
         VcfDomainStage::CallPseudohaploid => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.call_pseudohaploid.v1",
-            required_metrics: &[
-                "pseudo_called_sites",
-                "pseudo_missing_rate",
-                "pseudo_sampling_seed",
-            ],
+            required_metrics: CALL_PSEUDOHAPLOID_METRICS,
         },
         VcfDomainStage::DamageFilter => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.damage_filter.v1",
-            required_metrics: &[
-                "ct_ga_masked_sites",
-                "pmd_filtered_reads",
-                "damage_strategy_applied",
-            ],
+            required_metrics: DAMAGE_FILTER_METRICS,
         },
         VcfDomainStage::Phasing => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.phasing.v1",
-            required_metrics: &["switch_error_proxy", "phase_block_n50"],
+            required_metrics: PHASING_METRICS,
         },
         VcfDomainStage::Imputation | VcfDomainStage::Impute => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.imputation.v1",
-            required_metrics: &[
-                "imputed_variant_count",
-                "imputation_info_mean",
-                "rsq_mean",
-                "missingness_pre",
-                "missingness_post",
-                "shared_variants_count",
-                "per_chr_overlap",
-                "readiness_for_ibd_roh",
-            ],
+            required_metrics: IMPUTATION_METRICS,
         },
         VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture => {
             StageMetricsContract {
                 stage,
                 metrics_schema_id: "bijux.vcf.population_structure.v1",
-                required_metrics: &["pc1_variance", "pc2_variance", "cluster_count"],
+                required_metrics: POP_STRUCTURE_METRICS,
             }
         }
         VcfDomainStage::Ibd => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.ibd.v1",
-            required_metrics: &[
-                "ibd_segment_count",
-                "ibd_total_length_cM",
-                "pairwise_ibd_sharing_matrix",
-            ],
+            required_metrics: IBD_METRICS,
         },
         VcfDomainStage::Roh => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.roh.v1",
-            required_metrics: &["roh_count", "roh_total_mb", "roh_mean_length_mb"],
+            required_metrics: ROH_METRICS,
         },
         VcfDomainStage::Demography => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.demography.v1",
-            required_metrics: &["ne_recent", "ne_time_series", "ne_confidence_interval"],
+            required_metrics: DEMOGRAPHY_METRICS,
         },
         VcfDomainStage::Qc => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.qc.v1",
-            required_metrics: &[
-                "missingness_post",
-                "imputation_info_mean",
-                "rsq_mean",
-                "strand_flip_like_sites",
-                "allele_frequency_shift_abs_mean",
-                "residual_ct_ga_asymmetry",
-                "lowcov_uncertainty_mean",
-                "concordance",
-                "readiness_for_ibd_roh",
-            ],
+            required_metrics: QC_METRICS,
         },
         VcfDomainStage::Postprocess
         | VcfDomainStage::PrepareReferencePanel
@@ -566,7 +587,7 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         | VcfDomainStage::Stats => StageMetricsContract {
             stage,
             metrics_schema_id: "bijux.vcf.stats.v1",
-            required_metrics: &["variants_total", "ti_tv"],
+            required_metrics: STATS_METRICS,
         },
     }
 }

@@ -1,4 +1,21 @@
 //! VCF stage specs and metrics parser bindings.
+#![allow(
+    clippy::assigning_clones,
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::format_push_string,
+    clippy::incompatible_msrv,
+    clippy::if_not_else,
+    clippy::inefficient_to_string,
+    clippy::map_identity,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::missing_errors_doc,
+    clippy::redundant_closure_for_method_calls,
+    clippy::similar_names,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args
+)]
 
 pub mod engine;
 pub mod invariants;

@@ -1,5 +1,11 @@
 mod contracts {
-    #![allow(unused_imports)]
+    #![allow(
+        clippy::expect_used,
+        clippy::redundant_closure_for_method_calls,
+        clippy::too_many_lines,
+        clippy::unreadable_literal,
+        unused_imports
+    )]
     use std::path::Path;
 
     use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};

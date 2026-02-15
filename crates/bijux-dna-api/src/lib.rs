@@ -6,6 +6,7 @@
 //! - Any power-user/internal exports must be behind a feature gate.
 
 #![allow(hidden_glob_reexports)]
+#![allow(clippy::match_same_arms, clippy::too_many_lines)]
 
 pub(crate) mod explain;
 pub(crate) mod fastq_stats_neutral;

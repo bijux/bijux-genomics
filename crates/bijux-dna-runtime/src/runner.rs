@@ -57,8 +57,7 @@ mod stage_runner_contract {
         fn supports_stage(&self, stage_id: &str) -> bool {
             stage_id
                 .split_once('.')
-                .map(|(domain, _)| domain == self.stage_domain)
-                .unwrap_or(false)
+                .is_some_and(|(domain, _)| domain == self.stage_domain)
         }
     }
 
@@ -118,9 +117,7 @@ mod stage_runner_contract {
             return Ok(());
         }
         Err(anyhow!(
-            "runner {} has no stage-runner contract for stage {}",
-            runner,
-            stage_id
+            "runner {runner} has no stage-runner contract for stage {stage_id}",
         ))
     }
 }

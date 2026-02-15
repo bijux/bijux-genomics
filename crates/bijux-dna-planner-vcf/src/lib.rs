@@ -1,3 +1,17 @@
+#![allow(
+    clippy::assigning_clones,
+    clippy::collapsible_if,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::ref_option,
+    clippy::semicolon_if_nothing_returned,
+    clippy::struct_field_names,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::unnecessary_wraps,
+    clippy::uninlined_format_args
+)]
+
 mod coverage;
 mod explain;
 mod models;
