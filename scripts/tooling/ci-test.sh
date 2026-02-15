@@ -31,7 +31,7 @@ nextest_profile="${NEXTEST_PROFILE:-$cfg_profile}"
 nextest_threads="${NEXTEST_TEST_THREADS:-$cfg_threads}"
 nextest_no_tests="${NEXTEST_NO_TESTS:-pass}"
 run_ignored="${RUN_IGNORED:-$cfg_run_ignored}"
-nextest_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
+nextest_expr="${NEXTEST_FAST_EXPR:-all()}"
 
 ./bin/isolate sh -ceu "
 ./bin/require-isolate >/dev/null
