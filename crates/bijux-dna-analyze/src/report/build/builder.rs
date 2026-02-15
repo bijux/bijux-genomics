@@ -416,6 +416,45 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 "depth_distribution": depth_distribution,
             })),
         );
+        let downstream_rows = ordered
+            .iter()
+            .filter(|row| {
+                matches!(
+                    row.stage_id.as_str(),
+                    "vcf.pca"
+                        | "vcf.population_structure"
+                        | "vcf.roh"
+                        | "vcf.ibd"
+                        | "vcf.demography"
+                        | "vcf.impute"
+                )
+            })
+            .collect::<Vec<_>>();
+        let downstream_sections = downstream_rows
+            .iter()
+            .map(|row| {
+                serde_json::json!({
+                    "stage_id": row.stage_id,
+                    "tool_id": row.tool_id,
+                    "runtime_s": row.runtime_s,
+                    "metrics": {
+                        "variant_density_per_mb": row.metrics.get("variant_density_per_mb").cloned().unwrap_or(serde_json::Value::Null),
+                        "missingness_block_count": row.metrics.get("missingness_block_count").cloned().unwrap_or(serde_json::Value::Null),
+                        "roh_total_mb": row.metrics.get("roh_total_mb").cloned().unwrap_or(serde_json::Value::Null),
+                        "ibd_segment_count": row.metrics.get("ibd_segment_count").cloned().unwrap_or(serde_json::Value::Null),
+                        "ibd_total_length_cM": row.metrics.get("ibd_total_length_cM").cloned().unwrap_or(serde_json::Value::Null),
+                        "ne_recent": row.metrics.get("ne_recent").cloned().unwrap_or(serde_json::Value::Null),
+                    }
+                })
+            })
+            .collect::<Vec<_>>();
+        sections.insert(
+            "vcf_downstream".to_string(),
+            JsonBlob::new(serde_json::json!({
+                "schema_version": "bijux.vcf.downstream.reporting.v1",
+                "stages": downstream_sections,
+            })),
+        );
     }
     if ordered
         .iter()
