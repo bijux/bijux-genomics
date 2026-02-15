@@ -42,6 +42,16 @@ use bijux_dna_runtime::{
     StageReportV1, TelemetryEventV1,
 };
 
+fn required_vcf_metric_keys(stage_id: &str) -> &'static [&'static str] {
+    match stage_id {
+        "vcf.impute" => &["imputation_info_mean", "rsq_mean", "missingness_post"],
+        "vcf.roh" => &["roh_total_mb"],
+        "vcf.ibd" => &["ibd_segment_count", "ibd_total_length_cM"],
+        "vcf.demography" => &["ne_recent"],
+        _ => &[],
+    }
+}
+
 /// Build a run report model from facts rows.
 ///
 /// # Errors
@@ -123,6 +133,16 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 .or_default()
                 .0
                 .push("metrics".to_string());
+        }
+        for key in required_vcf_metric_keys(&row.stage_id) {
+            if row.metrics.get(*key).is_none() {
+                missing_metrics.push(format!("{}:{key}", row.stage_id));
+                missing_by_stage
+                    .entry(row.stage_id.clone())
+                    .or_default()
+                    .0
+                    .push((*key).to_string());
+            }
         }
 
         let retention_report_path = report_path_for(&row.reports, "retention_report");
@@ -211,6 +231,22 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 );
             }
         }
+    }
+    let missing_vcf_required = missing_metrics
+        .iter()
+        .filter(|entry| {
+            entry.starts_with("vcf.")
+                && !entry.ends_with(":metrics")
+                && !entry.ends_with(":stage_report")
+                && !entry.ends_with(":metrics_path")
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing_vcf_required.is_empty() {
+        return Err(anyhow::anyhow!(
+            "vcf downstream report contract violation: missing required metrics [{}]",
+            missing_vcf_required.join(", ")
+        ));
     }
 
     telemetry_events.sort();
@@ -444,14 +480,30 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                         "ibd_segment_count": row.metrics.get("ibd_segment_count").cloned().unwrap_or(serde_json::Value::Null),
                         "ibd_total_length_cM": row.metrics.get("ibd_total_length_cM").cloned().unwrap_or(serde_json::Value::Null),
                         "ne_recent": row.metrics.get("ne_recent").cloned().unwrap_or(serde_json::Value::Null),
+                        "imputation_info_mean": row.metrics.get("imputation_info_mean").cloned().unwrap_or(serde_json::Value::Null),
+                        "rsq_mean": row.metrics.get("rsq_mean").cloned().unwrap_or(serde_json::Value::Null),
+                        "missingness_post": row.metrics.get("missingness_post").cloned().unwrap_or(serde_json::Value::Null),
                     }
                 })
             })
             .collect::<Vec<_>>();
+        let impute_qc_summary = downstream_rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.impute")
+            .map_or(serde_json::json!({}), |row| {
+                serde_json::json!({
+                    "imputation_info_mean": row.metrics.get("imputation_info_mean").cloned().unwrap_or(serde_json::Value::Null),
+                    "rsq_mean": row.metrics.get("rsq_mean").cloned().unwrap_or(serde_json::Value::Null),
+                    "missingness_pre": row.metrics.get("missingness_pre").cloned().unwrap_or(serde_json::Value::Null),
+                    "missingness_post": row.metrics.get("missingness_post").cloned().unwrap_or(serde_json::Value::Null),
+                    "shared_variants_count": row.metrics.get("shared_variants_count").cloned().unwrap_or(serde_json::Value::Null),
+                })
+            });
         sections.insert(
             "vcf_downstream".to_string(),
             JsonBlob::new(serde_json::json!({
                 "schema_version": "bijux.vcf.downstream.reporting.v1",
+                "qc_summary": impute_qc_summary,
                 "stages": downstream_sections,
             })),
         );

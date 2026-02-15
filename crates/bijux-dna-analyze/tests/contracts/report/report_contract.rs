@@ -1,5 +1,7 @@
 use anyhow::Result;
-use bijux_dna_analyze::{load::load_facts, report::write_run_report_from_facts};
+use bijux_dna_analyze::{
+    load::load_facts, report::build_run_report_model, report::write_run_report_from_facts,
+};
 use bijux_dna_core::prelude::{InvariantStatusV1, StageVerdictV1};
 use bijux_dna_runtime::{FactsRowV1, ReportSchemaV1, StageReportV1};
 use std::fs;
@@ -188,4 +190,49 @@ fn load_report_snapshot() -> Result<serde_json::Value> {
         .join(snapshot_file);
     let raw = fs::read_to_string(&path)?;
     Ok(serde_json::from_str(&raw)?)
+}
+
+#[test]
+fn vcf_downstream_missing_required_metrics_fails_loudly() {
+    let row = FactsRowV1 {
+        schema_version: "bijux.facts.v1".to_string(),
+        run_id: "run-vcf-contract".to_string(),
+        stage_id: "vcf.impute".to_string(),
+        tool_id: "beagle".to_string(),
+        tool_version: "5.4".to_string(),
+        image_digest: Some(
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+        ),
+        trace_id: "trace".to_string(),
+        span_id: "span".to_string(),
+        params_hash: "params".to_string(),
+        input_hash: "input".to_string(),
+        output_hashes: vec![],
+        runtime_s: 1.0,
+        memory_mb: 128.0,
+        exit_code: 0,
+        bank_hashes: serde_json::json!({}),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        metrics: serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.v2",
+            "imputed_variant_count": 10
+        }),
+        reports: serde_json::json!({
+            "stage_report": "missing-stage-report.json"
+        }),
+        artifacts: serde_json::json!({}),
+    };
+    let err = build_run_report_model(std::path::Path::new("."), &[row])
+        .expect_err("expected VCF downstream contract violation");
+    let msg = err.to_string();
+    assert!(
+        msg.contains("vcf downstream report contract violation"),
+        "unexpected error message: {msg}"
+    );
+    assert!(msg.contains("vcf.impute:imputation_info_mean"));
 }
