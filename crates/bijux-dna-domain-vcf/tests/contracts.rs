@@ -203,8 +203,8 @@ mod contracts {
         let requires_bgzip_tabix = OUTPUT_GUARANTEE.requires_bgzip_tabix;
         let deterministic_header_normalization =
             OUTPUT_GUARANTEE.deterministic_header_normalization;
-        assert_eq!(requires_bgzip_tabix, true);
-        assert_eq!(deterministic_header_normalization, true);
+        assert!(requires_bgzip_tabix);
+        assert!(deterministic_header_normalization);
     }
 
     #[test]
