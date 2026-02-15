@@ -110,6 +110,19 @@ pub fn write_artifact_checksums_json(
     let out_path = output_dir.join("artifact_checksums.json");
     write_canonical_json(&out_path, &checksums)
         .with_context(|| format!("write {}", out_path.display()))?;
+    let sha_path = output_dir.join("checksums.sha256");
+    let lines = checksums
+        .iter()
+        .map(|(name, checksum)| format!("{checksum}  {name}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let payload = if lines.is_empty() {
+        String::new()
+    } else {
+        format!("{lines}\n")
+    };
+    write_atomic_bytes(&sha_path, payload.as_bytes())
+        .with_context(|| format!("write {}", sha_path.display()))?;
     Ok(checksums)
 }
 

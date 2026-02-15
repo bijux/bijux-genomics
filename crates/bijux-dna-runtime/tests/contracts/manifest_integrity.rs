@@ -226,3 +226,54 @@ fn run_manifest_writes_profile_and_lock_manifests() {
         "run_manifest.lock.json must exist"
     );
 }
+
+#[test]
+fn artifact_checksums_emit_deterministic_sha256_ledger() {
+    let dir = std::env::temp_dir().join("runtime_checksums_ledger_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+    let a = dir.join("a.txt");
+    let b = dir.join("b.txt");
+    std::fs::write(&a, b"A").unwrap_or_else(|e| panic!("write a: {e}"));
+    std::fs::write(&b, b"B").unwrap_or_else(|e| panic!("write b: {e}"));
+    let _ = bijux_dna_runtime::recording::write_artifact_checksums_json(
+        &dir,
+        &[("a".to_string(), a), ("b".to_string(), b)],
+    )
+    .unwrap_or_else(|e| panic!("write checksums: {e}"));
+    let sha_path = dir.join("checksums.sha256");
+    assert!(sha_path.exists(), "checksums.sha256 must exist");
+    let lines = std::fs::read_to_string(sha_path).unwrap_or_else(|e| panic!("read sha: {e}"));
+    assert!(lines.contains("  a"));
+    assert!(lines.contains("  b"));
+}
+
+#[test]
+fn run_artifact_envelope_has_required_keys() {
+    let dir = std::env::temp_dir().join("runtime_envelope_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+    let path = bijux_dna_runtime::recording::write_run_artifact_envelope(
+        &dir,
+        "bam.validate",
+        bijux_dna_runtime::recording::StageResultStatus::Ok,
+        "SUCCESS",
+    )
+    .unwrap_or_else(|e| panic!("write envelope: {e}"));
+    let raw = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("read envelope: {e}"));
+    let value: serde_json::Value =
+        serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse envelope: {e}"));
+    for key in [
+        "schema_version",
+        "stage_id",
+        "status",
+        "reason_code",
+        "manifest_json",
+        "metrics_json",
+        "checksums",
+        "provenance",
+        "logs",
+    ] {
+        assert!(value.get(key).is_some(), "missing key {key}");
+    }
+}

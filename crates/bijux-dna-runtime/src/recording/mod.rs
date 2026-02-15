@@ -5,11 +5,13 @@
 //! - No heavy dependencies; keep this module lightweight and stable.
 
 mod io;
+mod envelope;
 mod manifests;
 mod metrics;
 mod provenance;
 mod telemetry;
 
+pub use envelope::*;
 pub use io::*;
 pub use manifests::*;
 pub use metrics::*;
