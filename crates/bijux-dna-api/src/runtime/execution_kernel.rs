@@ -229,18 +229,28 @@ fn write_crash_bundle(
     exit_code: i32,
     command: &str,
 ) -> Result<PathBuf> {
-    let crash_path = req.context.stage_root.join("crash.json");
-    let mut inputs = serde_json::Map::new();
+    let crash_path = req.context.stage_root.join("crash_provenance.json");
+    let mut input_list = Vec::new();
     for artifact in &req.step.io.inputs {
         if artifact.path.exists() {
             let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path)
                 .unwrap_or_else(|_| "unknown".to_string());
-            inputs.insert(
-                artifact.name.to_string(),
-                serde_json::json!({"path": artifact.path, "sha256": checksum}),
-            );
+            input_list.push(serde_json::json!({
+                "name": artifact.name,
+                "path": artifact.path,
+                "sha256": checksum
+            }));
         }
     }
+    let stderr_last_lines = stderr_tail
+        .lines()
+        .rev()
+        .take(50)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>();
     let env_subset = serde_json::json!({
         "LC_ALL": std::env::var("LC_ALL").ok(),
         "LANG": std::env::var("LANG").ok(),
@@ -255,8 +265,8 @@ fn write_crash_bundle(
         "tool_id": req.context.tool_id,
         "exit_code": exit_code,
         "command": command,
-        "stderr_tail": stderr_tail,
-        "inputs": inputs,
+        "stderr_last_lines": stderr_last_lines,
+        "inputs": input_list,
         "env_summary": env_subset,
         "tool_digest": req.step.image.digest,
     });
@@ -271,6 +281,20 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     require_pinned_digest(&req.step)?;
     crate::input_validation::validate_stage_inputs(&req.step)?;
     if network_policy_violation(&req.context.network_policy) {
+        let _ = bijux_dna_infra::atomic_write_json(
+            &req.context.stage_root.join("stage_result_status.json"),
+            &serde_json::json!({
+                "schema_version": "bijux.stage_result_status.v1",
+                "status": "refused",
+                "reason_code": "NETWORK_FORBIDDEN",
+            }),
+        );
+        let _ = bijux_dna_runtime::recording::write_run_artifact_envelope(
+            &req.context.stage_root,
+            &req.context.stage_id,
+            bijux_dna_runtime::recording::StageResultStatus::Refused,
+            "NETWORK_FORBIDDEN",
+        );
         bail!(
             "network policy violation: {} forbids network but BIJUX_ALLOW_NETWORK is enabled",
             req.context.stage_id
@@ -286,6 +310,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         .join(&req.context.stage_id)
         .join(req.step.step_id.as_str());
     bijux_dna_infra::ensure_dir(&work_dir)?;
+    let cache_root = req.context.output_root.join("cache");
+    bijux_dna_infra::ensure_dir(&cache_root)?;
     let home_dir = work_dir.join("home");
     bijux_dna_infra::ensure_dir(&home_dir)?;
     std::env::set_var("LC_ALL", "C");
@@ -300,6 +326,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     }
     std::env::set_var("TMPDIR", &req.context.tmp_root);
     std::env::set_var("HOME", &home_dir);
+    std::env::set_var("XDG_CACHE_HOME", &cache_root);
+    std::env::set_var("BIJUX_CACHE_ROOT", &cache_root);
 
     if req.mode == ToolExecMode::PrintCommands || req.mode == ToolExecMode::DryRun {
         let dry_path = req.context.stage_root.join("print_commands.txt");
@@ -314,6 +342,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         bijux_dna_infra::atomic_write_bytes(&dry_path, cmd.as_bytes())?;
         if req.mode == ToolExecMode::DryRun {
             let summary_path = req.context.stage_root.join("stage_human_summary.json");
+            let stage_status_path = req.context.stage_root.join("stage_result_status.json");
             let summary = serde_json::json!({
                 "schema_version": "bijux.stage_summary.v1",
                 "stage_id": req.context.stage_id,
@@ -323,6 +352,20 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
                 "tool_digest": digest,
             });
             bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
+            bijux_dna_infra::atomic_write_json(
+                &stage_status_path,
+                &serde_json::json!({
+                    "schema_version": "bijux.stage_result_status.v1",
+                    "status": "ok",
+                    "reason_code": "DRY_RUN"
+                }),
+            )?;
+            let _ = bijux_dna_runtime::recording::write_run_artifact_envelope(
+                &req.context.stage_root,
+                &req.context.stage_id,
+                bijux_dna_runtime::recording::StageResultStatus::Ok,
+                "DRY_RUN",
+            );
         }
         return Ok(ToolInvocationResult {
             stage_result: StageResultV1 {
@@ -344,6 +387,21 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         });
     }
     if can_resume(req)? {
+        let stage_status_path = req.context.stage_root.join("stage_result_status.json");
+        bijux_dna_infra::atomic_write_json(
+            &stage_status_path,
+            &serde_json::json!({
+                "schema_version": "bijux.stage_result_status.v1",
+                "status": "skipped_cached",
+                "reason_code": "CACHE_HIT"
+            }),
+        )?;
+        let _ = bijux_dna_runtime::recording::write_run_artifact_envelope(
+            &req.context.stage_root,
+            &req.context.stage_id,
+            bijux_dna_runtime::recording::StageResultStatus::SkippedCached,
+            "CACHE_HIT",
+        );
         return Ok(ToolInvocationResult {
             stage_result: StageResultV1 {
                 run_id: req.context.run_id.clone(),
@@ -370,15 +428,42 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     let stage_log_path = req.context.stage_root.join("stage_events.jsonl");
     let start_event = serde_json::json!({
         "schema_version": "bijux.stage_events.v1",
-        "event": "tool_start",
+        "event": "stage_start",
         "run_id": req.context.run_id,
         "stage_id": req.context.stage_id,
         "tool_id": req.context.tool_id,
+        "chunk_id": "global",
         "timestamp": started_at,
     });
     bijux_dna_runtime::recording::append_jsonl_line(
         &stage_log_path,
         &serde_json::to_string(&start_event)?,
+    )?;
+    let chunk_start_event = serde_json::json!({
+        "schema_version": "bijux.stage_events.v1",
+        "event": "chunk_start",
+        "run_id": req.context.run_id,
+        "stage_id": req.context.stage_id,
+        "tool_id": req.context.tool_id,
+        "chunk_id": "global",
+        "timestamp": started_at,
+    });
+    bijux_dna_runtime::recording::append_jsonl_line(
+        &stage_log_path,
+        &serde_json::to_string(&chunk_start_event)?,
+    )?;
+    let tool_event = serde_json::json!({
+        "schema_version": "bijux.stage_events.v1",
+        "event": "tool_invoked",
+        "run_id": req.context.run_id,
+        "stage_id": req.context.stage_id,
+        "tool_id": req.context.tool_id,
+        "timestamp": started_at,
+        "chunk_id": "global",
+    });
+    bijux_dna_runtime::recording::append_jsonl_line(
+        &stage_log_path,
+        &serde_json::to_string(&tool_event)?,
     )?;
 
     let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
@@ -399,6 +484,20 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             &stderr_tail,
             stage_result.exit_code,
             &stage_result.command,
+        );
+        let _ = bijux_dna_infra::atomic_write_json(
+            &req.context.stage_root.join("stage_result_status.json"),
+            &serde_json::json!({
+                "schema_version": "bijux.stage_result_status.v1",
+                "status": "failed",
+                "reason_code": format!("{exit_taxonomy:?}"),
+            }),
+        );
+        let _ = bijux_dna_runtime::recording::write_run_artifact_envelope(
+            &req.context.stage_root,
+            &req.context.stage_id,
+            bijux_dna_runtime::recording::StageResultStatus::Failed,
+            &format!("{exit_taxonomy:?}"),
         );
         let message = format!(
             "tool {} failed with exit code {} ({exit_taxonomy:?})\nstdout_tail:\n{}\nstderr_tail:\n{}",
@@ -496,10 +595,11 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 
     let end_event = serde_json::json!({
         "schema_version": "bijux.stage_events.v1",
-        "event": "tool_end",
+        "event": "chunk_end",
         "run_id": req.context.run_id,
         "stage_id": req.context.stage_id,
         "tool_id": req.context.tool_id,
+        "chunk_id": "global",
         "timestamp": finished_at,
         "runtime_s": stage_result.runtime_s,
         "exit_code": stage_result.exit_code,
@@ -507,6 +607,21 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     bijux_dna_runtime::recording::append_jsonl_line(
         &stage_log_path,
         &serde_json::to_string(&end_event)?,
+    )?;
+    let stage_end_event = serde_json::json!({
+        "schema_version": "bijux.stage_events.v1",
+        "event": "stage_end",
+        "run_id": req.context.run_id,
+        "stage_id": req.context.stage_id,
+        "tool_id": req.context.tool_id,
+        "chunk_id": "global",
+        "timestamp": finished_at,
+        "runtime_s": stage_result.runtime_s,
+        "exit_code": stage_result.exit_code,
+    });
+    bijux_dna_runtime::recording::append_jsonl_line(
+        &stage_log_path,
+        &serde_json::to_string(&stage_end_event)?,
     )?;
 
     let summary_path = req.context.stage_root.join("stage_human_summary.json");
@@ -521,6 +636,20 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "stderr_path": stderr_path,
     });
     bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
+    bijux_dna_infra::atomic_write_json(
+        &req.context.stage_root.join("stage_result_status.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.stage_result_status.v1",
+            "status": "ok",
+            "reason_code": "SUCCESS",
+        }),
+    )?;
+    let _ = bijux_dna_runtime::recording::write_run_artifact_envelope(
+        &req.context.stage_root,
+        &req.context.stage_id,
+        bijux_dna_runtime::recording::StageResultStatus::Ok,
+        "SUCCESS",
+    );
 
     Ok(ToolInvocationResult {
         stage_result,

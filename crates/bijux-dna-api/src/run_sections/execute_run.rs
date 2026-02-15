@@ -328,6 +328,25 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         "stage_semver": request.plan.stage_version.0,
     });
     bijux_dna_infra::atomic_write_json(&params_hash_path, &params_hash_payload)?;
+    let explain_path = run_artifacts_dir.join("explain.json");
+    let explain_payload = serde_json::json!({
+        "schema_version": "bijux.stage_explain.v1",
+        "stage_id": request.plan.stage_id,
+        "tool_id": request.plan.tool_id,
+        "summary": request.plan.reason.summary,
+        "decision_kind": format!("{:?}", request.plan.reason.kind),
+        "decision_details": request.plan.reason.details,
+        "resources": {
+            "threads": request.plan.resources.threads,
+            "mem_gb": request.plan.resources.mem_gb,
+            "tmp_gb": request.plan.resources.tmp_gb,
+        },
+        "io": {
+            "inputs": request.plan.io.inputs,
+            "outputs": request.plan.io.outputs,
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&explain_path, &explain_payload)?;
     let resume_payload = serde_json::json!({
         "schema_version": "bijux.stage_resume.v1",
         "manifest_hash": manifest_hash,
