@@ -484,7 +484,15 @@ impl VcfStageRunner for DispatchRunner {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
                     })?;
-                artifacts.extend([out.roh_segments_tsv, out.roh_summary_json, out.roh_metrics_json, out.logs_txt]);
+                artifacts.extend([
+                    out.roh_segments_tsv,
+                    out.roh_per_sample_tsv,
+                    out.roh_json,
+                    out.metrics_json,
+                    out.roh_summary_json,
+                    out.roh_metrics_json,
+                    out.logs_txt,
+                ]);
             }
             VcfDomainStage::Ibd => {
                 let out = run_ibd_stage(

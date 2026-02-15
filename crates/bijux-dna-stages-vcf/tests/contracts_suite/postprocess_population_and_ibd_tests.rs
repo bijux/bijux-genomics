@@ -180,10 +180,14 @@
                 max_missingness: 1.0,
                 min_segment_kb: 0,
                 max_gap_bp: 10_000_000,
+                ..RohStageParams::default()
             },
         )
         .unwrap_or_else(|err| panic!("run roh stage: {err}"));
         assert!(out.roh_segments_tsv.exists());
+        assert!(out.roh_per_sample_tsv.exists());
+        assert!(out.roh_json.exists());
+        assert!(out.metrics_json.exists());
         assert!(out.roh_summary_json.exists());
         assert!(out.roh_metrics_json.exists());
     }
@@ -199,10 +203,37 @@
                 max_missingness: 0.2,
                 min_segment_kb: 500,
                 max_gap_bp: 1_000_000,
+                ..RohStageParams::default()
             },
         )
         .expect_err("roh should refuse under impossible density requirement");
         assert!(err.to_string().contains("density"));
+    }
+
+    #[test]
+    fn roh_stage_refuses_low_coverage_without_pseudohaploid_support() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("lowcov.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t./.\n1\t200\t.\tC\tT\t60\tPASS\t.\tGT\t./.\n1\t300\t.\tG\tA\t60\tPASS\t.\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write lowcov fixture: {err}"));
+        let err = run_roh_stage(
+            &input,
+            dir.path(),
+            &RohStageParams {
+                min_snp_density_per_mb: 0.00001,
+                max_missingness: 1.0,
+                low_coverage_missingness_threshold: 0.20,
+                allow_pseudohaploid_low_coverage: false,
+                min_segment_kb: 0,
+                max_gap_bp: 10_000_000,
+                ..RohStageParams::default()
+            },
+        )
+        .expect_err("low coverage without pseudo-haploid support must refuse");
+        assert!(err.to_string().contains("low-coverage"));
     }
 
     #[test]
@@ -311,6 +342,7 @@
                 max_missingness: 1.0,
                 min_segment_kb: 0,
                 max_gap_bp: 10_000_000,
+                ..RohStageParams::default()
             },
         )
         .unwrap_or_else(|err| panic!("run mini roh: {err}"));
