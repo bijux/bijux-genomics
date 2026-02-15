@@ -10,9 +10,10 @@ use bijux_dna_domain_fastq::stages::ids::{
 
 use crate::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
-    STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
-    STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_CONTAMINANT_SCREEN, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER,
+    STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING,
+    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
+    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -119,6 +120,25 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
+            stage if stage == STAGE_HOST_DEPLETION.as_str() => {
+                let plan = crate::tool_adapters::fastq::host_depletion::plan_host_depletion(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            stage if stage == STAGE_CONTAMINANT_SCREEN.as_str() => {
+                let plan =
+                    crate::tool_adapters::fastq::contaminant_screen::plan_contaminant_screen(
+                        tool,
+                        &current_r1,
+                        &out_dir,
+                    )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
             stage if stage == STAGE_LOW_COMPLEXITY.as_str() => {
                 let plan = crate::tool_adapters::fastq::low_complexity::plan_low_complexity(
                     tool,
@@ -201,6 +221,14 @@ where
                     &out_dir,
                     stage_aux_images,
                     Some(raw_r1.as_path()),
+                )?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            stage if stage == STAGE_RRNA.as_str() => {
+                let plan = crate::tool_adapters::fastq::rrna::plan_rrna(
+                    tool,
+                    &current_r1,
+                    &out_dir,
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
