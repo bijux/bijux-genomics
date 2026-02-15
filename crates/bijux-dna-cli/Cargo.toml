@@ -18,6 +18,8 @@ bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-stages-vcf = { path = "../bijux-dna-stages-vcf" }
 bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
+bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-planner-vcf = { path = "../bijux-dna-planner-vcf" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 tracing = { workspace = true }
