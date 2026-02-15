@@ -263,7 +263,6 @@ dependencies = [
  "bijux-dna-domain-compiler",
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
- "bijux-dna-planner-vcf",
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-stages-vcf",

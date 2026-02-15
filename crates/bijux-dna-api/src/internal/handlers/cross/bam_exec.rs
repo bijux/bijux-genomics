@@ -641,4 +641,4 @@ fn stage_postprocess(
 
 include!("bam_exec_stage_runtime.rs");
 
-include!("bam_exec_tests.rs");
+include!("bam_exec_contracts.rs");
