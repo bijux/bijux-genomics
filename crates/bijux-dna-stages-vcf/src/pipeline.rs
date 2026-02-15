@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_db_ref::{resolve_map, resolve_panel, validate_imputation_tool_compatibility};
+use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
 use bijux_dna_domain_vcf::{
     contracts::SpeciesContext,
     params::{VcfCallParams, VcfFilterParams, VcfStatsParams},
@@ -25,3 +25,19 @@ include!("pipeline_sections/execution/population_and_panel_prep.rs");
 include!("pipeline_sections/execution/runtime_and_orchestration.rs");
 include!("pipeline_sections/imputation/impute_and_postprocess.rs");
 include!("pipeline_sections/execution/chunking_and_resume.rs");
+
+fn resolve_panel(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+) -> Result<bijux_dna_db_ref::PanelCatalogEntry> {
+    ref_service().resolve_panel(species, build, panel_id)
+}
+
+fn resolve_map(
+    species: &str,
+    build: &str,
+    map_id: Option<&str>,
+) -> Result<bijux_dna_db_ref::MapCatalogEntry> {
+    ref_service().resolve_map(species, build, map_id)
+}
