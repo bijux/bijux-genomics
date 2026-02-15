@@ -262,6 +262,28 @@ fn try_backend_invocation(bin: &str, args: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
+fn eagle_acceptance_allowed(species: &str, build: &str) -> bool {
+    matches!((species, build), ("Homo sapiens", "GRCh38"))
+}
+
+fn beagle_with_gt_from_gl(line: &str) -> String {
+    let mut fields = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+    if fields.len() < 10 {
+        return line.to_string();
+    }
+    let fmt_keys = fields[8].split(':').collect::<Vec<_>>();
+    if fmt_keys.iter().any(|k| *k == "GT") {
+        return line.replace("\t0/1", "\t0|1").replace("\t1/0", "\t1|0");
+    }
+    let sample_col = fields[9].clone();
+    let format_col = fields[8].clone();
+    let mut sample_vals = sample_col.split(':').collect::<Vec<_>>();
+    fields[8] = format!("GT:{format_col}");
+    sample_vals.insert(0, "0|1");
+    fields[9] = sample_vals.join(":");
+    fields.join("\t")
+}
+
 /// # Errors
 /// Returns an error if phasing prerequisites or species/map policies are violated.
 pub fn run_phasing_stage(
@@ -309,6 +331,13 @@ fn run_phasing_stage_inner(
     {
         bail!("eagle requires non-bijux license metadata before execution");
     }
+    if matches!(resolved_backend, PhasingBackend::Eagle)
+        && !eagle_acceptance_allowed(&params.species_id, &params.build_id)
+    {
+        bail!(
+            "eagle backend is outside accepted species/build list (allowed: Homo sapiens GRCh38)"
+        );
+    }
 
     let map = if matches!(
         resolved_backend,
@@ -348,12 +377,16 @@ fn run_phasing_stage_inner(
     let mut diploid_ok = true;
     let mut saw_records = false;
     let mut has_sex_chr = false;
+    let mut has_sample_sex_metadata = false;
     let mut phase_switches = 0u64;
     let mut prev_gt: Option<String> = None;
     let mut variant_count = 0u64;
 
     for line in raw.lines() {
         if line.starts_with('#') {
+            if line.starts_with("##SAMPLE=") && (line.contains("Sex=") || line.contains("SEX=")) {
+                has_sample_sex_metadata = true;
+            }
             header_lines.push(line.to_string());
             continue;
         }
@@ -400,16 +433,18 @@ fn run_phasing_stage_inner(
     if !saw_records {
         bail!("phasing requires non-empty VCF records");
     }
-    if !has_gt {
-        if has_gl_or_gp && params.allow_gl_only_input {
-            // Explicit opt-in path for backends that can phase from GL/GP-only inputs.
-        } else if has_gl_or_gp {
-            bail!(
-                "GL-only/GP-only inputs are refused for phasing unless backend explicitly allows"
-            );
-        } else {
-            bail!("phasing requires GT field");
-        }
+    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !has_gt {
+        bail!("backend {} requires GT field", backend_tool);
+    }
+    if matches!(resolved_backend, PhasingBackend::Beagle) && !has_gt && !has_gl_or_gp {
+        bail!("beagle phasing requires GT or GL/GP fields");
+    }
+    if has_gl_or_gp
+        && !has_gt
+        && !params.allow_gl_only_input
+        && matches!(resolved_backend, PhasingBackend::Beagle | PhasingBackend::Auto)
+    {
+        bail!("GL-only/GP-only inputs are refused for phasing unless allow_gl_only_input=true");
     }
     if matches!(
         resolved_backend,
@@ -425,6 +460,12 @@ fn run_phasing_stage_inner(
     {
         bail!("sex chromosome phasing requires explicit PAR policy in SpeciesContext");
     }
+    if has_sex_chr && !has_sample_sex_metadata {
+        bail!("sex chromosome phasing requires sample sex metadata (##SAMPLE with Sex=)");
+    }
+    if has_sex_chr && !diploid_ok {
+        bail!("male X/sex-chromosome haploid handling is unsupported in current phasing runner");
+    }
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let phased_vcf = out_dir.join("phased.vcf.gz");
@@ -435,34 +476,76 @@ fn run_phasing_stage_inner(
     let logs_txt = out_dir.join("logs.txt");
     let checksums = out_dir.join("checksums.sha256");
 
-    let phased_payload = format!("{}\n{}\n", header_lines.join("\n"), out_records.join("\n"));
-    let phasing_backend_attempted = match resolved_backend {
-        PhasingBackend::Shapeit5 => try_backend_invocation(
-            "shapeit5",
-            &[
-                "--input",
-                input_vcf.to_string_lossy().as_ref(),
-                "--output",
-                out_dir.join("shapeit5.out").to_string_lossy().as_ref(),
-            ],
-        ),
-        PhasingBackend::Beagle => try_backend_invocation(
-            "beagle",
-            &[
-                format!("gt={}", input_vcf.to_string_lossy()).as_str(),
-                format!("out={}", out_dir.join("beagle.out").to_string_lossy()).as_str(),
-            ],
-        ),
-        PhasingBackend::Eagle => try_backend_invocation(
-            "eagle",
-            &[
-                "--vcfTarget",
-                input_vcf.to_string_lossy().as_ref(),
-                "--outPrefix",
-                out_dir.join("eagle.out").to_string_lossy().as_ref(),
-            ],
-        ),
-        PhasingBackend::Auto => false,
+    let backend_argv = match resolved_backend {
+        PhasingBackend::Shapeit5 => {
+            let mut argv = vec![
+                "shapeit5".to_string(),
+                "--input".to_string(),
+                input_vcf.to_string_lossy().to_string(),
+                "--map".to_string(),
+                map.as_ref()
+                    .and_then(|m| m.files.first())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_else(|| "missing-map".to_string()),
+                "--threads".to_string(),
+                params.threads.to_string(),
+                "--seed".to_string(),
+                params.seed.to_string(),
+                "--memory-mb".to_string(),
+                (params.threads * 1024).to_string(),
+                "--output".to_string(),
+                out_dir.join("shapeit5.out.vcf.gz").to_string_lossy().to_string(),
+            ];
+            if let Some(region) = &params.region {
+                argv.push("--region".to_string());
+                argv.push(region.clone());
+            }
+            argv
+        }
+        PhasingBackend::Beagle => vec![
+            "beagle".to_string(),
+            format!("gt={}", input_vcf.to_string_lossy()),
+            format!("out={}", out_dir.join("beagle.out").to_string_lossy()),
+            format!("seed={}", params.seed),
+            format!("nthreads={}", params.threads),
+        ],
+        PhasingBackend::Eagle => vec![
+            "eagle".to_string(),
+            "--vcfTarget".to_string(),
+            input_vcf.to_string_lossy().to_string(),
+            "--geneticMapFile".to_string(),
+            map.as_ref()
+                .and_then(|m| m.files.first())
+                .map(|f| f.path.clone())
+                .unwrap_or_else(|| "missing-map".to_string()),
+            "--numThreads".to_string(),
+            params.threads.to_string(),
+            "--seed".to_string(),
+            params.seed.to_string(),
+            "--outPrefix".to_string(),
+            out_dir.join("eagle.out").to_string_lossy().to_string(),
+        ],
+        PhasingBackend::Auto => vec![],
+    };
+    let phased_records = if matches!(resolved_backend, PhasingBackend::Beagle) {
+        out_records
+            .iter()
+            .map(|line| beagle_with_gt_from_gl(line))
+            .collect::<Vec<_>>()
+    } else {
+        out_records.clone()
+    };
+    let phased_payload = format!("{}\n{}\n", header_lines.join("\n"), phased_records.join("\n"));
+    let phasing_backend_attempted = if backend_argv.is_empty() {
+        false
+    } else {
+        let cmd = backend_argv[0].clone();
+        let args = backend_argv
+            .iter()
+            .skip(1)
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>();
+        try_backend_invocation(&cmd, &args)
     };
     let phased_tbi = write_bgzip_index_best_effort(&phased_vcf, &phased_payload, "phased.tmp.vcf")?;
     assert_bgzip_tabix_artifacts(&phased_vcf, &phased_tbi)?;
@@ -522,9 +605,31 @@ fn run_phasing_stage_inner(
             "species_id": species_context.species_id,
             "build_id": species_context.build_id,
             "seed": params.seed,
+            "seed_policy": {
+                "policy": "fixed_user_seed",
+                "seed_source": "params.seed",
+                "deterministic": true,
+            },
             "threads": params.threads,
             "region": params.region,
+            "command_argv": backend_argv,
+            "input_contract": {
+                "requires_gt_for_backends": ["shapeit5", "eagle"],
+                "beagle_allows_gl_or_gp": true,
+                "allow_gl_only_input": params.allow_gl_only_input,
+            },
             "map": map_entry,
+            "sex_chromosome_policy": {
+                "par_policy": species_context.par_policy,
+                "sample_sex_metadata_required": true,
+                "male_x_haploid_supported": false,
+            },
+            "provenance": {
+                "input_vcf": input_vcf.display().to_string(),
+                "output_vcf": phased_vcf.display().to_string(),
+                "output_tbi": phased_tbi.display().to_string(),
+                "stage": "vcf.phasing",
+            },
             "input_checksum": checksum_hex(raw.as_bytes()),
             "output_checksum": checksum_hex(phased_payload.as_bytes()),
         }),

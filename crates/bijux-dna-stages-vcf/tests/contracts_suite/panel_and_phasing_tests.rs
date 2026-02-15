@@ -171,6 +171,9 @@
             digest.starts_with("sha256:"),
             "phasing manifest missing tool_digest sha256"
         );
+        assert!(manifest.get("seed_policy").is_some());
+        assert!(manifest.get("command_argv").is_some());
+        assert!(manifest.get("provenance").is_some());
     }
 
     #[test]
@@ -253,9 +256,12 @@
             },
         )
         .expect_err("GL-only should fail without explicit support");
-        assert!(err
-            .to_string()
-            .contains("GL-only/GP-only inputs are refused"));
+        let msg = err.to_string();
+        assert!(
+            msg.contains("requires GT field")
+                || msg.contains("GL-only/GP-only inputs are refused"),
+            "unexpected refusal message: {msg}"
+        );
     }
 
     #[test]
@@ -297,6 +303,55 @@
         )
         .unwrap_or_else(|err| panic!("GL-only explicit support should pass: {err}"));
         assert!(outputs.phasing_manifest_json.exists());
+        let phased_raw = std::process::Command::new("bcftools")
+            .args(["view", &outputs.phased_vcf.to_string_lossy()])
+            .output()
+            .map(|out| String::from_utf8_lossy(&out.stdout).to_string())
+            .unwrap_or_else(|_| String::new());
+        assert!(
+            phased_raw.contains("\tGT:GL\t0|1:"),
+            "beagle GL-only path must emit GT in output FORMAT/sample"
+        );
+    }
+
+    #[test]
+    fn phasing_refuses_sex_chr_without_sample_sex_metadata() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("x_chr.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchrX\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write x-chr fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "chrX".to_string(),
+                length_bp: 156_040_895,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_phasing_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Beagle,
+                map_id: None,
+                threads: 1,
+                seed: 42,
+                region: None,
+                allow_gl_only_input: false,
+            },
+        )
+        .expect_err("missing sex metadata should refuse sex chromosome phasing");
+        assert!(err.to_string().contains("sample sex metadata"));
     }
 
     #[test]
@@ -412,4 +467,39 @@
                 .unwrap_or_default(),
             "beagle"
         );
+    }
+
+    #[test]
+    fn phasing_eagle_refuses_outside_acceptance_list() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Canis lupus".to_string(),
+            build_id: "CanFam4".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 122_678_785,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "canfam4_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_phasing_stage(
+            input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Eagle,
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                region: None,
+                allow_gl_only_input: false,
+            },
+        )
+        .expect_err("eagle must refuse outside accepted species/build list");
+        assert!(err.to_string().contains("accepted species/build list"));
     }
