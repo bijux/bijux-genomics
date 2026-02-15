@@ -81,6 +81,44 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     Ok(hashes)
 }
 
+fn build_apptainer_exec_args(
+    step: &ExecutionStep,
+    input_root: &Path,
+    out_dir: &Path,
+    runner: RuntimeKind,
+) -> Result<Vec<String>> {
+    let input_mount = format!("{}:/data/input:ro", input_root.display());
+    let output_mount = format!("{}:/data/output", out_dir.display());
+    let mut args: Vec<String> = vec![
+        "exec".to_string(),
+        "--cleanenv".to_string(),
+        "--no-home".to_string(),
+        "--containall".to_string(),
+        "--bind".to_string(),
+        input_mount,
+        "--bind".to_string(),
+        output_mount,
+    ];
+    if !network_allowed() {
+        match runner {
+            RuntimeKind::Apptainer => {
+                args.push("--net".to_string());
+            }
+            RuntimeKind::Singularity => {}
+            RuntimeKind::Docker => {}
+        }
+    }
+    args.push(step.image.image.clone());
+    args.extend(step.command.template.clone());
+    if args.is_empty() {
+        return Err(runner_failure(
+            RunnerEffectKind::CommandSpawn,
+            "apptainer/singularity command args are empty",
+        ));
+    }
+    Ok(args)
+}
+
 /// Execute a single step using docker.
 ///
 /// # Errors
@@ -91,12 +129,6 @@ pub fn execute_step(
     runner: RuntimeKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
-    if runner != RuntimeKind::Docker {
-        return Err(runner_failure(
-            RunnerEffectKind::UnsupportedRuntime,
-            format!("runner {runner:?} not supported for step execution"),
-        ));
-    }
     let out_dir = &step.out_dir;
     bijux_dna_infra::ensure_dir(out_dir)
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
@@ -110,51 +142,72 @@ pub fn execute_step(
     let input_mount = format!("{}:/data/input:ro", input_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
 
-    let container_name = format!("bijux-dna-stage-{}", Uuid::new_v4());
-    let mut args: Vec<String> = vec![
-        "run".to_string(),
-        "-d".to_string(),
-        "--rm=false".to_string(),
-        "--name".to_string(),
-        container_name.clone(),
-    ];
-    if !network_allowed() {
-        args.push("--network".to_string());
-        args.push("none".to_string());
-    }
-    args.extend([
-        "-v".to_string(),
-        input_mount,
-        "-v".to_string(),
-        output_mount,
-        step.image.image.clone(),
-    ]);
-    args.extend(step.command.template.clone());
+    let (output, exit_code, stdout, stderr, runtime_s, memory_mb) = match runner {
+        RuntimeKind::Docker => {
+            let container_name = format!("bijux-dna-stage-{}", Uuid::new_v4());
+            let mut args: Vec<String> = vec![
+                "run".to_string(),
+                "-d".to_string(),
+                "--rm=false".to_string(),
+                "--name".to_string(),
+                container_name.clone(),
+            ];
+            if !network_allowed() {
+                args.push("--network".to_string());
+                args.push("none".to_string());
+            }
+            args.extend([
+                "-v".to_string(),
+                input_mount,
+                "-v".to_string(),
+                output_mount,
+                step.image.image.clone(),
+            ]);
+            args.extend(step.command.template.clone());
 
-    let output = run_command("docker", &args)
-        .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
-    if output.exit_code != 0 {
-        return Err(runner_failure(
-            RunnerEffectKind::ContainerLifecycle,
-            format!("docker run failed for {}", step.step_id.0),
-        ));
-    }
-    let id = output.stdout.trim().to_string();
-    if id.is_empty() {
-        return Err(runner_failure(
-            RunnerEffectKind::ContainerLifecycle,
-            format!("missing container id for {}", step.step_id.0),
-        ));
-    }
-    let exit_code = if let Some(timeout) = timeout {
-        docker_wait_timeout(&id, timeout)?
-    } else {
-        docker_wait(&id)?
+            let output = run_command("docker", &args)
+                .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
+            if output.exit_code != 0 {
+                return Err(runner_failure(
+                    RunnerEffectKind::ContainerLifecycle,
+                    format!("docker run failed for {}", step.step_id.0),
+                ));
+            }
+            let id = output.stdout.trim().to_string();
+            if id.is_empty() {
+                return Err(runner_failure(
+                    RunnerEffectKind::ContainerLifecycle,
+                    format!("missing container id for {}", step.step_id.0),
+                ));
+            }
+            let exit_code = if let Some(timeout) = timeout {
+                docker_wait_timeout(&id, timeout)?
+            } else {
+                docker_wait(&id)?
+            };
+            let stdout = docker_logs(&id)?;
+            let stderr = String::new();
+            let runtime_s = output.runtime_s;
+            let memory_mb = parse_mem_to_mb("0MiB / 0MiB").unwrap_or(0.0);
+            (output, exit_code, stdout, stderr, runtime_s, memory_mb)
+        }
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+            let args = build_apptainer_exec_args(step, &input_root, out_dir, runner)?;
+            let bin = if runner == RuntimeKind::Apptainer {
+                "apptainer"
+            } else {
+                "singularity"
+            };
+            let output = run_command(bin, &args)
+                .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
+            let exit_code = output.exit_code;
+            let stdout = output.stdout.clone();
+            let stderr = output.stderr.clone();
+            let runtime_s = output.runtime_s;
+            let memory_mb = 0.0;
+            (output, exit_code, stdout, stderr, runtime_s, memory_mb)
+        }
     };
-    let stdout = docker_logs(&id)?;
-    let stderr = String::new();
-    let runtime_s = output.runtime_s;
-    let memory_mb = parse_mem_to_mb("0MiB / 0MiB").unwrap_or(0.0);
 
     let outputs: Vec<PathBuf> = step
         .io
