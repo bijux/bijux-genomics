@@ -38,6 +38,7 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
+use std::io::BufRead;
 
 fn normalize_sample_identity(sample_id: &str) -> String {
     let mut out = String::with_capacity(sample_id.len());
@@ -281,6 +282,118 @@ fn write_taxonomy_db_drift_report(
     bijux_dna_infra::atomic_write_json(&report_path, &report).context("write taxonomy_db_drift")?;
     bijux_dna_infra::atomic_write_json(&lock_path, &report).context("write taxonomy_db lock")?;
     Ok(())
+}
+
+fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
+    match stage_id {
+        "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
+        "fastq.length_distribution_pre" => &["schema_version", "stage", "fields"],
+        "fastq.overrepresented_sequences" => &["schema_version", "stage", "fields"],
+        "fastq.polyg_tailing" => &["schema_version", "stage", "applicability"],
+        "fastq.low_complexity" => &["schema_version", "stage", "filter_counts"],
+        "fastq.trim" => &["schema_version", "stage", "fields"],
+        "fastq.filter" => &["schema_version", "stage", "fields"],
+        "fastq.correct" => &["schema_version", "stage", "fields"],
+        "fastq.merge" => &["schema_version", "stage", "fields"],
+        "fastq.deduplicate" => &["schema_version", "stage", "fields"],
+        "fastq.umi" => &["schema_version", "stage", "fields"],
+        "fastq.host_depletion" => &["schema_version", "stage", "fields"],
+        "fastq.contaminant_screen" => &["schema_version", "stage", "fields"],
+        "fastq.rrna" => &["schema_version", "stage", "fields"],
+        "fastq.screen" => &["schema_version", "stage", "fields"],
+        "fastq.qc_post" => &["schema_version", "stage", "fields"],
+        _ => &[],
+    }
+}
+
+fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &str) -> Result<()> {
+    let required = required_metrics_keys(stage_id);
+    if required.is_empty() {
+        return Ok(());
+    }
+    let path = stage_root.join("stage.metrics.standardized.json");
+    let raw = std::fs::read_to_string(&path)
+        .with_context(|| format!("read {}", path.display()))?;
+    let value: serde_json::Value = serde_json::from_str(&raw).context("parse standardized metrics")?;
+    for key in required {
+        if value.get(*key).is_none() {
+            return Err(anyhow!(
+                "metrics schema violation for {stage_id}: missing required key `{key}`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn count_fastq_reads_if_plain(path: &std::path::Path) -> Option<u64> {
+    if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
+        return None;
+    }
+    let file = std::fs::File::open(path).ok()?;
+    let reader = std::io::BufReader::new(file);
+    let lines = reader.lines().count() as u64;
+    Some(lines / 4)
+}
+
+fn write_retention_report(stage_root: &std::path::Path, planned: &ExecutionStep) -> Result<()> {
+    let reports_dir = stage_root.join("reports");
+    bijux_dna_infra::ensure_dir(&reports_dir)?;
+    let input = planned.io.inputs.first().map(|a| a.path.clone());
+    let output = planned.io.outputs.first().map(|a| a.path.clone());
+    let in_bytes = input
+        .as_ref()
+        .and_then(|p| std::fs::metadata(p).ok().map(|m| m.len()));
+    let out_bytes = output
+        .as_ref()
+        .and_then(|p| std::fs::metadata(p).ok().map(|m| m.len()));
+    let in_reads = input.as_ref().and_then(|p| count_fastq_reads_if_plain(p));
+    let out_reads = output.as_ref().and_then(|p| count_fastq_reads_if_plain(p));
+    let report = serde_json::json!({
+        "schema_version": "bijux.retention_report.v1",
+        "stage_id": planned.step_id.as_str(),
+        "counts": {
+            "input_reads": in_reads,
+            "output_reads": out_reads,
+            "input_bytes": in_bytes,
+            "output_bytes": out_bytes
+        },
+        "ratios": {
+            "read_retention": match (in_reads, out_reads) { (Some(i), Some(o)) if i > 0 => Some(o as f64 / i as f64), _ => None },
+            "byte_retention": match (in_bytes, out_bytes) { (Some(i), Some(o)) if i > 0 => Some(o as f64 / i as f64), _ => None },
+        }
+    });
+    let path = reports_dir.join(format!("{}.retention.json", planned.step_id.as_str()));
+    bijux_dna_infra::atomic_write_json(&path, &report).context("write retention report")
+}
+
+fn classify_failure_hint(stage_id: &str, stdout: &str, stderr: &str) -> String {
+    let msg = format!("{stdout}\n{stderr}").to_ascii_lowercase();
+    if msg.contains("unexpected end of file") || msg.contains("invalid gzip") || msg.contains("not in gzip format") {
+        return "input appears gzip-corrupted; validate source file integrity and re-stage inputs".to_string();
+    }
+    if msg.contains("no reads") || msg.contains("empty input") || msg.contains("0 sequences") {
+        return "input appears empty or produced zero reads; verify upstream stage outputs".to_string();
+    }
+    if stage_id == "fastq.detect_adapters" || stage_id == "fastq.trim" {
+        if msg.contains("adapter") && msg.contains("not found") {
+            return "adapter configuration mismatch; review adapter bank preset and enable/disable overrides".to_string();
+        }
+    }
+    if msg.contains("command not found") {
+        return "tool entrypoint not found in runtime image; verify registry tool binding and container path".to_string();
+    }
+    "tool execution failed; inspect stage stderr/stdout logs under artifacts for details".to_string()
+}
+
+fn write_retry_policy(root: &std::path::Path) -> Result<()> {
+    let policy = serde_json::json!({
+        "schema_version": "bijux.retry_policy.fastq.v1",
+        "mode": "fail_fast",
+        "default_max_retries": 0,
+        "scientifically_safe_overrides": [],
+    });
+    bijux_dna_infra::atomic_write_json(&root.join("retry_policy.json"), &policy)
+        .context("write retry_policy.json")
 }
 
 /// Run the preprocess pipeline.
@@ -613,6 +726,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let pipeline_span = telemetry.start_pipeline(STAGE_PREPROCESS.as_str(), &pipeline_attrs);
 
     let mut stage_runs = Vec::new();
+    let mut fail_fast_triggered = false;
     for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
         let tool = planned.image.image.clone();
@@ -647,8 +761,21 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_span.end();
         let execution = invocation?.stage_result;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
+        enforce_metrics_schema(&stage_root, &stage_id)?;
         write_fastq_output_contract(&stage_root, planned, &execution)?;
+        write_retention_report(&stage_root, planned)?;
         if execution.exit_code != 0 {
+            let hint = classify_failure_hint(&stage_id, &execution.stdout, &execution.stderr);
+            let hint_path = stage_root.join("common_failure_hint.json");
+            bijux_dna_infra::atomic_write_json(
+                &hint_path,
+                &serde_json::json!({
+                    "schema_version": "bijux.failure_hint.v1",
+                    "stage_id": stage_id,
+                    "hint": hint,
+                    "exit_code": execution.exit_code,
+                }),
+            )?;
             if stage_id == "fastq.validate_pre" {
                 return Err(anyhow!(
                     "strict validation failed in fastq.validate_pre; refusing pipeline execution"
@@ -657,14 +784,18 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: stage_id,
                 tool: tool.clone(),
-                reason: format!("tool failed with status {}", execution.exit_code),
+                reason: format!("tool failed with status {}. hint: {}", execution.exit_code, hint),
                 category: ErrorCategory::ToolError,
             });
+            fail_fast_triggered = true;
         }
         stage_runs.push(StageExecutionSummary {
             plan: planned.clone(),
             result: execution,
         });
+        if fail_fast_triggered {
+            break;
+        }
     }
     pipeline_span.end();
 
@@ -706,6 +837,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     });
     let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
+    write_retry_policy(&root)?;
     write_taxonomy_db_drift_report(&root, contaminant_bank.as_ref())?;
     let decision_trace_path = root.join("decision_trace.json");
     let identity_norm = serde_json::json!({
