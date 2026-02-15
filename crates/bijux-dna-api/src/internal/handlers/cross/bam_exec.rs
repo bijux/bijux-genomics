@@ -123,6 +123,38 @@ fn enforce_stage_refusal_rules(
             stage.as_str()
         ));
     }
+    if matches!(
+        stage,
+        bijux_dna_planner_bam::stage_api::BamStage::Validate
+            | bijux_dna_planner_bam::stage_api::BamStage::QcPre
+            | bijux_dna_planner_bam::stage_api::BamStage::MappingSummary
+            | bijux_dna_planner_bam::stage_api::BamStage::MapqFilter
+            | bijux_dna_planner_bam::stage_api::BamStage::Filter
+            | bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection
+            | bijux_dna_planner_bam::stage_api::BamStage::LengthFilter
+    ) && bai_path.is_some_and(|path| !path.exists())
+    {
+        return Err(anyhow!(
+            "{} requires existing BAM index (.bai): {}",
+            stage.as_str(),
+            bai_path.map_or_else(
+                || "<missing>".to_string(),
+                |path| path.display().to_string()
+            )
+        ));
+    }
+    let contract = bijux_dna_domain_bam::contract_for_stage(stage.as_str());
+    let rg_required = contract.is_some_and(|spec| {
+        spec.read_group_policy
+            .to_ascii_lowercase()
+            .contains("requires_read_groups")
+    });
+    if rg_required && read_group_presence_hint(bam_path) == "absent" {
+        return Err(anyhow!(
+            "{} refusal: missing read groups in BAM header; set explicit rg_policy override if intentional",
+            stage.as_str()
+        ));
+    }
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Align && reference.is_none() {
         return Err(anyhow!("bam.align requires resolved reference fasta"));
     }
@@ -316,6 +348,115 @@ fn parse_mean_depth_from_depth_file(path: &Path) -> Result<Option<f64>> {
     Ok(n_f.map(|count| sum / count))
 }
 
+fn parse_mapq_summary(path: &Path) -> Result<Option<bijux_dna_domain_bam::metrics::MapqSummaryV1>> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let (_fragment, mapq) = bam_metrics::parse_samtools_stats(path)?;
+    Ok(Some(mapq))
+}
+
+fn write_bam_qc_aggregator_tsv(bam_root: &Path) -> Result<()> {
+    if !bam_root.exists() {
+        return Ok(());
+    }
+    let mut rows: Vec<(String, String, String, String, String)> = Vec::new();
+    for entry in
+        std::fs::read_dir(bam_root).with_context(|| format!("read {}", bam_root.display()))?
+    {
+        let entry = entry?;
+        let stage_dir = entry.path();
+        if !stage_dir.is_dir() {
+            continue;
+        }
+        let stage = entry.file_name().to_string_lossy().to_string();
+        let mapq_mean = parse_mapq_summary(&stage_dir.join("samtools_stats.txt"))?
+            .map(|m| format!("{:.4}", m.mean))
+            .unwrap_or_else(|| "na".to_string());
+        let mapped_fraction = parse_flagstat_mapped_fraction(&stage_dir.join("flagstat.txt"))?
+            .map(|v| format!("{:.6}", v))
+            .unwrap_or_else(|| "na".to_string());
+        let mean_depth = parse_mean_depth_from_depth_file(&stage_dir.join("coverage.depth.txt"))?
+            .map(|v| format!("{:.6}", v))
+            .unwrap_or_else(|| "na".to_string());
+        let contamination = if stage_dir.join("contamination.summary.json").exists() {
+            match bam_metrics::parse_contamination_json(
+                &stage_dir.join("contamination.summary.json"),
+            ) {
+                Ok(c) => format!("{:.6}", c.estimate),
+                Err(_) => "na".to_string(),
+            }
+        } else {
+            "na".to_string()
+        };
+        rows.push((stage, mapped_fraction, mapq_mean, mean_depth, contamination));
+    }
+    rows.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut body =
+        String::from("stage\tmapped_fraction\tmapq_mean\tmean_depth\tcontamination_estimate\n");
+    for (stage, mapped_fraction, mapq_mean, mean_depth, contamination_estimate) in rows {
+        use std::fmt::Write as _;
+        let _ = writeln!(
+            body,
+            "{stage}\t{mapped_fraction}\t{mapq_mean}\t{mean_depth}\t{contamination_estimate}"
+        );
+    }
+    let out = bam_root.join("bam_qc.tsv");
+    bijux_dna_infra::atomic_write_bytes(&out, body.as_bytes())
+        .with_context(|| format!("write {}", out.display()))
+}
+
+fn validate_stage_hard_failures(
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<()> {
+    let flagstat = stage_dir.join("flagstat.txt");
+    if !flagstat.exists() {
+        return Err(anyhow!(
+            "bam.validate hard failure: missing flagstat output {}",
+            flagstat.display()
+        ));
+    }
+    let expected_sorting = bijux_dna_domain_bam::contract_for_stage("bam.validate")
+        .map(|spec| spec.sorting.to_string())
+        .unwrap_or_else(|| "coordinate".to_string());
+    if let Some(input_bam) = plan
+        .io
+        .inputs
+        .iter()
+        .find(|input| input.path.extension().and_then(|s| s.to_str()) == Some("bam"))
+        .map(|input| input.path.as_path())
+    {
+        if let Some(sort_order) = parse_sort_order_from_header_hint(input_bam) {
+            if sort_order != expected_sorting {
+                return Err(anyhow!(
+                    "bam.validate hard failure: sort order mismatch expected={expected_sorting} got={sort_order}"
+                ));
+            }
+        }
+        let reference = plan
+            .params
+            .get("reference")
+            .and_then(serde_json::Value::as_str);
+        if let Some(reference) = reference {
+            let reference = PathBuf::from(reference);
+            let ref_contigs = reference_contig_names(Some(&reference));
+            if !ref_contigs.is_empty() {
+                let bam_contigs = bam_header_contig_names_hint(input_bam);
+                if !bam_contigs.is_empty() {
+                    let has_mismatch = bam_contigs.iter().any(|name| !ref_contigs.contains(name));
+                    if has_mismatch {
+                        return Err(anyhow!(
+                            "bam.validate hard failure: BAM header contigs do not match reference contigs"
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn write_udg_metadata(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
@@ -455,11 +596,8 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         }
     });
     let composite_path = stage_dir.join("authenticity_composite.json");
-    bijux_dna_infra::atomic_write_json(
-        &composite_path,
-        &payload,
-    )
-    .with_context(|| format!("write {}", composite_path.display()))?;
+    bijux_dna_infra::atomic_write_json(&composite_path, &payload)
+        .with_context(|| format!("write {}", composite_path.display()))?;
     let canonical_path = stage_dir.join("authenticity.json");
     bijux_dna_infra::atomic_write_json(
         &canonical_path,
@@ -495,6 +633,7 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Validate => {
+            validate_stage_hard_failures(stage_dir, plan)?;
             let flagstat = stage_dir.join("flagstat.txt");
             let summary = stage_dir.join("validation.summary.json");
             bijux_dna_infra::atomic_write_json(
@@ -510,6 +649,9 @@ fn stage_postprocess(
         bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
             let flagstat = stage_dir.join("flagstat.txt");
             let stats = stage_dir.join("samtools_stats.txt");
+            let mapq = parse_mapq_summary(&stats)?;
+            let mapq_warn_below = 25.0;
+            let mapq_fail_below = 15.0;
             let summary = stage_dir.join("mapping_summary.json");
             bijux_dna_infra::atomic_write_json(
                 &summary,
@@ -518,9 +660,24 @@ fn stage_postprocess(
                     "flagstat": parse_flagstat_counts(&flagstat)?,
                     "stats_present": stats.exists(),
                     "idxstats_present": stage_dir.join("idxstats.txt").exists(),
+                    "mapq_regime": mapq.as_ref().map(|m| serde_json::json!({
+                        "mean": m.mean,
+                        "warn_below": mapq_warn_below,
+                        "fail_below": mapq_fail_below,
+                        "status": if m.mean < mapq_fail_below { "fail" } else if m.mean < mapq_warn_below { "warn" } else { "ok" },
+                    })),
                 }),
             )
             .with_context(|| format!("write {}", summary.display()))?;
+            if let Some(mapq) = mapq {
+                if !mapq.histogram.is_empty() && mapq.mean < mapq_fail_below {
+                    return Err(anyhow!(
+                        "bam.mapping_summary hard failure: mapQ mean {:.2} below fail threshold {:.2}",
+                        mapq.mean,
+                        mapq_fail_below
+                    ));
+                }
+            }
         }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
             let path = stage_dir.join("complexity.artifacts.json");
@@ -560,12 +717,26 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
+            let parsed = if stage_dir.join("insert_size.metrics.txt").exists() {
+                Some(bam_metrics::parse_picard_insert_size_metrics(
+                    &stage_dir.join("insert_size.metrics.txt"),
+                )?)
+            } else {
+                None
+            };
             let path = stage_dir.join("insert_size.metrics.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
                     "report_present": stage_dir.join("insert_size.metrics.txt").exists(),
                     "histogram_present": stage_dir.join("insert_size.histogram.pdf").exists(),
+                    "fragment_length": parsed.as_ref().map(|m| serde_json::json!({
+                        "mean_insert_size": m.mean_insert_size,
+                        "median_insert_size": m.median_insert_size,
+                        "std_dev_insert_size": m.standard_deviation,
+                        "min_insert_size": m.min_insert_size,
+                        "max_insert_size": m.max_insert_size,
+                    })),
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
@@ -666,13 +837,41 @@ fn stage_postprocess(
         bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
             let flagstat = stage_dir.join("flagstat.txt");
             let mapped_fraction = parse_flagstat_mapped_fraction(&flagstat)?;
+            let competitive_mapping_enabled = plan
+                .params
+                .get("competitive_mapping")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            let competitive_fraction = if competitive_mapping_enabled {
+                parse_flagstat_mapped_fraction(&stage_dir.join("competitive.flagstat.txt"))?
+            } else {
+                None
+            };
             let path = stage_dir.join("endogenous.content.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
                     "method": "mapped_fraction_from_flagstat",
                     "mapped_fraction": mapped_fraction,
-                    "competitive_mapping_enabled": false,
+                    "competitive_mapping_enabled": competitive_mapping_enabled,
+                    "competitive_mapping_fraction": competitive_fraction,
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection => {
+            let path = stage_dir.join("overlap_correction.outputs.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "schema_version": "bijux.bam.overlap_correction.v1",
+                    "tool": plan.tool_id,
+                    "paired_end_behavior": "correct_overlapping_pairs",
+                    "outputs": {
+                        "bam": stage_dir.join("overlap.corrected.bam"),
+                        "bai": stage_dir.join("overlap.corrected.bam.bai"),
+                        "summary": stage_dir.join("overlap_correction.summary.json"),
+                    }
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
@@ -706,6 +905,25 @@ fn stage_postprocess(
             } else {
                 0.0
             };
+            let method = plan.tool_id.as_str();
+            if method == "schmutzi" && !(tool_scope == "mt" || tool_scope == "both") {
+                return Err(anyhow!(
+                    "bam.contamination refusal: schmutzi requires mt or both scope"
+                ));
+            }
+            if method == "verifybamid2" {
+                let has_af_ref = plan.params.get("af_reference").is_some()
+                    || plan
+                        .params
+                        .get("reference_panels")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|v| !v.is_empty());
+                if !has_af_ref {
+                    return Err(anyhow!(
+                        "bam.contamination refusal: verifybamid2 requires population AF reference panel"
+                    ));
+                }
+            }
             let mt_enabled = tool_scope == "mt" || tool_scope == "both";
             let nuclear_enabled = tool_scope == "nuclear" || tool_scope == "both";
             let stratified_path = stage_dir.join("contamination.stratified.json");
