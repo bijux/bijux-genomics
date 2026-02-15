@@ -264,7 +264,7 @@
     }
 
     #[test]
-    fn phased_path_then_minimac_impute_emits_output_on_mini_dataset() {
+    fn slow__phased_path_then_minimac_impute_emits_output_on_mini_dataset() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = dir.path().join("phased_input.vcf");
         std::fs::write(
