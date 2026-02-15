@@ -6,47 +6,47 @@
     clippy::unwrap_used
 )]
 // Auto-generated test aggregator for contracts
-#[path = "contracts/aggregate_metrics.rs"]
+#[path = "contracts/metrics/aggregate_metrics.rs"]
 mod mod_contracts_aggregate_metrics_rs;
-#[path = "contracts/analyze_contract.rs"]
+#[path = "contracts/core/analyze_contract.rs"]
 mod mod_contracts_analyze_contract_rs;
-#[path = "contracts/architecture.rs"]
+#[path = "contracts/core/architecture.rs"]
 mod mod_contracts_architecture_rs;
-#[path = "contracts/bench_integration.rs"]
+#[path = "contracts/core/bench_integration.rs"]
 mod mod_contracts_bench_integration_rs;
-#[path = "contracts/contract_handshake.rs"]
+#[path = "contracts/core/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
-#[path = "contracts/core_contract_tests.rs"]
+#[path = "contracts/core/core_contract_tests.rs"]
 mod mod_contracts_core_contract_tests_rs;
-#[path = "contracts/core_metric_spine.rs"]
+#[path = "contracts/metrics/core_metric_spine.rs"]
 mod mod_contracts_core_metric_spine_rs;
-#[path = "contracts/dashboard_contract.rs"]
+#[path = "contracts/dashboard/dashboard_contract.rs"]
 mod mod_contracts_dashboard_contract_rs;
-#[path = "contracts/dashboard_facts.rs"]
+#[path = "contracts/dashboard/dashboard_facts.rs"]
 mod mod_contracts_dashboard_facts_rs;
-#[path = "contracts/fact_table.rs"]
+#[path = "contracts/facts/fact_table.rs"]
 mod mod_contracts_fact_table_rs;
-#[path = "contracts/facts.rs"]
+#[path = "contracts/facts/facts.rs"]
 mod mod_contracts_facts_rs;
-#[path = "contracts/facts_schema.rs"]
+#[path = "contracts/facts/facts_schema.rs"]
 mod mod_contracts_facts_schema_rs;
-#[path = "contracts/failure_hints.rs"]
+#[path = "contracts/core/failure_hints.rs"]
 mod mod_contracts_failure_hints_rs;
-#[path = "contracts/fastq_trim.rs"]
+#[path = "contracts/fastq/fastq_trim.rs"]
 mod mod_contracts_fastq_trim_rs;
-#[path = "contracts/fastq_validate.rs"]
+#[path = "contracts/fastq/fastq_validate.rs"]
 mod mod_contracts_fastq_validate_rs;
-#[path = "contracts/golden_spine.rs"]
+#[path = "contracts/core/golden_spine.rs"]
 mod mod_contracts_golden_spine_rs;
-#[path = "contracts/load_large_facts.rs"]
+#[path = "contracts/facts/load_large_facts.rs"]
 mod mod_contracts_load_large_facts_rs;
-#[path = "contracts/loader_contract.rs"]
+#[path = "contracts/core/loader_contract.rs"]
 mod mod_contracts_loader_contract_rs;
-#[path = "contracts/metric_schema.rs"]
+#[path = "contracts/metrics/metric_schema.rs"]
 mod mod_contracts_metric_schema_rs;
-#[path = "contracts/metric_semantics.rs"]
+#[path = "contracts/metrics/metric_semantics.rs"]
 mod mod_contracts_metric_semantics_rs;
-#[path = "contracts/no_raw_json.rs"]
+#[path = "contracts/core/no_raw_json.rs"]
 mod mod_contracts_no_raw_json_rs;
 #[path = "contracts/pipeline/cross_handoff.rs"]
 mod mod_contracts_pipeline_cross_handoff_rs;
@@ -62,7 +62,7 @@ mod mod_contracts_pipeline_stable_ordering_rs;
 mod mod_contracts_pipeline_stage_boundaries_rs;
 #[path = "contracts/pipeline/vcf_fixture.rs"]
 mod mod_contracts_pipeline_vcf_fixture_rs;
-#[path = "contracts/public_api.rs"]
+#[path = "contracts/core/public_api.rs"]
 mod mod_contracts_public_api_rs;
 #[path = "contracts/report/docs_report_sections.rs"]
 mod mod_contracts_report_docs_report_sections_rs;

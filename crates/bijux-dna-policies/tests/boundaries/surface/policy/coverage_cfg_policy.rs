@@ -4,7 +4,7 @@ use std::path::Path;
 
 use walkdir::WalkDir;
 
-#[path = "../../support/fs.rs"]
+#[path = "../../../support/fs.rs"]
 mod support;
 
 #[test]
