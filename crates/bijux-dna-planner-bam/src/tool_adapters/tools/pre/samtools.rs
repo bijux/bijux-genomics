@@ -164,7 +164,13 @@ python - <<'PY' > {summary}\nimport json\npayload = {{\"action\": \"{action}\", 
 }
 
 #[must_use]
-pub fn mapping_summary_args(bam: &Path, flagstat: &Path, idxstats: &Path, stats: &Path, summary: &Path) -> Vec<String> {
+pub fn mapping_summary_args(
+    bam: &Path,
+    flagstat: &Path,
+    idxstats: &Path,
+    stats: &Path,
+    summary: &Path,
+) -> Vec<String> {
     let command = format!(
         "samtools flagstat {bam} > {flagstat} && \
 samtools idxstats {bam} > {idxstats} && \

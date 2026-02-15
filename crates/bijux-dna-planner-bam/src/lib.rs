@@ -203,7 +203,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("length_filter params mismatch"));
             };
-            tool_adapters::stages_pre::length_filter::plan(request.tool, bam, request.out_dir, &params)
+            tool_adapters::stages_pre::length_filter::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
         }
         bijux_dna_domain_bam::BamStage::Markdup => {
             let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;

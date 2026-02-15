@@ -152,7 +152,11 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         out.join("align").as_path(),
     )?;
     assert_eq!(align.stage_id.0, "bam.align");
-    assert!(align.io.outputs.iter().any(|o| o.name.as_str() == "align_bam"));
+    assert!(align
+        .io
+        .outputs
+        .iter()
+        .any(|o| o.name.as_str() == "align_bam"));
 
     let markdup_params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
@@ -166,13 +170,11 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &markdup_params,
     )?;
     assert_eq!(markdup.stage_id.0, "bam.markdup");
-    assert!(
-        markdup
-            .io
-            .outputs
-            .iter()
-            .any(|o| o.name.as_str() == "markdup_bam")
-    );
+    assert!(markdup
+        .io
+        .outputs
+        .iter()
+        .any(|o| o.name.as_str() == "markdup_bam"));
 
     let damage_params = bijux_dna_domain_bam::params::DamageEffectiveParams {
         udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
@@ -188,13 +190,11 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &damage_params,
     )?;
     assert_eq!(damage.stage_id.0, "bam.damage");
-    assert!(
-        damage
-            .io
-            .outputs
-            .iter()
-            .any(|o| o.name.as_str() == "damage_pydamage" || o.name.as_str() == "damage_mapdamage2")
-    );
+    assert!(damage
+        .io
+        .outputs
+        .iter()
+        .any(|o| o.name.as_str() == "damage_pydamage" || o.name.as_str() == "damage_mapdamage2"));
 
     let coverage_params = bijux_dna_domain_bam::params::CoverageEffectiveParams {
         regions: None,
@@ -207,12 +207,10 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &coverage_params,
     )?;
     assert_eq!(coverage.stage_id.0, "bam.coverage");
-    assert!(
-        coverage
-            .io
-            .outputs
-            .iter()
-            .any(|o| o.name.as_str() == "coverage_summary")
-    );
+    assert!(coverage
+        .io
+        .outputs
+        .iter()
+        .any(|o| o.name.as_str() == "coverage_summary"));
     Ok(())
 }

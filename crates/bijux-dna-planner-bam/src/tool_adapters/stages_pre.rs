@@ -496,17 +496,18 @@ pub mod mapq_filter {
         let idxstats_before = out_dir.join("idxstats.before.txt");
         let idxstats_after = out_dir.join("idxstats.after.txt");
         plan.command = CommandSpecV1 {
-            template: crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
-                bam,
-                params,
-                &out_bam,
-                &flagstat_before,
-                &flagstat_after,
-                &idxstats_before,
-                &idxstats_after,
-                &summary,
-                "mapq_filter",
-            ),
+            template:
+                crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
+                    bam,
+                    params,
+                    &out_bam,
+                    &flagstat_before,
+                    &flagstat_after,
+                    &idxstats_before,
+                    &idxstats_after,
+                    &summary,
+                    "mapq_filter",
+                ),
         };
         plan.params = serde_json::json!({
             "bam": bam,
@@ -517,7 +518,14 @@ pub mod mapq_filter {
         });
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["filtered_bam", "filtered_bai", "flagstat_before", "flagstat_after", "summary", "stage_metrics"],
+            &[
+                "filtered_bam",
+                "filtered_bai",
+                "flagstat_before",
+                "flagstat_after",
+                "summary",
+                "stage_metrics",
+            ],
         )
     }
 }
@@ -555,17 +563,18 @@ pub mod length_filter {
         let idxstats_before = out_dir.join("idxstats.before.txt");
         let idxstats_after = out_dir.join("idxstats.after.txt");
         plan.command = CommandSpecV1 {
-            template: crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
-                bam,
-                &deterministic,
-                &out_bam,
-                &flagstat_before,
-                &flagstat_after,
-                &idxstats_before,
-                &idxstats_after,
-                &summary,
-                "length_filter",
-            ),
+            template:
+                crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
+                    bam,
+                    &deterministic,
+                    &out_bam,
+                    &flagstat_before,
+                    &flagstat_after,
+                    &idxstats_before,
+                    &idxstats_after,
+                    &summary,
+                    "length_filter",
+                ),
         };
         plan.params = serde_json::json!({
             "bam": bam,

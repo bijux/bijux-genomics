@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use bijux_dna_domain_bam::params::ValidateEffectiveParams;
 use bijux_dna_domain_bam::params::FilterEffectiveParams;
+use bijux_dna_domain_bam::params::ValidateEffectiveParams;
 
 #[must_use]
 pub fn validate_args(
