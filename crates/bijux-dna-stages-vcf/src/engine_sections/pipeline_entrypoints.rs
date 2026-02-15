@@ -184,6 +184,10 @@ fn write_runtime_explain(
 
     let explain = serde_json::json!({
         "schema_version": "bijux.vcf.runtime_explain.v1",
+        "chosen_regime": preflight.regime.regime,
+        "chosen_backend": backend,
+        "panel_lock_id": panel_lock.get("panel_id").cloned().unwrap_or(serde_json::Value::Null),
+        "chunk_plan": chunk_strategy,
         "regime_decision": preflight_details,
         "backend_selection": {
             "selected_backend": backend,
