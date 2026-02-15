@@ -911,6 +911,24 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stages = pipeline_plan.steps().to_vec();
+    let required_tools = required_fastq_tools()?;
+    for planned in &planned_stages {
+        let stage_id = planned.step_id.to_string();
+        let tool_id = planned
+            .command
+            .template
+            .first()
+            .map(String::as_str)
+            .unwrap_or_default();
+        enforce_stage_applicability(planned, args)?;
+        enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
+        if !required_tools.contains(tool_id) {
+            return Err(anyhow!(
+                "tool `{tool_id}` for stage `{stage_id}` is not declared in configs/ci/tools/required_tools.toml"
+            ));
+        }
+        enforce_screen_db_governance(planned)?;
+    }
     std::env::set_var(
         "BIJUX_PLANNER_VERSION",
         bijux_dna_planner_fastq::PLANNER_VERSION,
@@ -1033,24 +1051,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let mut stage_runs = Vec::new();
     let mut fail_fast_triggered = false;
-    let required_tools = required_fastq_tools()?;
     for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
         let tool = planned.image.image.clone();
-        let tool_id = planned
-            .command
-            .template
-            .first()
-            .map(String::as_str)
-            .unwrap_or_default();
-        enforce_stage_applicability(planned, args)?;
-        enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
-        if !required_tools.contains(tool_id) {
-            return Err(anyhow!(
-                "tool `{tool_id}` for stage `{stage_id}` is not declared in configs/ci/tools/required_tools.toml"
-            ));
-        }
-        enforce_screen_db_governance(planned)?;
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
