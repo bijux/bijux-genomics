@@ -1,0 +1,4 @@
+too-many-lines-threshold = 900
+too-many-arguments-threshold = 14
+max-struct-bools = 20
+enum-variant-size-threshold = 1024
