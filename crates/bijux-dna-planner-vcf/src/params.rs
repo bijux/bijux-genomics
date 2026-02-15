@@ -134,6 +134,25 @@ fn allowed_params_for_stage(stage_id: &str) -> Result<BTreeSet<String>> {
     Ok(allow)
 }
 
+pub(crate) fn validate_generated_stage_params(
+    stage_id: &str,
+    params: &serde_json::Value,
+) -> Result<()> {
+    let allowed = allowed_params_for_stage(stage_id)?;
+    if allowed.is_empty() {
+        bail!("no param registry entry for {stage_id} in param_registry_downstream.toml");
+    }
+    let obj = params
+        .as_object()
+        .ok_or_else(|| anyhow!("internal planner params for {stage_id} must be a JSON object"))?;
+    for key in obj.keys() {
+        if !allowed.contains(key) {
+            bail!("unregistered knob for {stage_id}: `{key}` (add to param_registry_downstream.toml)");
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn apply_stage_param_overrides(
     stage_id: &str,
     mut base: serde_json::Value,

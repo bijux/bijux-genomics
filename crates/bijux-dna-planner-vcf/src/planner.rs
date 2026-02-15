@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, bail, Result};
@@ -23,12 +24,67 @@ use crate::coverage::classify_coverage_regime;
 use crate::models::{
     short_species_context_digest, RegionChunkPlan, VcfPanelLock, VcfPipelineInputs,
 };
-use crate::params::{apply_stage_param_overrides, attach_reference_provenance, stage_params};
+use crate::params::{
+    apply_stage_param_overrides, attach_reference_provenance, stage_params,
+    validate_generated_stage_params,
+};
 use crate::stage_catalog::{
     default_tool, eagle_license_metadata_present, image_for_tool,
     phasing_backend_supports_gl_only_input, resolve_requested_stages, stage_command,
     stage_compat_tools, stage_inputs_for, stage_outputs_for,
 };
+
+fn workspace_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+}
+
+fn load_required_tools() -> Result<BTreeSet<String>> {
+    let mut set = BTreeSet::<String>::new();
+    let root = workspace_root();
+    for rel in [
+        "configs/ci/tools/required_tools_vcf.toml",
+        "configs/ci/tools/required_tools_vcf_downstream.toml",
+    ] {
+        let raw = fs::read_to_string(root.join(rel))?;
+        let parsed: toml::Value = toml::from_str(&raw)?;
+        let arr = parsed
+            .get("required_tools")
+            .and_then(toml::Value::as_array)
+            .ok_or_else(|| anyhow!("missing required_tools in {rel}"))?;
+        for item in arr {
+            if let Some(s) = item.as_str() {
+                set.insert(s.to_string());
+            }
+        }
+    }
+    Ok(set)
+}
+
+fn load_registry_tools() -> Result<BTreeSet<String>> {
+    let mut set = BTreeSet::<String>::new();
+    let root = workspace_root();
+    for rel in [
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    ] {
+        let raw = fs::read_to_string(root.join(rel))?;
+        let parsed: toml::Value = toml::from_str(&raw)?;
+        let entries = parsed
+            .get("tools")
+            .and_then(toml::Value::as_array)
+            .ok_or_else(|| anyhow!("missing tools in {rel}"))?;
+        for entry in entries {
+            if let Some(id) = entry.get("id").and_then(toml::Value::as_str) {
+                set.insert(id.to_string());
+            }
+        }
+    }
+    Ok(set)
+}
 
 pub(crate) fn choose_tool(
     stage: VcfDomainStage,
@@ -212,6 +268,7 @@ fn stage_plan(
         build_id,
         bundle,
     );
+    validate_generated_stage_params(&stage_id, &params)?;
     Ok(StagePlanV1 {
         stage_id: StageId::new(stage_id),
         stage_version: StageVersion(2),
@@ -265,6 +322,8 @@ fn stage_plan(
 /// # Errors
 /// Returns an error when stage selection is invalid for downstream execution.
 pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV1>> {
+    let required_tools = load_required_tools()?;
+    let registry_tools = load_registry_tools()?;
     validate_species_and_invariants(inputs)?;
     let resolved_species = resolve_species_context(
         &inputs.species_context.species_id,
@@ -381,6 +440,20 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
             bail!(
                 "selected tool {} is not compatible with stage {}",
+                tool,
+                stage.as_str()
+            );
+        }
+        if !required_tools.contains(&tool) {
+            bail!(
+                "planner refusal: tool {} for {} is not declared in required_tools_vcf(_downstream).toml",
+                tool,
+                stage.as_str()
+            );
+        }
+        if !registry_tools.contains(&tool) {
+            bail!(
+                "planner refusal: tool {} for {} is missing from tool_registry_vcf(_downstream).toml",
                 tool,
                 stage.as_str()
             );
