@@ -23,8 +23,9 @@ fn is_allowed_writer_path(path: &Path) -> bool {
 }
 
 fn is_path_policies_test(path: &Path) -> bool {
-    path.to_string_lossy()
-        .ends_with("/crates/bijux-dna-policies/tests/boundaries/surface/path_policies.rs")
+    path.to_string_lossy().ends_with(
+        "/crates/bijux-dna-policies/tests/boundaries/surface/structure_layout/path_policies.rs",
+    )
 }
 
 #[test]

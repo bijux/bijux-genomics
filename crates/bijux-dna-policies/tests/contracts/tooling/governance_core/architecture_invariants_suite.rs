@@ -16,9 +16,9 @@ fn policy__contracts__architecture_invariants_suite__core_boundary_artifacts_exi
         "docs/10-architecture/ARCHITECTURE.md",
         "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
         "docs/10-architecture/BOUNDARY_MAP.md",
-        "crates/bijux-dna-policies/tests/boundaries/deps/dependency_graph.rs",
-        "crates/bijux-dna-policies/tests/contracts/tooling/purity_effects_responsibility_policy.rs",
-        "crates/bijux-dna-policies/tests/contracts/tooling/generated_configs_policy.rs",
+        "crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs",
     ];
     let mut missing = Vec::new();
     for rel in required {
