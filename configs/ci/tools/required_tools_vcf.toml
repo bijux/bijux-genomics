@@ -10,4 +10,4 @@
 # domain_schema_version: bijux.domain.v1
 
 schema_version = "bijux.required_tools.v1"
-required_tools = ["bcftools"]
+required_tools = ["angsd", "bcftools"]
