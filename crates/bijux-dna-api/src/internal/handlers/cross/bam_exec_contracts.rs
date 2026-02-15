@@ -355,4 +355,95 @@ mod tests {
         assert_eq!(classify_mean_depth(12.0), ">10x");
     }
 
+    #[test]
+    fn bam_stage_contract_suite_emits_normalized_metrics_for_all_stages() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let result = bijux_dna_runner::execute::StageResultV1 {
+            run_id: "test".to_string(),
+            exit_code: 0,
+            runtime_s: 1.0,
+            memory_mb: 64.0,
+            outputs: Vec::new(),
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "tool".to_string(),
+        };
+        for stage in bijux_dna_domain_bam::BamStage::all() {
+            let runtime_stage =
+                bijux_dna_planner_bam::stage_api::BamStage::try_from(stage.as_str())?;
+            let stage_dir = temp.path().join(stage.as_str().trim_start_matches("bam."));
+            bijux_dna_infra::ensure_dir(&stage_dir)?;
+            let plan = mock_plan(runtime_stage);
+            write_normalized_bam_metrics(runtime_stage, &stage_dir, &plan, &result)?;
+            let metrics_path = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir)
+                .join("metrics.json");
+            let payload: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(metrics_path)?)?;
+            assert_eq!(
+                payload
+                    .pointer("/metrics/schema_version")
+                    .and_then(serde_json::Value::as_str),
+                Some("bijux.bam.metrics.normalized.v1")
+            );
+            assert_eq!(
+                payload
+                    .pointer("/metrics/stage_id")
+                    .and_then(serde_json::Value::as_str),
+                Some(stage.as_str())
+            );
+            assert!(payload.pointer("/metrics/normalized_keys").is_some());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn bam_stage_contract_suite_uses_golden_toy_sam_and_bam_inputs() -> Result<()> {
+        let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(std::path::Path::parent)
+            .ok_or_else(|| anyhow::anyhow!("resolve workspace root"))?;
+        let toy_sam = workspace.join("assets/golden/smoke-inputs-v1/bam/toy.sam");
+        let sample_bam =
+            workspace.join("crates/bijux-dna-planner-bam/tests/fixtures/plan_inputs/default/sample.bam");
+        assert!(toy_sam.exists(), "missing {}", toy_sam.display());
+        assert!(sample_bam.exists(), "missing {}", sample_bam.display());
+
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("validate");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        write_bam_invariants(
+            &stage_dir,
+            bijux_dna_planner_bam::stage_api::BamStage::Validate,
+            &toy_sam,
+            None,
+            None,
+        )?;
+        let plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
+        let result = bijux_dna_runner::execute::StageResultV1 {
+            run_id: "test".to_string(),
+            exit_code: 0,
+            runtime_s: 0.5,
+            memory_mb: 32.0,
+            outputs: vec![sample_bam],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "samtools".to_string(),
+        };
+        write_normalized_bam_metrics(
+            bijux_dna_planner_bam::stage_api::BamStage::Validate,
+            &stage_dir,
+            &plan,
+            &result,
+        )?;
+        assert!(stage_dir.join("bam_invariants.json").exists());
+        assert!(
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir)
+                .join("metrics.json")
+                .exists()
+        );
+        Ok(())
+    }
+
 }

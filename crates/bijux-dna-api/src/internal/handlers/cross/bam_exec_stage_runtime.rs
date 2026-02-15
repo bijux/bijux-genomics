@@ -266,6 +266,99 @@ fn write_tool_wrapper_contract(
         .with_context(|| format!("write {}", path.display()))
 }
 
+fn write_normalized_bam_metrics(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    result: &bijux_dna_runner::execute::StageResultV1,
+) -> Result<()> {
+    let mut artifact_status = serde_json::Map::new();
+    let mut missing = Vec::new();
+    for artifact in bijux_dna_domain_bam::required_audit_artifacts(stage) {
+        let path = stage_dir.join(artifact.filename);
+        let exists = path.exists();
+        if !exists {
+            missing.push(artifact.name.to_string());
+        }
+        artifact_status.insert(
+            artifact.name.to_string(),
+            serde_json::json!({
+                "path": path,
+                "exists": exists,
+            }),
+        );
+    }
+    let normalized_metrics = serde_json::json!({
+        "schema_version": "bijux.bam.metrics.normalized.v1",
+        "stage_id": stage.as_str(),
+        "tool_id": plan.tool_id,
+        "tool_version": plan.tool_version,
+        "execution": {
+            "runtime_s": result.runtime_s,
+            "memory_mb": result.memory_mb,
+            "exit_code": result.exit_code,
+            "status": if result.exit_code == 0 { "ok" } else { "failed" },
+        },
+        "outputs_count": result.outputs.len(),
+        "artifacts": {
+            "required_count": artifact_status.len(),
+            "missing_required": missing,
+            "items": artifact_status,
+        },
+        "contracts": {
+            "bam_invariants": stage_dir.join("bam_invariants.json").exists(),
+            "output_contract": stage_dir.join("bam_output_contract.json").exists(),
+            "tool_wrapper": stage_dir.join("tool_wrapper.json").exists(),
+        },
+        "normalized_keys": [
+            "stage_id",
+            "tool_id",
+            "tool_version",
+            "execution.runtime_s",
+            "execution.memory_mb",
+            "execution.exit_code",
+            "artifacts.required_count",
+            "artifacts.missing_required",
+            "contracts.bam_invariants",
+            "contracts.output_contract",
+            "contracts.tool_wrapper"
+        ],
+    });
+    let stage_metrics = bijux_dna_core::metrics::StageMetricsV1 {
+        schema_version: "bijux.stage_metrics.v1".to_string(),
+        stage_id: stage.as_str().to_string(),
+        stage_version: plan.stage_version.0,
+        tool_id: plan.tool_id.to_string(),
+        tool_version: plan.tool_version.clone(),
+        context: bijux_dna_core::metrics::MetricContextV1 {
+            tool_id: plan.tool_id.to_string(),
+            tool_version: plan.tool_version.clone(),
+            image_digest: plan.image.digest.clone(),
+            runner: "container".to_string(),
+            platform: "cross".to_string(),
+            input_hash: "unknown".to_string(),
+            params_hash: "unknown".to_string(),
+            presets: std::collections::BTreeMap::new(),
+            banks: std::collections::BTreeMap::new(),
+        },
+        metric_provenance: None,
+        execution: bijux_dna_core::prelude::measure::ExecutionMetrics {
+            runtime_s: result.runtime_s,
+            memory_mb: result.memory_mb,
+            exit_code: result.exit_code,
+        },
+        failure_class: (result.exit_code != 0).then_some("stage_failed".to_string()),
+        failure_reason: (result.exit_code != 0).then_some("non_zero_exit_code".to_string()),
+        metrics: normalized_metrics,
+    };
+    let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(stage_dir);
+    bijux_dna_infra::ensure_dir(&run_artifacts)
+        .with_context(|| format!("create {}", run_artifacts.display()))?;
+    bijux_dna_runtime::recording::write_stage_metrics_json(&run_artifacts, &stage_metrics)
+        .with_context(|| format!("write normalized metrics for {}", stage.as_str()))?;
+    Ok(())
+}
+
 fn write_alignment_regime_validation(
     stage_dir: &Path,
     regime: AlignmentRegime,
@@ -441,6 +534,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         write_duplicate_policy_split(&stage_dir, &plan)?;
     }
     if let Some(summary) = maybe_resume_bam_stage(stage, &stage_dir, &step)? {
+        write_normalized_bam_metrics(stage, &stage_dir, &plan, &summary.result)?;
         return Ok(summary);
     }
     let context = ToolContext {
@@ -471,6 +565,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     write_bam_output_contract(stage, &stage_dir)?;
     enforce_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
+    write_normalized_bam_metrics(stage, &stage_dir, &plan, &result)?;
     if result.exit_code != 0 {
         write_stage_failure_hint(&stage_dir, stage, &result)?;
     }
@@ -557,6 +652,12 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_out,
         &align_step,
     )? {
+        write_normalized_bam_metrics(
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+            &align_out,
+            &align_plan,
+            &summary.result,
+        )?;
         return Ok(vec![summary]);
     }
     let align_context = ToolContext {
@@ -586,6 +687,12 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
     write_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
     enforce_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
+    write_normalized_bam_metrics(
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_out,
+        &align_plan,
+        &align_result,
+    )?;
     let header_normalization = serde_json::json!({
         "stage_id": align_step.step_id,
         "regime": regime,
