@@ -25,4 +25,16 @@ impl VcfPathContract {
     pub fn chunk_logs_dir(&self, stage_id: &str, chunk_label: &str) -> PathBuf {
         self.logs_dir.join(stage_id).join(chunk_label)
     }
+
+    #[must_use]
+    pub fn canonical(stage_dir: &Path) -> Self {
+        let vcf_gz = stage_dir.join("vcf.gz");
+        let vcf_gz_tbi = stage_dir.join("vcf.gz.tbi");
+        Self {
+            vcf_gz,
+            vcf_gz_tbi,
+            manifest: stage_dir.join("stage_manifest.json"),
+            logs_dir: stage_dir.join("logs"),
+        }
+    }
 }
