@@ -9,6 +9,7 @@ use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, hash_file_sha256};
 use serde::Serialize;
 
 use crate::invariants::{run_vcf_preflight, InputRegime, InvariantConfig, VcfPreflightResult};
+use crate::path_contract::VcfPathContract;
 use crate::pipeline::{
     run_admixture_stage, run_call_diploid_stage, run_call_gl_stage, run_call_pseudohaploid_stage,
     run_damage_filter_stage, run_demography_stage, run_filter_stage_real, run_gl_propagation_stage,
