@@ -212,4 +212,18 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn bam_output_contract_enforcement_rejects_missing_index() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("align");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
+        std::fs::write(stage_dir.join("align.bam"), b"bam")?;
+        write_bam_output_contract(stage, &stage_dir)?;
+        let err = enforce_bam_output_contract(stage, &stage_dir)
+            .expect_err("enforcement must fail when .bai is missing");
+        assert!(err.to_string().contains("output contract violation"));
+        Ok(())
+    }
+
 }
