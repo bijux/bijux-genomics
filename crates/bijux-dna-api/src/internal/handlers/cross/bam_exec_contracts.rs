@@ -309,13 +309,13 @@ mod tests {
         let bai = stage_dir.join("align.bam.bai");
         std::fs::write(&bam, b"bam")?;
         std::fs::write(&bai, b"bai")?;
-        let bam_checksum = bijux_dna_infra::hash_file_sha256(&bam)?;
-        let bai_checksum = bijux_dna_infra::hash_file_sha256(&bai)?;
+        let bam_hash = bijux_dna_infra::hash_file_sha256(&bam)?;
+        let index_hash = bijux_dna_infra::hash_file_sha256(&bai)?;
         let accounting = serde_json::json!({
             "stage_id": "bam.align",
             "output_checksums": [
-                {"path": bam, "sha256": bam_checksum},
-                {"path": bai, "sha256": bai_checksum}
+                {"path": bam, "sha256": bam_hash},
+                {"path": bai, "sha256": index_hash}
             ]
         });
         bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
