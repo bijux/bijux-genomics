@@ -852,11 +852,7 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
     let mut files: u64 = 0;
     for artifact in &request.plan.io.inputs {
         let p = request.plan.out_dir.join(&artifact.path);
-        let ext = p.extension().and_then(|x| x.to_str()).unwrap_or_default();
-        if !(ext.eq_ignore_ascii_case("fq")
-            || ext.eq_ignore_ascii_case("fastq")
-            || ext.eq_ignore_ascii_case("gz"))
-        {
+        if !is_fastq_like_path(&p) {
             continue;
         }
         let inv = request.plan.out_dir.join("fastq_invariants.json");
@@ -883,6 +879,18 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
     }
     let avg_len = mean_len_sum / files as f64;
     Some((read_count as f64 * avg_len) / expected_genome_size_bp as f64)
+}
+
+fn is_fastq_like_path(path: &Path) -> bool {
+    let name = path
+        .file_name()
+        .and_then(|x| x.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    name.ends_with(".fastq")
+        || name.ends_with(".fq")
+        || name.ends_with(".fastq.gz")
+        || name.ends_with(".fq.gz")
 }
 
 fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
@@ -926,7 +934,10 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
 
 #[cfg(test)]
 mod coverage_regime_tests {
-    use super::{classify_depth_to_regime, CoverageThresholds};
+    use super::{
+        classify_depth_to_regime, is_fastq_like_path, stage_requires_regime, CoverageThresholds,
+    };
+    use std::path::Path;
 
     #[test]
     fn same_input_depth_yields_same_regime_deterministically() {
@@ -941,5 +952,41 @@ mod coverage_regime_tests {
         assert_eq!(a, "gl");
         assert_eq!(a, b);
         assert_eq!(b, c);
+    }
+
+    #[test]
+    fn depth_boundaries_route_to_expected_regime() {
+        let t = CoverageThresholds {
+            gl_max_depth: 1.5,
+            pseudohaploid_max_depth: 6.0,
+            diploid_min_depth: 8.0,
+        };
+        assert_eq!(classify_depth_to_regime(1.5, t).0, "gl");
+        assert_eq!(classify_depth_to_regime(1.5001, t).0, "pseudohaploid");
+        assert_eq!(classify_depth_to_regime(6.0, t).0, "pseudohaploid");
+        assert_eq!(classify_depth_to_regime(8.0, t).0, "diploid");
+        assert_eq!(classify_depth_to_regime(7.0, t).0, "pseudohaploid");
+    }
+
+    #[test]
+    fn regime_required_stage_catalog_is_explicit() {
+        assert!(stage_requires_regime("vcf.call"));
+        assert!(stage_requires_regime("vcf.call_gl"));
+        assert!(stage_requires_regime("vcf.call_diploid"));
+        assert!(stage_requires_regime("vcf.call_pseudohaploid"));
+        assert!(stage_requires_regime("vcf.impute"));
+        assert!(stage_requires_regime("vcf.phasing"));
+        assert!(!stage_requires_regime("vcf.qc"));
+        assert!(!stage_requires_regime("bam.coverage"));
+    }
+
+    #[test]
+    fn fastq_path_detection_ignores_non_fastq_gz() {
+        assert!(is_fastq_like_path(Path::new("r1.fastq")));
+        assert!(is_fastq_like_path(Path::new("r1.fq")));
+        assert!(is_fastq_like_path(Path::new("r1.fastq.gz")));
+        assert!(is_fastq_like_path(Path::new("r1.fq.gz")));
+        assert!(!is_fastq_like_path(Path::new("reference.fa.gz")));
+        assert!(!is_fastq_like_path(Path::new("notes.txt.gz")));
     }
 }
