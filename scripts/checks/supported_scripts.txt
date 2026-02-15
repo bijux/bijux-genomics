@@ -137,6 +137,8 @@ scripts/tooling/setup-docs-venv.sh
 scripts/checks/check-panel-locks.sh
 scripts/checks/check-map-locks.sh
 scripts/checks/check-reference-fetch-paths.sh
+scripts/checks/check-reference-service-boundary.sh
+scripts/checks/check-reference-path-governance.sh
 scripts/checks/check-panel-license-policy.sh
 scripts/checks/check-vcf-reference-governance.sh
 scripts/checks/check-audit-allowlist.sh

@@ -2087,6 +2087,22 @@ network_allowed = true
 ci_allowed = true
 
 [[script]]
+id = "check_reference_service_boundary"
+path = "scripts/checks/check-reference-service-boundary.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_reference_path_governance"
+path = "scripts/checks/check-reference-path-governance.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "simulate_coverage_regime"
 path = "scripts/tooling/simulate-coverage-regime.sh"
 purpose = "tooling script"
