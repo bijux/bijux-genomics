@@ -90,11 +90,22 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     let mut het_total = 0_u64;
     let mut hom_alt_total = 0_u64;
     let mut per_sample = std::collections::BTreeMap::<String, (u64, u64)>::new();
+    let mut filter_counts = std::collections::BTreeMap::<String, u64>::new();
+    let mut rsq_by_maf_bin_sum = std::collections::BTreeMap::<String, f64>::new();
+    let mut rsq_by_maf_bin_count = std::collections::BTreeMap::<String, u64>::new();
+    let mut post_variant_keys = std::collections::BTreeSet::<String>::new();
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
         variants += 1;
+        let filter_label = if fields[6].trim().is_empty() || fields[6] == "." {
+            "PASS".to_string()
+        } else {
+            fields[6].to_string()
+        };
+        *filter_counts.entry(filter_label).or_insert(0) += 1;
+        post_variant_keys.insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
         if let (Some(reference), Some(alt)) = (fields.get(3), fields.get(4)) {
             if is_transition(reference, alt) {
                 ti_count += 1;
@@ -114,7 +125,12 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
         }
         if let Some(v) = parse_af_from_info(fields[7]) {
             af_values.push(v);
-            *maf_bins.entry(maf_bin_label(v).to_string()).or_insert(0) += 1;
+            let maf_bin = maf_bin_label(v).to_string();
+            *maf_bins.entry(maf_bin.clone()).or_insert(0) += 1;
+            if let Some(rsq) = parse_info_value_f64(fields[7], "R2") {
+                *rsq_by_maf_bin_sum.entry(maf_bin.clone()).or_insert(0.0) += rsq;
+                *rsq_by_maf_bin_count.entry(maf_bin).or_insert(0) += 1;
+            }
         }
         if fields.len() > 9 {
             let keys = fields[8].split(':').collect::<Vec<_>>();
@@ -234,6 +250,19 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     table.push_str(&format!("site_missingness_mean\t{site_missingness_mean:.6}\n"));
     table.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
     table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
+    for (bin, count) in &maf_bins {
+        table.push_str(&format!("maf_bin_count_{bin}\t{count}\n"));
+        let rsq_mean_bin = if *rsq_by_maf_bin_count.get(bin).unwrap_or(&0) == 0 {
+            0.0
+        } else {
+            rsq_by_maf_bin_sum.get(bin).copied().unwrap_or(0.0)
+                / *rsq_by_maf_bin_count.get(bin).unwrap_or(&1) as f64
+        };
+        table.push_str(&format!("rsq_mean_{bin}\t{rsq_mean_bin:.6}\n"));
+    }
+    for (filter, count) in &filter_counts {
+        table.push_str(&format!("filter_count_{filter}\t{count}\n"));
+    }
     if let Some(hwe) = hwe_p_mean {
         table.push_str(&format!("hwe_pvalue_mean\t{hwe:.6}\n"));
     }
@@ -248,6 +277,37 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
     let warnings_json = out_dir.join("warnings.json");
+    let overlap_diagnostics = if let Some(pre) = &params.pre_filter_vcf {
+        let pre_raw = read_vcf_text(pre)?;
+        let mut pre_variant_keys = std::collections::BTreeSet::<String>::new();
+        for line in pre_raw.lines() {
+            let Some(fields) = parse_record_fields(line) else {
+                continue;
+            };
+            pre_variant_keys.insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
+        }
+        let shared = pre_variant_keys.intersection(&post_variant_keys).count() as u64;
+        let pre_total = pre_variant_keys.len() as u64;
+        let post_total = post_variant_keys.len() as u64;
+        let post_overlap_fraction = if post_total == 0 {
+            0.0
+        } else {
+            shared as f64 / post_total as f64
+        };
+        serde_json::json!({
+            "pre_total": pre_total,
+            "post_total": post_total,
+            "shared_variants": shared,
+            "post_overlap_fraction": post_overlap_fraction
+        })
+    } else {
+        serde_json::json!({
+            "pre_total": serde_json::Value::Null,
+            "post_total": post_variant_keys.len(),
+            "shared_variants": serde_json::Value::Null,
+            "post_overlap_fraction": serde_json::Value::Null
+        })
+    };
     let mut sample_missingness = per_sample
         .iter()
         .map(|(sample, (total, miss))| {
@@ -281,20 +341,45 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
         &warnings_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.qc_warnings.v1",
-            "warnings": Vec::<String>::new(),
+            "warnings": if overlap_diagnostics.get("post_overlap_fraction").and_then(|x| x.as_f64()).is_some_and(|x| x < 0.95) {
+                vec!["low_pre_post_variant_overlap".to_string()]
+            } else {
+                Vec::<String>::new()
+            },
             "per_sample_outliers": per_sample_outliers,
+            "overlap_diagnostics": overlap_diagnostics.clone(),
         }),
     )?;
+    let rsq_by_maf_bin = maf_bins
+        .keys()
+        .map(|bin| {
+            let count = *rsq_by_maf_bin_count.get(bin).unwrap_or(&0);
+            let mean = if count == 0 {
+                0.0
+            } else {
+                rsq_by_maf_bin_sum.get(bin).copied().unwrap_or(0.0) / count as f64
+            };
+            (
+                bin.clone(),
+                serde_json::json!({
+                    "count": count,
+                    "rsq_mean": mean
+                }),
+            )
+        })
+        .collect::<serde_json::Map<_, _>>();
     let qc_histograms_json = out_dir.join("qc_histograms.json");
     atomic_write_json(
         &qc_histograms_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.qc_histograms.v1",
-            "depth_distribution": depth,
-            "info_distribution": info_values,
-            "rsq_distribution": rsq_values,
-            "maf_bins": maf_bins,
-            "site_missingness_distribution": site_missingness,
+            "depth_distribution": depth.clone(),
+            "info_distribution": info_values.clone(),
+            "rsq_distribution": rsq_values.clone(),
+            "maf_bins": maf_bins.clone(),
+            "rsq_by_maf_bin": rsq_by_maf_bin.clone(),
+            "site_missingness_distribution": site_missingness.clone(),
+            "filter_counts": filter_counts.clone(),
         }),
     )?;
     let qc_summary_json = out_dir.join("qc_summary.json");
@@ -308,8 +393,11 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "rsq_mean": rsq_mean,
             "allele_frequency_shift_abs_mean": af_mean,
             "maf_bins": maf_bins,
+            "rsq_by_maf_bin": rsq_by_maf_bin,
             "site_missingness_mean": site_missingness_mean,
             "depth_distribution": depth,
+            "filter_counts": filter_counts,
+            "overlap_diagnostics": overlap_diagnostics.clone(),
             "hwe_pvalue_mean": hwe_p_mean,
             "ti_tv": ti_tv,
             "het_hom_ratio": het_hom_ratio,
