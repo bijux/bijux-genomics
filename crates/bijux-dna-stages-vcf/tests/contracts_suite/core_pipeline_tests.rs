@@ -340,6 +340,7 @@
         assert!(out.filtered_tbi.exists());
         assert!(out.damage_filter_summary_json.exists());
         assert!(out.damage_filter_counts_json.exists());
+        assert!(out.damage_genotype_manifest_json.exists());
         let summary_raw = std::fs::read_to_string(&out.damage_filter_summary_json)
             .unwrap_or_else(|err| panic!("read damage_filter_summary.json: {err}"));
         let summary: serde_json::Value = serde_json::from_str(&summary_raw)
@@ -354,6 +355,16 @@
         let counts: serde_json::Value = serde_json::from_str(&counts_raw)
             .unwrap_or_else(|err| panic!("parse damage_filter_counts json: {err}"));
         assert!(counts.pointer("/counts/kept").is_some());
+        let manifest_raw = std::fs::read_to_string(&out.damage_genotype_manifest_json)
+            .unwrap_or_else(|err| panic!("read damage_genotype_manifest.json: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse damage_genotype_manifest json: {err}"));
+        assert_eq!(
+            manifest.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.vcf.damage_genotype_manifest.v1")
+        );
+        assert!(manifest.pointer("/required_fields_contract").is_some());
+        assert!(manifest.pointer("/thresholds/terminal_damage_threshold").is_some());
     }
 
     #[test]
