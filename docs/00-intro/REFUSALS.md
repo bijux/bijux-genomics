@@ -18,3 +18,10 @@ Refusals prevent accidental scope creep and keep policies enforceable.
 
 ## Failure modes
 - Attempts to bypass contracts are rejected by policy tests.
+
+## Stage Refusals
+- `fastq.asv_inference`
+  - reason_code: `FASTQ_ASV_OUT_OF_SCOPE`
+  - status: out_of_scope
+  - issue: `FASTQ-3B-66`
+  - policy: not admitted until deterministic/containerized ASV execution is certified.

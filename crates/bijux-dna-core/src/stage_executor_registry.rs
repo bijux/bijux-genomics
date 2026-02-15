@@ -41,6 +41,18 @@ const VCF_EXECUTOR: &str = "stages-vcf.pipeline";
 
 const ENTRIES: &[StageExecutorEntry] = &[
     StageExecutorEntry {
+        stage_id: "fastq.abundance_normalization",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "fastq.chimera_detection",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "fastq.contaminant_screen",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
@@ -48,6 +60,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
     },
     StageExecutorEntry {
         stage_id: "fastq.correct",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "fastq.deduplicate",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -77,7 +95,19 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "fastq.low_complexity",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "fastq.merge",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "fastq.otu_clustering",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -96,6 +126,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
     },
     StageExecutorEntry {
         stage_id: "fastq.prepare_reference",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "fastq.primer_normalization",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -149,6 +185,18 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "bam.bias_mitigation",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.complexity",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "bam.authenticity",
         executor: BAM_EXECUTOR,
         domain: StageDomain::Bam,
@@ -191,6 +239,30 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "bam.gc_bias",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.genotyping",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.haplogroups",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.insert_size",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "bam.kinship",
         executor: BAM_EXECUTOR,
         domain: StageDomain::Bam,
@@ -203,6 +275,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "bam.markdup",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "bam.mapping_summary",
         executor: BAM_EXECUTOR,
         domain: StageDomain::Bam,
@@ -210,6 +288,24 @@ const ENTRIES: &[StageExecutorEntry] = &[
     },
     StageExecutorEntry {
         stage_id: "bam.mapq_filter",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.overlap_correction",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.qc_pre",
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "bam.recalibration",
         executor: BAM_EXECUTOR,
         domain: StageDomain::Bam,
         readiness: ReadinessBadge::Supported,
