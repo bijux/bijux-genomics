@@ -49,9 +49,10 @@ fn roh_params_for_species(species_id: &str) -> RohStageParams {
     params
 }
 
-fn ibd_params_for_species(species_id: &str) -> IbdStageParams {
+fn ibd_params_for_species(species_id: &str, build_id: &str) -> IbdStageParams {
     let mut params = IbdStageParams::default();
     let species = species_id.to_ascii_lowercase();
+    params.expected_build = Some(build_id.to_string());
     if species.contains("homo sapiens") {
         params.min_variant_density_per_mb = 1.0;
         params.max_missingness = 0.20;
@@ -62,8 +63,9 @@ fn ibd_params_for_species(species_id: &str) -> IbdStageParams {
     params
 }
 
-fn demography_params_for_species(species_id: &str) -> DemographyStageParams {
+fn demography_params_for_species(species_id: &str, build_id: &str) -> DemographyStageParams {
     let mut params = DemographyStageParams::default();
+    params.expected_build = Some(build_id.to_string());
     if species_id.to_ascii_lowercase().contains("homo sapiens") {
         params.min_segments = 3;
     }
@@ -498,7 +500,10 @@ impl VcfStageRunner for DispatchRunner {
                 let out = run_ibd_stage(
                     input_vcf,
                     &stage_dir,
-                    &ibd_params_for_species(&ctx.request.species_context.species_id),
+                    &ibd_params_for_species(
+                        &ctx.request.species_context.species_id,
+                        &ctx.request.species_context.build_id,
+                    ),
                 )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
@@ -506,7 +511,9 @@ impl VcfStageRunner for DispatchRunner {
                     })?;
                 primary_output = Some(out.ibd_filtered_segments_tsv.clone());
                 artifacts.extend([
+                    out.ibd_input_tsv,
                     out.ibd_segments_tsv,
+                    out.ibd_merged_segments_tsv,
                     out.ibd_filtered_segments_tsv,
                     out.ibd_summary_json,
                     out.ibd_metrics_json,
@@ -517,13 +524,21 @@ impl VcfStageRunner for DispatchRunner {
                 let out = run_demography_stage(
                     input_vcf,
                     &stage_dir,
-                    &demography_params_for_species(&ctx.request.species_context.species_id),
+                    &demography_params_for_species(
+                        &ctx.request.species_context.species_id,
+                        &ctx.request.species_context.build_id,
+                    ),
                 )
                 .map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
                 })?;
-                artifacts.extend([out.ne_trajectory_tsv, out.demography_metrics_json, out.logs_txt]);
+                artifacts.extend([
+                    out.ne_trajectory_tsv,
+                    out.demography_json,
+                    out.demography_metrics_json,
+                    out.logs_txt,
+                ]);
             }
         }
 
