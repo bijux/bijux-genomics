@@ -27,6 +27,7 @@ make _examples-validate
 ./scripts/run.sh checks check-panel-license-policy
 ./scripts/run.sh checks check-reference-service-boundary
 ./scripts/run.sh checks check-reference-path-governance
+./scripts/run.sh checks check-coverage-regimes-schema
 ./scripts/run.sh domain check-domain-layout
 ./scripts/run.sh domain check-domain-schema
 ./scripts/run.sh domain check-domain-index
