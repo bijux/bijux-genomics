@@ -474,7 +474,7 @@ pub fn run_vcf_preflight(
     normalized_header.extend(contigs);
     normalized_header.push(chrom);
 
-    let contract = VcfPathContract::for_stage(artifact_dir, "normalized");
+    let contract = VcfPathContract::canonical(artifact_dir);
     let normalized_input = contract.vcf_gz.clone();
     let normalized_plain = artifact_dir.join("normalized.vcf");
     let normalized_payload = format!("{}\n{}\n", normalized_header.join("\n"), records.join("\n"));

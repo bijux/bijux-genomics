@@ -134,6 +134,62 @@ fn checksum_hex(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
+fn chunk_canonical_contig_label(raw: &str) -> String {
+    raw.trim_start_matches("chr").to_ascii_uppercase()
+}
+
+fn normalize_header_deterministic(
+    header: &[String],
+    species_context: &SpeciesContext,
+) -> Vec<String> {
+    let rank = species_context
+        .contigs
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (chunk_canonical_contig_label(&c.name), i))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut fileformat = vec![];
+    let mut contigs = vec![];
+    let mut other_meta = vec![];
+    let mut chrom = None::<String>;
+    for h in header {
+        if h.starts_with("##fileformat=") {
+            fileformat.push(h.clone());
+        } else if h.starts_with("##contig=<") {
+            contigs.push(h.clone());
+        } else if h.starts_with("##") {
+            other_meta.push(h.clone());
+        } else if h.starts_with("#CHROM\t") {
+            let mut fields = h.split('\t').map(str::to_string).collect::<Vec<_>>();
+            if fields.len() > 9 {
+                let mut sample_ids = fields.split_off(9);
+                sample_ids.sort();
+                fields.extend(sample_ids);
+            }
+            chrom = Some(fields.join("\t"));
+        }
+    }
+    contigs.sort_by_key(|h| {
+        let id = h
+            .split("ID=")
+            .nth(1)
+            .and_then(|x| x.split([',', '>']).next())
+            .unwrap_or_default();
+        rank.get(&chunk_canonical_contig_label(id))
+            .copied()
+            .unwrap_or(usize::MAX)
+    });
+    other_meta.sort();
+    let mut normalized = vec![];
+    normalized.extend(fileformat);
+    normalized.extend(other_meta);
+    normalized.extend(contigs);
+    if let Some(line) = chrom {
+        normalized.push(line);
+    }
+    normalized
+}
+
 /// # Errors
 /// Returns an error if chunk execution/merge validation fails.
 #[allow(clippy::too_many_arguments)]
@@ -147,6 +203,9 @@ pub fn run_chunked_regions(
     rerun_chunk: Option<&str>,
 ) -> Result<ChunkRunOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    let contract = crate::path_contract::VcfPathContract::canonical(out_dir);
+    let stage_logs_dir = contract.logs_dir.join("vcf.chunked_merge");
+    bijux_dna_infra::ensure_dir(&stage_logs_dir)?;
     let chunks = plan_regions_deterministic(species_context, params)?;
     let input_raw = std::fs::read_to_string(input_vcf)?;
     let panel_raw = std::fs::read_to_string(panel_vcf)?;
@@ -162,6 +221,7 @@ pub fn run_chunked_regions(
         .filter(|l| l.starts_with('#'))
         .map(str::to_string)
         .collect::<Vec<_>>();
+    let normalized_header = normalize_header_deterministic(&header, species_context);
     let records = input_raw
         .lines()
         .filter(|l| !l.starts_with('#') && !l.trim().is_empty())
@@ -177,12 +237,17 @@ pub fn run_chunked_regions(
         if rerun_chunk.is_some_and(|id| id != chunk.chunk_id) {
             continue;
         }
-        let chunk_out = chunks_dir.join(format!("{}.vcf.gz", chunk.chunk_id.replace(':', "_")));
+        let chunk_slug = chunk.chunk_id.replace(':', "_");
+        let chunk_out = chunks_dir.join(format!("{chunk_slug}.vcf.gz"));
         let prov_out = chunks_dir.join(format!(
             "{}.provenance.json",
-            chunk.chunk_id.replace(':', "_")
+            chunk_slug
         ));
-        let checksum_out = chunks_dir.join(format!("{}.sha256", chunk.chunk_id.replace(':', "_")));
+        let checksum_out = chunks_dir.join(format!("{chunk_slug}.sha256"));
+        let chunk_plain = chunks_dir.join(format!("{chunk_slug}.vcf"));
+        let chunk_tbi = PathBuf::from(format!("{}.tbi", chunk_out.display()));
+        let chunk_logs_dir = stage_logs_dir.join(format!("chunk-{chunk_slug}"));
+        bijux_dna_infra::ensure_dir(&chunk_logs_dir)?;
 
         let mut chunk_lines = Vec::new();
         let mut actual_count = 0u64;
@@ -200,14 +265,23 @@ pub fn run_chunked_regions(
             }
         }
 
-        let chunk_payload = format!("{}\n{}\n", header.join("\n"), chunk_lines.join("\n"));
+        let chunk_payload = format!("{}\n{}\n", normalized_header.join("\n"), chunk_lines.join("\n"));
         let output_checksum = checksum_hex(chunk_payload.as_bytes());
-        let resume_ok = if chunk_out.exists() && checksum_out.exists() {
+        let resume_ok = if chunk_out.exists() && chunk_tbi.exists() && checksum_out.exists() {
             let existing_sum = std::fs::read_to_string(&checksum_out).unwrap_or_default();
             existing_sum.trim() == output_checksum
         } else {
             false
         };
+        atomic_write_bytes(
+            &chunk_logs_dir.join("stdout.log"),
+            format!("chunk_id={}\nresumed={}\n", chunk.chunk_id, resume_ok).as_bytes(),
+        )?;
+        atomic_write_bytes(&chunk_logs_dir.join("stderr.log"), b"")?;
+        atomic_write_bytes(
+            &chunk_logs_dir.join("command.txt"),
+            b"chunk-extract -> bgzip -> tabix\n",
+        )?;
         if resume_ok {
             manifest.push(serde_json::json!({
                 "chunk_id": chunk.chunk_id,
@@ -233,7 +307,9 @@ pub fn run_chunked_regions(
             continue;
         }
 
-        atomic_write_bytes(&chunk_out, chunk_payload.as_bytes())?;
+        atomic_write_bytes(&chunk_plain, chunk_payload.as_bytes())?;
+        let _ = crate::vcf_io::vcf_index_bgzip_tabix(&chunk_plain, &chunk_out)?;
+        let _ = std::fs::remove_file(&chunk_plain);
         atomic_write_bytes(&checksum_out, format!("{output_checksum}\n").as_bytes())?;
         let prov = ChunkProvenance {
             chunk_id: chunk.chunk_id.clone(),
@@ -263,6 +339,7 @@ pub fn run_chunked_regions(
     }
 
     let merged_vcf = out_dir.join("merged_chunks.vcf.gz");
+    let merged_plain = out_dir.join("merged_chunks.vcf");
     let mut ordered = merged_records.values().cloned().collect::<Vec<_>>();
     ordered.sort_by(|a, b| {
         let ka = parse_variant_key(a)
@@ -273,8 +350,10 @@ pub fn run_chunked_regions(
             .unwrap_or_default();
         ka.cmp(&kb)
     });
-    let merged_payload = format!("{}\n{}\n", header.join("\n"), ordered.join("\n"));
-    atomic_write_bytes(&merged_vcf, merged_payload.as_bytes())?;
+    let merged_payload = format!("{}\n{}\n", normalized_header.join("\n"), ordered.join("\n"));
+    atomic_write_bytes(&merged_plain, merged_payload.as_bytes())?;
+    let _ = crate::vcf_io::vcf_index_bgzip_tabix(&merged_plain, &merged_vcf)?;
+    let _ = std::fs::remove_file(&merged_plain);
 
     // Boundary correctness: no dropped/duplicated keys compared to deterministic de-overlapped union.
     let merged_keys = ordered
