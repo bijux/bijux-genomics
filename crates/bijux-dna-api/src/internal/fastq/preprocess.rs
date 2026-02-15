@@ -713,6 +713,72 @@ fn write_fastq_to_fasta_if_missing(input_fastq: &std::path::Path, out_fasta: &st
     Ok(())
 }
 
+fn infer_udg_classification(input: &std::path::Path) -> String {
+    if let Ok(configured) = std::env::var("BIJUX_UDG_CLASSIFICATION") {
+        let normalized = configured.trim().to_ascii_lowercase();
+        if matches!(normalized.as_str(), "udg" | "partial" | "non_udg") {
+            return normalized;
+        }
+    }
+    let stem = input
+        .file_name()
+        .and_then(|x| x.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if stem.contains("partial_udg") || stem.contains("partial-udg") {
+        "partial".to_string()
+    } else if stem.contains("udg") {
+        "udg".to_string()
+    } else {
+        "non_udg".to_string()
+    }
+}
+
+fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_json::Value> {
+    let mut ct_events = 0_u64;
+    let mut ga_events = 0_u64;
+    let mut seen = 0_u64;
+    let mut five_prime: std::collections::BTreeMap<String, u64> = std::collections::BTreeMap::new();
+    let mut three_prime: std::collections::BTreeMap<String, u64> = std::collections::BTreeMap::new();
+    let mut lines = open_fastq_lines(path)?;
+    while let (Some(_h), Some(seq), Some(_plus), Some(_qual)) =
+        (lines.next(), lines.next(), lines.next(), lines.next())
+    {
+        let seq = seq.trim().to_ascii_uppercase();
+        if seq.len() < 2 {
+            continue;
+        }
+        let first = seq.chars().next().unwrap_or('N');
+        let last = seq.chars().next_back().unwrap_or('N');
+        *five_prime.entry(first.to_string()).or_insert(0) += 1;
+        *three_prime.entry(last.to_string()).or_insert(0) += 1;
+        if seq.starts_with("CT") {
+            ct_events += 1;
+        }
+        if seq.ends_with("GA") {
+            ga_events += 1;
+        }
+        seen += 1;
+        if seen >= 200_000 {
+            break;
+        }
+    }
+    let denom = (ct_events + ga_events) as f64;
+    let asymmetry = if denom > 0.0 {
+        (ct_events as f64 - ga_events as f64) / denom
+    } else {
+        0.0
+    };
+    Ok(serde_json::json!({
+        "reads_profiled": seen,
+        "terminal_base_composition_5p": five_prime,
+        "terminal_base_composition_3p": three_prime,
+        "ct_events": ct_events,
+        "ga_events": ga_events,
+        "ct_ga_asymmetry": asymmetry,
+    }))
+}
+
 fn materialize_amplicon_stage_outputs(
     stage_root: &std::path::Path,
     planned: &ExecutionStep,
@@ -729,6 +795,87 @@ fn materialize_amplicon_stage_outputs(
     bijux_dna_infra::ensure_dir(out_dir)?;
     let mut payload = serde_json::json!({});
     match stage_id {
+        "fastq.damage_aware_pretrim" => {
+            if std::env::var("BIJUX_ALIGNER_EXPECTS_UNTRIMMED")
+                .ok()
+                .is_some_and(|v| v == "1")
+            {
+                return Err(anyhow!(
+                    "fastq.damage_aware_pretrim refusal: downstream aligner expects untrimmed reads; set BIJUX_ALIGNER_EXPECTS_UNTRIMMED=0 or disable stage"
+                ));
+            }
+            let primary = outputs
+                .first()
+                .map(|x| x.path.clone())
+                .ok_or_else(|| anyhow!("missing primary output for {stage_id}"))?;
+            let trim_5p = std::env::var("BIJUX_DAMAGE_TRIM_5P")
+                .ok()
+                .and_then(|x| x.parse::<usize>().ok())
+                .unwrap_or(2);
+            let trim_3p = std::env::var("BIJUX_DAMAGE_TRIM_3P")
+                .ok()
+                .and_then(|x| x.parse::<usize>().ok())
+                .unwrap_or(2);
+            let pre_profile = terminal_damage_profile(&input).unwrap_or_else(|_| serde_json::json!({}));
+            let cutadapt_ok = command_exists("cutadapt")
+                && run_stage_command(
+                    out_dir,
+                    "cutadapt_damage_aware_pretrim",
+                    "cutadapt",
+                    &[
+                        "-u".to_string(),
+                        trim_5p.to_string(),
+                        "-u".to_string(),
+                        format!("-{trim_3p}"),
+                        "-o".to_string(),
+                        primary.to_string_lossy().to_string(),
+                        input.to_string_lossy().to_string(),
+                    ],
+                );
+            if !cutadapt_ok || !primary.exists() {
+                copy_if_missing(&input, &primary)?;
+            }
+            let post_profile =
+                terminal_damage_profile(&primary).unwrap_or_else(|_| serde_json::json!({}));
+            let udg_classification = infer_udg_classification(&input);
+            let classification_artifact = serde_json::json!({
+                "schema_version": "bijux.fastq.damage_classification.v1",
+                "stage_id": stage_id,
+                "udg_classification": udg_classification,
+                "source": if std::env::var("BIJUX_UDG_CLASSIFICATION").is_ok() { "config" } else { "inferred" },
+                "input_path": input,
+            });
+            bijux_dna_infra::atomic_write_json(
+                &stage_root.join("damage_classification.json"),
+                &classification_artifact,
+            )?;
+            bijux_dna_infra::atomic_write_json(
+                &stage_root.join("refusal_cases.json"),
+                &serde_json::json!({
+                    "schema_version": "bijux.fastq.damage_aware_pretrim.refusals.v1",
+                    "stage_id": stage_id,
+                    "cases": [
+                        {
+                            "reason_code": "aligner_requires_untrimmed_reads",
+                            "condition": "BIJUX_ALIGNER_EXPECTS_UNTRIMMED=1",
+                            "action": "disable stage or clear BIJUX_ALIGNER_EXPECTS_UNTRIMMED"
+                        }
+                    ]
+                }),
+            )?;
+            payload = serde_json::json!({
+                "udg_classification": udg_classification,
+                "policy": "terminal_trim",
+                "trim_5p_bases": trim_5p,
+                "trim_3p_bases": trim_3p,
+                "terminal_base_composition_pre": pre_profile.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
+                "terminal_base_composition_post": post_profile.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
+                "ct_ga_asymmetry_pre": pre_profile.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
+                "ct_ga_asymmetry_post": post_profile.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
+                "masked_or_trimmed_reads": post_profile.get("reads_profiled").cloned().unwrap_or_else(|| serde_json::json!(0)),
+                "used_fallback": !cutadapt_ok
+            });
+        }
         "fastq.primer_normalization" => {
             let primary = outputs
                 .first()
@@ -993,7 +1140,8 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
     }
     if matches!(
         stage_id,
-        "fastq.primer_normalization"
+        "fastq.damage_aware_pretrim"
+            | "fastq.primer_normalization"
             | "fastq.chimera_detection"
             | "fastq.otu_clustering"
             | "fastq.asv_inference"
@@ -1214,6 +1362,7 @@ fn write_fastq_output_contract(
         .map(|path| serde_json::json!({ "path": path }))
         .collect::<Vec<_>>();
     let expected_ecological_outputs = match planned.stage_id.as_str() {
+        "fastq.damage_aware_pretrim" => vec!["trimmed_reads"],
         "fastq.primer_normalization" => vec!["primer_orientation_report"],
         "fastq.chimera_detection" => vec!["chimera_metrics_json"],
         "fastq.asv_inference" => vec!["asv_table_tsv", "asv_sequences_fasta"],

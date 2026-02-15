@@ -102,6 +102,7 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     match stage_id {
         "fastq.validate_pre"
         | "fastq.detect_adapters"
+        | "fastq.damage_aware_pretrim"
         | "fastq.trim"
         | "fastq.merge"
         | "fastq.deduplicate"
@@ -119,6 +120,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.validate_pre" => &["fastqvalidator", "fqtools", "seqtk", "seqkit"],
         "fastq.detect_adapters" => &["fastp", "fastqc"],
         "fastq.trim" => &["adapterremoval", "cutadapt", "atropos", "fastp", "bbduk", "trimmomatic"],
+        "fastq.damage_aware_pretrim" => &["cutadapt", "seqkit"],
         "fastq.merge" => &["bbmerge", "flash2", "leehom", "pear"],
         "fastq.deduplicate" => &["clumpify", "fastuniq", "prinseq"],
         "fastq.correct" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
@@ -196,6 +198,13 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.validate_pre" => &["schema_version", "stage", "strict_pass"],
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
         "fastq.trim" => &["schema_version", "stage", "tool", "input_reads", "output_reads"],
+        "fastq.damage_aware_pretrim" => &[
+            "schema_version",
+            "stage",
+            "udg_classification",
+            "ct_ga_asymmetry_pre",
+            "ct_ga_asymmetry_post",
+        ],
         "fastq.merge" => &["schema_version", "stage", "tool", "paired_input", "merged_output"],
         "fastq.deduplicate" => &["schema_version", "stage", "tool", "duplicates_removed"],
         "fastq.correct" => &["schema_version", "stage", "tool", "corrected_reads"],
