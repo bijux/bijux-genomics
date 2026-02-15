@@ -2,6 +2,7 @@
 
 ## What this crate does
 Owns deterministic species/build reference resolution for VCF planning (`resolve_species_context`, `resolve_reference_bundle`) and runtime authority lookups (`species.toml`, `reference_bank.toml`).
+Also owns genetic map bank lookups, sex/PAR policy, organellar policy, and default reference-set selection APIs.
 
 ## What it must not do (boundaries)
 Must not execute tools, spawn processes, or perform runtime orchestration; it only resolves lock-backed metadata.

@@ -1,0 +1,28 @@
+# schema_version = 1
+# owner = bijux-dna-db-ref
+# purpose = Default multi-reference sets by species and usecase.
+# authority = bijux-dna-db-ref
+# stability = stable
+# last_updated = 2026-02-15
+
+[[set]]
+id = "hsapiens_adna_default"
+species_id = "Homo sapiens"
+usecase = "adna"
+primary_reference = "hsapiens_grch38_primary"
+contaminants = ["hsapiens_grch38_mt", "microbial_screen_panel"]
+spike_in = "phiX174"
+
+[[set]]
+id = "hsapiens_modern_default"
+species_id = "Homo sapiens"
+usecase = "modern"
+primary_reference = "hsapiens_grch38_primary"
+contaminants = []
+
+[[set]]
+id = "clupus_modern_default"
+species_id = "Canis lupus"
+usecase = "modern"
+primary_reference = "clupus_canfam4_primary"
+contaminants = []

@@ -1,0 +1,31 @@
+# schema_version = 1
+# owner = bijux-dna-db-ref
+# purpose = SSOT genetic map bank per species/build (optionally panel-scoped).
+# authority = bijux-dna-db-ref
+# stability = stable
+# last_updated = 2026-02-15
+
+[[map]]
+id = "hsapiens_grch38_default"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+map_id = "hsapiens_grch38_chr_map"
+map_url = "https://example.org/maps/human/grch38.chr.map.gz"
+map_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+
+[[map]]
+id = "hsapiens_grch38_panel_1kg"
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+panel_id = "hsapiens_grch38_1kg"
+map_id = "hsapiens_grch38_chr_map"
+map_url = "https://example.org/maps/human/grch38.1kg.map.gz"
+map_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+
+[[map]]
+id = "clupus_canfam4_default"
+species_id = "Canis lupus"
+build_id = "CanFam4"
+map_id = "clupus_canfam4_chr_map"
+map_url = "https://example.org/maps/canis/canfam4.chr.map.gz"
+map_sha256 = "3333333333333333333333333333333333333333333333333333333333333333"

@@ -117,3 +117,20 @@ chr2 = "2"
 chrX = "X"
 chrM = "MT"
 chrMT = "MT"
+
+[[sex_rule]]
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+male_x_ploidy = 1
+male_y_ploidy = 1
+par_regions = [
+  { contig = "X", start_bp = 10001, end_bp = 2781479 },
+  { contig = "X", start_bp = 155701383, end_bp = 156030895 },
+]
+
+[[sex_rule]]
+species_id = "Canis lupus"
+build_id = "CanFam4"
+male_x_ploidy = 1
+male_y_ploidy = 1
+par_regions = []

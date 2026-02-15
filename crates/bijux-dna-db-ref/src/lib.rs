@@ -42,6 +42,58 @@ pub struct ReferenceBankEntry {
     pub required_indexes: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GeneticMapBankEntry {
+    pub id: String,
+    pub species_id: String,
+    pub build_id: String,
+    #[serde(default)]
+    pub panel_id: Option<String>,
+    pub map_id: String,
+    pub map_url: String,
+    pub map_sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ParRegion {
+    pub contig: String,
+    pub start_bp: u64,
+    pub end_bp: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SexChromosomeRule {
+    pub species_id: String,
+    pub build_id: String,
+    pub male_x_ploidy: u8,
+    pub male_y_ploidy: u8,
+    #[serde(default)]
+    pub par_regions: Vec<ParRegion>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OrganellarPolicy {
+    pub species_id: String,
+    pub build_id: String,
+    pub mitochondrion_id: String,
+    #[serde(default)]
+    pub chloroplast_id: Option<String>,
+    #[serde(default)]
+    pub chloroplast_required_for_profiles: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReferenceSet {
+    pub id: String,
+    pub species_id: String,
+    pub usecase: String,
+    pub primary_reference: String,
+    #[serde(default)]
+    pub contaminants: Vec<String>,
+    #[serde(default)]
+    pub spike_in: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ContigNormalizationPolicy {
     StrictOnly,
@@ -154,12 +206,32 @@ struct SpeciesAuthorityConfig {
     species: Vec<SpeciesAuthorityEntry>,
     #[serde(default)]
     contig_map: Vec<ContigMap>,
+    #[serde(default)]
+    sex_rule: Vec<SexChromosomeRule>,
 }
 
 #[derive(Debug, Deserialize)]
 struct ReferenceBankConfig {
     #[serde(default)]
     reference: Vec<ReferenceBankEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GeneticMapBankConfig {
+    #[serde(default)]
+    map: Vec<GeneticMapBankEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct OrganellarPolicyConfig {
+    #[serde(default)]
+    policy: Vec<OrganellarPolicy>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReferenceSetConfig {
+    #[serde(default)]
+    set: Vec<ReferenceSet>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -311,6 +383,15 @@ pub trait ReferenceProvider: Send + Sync {
     fn resolve_species_authority(&self, species: &str) -> Result<SpeciesAuthorityEntry>;
     fn resolve_reference_bank(&self, species: &str, build: &str) -> Result<ReferenceBankEntry>;
     fn resolve_contig_map(&self, species: &str, build: &str) -> Result<ContigMap>;
+    fn resolve_genetic_map_bank(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<GeneticMapBankEntry>;
+    fn resolve_sex_chromosome_rule(&self, species: &str, build: &str) -> Result<SexChromosomeRule>;
+    fn resolve_organellar_policy(&self, species: &str, build: &str) -> Result<OrganellarPolicy>;
+    fn resolve_default_reference_set(&self, species: &str, usecase: &str) -> Result<ReferenceSet>;
 }
 
 pub trait PanelProvider: Send + Sync {
@@ -368,6 +449,27 @@ impl ReferenceProvider for RuntimeRefService {
 
     fn resolve_contig_map(&self, species: &str, build: &str) -> Result<ContigMap> {
         resolve_contig_map(species, build)
+    }
+
+    fn resolve_genetic_map_bank(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<GeneticMapBankEntry> {
+        resolve_genetic_map_bank(species, build, panel_id)
+    }
+
+    fn resolve_sex_chromosome_rule(&self, species: &str, build: &str) -> Result<SexChromosomeRule> {
+        resolve_sex_chromosome_rule(species, build)
+    }
+
+    fn resolve_organellar_policy(&self, species: &str, build: &str) -> Result<OrganellarPolicy> {
+        resolve_organellar_policy(species, build)
+    }
+
+    fn resolve_default_reference_set(&self, species: &str, usecase: &str) -> Result<ReferenceSet> {
+        resolve_default_reference_set(species, usecase)
     }
 }
 
@@ -453,6 +555,64 @@ pub fn resolve_reference_bank(species: &str, build: &str) -> Result<ReferenceBan
         bail!("reference bank entry for {species}:{build} missing license metadata");
     }
     Ok(entry)
+}
+
+/// # Errors
+/// Returns an error if genetic map bank config cannot be read or no matching map exists.
+pub fn resolve_genetic_map_bank(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+) -> Result<GeneticMapBankEntry> {
+    let path = workspace_root().join("configs/runtime/genetic_map_bank.toml");
+    let cfg: GeneticMapBankConfig = load_toml(&path)?;
+    let mut candidates = cfg
+        .map
+        .into_iter()
+        .filter(|entry| entry.species_id == species && entry.build_id == build)
+        .collect::<Vec<_>>();
+    if let Some(panel) = panel_id {
+        candidates.retain(|entry| entry.panel_id.as_deref() == Some(panel));
+    }
+    let selected = candidates
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("genetic map bank entry missing for {species}:{build}"))?;
+    validate_sha256(&selected.map_sha256, "genetic_map_bank map_sha256")?;
+    Ok(selected)
+}
+
+/// # Errors
+/// Returns an error if sex chromosome rule cannot be loaded.
+pub fn resolve_sex_chromosome_rule(species: &str, build: &str) -> Result<SexChromosomeRule> {
+    let path = workspace_root().join("configs/runtime/species.toml");
+    let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
+    cfg.sex_rule
+        .into_iter()
+        .find(|entry| entry.species_id == species && entry.build_id == build)
+        .ok_or_else(|| anyhow!("sex chromosome rule missing for {species}:{build}"))
+}
+
+/// # Errors
+/// Returns an error if organellar policy cannot be loaded.
+pub fn resolve_organellar_policy(species: &str, build: &str) -> Result<OrganellarPolicy> {
+    let path = workspace_root().join("configs/runtime/organellar_policy.toml");
+    let cfg: OrganellarPolicyConfig = load_toml(&path)?;
+    cfg.policy
+        .into_iter()
+        .find(|entry| entry.species_id == species && entry.build_id == build)
+        .ok_or_else(|| anyhow!("organellar policy missing for {species}:{build}"))
+}
+
+/// # Errors
+/// Returns an error if default reference set cannot be loaded for species/usecase.
+pub fn resolve_default_reference_set(species: &str, usecase: &str) -> Result<ReferenceSet> {
+    let path = workspace_root().join("configs/runtime/reference_sets.toml");
+    let cfg: ReferenceSetConfig = load_toml(&path)?;
+    cfg.set
+        .into_iter()
+        .find(|entry| entry.species_id == species && entry.usecase == usecase)
+        .ok_or_else(|| anyhow!("default reference set missing for {species}:{usecase}"))
 }
 
 /// # Errors
@@ -873,5 +1033,21 @@ mod tests {
         )
         .expect_err("mismatch must fail");
         assert!(err.to_string().contains("declared build mismatch"));
+    }
+
+    #[test]
+    fn map_sex_organellar_and_reference_set_resolve() {
+        let map = resolve_genetic_map_bank("Homo sapiens", "GRCh38", None)
+            .unwrap_or_else(|err| panic!("resolve genetic map bank: {err}"));
+        assert_eq!(map.map_id, "hsapiens_grch38_chr_map");
+        let sex = resolve_sex_chromosome_rule("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|err| panic!("resolve sex chromosome rule: {err}"));
+        assert!(!sex.par_regions.is_empty());
+        let organellar = resolve_organellar_policy("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|err| panic!("resolve organellar policy: {err}"));
+        assert_eq!(organellar.mitochondrion_id, "MT");
+        let refs = resolve_default_reference_set("Homo sapiens", "adna")
+            .unwrap_or_else(|err| panic!("resolve default reference set: {err}"));
+        assert_eq!(refs.primary_reference, "hsapiens_grch38_primary");
     }
 }

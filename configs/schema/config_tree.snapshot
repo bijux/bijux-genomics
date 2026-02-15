@@ -62,7 +62,9 @@ configs/nextest/index.md
 configs/nextest/nextest.toml
 configs/runtime/cargo_build.toml
 configs/runtime/coverage_regimes.toml
+configs/runtime/genetic_map_bank.toml
 configs/runtime/index.md
+configs/runtime/organellar_policy.toml
 configs/runtime/platforms.toml
 configs/runtime/profiles/README.md
 configs/runtime/profiles/index.md
@@ -71,6 +73,7 @@ configs/runtime/profiles/vcf_downstream_local.toml
 configs/runtime/reference_bank.toml
 configs/runtime/reference_bundles.toml
 configs/runtime/reference_bundles_lock.sha256
+configs/runtime/reference_sets.toml
 configs/runtime/references/index.md
 configs/runtime/references/locks/index.md
 configs/runtime/references/locks/lock.json
