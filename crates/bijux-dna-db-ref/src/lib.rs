@@ -118,7 +118,15 @@ pub struct PanelCatalogEntry {
     pub id: String,
     pub species_id: String,
     pub build_id: String,
+    #[serde(default)]
+    pub status: String,
     pub version: String,
+    #[serde(default)]
+    pub license: String,
+    #[serde(default)]
+    pub lock_ref: String,
+    #[serde(default)]
+    pub citation: Option<String>,
     #[serde(default)]
     pub files: Vec<CatalogFileEntry>,
     pub compatibility: CatalogCompatibility,
@@ -129,7 +137,13 @@ pub struct MapCatalogEntry {
     pub id: String,
     pub species_id: String,
     pub build_id: String,
+    #[serde(default)]
+    pub status: String,
     pub version: String,
+    #[serde(default)]
+    pub lock_ref: String,
+    #[serde(default)]
+    pub citation: Option<String>,
     #[serde(default)]
     pub files: Vec<CatalogFileEntry>,
     pub compatibility: MapCompatibility,
@@ -173,6 +187,38 @@ struct PanelsConfig {
 struct MapsConfig {
     #[serde(default)]
     map: Vec<MapCatalogEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PanelLocksConfig {
+    #[serde(default)]
+    locks: BTreeMap<String, PanelLockEntry>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct PanelLockEntry {
+    pub species_id: String,
+    pub build_id: String,
+    pub panel_id: String,
+    pub version: String,
+    #[serde(default)]
+    pub files: Vec<CatalogFileEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct MapLocksConfig {
+    #[serde(default)]
+    locks: BTreeMap<String, MapLockEntry>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct MapLockEntry {
+    pub species_id: String,
+    pub build_id: String,
+    pub map_id: String,
+    pub version: String,
+    #[serde(default)]
+    pub files: Vec<CatalogFileEntry>,
 }
 
 fn workspace_root() -> PathBuf {
@@ -400,10 +446,18 @@ pub fn resolve_panel(
     if let Some(id) = panel_id {
         candidates.retain(|p| p.id == id);
     }
-    candidates
+    let panel = candidates
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("no panel found for {species}:{build}"))
+        .ok_or_else(|| anyhow!("no panel found for {species}:{build}"))?;
+    if panel.license.trim().is_empty() {
+        bail!("panel {} missing required license metadata", panel.id);
+    }
+    if panel.lock_ref.trim().is_empty() {
+        bail!("panel {} missing required lock_ref metadata", panel.id);
+    }
+    let _ = resolve_panel_lock(&panel)?;
+    Ok(panel)
 }
 
 /// # Errors
@@ -419,10 +473,74 @@ pub fn resolve_map(species: &str, build: &str, map_id: Option<&str>) -> Result<M
     if let Some(id) = map_id {
         candidates.retain(|m| m.id == id);
     }
-    candidates
+    let map = candidates
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("no map found for {species}:{build}"))
+        .ok_or_else(|| anyhow!("no map found for {species}:{build}"))?;
+    if map.lock_ref.trim().is_empty() {
+        bail!("map {} missing required lock_ref metadata", map.id);
+    }
+    let _ = resolve_map_lock(&map)?;
+    Ok(map)
+}
+
+fn parse_lock_ref(lock_ref: &str) -> Result<(&str, &str)> {
+    let (path, anchor) = lock_ref
+        .split_once('#')
+        .ok_or_else(|| anyhow!("invalid lock_ref `{lock_ref}`: missing #anchor"))?;
+    let key = anchor
+        .strip_prefix("locks.")
+        .ok_or_else(|| anyhow!("invalid lock_ref `{lock_ref}`: anchor must start with `locks.`"))?;
+    if path.trim().is_empty() || key.trim().is_empty() {
+        bail!("invalid lock_ref `{lock_ref}`: empty path or key");
+    }
+    Ok((path, key))
+}
+
+/// # Errors
+/// Returns an error if panel lock metadata is missing or malformed.
+pub fn resolve_panel_lock(panel: &PanelCatalogEntry) -> Result<PanelLockEntry> {
+    let (lock_path, key) = parse_lock_ref(&panel.lock_ref)?;
+    let path = workspace_root().join("configs/vcf/panels").join(lock_path);
+    let cfg: PanelLocksConfig = load_toml(&path)?;
+    let entry = cfg
+        .locks
+        .get(key)
+        .ok_or_else(|| anyhow!("panel lock entry `{key}` not found in {}", path.display()))?
+        .clone();
+    if entry.panel_id != panel.id || entry.species_id != panel.species_id || entry.build_id != panel.build_id {
+        bail!("panel lock entry does not match panel identity {}", panel.id);
+    }
+    if entry.files.is_empty() {
+        bail!("panel lock entry {} has no files", panel.id);
+    }
+    for file in &entry.files {
+        validate_sha256(&file.checksum_sha256, "panel lock checksum_sha256")?;
+    }
+    Ok(entry)
+}
+
+/// # Errors
+/// Returns an error if map lock metadata is missing or malformed.
+pub fn resolve_map_lock(map: &MapCatalogEntry) -> Result<MapLockEntry> {
+    let (lock_path, key) = parse_lock_ref(&map.lock_ref)?;
+    let path = workspace_root().join("configs/vcf/maps").join(lock_path);
+    let cfg: MapLocksConfig = load_toml(&path)?;
+    let entry = cfg
+        .locks
+        .get(key)
+        .ok_or_else(|| anyhow!("map lock entry `{key}` not found in {}", path.display()))?
+        .clone();
+    if entry.map_id != map.id || entry.species_id != map.species_id || entry.build_id != map.build_id {
+        bail!("map lock entry does not match map identity {}", map.id);
+    }
+    if entry.files.is_empty() {
+        bail!("map lock entry {} has no files", map.id);
+    }
+    for file in &entry.files {
+        validate_sha256(&file.checksum_sha256, "map lock checksum_sha256")?;
+    }
+    Ok(entry)
 }
 
 /// # Errors
@@ -441,6 +559,9 @@ pub fn validate_imputation_tool_compatibility(
     if tool_id == "minimac4" && !panel.compatibility.supports_minimac_m3vcf {
         bail!("minimac4 requires m3vcf-compatible panel representation");
     }
+    if tool_id == "minimac4" && !panel.files.iter().any(|f| f.name == "panel_m3vcf") {
+        bail!("minimac4 requires `panel_m3vcf` in panel files");
+    }
     if tool_id == "glimpse"
         && panel
             .compatibility
@@ -449,6 +570,23 @@ pub fn validate_imputation_tool_compatibility(
             .is_empty()
     {
         bail!("GLIMPSE requires declared reference format");
+    }
+    if tool_id == "glimpse"
+        && !matches!(
+            panel.compatibility.glimpse_reference_format.as_str(),
+            "bcf+sites" | "bcf" | "sites"
+        )
+    {
+        bail!("GLIMPSE requires supported reference format (bcf+sites|bcf|sites)");
+    }
+    if matches!(tool_id, "impute5" | "minimac4") && map.compatibility.coordinate_system != "bp" {
+        bail!("{tool_id} requires bp coordinate-system genetic map");
+    }
+    if tool_id == "impute5" && !panel.compatibility.requires_phased {
+        bail!("impute5 requires phased panel compatibility");
+    }
+    if tool_id == "beagle" && !panel.compatibility.supports_gl_input {
+        bail!("beagle requires panel compatibility with GL input");
     }
     Ok(())
 }
@@ -509,7 +647,24 @@ mod tests {
             .unwrap_or_else(|err| panic!("resolve panel: {err}"));
         let map = resolve_map("Homo sapiens", "GRCh38", None)
             .unwrap_or_else(|err| panic!("resolve map: {err}"));
+        let panel_lock = resolve_panel_lock(&panel)
+            .unwrap_or_else(|err| panic!("resolve panel lock: {err}"));
+        let map_lock =
+            resolve_map_lock(&map).unwrap_or_else(|err| panic!("resolve map lock: {err}"));
+        assert!(!panel_lock.files.is_empty());
+        assert!(!map_lock.files.is_empty());
         validate_imputation_tool_compatibility("glimpse", &panel, &map)
             .unwrap_or_else(|err| panic!("compatibility: {err}"));
+    }
+
+    #[test]
+    fn minimac_requires_m3vcf_support() {
+        let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_full"))
+            .unwrap_or_else(|err| panic!("resolve panel: {err}"));
+        let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_chr_map"))
+            .unwrap_or_else(|err| panic!("resolve map: {err}"));
+        let err = validate_imputation_tool_compatibility("minimac4", &panel, &map)
+            .expect_err("full panel must refuse minimac4");
+        assert!(err.to_string().contains("minimac4"));
     }
 }

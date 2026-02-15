@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
+use bijux_dna_db_ref::{
+    ref_service, resolve_map_lock, resolve_panel_lock, validate_imputation_tool_compatibility,
+};
 use bijux_dna_domain_vcf::{
     contracts::SpeciesContext,
     params::{VcfCallParams, VcfFilterParams, VcfStatsParams},

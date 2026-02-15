@@ -59,6 +59,19 @@
         assert!(outputs.panel_files_json.exists());
         assert!(outputs.overlap_tsv.exists());
         assert!(outputs.chunks_json.exists());
+        let manifest_raw = std::fs::read_to_string(&outputs.panel_manifest_json)
+            .unwrap_or_else(|err| panic!("read panel manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse panel manifest: {err}"));
+        assert!(manifest.get("lock_hash").is_some());
+        assert!(manifest.get("license_pointer").is_some());
+        assert!(manifest.get("checksums").is_some());
+        let overlap_raw = std::fs::read_to_string(&outputs.overlap_json)
+            .unwrap_or_else(|err| panic!("read overlap json: {err}"));
+        let overlap: serde_json::Value = serde_json::from_str(&overlap_raw)
+            .unwrap_or_else(|err| panic!("parse overlap json: {err}"));
+        assert!(overlap.get("per_region").is_some());
+        assert!(overlap["global"].get("allele_mismatch_count").is_some());
     }
 
     #[test]
@@ -400,4 +413,3 @@
             "beagle"
         );
     }
-
