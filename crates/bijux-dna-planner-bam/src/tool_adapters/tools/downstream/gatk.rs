@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_dna_domain_bam::params::MarkDupEffectiveParams;
+use bijux_dna_domain_bam::params::{BqsrEffectiveParams, MarkDupEffectiveParams};
 
 #[must_use]
 pub fn markdup_args(
@@ -57,6 +57,44 @@ python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", 
         idxstats_before = idxstats_before.display(),
         idxstats_after = idxstats_after.display(),
         summary = summary.display()
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn recalibration_args_with_outputs(
+    bam: &Path,
+    out_bam: &Path,
+    recal_report: &Path,
+    summary: &Path,
+    params: &BqsrEffectiveParams,
+) -> Vec<String> {
+    let known_sites = params
+        .known_sites
+        .iter()
+        .map(|path| format!("--known-sites {}", path))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mode = format!("{:?}", params.mode);
+    let command = format!(
+        "gatk BaseRecalibrator -I {bam} -R {bam} {known_sites} -O {report} && \
+gatk ApplyBQSR -I {bam} -R {bam} --bqsr-recal-file {report} -O {out} && \
+samtools index {out} {out}.bai && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"known_sites\": {known_sites_json}, \"recal_report\": \"{report}\", \"output_bam\": \"{out}\"}}, indent=2))\nPY",
+        bam = bam.display(),
+        known_sites = known_sites,
+        report = recal_report.display(),
+        out = out_bam.display(),
+        summary = summary.display(),
+        mode = mode,
+        known_sites_json = serde_json::to_string(
+            &params
+                .known_sites
+                .iter()
+                .map(std::clone::Clone::clone)
+                .collect::<Vec<_>>()
+        )
+        .unwrap_or_else(|_| "[]".to_string()),
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }

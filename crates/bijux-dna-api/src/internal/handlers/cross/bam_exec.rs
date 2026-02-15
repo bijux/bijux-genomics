@@ -351,6 +351,103 @@ fn stage_postprocess(
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<()> {
     match stage {
+        bijux_dna_planner_bam::stage_api::BamStage::Coverage => {
+            let path = stage_dir.join("coverage.regime.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "has_mosdepth_summary": stage_dir.join("coverage.mosdepth.summary.txt").exists(),
+                    "has_samtools_depth": stage_dir.join("coverage.depth.txt").exists(),
+                    "depth_thresholds": plan.params.get("depth_thresholds").cloned().unwrap_or_else(|| serde_json::json!([])),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
+            let path = stage_dir.join("complexity.artifacts.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "preseq": stage_dir.join("preseq.txt"),
+                    "complexity_report": stage_dir.join("complexity.json"),
+                    "summary": stage_dir.join("complexity.summary.json"),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics => {
+            let path = stage_dir.join("duplication.policy.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
+                    "umi_policy": plan.params.get("umi_policy").cloned(),
+                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
+            let path = stage_dir.join("markdup.policy.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
+                    "umi_policy": plan.params.get("umi_policy").cloned(),
+                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
+                    "policy_scope": "pcr_vs_optical",
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
+            let path = stage_dir.join("insert_size.metrics.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "report_present": stage_dir.join("insert_size.metrics.txt").exists(),
+                    "histogram_present": stage_dir.join("insert_size.histogram.pdf").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::GcBias => {
+            let path = stage_dir.join("gc_bias.metrics.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "report_present": stage_dir.join("gc_bias.metrics.txt").exists(),
+                    "plot_present": stage_dir.join("gc_bias.plot.pdf").exists(),
+                    "summary_present": stage_dir.join("gc_bias.summary.json").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Recalibration => {
+            let path = stage_dir.join("recalibration.applicability.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "mode": plan.params.get("mode").cloned(),
+                    "known_sites": plan.params.get("known_sites").cloned(),
+                    "default_policy": "modern_only",
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Genotyping => {
+            let path = stage_dir.join("genotyping.producer_contract.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "caller": plan.params.get("caller").cloned(),
+                    "producer_contract": plan.params.get("producer_contract").cloned(),
+                    "vcf_exists": stage_dir.join("genotyping.vcf.gz").exists(),
+                    "vcf_index_exists": stage_dir.join("genotyping.vcf.gz.tbi").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
         bijux_dna_planner_bam::stage_api::BamStage::Damage => {
             write_udg_metadata(stage_dir, plan)?;
             write_damage_unified(stage_dir)?;
@@ -495,6 +592,13 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     out_dir: &Path,
 ) -> Result<StageExecutionSummary> {
     enforce_stage_refusal_rules(stage, bam_path, bai_path, reference)?;
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Recalibration
+        && profile.id.as_str().to_ascii_lowercase().contains("adna")
+    {
+        return Err(anyhow!(
+            "bam.recalibration refusal: modern-DNA-only by default; select a modern profile"
+        ));
+    }
     let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
     let tool_id = profile
         .defaults
