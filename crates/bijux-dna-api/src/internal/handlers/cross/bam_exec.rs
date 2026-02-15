@@ -142,6 +142,64 @@ fn write_stage_accounting(
         .with_context(|| format!("write {}", path.display()))
 }
 
+fn classify_bam_failure_hint(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    result: &bijux_dna_runner::execute::StageResultV1,
+) -> serde_json::Value {
+    let stderr = result.stderr.to_ascii_lowercase();
+    let command = result.command.to_ascii_lowercase();
+    let mut code = "bam_unknown_failure";
+    let mut hint = "Inspect stage stderr/stdout logs and stage_manifest for command inputs.";
+    if stderr.contains("no such file")
+        || stderr.contains("cannot open")
+        || stderr.contains("failed to open")
+    {
+        code = "bam_input_missing";
+        hint = "Input path is missing or unreadable. Check BAM/BAI/reference paths and mounts.";
+    } else if stderr.contains("index") && (stderr.contains("missing") || stderr.contains("failed"))
+    {
+        code = "bam_index_missing";
+        hint = "BAM/VCF index is missing or invalid. Regenerate index and rerun the stage.";
+    } else if stderr.contains("sam header")
+        || stderr.contains("header")
+        || stderr.contains("contig")
+        || stderr.contains("chromosome")
+    {
+        code = "bam_header_or_contig_mismatch";
+        hint = "Header/contig mismatch detected. Verify reference build and contig naming consistency.";
+    } else if stderr.contains("out of memory")
+        || stderr.contains("cannot allocate memory")
+        || stderr.contains("killed")
+    {
+        code = "bam_resource_exhausted";
+        hint = "Resource exhaustion. Increase memory/tmp allocation or lower threads for this stage.";
+    } else if command.contains("samtools") && stderr.contains("truncated") {
+        code = "bam_corrupt_input";
+        hint = "Corrupt/truncated BAM likely. Validate upstream BAM and rerun from previous stage.";
+    } else if command.contains("tabix") && stderr.contains("not compressed") {
+        code = "vcf_not_bgzip";
+        hint = "VCF not bgzip-compressed for tabix. Ensure `bgzip` output before indexing.";
+    }
+    serde_json::json!({
+        "stage_id": stage.as_str(),
+        "exit_code": result.exit_code,
+        "failure_code": code,
+        "hint": hint,
+        "command": result.command,
+    })
+}
+
+fn write_stage_failure_hint(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    result: &bijux_dna_runner::execute::StageResultV1,
+) -> Result<()> {
+    let payload = classify_bam_failure_hint(stage, result);
+    let path = stage_dir.join("failure_hint.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
 fn enforce_stage_refusal_rules(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     bam_path: &Path,
@@ -693,6 +751,9 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     .stage_result;
     stage_postprocess(stage, &stage_dir, &plan)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
+    if result.exit_code != 0 {
+        write_stage_failure_hint(&stage_dir, stage, &result)?;
+    }
     Ok(StageExecutionSummary { plan: step, result })
 }
 

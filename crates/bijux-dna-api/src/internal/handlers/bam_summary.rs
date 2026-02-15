@@ -38,12 +38,14 @@ pub(crate) fn render_bam_summary(
         })
         .collect();
     let authenticity_composite = find_authenticity_composite(stage_runs);
+    let scientific_summary = build_bam_scientific_summary(stage_runs);
     let total_runtime_s: f64 = stage_runs.iter().map(|entry| entry.result.runtime_s).sum();
     let summary = serde_json::json!({
         "schema_version": "bijux.run_summary.v1",
         "total_runtime_s": total_runtime_s,
         "stages": stages,
         "authenticity_composite": authenticity_composite,
+        "scientific_summary": scientific_summary,
         "failures": failures,
     });
     let summary_json_path = root.join("summary.json");
@@ -88,6 +90,49 @@ fn find_authenticity_composite(
     let path = authenticity.plan.out_dir.join("authenticity_composite.json");
     let raw = std::fs::read_to_string(path).ok()?;
     serde_json::from_str(&raw).ok()
+}
+
+fn read_json_if_exists(path: &std::path::Path) -> Option<serde_json::Value> {
+    if !path.exists() {
+        return None;
+    }
+    let raw = std::fs::read_to_string(path).ok()?;
+    serde_json::from_str(&raw).ok()
+}
+
+fn stage_dir_for(stage_runs: &[StageExecutionSummary], stage_id: &str) -> Option<std::path::PathBuf> {
+    Some(
+        stage_runs
+            .iter()
+            .find(|entry| entry.plan.step_id.0 == stage_id)?
+            .plan
+            .out_dir
+            .clone(),
+    )
+}
+
+fn build_bam_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json::Value {
+    let endogenous = stage_dir_for(stage_runs, "bam.endogenous_content")
+        .and_then(|dir| read_json_if_exists(&dir.join("endogenous.content.json")));
+    let damage = stage_dir_for(stage_runs, "bam.damage")
+        .and_then(|dir| read_json_if_exists(&dir.join("damage.unified_metrics.json")));
+    let contamination = stage_dir_for(stage_runs, "bam.contamination")
+        .and_then(|dir| read_json_if_exists(&dir.join("contamination.summary.json")));
+    let coverage = stage_dir_for(stage_runs, "bam.coverage")
+        .and_then(|dir| read_json_if_exists(&dir.join("coverage.regime.json")));
+    let duplication = stage_dir_for(stage_runs, "bam.duplication_metrics")
+        .and_then(|dir| read_json_if_exists(&dir.join("duplication.policy.json")))
+        .or_else(|| {
+            stage_dir_for(stage_runs, "bam.markdup")
+                .and_then(|dir| read_json_if_exists(&dir.join("markdup.policy.json")))
+        });
+    serde_json::json!({
+        "endogenous_content": endogenous,
+        "damage": damage,
+        "contamination": contamination,
+        "coverage": coverage,
+        "duplication": duplication,
+    })
 }
 
 pub(crate) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> ExecutionStep {
