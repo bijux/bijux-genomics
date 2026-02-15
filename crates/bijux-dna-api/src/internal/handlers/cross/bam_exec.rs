@@ -237,6 +237,55 @@ fn enforce_stage_refusal_rules(
     Ok(())
 }
 
+fn write_stage_refusal_catalog(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+) -> Result<()> {
+    let mut rules = Vec::<serde_json::Value>::new();
+    if matches!(
+        stage,
+        bijux_dna_planner_bam::stage_api::BamStage::Validate
+            | bijux_dna_planner_bam::stage_api::BamStage::QcPre
+            | bijux_dna_planner_bam::stage_api::BamStage::MappingSummary
+            | bijux_dna_planner_bam::stage_api::BamStage::MapqFilter
+            | bijux_dna_planner_bam::stage_api::BamStage::Filter
+            | bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection
+            | bijux_dna_planner_bam::stage_api::BamStage::LengthFilter
+    ) {
+        rules.push(serde_json::json!({
+            "reason_code": "BAM_INDEX_REQUIRED",
+            "condition": "missing_or_nonexistent_bai",
+            "message": "stage requires BAM index (.bai)"
+        }));
+    }
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Sex {
+        rules.push(serde_json::json!({
+            "reason_code": "SEX_CONTIGS_REQUIRED",
+            "condition": "reference_missing_X_or_Y_contig",
+            "message": "bam.sex requires X/Y contigs in reference .fai"
+        }));
+    }
+    if matches!(
+        stage,
+        bijux_dna_planner_bam::stage_api::BamStage::Contamination
+            | bijux_dna_planner_bam::stage_api::BamStage::Haplogroups
+    ) {
+        rules.push(serde_json::json!({
+            "reason_code": "MT_REFERENCE_REQUIRED",
+            "condition": "reference_missing_MT_or_chrMT",
+            "message": "mt-aware stages require MT contig in reference .fai"
+        }));
+    }
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.refusal_catalog.v1",
+        "stage_id": stage.as_str(),
+        "rules": rules,
+    });
+    let path = stage_dir.join("refusal_catalog.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
 fn parse_flagstat_mapped_fraction(path: &Path) -> Result<Option<f64>> {
     if !path.exists() {
         return Ok(None);
