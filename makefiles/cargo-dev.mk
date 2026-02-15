@@ -37,7 +37,7 @@ dev-fmt:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _fmt
 
 dev-lint:
-	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint
+	@$(ISO_DEV) sh -ceu '$(MAKE) -f $(ROOT_MAKE) _lint-scripts & $(MAKE) -f $(ROOT_MAKE) _clippy & wait'
 
 dev-lint-scripts:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint-scripts
