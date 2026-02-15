@@ -26,6 +26,7 @@ make _examples-validate
 ./scripts/run.sh checks check-tool-registry-lock
 ./scripts/run.sh checks check-panel-locks
 ./scripts/run.sh checks check-panel-license-policy
+./scripts/run.sh checks check-enabled-vcf-panel-metadata
 ./scripts/run.sh checks check-reference-service-boundary
 ./scripts/run.sh checks check-reference-path-governance
 ./scripts/run.sh checks check-coverage-regimes-schema
