@@ -574,6 +574,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         tmp_root: stage_dir.join("tmp"),
         threads: plan.resources.threads.max(1),
         memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
+        compression_threads: Some(1),
         seed: None,
         network_policy: NetworkPolicy::Allow,
     };
@@ -721,6 +722,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         tmp_root: align_out.join("tmp"),
         threads: align_plan.resources.threads.max(1),
         memory_hint_mb: Some(u64::from(align_plan.resources.mem_gb).saturating_mul(1024)),
+        compression_threads: Some(1),
         seed: None,
         network_policy: NetworkPolicy::Allow,
     };
