@@ -331,6 +331,38 @@ fn parse_flagstat_counts(path: &Path) -> Result<serde_json::Value> {
     }))
 }
 
+fn classify_mean_depth(mean_depth: f64) -> &'static str {
+    if mean_depth < 2.0 {
+        "lowcov_adna_like"
+    } else if mean_depth < 10.0 {
+        "medium_coverage"
+    } else {
+        "high_coverage"
+    }
+}
+
+fn parse_mean_depth_from_depth_file(path: &Path) -> Result<Option<f64>> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut n: u64 = 0;
+    let mut sum: f64 = 0.0;
+    for line in raw.lines() {
+        let mut cols = line.split('\t');
+        let _chrom = cols.next();
+        let _pos = cols.next();
+        if let Some(depth) = cols.next().and_then(|x| x.parse::<f64>().ok()) {
+            n = n.saturating_add(1);
+            sum += depth;
+        }
+    }
+    if n == 0 {
+        return Ok(None);
+    }
+    Ok(Some(sum / n as f64))
+}
+
 fn write_udg_metadata(stage_dir: &Path, plan: &bijux_dna_stage_contract::StagePlanV1) -> Result<()> {
     let udg_model = plan
         .params
@@ -398,7 +430,10 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
 }
 
 fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
-    let damage_unified = stage_dir.join("damage.unified_metrics.json");
+    let bam_root = stage_dir
+        .parent()
+        .ok_or_else(|| anyhow!("authenticity stage path has no BAM root: {}", stage_dir.display()))?;
+    let damage_unified = bam_root.join("damage").join("damage.unified_metrics.json");
     let damage_value: serde_json::Value = if damage_unified.exists() {
         serde_json::from_str(
             &std::fs::read_to_string(&damage_unified)
@@ -419,7 +454,7 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         .get("g_to_a_3p")
         .and_then(serde_json::Value::as_f64)
         .unwrap_or(0.0);
-    let contamination_path = stage_dir.join("contamination.summary.json");
+    let contamination_path = bam_root.join("contamination").join("contamination.summary.json");
     let contamination_estimate = if contamination_path.exists() {
         let contamination =
             bijux_dna_domain_bam::metrics::parse_contamination_json(&contamination_path)?;
@@ -450,12 +485,16 @@ fn stage_postprocess(
 ) -> Result<()> {
     match stage {
         bijux_dna_planner_bam::stage_api::BamStage::Coverage => {
+            let depth_path = stage_dir.join("coverage.depth.txt");
+            let mean_depth = parse_mean_depth_from_depth_file(&depth_path)?;
             let path = stage_dir.join("coverage.regime.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
                     "has_mosdepth_summary": stage_dir.join("coverage.mosdepth.summary.txt").exists(),
-                    "has_samtools_depth": stage_dir.join("coverage.depth.txt").exists(),
+                    "has_samtools_depth": depth_path.exists(),
+                    "mean_depth": mean_depth,
+                    "coverage_regime": mean_depth.map(classify_mean_depth),
                     "depth_thresholds": plan.params.get("depth_thresholds").cloned().unwrap_or_else(|| serde_json::json!([])),
                 }),
             )
@@ -792,6 +831,24 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     args.tool = Some(tool_id.as_str().to_string());
 
     let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Contamination {
+        let has_panels = plan
+            .params
+            .get("reference_panels")
+            .and_then(serde_json::Value::as_array)
+            .map(|arr| !arr.is_empty())
+            .unwrap_or(false);
+        let scope = plan
+            .params
+            .get("scope")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("both");
+        if !has_panels {
+            return Err(anyhow!(
+                "bam.contamination refusal: reference_panels must be non-empty for scope={scope}"
+            ));
+        }
+    }
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
     let context = ToolContext {
         run_id: format!("bam-{}-{}", stage.as_str(), tool_id.as_str()),

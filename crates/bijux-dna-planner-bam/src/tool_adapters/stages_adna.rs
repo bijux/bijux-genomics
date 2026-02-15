@@ -287,9 +287,16 @@ pub mod sex {
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
             command: CommandSpecV1 {
-                template: crate::tool_adapters::tools::rxy::args_with_outputs(
-                    bam, &report, &summary, params,
-                ),
+                template: match (tool.tool_id.as_str(), params.method.as_str()) {
+                    ("angsd", _) | (_, "angsd") => {
+                        crate::tool_adapters::tools::angsd_sex::args_with_outputs(
+                            bam, &report, &summary, params,
+                        )
+                    }
+                    _ => crate::tool_adapters::tools::rxy::args_with_outputs(
+                        bam, &report, &summary, params,
+                    ),
+                },
             },
             resources: tool.resources.clone(),
             io: StageIO {
