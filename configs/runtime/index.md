@@ -22,8 +22,12 @@ Fields:
 - `configs/runtime/platforms.toml`
 - `configs/runtime/coverage_regimes.toml`
 - `configs/runtime/species_aliases.toml`
+- `configs/runtime/species.toml`
 - `configs/runtime/reference_bundles.toml`
+- `configs/runtime/reference_bank.toml`
 - `configs/runtime/reference_bundles_lock.sha256`
+- `configs/runtime/references/index.md`
+- `configs/runtime/references/locks/index.md`
 - `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
 

@@ -7,6 +7,41 @@ use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct BuildId(pub String);
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContigMap {
+    pub species_id: String,
+    pub build_id: String,
+    pub naming_convention: String,
+    pub mitochondrion_id: String,
+    #[serde(default)]
+    pub aliases: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SpeciesAuthorityEntry {
+    pub species_id: String,
+    pub default_build_id: String,
+    pub contig_naming: String,
+    pub sex_chromosomes: String,
+    pub mitochondrion_id: String,
+    pub ploidy_model: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReferenceBankEntry {
+    pub species_id: String,
+    pub build_id: String,
+    pub fasta_url: String,
+    pub fasta_sha256: String,
+    pub license_id: String,
+    pub license_url: String,
+    #[serde(default)]
+    pub required_indexes: Vec<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ContigNormalizationPolicy {
     StrictOnly,
@@ -111,6 +146,20 @@ struct AliasesConfig {
 struct CoverageRegimesConfig {
     #[serde(default)]
     species_profile: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpeciesAuthorityConfig {
+    #[serde(default)]
+    species: Vec<SpeciesAuthorityEntry>,
+    #[serde(default)]
+    contig_map: Vec<ContigMap>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReferenceBankConfig {
+    #[serde(default)]
+    reference: Vec<ReferenceBankEntry>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -258,6 +307,25 @@ pub trait RefService: Send + Sync {
     ) -> Result<MapCatalogEntry>;
 }
 
+pub trait ReferenceProvider: Send + Sync {
+    fn resolve_species_authority(&self, species: &str) -> Result<SpeciesAuthorityEntry>;
+    fn resolve_reference_bank(&self, species: &str, build: &str) -> Result<ReferenceBankEntry>;
+    fn resolve_contig_map(&self, species: &str, build: &str) -> Result<ContigMap>;
+}
+
+pub trait PanelProvider: Send + Sync {
+    fn resolve_panel(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<PanelCatalogEntry>;
+}
+
+pub trait MapProvider: Send + Sync {
+    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry>;
+}
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct RuntimeRefService;
 
@@ -289,6 +357,37 @@ impl RefService for RuntimeRefService {
     }
 }
 
+impl ReferenceProvider for RuntimeRefService {
+    fn resolve_species_authority(&self, species: &str) -> Result<SpeciesAuthorityEntry> {
+        resolve_species_authority(species)
+    }
+
+    fn resolve_reference_bank(&self, species: &str, build: &str) -> Result<ReferenceBankEntry> {
+        resolve_reference_bank(species, build)
+    }
+
+    fn resolve_contig_map(&self, species: &str, build: &str) -> Result<ContigMap> {
+        resolve_contig_map(species, build)
+    }
+}
+
+impl PanelProvider for RuntimeRefService {
+    fn resolve_panel(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<PanelCatalogEntry> {
+        resolve_panel(species, build, panel_id)
+    }
+}
+
+impl MapProvider for RuntimeRefService {
+    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
+        resolve_map(species, build, map_id)
+    }
+}
+
 #[must_use]
 pub fn ref_service() -> &'static dyn RefService {
     static SERVICE: OnceLock<RuntimeRefService> = OnceLock::new();
@@ -315,6 +414,73 @@ pub fn resolve_species_alias(
             anyhow!("no build provided and no default build for species {canonical_species}")
         })?;
     Ok((canonical_species, build))
+}
+
+/// # Errors
+/// Returns an error if species authority config cannot be read or species is not declared.
+pub fn resolve_species_authority(species: &str) -> Result<SpeciesAuthorityEntry> {
+    let path = workspace_root().join("configs/runtime/species.toml");
+    let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
+    cfg.species
+        .into_iter()
+        .find(|entry| entry.species_id == species)
+        .ok_or_else(|| anyhow!("species authority entry missing for {species}"))
+}
+
+/// # Errors
+/// Returns an error if contig mapping config cannot be read or mapping entry is missing.
+pub fn resolve_contig_map(species: &str, build: &str) -> Result<ContigMap> {
+    let path = workspace_root().join("configs/runtime/species.toml");
+    let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
+    cfg.contig_map
+        .into_iter()
+        .find(|entry| entry.species_id == species && entry.build_id == build)
+        .ok_or_else(|| anyhow!("contig map missing for {species}:{build}"))
+}
+
+/// # Errors
+/// Returns an error if reference bank config cannot be read or entry is missing.
+pub fn resolve_reference_bank(species: &str, build: &str) -> Result<ReferenceBankEntry> {
+    let path = workspace_root().join("configs/runtime/reference_bank.toml");
+    let cfg: ReferenceBankConfig = load_toml(&path)?;
+    let entry = cfg
+        .reference
+        .into_iter()
+        .find(|row| row.species_id == species && row.build_id == build)
+        .ok_or_else(|| anyhow!("reference bank entry missing for {species}:{build}"))?;
+    validate_sha256(&entry.fasta_sha256, "reference_bank fasta_sha256")?;
+    if entry.license_id.trim().is_empty() || entry.license_url.trim().is_empty() {
+        bail!("reference bank entry for {species}:{build} missing license metadata");
+    }
+    Ok(entry)
+}
+
+/// # Errors
+/// Returns an error when declared build/contigs are incompatible with authority metadata.
+pub fn enforce_declared_build_and_contigs(
+    species: &str,
+    declared_build: &str,
+    observed_contigs: &[String],
+) -> Result<()> {
+    let authority = resolve_species_authority(species)?;
+    if authority.default_build_id != declared_build {
+        bail!(
+            "declared build mismatch for {species}: declared={declared_build}, authority_default={}",
+            authority.default_build_id
+        );
+    }
+    let contig_map = resolve_contig_map(species, declared_build)?;
+    for contig in observed_contigs {
+        let normalized = contig_map
+            .aliases
+            .get(contig)
+            .cloned()
+            .unwrap_or_else(|| contig.clone());
+        if normalized.trim().is_empty() {
+            bail!("contig normalization produced empty value for {contig}");
+        }
+    }
+    Ok(())
 }
 
 /// # Errors
@@ -630,6 +796,12 @@ mod tests {
         let bundle = resolve_reference_bundle("Homo sapiens", "GRCh38")
             .unwrap_or_else(|err| panic!("resolve reference bundle: {err}"));
         assert_eq!(bundle.bundle_id, "hsapiens_grch38_primary");
+        let authority = resolve_species_authority("Homo sapiens")
+            .unwrap_or_else(|err| panic!("resolve species authority: {err}"));
+        assert_eq!(authority.default_build_id, "GRCh38");
+        let bank = resolve_reference_bank("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|err| panic!("resolve reference bank: {err}"));
+        assert!(!bank.required_indexes.is_empty());
     }
 
     #[test]
@@ -690,5 +862,16 @@ mod tests {
         };
         let err = resolve_panel_lock(&panel).expect_err("invalid lock_ref must fail");
         assert!(err.to_string().contains("invalid lock_ref"));
+    }
+
+    #[test]
+    fn declared_build_guard_rejects_mismatch() {
+        let err = enforce_declared_build_and_contigs(
+            "Homo sapiens",
+            "GRCh37",
+            &["chr1".to_string(), "chr2".to_string()],
+        )
+        .expect_err("mismatch must fail");
+        assert!(err.to_string().contains("declared build mismatch"));
     }
 }

@@ -1,0 +1,119 @@
+# schema_version = 1
+# owner = bijux-dna-db-ref
+# purpose = Species/build authority SSOT for runtime reference selection and contig naming policy.
+# authority = bijux-dna-db-ref
+# stability = stable
+# last_updated = 2026-02-15
+
+[[species]]
+species_id = "Homo sapiens"
+default_build_id = "GRCh38"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Canis lupus"
+default_build_id = "CanFam4"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Equus caballus"
+default_build_id = "EquCab3"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Felis catus"
+default_build_id = "Felis_catus_9.0"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Bos taurus"
+default_build_id = "ARS-UCD1.2"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Sus scrofa"
+default_build_id = "Sscrofa11.1"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Ovis aries"
+default_build_id = "ARS-UI_Ramb_v2.0"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Capra hircus"
+default_build_id = "ARS1"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Gallus gallus"
+default_build_id = "GRCg7b"
+contig_naming = "bare"
+sex_chromosomes = "ZW"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_zw"
+
+[[species]]
+species_id = "Mus musculus"
+default_build_id = "GRCm39"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[species]]
+species_id = "Rattus norvegicus"
+default_build_id = "mRatBN7.2"
+contig_naming = "bare"
+sex_chromosomes = "XY"
+mitochondrion_id = "MT"
+ploidy_model = "diploid_xy"
+
+[[contig_map]]
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+naming_convention = "deterministic_remap"
+mitochondrion_id = "MT"
+[contig_map.aliases]
+chr1 = "1"
+chr2 = "2"
+chrX = "X"
+chrY = "Y"
+chrM = "MT"
+chrMT = "MT"
+
+[[contig_map]]
+species_id = "Canis lupus"
+build_id = "CanFam4"
+naming_convention = "deterministic_remap"
+mitochondrion_id = "MT"
+[contig_map.aliases]
+chr1 = "1"
+chr2 = "2"
+chrX = "X"
+chrM = "MT"
+chrMT = "MT"

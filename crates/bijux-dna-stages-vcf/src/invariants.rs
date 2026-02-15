@@ -2,7 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_db_ref::{normalize_contig_name, resolve_reference_bundle};
+use bijux_dna_db_ref::{
+    enforce_declared_build_and_contigs, normalize_contig_name, resolve_reference_bundle,
+};
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
 use serde::Serialize;
@@ -300,6 +302,12 @@ pub fn run_vcf_preflight(
             species.build_id
         );
     }
+    enforce_declared_build_and_contigs(
+        &species.species_id,
+        &species.build_id,
+        &record_contigs.iter().map(|c| (*c).to_string()).collect::<Vec<_>>(),
+    )
+    .map_err(|err| anyhow!("vcf.validate_inputs refusal: declared build/contigs incompatible: {err}"))?;
 
     summary.checked.push("chr_prefix_mismatch".to_string());
     let input_has_chr = record_contigs.iter().any(|c| c.starts_with("chr"));
