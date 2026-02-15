@@ -21,6 +21,7 @@ Documents under `docs/20-science/fastq/`.
 - [Methodological Intent](METHODOLOGICAL_INTENT.md)
 - [Metric Semantics](METRIC_SEMANTICS.md)
 - [Operational Contract](OPERATIONAL_CONTRACT.md)
+- [Reference Governance](REFERENCE_GOVERNANCE.md)
 - [References](REFERENCES.md)
 - [Scientific Spec](SCIENTIFIC_SPEC.md)
 - [Stage Assumptions](STAGE_ASSUMPTIONS.md)

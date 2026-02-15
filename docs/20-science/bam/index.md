@@ -16,6 +16,7 @@ Documents under `docs/20-science/bam/`.
 - [Methodological Intent](METHODOLOGICAL_INTENT.md)
 - [Metric Semantics](METRIC_SEMANTICS.md)
 - [Operational Contract](OPERATIONAL_CONTRACT.md)
+- [Reference Governance](REFERENCE_GOVERNANCE.md)
 - [References](REFERENCES.md)
 - [Stage Assumptions](STAGE_ASSUMPTIONS.md)
 - [Stage Catalog](STAGE_CATALOG.md)
