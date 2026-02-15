@@ -104,8 +104,7 @@ fn build_apptainer_exec_args(
             RuntimeKind::Apptainer => {
                 args.push("--net".to_string());
             }
-            RuntimeKind::Singularity => {}
-            RuntimeKind::Docker => {}
+            RuntimeKind::Singularity | RuntimeKind::Docker => {}
         }
     }
     args.push(step.image.image.clone());
@@ -331,43 +330,14 @@ fn write_minimum_run_artifacts(
 
     let tool_invocation_path = run_artifacts_dir.join("tool_invocation.json");
     if !tool_invocation_path.exists() {
-        let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
-        let parameters_json = serde_json::json!({ "command": step.command.template });
-        let params_provenance = serde_json::json!({
-            "tool_params": parameters_json,
-            "defaults": serde_json::json!({}),
-            "overrides": serde_json::json!({}),
-            "effective_params": serde_json::json!({}),
-        });
-        let params_provenance_normalized =
-            bijux_dna_core::contract::canonical::canonicalize_json_value(&params_provenance);
-        let invocation = ToolInvocationV1::new(
-            "bijux.tool_invocation.v1".to_string(),
-            bijux_dna_core::contract::ContractVersion::v1(),
-            step.stage_id.clone(),
-            bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
-            inferred_tool_version.clone(),
-            None,
-            step.image
-                .digest
-                .clone()
-                .unwrap_or_else(|| step.image.image.clone()),
-            format!("{runner:?}"),
-            inferred_tool_version.clone(),
-            parameters_json.clone(),
-            parameters_json,
-            serde_json::json!({}),
-            serde_json::json!({}),
-            params_provenance,
-            params_provenance_normalized,
-            step.resources.clone(),
-            std::collections::BTreeMap::new(),
-            input_hashes.to_vec(),
-            output_hashes.to_vec(),
-            Some(command.to_string()),
-        );
-        bijux_dna_infra::atomic_write_json(&tool_invocation_path, &invocation)
-            .context("write tool_invocation.json")?;
+        write_tool_invocation(
+            step,
+            runner,
+            input_hashes,
+            output_hashes,
+            command,
+            &tool_invocation_path,
+        )?;
     }
 
     let stage_report_path = run_artifacts_dir.join("stage_report.json");
@@ -415,4 +385,51 @@ fn write_minimum_run_artifacts(
     }
 
     Ok(())
+}
+
+fn write_tool_invocation(
+    step: &ExecutionStep,
+    runner: RuntimeKind,
+    input_hashes: &[String],
+    output_hashes: &[String],
+    command: &str,
+    tool_invocation_path: &Path,
+) -> Result<()> {
+    let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
+    let parameters_json = serde_json::json!({ "command": step.command.template });
+    let params_provenance = serde_json::json!({
+        "tool_params": parameters_json,
+        "defaults": serde_json::json!({}),
+        "overrides": serde_json::json!({}),
+        "effective_params": serde_json::json!({}),
+    });
+    let params_provenance_normalized =
+        bijux_dna_core::contract::canonical::canonicalize_json_value(&params_provenance);
+    let invocation = ToolInvocationV1::new(
+        "bijux.tool_invocation.v1".to_string(),
+        bijux_dna_core::contract::ContractVersion::v1(),
+        step.stage_id.clone(),
+        bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
+        inferred_tool_version.clone(),
+        None,
+        step.image
+            .digest
+            .clone()
+            .unwrap_or_else(|| step.image.image.clone()),
+        format!("{runner:?}"),
+        inferred_tool_version.clone(),
+        parameters_json.clone(),
+        parameters_json,
+        serde_json::json!({}),
+        serde_json::json!({}),
+        params_provenance,
+        params_provenance_normalized,
+        step.resources.clone(),
+        std::collections::BTreeMap::new(),
+        input_hashes.to_vec(),
+        output_hashes.to_vec(),
+        Some(command.to_string()),
+    );
+    bijux_dna_infra::atomic_write_json(tool_invocation_path, &invocation)
+        .context("write tool_invocation.json")
 }

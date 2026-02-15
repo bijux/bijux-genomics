@@ -31,6 +31,10 @@ pub struct ExecutionAssessment {
     pub reason: Option<String>,
 }
 
+/// Resolve a concrete image reference for execution and verify local availability.
+///
+/// # Errors
+/// Returns an error if resolution fails or required local images are unavailable.
 pub fn resolve_image_for_run(
     spec: &ToolImageSpec,
     platform: &PlatformSpec,
@@ -62,6 +66,10 @@ pub fn resolve_image_for_run(
     Err(anyhow!("docker image not found: {}", image.full_name))
 }
 
+/// Execute a container plan and collect command output.
+///
+/// # Errors
+/// Returns an error if Docker invocation fails or the container cannot be observed.
 pub fn execute_plan(
     plan: &StageExecutionPlan,
     image: &ResolvedImage,
@@ -112,6 +120,10 @@ pub fn execute_plan(
     })
 }
 
+/// Execute a container plan with timeout enforcement.
+///
+/// # Errors
+/// Returns an error if execution fails or timeout is reached.
 pub fn execute_plan_with_timeout(
     plan: &StageExecutionPlan,
     image: &ResolvedImage,
@@ -201,6 +213,10 @@ pub(crate) fn command_string(args: &[String]) -> String {
     format!("docker {}", args.join(" "))
 }
 
+/// Wait for container completion and parse its exit code.
+///
+/// # Errors
+/// Returns an error if docker wait fails or output cannot be parsed.
 pub fn docker_wait(container_id: &str) -> Result<i32> {
     let output = Command::new("docker")
         .arg("wait")
@@ -217,6 +233,10 @@ pub fn docker_wait(container_id: &str) -> Result<i32> {
     Ok(code)
 }
 
+/// Wait for completion up to a timeout and return the container exit code.
+///
+/// # Errors
+/// Returns an error if timeout is reached or docker inspection/wait fails.
 pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> Result<i32> {
     let start = std::time::Instant::now();
     loop {
@@ -240,6 +260,10 @@ pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> 
     }
 }
 
+/// Fetch container logs from Docker.
+///
+/// # Errors
+/// Returns an error if docker logs command fails.
 pub fn docker_logs(container_id: &str) -> Result<String> {
     let output = Command::new("docker")
         .arg("logs")
@@ -252,6 +276,10 @@ pub fn docker_logs(container_id: &str) -> Result<String> {
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
+/// Read current memory usage (MB) from docker stats.
+///
+/// # Errors
+/// Returns an error if docker stats command fails or parsing is invalid.
 pub fn docker_stats_mb(container_id: &str) -> Result<f64> {
     let output = Command::new("docker")
         .arg("stats")
@@ -272,6 +300,10 @@ pub fn docker_stats_mb(container_id: &str) -> Result<f64> {
     parse_mem_to_mb(mem)
 }
 
+/// Parse docker memory usage string (e.g. `123.4MiB / 4GiB`) into MB.
+///
+/// # Errors
+/// Returns an error if the input format or unit is unsupported.
 pub fn parse_mem_to_mb(value: &str) -> Result<f64> {
     let parts: Vec<&str> = value.split('/').collect();
     let value = parts
@@ -298,6 +330,10 @@ pub fn parse_mem_to_mb(value: &str) -> Result<f64> {
     Ok(mb)
 }
 
+/// Remove a container forcefully.
+///
+/// # Errors
+/// Returns an error if docker rm fails.
 pub fn docker_rm(container_id: &str) -> Result<()> {
     let output = Command::new("docker")
         .arg("rm")

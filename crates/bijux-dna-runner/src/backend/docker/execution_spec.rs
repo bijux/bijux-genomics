@@ -7,6 +7,10 @@ use bijux_dna_environment::api::{PlatformSpec, ToolImageSpec};
 use crate::backend::docker::executor::resolve_image_for_run;
 use crate::runner_core::invocation_hash;
 
+/// Build a runtime execution specification from registry and image catalog.
+///
+/// # Errors
+/// Returns an error if stage/tool ids are invalid or registry/catalog lookup fails.
 pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     stage_id: &str,
     tool_id: &str,
