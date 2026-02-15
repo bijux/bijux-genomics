@@ -133,7 +133,12 @@ fn build_tool_registries_toml(
             tool.expected_version_regex
         );
         let _ = writeln!(out, "healthcheck_cmd = \"{}\"", tool.healthcheck_cmd);
-        let _ = writeln!(out, "expected_bin = \"{}\"", tool.id);
+        let expected_bin = tool
+            .version_cmd
+            .split_whitespace()
+            .next()
+            .unwrap_or(tool.id.as_str());
+        let _ = writeln!(out, "expected_bin = \"{}\"", expected_bin);
         let _ = writeln!(
             out,
             "expected_artifacts = {}",
