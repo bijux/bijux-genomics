@@ -4,6 +4,9 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
+use bijux_dna_domain_fastq::stages::ids::{
+    STAGE_LENGTH_DISTRIBUTION_PRE, STAGE_OVERREPRESENTED_SEQUENCES, STAGE_POLYG_TAILING,
+};
 
 use crate::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
@@ -57,6 +60,22 @@ where
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
+            stage if stage == STAGE_LENGTH_DISTRIBUTION_PRE.as_str() => {
+                let plan = crate::tool_adapters::fastq::length_distribution_pre::plan(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            stage if stage == STAGE_OVERREPRESENTED_SEQUENCES.as_str() => {
+                let plan = crate::tool_adapters::fastq::overrepresented_sequences::plan(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
             stage if stage == STAGE_TRIM.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim::plan(
                     tool,
@@ -102,6 +121,15 @@ where
             }
             stage if stage == STAGE_LOW_COMPLEXITY.as_str() => {
                 let plan = crate::tool_adapters::fastq::low_complexity::plan_low_complexity(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            stage if stage == STAGE_POLYG_TAILING.as_str() => {
+                let plan = crate::tool_adapters::fastq::polyg_tailing::plan_polyg_tailing(
                     tool,
                     &current_r1,
                     &out_dir,
