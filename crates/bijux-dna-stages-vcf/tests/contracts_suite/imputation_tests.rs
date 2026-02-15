@@ -257,6 +257,57 @@
             .get("chunk_manifests")
             .and_then(|v| v.as_array())
             .is_some_and(|arr| !arr.is_empty()));
+        assert!(manifest
+            .get("chunk_logs")
+            .and_then(|v| v.as_array())
+            .is_some_and(|arr| !arr.is_empty()));
+    }
+
+    #[test]
+    fn phased_path_then_minimac_impute_emits_output_on_mini_dataset() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("phased_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0|1\n1\t150\t.\tC\tT\t60\tPASS\t.\tGT\t0|0\n",
+        )
+        .unwrap_or_else(|err| panic!("write phased input: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248956422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_impute_stage(
+            &input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Minimac4,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: Some(1000),
+                chunk_overlap_bp: 50,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run minimac phased path: {err}"));
+        assert!(out.imputed_vcf.exists());
+        assert!(out.imputed_tbi.exists());
+        assert!(out.imputation_manifest_json.exists());
     }
 
     #[test]
@@ -344,4 +395,3 @@
         .expect_err("triploid must be refused");
         assert!(err.to_string().contains("unsupported ploidy model"));
     }
-
