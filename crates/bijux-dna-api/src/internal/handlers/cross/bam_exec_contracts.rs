@@ -156,6 +156,28 @@ mod tests {
     }
 
     #[test]
+    fn refusal_rules_enforce_mt_reference_for_mt_aware_stages() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("x.bam");
+        let bai = temp.path().join("x.bam.bai");
+        std::fs::write(&bam, b"bam")?;
+        std::fs::write(&bai, b"bai")?;
+        let ref_fa = temp.path().join("ref.fa");
+        let ref_fai = temp.path().join("ref.fa.fai");
+        std::fs::write(&ref_fa, b">1\nACGT\n")?;
+        std::fs::write(&ref_fai, b"1\t4\t0\t4\t5\n")?;
+        let err = enforce_stage_refusal_rules(
+            bijux_dna_planner_bam::stage_api::BamStage::Contamination,
+            &bam,
+            Some(&bai),
+            Some(&ref_fa),
+        )
+        .expect_err("contamination must fail when mt contig is absent");
+        assert!(err.to_string().contains("lacks MT/chrMT contig"));
+        Ok(())
+    }
+
+    #[test]
     fn bam_invariants_and_wrapper_contracts_are_emitted() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let stage_dir = temp.path().join("validate");
@@ -223,6 +245,51 @@ mod tests {
         let err = enforce_bam_output_contract(stage, &stage_dir)
             .expect_err("enforcement must fail when .bai is missing");
         assert!(err.to_string().contains("output contract violation"));
+        Ok(())
+    }
+
+    #[test]
+    fn alignment_regime_validation_accepts_adna_bwa_command() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let mut step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+        ));
+        step.command = CommandSpecV1 {
+            template: vec![
+                "/bin/sh".to_string(),
+                "-c".to_string(),
+                "bwa aln -l 1024 -n 0.01 ref.fa r1.fq".to_string(),
+            ],
+        };
+        write_alignment_regime_validation(temp.path(), AlignmentRegime::Adna, "bwa", &step)?;
+        assert!(temp.path().join("alignment_regime_validation.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn duplicate_policy_split_codifies_collapse_refusal_path() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Markdup);
+        plan.params = serde_json::json!({
+            "umi_policy": "collapse",
+            "duplicate_action": "mark",
+            "optical_duplicates": "mark_only"
+        });
+        write_duplicate_policy_split(temp.path(), &plan)?;
+        let payload: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("duplicate_policy_split.json"))?)?;
+        assert_eq!(
+            payload
+                .get("selected_executor")
+                .and_then(serde_json::Value::as_str),
+            Some("bam.collapse")
+        );
+        assert_eq!(
+            payload
+                .pointer("/modes/bam.collapse/supported")
+                .and_then(serde_json::Value::as_bool),
+            Some(false)
+        );
         Ok(())
     }
 

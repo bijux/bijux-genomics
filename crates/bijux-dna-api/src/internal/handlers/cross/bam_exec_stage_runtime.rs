@@ -266,6 +266,96 @@ fn write_tool_wrapper_contract(
         .with_context(|| format!("write {}", path.display()))
 }
 
+fn write_alignment_regime_validation(
+    stage_dir: &Path,
+    regime: AlignmentRegime,
+    tool_id: &str,
+    step: &bijux_dna_core::contract::ExecutionStep,
+) -> Result<()> {
+    let command_line = step.command.template.join(" ");
+    let expected_flags: Vec<&str> = match (tool_id, regime) {
+        ("bwa", AlignmentRegime::Adna) => vec!["bwa aln", "-l 1024", "-n 0.01"],
+        ("bwa", AlignmentRegime::Modern) => vec!["bwa mem"],
+        ("bowtie2", AlignmentRegime::Adna) => vec!["--very-sensitive-local", "-N 1", "-L 20"],
+        ("bowtie2", AlignmentRegime::Edna) => vec!["--very-sensitive-local", "-N 1", "-L 22"],
+        ("bowtie2", AlignmentRegime::Modern) => vec!["--very-sensitive"],
+        _ => Vec::new(),
+    };
+    let missing = expected_flags
+        .iter()
+        .filter(|flag| !command_line.contains(**flag))
+        .map(|flag| (*flag).to_string())
+        .collect::<Vec<_>>();
+    let valid = missing.is_empty();
+    let path = stage_dir.join("alignment_regime_validation.json");
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "schema_version": "bijux.bam.alignment_regime_validation.v1",
+            "tool": tool_id,
+            "regime": regime,
+            "expected_flags": expected_flags,
+            "missing_flags": missing,
+            "valid": valid,
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))?;
+    if !valid {
+        return Err(anyhow!(
+            "bam.alignment_regime_validation failed for tool={tool_id:?} regime={regime:?}; see {}",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn write_duplicate_policy_split(
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<()> {
+    let umi_policy = plan
+        .params
+        .get("umi_policy")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("ignore");
+    let duplicate_action = plan
+        .params
+        .get("duplicate_action")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("mark");
+    let selected = match umi_policy {
+        "collapse" => "bam.collapse",
+        "use_tag" => "bam.umi_dedup",
+        _ => "bam.markdup",
+    };
+    let path = stage_dir.join("duplicate_policy_split.json");
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "schema_version": "bijux.bam.duplicate_policy_split.v1",
+            "selected_executor": selected,
+            "duplicate_action": duplicate_action,
+            "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
+            "modes": {
+                "bam.markdup": {
+                    "supported": true,
+                    "description": "PCR/optical duplicate marking or removal"
+                },
+                "bam.collapse": {
+                    "supported": false,
+                    "reason_code": "BAM_COLLAPSE_NOT_ENABLED",
+                    "issue_id": "BAM-4B-81"
+                },
+                "bam.umi_dedup": {
+                    "supported": true,
+                    "description": "UMI-aware deduplication via tag-aware policy"
+                }
+            }
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))
+}
+
 fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -316,6 +406,17 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     args.tool = Some(tool_id.as_str().to_string());
 
     let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Markdup
+        && plan
+            .params
+            .get("umi_policy")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|value| value == "collapse")
+    {
+        return Err(anyhow!(
+            "bam.collapse refusal: collapse mode is codified but not enabled in this runner (issue=BAM-4B-81)"
+        ));
+    }
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Contamination {
         let has_panels = plan
             .params
@@ -336,6 +437,9 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
     write_bam_invariants(&stage_dir, stage, bam_path, bai_path, reference)?;
     write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Markdup {
+        write_duplicate_policy_split(&stage_dir, &plan)?;
+    }
     if let Some(summary) = maybe_resume_bam_stage(stage, &stage_dir, &step)? {
         return Ok(summary);
     }
@@ -447,6 +551,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_plan,
         &align_step,
     )?;
+    write_alignment_regime_validation(&align_out, regime, tool_id.as_str(), &align_step)?;
     if let Some(summary) = maybe_resume_bam_stage(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
         &align_out,
