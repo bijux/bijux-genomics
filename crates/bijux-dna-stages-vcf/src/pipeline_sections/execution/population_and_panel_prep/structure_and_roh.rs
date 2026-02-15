@@ -43,6 +43,78 @@ fn require_readiness_gate(path: &Path, field: &str, stage_id: &str) -> Result<()
     Ok(())
 }
 
+#[derive(Debug, Clone)]
+struct RohSegment {
+    sample: String,
+    contig: String,
+    start: u64,
+    end: u64,
+    length_bp: u64,
+    n_sites: u64,
+}
+
+fn parse_roh_segments_from_plink_hom(path: &Path, min_len_bp: u64) -> Vec<RohSegment> {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut lines = raw.lines();
+    let Some(header) = lines.next() else {
+        return Vec::new();
+    };
+    let cols = header.split_whitespace().collect::<Vec<_>>();
+    let idx_iid = cols
+        .iter()
+        .position(|c| *c == "IID")
+        .or_else(|| cols.iter().position(|c| *c == "SAMPLE"))
+        .unwrap_or(1);
+    let idx_chr = cols
+        .iter()
+        .position(|c| *c == "CHR")
+        .or_else(|| cols.iter().position(|c| *c == "CHROM"))
+        .unwrap_or(2);
+    let idx_pos1 = cols.iter().position(|c| *c == "POS1").unwrap_or(3);
+    let idx_pos2 = cols.iter().position(|c| *c == "POS2").unwrap_or(4);
+    let idx_nsnp = cols
+        .iter()
+        .position(|c| *c == "NSNP")
+        .or_else(|| cols.iter().position(|c| *c == "NSEG"))
+        .unwrap_or(6);
+    let mut segments = Vec::new();
+    for line in lines {
+        let row = line.split_whitespace().collect::<Vec<_>>();
+        if row.len() <= idx_pos2 {
+            continue;
+        }
+        let sample = row.get(idx_iid).copied().unwrap_or("unknown").to_string();
+        let contig = row.get(idx_chr).copied().unwrap_or("NA").to_string();
+        let start = row
+            .get(idx_pos1)
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(0);
+        let end = row
+            .get(idx_pos2)
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(start);
+        let n_sites = row
+            .get(idx_nsnp)
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(0);
+        let length_bp = end.saturating_sub(start).max(1);
+        if length_bp < min_len_bp {
+            continue;
+        }
+        segments.push(RohSegment {
+            sample,
+            contig,
+            start,
+            end,
+            length_bp,
+            n_sites,
+        });
+    }
+    segments
+}
+
 pub fn run_roh_stage(
     input_vcf: &Path,
     out_dir: &Path,
@@ -128,35 +200,68 @@ pub fn run_roh_stage(
         ],
     );
 
+    let mut execution_mode = "fallback_proxy";
+    let min_len_bp = params.min_segment_kb * 1000;
+    let hom_path = out_dir.join("roh_plink.hom");
+    let mut parsed_segments = if plink_homozyg_ok && hom_path.exists() {
+        parse_roh_segments_from_plink_hom(&hom_path, min_len_bp)
+    } else {
+        Vec::new()
+    };
+    if parsed_segments.is_empty() {
+        for sample in &sample_ids {
+            let mut start = variants[0].1;
+            let mut last = variants[0].1;
+            let contig = variants[0].0.clone();
+            let mut n_sites = 1_u64;
+            for (chr, pos, maf) in variants.iter().skip(1) {
+                if *chr != contig
+                    || pos.saturating_sub(last) > params.max_gap_bp
+                    || maf.unwrap_or(0.5) < 0.001
+                {
+                    let len = last.saturating_sub(start).max(1);
+                    if len >= min_len_bp {
+                        parsed_segments.push(RohSegment {
+                            sample: sample.clone(),
+                            contig: contig.clone(),
+                            start,
+                            end: last,
+                            length_bp: len,
+                            n_sites,
+                        });
+                    }
+                    start = *pos;
+                    n_sites = 1;
+                } else {
+                    n_sites += 1;
+                }
+                last = *pos;
+            }
+            let len = last.saturating_sub(start).max(1);
+            if len >= min_len_bp {
+                parsed_segments.push(RohSegment {
+                    sample: sample.clone(),
+                    contig: contig.clone(),
+                    start,
+                    end: last,
+                    length_bp: len,
+                    n_sites,
+                });
+            }
+        }
+    } else {
+        execution_mode = "real_tool";
+    }
     let mut rows = String::from("sample\tcontig\tstart\tend\tlength_bp\tn_sites\n");
     let mut total_length = 0_u64;
     let mut segment_lengths = Vec::<u64>::new();
-    for sample in &sample_ids {
-        let mut start = variants[0].1;
-        let mut last = variants[0].1;
-        let contig = variants[0].0.clone();
-        let mut n_sites = 1_u64;
-        for (chr, pos, maf) in variants.iter().skip(1) {
-            if *chr != contig || pos.saturating_sub(last) > params.max_gap_bp || maf.unwrap_or(0.5) < 0.001 {
-                let len = last.saturating_sub(start).max(1);
-                if len >= params.min_segment_kb * 1000 {
-                    rows.push_str(&format!("{sample}\t{contig}\t{start}\t{last}\t{len}\t{n_sites}\n"));
-                    total_length += len;
-                    segment_lengths.push(len);
-                }
-                start = *pos;
-                n_sites = 1;
-            } else {
-                n_sites += 1;
-            }
-            last = *pos;
-        }
-        let len = last.saturating_sub(start).max(1);
-        if len >= params.min_segment_kb * 1000 {
-            rows.push_str(&format!("{sample}\t{contig}\t{start}\t{last}\t{len}\t{n_sites}\n"));
-            total_length += len;
-            segment_lengths.push(len);
-        }
+    for seg in &parsed_segments {
+        rows.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\n",
+            seg.sample, seg.contig, seg.start, seg.end, seg.length_bp, seg.n_sites
+        ));
+        total_length += seg.length_bp;
+        segment_lengths.push(seg.length_bp);
     }
     atomic_write_bytes(&roh_segments_tsv, rows.as_bytes())?;
     let segment_count = segment_lengths.len() as u64;
@@ -191,6 +296,7 @@ pub fn run_roh_stage(
     let roh_payload = serde_json::json!({
         "schema_version": "bijux.vcf.roh.summary.v2",
         "toolchain": params.toolchain,
+        "execution_mode": execution_mode,
         "segment_count": segment_count,
         "total_length_bp": total_length,
         "mean_length_bp": mean_len,
@@ -307,4 +413,3 @@ fn detect_reference_build(raw: &str) -> Option<String> {
         .find_map(|line| line.strip_prefix("##reference=").map(str::trim))
         .map(ToString::to_string)
 }
-
