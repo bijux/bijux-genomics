@@ -78,6 +78,7 @@ pub struct PopulationPreprocessingParams {
     pub ld_window: usize,
     pub ld_step: usize,
     pub ld_r2_threshold: f64,
+    pub ld_pruning_policy: Option<String>,
     pub maf_threshold: f64,
     pub max_missingness: f64,
 }
@@ -88,6 +89,7 @@ impl Default for PopulationPreprocessingParams {
             ld_window: 50,
             ld_step: 5,
             ld_r2_threshold: 0.2,
+            ld_pruning_policy: Some("plink2_indep_pairwise".to_string()),
             maf_threshold: 0.01,
             max_missingness: 0.1,
         }
@@ -98,6 +100,7 @@ impl Default for PopulationPreprocessingParams {
 pub struct PcaStageParams {
     pub toolchain: String,
     pub components: usize,
+    pub sample_metadata_manifest: Option<PathBuf>,
     pub preprocessing: PopulationPreprocessingParams,
 }
 
@@ -106,6 +109,7 @@ impl Default for PcaStageParams {
         Self {
             toolchain: "plink2".to_string(),
             components: 10,
+            sample_metadata_manifest: None,
             preprocessing: PopulationPreprocessingParams::default(),
         }
     }
@@ -123,6 +127,9 @@ pub struct PcaStageOutputs {
 pub struct PopulationStructureStageParams {
     pub toolchain: String,
     pub smartpca: bool,
+    pub run_admixture: bool,
+    pub sample_metadata_manifest: Option<PathBuf>,
+    pub admixture_params: Option<AdmixtureStageParams>,
     pub preprocessing: PopulationPreprocessingParams,
 }
 
@@ -131,6 +138,9 @@ impl Default for PopulationStructureStageParams {
         Self {
             toolchain: "plink2".to_string(),
             smartpca: true,
+            run_admixture: false,
+            sample_metadata_manifest: None,
+            admixture_params: None,
             preprocessing: PopulationPreprocessingParams::default(),
         }
     }
@@ -145,13 +155,17 @@ pub struct PopulationStructureStageOutputs {
 
 #[derive(Debug, Clone)]
 pub struct AdmixtureStageParams {
+    pub toolchain: String,
     pub k_values: Vec<usize>,
+    pub sample_metadata_manifest: Option<PathBuf>,
 }
 
 impl Default for AdmixtureStageParams {
     fn default() -> Self {
         Self {
+            toolchain: "plink2".to_string(),
             k_values: vec![2, 3, 4],
+            sample_metadata_manifest: None,
         }
     }
 }
@@ -233,4 +247,3 @@ pub struct DemographyStageOutputs {
     pub demography_metrics_json: PathBuf,
     pub logs_txt: PathBuf,
 }
-
