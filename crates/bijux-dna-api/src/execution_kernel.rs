@@ -144,6 +144,16 @@ fn classify_exit_code(exit_code: i32) -> ExitTaxonomy {
     }
 }
 
+fn infer_tool_version_from_image(image: &str) -> String {
+    let without_digest = image.split('@').next().unwrap_or(image);
+    if let Some((_, tag)) = without_digest.rsplit_once(':') {
+        if !tag.is_empty() && tag != "latest" {
+            return tag.to_string();
+        }
+    }
+    "unknown".to_string()
+}
+
 fn network_policy_violation(policy: &NetworkPolicy) -> bool {
     matches!(policy, NetworkPolicy::Forbid)
         && std::env::var("BIJUX_ALLOW_NETWORK")
@@ -377,6 +387,11 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     }
 
     let finished_at = chrono::Utc::now();
+    let duration_ms = finished_at
+        .signed_duration_since(started_at)
+        .num_milliseconds()
+        .max(0);
+    let inferred_tool_version = infer_tool_version_from_image(&req.step.image.image);
     let runtime_provenance_path = req.context.stage_root.join("runtime_provenance.json");
     let env_summary = serde_json::json!({
         "hostname": std::env::var("HOSTNAME").ok(),
@@ -391,11 +406,12 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "runner": req.runner.to_string(),
         "image": req.step.image.image,
         "tool_digest": req.step.image.digest,
-        "tool_version": "unknown",
+        "tool_version": inferred_tool_version,
         "command": stage_result.command,
         "env_summary": env_summary,
         "started_at": started_at,
         "finished_at": finished_at,
+        "duration_ms": duration_ms,
         "exit_code": stage_result.exit_code,
     });
     bijux_dna_infra::atomic_write_json(&runtime_provenance_path, &runtime_provenance)?;
@@ -416,6 +432,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "output_checksums": output_checksums,
         "runtime": {
             "runtime_s": stage_result.runtime_s,
+            "duration_ms": duration_ms,
             "memory_mb": stage_result.memory_mb,
             "exit_code": stage_result.exit_code,
         },
