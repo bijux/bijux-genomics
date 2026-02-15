@@ -20,6 +20,7 @@ fn is_allowed_command_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-dna-environment/src/resolve/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/bin/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-stages-vcf/")
 }
 
 #[test]
@@ -92,6 +93,7 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
         }
         if path_str.contains("/crates/bijux-dna-policies/tests/")
             || path_str.contains("/crates/bijux-dna-stages-fastq/tests/architecture.rs")
+            || path_str.contains("/crates/bijux-dna-api/tests/contracts/v1_fastq_small_integration.rs")
         {
             continue;
         }

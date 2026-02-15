@@ -21,6 +21,6 @@ use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 use bijux_dna_stage_contract::{build_run_execution_plan, RunExecutionPlan};
 use cargo_metadata::MetadataCommand;
 
-include!("run_sections/planning_and_hpc.rs");
-include!("run_sections/execute_run.rs");
-include!("run_sections/reporting_and_audit.rs");
+include!("../run_sections/planning_and_hpc.rs");
+include!("../run_sections/execute_run.rs");
+include!("../run_sections/reporting_and_audit.rs");
