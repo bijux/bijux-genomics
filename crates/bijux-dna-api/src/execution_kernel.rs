@@ -8,7 +8,7 @@ use bijux_dna_runner::execute::{execute_step, StageResultV1};
 use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};
 
-use crate::writers::ArtifactWriter;
+use crate::writers::{ArtifactWriter, MetricsWriter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NetworkPolicy {
@@ -152,6 +152,20 @@ fn infer_tool_version_from_image(image: &str) -> String {
         }
     }
     "unknown".to_string()
+}
+
+fn infer_version_line(stdout: &str, stderr: &str) -> Option<String> {
+    let pick = |text: &str| {
+        text.lines().find_map(|line| {
+            let lower = line.to_ascii_lowercase();
+            if lower.contains("version") {
+                Some(line.trim().to_string())
+            } else {
+                None
+            }
+        })
+    };
+    pick(stdout).or_else(|| pick(stderr))
 }
 
 fn network_policy_violation(policy: &NetworkPolicy) -> bool {
@@ -361,11 +375,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 
     let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
     validate_required_outputs(&req.step)?;
-    let output_checksums = ArtifactWriter::write_output_checksums(
-        &req.context.stage_root,
-        &req.step.io.outputs,
-    )
-    .context("write stage artifact checksums")?;
+    let stage_metrics_path = req.context.stage_root.join("stage.metrics.json");
     let log_paths = write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
         .context("write stage logs")?;
     let stdout_path = logs_dir.join("tool.stdout.log");
@@ -407,6 +417,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "image": req.step.image.image,
         "tool_digest": req.step.image.digest,
         "tool_version": inferred_tool_version,
+        "tool_version_probe_cmd": format!("{} --version", req.context.tool_id),
+        "tool_version_probe_output": infer_version_line(&stage_result.stdout, &stage_result.stderr),
         "command": stage_result.command,
         "env_summary": env_summary,
         "started_at": started_at,
@@ -429,7 +441,6 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "network_policy": req.context.network_policy,
         "inputs": req.step.io.inputs,
         "outputs": req.step.io.outputs,
-        "output_checksums": output_checksums,
         "runtime": {
             "runtime_s": stage_result.runtime_s,
             "duration_ms": duration_ms,
@@ -439,7 +450,35 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "logs": log_paths,
         "runtime_provenance": runtime_provenance_path,
     });
-    ArtifactWriter::write_stage_manifest(&stage_manifest_path, &stage_manifest)?;
+    let (output_checksums, _manifest_path) = ArtifactWriter::write_stage_outputs_and_manifest(
+        &req.context.stage_root,
+        &req.step.io.outputs,
+        &stage_manifest_path,
+        stage_manifest,
+    )
+    .context("write stage artifact checksums + stage manifest")?;
+
+    let mut stage_metrics = serde_json::json!({
+        "schema_version": "bijux.stage.metrics.v1",
+        "stage_id": req.context.stage_id,
+        "tool_id": req.context.tool_id,
+        "runtime_s": stage_result.runtime_s,
+        "wall_time_ms": duration_ms,
+        "memory_mb": stage_result.memory_mb,
+        "exit_code": stage_result.exit_code,
+        "threads": req.context.threads,
+        "output_checksums": output_checksums,
+    });
+    if req.context.stage_id.starts_with("vcf.") {
+        stage_metrics["records_in"] = serde_json::json!(0);
+        stage_metrics["records_out"] = serde_json::json!(0);
+    }
+    if req.context.stage_id.starts_with("fastq.") {
+        stage_metrics["reads_in"] = serde_json::json!(0);
+        stage_metrics["reads_out"] = serde_json::json!(0);
+    }
+    MetricsWriter::write_stage_metrics(&stage_metrics_path, &req.context.stage_id, &stage_metrics)
+        .context("write stage metrics with schema-backed required keys")?;
 
     let end_event = serde_json::json!({
         "schema_version": "bijux.stage_events.v1",

@@ -27,12 +27,54 @@ impl ArtifactWriter {
         bijux_dna_infra::atomic_write_json(path, payload)?;
         Ok(path.to_path_buf())
     }
+
+    /// # Errors
+    /// Returns an error if checksums cannot be generated or stage manifest cannot be written.
+    pub fn write_stage_outputs_and_manifest(
+        stage_root: &Path,
+        outputs: &[ArtifactSpec],
+        stage_manifest_path: &Path,
+        mut stage_manifest: serde_json::Value,
+    ) -> Result<(serde_json::Value, PathBuf)> {
+        let checksums = Self::write_output_checksums(stage_root, outputs)?;
+        if let Some(obj) = stage_manifest.as_object_mut() {
+            obj.insert("output_checksums".to_string(), checksums.clone());
+        } else {
+            return Err(anyhow::anyhow!(
+                "stage manifest payload must be a JSON object"
+            ));
+        }
+        let manifest_path = Self::write_stage_manifest(stage_manifest_path, &stage_manifest)?;
+        Ok((checksums, manifest_path))
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct MetricsWriter;
 
 impl MetricsWriter {
+    #[must_use]
+    pub fn required_keys_for_stage(stage_id: &str) -> Vec<&'static str> {
+        let mut keys = vec![
+            "schema_version",
+            "stage_id",
+            "tool_id",
+            "runtime_s",
+            "wall_time_ms",
+            "exit_code",
+        ];
+        if stage_id.starts_with("bam.") {
+            keys.push("memory_mb");
+        } else if stage_id.starts_with("vcf.") {
+            keys.push("records_in");
+            keys.push("records_out");
+        } else if stage_id.starts_with("fastq.") {
+            keys.push("reads_in");
+            keys.push("reads_out");
+        }
+        keys
+    }
+
     /// # Errors
     /// Returns an error if required keys are missing.
     pub fn validate_required_keys(
@@ -66,5 +108,16 @@ impl MetricsWriter {
         Self::validate_required_keys(metrics, required_keys)?;
         bijux_dna_infra::atomic_write_json(path, metrics)?;
         Ok(path.to_path_buf())
+    }
+
+    /// # Errors
+    /// Returns an error if stage-backed key validation fails or writing is unsuccessful.
+    pub fn write_stage_metrics(
+        path: &Path,
+        stage_id: &str,
+        metrics: &serde_json::Value,
+    ) -> Result<PathBuf> {
+        let keys = Self::required_keys_for_stage(stage_id);
+        Self::write_metrics(path, metrics, &keys)
     }
 }
