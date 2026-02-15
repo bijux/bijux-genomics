@@ -41,7 +41,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use std::io::BufRead;
 use std::path::PathBuf;
 
-include!("preprocess/helpers.rs");
+include!("preprocess/stage_backend_policy.rs");
 include!("preprocess/stage_artifacts.rs");
 
 fn enforce_stage_applicability(
