@@ -31,7 +31,7 @@ struct SharedArgs {
     accessions: Vec<String>,
     #[arg(long, value_enum, default_value_t = ResultKindArg::ReadRun)]
     result: ResultKindArg,
-    #[arg(long, value_enum, default_value_t = SourceArg::FastqFtp)]
+    #[arg(long, value_enum, default_value_t = SourceArg::Fastq)]
     source: SourceArg,
     #[arg(long, value_enum, default_value_t = PreferenceArg::Ftp)]
     prefer: PreferenceArg,
@@ -60,12 +60,11 @@ enum ResultKindArg {
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
-#[allow(clippy::enum_variant_names)]
 enum SourceArg {
-    FastqFtp,
-    SubmittedFtp,
-    SraFtp,
-    BamFtp,
+    Fastq,
+    Submitted,
+    Sra,
+    Bam,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -86,10 +85,10 @@ impl From<ResultKindArg> for EnaResultKind {
 impl From<SourceArg> for EnaFileSource {
     fn from(value: SourceArg) -> Self {
         match value {
-            SourceArg::FastqFtp => Self::FastqFtp,
-            SourceArg::SubmittedFtp => Self::SubmittedFtp,
-            SourceArg::SraFtp => Self::SraFtp,
-            SourceArg::BamFtp => Self::BamFtp,
+            SourceArg::Fastq => Self::FastqFtp,
+            SourceArg::Submitted => Self::SubmittedFtp,
+            SourceArg::Sra => Self::SraFtp,
+            SourceArg::Bam => Self::BamFtp,
         }
     }
 }
