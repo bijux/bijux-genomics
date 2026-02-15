@@ -130,9 +130,14 @@ pub fn run_population_structure_stage(
     if passing.is_empty() {
         bail!("vcf.population_structure refusal: no variants pass preprocessing");
     }
+    let plink_input_tsv = out_dir.join("population_structure_input_plink.tsv");
     let pruned_variants_tsv = out_dir.join("pruned_variants.tsv");
     let population_structure_json = out_dir.join("population_structure.json");
     let logs_txt = out_dir.join("logs.txt");
+    atomic_write_bytes(
+        &plink_input_tsv,
+        format!("variant_id\n{}\n", passing.join("\n")).as_bytes(),
+    )?;
     atomic_write_bytes(
         &pruned_variants_tsv,
         format!("variant\n{}\n", passing.join("\n")).as_bytes(),
@@ -151,6 +156,10 @@ pub fn run_population_structure_stage(
                 "max_missingness": params.preprocessing.max_missingness,
             },
             "variants_passing": passing.len(),
+            "input_conversion": {
+                "mode": "vcf_to_plink_like_table",
+                "path": plink_input_tsv,
+            },
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv
             }
@@ -211,8 +220,12 @@ pub fn run_roh_stage(
         max.saturating_sub(min).max(1)
     };
     let density = (variants.len() as f64) / ((contig_span as f64) / 1_000_000.0);
+    let (_, _, missingness) = compute_variant_readiness(&raw);
     if density < params.min_snp_density_per_mb {
         bail!("vcf.roh refusal: SNP density below configured threshold");
+    }
+    if missingness > params.max_missingness {
+        bail!("vcf.roh refusal: missingness above readiness threshold");
     }
 
     let roh_segments_tsv = out_dir.join("roh_segments.tsv");
@@ -273,7 +286,11 @@ pub fn run_roh_stage(
             "roh_count": segment_count,
             "roh_total_mb": total_length as f64 / 1_000_000.0,
             "roh_mean_length_mb": mean_len / 1_000_000.0,
-            "distribution_bp": segment_lengths
+            "distribution_bp": segment_lengths,
+            "readiness": {
+                "variant_density_per_mb": density,
+                "missingness": missingness
+            }
         }),
     )?;
     atomic_write_bytes(
@@ -445,7 +462,17 @@ pub fn run_demography_stage(
         .filter(|l| !l.trim().is_empty())
         .skip(1)
         .collect::<Vec<_>>();
-    if lines.len() < params.min_segments {
+    let valid_segments = lines
+        .iter()
+        .filter(|line| {
+            let cols = line.split('\t').collect::<Vec<_>>();
+            if cols.len() < 6 {
+                return false;
+            }
+            cols[5].parse::<f64>().ok().is_some_and(|cm| cm > 0.0)
+        })
+        .count();
+    if valid_segments < params.min_segments {
         bail!("vcf.demography refusal: not enough IBD segments for ibdne");
     }
     let ne_trajectory_tsv = out_dir.join("ne_trajectory.tsv");
@@ -470,6 +497,7 @@ pub fn run_demography_stage(
         &demography_metrics_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.demography.v1",
+            "segments_validated": valid_segments,
             "ne_recent": series.first().and_then(|v| v.get("ne")).unwrap_or(&serde_json::Value::Null),
             "ne_time_series": series,
             "ne_confidence_interval": "generated_per_generation"
@@ -786,4 +814,3 @@ pub fn run_prepare_reference_panel_stage(
         chunks_json,
     })
 }
-

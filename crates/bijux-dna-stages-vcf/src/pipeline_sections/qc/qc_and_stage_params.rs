@@ -554,6 +554,7 @@ pub struct AdmixtureStageOutputs {
 #[derive(Debug, Clone)]
 pub struct RohStageParams {
     pub min_snp_density_per_mb: f64,
+    pub max_missingness: f64,
     pub min_segment_kb: u64,
     pub max_gap_bp: u64,
 }
@@ -562,6 +563,7 @@ impl Default for RohStageParams {
     fn default() -> Self {
         Self {
             min_snp_density_per_mb: 10.0,
+            max_missingness: 0.2,
             min_segment_kb: 500,
             max_gap_bp: 1_000_000,
         }
@@ -621,4 +623,3 @@ pub struct DemographyStageOutputs {
     pub demography_metrics_json: PathBuf,
     pub logs_txt: PathBuf,
 }
-
