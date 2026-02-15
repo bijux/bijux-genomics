@@ -188,3 +188,82 @@ fn golden_spine_contract() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn bam_smoke_runner_minimal_path_has_report_sections() -> Result<()> {
+    let tmp = tempfile::tempdir()?;
+    let base_dir = tmp.path();
+    let defaults = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::new("bam-to-bam__adna_shotgun__v1"),
+        tools: BTreeMap::new(),
+        params: BTreeMap::new(),
+        thresholds: BTreeMap::new(),
+        tool_provenance: BTreeMap::new(),
+        param_provenance: BTreeMap::new(),
+        assumptions: Vec::new(),
+        citations: BTreeMap::new(),
+    };
+    bijux_dna_infra::write_bytes(
+        &base_dir.join("defaults_ledger.json"),
+        serde_json::to_vec(&defaults)?,
+    )?;
+    let mut rows = Vec::new();
+    for (idx, stage_id) in ["bam.validate", "bam.mapping_summary", "bam.coverage"]
+        .into_iter()
+        .enumerate()
+    {
+        rows.push(FactsRowV1 {
+            schema_version: "bijux.facts.v1".to_string(),
+            run_id: "run-bam-smoke".to_string(),
+            stage_id: stage_id.to_string(),
+            tool_id: "samtools".to_string(),
+            tool_version: "1.20".to_string(),
+            image_digest: Some("sha256:deadbeef".to_string()),
+            trace_id: format!("trace-{idx}"),
+            span_id: format!("span-{idx}"),
+            params_hash: format!("params-{idx}"),
+            input_hash: format!("input-{idx}"),
+            output_hashes: vec![format!("output-{idx}")],
+            runtime_s: 1.0,
+            memory_mb: 32.0,
+            exit_code: 0,
+            bank_hashes: serde_json::json!({}),
+            reads_in: Some(10),
+            reads_out: Some(10),
+            bases_in: Some(100),
+            bases_out: Some(100),
+            pairs_in: None,
+            pairs_out: None,
+            metrics: serde_json::json!({
+                "schema_version": "bijux.bam.metrics.normalized.v1",
+                "stage_id": stage_id,
+                "tool_id": "samtools",
+                "tool_version": "1.20",
+                "execution": {"runtime_s": 1.0, "memory_mb": 32.0, "exit_code": 0},
+                "normalized_keys": ["stage_id","tool_id","tool_version","execution.runtime_s","execution.memory_mb","execution.exit_code"]
+            }),
+            reports: serde_json::json!({}),
+            artifacts: serde_json::json!({}),
+        });
+    }
+    let report_path = bijux_dna_analyze::write_run_report_from_facts(base_dir, &rows)?;
+    let report_raw = std::fs::read_to_string(report_path)?;
+    let report: serde_json::Value = serde_json::from_str(&report_raw)?;
+    let required = report
+        .get("contract")
+        .and_then(|v| v.get("required_sections"))
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    for section in required {
+        if let Some(name) = section.as_str() {
+            let in_root = report.get(name).is_some();
+            let in_sections = report
+                .get("sections")
+                .and_then(|v| v.get(name))
+                .is_some();
+            assert!(in_root || in_sections, "missing report section {name}");
+        }
+    }
+    Ok(())
+}
