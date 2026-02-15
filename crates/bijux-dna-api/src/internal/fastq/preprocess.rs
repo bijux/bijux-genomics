@@ -207,15 +207,80 @@ fn write_fastq_output_contract(
         .iter()
         .map(|path| serde_json::json!({ "path": path }))
         .collect::<Vec<_>>();
+    let expected_ecological_outputs = match planned.stage_id.as_str() {
+        "fastq.primer_normalization" => vec!["primer_orientation_report"],
+        "fastq.chimera_detection" => vec!["chimera_metrics_json"],
+        "fastq.asv_inference" => vec!["asv_table_tsv", "asv_sequences_fasta"],
+        "fastq.otu_clustering" => vec!["otu_table_tsv", "otu_sequences_fasta"],
+        "fastq.abundance_normalization" => vec!["normalized_abundance_tsv"],
+        _ => Vec::new(),
+    };
+    let ecological_checksums = planned
+        .io
+        .outputs
+        .iter()
+        .filter(|artifact| {
+            expected_ecological_outputs
+                .iter()
+                .any(|name| *name == artifact.name.as_str())
+        })
+        .map(|artifact| {
+            let sha256 = if artifact.path.exists() {
+                bijux_dna_infra::hash_file_sha256(&artifact.path).ok()
+            } else {
+                None
+            };
+            serde_json::json!({
+                "name": artifact.name,
+                "path": artifact.path,
+                "sha256": sha256
+            })
+        })
+        .collect::<Vec<_>>();
     let contract = serde_json::json!({
         "schema_version": "bijux.fastq.output_contract.v1",
         "stage_id": planned.stage_id,
         "step_id": planned.step_id,
         "declared_outputs": declared_outputs,
         "emitted_outputs": emitted_outputs,
+        "expected_ecological_outputs": expected_ecological_outputs,
+        "ecological_output_checksums": ecological_checksums,
     });
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.output.contract.json"), &contract)
         .context("write stage output contract")
+}
+
+fn write_taxonomy_db_drift_report(
+    run_root: &std::path::Path,
+    contaminant_bank: Option<&serde_json::Value>,
+) -> Result<()> {
+    let report_path = run_root.join("taxonomy_db_drift.json");
+    let current = contaminant_bank.cloned().unwrap_or_else(|| serde_json::json!({}));
+    let lock_path = run_root.join("taxonomy_db.lock.json");
+    let previous = if lock_path.exists() {
+        let raw = std::fs::read_to_string(&lock_path).unwrap_or_default();
+        serde_json::from_str::<serde_json::Value>(&raw).unwrap_or_else(|_| serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+    let current_hash =
+        bijux_dna_core::prelude::params_hash(&current).unwrap_or_else(|_| "unknown".to_string());
+    let previous_hash = previous
+        .get("current_hash")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown")
+        .to_string();
+    let drift_detected = lock_path.exists() && current_hash != previous_hash;
+    let report = serde_json::json!({
+        "schema_version": "bijux.taxonomy_db_drift.v1",
+        "drift_detected": drift_detected,
+        "current_hash": current_hash,
+        "previous_hash": previous_hash,
+        "current": current,
+    });
+    bijux_dna_infra::atomic_write_json(&report_path, &report).context("write taxonomy_db_drift")?;
+    bijux_dna_infra::atomic_write_json(&lock_path, &report).context("write taxonomy_db lock")?;
+    Ok(())
 }
 
 /// Run the preprocess pipeline.
@@ -641,6 +706,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     });
     let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
+    write_taxonomy_db_drift_report(&root, contaminant_bank.as_ref())?;
     let decision_trace_path = root.join("decision_trace.json");
     let identity_norm = serde_json::json!({
         "schema_version": "bijux.identity_normalization.v1",
