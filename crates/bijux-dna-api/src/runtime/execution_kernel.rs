@@ -141,7 +141,8 @@ fn require_pinned_digest(step: &ExecutionStep) -> Result<()> {
 }
 
 fn classify_exit_code(exit_code: i32) -> ExitTaxonomy {
-    match exit_code {        2 | 64..=78 => ExitTaxonomy::UserError,
+    match exit_code {
+        2 | 64..=78 => ExitTaxonomy::UserError,
         126 | 127 => ExitTaxonomy::ContractViolation,
         _ => ExitTaxonomy::ToolFailure,
     }

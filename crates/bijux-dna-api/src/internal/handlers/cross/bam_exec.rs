@@ -3,10 +3,10 @@ use std::path::{Path, PathBuf};
 use super::AlignmentBoundary;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ToolRegistry;
+use bijux_dna_domain_bam::metrics as bam_metrics;
 use bijux_dna_environment::resolve::ReferenceRecord;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use bijux_dna_domain_bam::metrics as bam_metrics;
 
 use crate::execution_kernel::{NetworkPolicy, ToolContext, ToolInvocationRequest};
 use crate::internal::handlers::fastq::StageExecutionSummary;
@@ -305,15 +305,15 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
     }
     let mapdamage = stage_dir.join("damage.mapdamage2.txt");
     if mapdamage.exists() {
-        if let Ok(parsed) = bam_metrics::parse_mapdamage2_misincorporation(&mapdamage)
-        {
+        if let Ok(parsed) = bam_metrics::parse_mapdamage2_misincorporation(&mapdamage) {
             measurements.push(("mapdamage2", parsed));
         }
     }
-    let canonical = measurements.first().map_or_else(
-        bam_metrics::DamageMetricsV1::empty,
-        |(_, metric)| metric.clone(),
-    );
+    let canonical = measurements
+        .first()
+        .map_or_else(bam_metrics::DamageMetricsV1::empty, |(_, metric)| {
+            metric.clone()
+        });
     let comparison = if measurements.len() >= 2 {
         Some(bam_metrics::compare_damage_metrics(
             measurements[0].0,
