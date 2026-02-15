@@ -185,14 +185,15 @@ mod tests {
         let ref_fai = temp.path().join("ref.fa.fai");
         std::fs::write(&ref_fa, b">1\nACGT\n")?;
         std::fs::write(&ref_fai, b"1\t4\t0\t4\t5\n")?;
-        let err = enforce_stage_refusal_rules(
+        let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Contamination,
             &bam,
             Some(&bai),
             Some(&ref_fa),
             None,
-        )
-        .expect_err("contamination must fail when mt contig is absent");
+        ) else {
+            panic!("contamination must fail when mt contig is absent");
+        };
         assert!(err.to_string().contains("lacks MT/chrMT contig"));
         Ok(())
     }
@@ -226,14 +227,15 @@ mod tests {
         let bai = temp.path().join("x.bam.bai");
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg-s1\tSM:s1\n")?;
         std::fs::write(&bai, b"bai")?;
-        let err = enforce_stage_refusal_rules(
+        let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &bam,
             Some(&bai),
             None,
             None,
-        )
-        .expect_err("validate should reject incomplete read-group fields");
+        ) else {
+            panic!("validate should reject incomplete read-group fields");
+        };
         assert!(err.to_string().contains("missing required fields"));
         Ok(())
     }
@@ -251,8 +253,9 @@ mod tests {
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:4\n")?;
         let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
         plan.io.inputs[0].path = bam.clone();
-        let err = validate_stage_hard_failures(&stage_dir, &plan)
-            .expect_err("validate should fail when .bai is missing");
+        let Err(err) = validate_stage_hard_failures(&stage_dir, &plan) else {
+            panic!("validate should fail when .bai is missing");
+        };
         assert!(err.to_string().contains("missing BAM index"));
         Ok(())
     }
@@ -306,21 +309,22 @@ mod tests {
         let bai = stage_dir.join("align.bam.bai");
         std::fs::write(&bam, b"bam")?;
         std::fs::write(&bai, b"bai")?;
-        let bam_sha = bijux_dna_infra::hash_file_sha256(&bam)?;
-        let bai_sha = bijux_dna_infra::hash_file_sha256(&bai)?;
+        let bam_checksum = bijux_dna_infra::hash_file_sha256(&bam)?;
+        let bai_checksum = bijux_dna_infra::hash_file_sha256(&bai)?;
         let accounting = serde_json::json!({
             "stage_id": "bam.align",
             "output_checksums": [
-                {"path": bam, "sha256": bam_sha},
-                {"path": bai, "sha256": bai_sha}
+                {"path": bam, "sha256": bam_checksum},
+                {"path": bai, "sha256": bai_checksum}
             ]
         });
         bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
         write_bam_output_contract(stage, &stage_dir)?;
 
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(stage));
-        let resumed = maybe_resume_bam_stage(stage, &stage_dir, &step)?
-            .expect("resume should trigger with complete artifacts");
+        let Some(resumed) = maybe_resume_bam_stage(stage, &stage_dir, &step)? else {
+            panic!("resume should trigger with complete artifacts");
+        };
         assert_eq!(resumed.result.command, "resume-skip");
         assert!(stage_dir.join("stage_resume.json").exists());
         Ok(())
@@ -334,8 +338,9 @@ mod tests {
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
         std::fs::write(stage_dir.join("align.bam"), b"bam")?;
         write_bam_output_contract(stage, &stage_dir)?;
-        let err = enforce_bam_output_contract(stage, &stage_dir)
-            .expect_err("enforcement must fail when .bai is missing");
+        let Err(err) = enforce_bam_output_contract(stage, &stage_dir) else {
+            panic!("enforcement must fail when .bai is missing");
+        };
         assert!(err.to_string().contains("output contract violation"));
         Ok(())
     }
@@ -451,12 +456,13 @@ mod tests {
             "scope": "both",
             "tool_scope": "both"
         });
-        let err = stage_postprocess(
+        let Err(err) = stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Contamination,
             &stage_dir,
             &plan,
-        )
-        .expect_err("verifybamid2 should fail without AF reference");
+        ) else {
+            panic!("verifybamid2 should fail without AF reference");
+        };
         assert!(err
             .to_string()
             .contains("requires population AF reference panel"));
@@ -473,12 +479,13 @@ mod tests {
             b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
         )?;
         bijux_dna_infra::atomic_write_bytes(&stage_dir.join("samtools_stats.txt"), b"MQ\t0\t20\n")?;
-        let err = stage_postprocess(
+        let Err(err) = stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::MappingSummary,
             &stage_dir,
             &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary),
-        )
-        .expect_err("mapq regime should fail for zero MAPQ");
+        ) else {
+            panic!("mapq regime should fail for zero MAPQ");
+        };
         assert!(err.to_string().contains("mapQ mean"));
         Ok(())
     }

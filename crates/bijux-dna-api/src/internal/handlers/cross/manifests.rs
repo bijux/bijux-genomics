@@ -525,7 +525,7 @@ mod tests {
         let out_dir = temp.path();
         let profile = profile_by_id(Domain::Cross, "fastq-to-bam__default__v1")?;
         write_defaults_ledger(out_dir, &profile)?;
-        bijux_dna_infra::ensure_dir(&out_dir.join("bam").join("coverage"))?;
+        bijux_dna_infra::ensure_dir(out_dir.join("bam").join("coverage"))?;
         bijux_dna_infra::atomic_write_json(
             &out_dir
                 .join("bam")
