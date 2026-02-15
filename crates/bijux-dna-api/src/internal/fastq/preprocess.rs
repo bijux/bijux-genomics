@@ -96,6 +96,43 @@ fn parse_validate_pre_metrics(execution: &StageResultV1) -> serde_json::Value {
     })
 }
 
+fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let fastp_json = out_dir.join("fastp.json");
+    if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
+            let adapter_cut = parsed
+                .pointer("/adapter_cutting/adapter_trimmed_reads")
+                .and_then(serde_json::Value::as_u64);
+            let total = parsed
+                .pointer("/summary/before_filtering/total_reads")
+                .and_then(serde_json::Value::as_u64);
+            let fraction = match (adapter_cut, total) {
+                (Some(cut), Some(t)) if t > 0 => Some((cut as f64) / (t as f64)),
+                _ => None,
+            };
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.detect_adapters",
+                "adapter_inference": {
+                    "source": "fastp",
+                    "adapter_trimmed_reads": adapter_cut,
+                    "reads_total": total,
+                    "adapter_trimmed_fraction": fraction,
+                }
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.detect_adapters",
+        "adapter_inference": {
+            "detected": out_dir.join("fastqc").exists(),
+            "source": "stage_outputs",
+            "output_dir": out_dir.join("fastqc"),
+        },
+    })
+}
+
 fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     match stage_id {
         "fastq.validate_pre"
@@ -158,6 +195,15 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
         ));
     }
     let lower = template.to_ascii_lowercase();
+    if lower.contains("download")
+        || lower.contains("wget ")
+        || lower.contains("curl ")
+        || lower.contains("prefetch")
+    {
+        return Err(anyhow!(
+            "{stage} governance refusal: runtime network/download verbs detected in command template"
+        ));
+    }
     let has_db_flag = [" --db ", "--database", "--index", "kraken_db", "db_path", "--ref", "--reference"]
         .iter()
         .any(|needle| lower.contains(needle));
@@ -257,11 +303,7 @@ fn write_stage_standardized_metrics(
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
-            "adapter_inference": {
-                "detected": out_dir.join("fastqc").exists(),
-                "source": "stage_outputs",
-                "output_dir": out_dir.join("fastqc"),
-            },
+            "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
         }),
         "fastq.length_distribution_pre" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -391,6 +433,30 @@ fn write_stage_standardized_metrics(
     };
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.metrics.standardized.json"), &metrics)
         .context("write standardized stage metrics")
+}
+
+fn enforce_stage_applicability(
+    planned: &ExecutionStep,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
+) -> Result<()> {
+    let stage = planned.step_id.as_str();
+    if stage == "fastq.merge" && args.r2.is_none() {
+        return Err(anyhow!(
+            "stage fastq.merge requires paired-end input (missing R2)"
+        ));
+    }
+    if stage == "fastq.correct"
+        && matches!(
+            args.mode,
+            bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
+                | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
+        )
+    {
+        return Err(anyhow!(
+            "stage fastq.correct refused for amplicon mode; unsupported library type"
+        ));
+    }
+    Ok(())
 }
 
 fn write_fastq_output_contract(
@@ -949,6 +1015,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .first()
             .map(String::as_str)
             .unwrap_or_default();
+        enforce_stage_applicability(planned, args)?;
         enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
         enforce_screen_db_governance(planned)?;
         let mut stage_attrs = std::collections::BTreeMap::new();
