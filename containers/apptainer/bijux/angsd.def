@@ -49,6 +49,14 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     apt-get update -qq && apt-get install -y --no-install-recommends \
         libbz2-1.0 liblzma5 libcurl4 zlib1g ca-certificates && \
         rm -rf /var/lib/apt/lists/*
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"angsd","version":"0.940","source":"https://github.com/ANGSD/angsd","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
+    cat >/usr/local/bin/bijux-tool-info <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+cat /opt/bijux/VERSION.json
+SH
+    chmod 0755 /usr/local/bin/bijux-tool-info
 
 %runscript
     exec /usr/local/bin/angsd "$@"

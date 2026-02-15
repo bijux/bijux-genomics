@@ -42,6 +42,42 @@ dockerfile = "containers/docker/arm64/Dockerfile.beagle"
 require_labels = true
 
 [[tools]]
+id = "angsd"
+tool_id = "angsd"
+domain = "vcf"
+domains = ["vcf"]
+status = "planned"
+stage_ids = ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
+bindings = ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
+tool_role = "genotyping"
+version = "0.940"
+default_version = "0.940"
+upstream = "https://github.com/ANGSD/angsd"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "Korneliussen et al. 2014, BMC Bioinformatics 15:356"
+pinned_commit = ""
+pin_strategy = "container_digest"
+container_ref = "@"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "angsd 2>&1 | head -n 1"
+help_cmd = "angsd -h"
+smoke_version_cmd = "angsd 2>&1 | head -n 1"
+smoke_help_cmd = "angsd -h"
+smoke_minimal_cmd = "angsd -h"
+smoke_minimal_exit_code = 0
+expected_version_regex = "angsd|ANGSD"
+healthcheck_cmd = "angsd -h"
+expected_bin = "angsd"
+expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
+metrics_schema = "bijux.vcf.gl.v1"
+comparability_notes = "Comparable only when GL model, PMD filters, and reference build are identical."
+dockerfile = "containers/docker/arm64/Dockerfile.angsd"
+apptainer_def = "containers/apptainer/bijux/angsd.def"
+require_labels = true
+
+[[tools]]
 id = "shapeit"
 tool_id = "shapeit"
 domain = "vcf"
