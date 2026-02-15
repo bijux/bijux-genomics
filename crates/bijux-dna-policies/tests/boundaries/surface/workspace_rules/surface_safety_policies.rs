@@ -20,8 +20,8 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/postprocess/filter_and_stats_stages.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/postprocess/postprocess_output_normalization.rs",
         "crates/bijux-dna-stages-vcf/src/vcf_io.rs",
-        "crates/bijux-dna-api/src/internal/fastq/preprocess/helpers.rs",
-        "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_tests.rs",
+        "crates/bijux-dna-api/src/internal/fastq/preprocess/stage_backend_policy.rs",
+        "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_contracts.rs",
     ]);
     let needles = [
         "std::fs::write(",
