@@ -312,7 +312,16 @@
         );
         assert!(manifest.get("seed_policy").is_some());
         assert!(manifest.get("command_argv").is_some());
+        assert!(manifest.get("command_exact").is_some());
+        assert!(manifest.get("memory_mb").is_some());
         assert!(manifest.get("provenance").is_some());
+        assert!(
+            manifest
+                .get("provenance")
+                .and_then(|p| p.get("command"))
+                .is_some(),
+            "provenance.command missing from phasing manifest"
+        );
     }
 
     #[test]
@@ -642,4 +651,39 @@
         )
         .expect_err("eagle must refuse outside accepted species/build list");
         assert!(err.to_string().contains("accepted species/build list"));
+    }
+
+    #[test]
+    fn phasing_eagle_refuses_invalid_region_bounds() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_phasing_stage(
+            input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Eagle,
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                region: Some("1:200-100".to_string()),
+                allow_gl_only_input: false,
+            },
+        )
+        .expect_err("invalid region bounds must fail");
+        assert!(err.to_string().contains("region bounds"));
     }

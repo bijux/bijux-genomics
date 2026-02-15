@@ -266,6 +266,25 @@ fn eagle_acceptance_allowed(species: &str, build: &str) -> bool {
     matches!((species, build), ("Homo sapiens", "GRCh38"))
 }
 
+fn parse_region_bounds(region: &str) -> Result<(String, u64, u64)> {
+    let (contig, range) = region
+        .split_once(':')
+        .ok_or_else(|| anyhow!("region must match <contig>:<start>-<end>"))?;
+    let (start, end) = range
+        .split_once('-')
+        .ok_or_else(|| anyhow!("region must match <contig>:<start>-<end>"))?;
+    let start_bp = start
+        .parse::<u64>()
+        .map_err(|_| anyhow!("region start must be numeric"))?;
+    let end_bp = end
+        .parse::<u64>()
+        .map_err(|_| anyhow!("region end must be numeric"))?;
+    if start_bp == 0 || end_bp < start_bp {
+        bail!("region bounds must satisfy 0 < start <= end");
+    }
+    Ok((contig.to_string(), start_bp, end_bp))
+}
+
 fn beagle_with_gt_from_gl(line: &str) -> String {
     let mut fields = line.split('\t').map(str::to_string).collect::<Vec<_>>();
     if fields.len() < 10 {
@@ -476,6 +495,7 @@ fn run_phasing_stage_inner(
     let logs_txt = out_dir.join("logs.txt");
     let checksums = out_dir.join("checksums.sha256");
 
+    let memory_mb = params.threads.saturating_mul(1024);
     let backend_argv = match resolved_backend {
         PhasingBackend::Shapeit5 => {
             let mut argv = vec![
@@ -492,7 +512,7 @@ fn run_phasing_stage_inner(
                 "--seed".to_string(),
                 params.seed.to_string(),
                 "--memory-mb".to_string(),
-                (params.threads * 1024).to_string(),
+                memory_mb.to_string(),
                 "--output".to_string(),
                 out_dir.join("shapeit5.out.vcf.gz").to_string_lossy().to_string(),
             ];
@@ -509,22 +529,34 @@ fn run_phasing_stage_inner(
             format!("seed={}", params.seed),
             format!("nthreads={}", params.threads),
         ],
-        PhasingBackend::Eagle => vec![
-            "eagle".to_string(),
-            "--vcfTarget".to_string(),
-            input_vcf.to_string_lossy().to_string(),
-            "--geneticMapFile".to_string(),
-            map.as_ref()
-                .and_then(|m| m.files.first())
-                .map(|f| f.path.clone())
-                .unwrap_or_else(|| "missing-map".to_string()),
-            "--numThreads".to_string(),
-            params.threads.to_string(),
-            "--seed".to_string(),
-            params.seed.to_string(),
-            "--outPrefix".to_string(),
-            out_dir.join("eagle.out").to_string_lossy().to_string(),
-        ],
+        PhasingBackend::Eagle => {
+            let mut argv = vec![
+                "eagle".to_string(),
+                "--vcfTarget".to_string(),
+                input_vcf.to_string_lossy().to_string(),
+                "--geneticMapFile".to_string(),
+                map.as_ref()
+                    .and_then(|m| m.files.first())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_else(|| "missing-map".to_string()),
+                "--numThreads".to_string(),
+                params.threads.to_string(),
+                "--seed".to_string(),
+                params.seed.to_string(),
+                "--maxMemoryMB".to_string(),
+                memory_mb.to_string(),
+                "--outPrefix".to_string(),
+                out_dir.join("eagle.out").to_string_lossy().to_string(),
+            ];
+            if let Some(region) = &params.region {
+                let (_chr, start_bp, end_bp) = parse_region_bounds(region)?;
+                argv.push("--bpStart".to_string());
+                argv.push(start_bp.to_string());
+                argv.push("--bpEnd".to_string());
+                argv.push(end_bp.to_string());
+            }
+            argv
+        }
         PhasingBackend::Auto => vec![],
     };
     let phased_records = if matches!(resolved_backend, PhasingBackend::Beagle) {
@@ -593,6 +625,7 @@ fn run_phasing_stage_inner(
         })
     });
     let tool_digest = resolve_tool_digest(backend_tool)?;
+    let command_exact = backend_argv.join(" ");
     atomic_write_json(
         &phasing_manifest_json,
         &serde_json::json!({
@@ -611,12 +644,18 @@ fn run_phasing_stage_inner(
                 "deterministic": true,
             },
             "threads": params.threads,
+            "memory_mb": memory_mb,
             "region": params.region,
             "command_argv": backend_argv,
+            "command_exact": command_exact,
             "input_contract": {
                 "requires_gt_for_backends": ["shapeit5", "eagle"],
                 "beagle_allows_gl_or_gp": true,
                 "allow_gl_only_input": params.allow_gl_only_input,
+            },
+            "backend_acceptance_policy": {
+                "eagle_allowed_species_build": ["Homo sapiens:GRCh38"],
+                "license_metadata_required": true,
             },
             "map": map_entry,
             "sex_chromosome_policy": {
@@ -629,6 +668,7 @@ fn run_phasing_stage_inner(
                 "output_vcf": phased_vcf.display().to_string(),
                 "output_tbi": phased_tbi.display().to_string(),
                 "stage": "vcf.phasing",
+                "command": command_exact,
             },
             "input_checksum": checksum_hex(raw.as_bytes()),
             "output_checksum": checksum_hex(phased_payload.as_bytes()),
