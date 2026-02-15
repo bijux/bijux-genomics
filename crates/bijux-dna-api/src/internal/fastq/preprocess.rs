@@ -235,7 +235,9 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
         .iter()
         .any(|needle| lower.contains(needle));
     if !has_db_flag {
-        return Ok(());
+        return Err(anyhow!(
+            "{stage} governance refusal: explicit local db/reference/index flag is required"
+        ));
     }
     Ok(())
 }
@@ -465,6 +467,7 @@ fn write_stage_standardized_metrics(
 fn enforce_stage_applicability(
     planned: &ExecutionStep,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
+    contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<()> {
     let stage = planned.step_id.as_str();
     if stage == "fastq.merge" && args.r2.is_none() {
@@ -483,7 +486,72 @@ fn enforce_stage_applicability(
             "stage fastq.correct refused for amplicon mode; unsupported library type"
         ));
     }
+    if matches!(
+        stage,
+        "fastq.primer_normalization"
+            | "fastq.chimera_detection"
+            | "fastq.asv_inference"
+            | "fastq.otu_clustering"
+            | "fastq.abundance_normalization"
+    ) && !matches!(
+        args.mode,
+        bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
+            | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
+    ) {
+        return Err(anyhow!(
+            "stage {stage} is only applicable in eDNA/pollen amplicon modes"
+        ));
+    }
+    if stage == "fastq.contaminant_screen" {
+        let template = planned.command.template.join(" ");
+        if !template.contains("assets/reference/contaminants/") {
+            return Err(anyhow!(
+                "fastq.contaminant_screen requires contaminant assets under assets/reference/contaminants"
+            ));
+        }
+        if contaminant_bank.is_none() {
+            return Err(anyhow!(
+                "fastq.contaminant_screen requires contaminant bank context"
+            ));
+        }
+    }
     Ok(())
+}
+
+fn write_stage_governance_artifacts(
+    stage_root: &std::path::Path,
+    planned: &ExecutionStep,
+    contaminant_bank: Option<&serde_json::Value>,
+) -> Result<()> {
+    let stage = planned.step_id.as_str();
+    if !matches!(
+        stage,
+        "fastq.screen" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
+    ) {
+        return Ok(());
+    }
+    let template = planned.command.template.join(" ");
+    let lower = template.to_ascii_lowercase();
+    let db_flags_present = [
+        " --db ",
+        "--database",
+        "--index",
+        "kraken_db",
+        "db_path",
+        "--ref",
+        "--reference",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle));
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.governance.v1",
+        "stage_id": stage,
+        "db_flags_present": db_flags_present,
+        "command_template": planned.command.template,
+        "contaminant_bank": if stage == "fastq.contaminant_screen" { contaminant_bank.cloned() } else { None::<serde_json::Value> },
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.governance.json"), &payload)
+        .context("write stage.governance.json")
 }
 
 fn write_fastq_output_contract(
@@ -920,7 +988,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .first()
             .map(String::as_str)
             .unwrap_or_default();
-        enforce_stage_applicability(planned, args)?;
+        enforce_stage_applicability(planned, args, contaminant_bank.as_ref())?;
         enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
         if !required_tools.contains(tool_id) {
             return Err(anyhow!(
@@ -1087,6 +1155,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let execution = invocation?.stage_result;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
         emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &execution)?;
+        write_stage_governance_artifacts(&stage_root, planned, contaminant_bank.as_ref())?;
         enforce_metrics_schema(&stage_root, &stage_id)?;
         write_fastq_output_contract(&stage_root, planned, &execution)?;
         write_retention_report(&stage_root, planned)?;
