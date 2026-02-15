@@ -34,6 +34,7 @@ mod contracts {
 
     include!("contracts_suite/core_pipeline_tests.rs");
     include!("contracts_suite/qc_and_invariants_tests.rs");
+    include!("contracts_suite/vcf_io_real_tools_tests.rs");
     include!("contracts_suite/panel_and_phasing_tests.rs");
     include!("contracts_suite/imputation_tests.rs");
     include!("contracts_suite/postprocess_population_and_ibd_tests.rs");
