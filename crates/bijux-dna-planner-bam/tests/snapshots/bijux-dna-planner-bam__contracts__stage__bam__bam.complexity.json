@@ -8,7 +8,11 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "preseq lc_extrap -o out/preseq.txt tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"report\": \"out/preseq.txt\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"preseq\": \"out/preseq.txt\"}, indent=2))\nPY"
+    ]
   },
   "resources": {
     "runtime": "docker",

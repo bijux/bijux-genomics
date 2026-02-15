@@ -406,3 +406,109 @@ pub mod filter {
         )
     }
 }
+
+pub mod overlap_correction {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::FilterEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::OverlapCorrection.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &FilterEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::OverlapCorrection,
+            out_dir,
+        );
+        let out_bam = out_dir.join("overlap_corrected.bam");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        let summary = out_dir.join("overlap.summary.json");
+        let command = match tool.tool_id.as_str() {
+            "bamutil" => {
+                crate::tool_adapters::tools::pre::bamutil::overlap_correction_args_with_audit(
+                    bam,
+                    &out_bam,
+                    &flagstat_before,
+                    &flagstat_after,
+                    &idxstats_before,
+                    &idxstats_after,
+                    &summary,
+                )
+            }
+            _ => crate::tool_adapters::tools::samtools::filter_args_with_audit(
+                bam,
+                &bijux_dna_domain_bam::params::FilterEffectiveParams {
+                    mapq_threshold: 0,
+                    include_flags: vec![],
+                    exclude_flags: vec![],
+                    min_length: params.min_length,
+                    remove_duplicates: false,
+                    base_quality_threshold: 0,
+                },
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+            ),
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "min_length": params.min_length,
+                "overlap_method": "paired_overlap_correction",
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &[
+                "overlap_corrected_bam",
+                "overlap_corrected_bai",
+                "flagstat_before",
+                "flagstat_after",
+                "idxstats_before",
+                "idxstats_after",
+                "summary",
+                "stage_metrics",
+            ],
+        )
+    }
+}

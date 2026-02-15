@@ -8,7 +8,11 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "gatk BaseRecalibrator -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam  -O out/recalibration.table && gatk ApplyBQSR -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam --bqsr-recal-file out/recalibration.table -O out/recalibrated.bam && samtools index out/recalibrated.bam out/recalibrated.bam.bai && python - <<'PY' > out/recalibration.summary.json\nimport json\nprint(json.dumps({\"mode\": \"Standard\", \"known_sites\": [], \"recal_report\": \"out/recalibration.table\", \"output_bam\": \"out/recalibrated.bam\"}, indent=2))\nPY"
+    ]
   },
   "resources": {
     "runtime": "docker",

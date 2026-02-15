@@ -9,10 +9,9 @@
   },
   "command": {
     "template": [
-      "mosdepth",
-      "-n",
-      "out/coverage",
-      "tests/fixtures/plan_inputs/default/sample.bam"
+      "/bin/sh",
+      "-c",
+      "mosdepth -n out/coverage tests/fixtures/plan_inputs/default/sample.bam && samtools depth -a tests/fixtures/plan_inputs/default/sample.bam > out/coverage.depth.txt && if [ -f out/coverage.mosdepth.summary.txt ]; then cp out/coverage.mosdepth.summary.txt out/coverage.mosdepth.summary.txt; else : > out/coverage.mosdepth.summary.txt; fi"
     ]
   },
   "resources": {
