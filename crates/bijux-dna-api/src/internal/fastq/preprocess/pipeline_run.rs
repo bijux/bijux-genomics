@@ -447,7 +447,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         write_stage_resume_contract(&stage_root, &stage_id, &execution, resume_hit)?;
         if matches!(
             stage_id.as_str(),
-            "fastq.primer_normalization"
+            "fastq.damage_aware_pretrim"
+                | "fastq.primer_normalization"
                 | "fastq.chimera_detection"
                 | "fastq.otu_clustering"
                 | "fastq.asv_inference"

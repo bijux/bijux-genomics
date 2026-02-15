@@ -47,6 +47,12 @@ fn emit_fastq_stage_extra_artifacts(
             "orientation_policy": "enforced_by_tool_backend",
             "mismatch_policy": "configured_in_stage_params",
         })),
+        "fastq.damage_aware_pretrim" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.damage_aware_pretrim.v1",
+            "stage": stage_id,
+            "policy": "mask_or_trim_terminal_bases",
+            "udg_classification_source": "configured_or_inferred",
+        })),
         "fastq.chimera_detection" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.chimera_detection.v1",
             "stage": stage_id,
@@ -193,6 +199,17 @@ fn write_stage_standardized_metrics(
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
+        }),
+        "fastq.damage_aware_pretrim" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": [
+                "udg_classification",
+                "terminal_base_composition_pre",
+                "terminal_base_composition_post",
+                "ct_ga_asymmetry_pre",
+                "ct_ga_asymmetry_post"
+            ],
         }),
         "fastq.chimera_detection" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
