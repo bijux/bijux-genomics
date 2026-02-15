@@ -224,12 +224,17 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 /// Returns an error if bgzip/tabix indexing fails.
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
     let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
-    let bgzip_args = vec![
-        "-c".to_string(),
-        input_vcf.display().to_string(),
-    ];
-    let compressed = run_cmd("bgzip", &bgzip_args)?;
-    bijux_dna_infra::atomic_write_bytes(output_vcfgz, compressed.as_bytes())?;
+    let bgzip_output = Command::new("bgzip")
+        .args(["-c", &input_vcf.display().to_string()])
+        .output()
+        .with_context(|| format!("run command bgzip -c {}", input_vcf.display()))?;
+    if !bgzip_output.status.success() {
+        bail!(
+            "bgzip failed: {}",
+            String::from_utf8_lossy(&bgzip_output.stderr)
+        );
+    }
+    bijux_dna_infra::atomic_write_bytes(output_vcfgz, &bgzip_output.stdout)?;
     let tabix_args = vec![
         "-f".to_string(),
         "-p".to_string(),

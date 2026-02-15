@@ -215,24 +215,42 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
     }
 }
 
+fn read_vcf_text_runtime(path: &Path) -> Result<String> {
+    if path
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &path.display().to_string()])
+            .output()?;
+        if output.status.success() {
+            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+        }
+        if let Ok(raw) = std::fs::read(path) {
+            return Ok(String::from_utf8_lossy(&raw).to_string());
+        }
+        bail!(
+            "bcftools view failed while reading {}: {}",
+            path.display(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok(std::fs::read_to_string(path)?)
+}
+
 fn write_bgzip_index_best_effort(
     out_vcfgz: &Path,
     payload: &str,
     tmp_name: &str,
 ) -> Result<PathBuf> {
-    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
     let tmp_vcf = out_vcfgz
         .parent()
         .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
         .join(tmp_name);
     atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
-    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
-        let _ = std::fs::remove_file(&tmp_vcf);
-        return Ok(out_tbi);
-    }
+    let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz)?;
     let _ = std::fs::remove_file(&tmp_vcf);
-    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
-    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
     Ok(out_tbi)
 }
 
@@ -284,7 +302,7 @@ fn run_phasing_stage_inner(
         bail!("phasing requires threads > 0");
     }
 
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text_runtime(input_vcf)?;
     let resolved_backend = resolve_phasing_backend(params, &raw);
     let backend_tool = resolved_backend.as_str();
     if matches!(resolved_backend, PhasingBackend::Eagle) && !license_metadata_for_tool_exists("eagle")
@@ -599,7 +617,7 @@ pub fn run_imputation_orchestration_stage(
     )?;
 
     if matches!(params.backend, ImputeBackend::Minimac4) {
-        let raw = std::fs::read_to_string(&current_input)?;
+            let raw = read_vcf_text_runtime(&current_input)?;
         let has_phased = raw.lines().any(|line| line.contains("\t0|") || line.contains("\t1|"));
         if !has_phased {
             let phase_dir = out_dir.join("phasing");

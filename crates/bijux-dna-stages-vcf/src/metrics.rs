@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::process::Command;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_domain_vcf::{
@@ -17,6 +18,29 @@ fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
     Some(fields)
 }
 
+fn read_vcf_text(path: &Path) -> Result<String> {
+    if path
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = Command::new("bcftools")
+            .args(["view", &path.display().to_string()])
+            .output()?;
+        if output.status.success() {
+            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+        }
+        if let Ok(raw) = std::fs::read(path) {
+            return Ok(String::from_utf8_lossy(&raw).to_string());
+        }
+        return Err(anyhow!(
+            "bcftools view failed while parsing {}",
+            path.display()
+        ));
+    }
+    Ok(std::fs::read_to_string(path)?)
+}
+
 #[must_use]
 pub fn parse_depth_from_info(info: &str) -> Option<u32> {
     info.split(';').find_map(|field| {
@@ -32,7 +56,7 @@ pub fn parse_depth_from_info(info: &str) -> Option<u32> {
 /// # Errors
 /// Returns an error when no VCF records can be parsed.
 pub fn parse_vcf_call_summary(path: &Path, sample_name: &str) -> Result<VcfCallSummaryMetricsV1> {
-    let raw = std::fs::read_to_string(path)?;
+    let raw = read_vcf_text(path)?;
     let mut metrics = VcfCallSummaryMetricsV1::empty(sample_name.to_string());
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
@@ -59,7 +83,7 @@ pub fn parse_vcf_filter_breakdown(
     path: &Path,
     sample_name: &str,
 ) -> Result<VcfFilterBreakdownMetricsV1> {
-    let raw = std::fs::read_to_string(path)?;
+    let raw = read_vcf_text(path)?;
     let mut metrics = VcfFilterBreakdownMetricsV1::empty(sample_name.to_string());
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {

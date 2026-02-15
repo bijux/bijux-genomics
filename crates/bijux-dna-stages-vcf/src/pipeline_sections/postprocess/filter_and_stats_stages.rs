@@ -42,6 +42,40 @@ fn genotype_missing_fraction(format_field: &str, sample_fields: &[&str]) -> Opti
     Some(if total == 0 { 0.0 } else { missing as f64 / total as f64 })
 }
 
+fn run_checked_command(bin: &str, args: &[&str]) -> Result<()> {
+    let output = std::process::Command::new(bin)
+        .args(args)
+        .output()
+        .map_err(|err| anyhow!("{bin} invocation failed: {err}"))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!("{bin} failed: {stderr}");
+    }
+    Ok(())
+}
+
+fn read_vcf_text(path: &Path) -> Result<String> {
+    if path
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &path.display().to_string()])
+            .output()
+            .map_err(|err| anyhow!("bcftools view invocation failed: {err}"))?;
+        if !output.status.success() {
+            bail!(
+                "bcftools view failed while reading {}: {}",
+                path.display(),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+    }
+    Ok(std::fs::read_to_string(path)?)
+}
+
 /// # Errors
 /// Returns an error if filter stage outputs cannot be materialized.
 pub fn run_filter_stage_real(
@@ -49,21 +83,79 @@ pub fn run_filter_stage_real(
     out_dir: &Path,
     params: &VcfFilterParams,
 ) -> Result<FilterStageOutputs> {
-    let raw = std::fs::read_to_string(input_vcf)?;
-    let mut out = String::new();
+    bijux_dna_infra::ensure_dir(out_dir)?;
+    let source_vcfgz = if input_vcf
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz")
+    {
+        input_vcf.to_path_buf()
+    } else {
+        let plain_input = out_dir.join("filter_input.normalized.vcf");
+        let normalized_input = out_dir.join("filter_input.normalized.vcf.gz");
+        std::fs::copy(input_vcf, &plain_input)?;
+        let _ = crate::vcf_io::vcf_index_bgzip_tabix(&plain_input, &normalized_input)?;
+        normalized_input
+    };
+    let filtered_vcf = out_dir.join("filtered.vcf.gz");
+    let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
     let mut kept = 0u64;
     let mut tag_counts = std::collections::BTreeMap::<String, u64>::new();
     let maf_min = 0.01_f64;
     let sample_missingness_max = 0.20_f64;
-    let expression = format!(
-        "QUAL>={:.3} && F_MISSING<={:.3} && (AF>={:.3} || AF missing)",
-        params.min_qual, sample_missingness_max, maf_min
-    );
+    let expression = format!("QUAL<{:.3}", params.min_qual);
+    let source_s = source_vcfgz
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 source vcf path"))?;
+    let filtered_s = filtered_vcf
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 filtered vcf path"))?;
+    run_checked_command(
+        "bcftools",
+        &[
+            "filter",
+            "-s",
+            "LOWQUAL",
+            "-e",
+            &expression,
+            "-Oz",
+            "-o",
+            filtered_s,
+            source_s,
+        ],
+    )?;
+    run_checked_command("tabix", &["-f", "-p", "vcf", filtered_s])?;
+
+    if params.require_pass {
+        let pass_only = out_dir.join("filtered.pass.vcf.gz");
+        let pass_only_s = pass_only
+            .to_str()
+            .ok_or_else(|| anyhow!("non-utf8 filtered pass vcf path"))?;
+        run_checked_command(
+            "bcftools",
+            &[
+                "view",
+                "-f",
+                "PASS,.",
+                "-Oz",
+                "-o",
+                pass_only_s,
+                filtered_s,
+            ],
+        )?;
+        run_checked_command("tabix", &["-f", "-p", "vcf", pass_only_s])?;
+        std::fs::rename(pass_only, &filtered_vcf)?;
+        let pass_tbi = PathBuf::from(format!("{}.tbi", filtered_vcf.display()));
+        if pass_tbi.exists() {
+            let _ = std::fs::rename(&pass_tbi, &filtered_tbi);
+        }
+    }
+
+    let raw = read_vcf_text(&filtered_vcf)?;
     let mut total_records = 0_u64;
     for line in raw.lines() {
         if let Some(fields) = parse_record_fields(line) {
             total_records += 1;
-            let qual = fields[5].parse::<f64>().unwrap_or(0.0);
             let af = parse_af_from_info(fields[7]);
             let f_missing = if fields.len() > 9 {
                 genotype_missing_fraction(fields[8], &fields[9..]).unwrap_or(0.0)
@@ -71,7 +163,7 @@ pub fn run_filter_stage_real(
                 0.0
             };
             let mut reasons = Vec::<&str>::new();
-            if qual < params.min_qual {
+            if fields[6].contains("LOWQUAL") {
                 reasons.push("LOWQUAL");
             }
             if f_missing > sample_missingness_max {
@@ -89,26 +181,7 @@ pub fn run_filter_stage_real(
                     *tag_counts.entry((*reason).to_string()).or_insert(0) += 1;
                 }
             }
-            if params.require_pass && !reasons.is_empty() {
-                continue;
-            }
-            let mut row = fields.iter().copied().map(str::to_string).collect::<Vec<_>>();
-            row[6] = if reasons.is_empty() {
-                "PASS".to_string()
-            } else {
-                reasons.join(";")
-            };
-            if params.normalize {
-                let (r, a) = normalize_alleles(&row[3], &row[4]);
-                row[3] = r;
-                row[4] = a;
-            }
             kept += 1;
-            out.push_str(&row.join("\t"));
-            out.push('\n');
-        } else {
-            out.push_str(line);
-            out.push('\n');
         }
     }
     if params.production_profile && kept == 0 {
@@ -125,11 +198,12 @@ pub fn run_filter_stage_real(
             bail!("vcf.filter production gate failed: retention below fail threshold");
         }
     }
-    bijux_dna_infra::ensure_dir(out_dir)?;
-    let filtered_vcf = out_dir.join("filtered.vcf.gz");
-    let filtered_tbi = out_dir.join("filtered.vcf.gz.tbi");
-    atomic_write_bytes(&filtered_vcf, out.as_bytes())?;
-    atomic_write_bytes(&filtered_tbi, b"tabix-index-placeholder\n")?;
+    if !filtered_tbi.exists() {
+        bail!(
+            "vcf.filter contract violation: missing tabix index for {}",
+            filtered_vcf.display()
+        );
+    }
     let filter_breakdown_json = out_dir.join("filter_breakdown.json");
     atomic_write_json(
         &filter_breakdown_json,
@@ -152,4 +226,3 @@ pub fn run_filter_stage_real(
         filter_breakdown_tsv,
     })
 }
-
