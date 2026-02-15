@@ -220,6 +220,25 @@ mod tests {
     }
 
     #[test]
+    fn refusal_rules_reject_incomplete_read_group_fields() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("x.bam");
+        let bai = temp.path().join("x.bam.bai");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg-s1\tSM:s1\n")?;
+        std::fs::write(&bai, b"bai")?;
+        let err = enforce_stage_refusal_rules(
+            bijux_dna_planner_bam::stage_api::BamStage::Validate,
+            &bam,
+            Some(&bai),
+            None,
+            None,
+        )
+        .expect_err("validate should reject incomplete read-group fields");
+        assert!(err.to_string().contains("missing required fields"));
+        Ok(())
+    }
+
+    #[test]
     fn validate_stage_hard_fails_without_bam_index() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let stage_dir = temp.path().join("validate");

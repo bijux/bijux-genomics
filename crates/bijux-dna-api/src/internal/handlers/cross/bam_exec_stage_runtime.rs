@@ -150,6 +150,52 @@ fn read_group_presence_hint(bam_path: &Path) -> &'static str {
     }
 }
 
+fn bam_read_group_records(bam_path: &Path) -> Vec<std::collections::BTreeMap<String, String>> {
+    let header = command_stdout("samtools", &["view", "-H", bam_path.to_string_lossy().as_ref()])
+        .or_else(|| std::fs::read_to_string(bam_path).ok())
+        .unwrap_or_default();
+    header
+        .lines()
+        .filter(|line| line.starts_with("@RG"))
+        .map(|line| {
+            line.split('\t')
+                .skip(1)
+                .filter_map(|field| field.split_once(':'))
+                .map(|(key, value)| (key.to_string(), value.to_string()))
+                .collect::<std::collections::BTreeMap<_, _>>()
+        })
+        .collect()
+}
+
+fn bam_read_group_missing_required_fields(bam_path: &Path) -> Vec<String> {
+    let required = ["ID", "SM", "PL", "LB"];
+    let rgs = bam_read_group_records(bam_path);
+    if rgs.is_empty() {
+        return Vec::new();
+    }
+    let mut missing = std::collections::BTreeSet::new();
+    for rg in rgs {
+        for field in required {
+            if rg.get(field).is_none_or(|value| value.trim().is_empty()) {
+                missing.insert(field.to_string());
+            }
+        }
+    }
+    missing.into_iter().collect()
+}
+
+fn bam_read_group_deterministic_naming(bam_path: &Path) -> bool {
+    let rgs = bam_read_group_records(bam_path);
+    if rgs.is_empty() {
+        return false;
+    }
+    rgs.iter().all(|rg| {
+        rg.get("ID")
+            .is_some_and(|value| value.starts_with("rg-") || value.starts_with("RG-"))
+            && rg.get("SM").is_some_and(|value| !value.trim().is_empty())
+    })
+}
+
 fn reference_contig_names(reference: Option<&PathBuf>) -> Vec<String> {
     let Some(reference) = reference else {
         return Vec::new();
@@ -200,6 +246,8 @@ fn write_bam_invariants(
     } else {
         read_group_presence_hint(bam_path)
     };
+    let read_group_missing_fields = bam_read_group_missing_required_fields(bam_path);
+    let deterministic_read_group_naming = bam_read_group_deterministic_naming(bam_path);
     let quickcheck_ok = bam_quickcheck_ok(bam_path);
     let has_duplicate_tags = bam_has_dup_tag_samtools(bam_path);
     let path = stage_dir.join("bam_invariants.json");
@@ -213,6 +261,9 @@ fn write_bam_invariants(
         "contig_mismatch": contig_mismatch,
         "read_groups": {
             "status": read_group_status,
+            "required_fields": ["ID", "SM", "PL", "LB"],
+            "missing_required_fields": read_group_missing_fields,
+            "deterministic_naming": deterministic_read_group_naming,
         },
         "index": {
             "required": bai_path.is_some(),
