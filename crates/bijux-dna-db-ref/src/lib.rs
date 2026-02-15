@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum ContigNormalizationPolicy {
@@ -184,6 +185,50 @@ fn workspace_root() -> PathBuf {
 fn load_toml<T: for<'a> Deserialize<'a>>(path: &Path) -> Result<T> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str::<T>(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+pub trait RefService: Send + Sync {
+    fn resolve_coverage_profile(&self, species: &str, build: &str) -> Result<Option<String>>;
+    fn resolve_reference_bundle(&self, species: &str, build: &str) -> Result<ReferenceBundle>;
+    fn resolve_panel(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<PanelCatalogEntry>;
+    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry>;
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct RuntimeRefService;
+
+impl RefService for RuntimeRefService {
+    fn resolve_coverage_profile(&self, species: &str, build: &str) -> Result<Option<String>> {
+        resolve_coverage_profile(species, build)
+    }
+
+    fn resolve_reference_bundle(&self, species: &str, build: &str) -> Result<ReferenceBundle> {
+        resolve_reference_bundle(species, build)
+    }
+
+    fn resolve_panel(
+        &self,
+        species: &str,
+        build: &str,
+        panel_id: Option<&str>,
+    ) -> Result<PanelCatalogEntry> {
+        resolve_panel(species, build, panel_id)
+    }
+
+    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
+        resolve_map(species, build, map_id)
+    }
+}
+
+#[must_use]
+pub fn ref_service() -> &'static dyn RefService {
+    static SERVICE: OnceLock<RuntimeRefService> = OnceLock::new();
+    SERVICE.get_or_init(RuntimeRefService::default)
 }
 
 /// # Errors

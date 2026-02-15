@@ -7,8 +7,7 @@ use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{StageIO, ToolConstraints};
 use bijux_dna_db_ref::{
-    resolve_coverage_profile, resolve_map, resolve_panel, resolve_reference_bundle,
-    resolve_species_context, validate_imputation_tool_compatibility,
+    ref_service, resolve_species_context, validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::contracts::{
     refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
@@ -318,25 +317,26 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     let required_tools = load_required_tools()?;
     let registry_tools = load_registry_tools()?;
     validate_species_and_invariants(inputs)?;
+    let refs = ref_service();
     let resolved_species = resolve_species_context(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
-    let bundle = resolve_reference_bundle(
+    let bundle = refs.resolve_reference_bundle(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
-    let panel_catalog = resolve_panel(
+    let panel_catalog = refs.resolve_panel(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
         inputs.panel_id.as_deref(),
     )?;
-    let map_catalog = resolve_map(
+    let map_catalog = refs.resolve_map(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
         inputs.map_id.as_deref(),
     )?;
-    let resolved_coverage_profile = resolve_coverage_profile(
+    let resolved_coverage_profile = refs.resolve_coverage_profile(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
@@ -482,7 +482,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
 /// Returns an error when graph materialization fails.
 pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
     let plans = plan_vcf_stage_plans(inputs)?;
-    let resolved_coverage_profile = resolve_coverage_profile(
+    let resolved_coverage_profile = ref_service().resolve_coverage_profile(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
