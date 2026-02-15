@@ -17,6 +17,7 @@ root = Path(sys.argv[1])
 allow = {
     root / "scripts/tooling/acquire-panels.sh",
     root / "scripts/tooling/acquire-maps.sh",
+    root / "scripts/tooling/acquire-reference.sh",
 }
 network_pat = re.compile(r"(urllib\.request\.urlopen|curl\s|wget\s)")
 reference_scope_pat = re.compile(
@@ -40,7 +41,7 @@ for rel in ("scripts", "crates"):
 
 if errors:
     print("reference-fetch-paths: FAILED", file=sys.stderr)
-    print("Only acquire-panels/acquire-maps may include network fetch logic.", file=sys.stderr)
+    print("Only acquire-panels/acquire-maps/acquire-reference may include network fetch logic.", file=sys.stderr)
     for e in errors:
         print(f"- {e}", file=sys.stderr)
     raise SystemExit(1)

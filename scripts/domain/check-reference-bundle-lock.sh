@@ -10,6 +10,8 @@ export LC_ALL
 
 catalog="${ROOT_DIR}/configs/runtime/reference_bundles.toml"
 lock="${ROOT_DIR}/configs/runtime/reference_bundles_lock.sha256"
+materialization_lock_json="${ROOT_DIR}/configs/runtime/references/locks/lock.json"
+materialization_lock_sha="${ROOT_DIR}/configs/runtime/references/locks/lock.json.sha256"
 
 if [[ ! -f "$catalog" ]]; then
   echo "reference bundle lock check: missing ${catalog}" >&2
@@ -36,3 +38,29 @@ if [[ "$expected" != "$actual" ]]; then
 fi
 
 echo "reference bundle lock: OK"
+
+if [[ -f "$materialization_lock_json" || -f "$materialization_lock_sha" ]]; then
+  if [[ ! -f "$materialization_lock_json" ]]; then
+    echo "reference materialization lock check: missing ${materialization_lock_json}" >&2
+    exit 1
+  fi
+  if [[ ! -f "$materialization_lock_sha" ]]; then
+    echo "reference materialization lock check: missing ${materialization_lock_sha}" >&2
+    exit 1
+  fi
+
+  mat_expected="$(python3 - <<'PY' "$materialization_lock_json"
+import hashlib, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+print(hashlib.sha256(path.read_bytes()).hexdigest())
+PY
+)"
+  mat_actual="$(awk '{print $1}' "$materialization_lock_sha" | tr -d '[:space:]')"
+  if [[ "$mat_expected" != "$mat_actual" ]]; then
+    echo "reference materialization lock drift: ${materialization_lock_sha} is stale" >&2
+    echo "expected=${mat_expected}" >&2
+    echo "actual=${mat_actual}" >&2
+    exit 1
+  fi
+  echo "reference materialization lock: OK"
+fi
