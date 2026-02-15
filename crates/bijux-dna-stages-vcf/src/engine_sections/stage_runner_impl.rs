@@ -1,3 +1,63 @@
+fn pca_params_for_species(species_id: &str) -> PcaStageParams {
+    let mut params = PcaStageParams::default();
+    let species = species_id.to_ascii_lowercase();
+    if species.contains("homo sapiens") {
+        params.preprocessing.maf_threshold = 0.01;
+        params.preprocessing.max_missingness = 0.10;
+    } else {
+        params.preprocessing.maf_threshold = 0.02;
+        params.preprocessing.max_missingness = 0.15;
+    }
+    params
+}
+
+fn population_structure_params_for_species(species_id: &str) -> PopulationStructureStageParams {
+    let mut params = PopulationStructureStageParams::default();
+    let species = species_id.to_ascii_lowercase();
+    if species.contains("homo sapiens") {
+        params.smartpca = true;
+        params.preprocessing.maf_threshold = 0.01;
+    } else {
+        params.smartpca = false;
+        params.preprocessing.maf_threshold = 0.02;
+    }
+    params
+}
+
+fn roh_params_for_species(species_id: &str) -> RohStageParams {
+    let mut params = RohStageParams::default();
+    let species = species_id.to_ascii_lowercase();
+    if species.contains("homo sapiens") {
+        params.min_snp_density_per_mb = 10.0;
+        params.max_missingness = 0.20;
+    } else {
+        params.min_snp_density_per_mb = 5.0;
+        params.max_missingness = 0.30;
+    }
+    params
+}
+
+fn ibd_params_for_species(species_id: &str) -> IbdStageParams {
+    let mut params = IbdStageParams::default();
+    let species = species_id.to_ascii_lowercase();
+    if species.contains("homo sapiens") {
+        params.min_variant_density_per_mb = 1.0;
+        params.max_missingness = 0.20;
+    } else {
+        params.min_variant_density_per_mb = 0.5;
+        params.max_missingness = 0.30;
+    }
+    params
+}
+
+fn demography_params_for_species(species_id: &str) -> DemographyStageParams {
+    let mut params = DemographyStageParams::default();
+    if species_id.to_ascii_lowercase().contains("homo sapiens") {
+        params.min_segments = 3;
+    }
+    params
+}
+
 impl VcfStageRunner for DispatchRunner {
     fn stage(&self) -> VcfDomainStage {
         self.stage
@@ -303,7 +363,11 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.push(out.logs_txt);
             }
             VcfDomainStage::Pca => {
-                let out = run_pca_stage(input_vcf, &stage_dir, &PcaStageParams::default())
+                let out = run_pca_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &pca_params_for_species(&ctx.request.species_context.species_id),
+                )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
@@ -314,7 +378,7 @@ impl VcfStageRunner for DispatchRunner {
                 let out = run_population_structure_stage(
                     input_vcf,
                     &stage_dir,
-                    &PopulationStructureStageParams::default(),
+                    &population_structure_params_for_species(&ctx.request.species_context.species_id),
                 )
                 .map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
@@ -330,7 +394,11 @@ impl VcfStageRunner for DispatchRunner {
                     })?;
             }
             VcfDomainStage::Roh => {
-                let out = run_roh_stage(input_vcf, &stage_dir, &RohStageParams::default())
+                let out = run_roh_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &roh_params_for_species(&ctx.request.species_context.species_id),
+                )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
@@ -338,7 +406,11 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.extend([out.roh_segments_tsv, out.roh_summary_json, out.roh_metrics_json, out.logs_txt]);
             }
             VcfDomainStage::Ibd => {
-                let out = run_ibd_stage(input_vcf, &stage_dir, &IbdStageParams::default())
+                let out = run_ibd_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &ibd_params_for_species(&ctx.request.species_context.species_id),
+                )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
@@ -356,7 +428,7 @@ impl VcfStageRunner for DispatchRunner {
                 let out = run_demography_stage(
                     input_vcf,
                     &stage_dir,
-                    &DemographyStageParams::default(),
+                    &demography_params_for_species(&ctx.request.species_context.species_id),
                 )
                 .map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
@@ -399,4 +471,3 @@ impl VcfStageRunner for DispatchRunner {
         })
     }
 }
-
