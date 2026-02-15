@@ -21,6 +21,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "trim_galore",
             "seqpurge",
         ],
+        "fastq.damage_aware_pretrim" => vec!["cutadapt", "seqkit"],
         "fastq.filter" => vec!["prinseq", "seqkit", "fastp"],
         "fastq.deduplicate" => vec!["fastuniq", "clumpify", "prinseq"],
         "fastq.low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
@@ -99,6 +100,11 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
             "orientation_policy": "normalize_to_primer_forward_orientation",
             "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
         })),
+        "fastq.damage_aware_pretrim" => Some(serde_json::json!({
+            "damage_policy": "terminal_mask_or_trim",
+            "udg_classification": "configured_or_inferred",
+            "aligner_compatibility": "refuse_if_requested_output_breaks_downstream_expectations",
+        })),
         "fastq.chimera_detection" => Some(serde_json::json!({
             "chimera_removed_definition": "reads flagged as de_novo/reference chimeras are excluded from downstream abundance tables"
         })),
@@ -140,6 +146,7 @@ pub struct NormalizedOutputs {
 pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     match stage_id {
         "fastq.trim"
+        | "fastq.damage_aware_pretrim"
         | "fastq.filter"
         | "fastq.primer_normalization"
         | "fastq.chimera_detection"

@@ -6,6 +6,7 @@ use crate::types::FastqArtifactKind;
 pub enum FastqStage {
     Preprocess,
     ValidatePre,
+    DamageAwarePretrim,
     PrimerNormalization,
     ChimeraDetection,
     AsvInference,
@@ -46,6 +47,7 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
             },
         },
         FastqStage::ValidatePre
+        | FastqStage::DamageAwarePretrim
         | FastqStage::PrimerNormalization
         | FastqStage::Trim
         | FastqStage::Filter

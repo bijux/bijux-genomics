@@ -33,6 +33,7 @@ pub fn canonical_stage_order() -> Vec<StageId> {
     vec![
         StageId::from_static("fastq.validate_pre"),
         StageId::from_static("fastq.detect_adapters"),
+        StageId::from_static("fastq.damage_aware_pretrim"),
         StageId::from_static("fastq.trim"),
         StageId::from_static("fastq.filter"),
         StageId::from_static("fastq.stats_neutral"),
@@ -44,6 +45,7 @@ pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
     vec![
         StageId::from_static("fastq.validate_pre"),
         StageId::from_static("fastq.detect_adapters"),
+        StageId::from_static("fastq.damage_aware_pretrim"),
         StageId::from_static("fastq.primer_normalization"),
         StageId::from_static("fastq.trim"),
         StageId::from_static("fastq.filter"),
@@ -118,6 +120,7 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
     match stage_id.as_str() {
         "fastq.validate_pre"
         | "fastq.detect_adapters"
+        | "fastq.damage_aware_pretrim"
         | "fastq.trim"
         | "fastq.merge"
         | "fastq.correct"

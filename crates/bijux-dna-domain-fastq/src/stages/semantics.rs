@@ -35,7 +35,7 @@ pub struct BoundaryInvariant {
     pub rule: &'static str,
 }
 
-pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
+pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 6] = [
     BoundaryInvariant {
         from: StageId::from_static("fastq.validate_pre"),
         to: StageId::from_static("fastq.detect_adapters"),
@@ -43,8 +43,13 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
     },
     BoundaryInvariant {
         from: StageId::from_static("fastq.detect_adapters"),
+        to: StageId::from_static("fastq.damage_aware_pretrim"),
+        rule: "damage-aware pretrim consumes unchanged reads from report-only adapter detection",
+    },
+    BoundaryInvariant {
+        from: StageId::from_static("fastq.damage_aware_pretrim"),
         to: StageId::from_static("fastq.trim"),
-        rule: "adapter detection is report-only; trim consumes unchanged reads",
+        rule: "damage-aware pretrim output remains FASTQ and preserves pairing semantics",
     },
     BoundaryInvariant {
         from: StageId::from_static("fastq.trim"),
@@ -63,7 +68,7 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
     },
 ];
 
-pub const STAGES: [StageDefinition; 16] = [
+pub const STAGES: [StageDefinition; 17] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.validate_pre"),
         kind: FastqStageKind::Core,
@@ -84,6 +89,17 @@ pub const STAGES: [StageDefinition; 16] = [
             consumes_pairs: false,
             produces_reports_only: true,
             affects_metrics: &[MetricClass::Composition],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.damage_aware_pretrim"),
+        kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
         },
     },
     StageDefinition {

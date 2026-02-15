@@ -172,6 +172,11 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
+            id: fastq_ids::STAGE_DAMAGE_AWARE_PRETRIM,
+            version: StageVersion(1),
+            affects_read_counts: true,
+        },
+        StageInfo {
             id: fastq_ids::STAGE_CHIMERA_DETECTION,
             version: StageVersion(1),
             affects_read_counts: true,
