@@ -294,6 +294,67 @@ pub mod qc_pre {
     }
 }
 
+pub mod mapping_summary {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::MappingSummary.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::MappingSummary,
+            out_dir,
+        );
+        let flagstat = out_dir.join("flagstat.txt");
+        let idxstats = out_dir.join("idxstats.txt");
+        let stats = out_dir.join("samtools_stats.txt");
+        let summary = out_dir.join("mapping.summary.json");
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 {
+                template: crate::tool_adapters::tools::samtools::mapping_summary_args(
+                    bam, &flagstat, &idxstats, &stats, &summary,
+                ),
+            },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({ "bam": bam }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::json!({"summary":"mapping"}),
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["flagstat", "idxstats", "stats", "summary", "stage_metrics"],
+        )
+    }
+}
+
 pub mod filter {
     use std::path::Path;
 
@@ -407,6 +468,118 @@ pub mod filter {
     }
 }
 
+pub mod mapq_filter {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_dna_domain_bam::params::FilterEffectiveParams;
+    use bijux_dna_stage_contract::StagePlanV1;
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::MapqFilter.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &FilterEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let mut plan = super::filter::plan(tool, bam, out_dir, params)?;
+        plan.stage_id = StageId::from_static(STAGE_ID);
+        plan.stage_version = STAGE_VERSION;
+        let summary = out_dir.join("mapq_filter.summary.json");
+        let out_bam = out_dir.join("filtered.bam");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        plan.command = CommandSpecV1 {
+            template: crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
+                bam,
+                params,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                "mapq_filter",
+            ),
+        };
+        plan.params = serde_json::json!({
+            "bam": bam,
+            "action": "mapq_filter",
+            "mapq_threshold": params.mapq_threshold,
+            "include_flags": params.include_flags,
+            "exclude_flags": params.exclude_flags,
+        });
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["filtered_bam", "filtered_bai", "flagstat_before", "flagstat_after", "summary", "stage_metrics"],
+        )
+    }
+}
+
+pub mod length_filter {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_dna_domain_bam::params::FilterEffectiveParams;
+    use bijux_dna_stage_contract::StagePlanV1;
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::LengthFilter.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &FilterEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let mut deterministic = params.clone();
+        deterministic.mapq_threshold = 0;
+        deterministic.include_flags.clear();
+        deterministic.exclude_flags.clear();
+        deterministic.remove_duplicates = false;
+        let mut plan = super::filter::plan(tool, bam, out_dir, &deterministic)?;
+        plan.stage_id = StageId::from_static(STAGE_ID);
+        plan.stage_version = STAGE_VERSION;
+        let summary = out_dir.join("length_filter.summary.json");
+        let out_bam = out_dir.join("filtered.bam");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        plan.command = CommandSpecV1 {
+            template: crate::tool_adapters::tools::samtools::filter_args_with_audit_and_summary_name(
+                bam,
+                &deterministic,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                "length_filter",
+            ),
+        };
+        plan.params = serde_json::json!({
+            "bam": bam,
+            "action": "length_filter",
+            "min_length": deterministic.min_length,
+            "strict_transform": true,
+        });
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["filtered_bam", "filtered_bai", "summary", "stage_metrics"],
+        )
+    }
+}
+
 pub mod overlap_correction {
     use std::path::Path;
 
@@ -431,12 +604,12 @@ pub mod overlap_correction {
             bijux_dna_domain_bam::BamStage::OverlapCorrection,
             out_dir,
         );
-        let out_bam = out_dir.join("overlap_corrected.bam");
+        let out_bam = out_dir.join("overlap.corrected.bam");
         let flagstat_before = out_dir.join("flagstat.before.txt");
         let flagstat_after = out_dir.join("flagstat.after.txt");
         let idxstats_before = out_dir.join("idxstats.before.txt");
         let idxstats_after = out_dir.join("idxstats.after.txt");
-        let summary = out_dir.join("overlap.summary.json");
+        let summary = out_dir.join("overlap_correction.summary.json");
         let command = match tool.tool_id.as_str() {
             "bamutil" => {
                 crate::tool_adapters::tools::pre::bamutil::overlap_correction_args_with_audit(

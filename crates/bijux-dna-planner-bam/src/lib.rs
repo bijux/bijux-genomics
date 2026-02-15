@@ -159,10 +159,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
-            let mut plan =
-                tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
+            tool_adapters::stages_pre::mapping_summary::plan(request.tool, bam, request.out_dir)
         }
         bijux_dna_domain_bam::BamStage::Filter => {
             let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
@@ -190,21 +187,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             };
             let mut mapq_params = params;
             mapq_params.min_length = 0;
-            let mut plan = tool_adapters::stages_pre::filter::plan(
+            tool_adapters::stages_pre::mapq_filter::plan(
                 request.tool,
                 bam,
                 request.out_dir,
                 &mapq_params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            plan.params = serde_json::json!({
-                "bam": bam,
-                "action": "mapq_filter",
-                "mapq_threshold": mapq_params.mapq_threshold,
-                "include_flags": mapq_params.include_flags,
-                "exclude_flags": mapq_params.exclude_flags,
-            });
-            Ok(plan)
+            )
         }
         bijux_dna_domain_bam::BamStage::LengthFilter => {
             let bam = request
@@ -215,21 +203,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("length_filter params mismatch"));
             };
-            let mut len_params = params;
-            len_params.mapq_threshold = 0;
-            let mut plan = tool_adapters::stages_pre::filter::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &len_params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            plan.params = serde_json::json!({
-                "bam": bam,
-                "action": "length_filter",
-                "min_length": len_params.min_length,
-            });
-            Ok(plan)
+            tool_adapters::stages_pre::length_filter::plan(request.tool, bam, request.out_dir, &params)
         }
         bijux_dna_domain_bam::BamStage::Markdup => {
             let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;

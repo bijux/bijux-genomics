@@ -69,6 +69,32 @@ pub fn filter_args_with_audit(
     idxstats_after: &Path,
     summary: &Path,
 ) -> Vec<String> {
+    filter_args_with_audit_and_summary_name(
+        bam,
+        params,
+        out_bam,
+        flagstat_before,
+        flagstat_after,
+        idxstats_before,
+        idxstats_after,
+        summary,
+        "filter",
+    )
+}
+
+#[must_use]
+#[allow(clippy::too_many_arguments)]
+pub fn filter_args_with_audit_and_summary_name(
+    bam: &Path,
+    params: &FilterEffectiveParams,
+    out_bam: &Path,
+    flagstat_before: &Path,
+    flagstat_after: &Path,
+    idxstats_before: &Path,
+    idxstats_after: &Path,
+    summary: &Path,
+    action: &str,
+) -> Vec<String> {
     let mut exclude_flags = params.exclude_flags.clone();
     if params.remove_duplicates && !exclude_flags.contains(&0x400u16) {
         exclude_flags.push(0x400u16);
@@ -119,6 +145,7 @@ samtools idxstats {bam} > {idxstats_before} && \
 samtools flagstat {out} > {flagstat_after} && \
 samtools idxstats {out} > {idxstats_after} && \
 python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"params\": {{\"mapq_threshold\": {mapq}, \"min_length\": {min_len}, \"remove_duplicates\": {remove_dup}}}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
+python - <<'PY' > {summary}\nimport json\npayload = {{\"action\": \"{action}\", \"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"params\": {{\"mapq_threshold\": {mapq}, \"min_length\": {min_len}, \"remove_duplicates\": {remove_dup}}}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
         view = view_args.join(" "),
         length_filter = length_filter,
         out = out_bam.display(),
@@ -129,9 +156,26 @@ python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", 
         idxstats_before = idxstats_before.display(),
         idxstats_after = idxstats_after.display(),
         summary = summary.display(),
+        action = action,
         mapq = params.mapq_threshold,
         min_len = params.min_length,
         remove_dup = if params.remove_duplicates { "true" } else { "false" }
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn mapping_summary_args(bam: &Path, flagstat: &Path, idxstats: &Path, stats: &Path, summary: &Path) -> Vec<String> {
+    let command = format!(
+        "samtools flagstat {bam} > {flagstat} && \
+samtools idxstats {bam} > {idxstats} && \
+samtools stats {bam} > {stats} && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\":\"bam.mapping_summary\",\"flagstat\":\"{flagstat}\",\"idxstats\":\"{idxstats}\",\"stats\":\"{stats}\"}}, indent=2))\nPY",
+        bam = bam.display(),
+        flagstat = flagstat.display(),
+        idxstats = idxstats.display(),
+        stats = stats.display(),
+        summary = summary.display(),
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
