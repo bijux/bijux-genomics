@@ -7,6 +7,7 @@ use clap::Parser;
 
 fn main() {
     if let Err(err) = run() {
+        print_refusal_if_present(&err);
         let failure = bijux_dna_api::v1::api::run::classify_operator_failure(&err);
         eprintln!(
             "operator_failure category={:?} message={}",
@@ -20,6 +21,28 @@ fn main() {
         }
         eprintln!("{err}");
         std::process::exit(exit_code_for_error(&err));
+    }
+}
+
+fn print_refusal_if_present(err: &anyhow::Error) {
+    let msg = err.to_string();
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&msg) else {
+        return;
+    };
+    let code = value.get("code").and_then(serde_json::Value::as_str);
+    let what = value.get("what").and_then(serde_json::Value::as_str);
+    let why = value.get("why").and_then(serde_json::Value::as_str);
+    let how = value.get("how").and_then(serde_json::Value::as_str);
+    if code.is_none() || what.is_none() {
+        return;
+    }
+    eprintln!("refusal: {}", code.unwrap_or("unknown"));
+    eprintln!("reason: {}", what.unwrap_or("unspecified"));
+    if let Some(why) = why {
+        eprintln!("why: {why}");
+    }
+    if let Some(how) = how {
+        eprintln!("how: {how}");
     }
 }
 
