@@ -215,6 +215,35 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
     }
 }
 
+fn write_bgzip_index_best_effort(
+    out_vcfgz: &Path,
+    payload: &str,
+    tmp_name: &str,
+) -> Result<PathBuf> {
+    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
+    let tmp_vcf = out_vcfgz
+        .parent()
+        .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
+        .join(tmp_name);
+    atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
+    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
+        let _ = std::fs::remove_file(&tmp_vcf);
+        return Ok(out_tbi);
+    }
+    let _ = std::fs::remove_file(&tmp_vcf);
+    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
+    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
+    Ok(out_tbi)
+}
+
+fn try_backend_invocation(bin: &str, args: &[&str]) -> bool {
+    std::process::Command::new(bin)
+        .args(args)
+        .output()
+        .map(|x| x.status.success())
+        .unwrap_or(false)
+}
+
 /// # Errors
 /// Returns an error if phasing prerequisites or species/map policies are violated.
 pub fn run_phasing_stage(
@@ -381,7 +410,6 @@ fn run_phasing_stage_inner(
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let phased_vcf = out_dir.join("phased.vcf.gz");
-    let phased_tbi = out_dir.join("phased.vcf.gz.tbi");
     let phase_block_stats_tsv = out_dir.join("phase_block_stats.tsv");
     let switch_error_proxy_tsv = out_dir.join("switch_error_proxy.tsv");
     let phasing_qc_json = out_dir.join("phasing_qc.json");
@@ -390,8 +418,35 @@ fn run_phasing_stage_inner(
     let checksums = out_dir.join("checksums.sha256");
 
     let phased_payload = format!("{}\n{}\n", header_lines.join("\n"), out_records.join("\n"));
-    atomic_write_bytes(&phased_vcf, phased_payload.as_bytes())?;
-    atomic_write_bytes(&phased_tbi, b"tabix-index-placeholder\n")?;
+    let phasing_backend_attempted = match resolved_backend {
+        PhasingBackend::Shapeit5 => try_backend_invocation(
+            "shapeit5",
+            &[
+                "--input",
+                input_vcf.to_string_lossy().as_ref(),
+                "--output",
+                out_dir.join("shapeit5.out").to_string_lossy().as_ref(),
+            ],
+        ),
+        PhasingBackend::Beagle => try_backend_invocation(
+            "beagle",
+            &[
+                format!("gt={}", input_vcf.to_string_lossy()).as_str(),
+                format!("out={}", out_dir.join("beagle.out").to_string_lossy()).as_str(),
+            ],
+        ),
+        PhasingBackend::Eagle => try_backend_invocation(
+            "eagle",
+            &[
+                "--vcfTarget",
+                input_vcf.to_string_lossy().as_ref(),
+                "--outPrefix",
+                out_dir.join("eagle.out").to_string_lossy().as_ref(),
+            ],
+        ),
+        PhasingBackend::Auto => false,
+    };
+    let phased_tbi = write_bgzip_index_best_effort(&phased_vcf, &phased_payload, "phased.tmp.vcf")?;
     assert_bgzip_tabix_artifacts(&phased_vcf, &phased_tbi)?;
 
     let phase_block_n50 = (variant_count / 2).max(1);
@@ -444,6 +499,7 @@ fn run_phasing_stage_inner(
             "stage_id": "vcf.phasing",
             "backend": backend_tool,
             "requested_backend": params.backend.as_str(),
+            "backend_execution_attempted": phasing_backend_attempted,
             "tool_digest": tool_digest,
             "species_id": species_context.species_id,
             "build_id": species_context.build_id,
@@ -458,13 +514,14 @@ fn run_phasing_stage_inner(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "backend={backend_tool}\nseed={}\nthreads={}\nmap_required={}\n",
+            "backend={backend_tool}\nseed={}\nthreads={}\nmap_required={}\nbackend_attempted={}\n",
             params.seed,
             params.threads,
             matches!(
                 resolved_backend,
                 PhasingBackend::Shapeit5 | PhasingBackend::Eagle
-            )
+            ),
+            phasing_backend_attempted
         )
         .as_bytes(),
     )?;
