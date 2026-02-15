@@ -89,6 +89,17 @@
         })
         .unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
         assert!(out.report_path.exists());
+        let explain_path = out.artifact_root.join("explain.json");
+        assert!(explain_path.exists(), "missing explain.json");
+        let explain: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(&explain_path)
+                .unwrap_or_else(|err| panic!("read explain.json: {err}")),
+        )
+        .unwrap_or_else(|err| panic!("parse explain.json: {err}"));
+        assert!(explain.get("chosen_regime").is_some(), "chosen_regime missing");
+        assert!(explain.get("chosen_backend").is_some(), "chosen_backend missing");
+        assert!(explain.get("panel_lock_id").is_some(), "panel_lock_id missing");
+        assert!(explain.get("chunk_plan").is_some(), "chunk_plan missing");
         assert!(out.stages.iter().any(|s| s.stage_id == "vcf.call"));
         assert!(out.stages.iter().all(|s| s.stage_manifest.exists()));
         for stage in &out.stages {

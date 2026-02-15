@@ -199,7 +199,7 @@ fn write_stage_manifest(
     Ok(manifest)
 }
 
-fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'static str, &'static str) {
+fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
     match stage {
         VcfDomainStage::Call
         | VcfDomainStage::CallDiploid
@@ -211,55 +211,98 @@ fn stage_tool_spec(stage: VcfDomainStage) -> (&'static str, &'static str, &'stat
         | VcfDomainStage::Qc
         | VcfDomainStage::Stats
         | VcfDomainStage::Postprocess
-        | VcfDomainStage::PrepareReferencePanel => (
-            "bcftools",
-            "docker",
-            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "bcftools 1.20",
-        ),
-        VcfDomainStage::Phasing => (
-            "shapeit5",
-            "docker",
-            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-            "shapeit5 5.1.1",
-        ),
-        VcfDomainStage::Impute | VcfDomainStage::Imputation => (
-            "glimpse",
-            "docker",
-            "sha256:3333333333333333333333333333333333333333333333333333333333333333",
-            "glimpse 2.0.0",
-        ),
-        VcfDomainStage::Pca | VcfDomainStage::PopulationStructure => (
-            "plink2",
-            "docker",
-            "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-            "plink2 2.0",
-        ),
-        VcfDomainStage::Admixture => (
-            "admixture",
-            "docker",
-            "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-            "admixture 1.3.0",
-        ),
-        VcfDomainStage::Roh => (
-            "plink2",
-            "docker",
-            "sha256:7777777777777777777777777777777777777777777777777777777777777777",
-            "plink2 2.0",
-        ),
-        VcfDomainStage::Ibd => (
-            "germline",
-            "docker",
-            "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-            "germline 1.5.3",
-        ),
-        VcfDomainStage::Demography => (
-            "ibdne",
-            "docker",
-            "sha256:9999999999999999999999999999999999999999999999999999999999999999",
-            "ibdne 23Apr20",
-        ),
+        | VcfDomainStage::PrepareReferencePanel => "bcftools",
+        VcfDomainStage::Phasing => "shapeit5",
+        VcfDomainStage::Impute | VcfDomainStage::Imputation => "glimpse",
+        VcfDomainStage::Pca | VcfDomainStage::PopulationStructure => "plink2",
+        VcfDomainStage::Admixture => "admixture",
+        VcfDomainStage::Roh => "plink2",
+        VcfDomainStage::Ibd => "germline",
+        VcfDomainStage::Demography => "ibdne",
     }
+}
+
+fn stage_workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."))
+}
+
+fn stage_checksum_hex(bytes: &[u8]) -> String {
+    use sha2::Digest as _;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    format!("{:x}", hasher.finalize())
+}
+
+pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
+    let root = stage_workspace_root();
+    for rel in [
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    ] {
+        let raw = std::fs::read_to_string(root.join(rel))?;
+        let mut current_tool_id: Option<String> = None;
+        let mut pinned_commit: Option<String> = None;
+        let mut container_ref: Option<String> = None;
+        let mut version: Option<String> = None;
+        let flush_if_match = |current_tool_id: &Option<String>,
+                              pinned_commit: &Option<String>,
+                              container_ref: &Option<String>,
+                              version: &Option<String>|
+         -> Option<String> {
+            if current_tool_id.as_deref() != Some(tool_id) {
+                return None;
+            }
+            let digest_source = format!(
+                "{}|{}|{}|{}",
+                tool_id,
+                pinned_commit.as_deref().unwrap_or("planned"),
+                container_ref.as_deref().unwrap_or("registry_lock"),
+                version.as_deref().unwrap_or("planned")
+            );
+            Some(format!("sha256:{}", stage_checksum_hex(digest_source.as_bytes())))
+        };
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if trimmed == "[[tools]]" {
+                if let Some(found) =
+                    flush_if_match(&current_tool_id, &pinned_commit, &container_ref, &version)
+                {
+                    return Ok(found);
+                }
+                current_tool_id = None;
+                pinned_commit = None;
+                container_ref = None;
+                version = None;
+                continue;
+            }
+            if let Some(value) = trimmed.strip_prefix("id = ") {
+                current_tool_id = Some(value.trim_matches('"').to_string());
+                continue;
+            }
+            if let Some(value) = trimmed.strip_prefix("pinned_commit = ") {
+                pinned_commit = Some(value.trim_matches('"').to_string());
+                continue;
+            }
+            if let Some(value) = trimmed.strip_prefix("container_ref = ") {
+                container_ref = Some(value.trim_matches('"').to_string());
+                continue;
+            }
+            if let Some(value) = trimmed.strip_prefix("version = ") {
+                version = Some(value.trim_matches('"').to_string());
+                continue;
+            }
+        }
+        if let Some(found) =
+            flush_if_match(&current_tool_id, &pinned_commit, &container_ref, &version)
+        {
+            return Ok(found);
+        }
+    }
+    bail!("tool {tool_id} missing from VCF registries")
 }
 
 fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
@@ -364,4 +407,3 @@ fn try_resume_stage(stage: VcfDomainStage, stage_dir: &Path) -> Result<Option<Vc
         },
     }))
 }
-
