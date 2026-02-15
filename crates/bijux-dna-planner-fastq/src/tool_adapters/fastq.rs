@@ -13,6 +13,14 @@ pub mod detect_adapters {
     pub use crate::tool_adapters::stages::pre::detect_adapters::*;
 }
 
+pub mod length_distribution_pre {
+    pub use crate::tool_adapters::stages::pre::length_distribution_pre::*;
+}
+
+pub mod overrepresented_sequences {
+    pub use crate::tool_adapters::stages::pre::overrepresented_sequences::*;
+}
+
 pub mod trim {
     pub use crate::tool_adapters::stages::transform::trim::*;
 }
@@ -31,6 +39,10 @@ pub mod low_complexity {
 
 pub mod merge {
     pub use crate::tool_adapters::stages::transform::merge::*;
+}
+
+pub mod polyg_tailing {
+    pub use crate::tool_adapters::stages::transform::polyg_tailing::*;
 }
 
 pub mod correct {
@@ -83,6 +95,16 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
+            id: crate::tool_adapters::stages::pre::length_distribution_pre::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::length_distribution_pre::STAGE_VERSION,
+            affects_read_counts: false,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::pre::overrepresented_sequences::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::overrepresented_sequences::STAGE_VERSION,
+            affects_read_counts: false,
+        },
+        StageInfo {
             id: crate::tool_adapters::stages::transform::filter::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::filter::STAGE_VERSION,
             affects_read_counts: true,
@@ -100,6 +122,11 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: crate::tool_adapters::stages::transform::merge::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::merge::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::transform::polyg_tailing::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::polyg_tailing::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
