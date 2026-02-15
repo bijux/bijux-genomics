@@ -10,6 +10,7 @@ use super::AlignmentBoundary;
 use crate::internal::handlers::bam_summary::{render_bam_summary, report_stage_step};
 use crate::internal::handlers::fastq::fastq_preprocess_run;
 use crate::internal::handlers::fastq::StageExecutionSummary;
+use crate::reference_resolution::{LocalReferenceResolver, ReferenceResolver};
 use crate::request_args::FastqCrossArgs;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ToolRegistry;
@@ -58,12 +59,8 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         .iter()
         .any(|stage| stage == BamStage::Align.as_str());
     if has_align {
-        let reference = cross_args.alignment_reference.as_ref().ok_or_else(|| {
-            anyhow!(
-                "--alignment-reference required for {} profiles",
-                BamStage::Align.as_str()
-            )
-        })?;
+        let resolved_alignment_reference = resolve_alignment_reference(cross_args)?;
+        let reference = resolved_alignment_reference.as_path();
         let registry = ReferenceRegistry::new();
         let record = registry.prepare_reference(
             reference,
@@ -236,4 +233,30 @@ fn select_bam_profile(profile: &PipelineProfile) -> Result<PipelineProfile> {
         "bam-to-bam__default__v1"
     };
     registry::profile_by_id(Domain::Bam, id)
+}
+
+fn alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Option<String> {
+    for entry in &args.alignment_meta {
+        if let Some((found_key, found_value)) = entry.split_once('=') {
+            if found_key == key {
+                return Some(found_value.to_string());
+            }
+        }
+    }
+    None
+}
+
+fn resolve_alignment_reference(args: &FastqCrossArgs) -> Result<std::path::PathBuf> {
+    if let Some(path) = args.alignment_reference.as_ref() {
+        return Ok(path.clone());
+    }
+    let resolver = LocalReferenceResolver::default();
+    let species = alignment_meta_value(args, "species_id").unwrap_or_else(|| "human".to_string());
+    let build = alignment_meta_value(args, "build_id").unwrap_or_else(|| "hg38".to_string());
+    let resolved = resolver.resolve(&species, &build).with_context(|| {
+        format!(
+            "--alignment-reference not provided and resolver failed for species/build {species}/{build}"
+        )
+    })?;
+    Ok(resolved.fasta)
 }
