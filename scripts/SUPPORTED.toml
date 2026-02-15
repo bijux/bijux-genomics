@@ -2111,6 +2111,15 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "acquire_reference"
+path = "scripts/tooling/acquire-reference.sh"
+purpose = "tooling script"
+inputs = ["configs/runtime/reference_bank.toml"]
+outputs = ["configs/runtime/references/locks/", "artifacts/", "$ISO_ROOT/"]
+network_allowed = true
+ci_allowed = true
+
+[[script]]
 id = "generate_panel_compatibility_matrix"
 path = "scripts/tooling/generate-panel-compatibility-matrix.sh"
 purpose = "tooling script"

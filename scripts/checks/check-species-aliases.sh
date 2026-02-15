@@ -13,35 +13,17 @@ from pathlib import Path
 import re
 import sys
 
-cfg = Path("configs/runtime/species_aliases.toml")
-text = cfg.read_text(encoding="utf-8")
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
-in_aliases = False
-seen = {}
-dups = []
-aliases = {}
-for line in text.splitlines():
-    s = line.strip()
-    if not s or s.startswith("#"):
-        continue
-    if s.startswith("["):
-        in_aliases = (s == "[aliases]")
-        continue
-    if not in_aliases:
-        continue
-    if "=" not in s:
-        continue
-    key, val = [p.strip() for p in s.split("=", 1)]
-    key = key.strip('"')
-    if key in seen:
-        dups.append(key)
-    seen[key] = True
-    val = val.strip().strip('"')
-    aliases[key] = val
+aliases_cfg = tomllib.loads(Path("configs/runtime/species_aliases.toml").read_text(encoding="utf-8"))
+species_cfg = tomllib.loads(Path("configs/runtime/species.toml").read_text(encoding="utf-8"))
 
-if dups:
-    print("species-aliases: duplicate aliases found:", ", ".join(sorted(set(dups))), file=sys.stderr)
-    sys.exit(1)
+aliases = aliases_cfg.get("aliases", {})
+default_builds = aliases_cfg.get("default_builds", {})
+species_rows = species_cfg.get("species", [])
 
 if not aliases:
     print("species-aliases: [aliases] table is empty", file=sys.stderr)
@@ -52,11 +34,35 @@ bad = []
 for alias, species in aliases.items():
     if alias != alias.lower():
         bad.append(f"alias {alias!r} must be lowercase")
-    if not canonical.match(species):
+    if not canonical.match(str(species)):
         bad.append(f"alias {alias!r} has non-canonical species id {species!r}; expected 'Genus species'")
 
+authority_default_build = {}
+authority_species = set()
+for row in species_rows:
+    sid = str(row.get("species_id", ""))
+    bid = str(row.get("default_build_id", ""))
+    if not sid or not bid:
+        bad.append(f"species.toml row missing species_id/default_build_id: {row!r}")
+        continue
+    authority_default_build[sid] = bid
+    authority_species.add(sid)
+
+for species, build in default_builds.items():
+    if species not in authority_default_build:
+        bad.append(f"default_builds species {species!r} missing in species.toml authority")
+        continue
+    if str(build) != authority_default_build[species]:
+        bad.append(
+            f"default_builds mismatch for {species!r}: aliases={build!r}, species.toml={authority_default_build[species]!r}"
+        )
+
+for alias, species in aliases.items():
+    if species not in authority_species:
+        bad.append(f"alias {alias!r} points to undeclared species {species!r} in species.toml")
+
 if bad:
-    print("species-aliases: canonical validation failed:", file=sys.stderr)
+    print("species-aliases: validation failed:", file=sys.stderr)
     for item in bad:
         print(f"  - {item}", file=sys.stderr)
     sys.exit(1)
