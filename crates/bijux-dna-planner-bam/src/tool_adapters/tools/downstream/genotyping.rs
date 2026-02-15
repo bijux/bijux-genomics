@@ -2,15 +2,19 @@ use std::path::Path;
 
 use bijux_dna_domain_bam::params::GenotypingEffectiveParams;
 
+pub struct GenotypingOutputs<'a> {
+    pub report: &'a Path,
+    pub summary: &'a Path,
+    pub vcf_gz: &'a Path,
+    pub tbi: &'a Path,
+    pub gl_json: &'a Path,
+}
+
 #[must_use]
 pub fn args_with_outputs(
     tool_id: &str,
     bam: &Path,
-    report: &Path,
-    summary: &Path,
-    vcf_gz: &Path,
-    tbi: &Path,
-    gl_json: &Path,
+    outputs: GenotypingOutputs<'_>,
     params: &GenotypingEffectiveParams,
 ) -> Vec<String> {
     let min_posterior = params.min_posterior.unwrap_or(0.0);
@@ -23,12 +27,12 @@ python - <<'PY' > {gl}\nimport json\nprint(json.dumps({{\"producer\": \"angsd\",
 python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"caller\": \"angsd\", \"vcf\": \"{vcf}\", \"tbi\": \"{tbi}\", \"min_posterior\": {min_posterior}, \"min_call_rate\": {min_call_rate}}}, indent=2))\nPY && \
 python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"status\": \"ok\", \"producer\": \"bam.genotyping\"}}, indent=2))\nPY",
             bam = bam.display(),
-            prefix = report.with_extension("").display(),
-            vcf = vcf_gz.display(),
-            tbi = tbi.display(),
-            gl = gl_json.display(),
-            summary = summary.display(),
-            report = report.display(),
+            prefix = outputs.report.with_extension("").display(),
+            vcf = outputs.vcf_gz.display(),
+            tbi = outputs.tbi.display(),
+            gl = outputs.gl_json.display(),
+            summary = outputs.summary.display(),
+            report = outputs.report.display(),
             min_posterior = min_posterior,
             min_call_rate = min_call_rate
         ),
@@ -39,11 +43,11 @@ python - <<'PY' > {gl}\nimport json\nprint(json.dumps({{\"producer\": \"gatk\", 
 python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"caller\": \"gatk\", \"vcf\": \"{vcf}\", \"tbi\": \"{tbi}\", \"min_posterior\": {min_posterior}, \"min_call_rate\": {min_call_rate}}}, indent=2))\nPY && \
 python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"status\": \"ok\", \"producer\": \"bam.genotyping\"}}, indent=2))\nPY",
             bam = bam.display(),
-            vcf = vcf_gz.display(),
-            tbi = tbi.display(),
-            gl = gl_json.display(),
-            summary = summary.display(),
-            report = report.display(),
+            vcf = outputs.vcf_gz.display(),
+            tbi = outputs.tbi.display(),
+            gl = outputs.gl_json.display(),
+            summary = outputs.summary.display(),
+            report = outputs.report.display(),
             min_posterior = min_posterior,
             min_call_rate = min_call_rate
         ),
