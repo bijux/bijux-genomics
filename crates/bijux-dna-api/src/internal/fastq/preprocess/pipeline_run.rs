@@ -444,6 +444,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         write_stage_governance_artifacts(&stage_root, planned, contaminant_bank.as_ref())?;
         enforce_metrics_schema(&stage_root, &stage_id)?;
         write_fastq_output_contract(&stage_root, planned, &execution)?;
+        write_stage_resume_contract(&stage_root, &stage_id, &execution, resume_hit)?;
         if matches!(
             stage_id.as_str(),
             "fastq.primer_normalization"
