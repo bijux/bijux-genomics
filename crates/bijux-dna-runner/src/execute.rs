@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_core::metrics::ToolInvocationV1;
+use bijux_dna_core::metrics::{ToolInvocationSpecV1, ToolInvocationV1};
 use bijux_dna_core::prelude::cache::CacheKey;
 use bijux_dna_core::prelude::hashing::{
     input_fingerprint, parameters_fingerprint, params_hash, run_id_from_hashes,
@@ -405,31 +405,32 @@ fn write_tool_invocation(
     });
     let params_provenance_normalized =
         bijux_dna_core::contract::canonical::canonicalize_json_value(&params_provenance);
-    let invocation = ToolInvocationV1::new(
-        "bijux.tool_invocation.v1".to_string(),
-        bijux_dna_core::contract::ContractVersion::v1(),
-        step.stage_id.clone(),
-        bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
-        inferred_tool_version.clone(),
-        None,
-        step.image
+    let invocation = ToolInvocationV1::new(ToolInvocationSpecV1 {
+        schema_version: "bijux.tool_invocation.v1".to_string(),
+        contract_version: bijux_dna_core::contract::ContractVersion::v1(),
+        stage_id: step.stage_id.clone(),
+        tool_id: bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
+        tool_version: inferred_tool_version.clone(),
+        resolved_tool_version: None,
+        image_digest: step
+            .image
             .digest
             .clone()
             .unwrap_or_else(|| step.image.image.clone()),
-        format!("{runner:?}"),
-        inferred_tool_version.clone(),
-        parameters_json.clone(),
-        parameters_json,
-        serde_json::json!({}),
-        serde_json::json!({}),
+        runner_kind: format!("{runner:?}"),
+        platform: inferred_tool_version.clone(),
+        parameters_json: parameters_json.clone(),
+        parameters_json_normalized: parameters_json,
+        effective_params_json: serde_json::json!({}),
+        effective_params_json_normalized: serde_json::json!({}),
         params_provenance,
         params_provenance_normalized,
-        step.resources.clone(),
-        std::collections::BTreeMap::new(),
-        input_hashes.to_vec(),
-        output_hashes.to_vec(),
-        Some(command.to_string()),
-    );
+        resources: step.resources.clone(),
+        environment: std::collections::BTreeMap::new(),
+        input_hashes: input_hashes.to_vec(),
+        output_hashes: output_hashes.to_vec(),
+        executed_command: Some(command.to_string()),
+    });
     bijux_dna_infra::atomic_write_json(tool_invocation_path, &invocation)
         .context("write tool_invocation.json")
 }
