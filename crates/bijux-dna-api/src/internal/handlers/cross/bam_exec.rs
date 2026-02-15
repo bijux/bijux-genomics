@@ -177,6 +177,16 @@ fn enforce_stage_refusal_rules(
             stage.as_str()
         ));
     }
+    if rg_required {
+        let missing_rg_fields = bam_read_group_missing_required_fields(bam_path);
+        if !missing_rg_fields.is_empty() {
+            return Err(anyhow!(
+                "{} refusal: read groups missing required fields [{}]",
+                stage.as_str(),
+                missing_rg_fields.join(",")
+            ));
+        }
+    }
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Align && reference.is_none() {
         return Err(anyhow!("bam.align requires resolved reference fasta"));
     }
