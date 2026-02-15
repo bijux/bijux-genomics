@@ -1,4 +1,3 @@
-#[allow(clippy::too_many_lines)]
 pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     let suite = load_suite(cwd, suite_id)?;
     let fairness = suite.effective_fairness();

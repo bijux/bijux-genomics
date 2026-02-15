@@ -12,7 +12,6 @@ pub fn analyze_suite(cwd: &Path, suite_id: &str) -> Result<PathBuf> {
     analyze_suite_with_format(cwd, suite_id, BenchReportFormat::Json)
 }
 
-#[allow(clippy::too_many_lines)]
 pub fn analyze_suite_with_format(
     cwd: &Path,
     suite_id: &str,

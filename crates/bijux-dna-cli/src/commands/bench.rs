@@ -9,7 +9,6 @@ use crate::commands::command_prelude::{
     Result, StageId,
 };
 
-#[allow(clippy::too_many_lines)]
 pub(crate) fn handle_fastq_bench(
     cli: &Cli,
     dna_command: &DnaCommand,

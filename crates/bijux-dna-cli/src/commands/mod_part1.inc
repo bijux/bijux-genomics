@@ -1,5 +1,6 @@
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -69,7 +70,6 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if CLI execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let original_cwd = std::env::current_dir().context("resolve current dir")?;
     std::env::set_current_dir(cwd).context("set current dir")?;
@@ -423,7 +423,6 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-#[allow(clippy::too_many_lines)]
 fn print_contract_status(cwd: &Path) -> Result<()> {
     let domains = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/registry/domains.toml"))?;
     let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
@@ -571,7 +570,6 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-#[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     if args.scope.eq_ignore_ascii_case("production-readiness") {
         let report =
@@ -816,28 +814,27 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     if let Some(path) = &args.write_checklist {
         let mut md = String::new();
         md.push_str("# Scope Closure Checklist\n\n");
-        md.push_str(&format!("- scope: `{}`\n", args.scope));
-        md.push_str(&format!("- planned_or_out_of_scope: `{}`\n", planned.len()));
-        md.push_str(&format!("- placeholder_files: `{}`\n", placeholders.len()));
-        md.push_str(&format!(
-            "- missing_truth_fixtures: `{}`\n",
-            missing_fixtures.len()
-        ));
-        md.push_str(&format!(
-            "- missing_stage_required_fields: `{}`\n",
+        let _ = writeln!(md, "- scope: `{}`", args.scope);
+        let _ = writeln!(md, "- planned_or_out_of_scope: `{}`", planned.len());
+        let _ = writeln!(md, "- placeholder_files: `{}`", placeholders.len());
+        let _ = writeln!(md, "- missing_truth_fixtures: `{}`", missing_fixtures.len());
+        let _ = writeln!(
+            md,
+            "- missing_stage_required_fields: `{}`",
             missing_stage_fields.len()
-        ));
-        md.push_str(&format!(
-            "- missing_tool_required_fields: `{}`\n\n",
+        );
+        let _ = writeln!(
+            md,
+            "- missing_tool_required_fields: `{}`\n",
             missing_tool_fields.len()
-        ));
+        );
 
         md.push_str("## Planned / Out Of Scope\n");
         if planned.is_empty() {
             md.push_str("- none\n");
         } else {
             for item in &planned {
-                md.push_str(&format!("- {item}\n"));
+                let _ = writeln!(md, "- {item}");
             }
         }
         md.push_str("\n## Placeholder Files\n");
@@ -845,7 +842,7 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
             md.push_str("- none\n");
         } else {
             for item in &placeholders {
-                md.push_str(&format!("- {item}\n"));
+                let _ = writeln!(md, "- {item}");
             }
         }
         md.push_str("\n## Missing Fixtures\n");
@@ -853,7 +850,7 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
             md.push_str("- none\n");
         } else {
             for item in &missing_fixtures {
-                md.push_str(&format!("- {item}\n"));
+                let _ = writeln!(md, "- {item}");
             }
         }
         md.push_str("\n## Missing Stage Required Fields\n");
@@ -861,7 +858,7 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
             md.push_str("- none\n");
         } else {
             for item in &missing_stage_fields {
-                md.push_str(&format!("- {item}\n"));
+                let _ = writeln!(md, "- {item}");
             }
         }
         md.push_str("\n## Missing Tool Required Fields\n");
@@ -869,7 +866,7 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
             md.push_str("- none\n");
         } else {
             for item in &missing_tool_fields {
-                md.push_str(&format!("- {item}\n"));
+                let _ = writeln!(md, "- {item}");
             }
         }
 

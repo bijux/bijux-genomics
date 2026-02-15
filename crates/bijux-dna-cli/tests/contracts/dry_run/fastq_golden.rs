@@ -1,6 +1,5 @@
 use bijux_dna::commands::run_with_args;
 
-#[allow(clippy::too_many_lines)]
 fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let input = base.join("reads.fastq");
     std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");

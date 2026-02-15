@@ -1,6 +1,5 @@
 
 #[derive(Debug, Subcommand)]
-#[allow(clippy::large_enum_variant)]
 pub enum BenchCommand {
     Run(BenchRunArgs),
     Status,
@@ -270,7 +269,6 @@ pub struct BenchFastqStatsArgs {
 }
 
 #[derive(Debug, Args)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct BenchFastqPreprocessArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,

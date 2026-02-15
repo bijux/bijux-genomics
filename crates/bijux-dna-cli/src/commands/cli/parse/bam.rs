@@ -100,7 +100,6 @@ pub enum DuplicateActionArg {
 }
 
 #[derive(Debug, Args, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct BamRunArgs {
     #[arg(long, value_enum, default_value_t = BamStageArg::Validate)]
     pub stage: BamStageArg,
@@ -223,7 +222,6 @@ pub struct BamRunArgs {
 }
 
 #[derive(Debug, clap::Subcommand)]
-#[allow(clippy::large_enum_variant)]
 pub enum BamCommand {
     Run(BamRunArgs),
     ListStages,
@@ -240,7 +238,6 @@ pub enum BenchBamCommand {
 }
 
 #[derive(Debug, Args, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct BenchBamStageArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
@@ -269,7 +266,6 @@ pub struct BenchBamStageArgs {
 }
 
 #[derive(Debug, Args, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct BenchBamPipelineArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,

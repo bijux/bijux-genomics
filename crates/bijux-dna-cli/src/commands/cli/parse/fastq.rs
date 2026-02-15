@@ -56,7 +56,6 @@ impl From<BenchCorpusArg> for bijux_dna_api::v1::api::bench::BenchCorpusId {
 }
 
 #[derive(Debug, Args, Clone, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct CommonArgs {
     #[arg(long)]
     pub list_tools: bool,
@@ -71,7 +70,6 @@ pub struct CommonArgs {
 }
 
 #[derive(Debug, Args, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct FastqPreprocessArgs {
     #[command(flatten)]
     pub common: CommonArgs,

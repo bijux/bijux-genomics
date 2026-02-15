@@ -47,7 +47,6 @@ fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 fn run_smoke_with_manifest(
     sif_path: &Path,
     tool_id: &str,
