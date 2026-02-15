@@ -76,17 +76,19 @@ fn infer_damage_filter_params_from_bam(run_root: &Path) -> Option<DamageFilterSt
         .get("udg_treated")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
-    let mut params = DamageFilterStageParams::default();
-    params.udg_regime = if udg {
-        crate::pipeline::DamageUdgRegime::Udg
-    } else {
-        crate::pipeline::DamageUdgRegime::NonUdg
-    };
-    params.strict_regime = false;
-    params.max_damage_ratio = if udg {
-        (damage_rate + 0.10).clamp(0.10, 0.50)
-    } else {
-        (damage_rate + 0.15).clamp(0.20, 0.60)
+    let params = DamageFilterStageParams {
+        udg_regime: if udg {
+            crate::pipeline::DamageUdgRegime::Udg
+        } else {
+            crate::pipeline::DamageUdgRegime::NonUdg
+        },
+        strict_regime: false,
+        max_damage_ratio: if udg {
+            (damage_rate + 0.10).clamp(0.10, 0.50)
+        } else {
+            (damage_rate + 0.15).clamp(0.20, 0.60)
+        },
+        ..DamageFilterStageParams::default()
     };
     Some(params)
 }

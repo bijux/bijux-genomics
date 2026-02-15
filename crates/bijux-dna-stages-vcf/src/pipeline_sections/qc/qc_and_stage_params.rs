@@ -280,23 +280,22 @@ pub fn run_stats_stage_real(
         normalized_input
     };
     let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
-    let mut metrics = match crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
-        Ok(real) => real,
-        Err(_) => {
-            let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
-            let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
-            VcfStatsMetricsV1 {
-                schema_version: "bijux.vcf.stats.v1".to_string(),
-                sample_name: params.sample_name.clone(),
-                variants_total: call.variants_called,
-                snps: call.snps,
-                indels: call.indels,
-                ti_tv: None,
-                filter_breakdown: filter.filter_breakdown.clone(),
-                depth_distribution: std::collections::BTreeMap::new(),
-                call_summary: call,
-                filter_summary: filter,
-            }
+    let mut metrics = if let Ok(real) = crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
+        real
+    } else {
+        let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
+        let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
+        VcfStatsMetricsV1 {
+            schema_version: "bijux.vcf.stats.v1".to_string(),
+            sample_name: params.sample_name.clone(),
+            variants_total: call.variants_called,
+            snps: call.snps,
+            indels: call.indels,
+            ti_tv: None,
+            filter_breakdown: filter.filter_breakdown.clone(),
+            depth_distribution: std::collections::BTreeMap::new(),
+            call_summary: call,
+            filter_summary: filter,
         }
     };
     metrics.sample_name = params.sample_name.clone();

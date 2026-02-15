@@ -48,26 +48,24 @@ fn write_impute_bgzip_index_best_effort(
     Ok(out_tbi)
 }
 
-fn choose_backend_by_regime(
-    requested: ImputeBackend,
-    has_gl_or_gp: bool,
-    has_phased_gt: bool,
-    map_present: bool,
-    panel_supports_minimac: bool,
-) -> ImputeBackend {
+#[derive(Clone, Copy)]
+enum BackendEvidence {
+    GlLikelihood,
+    PhasedWithMapMinimac,
+    PhasedWithMap,
+    Generic,
+}
+
+fn choose_backend_by_regime(requested: ImputeBackend, evidence: BackendEvidence) -> ImputeBackend {
     if !matches!(requested, ImputeBackend::Beagle) {
         return requested;
     }
-    if has_gl_or_gp {
-        return ImputeBackend::Glimpse;
+    match evidence {
+        BackendEvidence::GlLikelihood => ImputeBackend::Glimpse,
+        BackendEvidence::PhasedWithMapMinimac => ImputeBackend::Minimac4,
+        BackendEvidence::PhasedWithMap => ImputeBackend::Impute5,
+        BackendEvidence::Generic => ImputeBackend::Beagle,
     }
-    if has_phased_gt && panel_supports_minimac && map_present {
-        return ImputeBackend::Minimac4;
-    }
-    if has_phased_gt && map_present {
-        return ImputeBackend::Impute5;
-    }
-    ImputeBackend::Beagle
 }
 
 fn run_impute_stage_inner(
@@ -244,13 +242,16 @@ fn run_impute_stage_inner(
         bail!("sex chromosome imputation requires explicit PAR policy in SpeciesContext");
     }
 
-    let recommended_backend = choose_backend_by_regime(
-        params.backend,
-        has_gl_or_gp,
-        has_phased_gt,
-        map.is_some(),
-        panel.compatibility.supports_minimac_m3vcf,
-    );
+    let backend_evidence = if has_gl_or_gp {
+        BackendEvidence::GlLikelihood
+    } else if has_phased_gt && panel.compatibility.supports_minimac_m3vcf && map.is_some() {
+        BackendEvidence::PhasedWithMapMinimac
+    } else if has_phased_gt && map.is_some() {
+        BackendEvidence::PhasedWithMap
+    } else {
+        BackendEvidence::Generic
+    };
+    let recommended_backend = choose_backend_by_regime(params.backend, backend_evidence);
 
     let sample_header = headers
         .iter()
