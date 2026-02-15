@@ -402,6 +402,53 @@ pub fn run_prepare_reference_panel_stage(
 
     let input_raw = read_vcf_text(input_vcf)?;
     let panel_raw = read_vcf_text(panel_vcf)?;
+    let mut format_keys = std::collections::BTreeSet::<String>::new();
+    let mut has_phased_gt = false;
+    let mut has_contig_header = false;
+    for line in panel_raw.lines() {
+        if line.starts_with("##contig=<") {
+            has_contig_header = true;
+            continue;
+        }
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        if let Some(fmt) = fields.get(8) {
+            for key in fmt.split(':') {
+                if !key.trim().is_empty() {
+                    format_keys.insert(key.to_string());
+                }
+            }
+            if let Some(gt_idx) = fmt.split(':').position(|k| k == "GT") {
+                for sample in fields.iter().skip(9) {
+                    let vals = sample.split(':').collect::<Vec<_>>();
+                    if let Some(gt) = vals.get(gt_idx) {
+                        if gt.contains('|') {
+                            has_phased_gt = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let has_gt = format_keys.contains("GT");
+    let has_gl_like = format_keys.contains("GL")
+        || format_keys.contains("GP")
+        || format_keys.contains("PL");
+    let backend_contracts = [
+        ("minimac4", has_gt, "requires GT format"),
+        ("impute5", has_gt, "requires GT format"),
+        ("glimpse", has_gl_like || has_gt, "requires GL/GP/PL or GT format"),
+        ("beagle", has_gl_like || has_gt, "requires GL/GP/PL or GT format"),
+    ];
+    for (backend, ok, requirement) in backend_contracts {
+        if !ok {
+            bail!(
+                "prepare_reference_panel refusal: backend {backend} panel compatibility failed ({requirement})"
+            );
+        }
+    }
     let chunk_plan = plan_regions_deterministic(species_context, &ChunkingPlanParams::default())?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
     let mut input_locus =
@@ -639,6 +686,13 @@ pub fn run_prepare_reference_panel_stage(
             "file_count": panel.files.len(),
             "lock_files": panel_lock.files,
             "compatibility": panel.compatibility,
+            "backend_field_compatibility": {
+                "format_keys": format_keys,
+                "has_phased_gt": has_phased_gt,
+                "has_gt": has_gt,
+                "has_gl_like": has_gl_like,
+                "has_contig_header": has_contig_header,
+            },
         },
         "map": {
             "id": map.id,
