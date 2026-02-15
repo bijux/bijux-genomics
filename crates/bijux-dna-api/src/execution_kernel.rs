@@ -131,6 +131,7 @@ fn validate_required_outputs(step: &ExecutionStep) -> Result<()> {
 /// Returns an error if path contracts fail, tool execution fails, or artifacts cannot be written.
 pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> {
     enforce_path_contracts(req)?;
+    crate::input_validation::validate_stage_inputs(&req.step)?;
     if network_policy_violation(&req.context.network_policy) {
         bail!(
             "network policy violation: {} forbids network but BIJUX_ALLOW_NETWORK is enabled",
