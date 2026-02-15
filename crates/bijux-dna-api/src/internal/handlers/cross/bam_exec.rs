@@ -291,6 +291,46 @@ fn parse_flagstat_mapped_fraction(path: &Path) -> Result<Option<f64>> {
     Ok(Some(mapped / total))
 }
 
+fn parse_flagstat_counts(path: &Path) -> Result<serde_json::Value> {
+    if !path.exists() {
+        return Ok(serde_json::json!({}));
+    }
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut total: Option<u64> = None;
+    let mut mapped: Option<u64> = None;
+    let mut duplicates: Option<u64> = None;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if total.is_none() && trimmed.contains("in total") {
+            total = trimmed
+                .split_whitespace()
+                .next()
+                .and_then(|x| x.parse::<u64>().ok());
+        }
+        if mapped.is_none() && trimmed.contains(" mapped (") {
+            mapped = trimmed
+                .split_whitespace()
+                .next()
+                .and_then(|x| x.parse::<u64>().ok());
+        }
+        if duplicates.is_none() && trimmed.contains(" duplicates") {
+            duplicates = trimmed
+                .split_whitespace()
+                .next()
+                .and_then(|x| x.parse::<u64>().ok());
+        }
+    }
+    Ok(serde_json::json!({
+        "total_reads": total,
+        "mapped_reads": mapped,
+        "duplicate_reads": duplicates,
+        "mapped_fraction": match (total, mapped) {
+            (Some(t), Some(m)) if t > 0 => Some(m as f64 / t as f64),
+            _ => None
+        }
+    }))
+}
+
 fn write_udg_metadata(stage_dir: &Path, plan: &bijux_dna_stage_contract::StagePlanV1) -> Result<()> {
     let udg_model = plan
         .params
@@ -420,6 +460,34 @@ fn stage_postprocess(
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Validate => {
+            let flagstat = stage_dir.join("flagstat.txt");
+            let summary = stage_dir.join("validation.summary.json");
+            bijux_dna_infra::atomic_write_json(
+                &summary,
+                &serde_json::json!({
+                    "schema_version": "bijux.bam.validate.v1",
+                    "flagstat": parse_flagstat_counts(&flagstat)?,
+                    "validation_report_present": stage_dir.join("validation.json").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", summary.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
+            let flagstat = stage_dir.join("flagstat.txt");
+            let stats = stage_dir.join("samtools_stats.txt");
+            let summary = stage_dir.join("mapping_summary.json");
+            bijux_dna_infra::atomic_write_json(
+                &summary,
+                &serde_json::json!({
+                    "schema_version": "bijux.bam.mapping_summary.v1",
+                    "flagstat": parse_flagstat_counts(&flagstat)?,
+                    "stats_present": stats.exists(),
+                    "idxstats_present": stage_dir.join("idxstats.txt").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", summary.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
             let path = stage_dir.join("complexity.artifacts.json");
