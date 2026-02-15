@@ -2,10 +2,18 @@ use std::path::{Path, PathBuf};
 
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 
-#[allow(clippy::too_many_lines)]
+#[must_use]
 pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
+    parse_alignment_metrics(out_dir, &mut metrics);
+    parse_coverage_metrics(out_dir, &mut metrics);
+    parse_quality_metrics(out_dir, &mut metrics);
+    parse_damage_metrics(out_dir, &mut metrics);
+    parse_contamination_and_sex(out_dir, &mut metrics);
+    metrics
+}
 
+fn parse_alignment_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let flagstat_path = first_existing(
         out_dir,
         &[
@@ -20,7 +28,15 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.alignment = counts;
         }
     }
+    let idxstats_path = first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
+    if let Some(path) = idxstats_path {
+        if let Ok(idxstats) = bijux_dna_domain_bam::metrics::parse_samtools_idxstats(&path) {
+            metrics.idxstats = idxstats;
+        }
+    }
+}
 
+fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let stats_path = first_existing(out_dir, &["samtools_stats.txt"]);
     if let Some(path) = stats_path {
         if let Ok((fragment, mapq)) = bijux_dna_domain_bam::metrics::parse_samtools_stats(&path) {
@@ -28,13 +44,6 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.mapq = mapq;
         }
     }
-    let idxstats_path = first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
-    if let Some(path) = idxstats_path {
-        if let Ok(idxstats) = bijux_dna_domain_bam::metrics::parse_samtools_idxstats(&path) {
-            metrics.idxstats = idxstats;
-        }
-    }
-
     let mosdepth_path = first_existing(
         out_dir,
         &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"],
@@ -54,7 +63,9 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             }
         }
     }
+}
 
+fn parse_quality_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let preseq_path = first_existing(out_dir, &["preseq.txt"]);
     if let Some(path) = preseq_path {
         if let Ok(complexity) = bijux_dna_domain_bam::metrics::parse_preseq_estimates(&path) {
@@ -77,6 +88,9 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.gc_bias = gc_bias;
         }
     }
+}
+
+fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let mut damage_sources: Vec<(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)> =
         Vec::new();
     let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
@@ -114,7 +128,9 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             tool_a, metrics_a, tool_b, metrics_b, threshold,
         ));
     }
+}
 
+fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let contamination_path = first_existing(out_dir, &["contamination.json"]);
     if let Some(path) = contamination_path {
         if let Ok(contamination) = bijux_dna_domain_bam::metrics::parse_contamination_json(&path) {
@@ -137,8 +153,6 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.sex = sex;
         }
     }
-
-    metrics
 }
 
 fn first_existing(out_dir: &Path, names: &[&str]) -> Option<PathBuf> {
