@@ -159,6 +159,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     std::env::set_var("HOME", &home_dir);
     std::env::set_var("XDG_CACHE_HOME", &cache_root);
     std::env::set_var("BIJUX_CACHE_ROOT", &cache_root);
+    std::env::set_var("BIJUX_STAGE_WORKDIR", &work_dir);
     for var in ["XDG_CACHE_HOME", "BIJUX_CACHE_ROOT"] {
         if let Ok(value) = std::env::var(var) {
             let path = PathBuf::from(value);
