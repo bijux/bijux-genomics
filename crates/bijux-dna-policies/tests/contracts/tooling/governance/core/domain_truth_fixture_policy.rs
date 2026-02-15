@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-#[path = "../../support/fs.rs"]
+#[path = "../../../../support/fs.rs"]
 mod support;
 
 fn configured_domains(root: &std::path::Path) -> Vec<String> {

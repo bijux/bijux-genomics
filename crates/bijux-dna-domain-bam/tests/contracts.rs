@@ -3,7 +3,7 @@
 mod mod_contracts_canonical_serialization_rs;
 #[path = "contracts/completeness_contract.rs"]
 mod mod_contracts_completeness_contract_rs;
-#[path = "contracts/contract_docs.rs"]
+#[path = "contracts/docs/contract_docs.rs"]
 mod mod_contracts_contract_docs_rs;
 #[path = "contracts/contract_harness.rs"]
 mod mod_contracts_contract_harness_rs;
@@ -19,5 +19,5 @@ mod mod_contracts_reference_suite_rs;
 mod mod_contracts_ssot_literals_rs;
 #[path = "contracts/stage_contract_snapshots.rs"]
 mod mod_contracts_stage_contract_snapshots_rs;
-#[path = "contracts/tool_models.rs"]
+#[path = "contracts/models/tool_models.rs"]
 mod mod_contracts_tool_models_rs;

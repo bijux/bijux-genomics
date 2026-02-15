@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-#[path = "../../support/fs.rs"]
+#[path = "../../../support/fs.rs"]
 mod support;
 
 fn as_table_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {

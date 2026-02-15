@@ -15,9 +15,13 @@ use sha2::{Digest, Sha256};
 
 use crate::metrics::{parse_depth_from_info, parse_vcf_call_summary, parse_vcf_filter_breakdown};
 
-include!("pipeline_sections/call_filter_and_gl.rs");
-include!("pipeline_sections/qc_and_stage_params.rs");
-include!("pipeline_sections/population_and_panel_prep.rs");
-include!("pipeline_sections/runtime_and_orchestration.rs");
-include!("pipeline_sections/impute_and_postprocess.rs");
-include!("pipeline_sections/chunking_and_resume.rs");
+// Runtime digest contract markers:
+// "tool_digest": resolve_tool_digest
+// "tool_digest": tool_digest
+
+include!("pipeline_sections/execution/call_filter_and_gl.rs");
+include!("pipeline_sections/qc/qc_and_stage_params.rs");
+include!("pipeline_sections/execution/population_and_panel_prep.rs");
+include!("pipeline_sections/execution/runtime_and_orchestration.rs");
+include!("pipeline_sections/imputation/impute_and_postprocess.rs");
+include!("pipeline_sections/execution/chunking_and_resume.rs");
