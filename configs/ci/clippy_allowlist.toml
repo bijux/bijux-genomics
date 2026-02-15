@@ -1,0 +1,30 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Temporary clippy allowlist with expiry for executor crates.
+# authority = bijux-dna-infra
+# stability = evolving
+# last_updated = 2026-02-15
+
+[[allow]]
+path = "crates/bijux-dna-runner/src/execute.rs"
+lint = "too_many_lines"
+expires_on = "2026-06-30"
+reason = "Split execute workflow into smaller modules while keeping runtime behavior stable."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/chunking_and_resume.rs"
+lint = "too_many_arguments"
+expires_on = "2026-06-30"
+reason = "Chunk planner argument object migration is pending across dependent callers."
+
+[[allow]]
+path = "crates/bijux-dna-stages-fastq/src/observer/artifacts.rs"
+lint = "too_many_arguments"
+expires_on = "2026-06-30"
+reason = "Observer artifact emission will be consolidated behind stage envelope writer."
+
+[[allow]]
+path = "crates/bijux-dna-stages-fastq/src/metrics/fastqc.rs"
+lint = "cast_precision_loss"
+expires_on = "2026-06-30"
+reason = "Metrics percentage conversions intentionally cast to f64 for report continuity."
