@@ -210,7 +210,7 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
             let rel = path.strip_prefix(&root).unwrap_or(path);
             let rel_s = rel.to_string_lossy();
             if rel_s
-                == "crates/bijux-dna-policies/tests/contracts/tooling/assets_governance_policy.rs"
+                == "crates/bijux-dna-policies/tests/contracts/tooling/assets/assets_governance_policy.rs"
             {
                 continue;
             }

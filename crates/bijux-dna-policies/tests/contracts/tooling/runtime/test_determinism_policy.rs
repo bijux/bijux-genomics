@@ -37,7 +37,9 @@ fn rs_test_files(root: &Path) -> Vec<PathBuf> {
 }
 
 fn is_policy_file(path: &Path) -> bool {
-    path.ends_with("crates/bijux-dna-policies/tests/contracts/tooling/test_determinism_policy.rs")
+    path.ends_with(
+        "crates/bijux-dna-policies/tests/contracts/tooling/runtime/test_determinism_policy.rs",
+    )
 }
 
 #[test]
@@ -128,7 +130,7 @@ fn policy__contracts__test_determinism_policy__jsonl_appends_use_locked_writer()
         }
         if path_s.ends_with("/bijux-dna-runtime/src/run_layout.rs")
             || path_s.ends_with("/bijux-dna-cli/src/commands/bench_suite/bench_suite_part1.rs")
-            || path_s.ends_with("/bijux-dna-core/tests/contracts/run_index.rs")
+            || path_s.ends_with("/bijux-dna-core/tests/contracts/identity/run_index.rs")
         {
             continue;
         }

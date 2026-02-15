@@ -35,7 +35,9 @@ fn is_domain_params_path(path: &Path) -> bool {
 
 fn is_policies_ownership_test(path: &Path) -> bool {
     path.to_string_lossy()
-        .ends_with("/crates/bijux-dna-policies/tests/boundaries/surface/ownership_contract.rs")
+        .ends_with(
+            "/crates/bijux-dna-policies/tests/boundaries/surface/structure_layout/ownership_contract.rs",
+        )
 }
 
 #[test]
@@ -190,11 +192,11 @@ fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_doma
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"impl\s+Default\s+for\s+[A-Za-z0-9_]*Params").unwrap();
     let stages_vcf_allowlist = [
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc_and_stage_params.rs",
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation_types_and_population_params.rs",
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/call_and_damage_stages.rs",
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/chunking_and_resume.rs",
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/call_filter_and_gl.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc/qc_and_stage_params.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/imputation_types_and_population_params.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/runtime/call_and_damage_stages.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/chunking_and_resume.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/call_filter_and_gl.rs",
     ];
 
     for entry in WalkDir::new(root.join("crates"))
