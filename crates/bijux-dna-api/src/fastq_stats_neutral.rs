@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
 use bijux_dna_analyze::{
@@ -33,7 +34,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
 };
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
-use bijux_dna_runner::execute::{execute_observer_command, execute_step};
+use bijux_dna_runner::execute::execute_observer_command;
 use bijux_dna_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
@@ -285,7 +286,31 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-    let execution = execute_step(&step, bench_inputs.runner, None)?;
+    let tool_context = execution_kernel::ToolContext {
+        run_id: run_id.clone(),
+        stage_id: STAGE_STATS_NEUTRAL.as_str().to_string(),
+        tool_id: tool.to_string(),
+        sample_id: None,
+        stage_root: run_dirs.logs_dir.clone(),
+        input_root: bench_inputs
+            .r1
+            .parent()
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_else(|| bench_inputs.bench_dir.clone()),
+        output_root: out_dir.clone(),
+        tmp_root: run_dirs.logs_dir.join("tmp"),
+        threads: plan.resources.threads.max(1),
+        memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
+        seed: None,
+        network_policy: NetworkPolicy::Allow,
+    };
+    let execution = execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+        step: step.clone(),
+        runner: bench_inputs.runner,
+        context: tool_context,
+        timeout: None,
+    })?
+    .stage_result;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,
