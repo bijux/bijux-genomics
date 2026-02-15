@@ -5,6 +5,10 @@ use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::ExecutionManifest;
 
+/// Replay a recorded run by locating its manifest and re-running the stored command.
+///
+/// # Errors
+/// Returns an error if the manifest cannot be found/read/parsed or execution fails.
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     if std::env::var("BIJUX_TRACE_ENGINE").is_ok() {
         println!("[engine][composer] replay run_id={run_id}");
