@@ -17,7 +17,8 @@ mod contracts {
     };
     use bijux_dna_stages_vcf::pipeline::{
         assert_bgzip_tabix_artifacts, run_admixture_stage, run_call_diploid_stage,
-        run_call_gl_stage, run_call_pseudohaploid_stage, run_chunked_regions,
+        run_call_gl_from_bam_stage, run_call_gl_stage, run_call_pseudohaploid_stage,
+        run_chunked_regions,
         run_damage_filter_stage, run_demography_stage, run_filter_stage_real,
         run_gl_propagation_stage, run_ibd_stage, run_imputation_orchestration_stage,
         run_impute_stage, run_pca_stage, run_phasing_stage, run_population_structure_stage,
