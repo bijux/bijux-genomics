@@ -19,6 +19,7 @@ Define a damage-aware genotype calling contract for VCF workflows, including GL-
 ## Calling Regimes
 - `vcf.call_gl`: emits likelihood-first outputs for low-coverage and aDNA-sensitive workflows.
 - `vcf.call_diploid`: emits diploid genotypes for modern high-confidence cohorts.
+  - BAM-backed runtime supports both `bcftools mpileup+call` and `GATK HaplotypeCaller` (`caller=gatk`).
 - `vcf.call_pseudohaploid`: emits one-allele representations for low-coverage contexts where diploid calls are unstable.
 
 ## Damage Filter Rules
