@@ -223,26 +223,34 @@ pub struct RohStageOutputs {
 
 #[derive(Debug, Clone)]
 pub struct IbdStageParams {
+    pub toolchain: String,
+    pub expected_build: Option<String>,
     pub min_variant_density_per_mb: f64,
     pub max_missingness: f64,
     pub min_samples: usize,
     pub min_segment_cm: f64,
+    pub min_markers_per_segment: usize,
 }
 
 impl Default for IbdStageParams {
     fn default() -> Self {
         Self {
+            toolchain: "germline+ibdhap".to_string(),
+            expected_build: None,
             min_variant_density_per_mb: 1.0,
             max_missingness: 0.2,
             min_samples: 2,
             min_segment_cm: 2.0,
+            min_markers_per_segment: 50,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct IbdStageOutputs {
+    pub ibd_input_tsv: PathBuf,
     pub ibd_segments_tsv: PathBuf,
+    pub ibd_merged_segments_tsv: PathBuf,
     pub ibd_filtered_segments_tsv: PathBuf,
     pub ibd_summary_json: PathBuf,
     pub ibd_metrics_json: PathBuf,
@@ -252,17 +260,22 @@ pub struct IbdStageOutputs {
 #[derive(Debug, Clone)]
 pub struct DemographyStageParams {
     pub min_segments: usize,
+    pub expected_build: Option<String>,
 }
 
 impl Default for DemographyStageParams {
     fn default() -> Self {
-        Self { min_segments: 1 }
+        Self {
+            min_segments: 1,
+            expected_build: None,
+        }
     }
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DemographyStageOutputs {
     pub ne_trajectory_tsv: PathBuf,
+    pub demography_json: PathBuf,
     pub demography_metrics_json: PathBuf,
     pub logs_txt: PathBuf,
 }
