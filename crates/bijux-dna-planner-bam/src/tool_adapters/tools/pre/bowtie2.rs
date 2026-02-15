@@ -12,6 +12,16 @@ fn rg_string(params: &AlignEffectiveParams) -> String {
     )
 }
 
+fn preset_flags(preset: &str) -> &'static str {
+    match preset {
+        // aDNA-friendly: local alignment, shorter seed, allow one mismatch in seed.
+        "adna_short" | "adna_sensitive" => "--very-sensitive-local -N 1 -L 20",
+        // eDNA/pollen/metagenomic-like: local + very-sensitive to preserve reads.
+        "edna_metagenomic" => "--very-sensitive-local -N 1 -L 22",
+        _ => "--very-sensitive",
+    }
+}
+
 #[must_use]
 pub fn align_args(
     reference: &Path,
@@ -27,6 +37,7 @@ pub fn align_args(
     let metrics = out_dir.join("align.metrics.json");
     let rg = rg_string(params);
     let index_prefix = reference.display();
+    let preset_flags = preset_flags(&params.preset);
     let build_index = if params.build_indices {
         format!(
             "if [ ! -f {ref}.fai ]; then samtools faidx {ref}; fi; \
@@ -39,19 +50,21 @@ pub fn align_args(
     };
     let align = if let Some(r2) = r2 {
         format!(
-            "bowtie2 -x {idx} -1 {r1} -2 {r2} --rg '{rg}' --rg-id {rgid} -p {threads}",
+            "bowtie2 -x {idx} -1 {r1} -2 {r2} {preset_flags} --rg '{rg}' --rg-id {rgid} -p {threads}",
             idx = index_prefix,
             r1 = r1.display(),
             r2 = r2.display(),
+            preset_flags = preset_flags,
             rg = rg,
             rgid = params.read_group.id,
             threads = params.threads
         )
     } else {
         format!(
-            "bowtie2 -x {idx} -U {r1} --rg '{rg}' --rg-id {rgid} -p {threads}",
+            "bowtie2 -x {idx} -U {r1} {preset_flags} --rg '{rg}' --rg-id {rgid} -p {threads}",
             idx = index_prefix,
             r1 = r1.display(),
+            preset_flags = preset_flags,
             rg = rg,
             rgid = params.read_group.id,
             threads = params.threads
