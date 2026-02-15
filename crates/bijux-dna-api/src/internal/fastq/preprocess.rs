@@ -58,13 +58,16 @@ struct FastqInvariantsReport {
 struct FastqFileInvariant {
     path: PathBuf,
     gzip: bool,
+    gzip_valid: bool,
     read_count: u64,
     read_length_min: usize,
     read_length_max: usize,
     read_length_mean: f64,
+    read_length_histogram: std::collections::BTreeMap<String, u64>,
     qscore_ascii_min: u8,
     qscore_ascii_max: u8,
     quality_encoding: String,
+    quality_encoding_confidence: String,
 }
 
 #[derive(Debug, Clone)]
@@ -73,9 +76,58 @@ struct FastqScanStats {
     read_length_min: usize,
     read_length_max: usize,
     read_length_mean: f64,
+    read_length_histogram: std::collections::BTreeMap<String, u64>,
     qscore_ascii_min: u8,
     qscore_ascii_max: u8,
     first_headers: Vec<String>,
+}
+
+fn histogram_bucket_for_read_length(len: usize) -> String {
+    if len < 50 {
+        "lt50".to_string()
+    } else if len < 75 {
+        "50_74".to_string()
+    } else if len < 100 {
+        "75_99".to_string()
+    } else if len < 151 {
+        "100_150".to_string()
+    } else if len < 251 {
+        "151_250".to_string()
+    } else {
+        "ge251".to_string()
+    }
+}
+
+fn fastq_is_gzip(path: &std::path::Path) -> bool {
+    path.extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
+}
+
+fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
+    if !fastq_is_gzip(path) {
+        return Ok(true);
+    }
+    let mut magic = [0_u8; 2];
+    let mut file = std::fs::File::open(path)?;
+    use std::io::Read;
+    if file.read_exact(&mut magic).is_err() || magic != [0x1f, 0x8b] {
+        return Ok(false);
+    }
+    let status = std::process::Command::new("gzip")
+        .args(["-t", path.to_string_lossy().as_ref()])
+        .status();
+    Ok(status.map(|s| s.success()).unwrap_or(false))
+}
+
+fn quality_encoding_confidence(min_ascii: u8, max_ascii: u8) -> String {
+    if (33..=59).contains(&min_ascii) && max_ascii <= 74 {
+        "high".to_string()
+    } else if min_ascii >= 64 && max_ascii <= 104 {
+        "medium".to_string()
+    } else {
+        "low".to_string()
+    }
 }
 
 fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = String>>> {
@@ -126,6 +178,7 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
     let mut q_min = u8::MAX;
     let mut q_max = 0_u8;
     let mut first_headers = Vec::new();
+    let mut read_length_histogram = std::collections::BTreeMap::<String, u64>::new();
     let mut i = 0_u64;
     let mut it = open_fastq_lines(path)?;
     loop {
@@ -146,6 +199,9 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
         len_min = len_min.min(l);
         len_max = len_max.max(l);
         len_total += l as u64;
+        *read_length_histogram
+            .entry(histogram_bucket_for_read_length(l))
+            .or_insert(0) += 1;
         for c in qual.bytes() {
             q_min = q_min.min(c);
             q_max = q_max.max(c);
@@ -164,6 +220,7 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
         read_length_min: len_min,
         read_length_max: len_max,
         read_length_mean: len_total as f64 / read_count as f64,
+        read_length_histogram,
         qscore_ascii_min: q_min,
         qscore_ascii_max: q_max,
         first_headers,
@@ -187,22 +244,35 @@ fn write_fastq_entry_invariants(
     r2: Option<&std::path::Path>,
 ) -> Result<FastqInvariantsReport> {
     let r1s = scan_fastq_invariants(r1)?;
+    let r1_gzip = fastq_is_gzip(r1);
+    let r1_gzip_valid = validate_gzip_path(r1)?;
+    if r1_gzip && !r1_gzip_valid {
+        return Err(anyhow!("invalid gzip FASTQ stream: {}", r1.display()));
+    }
     let r1_inv = FastqFileInvariant {
         path: r1.to_path_buf(),
-        gzip: r1
-            .extension()
-            .and_then(|x| x.to_str())
-            .is_some_and(|x| x.eq_ignore_ascii_case("gz")),
+        gzip: r1_gzip,
+        gzip_valid: r1_gzip_valid,
         read_count: r1s.read_count,
         read_length_min: r1s.read_length_min,
         read_length_max: r1s.read_length_max,
         read_length_mean: r1s.read_length_mean,
+        read_length_histogram: r1s.read_length_histogram.clone(),
         qscore_ascii_min: r1s.qscore_ascii_min,
         qscore_ascii_max: r1s.qscore_ascii_max,
         quality_encoding: quality_encoding_from_ascii(r1s.qscore_ascii_min, r1s.qscore_ascii_max),
+        quality_encoding_confidence: quality_encoding_confidence(
+            r1s.qscore_ascii_min,
+            r1s.qscore_ascii_max,
+        ),
     };
     let (r2_inv, paired_consistent, paired_reason) = if let Some(r2_path) = r2 {
         let r2s = scan_fastq_invariants(r2_path)?;
+        let r2_gzip = fastq_is_gzip(r2_path);
+        let r2_gzip_valid = validate_gzip_path(r2_path)?;
+        if r2_gzip && !r2_gzip_valid {
+            return Err(anyhow!("invalid gzip FASTQ stream: {}", r2_path.display()));
+        }
         let mut ok = r1s.read_count == r2s.read_count;
         let mut reason = None;
         if ok {
@@ -219,17 +289,20 @@ fn write_fastq_entry_invariants(
         (
             Some(FastqFileInvariant {
                 path: r2_path.to_path_buf(),
-                gzip: r2_path
-                    .extension()
-                    .and_then(|x| x.to_str())
-                    .is_some_and(|x| x.eq_ignore_ascii_case("gz")),
+                gzip: r2_gzip,
+                gzip_valid: r2_gzip_valid,
                 read_count: r2s.read_count,
                 read_length_min: r2s.read_length_min,
                 read_length_max: r2s.read_length_max,
                 read_length_mean: r2s.read_length_mean,
+                read_length_histogram: r2s.read_length_histogram.clone(),
                 qscore_ascii_min: r2s.qscore_ascii_min,
                 qscore_ascii_max: r2s.qscore_ascii_max,
                 quality_encoding: quality_encoding_from_ascii(
+                    r2s.qscore_ascii_min,
+                    r2s.qscore_ascii_max,
+                ),
+                quality_encoding_confidence: quality_encoding_confidence(
                     r2s.qscore_ascii_min,
                     r2s.qscore_ascii_max,
                 ),
@@ -392,6 +465,12 @@ fn write_stage_path_contract(
         "layout": if is_paired { "pe" } else { "se" },
         "deterministic_root": stage_root,
         "intermediate_root": stage_root.join("tmp"),
+        "intermediate_paths": {
+            "stdout_log": stage_root.join("stdout.log"),
+            "stderr_log": stage_root.join("stderr.log"),
+            "runtime_provenance": stage_root.join("runtime_provenance.json"),
+            "resume_contract": stage_root.join("stage.resume_contract.json"),
+        },
         "outputs": outputs,
     });
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.path_contract.json"), &payload)
@@ -418,11 +497,21 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
         .find(|x| !x.trim().is_empty())
         .unwrap_or("")
         .trim();
-    let version = line
-        .split_whitespace()
-        .find(|tok| tok.chars().next().is_some_and(|c| c.is_ascii_digit()))
-        .unwrap_or("unknown")
-        .to_string();
+    let tokenized = line
+        .split(|c: char| c.is_whitespace() || c == ',' || c == ';' || c == '(' || c == ')')
+        .filter(|x| !x.trim().is_empty())
+        .collect::<Vec<_>>();
+    let version = tokenized
+        .iter()
+        .find_map(|tok| {
+            let t = tok.trim_start_matches('v').trim_start_matches('V');
+            if t.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+                Some(t.to_string())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "unknown".to_string());
     let payload = serde_json::json!({
         "schema_version": "bijux.tool_version_capture.v1",
         "tool": tool_bin,
@@ -437,12 +526,69 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
         .context("write stage.tool_version.json")
 }
 
+fn write_stage_resume_contract(
+    stage_root: &std::path::Path,
+    stage_id: &str,
+    execution: &StageResultV1,
+    resumed: bool,
+) -> Result<()> {
+    let mut checksums = serde_json::Map::new();
+    for path in &execution.outputs {
+        let key = path
+            .file_name()
+            .and_then(|x| x.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let value = if path.exists() {
+            bijux_dna_infra::hash_file_sha256(path)
+                .ok()
+                .map(serde_json::Value::String)
+                .unwrap_or(serde_json::Value::Null)
+        } else {
+            serde_json::Value::Null
+        };
+        checksums.insert(key, value);
+    }
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.stage_resume_contract.v1",
+        "stage_id": stage_id,
+        "resumed": resumed,
+        "exit_code": execution.exit_code,
+        "output_count": execution.outputs.len(),
+        "outputs_sha256": checksums
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.resume_contract.json"), &payload)
+        .context("write stage.resume_contract.json")
+}
+
 fn write_merge_join_contract(
     stage_root: &std::path::Path,
     execution: &StageResultV1,
     paired_consistent: bool,
 ) -> Result<()> {
-    let success = execution.exit_code == 0 && paired_consistent;
+    let expected_files = [
+        "merged.fastq.gz",
+        "unmerged_R1.fastq.gz",
+        "unmerged_R2.fastq.gz",
+    ];
+    let emitted_names = execution
+        .outputs
+        .iter()
+        .filter_map(|x| x.file_name().and_then(|n| n.to_str()).map(ToString::to_string))
+        .collect::<std::collections::BTreeSet<_>>();
+    let required_artifacts_present = expected_files
+        .iter()
+        .all(|name| emitted_names.contains(*name));
+    let success = execution.exit_code == 0 && paired_consistent && required_artifacts_present;
+    let failure_reason = if success {
+        None
+    } else if execution.exit_code != 0 {
+        Some("merge tool exited non-zero".to_string())
+    } else if !paired_consistent {
+        Some("paired-end input consistency check failed".to_string())
+    } else {
+        Some("required merge artifacts missing".to_string())
+    };
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.merge_join_contract.v1",
         "stage_id": "fastq.merge",
@@ -450,9 +596,11 @@ fn write_merge_join_contract(
         "criteria": {
             "exit_code_zero": execution.exit_code == 0,
             "paired_input_consistent": paired_consistent,
-            "outputs_emitted": !execution.outputs.is_empty()
+            "outputs_emitted": !execution.outputs.is_empty(),
+            "required_artifacts_present": required_artifacts_present,
         },
-        "failure_reason": if success { None::<String> } else { Some("paired-end join contract failed".to_string()) },
+        "required_artifacts": expected_files,
+        "failure_reason": failure_reason,
         "artifacts": execution.outputs,
     });
     bijux_dna_infra::atomic_write_json(&stage_root.join("merge.join_contract.json"), &payload)
