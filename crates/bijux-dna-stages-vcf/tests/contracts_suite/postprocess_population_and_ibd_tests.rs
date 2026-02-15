@@ -157,6 +157,7 @@
             dir.path(),
             &RohStageParams {
                 min_snp_density_per_mb: 0.00001,
+                max_missingness: 1.0,
                 min_segment_kb: 0,
                 max_gap_bp: 10_000_000,
             },
@@ -175,6 +176,7 @@
             dir.path(),
             &RohStageParams {
                 min_snp_density_per_mb: 1_000_000.0,
+                max_missingness: 0.2,
                 min_segment_kb: 500,
                 max_gap_bp: 1_000_000,
             },
@@ -237,4 +239,79 @@
         .unwrap_or_else(|err| panic!("run demography: {err}"));
         assert!(out.ne_trajectory_tsv.exists());
         assert!(out.demography_metrics_json.exists());
+    }
+
+    #[test]
+    fn imputed_vcf_to_roh_pca_ibd_integration_mini() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("impute_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:-0.1,-1.0,-2.0\t0/0:-0.1,-1.0,-2.0\n1\t200\t.\tC\tT\t60\tPASS\t.\tGT:GL\t0/1:-0.1,-1.0,-2.0\t0/1:-0.1,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write impute input: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let imputed = run_impute_stage(
+            &input,
+            &dir.path().join("impute"),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Beagle,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: None,
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run mini impute: {err}"));
+        let roh = run_roh_stage(
+            &imputed.imputed_vcf,
+            &dir.path().join("roh"),
+            &RohStageParams {
+                min_snp_density_per_mb: 0.00001,
+                max_missingness: 1.0,
+                min_segment_kb: 0,
+                max_gap_bp: 10_000_000,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run mini roh: {err}"));
+        let pca = run_pca_stage(
+            &imputed.imputed_vcf,
+            &dir.path().join("pca"),
+            &PcaStageParams::default(),
+        )
+        .unwrap_or_else(|err| panic!("run mini pca: {err}"));
+        let ibd = run_ibd_stage(
+            &imputed.imputed_vcf,
+            &dir.path().join("ibd"),
+            &IbdStageParams {
+                min_variant_density_per_mb: 0.00001,
+                max_missingness: 1.0,
+                min_samples: 2,
+                min_segment_cm: 1.0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run mini ibd: {err}"));
+        assert!(roh.roh_metrics_json.exists());
+        assert!(pca.eigenvec_tsv.exists());
+        assert!(ibd.ibd_metrics_json.exists());
     }
