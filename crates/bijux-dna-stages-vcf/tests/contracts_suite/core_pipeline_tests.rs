@@ -340,6 +340,15 @@
         assert!(out.filtered_tbi.exists());
         assert!(out.damage_filter_summary_json.exists());
         assert!(out.damage_filter_counts_json.exists());
+        let summary_raw = std::fs::read_to_string(&out.damage_filter_summary_json)
+            .unwrap_or_else(|err| panic!("read damage_filter_summary.json: {err}"));
+        let summary: serde_json::Value = serde_json::from_str(&summary_raw)
+            .unwrap_or_else(|err| panic!("parse damage_filter_summary json: {err}"));
+        assert!(summary.pointer("/prefilter/ct_ga_asymmetry").is_some());
+        assert!(summary.pointer("/filtering/filtered_fraction_by_mutation_type").is_some());
+        assert!(summary.pointer("/masking_strategy/mode").is_some());
+        assert!(summary.pointer("/thresholds/terminal_damage_threshold").is_some());
+        assert!(summary.pointer("/thresholds/pmd_min").is_some());
     }
 
     #[test]

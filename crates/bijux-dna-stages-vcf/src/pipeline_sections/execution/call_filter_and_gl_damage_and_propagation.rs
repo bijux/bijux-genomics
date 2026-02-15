@@ -26,6 +26,36 @@ pub struct DamageFilterOutputs {
     pub damage_filter_counts_json: PathBuf,
 }
 
+fn env_damage_mask_mode() -> String {
+    std::env::var("BIJUX_VCF_DAMAGE_MASK_MODE")
+        .ok()
+        .map(|v| v.to_ascii_lowercase())
+        .filter(|v| v == "remove" || v == "mark")
+        .unwrap_or_else(|| "remove".to_string())
+}
+
+fn env_terminal_damage_threshold() -> f64 {
+    std::env::var("BIJUX_VCF_DAMAGE_TERMINAL_THRESHOLD")
+        .ok()
+        .and_then(|v| v.parse::<f64>().ok())
+        .map(|v| v.clamp(0.0, 1.0))
+        .unwrap_or(0.50)
+}
+
+fn env_pmd_min_default(udg_regime: DamageUdgRegime) -> f64 {
+    if let Some(parsed) = std::env::var("BIJUX_VCF_DAMAGE_PMD_MIN")
+        .ok()
+        .and_then(|v| v.parse::<f64>().ok())
+    {
+        return parsed;
+    }
+    match udg_regime {
+        DamageUdgRegime::Udg => 0.0,
+        DamageUdgRegime::NonUdg => 3.0,
+        DamageUdgRegime::Unknown => 1.0,
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct GlPropagationStageParams {
     pub require_gl_or_pl: bool,
@@ -229,7 +259,17 @@ pub fn run_damage_filter_stage(
     let mut pre_total = 0_u64;
     let mut five_prime_signal = 0.0_f64;
     let mut three_prime_signal = 0.0_f64;
+    let mut ct_five_prime_high = 0_u64;
+    let mut ga_three_prime_high = 0_u64;
     let mut proxy_used = 0_u64;
+    let mut filtered_ct = 0_u64;
+    let mut filtered_ga = 0_u64;
+    let mut filtered_other = 0_u64;
+    let mut marked_lowconf = 0_u64;
+
+    let mask_mode = env_damage_mask_mode();
+    let terminal_threshold = env_terminal_damage_threshold();
+    let pmd_min = env_pmd_min_default(params.udg_regime);
 
     let threshold = match params.udg_regime {
         DamageUdgRegime::Udg => params.max_damage_ratio.min(0.60),
@@ -272,15 +312,56 @@ pub fn run_damage_filter_stage(
             proxy_used += 1;
             if is_ct || is_ga { 1.0 } else { 0.0 }
         };
+        let pmd_score = parse_info_value_f64(info, "PMD_SCORE")
+            .or_else(|| parse_info_value_f64(info, "PMD"))
+            .or_else(|| parse_info_value_f64(info, "PMDSCORE"));
+        let pmd_fail = pmd_score.is_some_and(|score| score < pmd_min);
         if is_ct || is_ga {
             let five = parse_info_value_f64(info, "DEAM5P").unwrap_or(ratio);
             let three = parse_info_value_f64(info, "DEAM3P").unwrap_or(ratio);
             five_prime_signal += five;
             three_prime_signal += three;
+            if is_ct && five >= terminal_threshold {
+                ct_five_prime_high += 1;
+            }
+            if is_ga && three >= terminal_threshold {
+                ga_three_prime_high += 1;
+            }
         }
-        if ratio > threshold {
-            *counts.entry("damage_ratio_exceeded".to_string()).or_insert(0) += 1;
-            continue;
+        let terminal_damage = (is_ct && parse_info_value_f64(info, "DEAM5P").unwrap_or(ratio) >= terminal_threshold)
+            || (is_ga && parse_info_value_f64(info, "DEAM3P").unwrap_or(ratio) >= terminal_threshold);
+        let filter_for_damage = ratio > threshold || pmd_fail || terminal_damage;
+        if filter_for_damage {
+            if is_ct {
+                filtered_ct += 1;
+            } else if is_ga {
+                filtered_ga += 1;
+            } else {
+                filtered_other += 1;
+            }
+            if ratio > threshold {
+                *counts.entry("damage_ratio_exceeded".to_string()).or_insert(0) += 1;
+            }
+            if pmd_fail {
+                *counts.entry("pmd_below_threshold".to_string()).or_insert(0) += 1;
+            }
+            if terminal_damage {
+                *counts.entry("terminal_damage_filtered".to_string()).or_insert(0) += 1;
+            }
+            if mask_mode == "mark" {
+                let mut row = fields.iter().map(|f| (*f).to_string()).collect::<Vec<_>>();
+                row[6] = if row[6] == "." || row[6] == "PASS" {
+                    "LOWCONF_DAMAGE_TERMINAL".to_string()
+                } else {
+                    format!("{};LOWCONF_DAMAGE_TERMINAL", row[6])
+                };
+                kept.push(row.join("\t"));
+                marked_lowconf += 1;
+                *counts.entry("lowconf_marked".to_string()).or_insert(0) += 1;
+            }
+            if mask_mode == "remove" {
+                continue;
+            }
         }
         *counts.entry("kept".to_string()).or_insert(0) += 1;
         kept.push(line.to_string());
@@ -305,6 +386,16 @@ pub fn run_damage_filter_stage(
     } else {
         (pre_damage_ct as f64 - pre_damage_ga as f64).abs() / total_damage as f64
     };
+    let filtered_total = filtered_ct + filtered_ga + filtered_other;
+    let filtered_fraction_by_mutation = if filtered_total == 0 {
+        serde_json::json!({"ct": 0.0, "ga": 0.0, "other": 0.0})
+    } else {
+        serde_json::json!({
+            "ct": filtered_ct as f64 / filtered_total as f64,
+            "ga": filtered_ga as f64 / filtered_total as f64,
+            "other": filtered_other as f64 / filtered_total as f64
+        })
+    };
     let damage_filter_summary_json = out_dir.join("damage_filter_summary.json");
     atomic_write_json(
         &damage_filter_summary_json,
@@ -321,12 +412,29 @@ pub fn run_damage_filter_stage(
                 "read_position_signal": {
                     "five_prime_sum": five_prime_signal,
                     "three_prime_sum": three_prime_signal,
+                    "ct_five_prime_high": ct_five_prime_high,
+                    "ga_three_prime_high": ga_three_prime_high,
                     "proxy_used_records": proxy_used
                 }
             },
+            "filtering": {
+                "filtered_counts": {
+                    "ct": filtered_ct,
+                    "ga": filtered_ga,
+                    "other": filtered_other
+                },
+                "filtered_fraction_by_mutation_type": filtered_fraction_by_mutation,
+                "marked_lowconf_records": marked_lowconf
+            },
             "thresholds": {
                 "min_qual": params.min_qual,
-                "max_damage_ratio": threshold
+                "max_damage_ratio": threshold,
+                "pmd_min": pmd_min,
+                "terminal_damage_threshold": terminal_threshold
+            },
+            "masking_strategy": {
+                "mode": mask_mode,
+                "terminal_action": if mask_mode == "mark" { "mark_low_confidence" } else { "remove_transition_sites" }
             }
         }),
     )?;
