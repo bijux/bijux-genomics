@@ -113,6 +113,49 @@ fn run_bcftools_mpileup_call(
     Ok(())
 }
 
+fn run_gatk_haplotype_caller(input_bam: &Path, out_vcf: &Path, params: &VcfCallParams) -> Result<()> {
+    ensure_bam_prerequisites(input_bam, params)?;
+    let reference = resolve_reference_path(params)?;
+    let out_dir = out_vcf
+        .parent()
+        .ok_or_else(|| anyhow!("output path has no parent"))?;
+    let raw_vcf = out_dir.join("gatk.raw.vcf");
+    let input_bam_s = input_bam
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let raw_vcf_s = raw_vcf
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 temporary gatk output path"))?;
+    let reference_s = Path::new(&reference)
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 reference path"))?;
+    let output = std::process::Command::new("gatk")
+        .args([
+            "HaplotypeCaller",
+            "-R",
+            reference_s,
+            "-I",
+            input_bam_s,
+            "-O",
+            raw_vcf_s,
+            "-ERC",
+            "GVCF",
+            "--min-base-quality-score",
+            &params.min_base_quality.to_string(),
+        ])
+        .output()
+        .map_err(|err| anyhow!("gatk invocation failed: {err}"))?;
+    if !output.status.success() {
+        bail!(
+            "gatk HaplotypeCaller failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let _ = crate::vcf_io::vcf_index_bgzip_tabix(&raw_vcf, out_vcf)?;
+    let _ = std::fs::remove_file(&raw_vcf);
+    Ok(())
+}
+
 fn try_run_angsd_gl_from_bam(input_bam: &Path, out_dir: &Path, params: &VcfCallParams) -> Result<bool> {
     ensure_bam_prerequisites(input_bam, params)?;
     let reference = resolve_reference_path(params)?;
@@ -378,7 +421,11 @@ pub fn run_call_diploid_stage(
     if input_vcf.extension().and_then(|x| x.to_str()) == Some("bam") {
         bijux_dna_infra::ensure_dir(out_dir)?;
         let out_vcf = out_dir.join("called_diploid.vcf.gz");
-        run_bcftools_mpileup_call(input_vcf, &out_vcf, params, false)?;
+        if params.caller == "gatk" {
+            run_gatk_haplotype_caller(input_vcf, &out_vcf, params)?;
+        } else {
+            run_bcftools_mpileup_call(input_vcf, &out_vcf, params, false)?;
+        }
         return write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params);
     }
     let raw = read_vcf_text(input_vcf)?;
