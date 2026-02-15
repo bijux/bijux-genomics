@@ -294,6 +294,30 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         let _ = bijux_dna_runtime::recording::write_telemetry_event(&telemetry_path, &fail_event);
         return Err(err);
     }
+    if std::env::var("BIJUX_RUNTIME_PARITY_CHECK")
+        .ok()
+        .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+    {
+        let secondary_runner = match request.runner {
+            bijux_dna_environment::api::RuntimeKind::Docker => {
+                bijux_dna_environment::api::RuntimeKind::Apptainer
+            }
+            bijux_dna_environment::api::RuntimeKind::Apptainer => {
+                bijux_dna_environment::api::RuntimeKind::Docker
+            }
+            _ => request.runner,
+        };
+        if secondary_runner != request.runner {
+            let parity = crate::cross_runtime::check_invocation_parity(
+                &invocation_request,
+                secondary_runner,
+            )?;
+            bijux_dna_infra::atomic_write_json(
+                &run_artifacts_dir.join("runtime_parity.json"),
+                &parity,
+            )?;
+        }
+    }
     let params_hash_path = run_artifacts_dir.join("stage_params_hash.json");
     let params_hash_payload = serde_json::json!({
         "schema_version": "bijux.stage_params_hash.v1",
