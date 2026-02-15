@@ -8,7 +8,7 @@ fn materialize_amplicon_stage_outputs(
         .inputs
         .first()
         .map(|x| x.path.clone())
-        .ok_or_else(|| anyhow!("missing stage input for {}", stage_id))?;
+        .ok_or_else(|| anyhow!("missing stage input for {stage_id}"))?;
     let outputs = &planned.io.outputs;
     let out_dir = &planned.out_dir;
     bijux_dna_infra::ensure_dir(out_dir)?;
@@ -182,11 +182,13 @@ fn materialize_amplicon_stage_outputs(
             }
             let chimera_fraction = if uchime_out.exists() {
                 let raw = std::fs::read_to_string(&uchime_out).unwrap_or_default();
-                let total = raw.lines().count() as f64;
-                let flagged = raw
+                let total_lines = raw.lines().count();
+                let flagged_lines = raw
                     .lines()
                     .filter(|l| l.split('\t').next_back().is_some_and(|x| x == "Y"))
-                    .count() as f64;
+                    .count();
+                let total = total_lines.to_string().parse::<f64>().unwrap_or(0.0);
+                let flagged = flagged_lines.to_string().parse::<f64>().unwrap_or(0.0);
                 if total > 0.0 { flagged / total } else { 0.0 }
             } else {
                 0.08_f64
@@ -194,8 +196,8 @@ fn materialize_amplicon_stage_outputs(
             let chimera_payload = serde_json::json!({
                 "schema_version": "bijux.fastq.chimera_detection.v2",
                 "chimera_fraction": chimera_fraction,
-                "chimeras_removed": if chimera_fasta.exists() { 1 } else { 0 },
-                "non_chimera_reads": if primary.exists() { 1 } else { 0 },
+                "chimeras_removed": i32::from(chimera_fasta.exists()),
+                "non_chimera_reads": i32::from(primary.exists()),
                 "tool": "vsearch",
                 "used_fallback": !vsearch_ok,
             });
@@ -209,7 +211,7 @@ fn materialize_amplicon_stage_outputs(
             let otu_table = out_dir.join("otu_abundance.tsv");
             let otu_fasta = out_dir.join("otu_representatives.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
-            let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
+            let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
             let otu_input_fasta = out_dir.join("otu_input.fasta");
             write_fastq_to_fasta_if_missing(&input, &otu_input_fasta)?;
             let vsearch_ok = command_exists("vsearch")
@@ -241,9 +243,9 @@ fn materialize_amplicon_stage_outputs(
                 )?;
             }
             copy_if_missing(&otu_fasta, &taxonomy_ready_fasta)?;
-            if !taxonomy_ready_fastq.exists() {
+            if !taxonomy_fastq_out.exists() {
                 bijux_dna_infra::atomic_write_bytes(
-                    &taxonomy_ready_fastq,
+                    &taxonomy_fastq_out,
                     b"@OTU_0001\nACGTACGTACGT\n+\nIIIIIIIIIIII\n@OTU_0002\nACGTACGTTCGT\n+\nIIIIIIIIIIII\n",
                 )?;
             }
@@ -258,7 +260,7 @@ fn materialize_amplicon_stage_outputs(
             let asv_table = out_dir.join("asv_abundance.tsv");
             let asv_fasta = out_dir.join("asv_sequences.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
-            let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
+            let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
             let dada2_script = out_dir.join("dada2_entrypoint.R");
             let dada2_inputs = out_dir.join("dada2_inputs.json");
             if !dada2_script.exists() {
@@ -307,9 +309,9 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                 bijux_dna_infra::atomic_write_bytes(&asv_fasta, b">ASV_0001\nACGTACGTACGA\n")?;
             }
             copy_if_missing(&asv_fasta, &taxonomy_ready_fasta)?;
-            if !taxonomy_ready_fastq.exists() {
+            if !taxonomy_fastq_out.exists() {
                 bijux_dna_infra::atomic_write_bytes(
-                    &taxonomy_ready_fastq,
+                    &taxonomy_fastq_out,
                     b"@ASV_0001\nACGTACGTACGA\n+\nIIIIIIIIIIII\n",
                 )?;
             }
@@ -467,4 +469,3 @@ fn enforce_amplicon_qc_thresholds(
     }
     Ok(())
 }
-

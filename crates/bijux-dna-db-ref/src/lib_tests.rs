@@ -50,8 +50,10 @@ mod tests {
             .unwrap_or_else(|err| panic!("resolve panel: {err}"));
         let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_chr_map"))
             .unwrap_or_else(|err| panic!("resolve map: {err}"));
-        let err = validate_imputation_tool_compatibility("minimac4", &panel, &map)
-            .expect_err("full panel must refuse minimac4");
+        let err = match validate_imputation_tool_compatibility("minimac4", &panel, &map) {
+            Ok(()) => panic!("full panel must refuse minimac4"),
+            Err(err) => err,
+        };
         assert!(err.to_string().contains("minimac4"));
     }
 
@@ -75,18 +77,21 @@ mod tests {
                 glimpse_reference_format: "bcf+sites".to_string(),
             },
         };
-        let err = resolve_panel_lock(&panel).expect_err("invalid lock_ref must fail");
+        let Err(err) = resolve_panel_lock(&panel) else {
+            panic!("invalid lock_ref must fail");
+        };
         assert!(err.to_string().contains("invalid lock_ref"));
     }
 
     #[test]
     fn declared_build_guard_rejects_mismatch() {
-        let err = enforce_declared_build_and_contigs(
+        let Err(err) = enforce_declared_build_and_contigs(
             "Homo sapiens",
             "GRCh37",
             &["chr1".to_string(), "chr2".to_string()],
-        )
-        .expect_err("mismatch must fail");
+        ) else {
+            panic!("mismatch must fail");
+        };
         assert!(err.to_string().contains("declared build mismatch"));
     }
 

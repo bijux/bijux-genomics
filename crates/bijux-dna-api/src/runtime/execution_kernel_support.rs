@@ -123,8 +123,8 @@ fn validate_runtime_path(name: &str, value: Option<&str>) -> Result<()> {
         bail!("{name} cannot be empty");
     }
     let parsed = PathBuf::from(path);
-    if parsed == PathBuf::from("/tmp")
-        || parsed == PathBuf::from("/var/tmp")
+    if parsed == std::path::Path::new("/tmp")
+        || parsed == std::path::Path::new("/var/tmp")
         || path.starts_with("/tmp/")
         || path.starts_with("/var/tmp/")
     {
@@ -157,22 +157,13 @@ fn validate_runtime_execution_config(cfg: &RuntimeExecutionConfig) -> Result<()>
             if pattern.trim().is_empty() {
                 bail!("per_stage pattern cannot be empty");
             }
-            validate_positive_u32(
-                &format!("per_stage.{pattern}.threads"),
-                knobs.threads,
-            )?;
-            validate_positive_u64(
-                &format!("per_stage.{pattern}.memory_mb"),
-                knobs.memory_mb,
-            )?;
+            validate_positive_u32(&format!("per_stage.{pattern}.threads"), knobs.threads)?;
+            validate_positive_u64(&format!("per_stage.{pattern}.memory_mb"), knobs.memory_mb)?;
             validate_positive_u32(
                 &format!("per_stage.{pattern}.compression_threads"),
                 knobs.compression_threads,
             )?;
-            validate_positive_u64(
-                &format!("per_stage.{pattern}.timeout_s"),
-                knobs.timeout_s,
-            )?;
+            validate_positive_u64(&format!("per_stage.{pattern}.timeout_s"), knobs.timeout_s)?;
             validate_runtime_path(
                 &format!("per_stage.{pattern}.temp_root"),
                 knobs.temp_root.as_deref(),
@@ -529,11 +520,10 @@ pub(super) fn mark_partial_failure_invalid(
 
 pub(super) fn enforce_seed_policy(req: &ToolInvocationRequest) -> Result<()> {
     let cfg = runtime_execution_config();
-    let seed_required_patterns = cfg
-        .per_stage
-        .as_ref()
-        .map(|_| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()])
-        .unwrap_or_else(|| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()]);
+    let seed_required_patterns = cfg.per_stage.as_ref().map_or_else(
+        || vec!["vcf.phasing".to_string(), "vcf.impute".to_string()],
+        |_| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()],
+    );
     let requires_seed = seed_required_patterns
         .iter()
         .any(|pattern| stage_matches(pattern, &req.context.stage_id));
@@ -698,8 +688,9 @@ mod tests {
             deterministic_env: None,
             per_stage: None,
         };
-        let err = validate_runtime_execution_config(&cfg)
-            .expect_err("config with zero threads and /tmp root must be rejected");
+        let Err(err) = validate_runtime_execution_config(&cfg) else {
+            panic!("config with zero threads and /tmp root must be rejected");
+        };
         assert!(
             err.to_string().contains("default_threads must be > 0")
                 || err.to_string().contains("cannot point to system tmp")

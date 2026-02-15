@@ -287,13 +287,13 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_out,
     )?;
     let align_step = bijux_dna_stage_contract::execution_step_from_stage_plan(&align_plan);
-    let align_bam = align_out.join("align.bam");
-    let align_bai = align_out.join("align.bam.bai");
+    let align_bam_path = align_out.join("align.bam");
+    let align_bai_path = align_out.join("align.bam.bai");
     write_bam_invariants(
         &align_out,
         bijux_dna_planner_bam::stage_api::BamStage::Align,
-        &align_bam,
-        Some(&align_bai),
+        &align_bam_path,
+        Some(&align_bai_path),
         Some(&reference.fasta),
     )?;
     write_tool_wrapper_contract(
@@ -314,7 +314,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
             "derived": {
                 "preset": align_args.aligner_preset.clone(),
                 "read_group": {
-                    "rg_id": align_args.rg_id.clone().unwrap_or_else(|| format!("rg-{}", sample_id)),
+                    "rg_id": align_args.rg_id.clone().unwrap_or_else(|| format!("rg-{sample_id}")),
                     "rg_sm": align_args.rg_sm.clone().unwrap_or_else(|| sample_id.clone()),
                     "rg_pl": align_args.rg_pl.clone().unwrap_or_else(|| "ILLUMINA".to_string()),
                     "rg_lb": align_args.rg_lb.clone().unwrap_or_else(|| "lib1".to_string()),
