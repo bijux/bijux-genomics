@@ -104,7 +104,7 @@ pub fn write_artifact_checksums_json(
     for (name, path) in artifacts {
         if path.exists() {
             let sum = hash_file_sha256(path)?;
-            checksums.insert(name.to_string(), sum);
+            checksums.insert(name.clone(), sum);
         }
     }
     let out_path = output_dir.join("artifact_checksums.json");
