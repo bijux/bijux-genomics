@@ -89,6 +89,21 @@
         })
         .unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
         assert!(out.report_path.exists());
+        let report_raw = std::fs::read_to_string(&out.report_path)
+            .unwrap_or_else(|err| panic!("read report.json: {err}"));
+        let report_json: serde_json::Value = serde_json::from_str(&report_raw)
+            .unwrap_or_else(|err| panic!("parse report.json: {err}"));
+        let provenance_line = report_json
+            .get("vcf_provenance_line")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+        assert!(
+            provenance_line.contains("tools=")
+                && provenance_line.contains("digests=")
+                && provenance_line.contains("panel_lock=")
+                && provenance_line.contains("reference_lock="),
+            "vcf_provenance_line must include tool digest and panel/reference lock fields"
+        );
         let explain_path = out.artifact_root.join("explain.json");
         assert!(explain_path.exists(), "missing explain.json");
         let explain: serde_json::Value = serde_json::from_str(
