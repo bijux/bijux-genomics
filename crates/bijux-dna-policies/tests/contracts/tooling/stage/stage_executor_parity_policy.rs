@@ -253,7 +253,7 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
                 .and_then(serde_yaml::Value::as_bool)
                 .unwrap_or(false);
             let host_only_justification = yaml_str(doc, "host_only_justification").unwrap_or("");
-            if !host_only && !(runtimes.contains("docker") && runtimes.contains("apptainer")) {
+            if !(host_only || runtimes.contains("docker") && runtimes.contains("apptainer")) {
                 offenders.push(format!(
                     "stage {stage_id} tool {tool_id} must provide docker+apptainer runtimes"
                 ));
