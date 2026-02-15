@@ -30,6 +30,10 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&run_root).context("create preprocess run dir")?;
     let entry_invariants = write_fastq_entry_invariants(&run_root, &args.r1, args.r2.as_deref())?;
     maybe_write_fastq_coverage_classifier(&run_root, &entry_invariants)?;
+    let primer_governance = enforce_primer_governance(&run_root, args, &entry_invariants)?;
+    write_reference_db_validation_artifact(&run_root, None, primer_governance.as_ref())?;
+    write_contamination_controls_report(&run_root, &normalized_sample_id)?;
+    write_batch_effect_summary(&run_root, &normalized_sample_id, &entry_invariants)?;
     if args.r2.is_some() && !entry_invariants.paired_consistent {
         return Err(anyhow!(
             "fastq entry invariants failed: {}",
@@ -218,6 +222,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stages = pipeline_plan.steps().to_vec();
+    if matches!(
+        args.mode,
+        bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
+            | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
+    ) && planned_stages.iter().any(|step| {
+        step.step_id.as_str().starts_with("bam.") || step.step_id.as_str().starts_with("vcf.")
+    }) {
+        return Err(anyhow!(
+            "amplicon mode refusal: BAM/VCF stages are not schedulable in eDNA/pollen preprocess pipeline"
+        ));
+    }
     let required_tools = required_fastq_tools()?;
     for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
@@ -441,6 +456,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         }
         if stage_id == "fastq.merge" {
             write_merge_join_contract(&stage_root, &execution, entry_invariants.paired_consistent)?;
+            enforce_amplicon_merge_determinism(&stage_root, args.mode, &execution)?;
         }
         write_retention_report(&stage_root, planned)?;
         if execution.exit_code != 0 {
@@ -521,6 +537,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
     write_retry_policy(&root)?;
     write_taxonomy_db_drift_report(&root, contaminant_bank.as_ref())?;
+    write_reference_db_validation_artifact(
+        &root,
+        contaminant_bank.as_ref(),
+        primer_governance.as_ref(),
+    )?;
     let decision_trace_path = root.join("decision_trace.json");
     let identity_norm = serde_json::json!({
         "schema_version": "bijux.identity_normalization.v1",
@@ -561,6 +582,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::atomic_write_json(&graph_path, &graph).context("write graph.json")?;
     write_run_manifest(&args.out, &stage_runs, &failures)?;
     write_scientific_provenance(&args.out, &stage_runs)?;
+    write_edna_report_summary(&root, &stage_runs)?;
     if let Some(decision) = decisions.merge_decision.as_ref() {
         let run_id = stage_runs
             .first()

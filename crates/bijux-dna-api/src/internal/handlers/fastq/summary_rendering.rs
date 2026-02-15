@@ -62,6 +62,7 @@ pub(crate) fn render_run_summary(
         "failures": failures_json,
         "run_provenance": run_provenance,
         "fastq_scientific_summary": fastq_scientific_summary(stage_runs),
+        "edna_report_sections": read_json_if_exists(&root.join("edna_summary.json")).unwrap_or(serde_json::Value::Null),
         "pipeline_decisions": {
             "merge": merge_decision,
             "correct": correct_decision,
