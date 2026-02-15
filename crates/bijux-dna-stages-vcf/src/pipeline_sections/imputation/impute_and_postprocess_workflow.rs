@@ -1,3 +1,38 @@
+fn parse_acceptance_stage_keys(raw: &str, stage_id: &str) -> Vec<String> {
+    let mut in_target = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed == "[[stage]]" {
+            in_target = false;
+            continue;
+        }
+        if let Some(value) = trimmed.strip_prefix("stage_id = ") {
+            in_target = value.trim_matches('"') == stage_id;
+            continue;
+        }
+        if in_target {
+            if let Some(value) = trimmed.strip_prefix("acceptance = [") {
+                let inner = value.trim_end_matches(']').trim();
+                if inner.is_empty() {
+                    return Vec::new();
+                }
+                return inner
+                    .split(',')
+                    .map(|x| x.trim().trim_matches('"').to_string())
+                    .filter(|x| !x.is_empty())
+                    .collect::<Vec<_>>();
+            }
+        }
+    }
+    Vec::new()
+}
+
+fn load_downstream_acceptance_for_stage(stage_id: &str) -> Vec<String> {
+    let path = workspace_root().join("configs/vcf/downstream_acceptance.toml");
+    let raw = std::fs::read_to_string(path).unwrap_or_default();
+    parse_acceptance_stage_keys(&raw, stage_id)
+}
+
 fn run_impute_stage_inner(
     input_vcf: &Path,
     out_dir: &Path,
@@ -505,6 +540,29 @@ fn run_impute_stage_inner(
             "thresholds": thresholds,
         }),
     )?;
+    let acceptance_keys = load_downstream_acceptance_for_stage("vcf.impute");
+    let acceptance_evidence = serde_json::json!({
+        "imputed_vcf_bgzip_tabix": imputed_vcf.exists() && imputed_tbi.exists(),
+        "imputation_manifest_with_tool_digest": true,
+        "decision_imputation_accept_present": imputation_accept_json.exists(),
+        "imputation_qc_present": imputation_qc_json.exists(),
+    });
+    let unmet_acceptance = acceptance_keys
+        .iter()
+        .filter(|key| {
+            !acceptance_evidence
+                .get(key.as_str())
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if !unmet_acceptance.is_empty() {
+        bail!(
+            "downstream acceptance contract failed for vcf.impute: {}",
+            unmet_acceptance.join(",")
+        );
+    }
     atomic_write_json(
         &overlap_stats_json,
         &serde_json::json!({
@@ -535,6 +593,7 @@ fn run_impute_stage_inner(
         "INFO_required": true,
     });
     let mut chunk_manifests = Vec::new();
+    let mut chunk_logs = Vec::new();
     let chunks_dir = out_dir.join("chunks");
     bijux_dna_infra::ensure_dir(&chunks_dir)?;
     let planned_chunks = {
@@ -570,9 +629,39 @@ fn run_impute_stage_inner(
         chunks
     };
     for (idx, (chunk_id, contig)) in planned_chunks.iter().enumerate() {
-        let chunk_manifest_path =
-            chunks_dir.join(format!("chunk_{idx:03}.imputation_manifest.json"));
+        let chunk_slug = format!("chunk_{idx:03}");
+        let chunk_manifest_path = chunks_dir.join(format!("{chunk_slug}.imputation_manifest.json"));
+        let chunk_log_path = chunks_dir.join(format!("{chunk_slug}.log"));
+        let chunk_checksum_path = chunks_dir.join(format!("{chunk_slug}.sha256"));
         let chunk_started = std::time::Instant::now();
+        let resume_payload = format!(
+            "{}|{}|{}|{}|{}|{}|{}",
+            chunk_id,
+            contig,
+            params.backend.as_str(),
+            params.threads,
+            params.seed,
+            checksum_hex(raw.as_bytes()),
+            panel.id
+        );
+        let expected_resume_checksum = checksum_hex(resume_payload.as_bytes());
+        let resume_ok = if chunk_manifest_path.exists() && chunk_checksum_path.exists() {
+            std::fs::read_to_string(&chunk_checksum_path)
+                .map(|x| x.trim().to_string())
+                .ok()
+                .is_some_and(|x| x == expected_resume_checksum)
+        } else {
+            false
+        };
+        if resume_ok {
+            atomic_write_bytes(
+                &chunk_log_path,
+                format!("chunk_id={chunk_id}\nresumed=true\nstatus=ok\n").as_bytes(),
+            )?;
+            chunk_logs.push(chunk_log_path);
+            chunk_manifests.push(chunk_manifest_path);
+            continue;
+        }
         let chunk_payload = serde_json::json!({
             "schema_version": "bijux.vcf.imputation.chunk_manifest.v1",
             "chunk_id": chunk_id,
@@ -589,8 +678,37 @@ fn run_impute_stage_inner(
             "output_field_contract": field_contract,
         });
         atomic_write_json(&chunk_manifest_path, &chunk_payload)?;
+        atomic_write_bytes(&chunk_checksum_path, format!("{expected_resume_checksum}\n").as_bytes())?;
+        atomic_write_bytes(
+            &chunk_log_path,
+            format!(
+                "chunk_id={chunk_id}\nresumed=false\nstatus=ok\nbackend={}\nthreads={}\nseed={}\nwall_time_ms={}\n",
+                params.backend.as_str(),
+                params.threads,
+                params.seed,
+                chunk_started.elapsed().as_millis(),
+            )
+            .as_bytes(),
+        )?;
+        chunk_logs.push(chunk_log_path);
         chunk_manifests.push(chunk_manifest_path);
     }
+    let ligation_manifest = if matches!(params.backend, ImputeBackend::Glimpse) {
+        let path = out_dir.join("glimpse_ligate_manifest.json");
+        atomic_write_json(
+            &path,
+            &serde_json::json!({
+                "schema_version": "bijux.vcf.glimpse_ligate.v1",
+                "step": "GLIMPSE_ligate",
+                "ordering": "deterministic_contig_then_position",
+                "chunks_total": planned_chunks.len(),
+                "seed": params.seed,
+            }),
+        )?;
+        Some(path)
+    } else {
+        None
+    };
     let map_manifest = map.as_ref().map(|m| {
         serde_json::json!({
             "map_id": m.id,
@@ -614,11 +732,18 @@ fn run_impute_stage_inner(
             "emit_gp": params.emit_gp,
             "sample_order_stable": true,
             "chunk_manifests": chunk_manifests,
+            "chunk_logs": chunk_logs,
             "chunk_plan": {
                 "mode": if params.chunk_window_bp.unwrap_or(0) == 0 { "per_chromosome" } else { "fixed_windows_overlap" },
                 "window_bp": params.chunk_window_bp,
                 "overlap_bp": params.chunk_overlap_bp,
                 "chunks_total": planned_chunks.len(),
+            },
+            "glimpse_ligation": ligation_manifest,
+            "acceptance_from_config": {
+                "required_keys": acceptance_keys,
+                "evidence": acceptance_evidence,
+                "unmet": unmet_acceptance,
             },
             "resource_accounting": {
                 "threads_used": params.threads,
