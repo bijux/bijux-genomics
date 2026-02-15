@@ -171,3 +171,7 @@ scripts/containers/check-apptainer-frontend-reproducibility.sh
 scripts/containers/check-apptainer-frontend-security.sh
 scripts/containers/run-apptainer-frontend-reproducibility.sh
 scripts/containers/run-apptainer-frontend-security.sh
+scripts/tooling/lint-fast.sh
+scripts/checks/check-clippy-allowlist-growth.sh
+scripts/checks/check-rustflags-consistency.sh
+scripts/experimental/flake-hunt.sh

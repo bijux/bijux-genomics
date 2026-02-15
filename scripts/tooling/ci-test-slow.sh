@@ -10,7 +10,7 @@ export LC_ALL
 
 nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
 test_features="${TEST_FEATURES:---all-features}"
-nextest_profile="${NEXTEST_PROFILE:-ci}"
+nextest_profile="${NEXTEST_PROFILE:-slow-integration}"
 nextest_threads="${NEXTEST_TEST_THREADS:-8}"
 nextest_no_tests="${NEXTEST_NO_TESTS:-pass}"
 run_ignored="${RUN_IGNORED:---run-ignored all}"

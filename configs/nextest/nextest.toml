@@ -32,3 +32,27 @@ test-threads = 1
 failure-output = "immediate"
 success-output = "never"
 status-level = "fail"
+
+[profile.fast-unit]
+retries = { count = 0, backoff = "fixed", delay = "1s" }
+fail-fast = true
+test-threads = 8
+failure-output = "immediate-final"
+success-output = "never"
+status-level = "pass"
+
+[profile.slow-integration]
+retries = { count = 1, backoff = "fixed", delay = "1s" }
+fail-fast = false
+test-threads = 4
+failure-output = "immediate-final"
+success-output = "never"
+status-level = "pass"
+
+[profile.certification]
+retries = { count = 0, backoff = "fixed", delay = "1s" }
+fail-fast = true
+test-threads = 1
+failure-output = "immediate-final"
+success-output = "never"
+status-level = "skip"

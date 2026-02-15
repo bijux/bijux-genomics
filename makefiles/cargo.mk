@@ -1,4 +1,7 @@
 NEXTEST_PROFILE ?= ci
+NEXTEST_PROFILE_FAST ?= fast-unit
+NEXTEST_PROFILE_SLOW ?= slow-integration
+NEXTEST_PROFILE_CERT ?= certification
 ARTIFACTS_DIR ?= $(if $(ISO_ROOT),$(ISO_ROOT)/artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),no-runid),artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),local))
 NEXTEST_TOML := configs/nextest/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
@@ -38,8 +41,27 @@ lint:
 	fi
 
 _lint:
+	@$(MAKE) _lint-rustfmt
+	@$(MAKE) _lint-configs
+	@$(MAKE) _lint-docs
 	@$(MAKE) _lint-scripts
 	@$(MAKE) _lint-clippy
+
+_lint-rustfmt:
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh tooling ci-fmt
+
+_lint-configs:
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh checks check-config-schema
+	@./scripts/run.sh checks check-config-layout
+	@./scripts/run.sh checks check-generated-configs
+	@./scripts/run.sh checks check-generated-config-headers
+
+_lint-docs:
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh docs check-doc-links
+	@./scripts/run.sh checks check-docs-build-contract
 
 _lint-scripts:
 	@./bin/require-isolate >/dev/null
@@ -70,6 +92,46 @@ lint-scripts: ## Run repo-doctor + script/container lint checks (parallelized), 
 	else \
 		$(MAKE) _lint-scripts; \
 	fi
+
+lint-rustfmt: ## Run rustfmt gate only.
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-lint-rustfmt-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-rustfmt; \
+	else \
+		$(MAKE) _lint-rustfmt; \
+	fi
+
+lint-clippy: ## Run clippy gate only.
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-lint-clippy-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-clippy; \
+	else \
+		$(MAKE) _lint-clippy; \
+	fi
+
+lint-docs: ## Run docs lint gates only.
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-lint-docs-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-docs; \
+	else \
+		$(MAKE) _lint-docs; \
+	fi
+
+lint-configs: ## Run config/schema lint gates only.
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-lint-configs-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-configs; \
+	else \
+		$(MAKE) _lint-configs; \
+	fi
+
+lint-fast: ## Run lint checks relevant to changed paths only.
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh tooling lint-fast
 
 _lint-clippy:
 	@./bin/require-isolate >/dev/null
@@ -109,10 +171,10 @@ _test:
 
 _test-fast: ## Run fast test suite excluding only slow-labeled tests.
 	@./bin/require-isolate >/dev/null
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_FAST)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
 
 _test-slow: ## Run only slow-labeled tests (functions containing slow__).
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_SLOW)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
 	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
@@ -281,6 +343,11 @@ _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 
+flake-hunt: ## Run repeated flake hunt for an expression (EXPR required, RUNS optional).
+	@./bin/require-isolate >/dev/null
+	@if [ -z "$(EXPR)" ]; then echo "EXPR is required, e.g. make flake-hunt EXPR='test(...)' RUNS=20" >&2; exit 2; fi
+	@./scripts/experimental/flake-hunt.sh "$(EXPR)" "$(or $(RUNS),20)"
+
 realness-gate: ## Run strict realness checks (placeholder artifacts + planner realization).
 	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh checks check-domain-realization
@@ -310,7 +377,7 @@ local-certification-gate: ## Run local mini-domain certification suite and emit 
 
 vcf-certification: ## Local-only VCF certification run (sequential VCF stage contract suite).
 	@./bin/require-isolate >/dev/null
-	@./scripts/run.sh tooling cargo-targets vcf-certification
+	@NEXTEST_PROFILE="$(NEXTEST_PROFILE_CERT)" ./scripts/run.sh tooling cargo-targets vcf-certification
 
 certify-fastq: ## Local FASTQ certification smoke.
 	@./bin/require-isolate >/dev/null
@@ -349,18 +416,18 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint lint-scripts test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
+.PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-scripts test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
 		_clean-isolates \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
 		_test-fast \
-		_clippy _clippy-executors _lint _lint-scripts _lint-clippy _lint-clippy-executors \
+		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-scripts _lint-clippy _lint-clippy-executors \
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
 		certify-fastq certify-bam certify-vcf certify-all \
-		refresh-assets-toy refresh-assets-golden
+		refresh-assets-toy refresh-assets-golden flake-hunt
 release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
 	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh docs check-doc-links
@@ -369,6 +436,7 @@ release-gate: ## Minimal publishable gate (docs + lint + registry/container lock
 	@./scripts/run.sh containers check-version-lock
 	@./scripts/run.sh containers check-version-authority
 	@./scripts/run.sh checks check-root-layout
+	@$(MAKE) certify-vcf
 
 _ci-profile-fast:
 	@./scripts/run.sh tooling ci-fast
