@@ -16,10 +16,11 @@ hits_file="$tmp_dir/hits.txt"
 
 # 1) Executable stage code must not write placeholder bytes as artifacts.
 rg -n -i \
-  "atomic_write_bytes\([^)]*placeholder|write_bytes\([^)]*placeholder" \
+  "atomic_write_bytes\([^)]*placeholder|write_bytes\([^)]*placeholder|atomic_write_json\([^)]*placeholder|write_json\([^)]*placeholder|fake_artifact|dummy_artifact|stub_artifact" \
   "$ROOT_DIR/crates/bijux-dna-stages-fastq/src" \
   "$ROOT_DIR/crates/bijux-dna-stages-bam/src" \
   "$ROOT_DIR/crates/bijux-dna-stages-vcf/src" \
+  "$ROOT_DIR/crates/bijux-dna-api/src/internal/handlers" \
   >>"$hits_file" || true
 
 # 2) Produced artifact roots must not contain placeholder markers.
@@ -39,7 +40,7 @@ for artifact_root in "${artifact_roots[@]}"; do
     --glob '**/*.yaml' \
     --glob '**/*.yml' \
     --glob '**/*.toml' \
-    "placeholder|fake_artifact|dummy_artifact|stub_artifact" \
+    "placeholder|fake_artifact|dummy_artifact|stub_artifact|-placeholder-" \
     "$artifact_root" \
     >>"$hits_file" || true
 done

@@ -15,8 +15,8 @@ hits_file="$tmp_dir/hits.txt"
 : > "$hits_file"
 
 # Domain realization policy:
-# Stage planners must not pass through pre-baked command templates.
-rg -n "tool\.command\.template\.clone\(\)" \
+# Stage planners/adapters must not pass through pre-baked command templates.
+rg -n "tool\.command\.template\.clone\(\)|command:\s*tool\.command\.clone\(\)" \
   "$ROOT_DIR/crates/bijux-dna-planner-bam/src" \
   "$ROOT_DIR/crates/bijux-dna-planner-vcf/src" \
   "$ROOT_DIR/crates/bijux-dna-planner-fastq/src" \
