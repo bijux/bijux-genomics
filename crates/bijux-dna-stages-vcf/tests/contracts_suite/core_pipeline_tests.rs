@@ -244,6 +244,22 @@
     }
 
     #[test]
+    fn vcf_real_bgzip_tabix_path_works_on_toy_input() {
+        if std::env::var("BIJUX_E2E").is_err() {
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let normalized = dir.path().join("normalized.vcf");
+        let output_vcfgz = dir.path().join("normalized.vcf.gz");
+        std::fs::copy(input, &normalized).unwrap_or_else(|err| panic!("copy fixture: {err}"));
+        let tbi = bijux_dna_stages_vcf::vcf_io::vcf_index_bgzip_tabix(&normalized, &output_vcfgz)
+            .unwrap_or_else(|err| panic!("real bgzip/tabix path: {err}"));
+        assert!(output_vcfgz.exists(), "missing bgzip output");
+        assert!(tbi.exists(), "missing tabix index");
+    }
+
+    #[test]
     fn vcf_call_alias_dispatches_to_regime_specific_stage() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
