@@ -1,7 +1,7 @@
 # bijux-dna-db-ref
 
 ## What this crate does
-Owns deterministic species/build reference resolution for VCF planning (`resolve_species_context`, `resolve_reference_bundle`).
+Owns deterministic species/build reference resolution for VCF planning (`resolve_species_context`, `resolve_reference_bundle`) and runtime authority lookups (`species.toml`, `reference_bank.toml`).
 
 ## What it must not do (boundaries)
 Must not execute tools, spawn processes, or perform runtime orchestration; it only resolves lock-backed metadata.
@@ -25,6 +25,7 @@ Owns reference governance contracts and consumes `bijux-dna-domain-vcf` species/
 ## Failure modes
 - Unknown species/build alias.
 - Missing/invalid reference bundle lock metadata.
+- Missing species/reference authority metadata.
 - Contig/build mismatch at resolution time.
 
 ## How to run its tests
