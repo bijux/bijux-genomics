@@ -15,6 +15,33 @@
     }
 
     #[test]
+    fn filter_stage_applies_mq_dp_and_strand_bias_tags() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("filter_thresholds.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\tDP=5;MQ=20;FS=80\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let out = run_filter_stage_real(
+            &input,
+            dir.path(),
+            &bijux_dna_domain_vcf::params::VcfFilterParams {
+                require_pass: false,
+                ..bijux_dna_domain_vcf::params::VcfFilterParams::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run filter stage: {err}"));
+        let raw = std::fs::read_to_string(&out.filter_breakdown_json)
+            .unwrap_or_else(|err| panic!("read filter_breakdown.json: {err}"));
+        let json: serde_json::Value =
+            serde_json::from_str(&raw).unwrap_or_else(|err| panic!("parse json: {err}"));
+        assert!(json.to_string().contains("LOW_DP"));
+        assert!(json.to_string().contains("LOW_MQ"));
+        assert!(json.to_string().contains("STRAND_BIAS"));
+    }
+
+    #[test]
     fn qc_stage_computes_outputs_and_skips_hwe_for_ancient_default() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
@@ -35,6 +62,12 @@
         assert!(out.imputation_qc_tsv.exists());
         assert!(out.warnings_json.exists());
         assert!(out.qc_histograms_json.exists());
+        let summary_raw = std::fs::read_to_string(&out.qc_summary_json)
+            .unwrap_or_else(|err| panic!("read qc_summary.json: {err}"));
+        let summary: serde_json::Value =
+            serde_json::from_str(&summary_raw).unwrap_or_else(|err| panic!("parse qc summary: {err}"));
+        assert!(summary.get("ti_tv").is_some());
+        assert!(summary.get("het_hom_ratio").is_some());
     }
 
     #[test]

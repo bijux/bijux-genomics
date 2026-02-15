@@ -75,6 +75,81 @@
     }
 
     #[test]
+    fn prepare_reference_panel_refuses_excessive_allele_mismatch_fraction() {
+        let old = std::env::var("BIJUX_VCF_PANEL_MISMATCH_MAX").ok();
+        let old_overlap = std::env::var("BIJUX_VCF_PANEL_OVERLAP_MIN").ok();
+        std::env::set_var("BIJUX_VCF_PANEL_MISMATCH_MAX", "0.01");
+        std::env::set_var("BIJUX_VCF_PANEL_OVERLAP_MIN", "0.0");
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("abc123");
+        let panel_raw = panel_root.join("raw");
+        let panel_normalized = panel_root.join("normalized");
+        let panel_derived = panel_root.join("derived");
+        std::fs::create_dir_all(&panel_raw).unwrap_or_else(|err| panic!("mkdir raw: {err}"));
+        std::fs::create_dir_all(&panel_normalized)
+            .unwrap_or_else(|err| panic!("mkdir normalized: {err}"));
+        std::fs::create_dir_all(&panel_derived).unwrap_or_else(|err| panic!("mkdir derived: {err}"));
+        let panel = panel_raw.join("panel.vcf.gz");
+        std::fs::write(
+            &panel,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t101\t.\tA\tC\t60\tPASS\tDP=8\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write panel mismatch fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_prepare_reference_panel_stage(
+            input,
+            &panel,
+            dir.path(),
+            &species,
+            &PrepareReferencePanelParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+            },
+        )
+        .expect_err("excessive allele mismatch must fail");
+        assert!(err.to_string().contains("allele mismatch fraction above threshold"));
+        if let Some(v) = old {
+            std::env::set_var("BIJUX_VCF_PANEL_MISMATCH_MAX", v);
+        } else {
+            std::env::remove_var("BIJUX_VCF_PANEL_MISMATCH_MAX");
+        }
+        if let Some(v) = old_overlap {
+            std::env::set_var("BIJUX_VCF_PANEL_OVERLAP_MIN", v);
+        } else {
+            std::env::remove_var("BIJUX_VCF_PANEL_OVERLAP_MIN");
+        }
+    }
+
+    #[test]
     fn chunked_regions_emit_chunks_json_and_merged_output() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
