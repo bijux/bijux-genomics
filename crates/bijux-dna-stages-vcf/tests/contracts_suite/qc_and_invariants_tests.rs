@@ -38,6 +38,33 @@
     }
 
     #[test]
+    fn qc_stage_allows_hwe_when_explicitly_enabled_for_ancient() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let out = run_qc_stage(
+            input,
+            dir.path(),
+            &QcStageParams {
+                sample_name: "sample1".to_string(),
+                is_ancient_dna: true,
+                allow_hwe_for_ancient: true,
+                production_profile: false,
+                pre_filter_vcf: None,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run qc stage with explicit ancient HWE enablement: {err}"));
+        assert!(out.qc_summary_json.exists());
+        let summary_raw = std::fs::read_to_string(&out.qc_summary_json)
+            .unwrap_or_else(|err| panic!("read qc_summary.json: {err}"));
+        let summary: serde_json::Value = serde_json::from_str(&summary_raw)
+            .unwrap_or_else(|err| panic!("parse qc_summary json: {err}"));
+        assert_eq!(
+            summary.get("hwe_status").and_then(serde_json::Value::as_str),
+            Some("computed_modern")
+        );
+    }
+
+    #[test]
     fn stats_stage_emits_bcftools_stats_and_json() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
