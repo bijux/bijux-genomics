@@ -523,10 +523,6 @@ fn maybe_emit_reference_manifest(
             name.contains("reference") || name.contains("fasta") || name.contains("ref")
         })
         .collect::<Vec<_>>();
-    if reference_inputs.is_empty() {
-        return Ok(());
-    }
-
     let species = request
         .plan
         .params
@@ -545,6 +541,19 @@ fn maybe_emit_reference_manifest(
         .get("usecase")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string);
+    let observed_contigs = request
+        .plan
+        .params
+        .get("observed_contigs")
+        .and_then(serde_json::Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
 
     let mut inputs = Vec::new();
     for artifact in reference_inputs {
@@ -563,6 +572,13 @@ fn maybe_emit_reference_manifest(
 
     let authority =
         if let (Some(species_id), Some(build_id)) = (species.as_deref(), build.as_deref()) {
+            if !observed_contigs.is_empty() {
+                bijux_dna_db_ref::enforce_declared_build_and_contigs(
+                    species_id,
+                    build_id,
+                    &observed_contigs,
+                )?;
+            }
             let bundle = bijux_dna_db_ref::resolve_reference_bundle(species_id, build_id)?;
             let bank = bijux_dna_db_ref::resolve_reference_bank(species_id, build_id)?;
             let sex_rule = bijux_dna_db_ref::resolve_sex_chromosome_rule(species_id, build_id).ok();
@@ -570,6 +586,22 @@ fn maybe_emit_reference_manifest(
             let default_set = usecase.as_deref().and_then(|kind| {
                 bijux_dna_db_ref::resolve_default_reference_set(species_id, kind).ok()
             });
+            let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .and_then(std::path::Path::parent)
+                .map_or_else(|| std::path::PathBuf::from("."), std::path::Path::to_path_buf);
+            let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
+            let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
+            let lock_json_sha256 = if lock_json.exists() {
+                Some(bijux_dna_infra::hash_file_sha256(&lock_json)?)
+            } else {
+                None
+            };
+            let lock_sig_sha256 = if lock_sig.exists() {
+                Some(bijux_dna_infra::hash_file_sha256(&lock_sig)?)
+            } else {
+                None
+            };
             Some(serde_json::json!({
                 "species_id": species_id,
                 "build_id": build_id,
@@ -578,6 +610,12 @@ fn maybe_emit_reference_manifest(
                 "sex_chromosome_rule": sex_rule,
                 "organellar_policy": organellar,
                 "default_reference_set": default_set,
+                "reference_lock": {
+                    "lock_json": lock_json,
+                    "lock_json_sha256": lock_json_sha256,
+                    "lock_signature": lock_sig,
+                    "lock_signature_sha256": lock_sig_sha256,
+                },
             }))
         } else {
             None
