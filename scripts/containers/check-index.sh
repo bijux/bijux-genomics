@@ -12,7 +12,7 @@ index="$ROOT_DIR/containers/docs/index.md"
 TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
 ensure_artifacts_dir "$TMP_ROOT"
 mkdir -p "$TMP_ROOT"
-tmp="$(mktemp "$TMP_ROOT/containers-index.XXXXXX.md")"
+tmp="$(mktemp "$TMP_ROOT/containers-index.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT
 
 "$SCRIPT_DIR/generate-index.sh" "$tmp" >/dev/null
