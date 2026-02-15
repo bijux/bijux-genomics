@@ -19,7 +19,9 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
 fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_matches_committed_snapshot(
 ) {
     let root = support::workspace_root();
-    let snapshot_path = root.join("artifacts/container_manifest.json");
+    let snapshot_path = root.join(
+        "crates/bijux-dna-policies/tests/fixtures/container_manifest.snapshot.json",
+    );
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
@@ -60,6 +62,6 @@ fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_mat
     assert_eq!(
         normalized_json(&actual).trim(),
         normalized_json(&expected).trim(),
-        "artifacts/container_manifest.json is stale. Regenerate with: bijux dna registry export-containers --json > artifacts/container_manifest.json"
+        "container manifest snapshot is stale. Regenerate with: bijux dna registry export-containers --json > crates/bijux-dna-policies/tests/fixtures/container_manifest.snapshot.json"
     );
 }

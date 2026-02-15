@@ -1,0 +1,413 @@
+{
+  "containers": [
+    {
+      "apptainer_def": "containers/apptainer/bijux/alientrimmer.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.alientrimmer",
+      "pinned_commit": "release:0.4.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "alientrimmer",
+      "upstream": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
+      "version": "0.4.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/angsd.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.angsd",
+      "pinned_commit": "git:6b5d90641cc6924a0fab06584297f9a1cd1f46ac",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "angsd",
+      "upstream": "https://github.com/ANGSD/angsd",
+      "version": "0.940"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/authenticct.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.authenticct",
+      "pinned_commit": "git:f58b25c448c8d9afebcdddd351cbae84fd5f6bab",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "authenticct",
+      "upstream": "https://github.com/StephanePeyregne/AuthentiCT",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bamtools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bamtools",
+      "pinned_commit": "release:2.5.2",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bamtools",
+      "upstream": "https://github.com/pezmaster31/bamtools",
+      "version": "2.5.2"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bbduk.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bbduk",
+      "pinned_commit": "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bbduk",
+      "upstream": "https://sourceforge.net/projects/bbmap/",
+      "version": "39.08"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bedtools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bedtools",
+      "pinned_commit": "release:2.31.1",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bedtools",
+      "upstream": "https://github.com/arq5x/bedtools2",
+      "version": "2.31.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bowtie2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bowtie2",
+      "pinned_commit": "release:2.5.4",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bowtie2",
+      "upstream": "https://github.com/BenLangmead/bowtie2",
+      "version": "2.5.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bracken.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bracken",
+      "pinned_commit": "git:c5bfec1929fe30feef21afbde67b16bda44de448",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bracken",
+      "upstream": "https://github.com/jenniferlu717/Bracken",
+      "version": "2.9"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/bwa.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bwa",
+      "pinned_commit": "release:0.7.17",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bwa",
+      "upstream": "https://github.com/lh3/bwa",
+      "version": "0.7.17"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/contammix.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.contammix",
+      "pinned_commit": "release:1.0.11",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "contammix",
+      "upstream": "https://bioconductor.org/packages/contamMix",
+      "version": "1.0.11"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/fastp.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastp",
+      "pinned_commit": "sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastp",
+      "upstream": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
+      "version": "0.23.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/vsearch.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.vsearch",
+      "pinned_commit": "sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastq.validate_pre",
+      "upstream": "https://github.com/vsearch/vsearch",
+      "version": "2.28.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/fastqc.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastqc",
+      "pinned_commit": "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastqc",
+      "upstream": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
+      "version": "0.12.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/fastqvalidator.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastqvalidator",
+      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastqvalidator",
+      "upstream": "https://github.com/fastqvalidator/fastqvalidator",
+      "version": "v0.1.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/fastx_clipper.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastx_clipper",
+      "pinned_commit": "release:0.0.14",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastx_clipper",
+      "upstream": "https://github.com/agordon/fastx_toolkit",
+      "version": "0.0.14"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/king.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.king",
+      "pinned_commit": "release:2.3.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "king",
+      "upstream": "https://www.kingrelatedness.com/",
+      "version": "2.3.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/kraken2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.kraken2",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "kraken2",
+      "upstream": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
+      "version": "2.1.3"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/krakenuniq.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.krakenuniq",
+      "pinned_commit": "git:f4e3796580c5c576b15e929c741e6e725b7e29b6",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "krakenuniq",
+      "upstream": "https://github.com/fbreitwieser/krakenuniq",
+      "version": "1.0.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/mapdamage2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.mapdamage2",
+      "pinned_commit": "git:484bb3094de69422c2308385aa2bfaf0ef12fa27",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "mapdamage2",
+      "upstream": "https://github.com/ginolhac/mapDamage",
+      "version": "2.2.2"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/mosdepth.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.mosdepth",
+      "pinned_commit": "release:0.3.10",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "mosdepth",
+      "upstream": "https://github.com/brentp/mosdepth",
+      "version": "0.3.10"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/multiqc.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.multiqc",
+      "pinned_commit": "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "multiqc",
+      "upstream": "https://github.com/multiqc/multiqc",
+      "version": "1.24"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/pear.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.pear",
+      "pinned_commit": "sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "pear",
+      "upstream": "https://github.com/xflouris/PEAR",
+      "version": "0.9.6"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/pmdtools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.pmdtools",
+      "pinned_commit": "git:cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "pmdtools",
+      "upstream": "https://github.com/pontussk/PMDtools",
+      "version": "0.60"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/pydamage.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.pydamage",
+      "pinned_commit": "git:08f1d0f2d1981d350decbf10964f989e9567ddbf",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "pydamage",
+      "upstream": "https://github.com/maxibor/pydamage",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/rcorrector.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.rcorrector",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "rcorrector",
+      "upstream": "https://github.com/mourisl/Rcorrector",
+      "version": "1.0.7"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/rxy.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.rxy",
+      "pinned_commit": "release:1.0.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "rxy",
+      "upstream": "https://github.com/bijux/bijux-dna",
+      "version": "1.0.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/samtools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.samtools",
+      "pinned_commit": "release:1.21",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "samtools",
+      "upstream": "https://github.com/samtools/samtools",
+      "version": "1.21"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/schmutzi.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.schmutzi",
+      "pinned_commit": "git:d11884ccf71666f9fa64188ee74947a7a3c86fb5",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "schmutzi",
+      "upstream": "https://github.com/grenaud/schmutzi",
+      "version": "1.5.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/seqkit.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.seqkit",
+      "pinned_commit": "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "seqkit",
+      "upstream": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
+      "version": "2.8.2"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/seqkit_stats.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.seqkit_stats",
+      "pinned_commit": "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "seqkit_stats",
+      "upstream": "https://github.com/seqkit_stats/seqkit_stats",
+      "version": "2.7.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/sortmerna.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.sortmerna",
+      "pinned_commit": "release:4.3.7",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "sortmerna",
+      "upstream": "https://github.com/biocore/sortmerna",
+      "version": "4.3.7"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/star.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.star",
+      "pinned_commit": "release:2.7.11b",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "star",
+      "upstream": "https://github.com/alexdobin/STAR",
+      "version": "2.7.11b"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/umi_tools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.umi_tools",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "umi_tools",
+      "upstream": "https://github.com/umi_tools/umi_tools",
+      "version": "1.1.6"
+    },
+    {
+      "apptainer_def": "containers/apptainer/bijux/verifybamid2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.verifybamid2",
+      "pinned_commit": "git:4b362f5191b8385d038350acc03800890dd66524",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "verifybamid2",
+      "upstream": "https://github.com/Griffan/VerifyBamID",
+      "version": "2.0.1"
+    }
+  ],
+  "schema_version": "bijux.container_manifest.v1"
+}
