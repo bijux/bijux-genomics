@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.validate",
-  "stage_version": 1,
-  "tool_id": "bamtools",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,51 +7,52 @@
       "bamtools stats -in tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "strict": true
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       },
       {
         "name": "reference",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reference.fasta",
-        "role": "index",
-        "optional": false
+        "role": "index"
       },
       {
         "name": "bam_bai",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam.bai",
-        "role": "index",
-        "optional": false
+        "role": "index"
       }
     ],
     "outputs": [
       {
         "name": "validation_report",
+        "optional": false,
         "path": "out/validation.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "flagstat",
+        "optional": false,
         "path": "out/flagstat.txt",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -69,16 +63,22 @@
     "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
     "strict": true
   },
-  "effective_params": {
-    "strict": true
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool bamtools selected by planner",
     "details": {
       "contract_hash": "925cb33211ccc79bc629bcfe4fad807cd594855b39c976795246bf27119d8ae5",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool bamtools selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.validate",
+  "stage_version": 1,
+  "tool_id": "bamtools",
+  "tool_version": "1.0.0"
 }

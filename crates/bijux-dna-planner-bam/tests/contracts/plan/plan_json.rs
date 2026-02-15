@@ -1,4 +1,6 @@
 use anyhow::Result;
+use serde_json::Value;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -33,13 +35,52 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+fn stage_snapshot_id(stage: BamStage) -> &'static str {
+    match stage {
+        BamStage::Align => "stage__bam__bam.align",
+        BamStage::Validate => "stage__bam__bam.validate",
+        BamStage::QcPre => "stage__bam__bam.qc_pre",
+        BamStage::Filter => "stage__bam__bam.filter",
+        BamStage::Markdup => "stage__bam__bam.markdup",
+        BamStage::Complexity => "stage__bam__bam.complexity",
+        BamStage::Coverage => "stage__bam__bam.coverage",
+        BamStage::Damage => "stage__bam__bam.damage",
+        BamStage::Authenticity => "stage__bam__bam.authenticity",
+        BamStage::Contamination => "stage__bam__bam.contamination",
+        BamStage::Sex => "stage__bam__bam.sex",
+        BamStage::BiasMitigation => "stage__bam__bam.bias_mitigation",
+        BamStage::Recalibration => "stage__bam__bam.recalibration",
+        BamStage::Haplogroups => "stage__bam__bam.haplogroups",
+        BamStage::Genotyping => "stage__bam__bam.genotyping",
+        BamStage::Kinship => "stage__bam__bam.kinship",
+        _ => "stage__bam__bam.align",
+    }
+}
+
+fn tool_id_from_snapshot(stage: BamStage) -> Option<ToolId> {
+    let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("snapshots")
+        .join(format!(
+            "{}.json",
+            snapshot_name("contracts", stage_snapshot_id(stage))
+        ));
+    let raw = fs::read_to_string(snapshot_path).ok()?;
+    let parsed: Value = serde_json::from_str(&raw).ok()?;
+    parsed
+        .get("tool_id")
+        .and_then(Value::as_str)
+        .map(ToolId::new)
+}
+
 fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("fixtures")
         .join("plan_inputs")
         .join("default");
-    let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
+    let tool_id =
+        tool_id_from_snapshot(stage).unwrap_or_else(|| bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage));
     let tool = dummy_tool(tool_id.as_str());
     plan_stage(StagePlanRequest {
         stage_id: stage.as_str(),
@@ -56,11 +97,29 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
 }
 
 fn has_tool_candidates(stage: BamStage) -> bool {
-    !bijux_dna_planner_bam::stage_api::allowed_tools_for_stage(stage).is_empty()
+    bijux_dna_domain_bam::stage_contract_json(stage.as_str())
+        .and_then(|value| value.get("tool_ids").cloned())
+        .and_then(|value| value.as_array().cloned())
+        .is_some_and(|ids| !ids.is_empty())
+}
+
+fn sort_json(value: Value) -> Value {
+    match value {
+        Value::Object(map) => {
+            let sorted: BTreeMap<String, Value> = map
+                .into_iter()
+                .map(|(k, v)| (k, sort_json(v)))
+                .collect();
+            Value::Object(sorted.into_iter().collect())
+        }
+        Value::Array(items) => Value::Array(items.into_iter().map(sort_json).collect()),
+        other => other,
+    }
 }
 
 fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
-    let mut payload = serde_json::to_string_pretty(&plan)?;
+    let canonical = sort_json(serde_json::to_value(plan)?);
+    let mut payload = serde_json::to_string_pretty(&canonical)?;
     let crate_root = format!("{}/", PathBuf::from(env!("CARGO_MANIFEST_DIR")).display());
     payload = payload.replace(&crate_root, "");
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

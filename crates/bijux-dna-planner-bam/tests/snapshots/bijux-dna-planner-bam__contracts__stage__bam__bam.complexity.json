@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.complexity",
-  "stage_version": 1,
-  "tool_id": "preseq",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,45 +7,50 @@
       "preseq lc_extrap -o out/preseq.txt tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"report\": \"out/preseq.txt\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"preseq\": \"out/preseq.txt\"}, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "min_reads": 100000,
+    "projection_points": [
+      1000000,
+      2000000
+    ]
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "complexity_report",
+        "optional": false,
         "path": "out/complexity.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "preseq",
+        "optional": false,
         "path": "out/preseq.txt",
-        "role": "unknown",
-        "optional": false
+        "role": "unknown"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/complexity.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -65,20 +63,22 @@
       2000000
     ]
   },
-  "effective_params": {
-    "min_reads": 100000,
-    "projection_points": [
-      1000000,
-      2000000
-    ]
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool preseq selected by planner",
     "details": {
       "contract_hash": "a0400e60558e63421984276b3d6f96adfcff26bacd7c972a05f41da0a95d1e14",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool preseq selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.complexity",
+  "stage_version": 1,
+  "tool_id": "preseq",
+  "tool_version": "1.0.0"
 }

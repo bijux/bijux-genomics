@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.recalibration",
-  "stage_version": 1,
-  "tool_id": "gatk",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,51 +7,57 @@
       "gatk BaseRecalibrator -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam  -O out/recalibration.table && gatk ApplyBQSR -I tests/fixtures/plan_inputs/default/sample.bam -R tests/fixtures/plan_inputs/default/sample.bam --bqsr-recal-file out/recalibration.table -O out/recalibrated.bam && samtools index out/recalibrated.bam out/recalibrated.bam.bai && python - <<'PY' > out/recalibration.summary.json\nimport json\nprint(json.dumps({\"mode\": \"Standard\", \"known_sites\": [], \"recal_report\": \"out/recalibration.table\", \"output_bam\": \"out/recalibrated.bam\"}, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "known_sites": [],
+    "mode": "standard",
+    "skip_criteria": {
+      "min_breadth_1x": 0.5,
+      "min_mean_coverage": 2.0
+    }
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "recal_bam",
+        "optional": false,
         "path": "out/recal.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       },
       {
         "name": "recal_bai",
+        "optional": false,
         "path": "out/recal.bam.bai",
-        "role": "index",
-        "optional": false
+        "role": "index"
       },
       {
         "name": "recal_report",
+        "optional": false,
         "path": "out/recal.report.txt",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/recal.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -72,21 +71,22 @@
       "min_mean_coverage": 2.0
     }
   },
-  "effective_params": {
-    "known_sites": [],
-    "mode": "standard",
-    "skip_criteria": {
-      "min_breadth_1x": 0.5,
-      "min_mean_coverage": 2.0
-    }
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool gatk selected by planner",
     "details": {
       "contract_hash": "d03f9a0733339e6b402715d07753a58fac0604880c041a33769517edd2bd1fd4",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool gatk selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.recalibration",
+  "stage_version": 1,
+  "tool_id": "gatk",
+  "tool_version": "1.0.0"
 }

@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.damage",
-  "stage_version": 1,
-  "tool_id": "mapdamage2",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,39 +7,44 @@
       "mapDamage --bam tests/fixtures/plan_inputs/default/sample.bam --folder out && if [ -f out/misincorporation.txt ]; then cp out/misincorporation.txt out/damage.mapdamage2.txt; elif [ -f out/5pCtoT.txt ]; then cp out/5pCtoT.txt out/damage.mapdamage2.txt; else : > out/damage.mapdamage2.txt; fi"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "pmd_threshold_3p": 0.3,
+    "pmd_threshold_5p": 0.3,
+    "trim_3p": 2,
+    "trim_5p": 2,
+    "udg_model": "non_udg"
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "damage_pydamage",
+        "optional": false,
         "path": "out/damage.pydamage.json",
-        "role": "unknown",
-        "optional": false
+        "role": "unknown"
       },
       {
         "name": "damage_mapdamage2",
+        "optional": false,
         "path": "out/damage.mapdamage2.txt",
-        "role": "unknown",
-        "optional": false
+        "role": "unknown"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -59,20 +57,22 @@
     "trim_5p": 2,
     "udg_model": "non_udg"
   },
-  "effective_params": {
-    "pmd_threshold_3p": 0.3,
-    "pmd_threshold_5p": 0.3,
-    "trim_3p": 2,
-    "trim_5p": 2,
-    "udg_model": "non_udg"
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool mapdamage2 selected by planner",
     "details": {
       "contract_hash": "0454c24c1061c6239167de49706c3f48dd6b7a07d703caf76e61e1bb6a9ebb99",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool mapdamage2 selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.damage",
+  "stage_version": 1,
+  "tool_id": "mapdamage2",
+  "tool_version": "1.0.0"
 }

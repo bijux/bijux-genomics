@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.markdup",
-  "stage_version": 1,
-  "tool_id": "samtools",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,69 +7,72 @@
       "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && samtools markdup tests/fixtures/plan_inputs/default/sample.bam out/markdup.bam && samtools index out/markdup.bam out/markdup.bam.bai && samtools flagstat out/markdup.bam > out/flagstat.after.txt && samtools idxstats out/markdup.bam > out/idxstats.after.txt && python - <<'PY' > out/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "duplicate_action": "mark",
+    "optical_duplicates": "mark_only",
+    "umi_policy": "ignore"
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "markdup_bam",
+        "optional": false,
         "path": "out/markdup.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       },
       {
         "name": "markdup_bai",
+        "optional": false,
         "path": "out/markdup.bam.bai",
-        "role": "index",
-        "optional": false
+        "role": "index"
       },
       {
         "name": "flagstat_before",
+        "optional": false,
         "path": "out/flagstat.before.txt",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "flagstat_after",
+        "optional": false,
         "path": "out/flagstat.after.txt",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "idxstats_before",
+        "optional": false,
         "path": "out/idxstats.before.txt",
-        "role": "unknown",
-        "optional": false
+        "role": "unknown"
       },
       {
         "name": "idxstats_after",
+        "optional": false,
         "path": "out/idxstats.after.txt",
-        "role": "unknown",
-        "optional": false
+        "role": "unknown"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/markdup.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -87,18 +83,22 @@
     "optical_duplicates": "mark_only",
     "umi_policy": "ignore"
   },
-  "effective_params": {
-    "duplicate_action": "mark",
-    "optical_duplicates": "mark_only",
-    "umi_policy": "ignore"
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool samtools selected by planner",
     "details": {
       "contract_hash": "e91c0268797e944707a1798c79b7b48f9340ca8abffbf89d2e24821859eaa973",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool samtools selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.markdup",
+  "stage_version": 1,
+  "tool_id": "samtools",
+  "tool_version": "1.0.0"
 }

@@ -1,12 +1,5 @@
 {
-  "stage_id": "bam.sex",
-  "stage_version": 1,
-  "tool_id": "rxy",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": [
       "/bin/sh",
@@ -14,39 +7,41 @@
       "rxy --input tests/fixtures/plan_inputs/default/sample.bam > out/sex.json && python - <<'PY' > out/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
     ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "expected_sex": null,
+    "method": "rxy"
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "sex_report",
+        "optional": false,
         "path": "out/sex.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/sex.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -56,17 +51,22 @@
     "expected_sex": null,
     "method": "rxy"
   },
-  "effective_params": {
-    "expected_sex": null,
-    "method": "rxy"
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool rxy selected by planner",
     "details": {
       "contract_hash": "1399c79c4e2c99f0c6f959390afc0f790952103b4b15da8387cc82eeb29d702f",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool rxy selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.sex",
+  "stage_version": 1,
+  "tool_id": "rxy",
+  "tool_version": "1.0.0"
 }
