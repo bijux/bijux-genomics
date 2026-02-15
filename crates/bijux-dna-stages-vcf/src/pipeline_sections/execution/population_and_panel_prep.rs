@@ -42,19 +42,13 @@ fn write_bgzip_with_best_effort_index(
     payload: &str,
     tmp_name: &str,
 ) -> Result<PathBuf> {
-    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
     let tmp_vcf = out_vcfgz
         .parent()
         .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
         .join(tmp_name);
     atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
-    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
-        let _ = std::fs::remove_file(&tmp_vcf);
-        return Ok(out_tbi);
-    }
+    let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz)?;
     let _ = std::fs::remove_file(&tmp_vcf);
-    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
-    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
     Ok(out_tbi)
 }
 
