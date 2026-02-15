@@ -272,12 +272,24 @@ fn parse_flagstat_counts(path: &Path) -> Result<serde_json::Value> {
 }
 
 fn classify_mean_depth(mean_depth: f64) -> &'static str {
-    if mean_depth < 2.0 {
-        "lowcov_adna_like"
-    } else if mean_depth < 10.0 {
-        "medium_coverage"
+    if mean_depth < 1.0 {
+        "<1x"
+    } else if mean_depth <= 5.0 {
+        "1-5x"
+    } else if mean_depth > 10.0 {
+        ">10x"
     } else {
-        "high_coverage"
+        "5-10x"
+    }
+}
+
+fn coverage_regime_family(mean_depth: f64) -> &'static str {
+    if mean_depth <= 5.0 {
+        "lowcov"
+    } else if mean_depth < 10.0 {
+        "midcov"
+    } else {
+        "highcov"
     }
 }
 
@@ -476,6 +488,7 @@ fn stage_postprocess(
                     "has_samtools_depth": depth_path.exists(),
                     "mean_depth": mean_depth,
                     "coverage_regime": mean_depth.map(classify_mean_depth),
+                    "coverage_family": mean_depth.map(coverage_regime_family),
                     "depth_thresholds": plan.params.get("depth_thresholds").cloned().unwrap_or_else(|| serde_json::json!([])),
                 }),
             )
