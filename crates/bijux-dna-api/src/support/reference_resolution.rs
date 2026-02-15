@@ -4,19 +4,19 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResolvedReference {
+pub(crate) struct ResolvedReference {
     pub species_id: String,
     pub build_id: String,
     pub fasta: PathBuf,
     pub contig_set_digest: Option<String>,
 }
 
-pub trait ReferenceResolver {
+pub(crate) trait ReferenceResolver {
     fn resolve(&self, species_id: &str, build_id: &str) -> Result<ResolvedReference>;
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct LocalReferenceResolver {
+pub(crate) struct LocalReferenceResolver {
     pub root: Option<PathBuf>,
 }
 

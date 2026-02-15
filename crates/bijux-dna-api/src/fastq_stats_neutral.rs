@@ -245,7 +245,6 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     })
 }
 
-#[allow(clippy::too_many_lines)]
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

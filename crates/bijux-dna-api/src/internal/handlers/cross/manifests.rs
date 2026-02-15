@@ -30,7 +30,6 @@ pub fn write_defaults_ledger(out_dir: &Path, profile: &PipelineProfile) -> Resul
     Ok(path)
 }
 
-#[allow(clippy::too_many_lines)]
 pub fn write_cross_run_manifest(
     out_dir: &Path,
     profile: &PipelineProfile,
@@ -344,7 +343,6 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
         .to_string()
 }
 
-#[allow(clippy::too_many_lines)]
 fn run_provenance_from_cross(
     out_dir: &Path,
     fastq_summary: &serde_json::Value,

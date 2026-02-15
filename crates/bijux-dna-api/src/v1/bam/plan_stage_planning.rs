@@ -59,7 +59,6 @@ pub fn plan_for_bam_stage(
     plan_for_bam_stage_with_profile(stage, spec, args, &profile, out_dir)
 }
 
-#[allow(clippy::too_many_lines)]
 /// # Errors
 /// Returns an error if stage arguments are invalid or planning fails.
 pub fn plan_for_bam_stage_with_profile(

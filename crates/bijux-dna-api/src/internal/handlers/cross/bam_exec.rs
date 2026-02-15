@@ -6,6 +6,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_environment::resolve::ReferenceRecord;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_domain_bam::metrics as bam_metrics;
 
 use crate::execution_kernel::{NetworkPolicy, ToolContext, ToolInvocationRequest};
 use crate::internal::handlers::fastq::StageExecutionSummary;
@@ -292,30 +293,29 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
     let mut measurements = Vec::new();
     let pydamage = stage_dir.join("damage.pydamage.json");
     if pydamage.exists() {
-        if let Ok(parsed) = bijux_dna_domain_bam::metrics::parse_pydamage_json(&pydamage) {
+        if let Ok(parsed) = bam_metrics::parse_pydamage_json(&pydamage) {
             measurements.push(("pydamage", parsed));
         }
     }
     let profiler = stage_dir.join("damage.profiler.json");
     if profiler.exists() {
-        if let Ok(parsed) = bijux_dna_domain_bam::metrics::parse_damageprofiler_json(&profiler) {
+        if let Ok(parsed) = bam_metrics::parse_damageprofiler_json(&profiler) {
             measurements.push(("damageprofiler", parsed));
         }
     }
     let mapdamage = stage_dir.join("damage.mapdamage2.txt");
     if mapdamage.exists() {
-        if let Ok(parsed) =
-            bijux_dna_domain_bam::metrics::parse_mapdamage2_misincorporation(&mapdamage)
+        if let Ok(parsed) = bam_metrics::parse_mapdamage2_misincorporation(&mapdamage)
         {
             measurements.push(("mapdamage2", parsed));
         }
     }
     let canonical = measurements.first().map_or_else(
-        bijux_dna_domain_bam::metrics::DamageMetricsV1::empty,
+        bam_metrics::DamageMetricsV1::empty,
         |(_, metric)| metric.clone(),
     );
     let comparison = if measurements.len() >= 2 {
-        Some(bijux_dna_domain_bam::metrics::compare_damage_metrics(
+        Some(bam_metrics::compare_damage_metrics(
             measurements[0].0,
             &measurements[0].1,
             measurements[1].0,
@@ -369,8 +369,7 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         .join("contamination")
         .join("contamination.summary.json");
     let contamination_estimate = if contamination_path.exists() {
-        let contamination =
-            bijux_dna_domain_bam::metrics::parse_contamination_json(&contamination_path)?;
+        let contamination = bam_metrics::parse_contamination_json(&contamination_path)?;
         contamination.estimate
     } else {
         0.0

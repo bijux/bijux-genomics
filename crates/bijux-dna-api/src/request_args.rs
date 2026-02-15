@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 /// Benchmark a single BAM stage.
 ///
 /// Stability: v1 (stable).
@@ -21,7 +20,6 @@ pub struct BenchBamStageArgs {
 }
 
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 /// Benchmark a full BAM pipeline.
 ///
 /// Stability: v1 (stable).
@@ -41,7 +39,6 @@ pub struct BenchBamPipelineArgs {
 }
 
 #[derive(Debug, Clone)]
-#[allow(clippy::struct_excessive_bools)]
 /// Run a BAM pipeline with explicit tool selection.
 ///
 /// Stability: v1 (stable).

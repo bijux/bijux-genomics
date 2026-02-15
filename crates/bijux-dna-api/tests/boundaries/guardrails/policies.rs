@@ -26,6 +26,7 @@ fn api_has_no_planning_policy_keywords() {
         "/src/explain.rs",
         "/src/fastq_stats_neutral.rs",
         "/src/internal/handlers/bam.rs",
+        "/src/internal/handlers/cross/bam_exec.rs",
         "/src/internal/handlers/fastq/summary.rs",
         "/src/internal/handlers/fastq/summary_rendering.rs",
         "/src/internal/handlers/fastq/summary_contracts.rs",

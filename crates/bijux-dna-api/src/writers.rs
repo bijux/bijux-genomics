@@ -4,7 +4,7 @@ use anyhow::Result;
 use bijux_dna_core::contract::ArtifactSpec;
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct ArtifactWriter;
+pub(crate) struct ArtifactWriter;
 
 impl ArtifactWriter {
     /// # Errors
@@ -17,7 +17,8 @@ impl ArtifactWriter {
             .iter()
             .map(|artifact| (artifact.name.to_string(), artifact.path.clone()))
             .collect::<Vec<_>>();
-        let checksums = bijux_dna_runtime::recording::write_artifact_checksums_json(stage_root, &output_spec)?;
+        let checksums =
+            bijux_dna_runtime::recording::write_artifact_checksums_json(stage_root, &output_spec)?;
         Ok(serde_json::to_value(checksums)?)
     }
 
@@ -50,7 +51,7 @@ impl ArtifactWriter {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct MetricsWriter;
+pub(crate) struct MetricsWriter;
 
 impl MetricsWriter {
     #[must_use]
