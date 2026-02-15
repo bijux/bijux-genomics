@@ -434,6 +434,184 @@ fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
     Ok(stored == current && stored != serde_json::Value::Null)
 }
 
+fn update_resume_report(
+    stage_root: &Path,
+    stage_id: &str,
+    status: &str,
+    reason: &str,
+) -> Result<()> {
+    let report_path = stage_root.join("resume_report.json");
+    let mut cached = Vec::<serde_json::Value>::new();
+    let mut recomputed = Vec::<serde_json::Value>::new();
+    if report_path.exists() {
+        let existing: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
+        cached = existing
+            .get("cached")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        recomputed = existing
+            .get("recomputed")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+    }
+    let entry = serde_json::json!({
+        "stage_id": stage_id,
+        "reason": reason,
+        "timestamp": chrono::Utc::now(),
+    });
+    if status == "cached" {
+        cached.push(entry);
+    } else {
+        recomputed.push(entry);
+    }
+    let payload = serde_json::json!({
+        "schema_version": "bijux.resume_report.v1",
+        "cached": cached,
+        "recomputed": recomputed,
+        "summary": {
+            "cached_count": cached.len(),
+            "recomputed_count": recomputed.len(),
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&report_path, &payload)?;
+    Ok(())
+}
+
+fn mark_partial_failure_invalid(
+    stage_root: &Path,
+    outputs: &[bijux_dna_core::contract::ArtifactSpec],
+) -> Result<()> {
+    let invalid_dir = stage_root.join("invalid_artifacts");
+    bijux_dna_infra::ensure_dir(&invalid_dir)?;
+    let mut invalid = Vec::<serde_json::Value>::new();
+    for artifact in outputs {
+        if artifact.path.exists() {
+            let marker = invalid_dir.join(format!("{}.invalid", artifact.name));
+            bijux_dna_infra::atomic_write_bytes(
+                &marker,
+                format!("invalidated_after_failure={}\n", chrono::Utc::now()).as_bytes(),
+            )?;
+            invalid.push(serde_json::json!({
+                "name": artifact.name,
+                "path": artifact.path,
+                "marker": marker,
+                "status": "invalid_after_failure",
+            }));
+        }
+    }
+    let payload = serde_json::json!({
+        "schema_version": "bijux.partial_failure_cleanup.v1",
+        "policy": "keep_intermediates_mark_invalid",
+        "items": invalid,
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("partial_failure_cleanup.json"), &payload)?;
+    Ok(())
+}
+
+fn enforce_seed_policy(req: &ToolInvocationRequest) -> Result<()> {
+    let cfg = runtime_execution_config();
+    let seed_required_patterns = cfg
+        .per_stage
+        .as_ref()
+        .map(|_| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()])
+        .unwrap_or_else(|| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()]);
+    let requires_seed = seed_required_patterns
+        .iter()
+        .any(|pattern| stage_matches(pattern, &req.context.stage_id));
+    let random_allowed = std::env::var("BIJUX_RANDOM_ALLOWED")
+        .ok()
+        .is_some_and(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"));
+    if requires_seed && req.context.seed.is_none() && !random_allowed {
+        bail!(
+            "deterministic randomness policy violation: stage {} requires configured seed or BIJUX_RANDOM_ALLOWED=1",
+            req.context.stage_id
+        );
+    }
+    Ok(())
+}
+
+fn rewrite_long_region_args(
+    step: &ExecutionStep,
+    work_dir: &Path,
+    threshold: usize,
+) -> Result<ExecutionStep> {
+    let joined = step.command.template.join(" ");
+    if joined.len() <= threshold {
+        return Ok(step.clone());
+    }
+    let mut rewritten = step.clone();
+    let mut args = rewritten.command.template.clone();
+    let mut idx = 0usize;
+    while idx + 1 < args.len() {
+        let flag = args[idx].as_str();
+        let value = args[idx + 1].clone();
+        if (flag == "--regions" || flag == "--targets")
+            && value.len() > threshold / 3
+            && value.contains(',')
+        {
+            let file = work_dir.join(if flag == "--regions" {
+                "regions.list"
+            } else {
+                "targets.list"
+            });
+            let body = value
+                .split(',')
+                .map(str::trim)
+                .collect::<Vec<_>>()
+                .join("\n");
+            bijux_dna_infra::atomic_write_bytes(&file, format!("{body}\n").as_bytes())?;
+            args[idx] = if flag == "--regions" {
+                "--regions-file".to_string()
+            } else {
+                "--targets-file".to_string()
+            };
+            args[idx + 1] = file.display().to_string();
+        }
+        idx += 1;
+    }
+    rewritten.command.template = args;
+    Ok(rewritten)
+}
+
+fn enforce_large_file_guard(
+    output_root: &Path,
+    outputs: &[bijux_dna_core::contract::ArtifactSpec],
+) -> Result<()> {
+    let max_bytes: u64 = std::env::var("BIJUX_MAX_UNEXPECTED_FILE_BYTES")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .unwrap_or(5 * 1024 * 1024 * 1024);
+    let allowed = outputs
+        .iter()
+        .map(|a| canonicalize_existing(&a.path))
+        .collect::<Result<Vec<_>>>()?;
+    let mut violations = Vec::new();
+    for entry in walkdir::WalkDir::new(output_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let path = canonicalize_existing(entry.path())?;
+        if allowed.iter().any(|allowed_path| allowed_path == &path) {
+            continue;
+        }
+        let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+        if size > max_bytes {
+            violations.push(format!("{} ({} bytes)", path.display(), size));
+        }
+    }
+    if !violations.is_empty() {
+        bail!(
+            "large-file guard violation: unexpected files outside contract exceeded limit: {}",
+            violations.join(", ")
+        );
+    }
+    Ok(())
+}
+
 fn write_crash_bundle(
     req: &ToolInvocationRequest,
     stderr_tail: &str,
@@ -491,6 +669,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     enforce_path_contracts(req)?;
     require_pinned_digest(&req.step)?;
     crate::input_validation::validate_stage_inputs(&req.step)?;
+    enforce_seed_policy(req)?;
     let policy = effective_runtime_policy(req);
     if network_policy_violation(&req.context.network_policy) {
         let _ = bijux_dna_infra::atomic_write_json(
@@ -676,6 +855,12 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         });
     }
     if can_resume(req)? {
+        let _ = update_resume_report(
+            &req.context.stage_root,
+            &req.context.stage_id,
+            "cached",
+            "CACHE_HIT",
+        );
         let stage_status_path = req.context.stage_root.join("stage_result_status.json");
         bijux_dna_infra::atomic_write_json(
             &stage_status_path,
@@ -710,6 +895,12 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             summary_path: req.context.stage_root.join("stage_human_summary.json"),
         });
     }
+    let _ = update_resume_report(
+        &req.context.stage_root,
+        &req.context.stage_id,
+        "recomputed",
+        "CACHE_MISS_OR_DISABLED",
+    );
 
     let logs_dir = req.context.stage_root.join("logs");
     bijux_dna_infra::ensure_dir(&logs_dir)?;
@@ -755,8 +946,14 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         &serde_json::to_string(&tool_event)?,
     )?;
 
-    let stage_result = execute_step(&req.step, req.runner, policy.timeout)?;
-    validate_required_outputs(&req.step)?;
+    let arg_threshold = std::env::var("BIJUX_MAX_COMMAND_LENGTH")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(12_000);
+    let effective_step = rewrite_long_region_args(&req.step, &work_dir, arg_threshold)?;
+    let stage_result = execute_step(&effective_step, req.runner, policy.timeout)?;
+    validate_required_outputs(&effective_step)?;
+    enforce_large_file_guard(&req.context.output_root, &effective_step.io.outputs)?;
     let stage_metrics_path = req.context.stage_root.join("stage.metrics.json");
     let log_paths =
         write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
@@ -774,6 +971,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             stage_result.exit_code,
             &stage_result.command,
         );
+        let _ = mark_partial_failure_invalid(&req.context.stage_root, &effective_step.io.outputs);
         let _ = bijux_dna_infra::atomic_write_json(
             &req.context.stage_root.join("stage_result_status.json"),
             &serde_json::json!({
@@ -842,8 +1040,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "compression_threads": policy.compression_threads,
         "seed": req.context.seed,
         "network_policy": req.context.network_policy,
-        "inputs": req.step.io.inputs,
-        "outputs": req.step.io.outputs,
+        "inputs": effective_step.io.inputs,
+        "outputs": effective_step.io.outputs,
         "runtime": {
             "runtime_s": stage_result.runtime_s,
             "duration_ms": duration_ms,
@@ -855,7 +1053,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     });
     let (output_checksums, _manifest_path) = ArtifactWriter::write_stage_outputs_and_manifest(
         &req.context.stage_root,
-        &req.step.io.outputs,
+        &effective_step.io.outputs,
         &stage_manifest_path,
         stage_manifest,
     )
