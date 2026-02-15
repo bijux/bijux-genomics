@@ -25,6 +25,9 @@ Fields:
 - `configs/runtime/species.toml`
 - `configs/runtime/reference_bundles.toml`
 - `configs/runtime/reference_bank.toml`
+- `configs/runtime/genetic_map_bank.toml`
+- `configs/runtime/organellar_policy.toml`
+- `configs/runtime/reference_sets.toml`
 - `configs/runtime/reference_bundles_lock.sha256`
 - `configs/runtime/references/index.md`
 - `configs/runtime/references/locks/index.md`

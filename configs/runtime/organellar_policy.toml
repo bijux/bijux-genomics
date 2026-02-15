@@ -1,0 +1,24 @@
+# schema_version = 1
+# owner = bijux-dna-db-ref
+# purpose = Organellar reference policy for mtDNA/chloroplast usage.
+# authority = bijux-dna-db-ref
+# stability = stable
+# last_updated = 2026-02-15
+
+[[policy]]
+species_id = "Homo sapiens"
+build_id = "GRCh38"
+mitochondrion_id = "MT"
+chloroplast_required_for_profiles = []
+
+[[policy]]
+species_id = "Canis lupus"
+build_id = "CanFam4"
+mitochondrion_id = "MT"
+chloroplast_required_for_profiles = []
+
+[[policy]]
+species_id = "Gallus gallus"
+build_id = "GRCg7b"
+mitochondrion_id = "MT"
+chloroplast_required_for_profiles = []
