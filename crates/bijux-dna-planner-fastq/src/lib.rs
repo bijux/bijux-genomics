@@ -355,6 +355,7 @@ pub fn resolve_preprocess_pipeline(
         ) {
             Ok(profile) => {
                 let mut stages: Vec<String> = fastq_pipeline_id_catalog(profile.id.as_str());
+                stages = apply_layout_branching(stages, args.r2.is_some());
                 if !enable_merge {
                     stages.retain(|stage| stage != STAGE_MERGE.as_str());
                 }
@@ -371,7 +372,7 @@ pub fn resolve_preprocess_pipeline(
             }
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
-                default_pipeline_spec(DefaultPipelineOptions {
+                let mut spec = default_pipeline_spec(DefaultPipelineOptions {
                     paired: args.r2.is_some(),
                     enable_merge,
                     enable_correct,
@@ -382,11 +383,13 @@ pub fn resolve_preprocess_pipeline(
                     } else {
                         FastqPipelineMode::Amplicon
                     },
-                })
+                });
+                spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
+                spec
             }
         }
     } else {
-        default_pipeline_spec(DefaultPipelineOptions {
+        let mut spec = default_pipeline_spec(DefaultPipelineOptions {
             paired: args.r2.is_some(),
             enable_merge,
             enable_correct,
@@ -397,8 +400,23 @@ pub fn resolve_preprocess_pipeline(
             } else {
                 FastqPipelineMode::Amplicon
             },
-        })
+        });
+        spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
+        spec
     }
+}
+
+fn apply_layout_branching(mut stages: Vec<String>, paired: bool) -> Vec<String> {
+    if paired {
+        return stages;
+    }
+    // Single-end runs must not schedule paired-only stages.
+    stages.retain(|stage| {
+        stage != STAGE_MERGE.as_str()
+            && stage != STAGE_CORRECT.as_str()
+            && stage != STAGE_UMI.as_str()
+    });
+    stages
 }
 
 fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result<f64> {
