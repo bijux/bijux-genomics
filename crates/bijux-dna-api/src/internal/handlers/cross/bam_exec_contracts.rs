@@ -155,4 +155,61 @@ mod tests {
         assert!(err.to_string().contains("lacks required X/Y contigs"));
     }
 
+    #[test]
+    fn bam_invariants_and_wrapper_contracts_are_emitted() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("validate");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        let bam = temp.path().join("input.bam");
+        let bai = temp.path().join("input.bam.bai");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg1\tSM:s1\n")?;
+        std::fs::write(&bai, b"index")?;
+
+        let stage = bijux_dna_planner_bam::stage_api::BamStage::Validate;
+        let plan = mock_plan(stage);
+        let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
+        write_bam_invariants(&stage_dir, stage, &bam, Some(&bai), None)?;
+        write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
+        let invariants: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(stage_dir.join("bam_invariants.json"))?)?;
+        assert_eq!(
+            invariants
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.bam.invariants.v1")
+        );
+        assert_eq!(
+            invariants
+                .get("sort_order")
+                .and_then(serde_json::Value::as_str),
+            Some("coordinate")
+        );
+        assert_eq!(
+            invariants
+                .pointer("/read_groups/status")
+                .and_then(serde_json::Value::as_str),
+            Some("present")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn bam_output_contract_and_resume_marker_follow_artifacts() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("align");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
+        std::fs::write(stage_dir.join("align.bam"), b"bam")?;
+        std::fs::write(stage_dir.join("align.bam.bai"), b"bai")?;
+        std::fs::write(stage_dir.join("stage_loss_accounting.json"), b"{}")?;
+        write_bam_output_contract(stage, &stage_dir)?;
+
+        let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(stage));
+        let resumed = maybe_resume_bam_stage(stage, &stage_dir, &step)?
+            .expect("resume should trigger with complete artifacts");
+        assert_eq!(resumed.result.command, "resume-skip");
+        assert!(stage_dir.join("stage_resume.json").exists());
+        Ok(())
+    }
+
 }
