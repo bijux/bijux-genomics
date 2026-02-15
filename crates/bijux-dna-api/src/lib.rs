@@ -23,5 +23,6 @@ pub(crate) mod reference_resolution;
 pub(crate) mod request_args;
 pub(crate) mod run;
 pub(crate) mod tooling;
+pub(crate) mod writers;
 
 pub mod v1;
