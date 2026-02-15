@@ -2604,3 +2604,19 @@ purpose = "tooling script"
 inputs = ["examples/", "assets/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
+
+[[script]]
+id = "check_hidden_tmp_usage"
+path = "scripts/checks/check-hidden-tmp-usage.sh"
+purpose = "checks script"
+inputs = ["crates/bijux-dna-api/src/runtime/", "crates/bijux-dna-api/src/internal/handlers/cross/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "crash_triage"
+path = "scripts/tooling/crash-triage.sh"
+purpose = "tooling script"
+inputs = ["artifacts/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
