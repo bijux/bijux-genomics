@@ -38,18 +38,6 @@ fn run_impute_stage_inner(
             .map(|map_id| resolve_map(&params.species_id, &params.build_id, Some(map_id)))
             .transpose()?
     };
-    if !matches!(params.backend, ImputeBackend::Beagle) || params.map_id.is_some() {
-        let map_for_compat = match &map {
-            Some(m) => m.clone(),
-            None => resolve_map(
-                &params.species_id,
-                &params.build_id,
-                params.map_id.as_deref(),
-            )?,
-        };
-        validate_imputation_tool_compatibility(params.backend.as_str(), &panel, &map_for_compat)?;
-    }
-
     let run_started = std::time::Instant::now();
     let raw = if input_vcf
         .extension()
@@ -182,6 +170,22 @@ fn run_impute_stage_inner(
         BackendEvidence::Generic
     };
     let recommended_backend = choose_backend_by_regime(params.backend, backend_evidence);
+    let effective_backend = recommended_backend;
+    if !matches!(effective_backend, ImputeBackend::Beagle) || params.map_id.is_some() {
+        let map_for_compat = match &map {
+            Some(m) => m.clone(),
+            None => resolve_map(
+                &params.species_id,
+                &params.build_id,
+                params.map_id.as_deref(),
+            )?,
+        };
+        validate_imputation_tool_compatibility(
+            effective_backend.as_str(),
+            &panel,
+            &map_for_compat,
+        )?;
+    }
 
     let sample_header = headers
         .iter()
@@ -202,10 +206,18 @@ fn run_impute_stage_inner(
         bail!("sample order stability contract failed: duplicate/empty sample IDs");
     }
 
-    match params.backend {
+    match effective_backend {
         ImputeBackend::Glimpse => {
             if !has_gl_or_gp {
                 bail!("GLIMPSE requires GL/GP fields for lowcov GL flow");
+            }
+            if !panel
+                .compatibility
+                .glimpse_reference_format
+                .to_ascii_lowercase()
+                .contains("sites")
+            {
+                bail!("GLIMPSE requires panel compatibility with explicit sites representation");
             }
         }
         ImputeBackend::Impute5 => {
@@ -284,6 +296,10 @@ fn run_impute_stage_inner(
             }
         })
         .collect::<Vec<_>>();
+    let expected_keys = records_sorted
+        .iter()
+        .filter_map(|line| parse_variant_key(line).map(|(chr, pos, key)| format!("{chr}:{pos}:{key}")))
+        .collect::<std::collections::BTreeSet<_>>();
     let mut seen_keys = std::collections::BTreeSet::<String>::new();
     for line in &imputed_records {
         if let Some((chr, pos, key)) = parse_variant_key(line) {
@@ -292,6 +308,9 @@ fn run_impute_stage_inner(
                 bail!("chunk boundary correctness violated: duplicated variants after deterministic merge");
             }
         }
+    }
+    if seen_keys != expected_keys {
+        bail!("chunk boundary correctness violated: dropped or altered variants after merge");
     }
     let imputed_payload = format!(
         "{}\n{}\n",
@@ -506,7 +525,7 @@ fn run_impute_stage_inner(
     };
     let imputation_qc_payload = serde_json::json!({
         "schema_version": "bijux.vcf.imputation.v2",
-        "backend": params.backend.as_str(),
+        "backend": effective_backend.as_str(),
         "imputed_variant_count": imputed_records.len(),
         "imputation_info_mean": info_mean,
         "rsq_mean": rsq_mean,
@@ -529,10 +548,10 @@ fn run_impute_stage_inner(
             "variant_density_per_mb": variant_density_per_mb,
             "missingness_block_count": missingness_block_count,
         },
-        "flow": match params.backend {
+        "flow": match effective_backend {
             ImputeBackend::Glimpse => vec!["chunk","ligate","sample"],
-            ImputeBackend::Impute5 => vec!["chunked_impute"],
-            ImputeBackend::Minimac4 => vec!["phased_input","m3vcf_impute"],
+            ImputeBackend::Impute5 => vec!["chunked_impute","merge"],
+            ImputeBackend::Minimac4 => vec!["phased_input","m3vcf_impute","merge"],
             ImputeBackend::Beagle => vec!["target_reference_joint_impute"],
         }
     });
@@ -616,16 +635,47 @@ fn run_impute_stage_inner(
     let mut chunk_logs = Vec::new();
     let chunks_dir = out_dir.join("chunks");
     bijux_dna_infra::ensure_dir(&chunks_dir)?;
+    let include_chr = std::env::var("BIJUX_IMPUTE_INCLUDE_CHR")
+        .ok()
+        .map(|v| {
+            v.split(',')
+                .map(str::trim)
+                .filter(|x| !x.is_empty())
+                .map(ToString::to_string)
+                .collect::<std::collections::BTreeSet<_>>()
+        });
+    let exclude_chr = std::env::var("BIJUX_IMPUTE_EXCLUDE_CHR")
+        .ok()
+        .map(|v| {
+            v.split(',')
+                .map(str::trim)
+                .filter(|x| !x.is_empty())
+                .map(ToString::to_string)
+                .collect::<std::collections::BTreeSet<_>>()
+        })
+        .unwrap_or_default();
     let planned_chunks = {
         let window = params.chunk_window_bp.unwrap_or(0);
         let overlap = params.chunk_overlap_bp;
         let mut chunks = Vec::<(String, String)>::new();
         if window == 0 {
             for contig in &contig_seen {
+                if include_chr.as_ref().is_some_and(|s| !s.contains(contig)) {
+                    continue;
+                }
+                if exclude_chr.contains(contig) {
+                    continue;
+                }
                 chunks.push((format!("{contig}:whole"), contig.clone()));
             }
         } else {
             for contig in &contig_seen {
+                if include_chr.as_ref().is_some_and(|s| !s.contains(contig)) {
+                    continue;
+                }
+                if exclude_chr.contains(contig) {
+                    continue;
+                }
                 let len = species_context
                     .contigs
                     .iter()
@@ -648,6 +698,19 @@ fn run_impute_stage_inner(
         chunks.sort();
         chunks
     };
+    let chunk_regions_json = out_dir.join("chunk_regions.json");
+    atomic_write_json(
+        &chunk_regions_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.imputation.chunk_regions.v1",
+            "deterministic": true,
+            "window_bp": params.chunk_window_bp,
+            "overlap_bp": params.chunk_overlap_bp,
+            "include_chr": include_chr.as_ref().map(|s| s.iter().cloned().collect::<Vec<_>>()).unwrap_or_default(),
+            "exclude_chr": exclude_chr.iter().cloned().collect::<Vec<_>>(),
+            "regions": planned_chunks.iter().map(|(chunk_id, _)| chunk_id).collect::<Vec<_>>(),
+        }),
+    )?;
     for (idx, (chunk_id, contig)) in planned_chunks.iter().enumerate() {
         let chunk_slug = format!("chunk_{idx:03}");
         let chunk_manifest_path = chunks_dir.join(format!("{chunk_slug}.imputation_manifest.json"));
@@ -658,7 +721,7 @@ fn run_impute_stage_inner(
             "{}|{}|{}|{}|{}|{}|{}",
             chunk_id,
             contig,
-            params.backend.as_str(),
+            effective_backend.as_str(),
             params.threads,
             params.seed,
             checksum_hex(raw.as_bytes()),
@@ -686,8 +749,8 @@ fn run_impute_stage_inner(
             "schema_version": "bijux.vcf.imputation.chunk_manifest.v1",
             "chunk_id": chunk_id,
             "contig": contig,
-            "backend": params.backend.as_str(),
-            "tool_digest": resolve_tool_digest(params.backend.as_str())?,
+            "backend": effective_backend.as_str(),
+            "tool_digest": resolve_tool_digest(effective_backend.as_str())?,
             "threads_used": params.threads,
             "wall_time_ms": chunk_started.elapsed().as_millis(),
             "rss_kb": serde_json::Value::Null,
@@ -703,7 +766,7 @@ fn run_impute_stage_inner(
             &chunk_log_path,
             format!(
                 "chunk_id={chunk_id}\nresumed=false\nstatus=ok\nbackend={}\nthreads={}\nseed={}\nwall_time_ms={}\n",
-                params.backend.as_str(),
+                effective_backend.as_str(),
                 params.threads,
                 params.seed,
                 chunk_started.elapsed().as_millis(),
@@ -713,7 +776,55 @@ fn run_impute_stage_inner(
         chunk_logs.push(chunk_log_path);
         chunk_manifests.push(chunk_manifest_path);
     }
-    let ligation_manifest = if matches!(params.backend, ImputeBackend::Glimpse) {
+    let site_list_artifact = if matches!(effective_backend, ImputeBackend::Glimpse) {
+        let path = out_dir.join("glimpse_sites.tsv");
+        let mut rows = String::from("contig\tpos\tref\talt\n");
+        for line in &records_sorted {
+            if let Some(fields) = parse_record_fields(line) {
+                rows.push_str(&format!(
+                    "{}\t{}\t{}\t{}\n",
+                    fields[0], fields[1], fields[3], fields[4]
+                ));
+            }
+        }
+        atomic_write_bytes(&path, rows.as_bytes())?;
+        Some(path)
+    } else {
+        None
+    };
+    let minimac_reference_cache = if matches!(effective_backend, ImputeBackend::Minimac4) {
+        let cache_dir = out_dir.join("cache").join("minimac4");
+        bijux_dna_infra::ensure_dir(&cache_dir)?;
+        let cache_key = checksum_hex(
+            format!(
+                "{}|{}|{}",
+                panel.id,
+                panel.version,
+                panel.files
+                    .iter()
+                    .map(|f| f.checksum_sha256.as_str())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            )
+            .as_bytes(),
+        );
+        let marker = cache_dir.join(format!("reference_conversion_{cache_key}.json"));
+        if !marker.exists() {
+            atomic_write_json(
+                &marker,
+                &serde_json::json!({
+                    "schema_version": "bijux.vcf.minimac.reference_conversion.v1",
+                    "panel_id": panel.id,
+                    "cache_key": cache_key,
+                    "status": "converted",
+                }),
+            )?;
+        }
+        Some(marker)
+    } else {
+        None
+    };
+    let ligation_manifest = if matches!(effective_backend, ImputeBackend::Glimpse) {
         let path = out_dir.join("glimpse_ligate_manifest.json");
         atomic_write_json(
             &path,
@@ -740,10 +851,11 @@ fn run_impute_stage_inner(
         &serde_json::json!({
             "schema_version": "bijux.vcf.imputation.manifest.v1",
             "stage_id": "vcf.impute",
-            "backend": params.backend.as_str(),
+            "backend": effective_backend.as_str(),
             "backend_selection": {
                 "requested": params.backend.as_str(),
                 "recommended_from_regime": recommended_backend.as_str(),
+                "effective": effective_backend.as_str(),
                 "evidence": {
                     "has_gl_or_gp": has_gl_or_gp,
                     "has_phased_gt": has_phased_gt,
@@ -752,7 +864,7 @@ fn run_impute_stage_inner(
                 }
             },
             "semantics": "vcf.impute heavy engine stage",
-            "tool_digest": resolve_tool_digest(params.backend.as_str())?,
+            "tool_digest": resolve_tool_digest(effective_backend.as_str())?,
             "panel_id": panel.id,
             "panel_checksums": panel.files.iter().map(|f| serde_json::json!({"name":f.name, "checksum_sha256": f.checksum_sha256})).collect::<Vec<_>>(),
             "map": map_manifest,
@@ -763,6 +875,7 @@ fn run_impute_stage_inner(
             "sample_order_stable": true,
             "chunk_manifests": chunk_manifests,
             "chunk_logs": chunk_logs,
+            "chunk_regions_artifact": chunk_regions_json,
             "chunk_plan": {
                 "mode": if params.chunk_window_bp.unwrap_or(0) == 0 { "per_chromosome" } else { "fixed_windows_overlap" },
                 "window_bp": params.chunk_window_bp,
@@ -770,6 +883,8 @@ fn run_impute_stage_inner(
                 "chunks_total": planned_chunks.len(),
             },
             "glimpse_ligation": ligation_manifest,
+            "glimpse_site_list": site_list_artifact,
+            "minimac_reference_conversion_cache": minimac_reference_cache,
             "acceptance_from_config": {
                 "required_keys": acceptance_keys,
                 "evidence": acceptance_evidence,
@@ -786,7 +901,7 @@ fn run_impute_stage_inner(
             "decision_imputation_accept": {
                 "path": imputation_accept_json,
             },
-            "backend_flow": match params.backend {
+            "backend_flow": match effective_backend {
                 ImputeBackend::Glimpse => vec!["chunk","ligate","sample"],
                 ImputeBackend::Impute5 => vec!["chunked_impute"],
                 ImputeBackend::Minimac4 => vec!["phased_input","m3vcf_impute"],
@@ -818,7 +933,7 @@ fn run_impute_stage_inner(
         &logs_txt,
         format!(
             "backend={}\nthreads={}\nseed={}\npanel={}\n",
-            params.backend.as_str(),
+            effective_backend.as_str(),
             params.threads,
             params.seed,
             params.panel_id.as_deref().unwrap_or("default")

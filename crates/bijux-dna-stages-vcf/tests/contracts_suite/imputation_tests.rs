@@ -261,6 +261,63 @@
             .get("chunk_logs")
             .and_then(|v| v.as_array())
             .is_some_and(|arr| !arr.is_empty()));
+        assert!(manifest.get("chunk_regions_artifact").is_some());
+    }
+
+    #[test]
+    fn impute_backend_selector_prefers_glimpse_for_gl_regime_when_requested_beagle() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGL\t-0.1,-1.0,-2.0\n",
+        )
+        .unwrap_or_else(|err| panic!("write input: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_impute_stage(
+            &input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Beagle,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run impute selector test: {err}"));
+        let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
+            .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
+        assert_eq!(
+            manifest
+                .get("backend")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "glimpse"
+        );
+        assert!(manifest.get("glimpse_site_list").is_some());
     }
 
     #[test]
@@ -347,4 +404,58 @@
         )
         .expect_err("triploid must be refused");
         assert!(err.to_string().contains("unsupported ploidy model"));
+    }
+
+    #[test]
+    fn minimac_path_emits_reference_conversion_cache_marker() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("phased_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0|1\n",
+        )
+        .unwrap_or_else(|err| panic!("write phased input: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_impute_stage(
+            &input,
+            dir.path(),
+            &species,
+            &ImputeStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: ImputeBackend::Minimac4,
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                threads: 2,
+                seed: 42,
+                emit_ds: true,
+                emit_gp: true,
+                truth_vcf: None,
+                imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+                chunk_window_bp: None,
+                chunk_overlap_bp: 0,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run minimac path: {err}"));
+        let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
+            .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
+        let cache = manifest
+            .get("minimac_reference_conversion_cache")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+        assert!(!cache.is_empty(), "missing minimac reference conversion cache marker");
+        assert!(std::path::Path::new(cache).exists(), "cache marker path does not exist");
     }
