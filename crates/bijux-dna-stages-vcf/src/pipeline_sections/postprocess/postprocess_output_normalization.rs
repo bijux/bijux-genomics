@@ -246,22 +246,18 @@ pub fn run_postprocess_stage(
     )?;
 
     let mut checksum_map = serde_json::Map::new();
-    checksum_map.insert(
-        "postprocess.vcf.gz".to_string(),
-        serde_json::Value::String(checksum_hex(merged_payload.as_bytes())),
-    );
-    checksum_map.insert(
-        "postprocess.vcf.gz.tbi".to_string(),
-        serde_json::Value::String(checksum_hex(b"tabix-index-placeholder\n")),
-    );
+    let mut paths = vec![merged_vcf.clone(), merged_tbi.clone()];
     if let Some(path) = &merged_bcf {
-        checksum_map.insert(
-            path.file_name()
-                .and_then(|x| x.to_str())
-                .unwrap_or("postprocess.bcf")
-                .to_string(),
-            serde_json::Value::String(checksum_hex(merged_payload.as_bytes())),
-        );
+        paths.push(path.clone());
+    }
+    let checksum_set = crate::vcf_io::vcf_checksum_set(&paths)?;
+    for (path, sum) in checksum_set {
+        let name = Path::new(&path)
+            .file_name()
+            .and_then(|x| x.to_str())
+            .unwrap_or(&path)
+            .to_string();
+        checksum_map.insert(name, serde_json::Value::String(sum));
     }
     checksum_map.insert(
         "validate_outputs.json".to_string(),
