@@ -19,18 +19,21 @@ pub fn render_report(request: &RenderReportRequest) -> Result<RenderReportResult
 /// Returns an error if run status inspection fails.
 pub fn status(run_dir: &Path) -> Result<RunStatus> {
     let manifest_path = run_dir.join("run_manifest.json");
-    let report_path =
-        bijux_dna_runtime::recording::run_artifacts_dir_for_out(run_dir).join("report.html");
-    let manifest = if manifest_path.exists() {
+    let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(run_dir);
+    let envelope_path = run_artifacts.join("run_artifact_envelope.json");
+    let manifest = if envelope_path.exists() {
+        std::fs::read_to_string(&envelope_path)
+            .ok()
+            .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+            .and_then(|value| value.get("manifest_json").and_then(serde_json::Value::as_str).map(PathBuf::from))
+            .or_else(|| manifest_path.exists().then_some(manifest_path.clone()))
+    } else if manifest_path.exists() {
         Some(manifest_path.clone())
     } else {
         None
     };
-    let report = if report_path.exists() {
-        Some(report_path)
-    } else {
-        None
-    };
+    let report_path = run_artifacts.join("report.html");
+    let report = report_path.exists().then_some(report_path);
     let has_failures = manifest
         .as_ref()
         .and_then(|path| std::fs::read_to_string(path).ok())
