@@ -449,6 +449,31 @@ fn run_provenance_from_cross(
             .join("contaminants")
             .join("db_bank.v1.yaml"),
     );
+    let coverage_regime_path = out_dir
+        .join("bam")
+        .join("coverage")
+        .join("coverage.regime.json");
+    let coverage_regime = if coverage_regime_path.exists() {
+        std::fs::read_to_string(&coverage_regime_path)
+            .ok()
+            .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+            .and_then(|value| {
+                value
+                    .get("coverage_regime")
+                    .and_then(serde_json::Value::as_str)
+                    .map(std::string::ToString::to_string)
+            })
+    } else {
+        None
+    };
+    let mean_depth = if coverage_regime_path.exists() {
+        std::fs::read_to_string(&coverage_regime_path)
+            .ok()
+            .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+            .and_then(|value| value.get("mean_depth").and_then(serde_json::Value::as_f64))
+    } else {
+        None
+    };
     serde_json::json!({
         "schema_version": "bijux.run_provenance.v1",
         "tool_image_digest": tool_image_digest,
@@ -460,6 +485,8 @@ fn run_provenance_from_cross(
         "git_commit": git_commit,
         "build_profile": build_profile,
         "plan_hash": plan_hash,
+        "coverage_regime": coverage_regime,
+        "coverage_mean_depth": mean_depth,
         "bank_hashes": {
             "adapter_bank_hash": adapter_bank_hash,
             "reference_bank_hash": reference_bank_hash,
@@ -490,6 +517,14 @@ mod tests {
         let out_dir = temp.path();
         let profile = profile_by_id(Domain::Cross, "fastq-to-bam__default__v1")?;
         write_defaults_ledger(out_dir, &profile)?;
+        bijux_dna_infra::ensure_dir(&out_dir.join("bam").join("coverage"))?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("bam").join("coverage").join("coverage.regime.json"),
+            &serde_json::json!({
+                "coverage_regime": "1x_to_5x",
+                "mean_depth": 3.2
+            }),
+        )?;
         let fastq_summary = serde_json::json!({
             "run_id": "run-1",
             "stages": [{
@@ -503,6 +538,12 @@ mod tests {
         let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
         assert!(manifest.get("defaults_ledger").is_some());
         assert!(manifest.get("defaults_ledger_sha256").is_some());
+        assert_eq!(
+            manifest
+                .pointer("/run_provenance/coverage_regime")
+                .and_then(serde_json::Value::as_str),
+            Some("1x_to_5x")
+        );
         Ok(())
     }
 }

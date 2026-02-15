@@ -410,19 +410,53 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
         0.0
     };
     let damage_signal = c_to_t.max(g_to_a);
+    let pmdtools_path = bam_root.join("damage").join("damage.pmdtools.txt");
+    let pmdtools_signal = if pmdtools_path.exists() {
+        let raw = std::fs::read_to_string(&pmdtools_path)
+            .with_context(|| format!("read {}", pmdtools_path.display()))?;
+        raw.split_whitespace()
+            .find_map(|token| token.parse::<f64>().ok())
+    } else {
+        None
+    };
     let score =
         (damage_signal.min(0.3) / 0.3 * 0.7) + ((1.0 - contamination_estimate.min(1.0)) * 0.3);
-    let path = stage_dir.join("authenticity_composite.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.authenticity.v1",
+        "damage_signal": damage_signal,
+        "contamination_estimate": contamination_estimate,
+        "composite_score": score,
+        "confidence": (0.5 + score / 2.0).min(1.0),
+        "tool_signals": {
+            "damageprofiler_or_pydamage": {
+                "c_to_t_5p": c_to_t,
+                "g_to_a_3p": g_to_a,
+            },
+            "mapdamage2": {
+                "c_to_t_5p": c_to_t,
+                "g_to_a_3p": g_to_a,
+            },
+            "pmdtools": {
+                "signal": pmdtools_signal,
+                "path": pmdtools_path,
+            }
+        }
+    });
+    let composite_path = stage_dir.join("authenticity_composite.json");
     bijux_dna_infra::atomic_write_json(
-        &path,
+        &composite_path,
+        &payload,
+    )
+    .with_context(|| format!("write {}", composite_path.display()))?;
+    let canonical_path = stage_dir.join("authenticity.json");
+    bijux_dna_infra::atomic_write_json(
+        &canonical_path,
         &serde_json::json!({
-            "damage_signal": damage_signal,
-            "contamination_estimate": contamination_estimate,
-            "composite_score": score,
-            "confidence": (0.5 + score / 2.0).min(1.0),
+            "schema_version": "bijux.bam.authenticity.v1",
+            "composite": payload,
         }),
     )
-    .with_context(|| format!("write {}", path.display()))
+    .with_context(|| format!("write {}", canonical_path.display()))
 }
 
 fn stage_postprocess(
@@ -653,6 +687,27 @@ fn stage_postprocess(
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
+            let summary_path = stage_dir.join("contamination.summary.json");
+            let estimate = if summary_path.exists() {
+                bam_metrics::parse_contamination_json(&summary_path)?.estimate
+            } else {
+                0.0
+            };
+            let mt_enabled = tool_scope == "mt" || tool_scope == "both";
+            let nuclear_enabled = tool_scope == "nuclear" || tool_scope == "both";
+            let stratified_path = stage_dir.join("contamination.stratified.json");
+            bijux_dna_infra::atomic_write_json(
+                &stratified_path,
+                &serde_json::json!({
+                    "schema_version": "bijux.bam.contamination_stratified.v1",
+                    "method": plan.tool_id.as_str(),
+                    "scope": tool_scope,
+                    "mt_estimate": mt_enabled.then_some(estimate),
+                    "nuclear_estimate": nuclear_enabled.then_some(estimate),
+                    "global_estimate": estimate,
+                }),
+            )
+            .with_context(|| format!("write {}", stratified_path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Haplogroups => {
             let path = stage_dir.join("haplogroups.normalized.json");

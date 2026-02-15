@@ -122,6 +122,15 @@ mod tests {
             authenticity_dir.join("authenticity_composite.json"),
         )?)?;
         assert!(authenticity.get("composite_score").is_some());
+        let canonical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            authenticity_dir.join("authenticity.json"),
+        )?)?;
+        assert_eq!(
+            canonical
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.bam.authenticity.v1")
+        );
         Ok(())
     }
 
@@ -289,6 +298,50 @@ mod tests {
                 .pointer("/modes/bam.collapse/supported")
                 .and_then(serde_json::Value::as_bool),
             Some(false)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn contamination_postprocess_emits_stratified_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("contamination");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_json(
+            &stage_dir.join("contamination.summary.json"),
+            &serde_json::json!({
+                "method":"verifybamid2",
+                "estimate":0.07,
+                "ci_low":0.03,
+                "ci_high":0.10,
+                "assumptions":[]
+            }),
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Contamination);
+        plan.params = serde_json::json!({
+            "scope": "both",
+            "tool_scope": "both",
+            "sex_specific": false
+        });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::Contamination,
+            &stage_dir,
+            &plan,
+        )?;
+        let stratified: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("contamination.stratified.json"),
+        )?)?;
+        assert_eq!(
+            stratified
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.bam.contamination_stratified.v1")
+        );
+        assert_eq!(
+            stratified
+                .get("global_estimate")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.07)
         );
         Ok(())
     }
