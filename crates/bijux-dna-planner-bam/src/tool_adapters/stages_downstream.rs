@@ -115,11 +115,13 @@ pub mod genotyping {
                 template: crate::tool_adapters::tools::genotyping::args_with_outputs(
                     tool.tool_id.as_str(),
                     bam,
-                    &report,
-                    &summary,
-                    &vcf_gz,
-                    &tbi,
-                    &gl_json,
+                    crate::tool_adapters::tools::genotyping::GenotypingOutputs {
+                        report: &report,
+                        summary: &summary,
+                        vcf_gz: &vcf_gz,
+                        tbi: &tbi,
+                        gl_json: &gl_json,
+                    },
                     params,
                 ),
             },
