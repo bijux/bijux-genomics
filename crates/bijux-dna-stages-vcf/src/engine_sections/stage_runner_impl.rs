@@ -11,6 +11,18 @@ fn pca_params_for_species(species_id: &str) -> PcaStageParams {
     params
 }
 
+fn sample_population_manifest_for_run(run_root: &Path) -> Option<PathBuf> {
+    let candidates = [
+        run_root.join("configs").join("population_labels.json"),
+        run_root.join("config").join("population_labels.json"),
+        run_root
+            .join("artifacts")
+            .join("metadata")
+            .join("population_labels.json"),
+    ];
+    candidates.into_iter().find(|path| path.exists())
+}
+
 fn population_structure_params_for_species(species_id: &str) -> PopulationStructureStageParams {
     let mut params = PopulationStructureStageParams::default();
     let species = species_id.to_ascii_lowercase();
@@ -418,10 +430,12 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.push(out.logs_txt);
             }
             VcfDomainStage::Pca => {
+                let mut params = pca_params_for_species(&ctx.request.species_context.species_id);
+                params.sample_metadata_manifest = sample_population_manifest_for_run(&ctx.request.run_root);
                 let out = run_pca_stage(
                     input_vcf,
                     &stage_dir,
-                    &pca_params_for_species(&ctx.request.species_context.species_id),
+                    &params,
                 )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
@@ -430,10 +444,14 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.extend([out.eigenvec_tsv, out.eigenval_tsv, out.pca_manifest_json, out.logs_txt]);
             }
             VcfDomainStage::PopulationStructure => {
+                let mut params =
+                    population_structure_params_for_species(&ctx.request.species_context.species_id);
+                params.sample_metadata_manifest =
+                    sample_population_manifest_for_run(&ctx.request.run_root);
                 let out = run_population_structure_stage(
                     input_vcf,
                     &stage_dir,
-                    &population_structure_params_for_species(&ctx.request.species_context.species_id),
+                    &params,
                 )
                 .map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
@@ -442,11 +460,19 @@ impl VcfStageRunner for DispatchRunner {
                 artifacts.extend([out.pruned_variants_tsv, out.population_structure_json, out.logs_txt]);
             }
             VcfDomainStage::Admixture => {
-                let _ = run_admixture_stage(input_vcf, &stage_dir, &AdmixtureStageParams::default())
+                let out = run_admixture_stage(
+                    input_vcf,
+                    &stage_dir,
+                    &AdmixtureStageParams {
+                        sample_metadata_manifest: sample_population_manifest_for_run(&ctx.request.run_root),
+                        ..AdmixtureStageParams::default()
+                    },
+                )
                     .map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());
                         refusal(code, hint)
                     })?;
+                artifacts.extend([out.q_matrix_tsv, out.k_selection_json, out.logs_txt]);
             }
             VcfDomainStage::Roh => {
                 let out = run_roh_stage(
