@@ -1,3 +1,110 @@
+#[derive(Debug, Clone)]
+struct IbdSegment {
+    sample_a: String,
+    sample_b: String,
+    contig: String,
+    start: u64,
+    end: u64,
+    length_cm: f64,
+    marker_count: usize,
+}
+
+fn parse_germline_segments(path: &Path) -> Vec<IbdSegment> {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut segments = Vec::new();
+    for line in raw.lines() {
+        let cols = line.split_whitespace().collect::<Vec<_>>();
+        if cols.len() < 10 {
+            continue;
+        }
+        let sample_a = cols[0].to_string();
+        let sample_b = cols[2].to_string();
+        let contig = cols[4].to_string();
+        let start = cols.get(5).and_then(|x| x.parse::<u64>().ok()).unwrap_or(0);
+        let end = cols.get(6).and_then(|x| x.parse::<u64>().ok()).unwrap_or(start);
+        let length_cm = cols
+            .last()
+            .and_then(|x| x.parse::<f64>().ok())
+            .unwrap_or(0.0);
+        let marker_count = cols
+            .get(9)
+            .and_then(|x| x.parse::<usize>().ok())
+            .unwrap_or(0);
+        if length_cm > 0.0 {
+            segments.push(IbdSegment {
+                sample_a,
+                sample_b,
+                contig,
+                start,
+                end,
+                length_cm,
+                marker_count,
+            });
+        }
+    }
+    segments
+}
+
+fn normalize_and_merge_ibd_segments(mut segs: Vec<IbdSegment>) -> Vec<IbdSegment> {
+    segs.sort_by(|a, b| {
+        a.sample_a
+            .cmp(&b.sample_a)
+            .then(a.sample_b.cmp(&b.sample_b))
+            .then(a.contig.cmp(&b.contig))
+            .then(a.start.cmp(&b.start))
+            .then(a.end.cmp(&b.end))
+    });
+    let mut merged = Vec::<IbdSegment>::new();
+    for seg in segs {
+        if let Some(last) = merged.last_mut() {
+            let same_pair = last.sample_a == seg.sample_a
+                && last.sample_b == seg.sample_b
+                && last.contig == seg.contig;
+            if same_pair && seg.start <= last.end.saturating_add(1) {
+                last.end = last.end.max(seg.end);
+                last.length_cm += seg.length_cm;
+                last.marker_count += seg.marker_count;
+                continue;
+            }
+        }
+        merged.push(seg);
+    }
+    merged
+}
+
+fn parse_ibdne_trajectory(path: &Path) -> Vec<serde_json::Value> {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut series = Vec::new();
+    for line in raw.lines() {
+        if line.trim().is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let cols = line.split_whitespace().collect::<Vec<_>>();
+        if cols.len() < 4 {
+            continue;
+        }
+        let generation = cols[0].parse::<u64>().ok();
+        let ne = cols[1].parse::<f64>().ok();
+        let ci_low = cols[2].parse::<f64>().ok();
+        let ci_high = cols[3].parse::<f64>().ok();
+        if let (Some(generation), Some(ne), Some(ci_low), Some(ci_high)) =
+            (generation, ne, ci_low, ci_high)
+        {
+            series.push(serde_json::json!({
+                "generation": generation,
+                "ne": ne,
+                "ci_low": ci_low,
+                "ci_high": ci_high
+            }));
+        }
+    }
+    series
+}
+
 pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) -> Result<IbdStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = read_vcf_text(input_vcf)?;
@@ -69,7 +176,7 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
         "ibdhap",
         &[
             "--segments",
-            ibd_segments_tsv.to_string_lossy().as_ref(),
+            germline_prefix.with_extension("match").to_string_lossy().as_ref(),
             "--out",
             ibd_filtered_segments_tsv.to_string_lossy().as_ref(),
         ],
@@ -104,34 +211,58 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     rows.push_str("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\n");
     merged.push_str("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count\n");
     kept.push_str("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count\n");
+    let mut execution_mode = "fallback_proxy";
+    let germline_match = germline_prefix.with_extension("match");
+    let mut raw_segments = if germline_ok && germline_match.exists() {
+        parse_germline_segments(&germline_match)
+    } else {
+        Vec::new()
+    };
+    if raw_segments.is_empty() {
+        for i in 0..samples.len() {
+            for j in (i + 1)..samples.len() {
+                let marker_count = params.min_markers_per_segment + i + j + 1;
+                let len_cm = 1.0 + ((marker_count as f64) / 25.0);
+                raw_segments.push(IbdSegment {
+                    sample_a: samples[i].clone(),
+                    sample_b: samples[j].clone(),
+                    contig: "chr1".to_string(),
+                    start: 1000,
+                    end: 2000,
+                    length_cm: len_cm,
+                    marker_count,
+                });
+            }
+        }
+    } else {
+        execution_mode = "real_tool";
+    }
     let mut seg_count = 0_u64;
-    let mut merged_count = 0_u64;
+    for seg in &raw_segments {
+        rows.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{:.3}\n",
+            seg.sample_a, seg.sample_b, seg.contig, seg.start, seg.end, seg.length_cm
+        ));
+        seg_count += 1;
+    }
+    let merged_segments = normalize_and_merge_ibd_segments(raw_segments);
+    let merged_count = merged_segments.len() as u64;
     let mut filt_count = 0_u64;
     let mut total_cm = 0.0_f64;
     let mut filtered_lengths = Vec::<f64>::new();
-    for i in 0..samples.len() {
-        for j in (i + 1)..samples.len() {
-            let marker_count = params.min_markers_per_segment + i + j + 1;
-            let len_cm = 1.0 + ((marker_count as f64) / 25.0);
-            rows.push_str(&format!(
-                "{}\t{}\tchr1\t1000\t2000\t{len_cm:.3}\n",
-                samples[i], samples[j]
+    for seg in &merged_segments {
+        merged.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{:.3}\t{}\n",
+            seg.sample_a, seg.sample_b, seg.contig, seg.start, seg.end, seg.length_cm, seg.marker_count
+        ));
+        if seg.length_cm >= params.min_segment_cm && seg.marker_count >= params.min_markers_per_segment {
+            kept.push_str(&format!(
+                "{}\t{}\t{}\t{}\t{}\t{:.3}\t{}\n",
+                seg.sample_a, seg.sample_b, seg.contig, seg.start, seg.end, seg.length_cm, seg.marker_count
             ));
-            seg_count += 1;
-            merged.push_str(&format!(
-                "{}\t{}\tchr1\t1000\t2000\t{len_cm:.3}\t{marker_count}\n",
-                samples[i], samples[j]
-            ));
-            merged_count += 1;
-            if len_cm >= params.min_segment_cm && marker_count >= params.min_markers_per_segment {
-                kept.push_str(&format!(
-                    "{}\t{}\tchr1\t1000\t2000\t{len_cm:.3}\t{marker_count}\n",
-                    samples[i], samples[j]
-                ));
-                filt_count += 1;
-                total_cm += len_cm;
-                filtered_lengths.push(len_cm);
-            }
+            filt_count += 1;
+            total_cm += seg.length_cm;
+            filtered_lengths.push(seg.length_cm);
         }
     }
     atomic_write_bytes(&ibd_segments_tsv, rows.as_bytes())?;
@@ -153,6 +284,7 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
                 "germline": germline_ok,
                 "ibdhap": ibdhap_ok
             },
+            "execution_mode": execution_mode,
             "readiness_contract": readiness_json
         }),
     )?;
@@ -179,14 +311,15 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             "tool_attempts": {
                 "germline": germline_ok,
                 "ibdhap": ibdhap_ok
-            }
+            },
+            "execution_mode": execution_mode
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdhap_attempted={}\n",
-            params.toolchain, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdhap_ok
+            "runner={}\nexecution_mode={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdhap_attempted={}\n",
+            params.toolchain, execution_mode, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdhap_ok
         )
         .as_bytes(),
     )?;
@@ -269,25 +402,37 @@ pub fn run_demography_stage(
         ],
     );
     let mut tsv = String::from("generation\tne\tci_low\tci_high\n");
-    let mut series = Vec::<serde_json::Value>::new();
-    for g in [5_u64, 10, 20, 40, 80] {
-        let ne = 1000.0 + (lines.len() as f64 * 25.0) + (g as f64 * 2.0);
-        let ci_low = ne * 0.85;
-        let ci_high = ne * 1.15;
+    let ibdne_out_prefix = out_dir.join("ibdne");
+    let ibdne_out_ne = PathBuf::from(format!("{}.ne", ibdne_out_prefix.display()));
+    let mut series = if ibdne_ok && ibdne_out_ne.exists() {
+        parse_ibdne_trajectory(&ibdne_out_ne)
+    } else {
+        Vec::new()
+    };
+    let mut inference_status = "fallback_estimate";
+    if series.is_empty() {
+        for g in [5_u64, 10, 20, 40, 80] {
+            let ne = 1000.0 + (lines.len() as f64 * 25.0) + (g as f64 * 2.0);
+            let ci_low = ne * 0.85;
+            let ci_high = ne * 1.15;
+            series.push(serde_json::json!({
+                "generation": g,
+                "ne": ne,
+                "ci_low": ci_low,
+                "ci_high": ci_high
+            }));
+        }
+    } else {
+        inference_status = "tool_executed";
+    }
+    for point in &series {
+        let g = point.get("generation").and_then(|v| v.as_u64()).unwrap_or(0);
+        let ne = point.get("ne").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let ci_low = point.get("ci_low").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let ci_high = point.get("ci_high").and_then(|v| v.as_f64()).unwrap_or(0.0);
         tsv.push_str(&format!("{g}\t{ne:.3}\t{ci_low:.3}\t{ci_high:.3}\n"));
-        series.push(serde_json::json!({
-            "generation": g,
-            "ne": ne,
-            "ci_low": ci_low,
-            "ci_high": ci_high
-        }));
     }
     atomic_write_bytes(&ne_trajectory_tsv, tsv.as_bytes())?;
-    let inference_status = if ibdne_ok {
-        "tool_executed"
-    } else {
-        "fallback_estimate"
-    };
     atomic_write_json(
         &demography_json,
         &serde_json::json!({
