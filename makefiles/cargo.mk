@@ -9,106 +9,11 @@ TEST_FEATURES = --all-features
 CARGO_BUILD_JOBS ?= $(JOBS)
 NEXTEST_TEST_THREADS ?= $(CARGO_BUILD_JOBS)
 LINT_PARALLEL_JOBS ?= $(if $(CARGO_BUILD_JOBS),$(CARGO_BUILD_JOBS),8)
+LINT_PARALLEL_COMMANDS_FILE ?= makefiles/lint.parallel.commands.txt
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 AUTO_ISO_TAG_PREFIX ?= make
-
-define LINT_SCRIPT_COMMANDS
-$(MAKE) _domain-validate
-$(MAKE) _examples-validate
-./scripts/run.sh checks check-supported-scripts
-./scripts/run.sh checks check-config-layout
-./scripts/run.sh checks check-config-index-discipline
-./scripts/run.sh checks check-config-filenames
-./scripts/run.sh checks check-config-headers
-./scripts/run.sh checks check-config-schema
-./scripts/run.sh checks check-docs-requirements-lock
-./scripts/run.sh checks check-nextest-profile-contract
-./scripts/run.sh checks check-runtime-profiles-contract
-./scripts/run.sh checks check-logging-contract
-./scripts/run.sh checks check-benchmark-integrity-policy
-./scripts/run.sh checks check-hpc-rsync-docs-parity
-./scripts/run.sh checks check-config-owners
-./scripts/run.sh checks check-registry-required-tools-parity
-./scripts/run.sh checks check-container-ssot-parity
-./scripts/run.sh checks check-domain-tool-parity
-./scripts/run.sh checks check-stage-domain-parity
-./scripts/run.sh checks check-param-registry-completeness
-./scripts/run.sh checks check-deprecations-enforcement
-./scripts/run.sh checks check-species-aliases
-./scripts/run.sh checks check-bench-knobs
-./scripts/run.sh checks check-registry-split
-./scripts/run.sh checks check-tool-registry-lock
-./scripts/run.sh checks check-panel-locks
-./scripts/run.sh checks check-panel-license-policy
-./scripts/run.sh domain check-domain-layout
-./scripts/run.sh domain check-domain-schema
-./scripts/run.sh domain check-domain-index
-./scripts/run.sh domain check-shared-tools
-./scripts/run.sh domain check-tool-container-parity
-./scripts/run.sh domain check-default-settings-docs
-./scripts/run.sh domain check-fixture-contracts
-./scripts/run.sh domain check-orphan-files
-./scripts/run.sh domain check-doc-links
-./scripts/run.sh domain check-external-tool-policy
-./scripts/run.sh domain check-inventory
-./scripts/run.sh docs check-domain-doc-references
-./scripts/run.sh docs check-doc-links
-./scripts/run.sh checks check-docs-build-contract
-./scripts/run.sh docs check-docs-graph
-./scripts/run.sh docs check-doc-root-layout
-./scripts/run.sh docs check-doc-depth
-./scripts/run.sh docs check-doc-major-depth
-./scripts/run.sh docs check-no-placeholder-language
-./scripts/run.sh docs check-generated-docs
-./scripts/run.sh docs check-doc-assets
-./scripts/run.sh tooling check-config-paths
-./scripts/run.sh tooling check-config-snapshot --if-config-changed
-./scripts/run.sh checks check-root-layout
-./scripts/run.sh checks check-artifacts-tracked
-./scripts/run.sh checks check-no-target-paths-in-tests
-./scripts/run.sh checks check-no-user-path-literals
-./scripts/run.sh checks check-script-writes
-./scripts/run.sh checks check-assets-drift
-./scripts/run.sh checks check-assets-contracts
-./scripts/run.sh checks check-asset-manifests
-./scripts/run.sh checks check-asset-checksums
-./scripts/run.sh checks check-assets-large-file-allowlist
-./scripts/run.sh checks check-golden-artifact-schema
-./scripts/run.sh checks check-assets-reference-schema
-./scripts/run.sh checks tree-intent
-./scripts/run.sh checks check-readme-links
-./scripts/run.sh checks check-ci-shell-scripts
-./scripts/run.sh checks check-lib-api
-./scripts/run.sh checks check-exit-codes
-./scripts/run.sh checks check-script-deps
-./scripts/run.sh checks check-script-help
-./scripts/run.sh checks check-script-interface
-./scripts/run.sh checks check-isolation-contract
-./scripts/run.sh checks check-isolate-contract-strong
-./scripts/run.sh checks check-shell-portability
-./scripts/run.sh checks check-network-usage
-./scripts/run.sh checks check-no-temp-leaks
-./scripts/run.sh checks check-no-parallel-accidental
-./scripts/run.sh checks check-hpc-safety
-./scripts/run.sh checks check-output-roots
-./scripts/run.sh checks check-artifacts-layout
-./scripts/run.sh checks check-script-arg-style
-./scripts/run.sh checks check-script-entrypoint
-./scripts/run.sh checks check-make-isolation-contract
-./scripts/run.sh checks check-make-help-sync
-./scripts/run.sh checks check-gitignore-contract
-./scripts/run.sh checks check-cargo-config-policy
-./scripts/run.sh checks check-audit-allowlist
-./scripts/run.sh checks check-no-orphan-scripts
-./scripts/run.sh checks check-no-raw-cargo-in-makefiles
-./scripts/run.sh checks check-make-cargo-isolate-target
-./scripts/run.sh checks check-no-raw-cargo-in-scripts
-./scripts/run.sh containers lint
-./scripts/run.sh test test-scripts-smoke
-./scripts/run.sh test require-isolate-smoke
-endef
 
 fmt:
 	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
@@ -135,22 +40,22 @@ lint:
 _lint:
 	@./bin/require-isolate >/dev/null
 	./scripts/run.sh tooling repo-doctor --fast
-	@log_dir="$(ARTIFACTS_DIR)/lint-parallel"; \
-	rm -rf "$$log_dir"; \
-	mkdir -p "$$log_dir"; \
-	printf '%s\n' "$(LINT_SCRIPT_COMMANDS)" > "$$log_dir/commands.txt"
+	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
+	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
+	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
 	@echo "Running lint script gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
-	@xargs -I{} -P "$(LINT_PARALLEL_JOBS)" sh -c '\
-		cmd="$$1"; \
+	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
+	| xargs -0 -n1 -P "$(LINT_PARALLEL_JOBS)" sh -c '\
+		cmd="$$2"; \
 		name=$$(printf "%s" "$$cmd" | tr -cs "[:alnum:]._-" "_"); \
-		log_file="$$2/$$name.log"; \
+		log_file="$$1/$$name.log"; \
 		if sh -c "$$cmd" >"$$log_file" 2>&1; then \
 			printf "ok %s\n" "$$cmd"; \
 		else \
 			printf "FAILED %s\n" "$$cmd" >&2; \
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
-		fi' sh {} "$$log_dir" < "$$log_dir/commands.txt"
+		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 _clippy: ## Run workspace clippy only (no script gates).
