@@ -95,14 +95,7 @@ pub(crate) fn choose_tool(
 ) -> Result<(String, String)> {
     let key = stage.as_str().to_string();
     if let Some(selected) = inputs.stage_tool_overrides.get(&key) {
-        if stage_compat_tools(stage).contains(&selected.as_str()) {
-            return Ok((selected.clone(), "stage_tool_override".to_string()));
-        }
-        bail!(
-            "override tool {} is incompatible with stage {}",
-            selected,
-            key
-        );
+        return Ok((selected.clone(), "stage_tool_override".to_string()));
     }
     if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
         if resolved_coverage == CoverageRegime::LowCovGl {
@@ -396,6 +389,20 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         }
         let (tool, selection_rule) =
             choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &stages)?;
+        if !required_tools.contains(&tool) {
+            bail!(
+                "planner refusal: tool {} for {} is not declared in required_tools_vcf(_downstream).toml",
+                tool,
+                stage.as_str()
+            );
+        }
+        if !registry_tools.contains(&tool) {
+            bail!(
+                "planner refusal: tool {} for {} is missing from tool_registry_vcf(_downstream).toml",
+                tool,
+                stage.as_str()
+            );
+        }
         if matches!(
             stage,
             VcfDomainStage::PrepareReferencePanel
@@ -440,20 +447,6 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         if !stage_compat_tools(stage).contains(&tool.as_str()) {
             bail!(
                 "selected tool {} is not compatible with stage {}",
-                tool,
-                stage.as_str()
-            );
-        }
-        if !required_tools.contains(&tool) {
-            bail!(
-                "planner refusal: tool {} for {} is not declared in required_tools_vcf(_downstream).toml",
-                tool,
-                stage.as_str()
-            );
-        }
-        if !registry_tools.contains(&tool) {
-            bail!(
-                "planner refusal: tool {} for {} is missing from tool_registry_vcf(_downstream).toml",
                 tool,
                 stage.as_str()
             );
