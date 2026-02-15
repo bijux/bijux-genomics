@@ -212,9 +212,9 @@ pub mod duplication_metrics {
                 "/bin/sh".to_string(),
                 "-c".to_string(),
                 format!(
-                    "picard MarkDuplicates I={bam} O={tmp_bam} M={histogram} && \
-python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"method\": \"picard\", \"histogram\": \"{histogram}\"}}, indent=2))\nPY && \
-python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
+                    "picard MarkDuplicates I={bam} O={tmp_bam} M={histogram} VALIDATION_STRINGENCY=SILENT ASSUME_SORTED=true && \
+python - <<'PY' {histogram} > {report}\nimport json,sys\npath=sys.argv[1]\nmetrics={{\"method\":\"picard\",\"source\":path}}\nfor line in open(path):\n    if line.startswith(\"LIBRARY\"):\n        values=next(open(path))\n        cols=line.rstrip().split('\\t')\n        vals=values.rstrip().split('\\t')\n        if len(cols)==len(vals):\n            row=dict(zip(cols,vals))\n            metrics[\"pct_duplication\"]=float(row.get(\"PERCENT_DUPLICATION\",0.0) or 0.0)\n            metrics[\"read_pair_duplicates\"]=int(float(row.get(\"READ_PAIR_DUPLICATES\",0) or 0))\n        break\nprint(json.dumps(metrics, indent=2))\nPY && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"method\": \"picard\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
                     bam = bam.display(),
                     tmp_bam = out_dir.join("duplication.tmp.bam").display(),
                     histogram = histogram.display(),
@@ -228,10 +228,11 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.du
                 "/bin/sh".to_string(),
                 "-c".to_string(),
                 format!(
-                    "samtools stats {bam} > {histogram} && \
-python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"method\": \"samtools\", \"stats\": \"{histogram}\"}}, indent=2))\nPY && \
-python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
+                    "samtools markdup -s {bam} {tmp_bam} 2> {histogram} && \
+python - <<'PY' {histogram} > {report}\nimport json,re,sys\ntext=open(sys.argv[1]).read()\npairs=re.findall(r'EXAMINED:\\s*(\\d+)', text)\ndups=re.findall(r'DUPLICATE PAIR:\\s*(\\d+)', text)\nout={{\"method\":\"samtools\",\"source\":sys.argv[1],\"examined_pairs\":int(pairs[0]) if pairs else 0,\"duplicate_pairs\":int(dups[0]) if dups else 0}}\nprint(json.dumps(out, indent=2))\nPY && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"method\": \"samtools\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
                     bam = bam.display(),
+                    tmp_bam = out_dir.join("duplication.tmp.bam").display(),
                     histogram = histogram.display(),
                     report = report.display(),
                     summary = summary.display(),

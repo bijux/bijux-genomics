@@ -15,7 +15,7 @@ pub fn args_with_outputs(
         |value| serde_json::to_string(&vec![value]).unwrap_or_else(|_| "[]".to_string()),
     );
     let command = format!(
-        "contamination_tool --input {bam} > {report} && \
+        "authenticct --bam {bam} --out {report} && \
 python - <<'PY' > {summary}\nimport json\npayload = {{\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": {assumptions}}}\nprint(json.dumps(payload, indent=2))\nPY",
         bam = bam.display(),
         report = report.display(),

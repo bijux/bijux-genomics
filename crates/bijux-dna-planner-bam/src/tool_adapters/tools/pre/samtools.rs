@@ -144,7 +144,6 @@ samtools idxstats {bam} > {idxstats_before} && \
 {view} | {length_filter} | samtools view -b - | samtools sort -@ 1 -l 6 -o {out} && samtools index -@ 1 {out} {bai} && \
 samtools flagstat {out} > {flagstat_after} && \
 samtools idxstats {out} > {idxstats_after} && \
-python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"params\": {{\"mapq_threshold\": {mapq}, \"min_length\": {min_len}, \"remove_duplicates\": {remove_dup}}}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
 python - <<'PY' > {summary}\nimport json\npayload = {{\"action\": \"{action}\", \"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"params\": {{\"mapq_threshold\": {mapq}, \"min_length\": {min_len}, \"remove_duplicates\": {remove_dup}}}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
         view = view_args.join(" "),
         length_filter = length_filter,
