@@ -66,7 +66,7 @@ pub fn run_pca_stage(
     params: &PcaStageParams,
 ) -> Result<PcaStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let mut passing = 0_u64;
     for line in raw.lines() {
@@ -167,7 +167,7 @@ pub fn run_population_structure_stage(
     params: &PopulationStructureStageParams,
 ) -> Result<PopulationStructureStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut passing = Vec::<String>::new();
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
@@ -318,7 +318,7 @@ pub fn run_roh_stage(
     params: &RohStageParams,
 ) -> Result<RohStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut sample_ids = Vec::<String>::new();
     let mut variants = Vec::<(String, u64, Option<f64>)>::new();
     for line in raw.lines() {
@@ -500,7 +500,7 @@ fn compute_variant_readiness(raw: &str) -> (usize, f64, f64) {
 /// Returns an error if readiness checks fail or IBD outputs cannot be produced.
 pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) -> Result<IbdStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let (sample_count, density, missingness) = compute_variant_readiness(&raw);
     if sample_count < params.min_samples {
         bail!("vcf.ibd refusal: insufficient sample count");
@@ -749,8 +749,8 @@ pub fn run_prepare_reference_panel_stage(
         );
     }
 
-    let input_raw = std::fs::read_to_string(input_vcf)?;
-    let panel_raw = std::fs::read_to_string(panel_vcf)?;
+    let input_raw = read_vcf_text(input_vcf)?;
+    let panel_raw = read_vcf_text(panel_vcf)?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
     let mut panel_by_chr = std::collections::BTreeMap::<String, u64>::new();
     let mut overlap_by_chr = std::collections::BTreeMap::<String, u64>::new();

@@ -9,6 +9,31 @@ fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
     Some(fields)
 }
 
+fn read_vcf_text(path: &Path) -> Result<String> {
+    if path
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &path.display().to_string()])
+            .output()?;
+        if output.status.success() {
+            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+        }
+        // Compatibility fallback for legacy plain-text payloads mislabeled as `.vcf.gz`.
+        if let Ok(raw) = std::fs::read(path) {
+            return Ok(String::from_utf8_lossy(&raw).to_string());
+        }
+        bail!(
+            "bcftools view failed while reading {}: {}",
+            path.display(),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok(std::fs::read_to_string(path)?)
+}
+
 fn variant_key(fields: &[&str]) -> Option<(String, String)> {
     if fields.len() < 5 {
         return None;
@@ -311,19 +336,18 @@ fn write_vcf_with_best_effort_index(
     payload: &str,
     stage_label: &str,
 ) -> Result<PathBuf> {
-    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcf.display()));
     let plain_vcf = out_vcf
         .parent()
         .ok_or_else(|| anyhow!("{stage_label}: output path has no parent"))?
         .join(format!("{stage_label}.tmp.vcf"));
     atomic_write_bytes(&plain_vcf, payload.as_bytes())?;
-    if crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).is_ok() && out_tbi.exists() {
-        let _ = std::fs::remove_file(&plain_vcf);
-        return Ok(out_tbi);
-    }
+    let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).map_err(|err| {
+        anyhow!(
+            "{stage_label}: bgzip+tabix failed for {}: {err}",
+            out_vcf.display()
+        )
+    })?;
     let _ = std::fs::remove_file(&plain_vcf);
-    atomic_write_bytes(out_vcf, payload.as_bytes())?;
-    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
     Ok(out_tbi)
 }
 
@@ -336,7 +360,7 @@ fn write_call_outputs(
 ) -> Result<CallStageOutputs> {
     let call = parse_vcf_call_summary(output_vcf, &params.sample_name)?;
     let filter = parse_vcf_filter_breakdown(output_vcf, &params.sample_name)?;
-    let raw = std::fs::read_to_string(output_vcf)?;
+    let raw = read_vcf_text(output_vcf)?;
     let mut depth = std::collections::BTreeMap::<String, u64>::new();
     let mut ct_ga_total = 0_u64;
     let mut ct_ga_pass = 0_u64;
@@ -370,7 +394,7 @@ fn write_call_outputs(
 
     let called_tbi = PathBuf::from(format!("{}.tbi", output_vcf.display()));
     if !called_tbi.exists() {
-        atomic_write_bytes(&called_tbi, b"index-placeholder\n")?;
+        bail!("call stage contract violation: missing tabix index for {}", output_vcf.display());
     }
     let call_metrics_json = out_dir.join("call_metrics.json");
     atomic_write_json(
@@ -434,7 +458,7 @@ pub fn run_call_gl_stage(
     if input_vcf.extension().and_then(|x| x.to_str()) == Some("bam") {
         return run_call_gl_from_bam_stage(input_vcf, out_dir, params);
     }
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut out = String::new();
     let mut has_gl = false;
     let mut has_records = false;
@@ -466,7 +490,7 @@ pub fn run_call_gl_stage(
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_gl.vcf.gz");
     let normalized = normalize_header_sample_order(&out);
-    atomic_write_bytes(&out_vcf, normalized.as_bytes())?;
+    let _ = write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_gl")?;
     write_call_outputs(out_dir, CallStageKind::Gl, input_vcf, &out_vcf, params)
 }
 
@@ -505,7 +529,7 @@ pub fn run_call_diploid_stage(
         run_bcftools_mpileup_call(input_vcf, &out_vcf, params, false)?;
         return write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params);
     }
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut out = String::new();
     let mut has_records = false;
     let mut has_diploid = false;
@@ -536,7 +560,8 @@ pub fn run_call_diploid_stage(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_diploid.vcf.gz");
-    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
+    let normalized = normalize_header_sample_order(&out);
+    let _ = write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_diploid")?;
     write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params)
 }
 
@@ -554,7 +579,7 @@ pub fn run_call_pseudohaploid_stage(
         bijux_dna_infra::ensure_dir(out_dir)?;
         let source_vcf = out_dir.join("called_pseudohaploid_source.vcf.gz");
         run_bcftools_mpileup_call(input_vcf, &source_vcf, params, false)?;
-        let raw = std::fs::read_to_string(&source_vcf)?;
+        let raw = read_vcf_text(&source_vcf)?;
         let mut out = String::new();
         for line in raw.lines() {
             if let Some(fields) = parse_record_fields(line) {
@@ -570,12 +595,9 @@ pub fn run_call_pseudohaploid_stage(
             }
         }
         let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
-        atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
-        let out_vcf_s = out_vcf
-            .to_str()
-            .ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
-        let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
-        run_checked_command("tabix", &tabix_args)?;
+        let normalized = normalize_header_sample_order(&out);
+        let _ =
+            write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_pseudohaploid")?;
         return write_call_outputs(
             out_dir,
             CallStageKind::Pseudohaploid,
@@ -584,7 +606,7 @@ pub fn run_call_pseudohaploid_stage(
             params,
         );
     }
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut out = String::new();
     let mut has_records = false;
     for line in raw.lines() {
@@ -612,7 +634,8 @@ pub fn run_call_pseudohaploid_stage(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
-    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
+    let normalized = normalize_header_sample_order(&out);
+    let _ = write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_pseudohaploid")?;
     write_call_outputs(
         out_dir,
         CallStageKind::Pseudohaploid,
@@ -735,7 +758,7 @@ pub fn run_gl_propagation_stage(
     params: &GlPropagationStageParams,
 ) -> Result<GlPropagationOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut output_lines = Vec::<String>::new();
     let mut has_gl_or_pl = false;
     let mut allele_reordered = 0_u64;
@@ -792,6 +815,43 @@ pub fn run_gl_propagation_stage(
         }
         output_lines.push(row.join("\t"));
     }
+    if let Some(chrom_idx) = output_lines.iter().position(|line| line.starts_with("#CHROM\t")) {
+        let has_gt = output_lines
+            .iter()
+            .any(|line| line.starts_with("##FORMAT=<ID=GT,"));
+        let has_gl = output_lines
+            .iter()
+            .any(|line| line.starts_with("##FORMAT=<ID=GL,"));
+        let has_pl = output_lines
+            .iter()
+            .any(|line| line.starts_with("##FORMAT=<ID=PL,"));
+        if !has_gt {
+            output_lines.insert(
+                chrom_idx,
+                "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">".to_string(),
+            );
+        }
+        let insert_at = output_lines
+            .iter()
+            .position(|line| line.starts_with("#CHROM\t"))
+            .unwrap_or(chrom_idx);
+        if !has_gl {
+            output_lines.insert(
+                insert_at,
+                "##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype Likelihood\">".to_string(),
+            );
+        }
+        let insert_at = output_lines
+            .iter()
+            .position(|line| line.starts_with("#CHROM\t"))
+            .unwrap_or(chrom_idx);
+        if !has_pl {
+            output_lines.insert(
+                insert_at,
+                "##FORMAT=<ID=PL,Number=G,Type=Integer,Description=\"Phred-scaled Genotype Likelihood\">".to_string(),
+            );
+        }
+    }
     if params.require_gl_or_pl && !has_gl_or_pl {
         bail!("vcf.gl_propagation requires GL/PL in FORMAT for downstream compatibility");
     }
@@ -813,16 +873,12 @@ pub fn run_gl_propagation_stage(
         let bcf_s = bcf
             .to_str()
             .ok_or_else(|| anyhow!("non-utf8 gl normalized bcf path"))?;
-        if run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s]).is_ok()
-            && run_checked_command("bcftools", &["index", "-f", bcf_s]).is_ok()
-            && csi.exists()
-        {
-            (Some(bcf), Some(csi))
-        } else {
-            atomic_write_bytes(&bcf, b"bcf-placeholder\n")?;
-            atomic_write_bytes(&csi, b"csi-placeholder\n")?;
-            (Some(bcf), Some(csi))
+        run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s])?;
+        run_checked_command("bcftools", &["index", "-f", bcf_s])?;
+        if !csi.exists() {
+            bail!("vcf.gl_propagation contract violation: missing BCF index {}", csi.display());
         }
+        (Some(bcf), Some(csi))
     } else {
         (None, None)
     };
@@ -861,7 +917,7 @@ pub fn run_damage_filter_stage(
         bail!("vcf.damage_filter refusal: strict mode requires known UDG regime");
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut headers = Vec::<String>::new();
     let mut kept = Vec::<String>::new();
     let mut counts = std::collections::BTreeMap::<String, u64>::new();
@@ -1041,7 +1097,7 @@ pub fn run_filter_stage_real(
     out_dir: &Path,
     params: &VcfFilterParams,
 ) -> Result<FilterStageOutputs> {
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
     let mut out = String::new();
     let mut kept = 0u64;
     let mut tag_counts = std::collections::BTreeMap::<String, u64>::new();

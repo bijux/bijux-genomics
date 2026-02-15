@@ -38,19 +38,13 @@ fn write_impute_bgzip_index_best_effort(
     payload: &str,
     tmp_name: &str,
 ) -> Result<PathBuf> {
-    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
     let tmp_vcf = out_vcfgz
         .parent()
         .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
         .join(tmp_name);
     atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
-    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
-        let _ = std::fs::remove_file(&tmp_vcf);
-        return Ok(out_tbi);
-    }
+    let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz)?;
     let _ = std::fs::remove_file(&tmp_vcf);
-    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
-    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
     Ok(out_tbi)
 }
 
@@ -129,7 +123,25 @@ fn run_impute_stage_inner(
     }
 
     let run_started = std::time::Instant::now();
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = if input_vcf
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &input_vcf.display().to_string()])
+            .output()?;
+        if !output.status.success() {
+            bail!(
+                "bcftools view failed while reading {}: {}",
+                input_vcf.display(),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        String::from_utf8_lossy(&output.stdout).to_string()
+    } else {
+        std::fs::read_to_string(input_vcf)?
+    };
     let mut headers = Vec::new();
     let mut records = Vec::new();
     let mut has_gt = false;

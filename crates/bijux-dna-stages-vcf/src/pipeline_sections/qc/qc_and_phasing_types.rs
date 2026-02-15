@@ -177,92 +177,42 @@ pub fn run_stats_stage_real(
     params: &VcfStatsParams,
 ) -> Result<StatsStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
-    if input_vcf
+    let source_vcfgz = if input_vcf
         .extension()
         .and_then(|x| x.to_str())
         .is_some_and(|x| x == "gz" || x == "bcf")
     {
-        if let Ok(real_metrics) = crate::vcf_io::vcf_stats_basic(input_vcf, &bcftools_stats_txt) {
-            let stats_json = out_dir.join("stats.json");
-            atomic_write_json(&stats_json, &serde_json::to_value(&real_metrics)?)?;
-            return Ok(StatsStageOutputs {
-                bcftools_stats_txt,
-                stats_json,
-                metrics: real_metrics,
-            });
-        }
-    }
-    let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
-    let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
-    let raw = std::fs::read_to_string(input_vcf)?;
-    let mut depth = std::collections::BTreeMap::<String, u64>::new();
-    for line in raw.lines() {
-        let Some(fields) = parse_record_fields(line) else {
-            continue;
-        };
-        if let Some(dp) = parse_depth_from_info(fields[7]) {
-            let bucket = if dp < 10 {
-                "0-9"
-            } else if dp < 20 {
-                "10-19"
-            } else if dp < 30 {
-                "20-29"
-            } else {
-                "30+"
-            };
-            *depth.entry(bucket.to_string()).or_insert(0) += 1;
-        }
-    }
-    let titv = if params.compute_titv && call.variants_called > 0 {
-        Some(2.0)
+        input_vcf.to_path_buf()
     } else {
-        None
+        let normalized_input = out_dir.join("stats_input.normalized.vcf.gz");
+        let plain_input = out_dir.join("stats_input.normalized.vcf");
+        std::fs::copy(input_vcf, &plain_input)?;
+        let _ = crate::vcf_io::vcf_index_bgzip_tabix(&plain_input, &normalized_input)?;
+        normalized_input
     };
-    let mut lines = vec![
-        "## bcftools stats (simulated deterministic output)".to_string(),
-        format!("SN\t0\tnumber of records:\t{}", call.variants_called),
-        format!("SN\t0\tnumber of SNPs:\t{}", call.snps),
-        format!("SN\t0\tnumber of indels:\t{}", call.indels),
-    ];
-    if let Some(v) = titv {
-        lines.push(format!("SN\t0\tts/tv:\t{v:.6}"));
-    }
-    atomic_write_bytes(&bcftools_stats_txt, (lines.join("\n") + "\n").as_bytes())?;
+    let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
+    let mut metrics = match crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
+        Ok(real) => real,
+        Err(_) => {
+            let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
+            let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
+            VcfStatsMetricsV1 {
+                schema_version: "bijux.vcf.stats.v1".to_string(),
+                sample_name: params.sample_name.clone(),
+                variants_total: call.variants_called,
+                snps: call.snps,
+                indels: call.indels,
+                ti_tv: None,
+                filter_breakdown: filter.filter_breakdown.clone(),
+                depth_distribution: std::collections::BTreeMap::new(),
+                call_summary: call,
+                filter_summary: filter,
+            }
+        }
+    };
+    metrics.sample_name = params.sample_name.clone();
     let stats_json = out_dir.join("stats.json");
-    atomic_write_json(
-        &stats_json,
-        &serde_json::json!({
-            "schema_version": "bijux.vcf.stats.v1",
-            "sample_name": params.sample_name,
-            "variants_total": call.variants_called,
-            "snps": call.snps,
-            "indels": call.indels,
-            "ti_tv": titv,
-            "filter_breakdown": filter.filter_breakdown,
-            "depth_distribution": if params.collect_depth_distribution { depth.clone() } else { std::collections::BTreeMap::<String, u64>::new() }
-        }),
-    )?;
-    let variants_total = call.variants_called;
-    let snps = call.snps;
-    let indels = call.indels;
-    let filter_breakdown = filter.filter_breakdown.clone();
-    let metrics = VcfStatsMetricsV1 {
-        schema_version: "bijux.vcf.stats.v1".to_string(),
-        sample_name: params.sample_name.clone(),
-        call_summary: call,
-        filter_summary: filter.clone(),
-        variants_total,
-        snps,
-        indels,
-        ti_tv: titv,
-        filter_breakdown,
-        depth_distribution: if params.collect_depth_distribution {
-            depth
-        } else {
-            std::collections::BTreeMap::new()
-        },
-    };
+    atomic_write_json(&stats_json, &serde_json::to_value(&metrics)?)?;
     Ok(StatsStageOutputs {
         bcftools_stats_txt,
         stats_json,

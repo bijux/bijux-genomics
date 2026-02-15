@@ -51,7 +51,25 @@ fn run_impute_stage_inner(
     }
 
     let run_started = std::time::Instant::now();
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = if input_vcf
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &input_vcf.display().to_string()])
+            .output()?;
+        if !output.status.success() {
+            bail!(
+                "bcftools view failed while reading {}: {}",
+                input_vcf.display(),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        String::from_utf8_lossy(&output.stdout).to_string()
+    } else {
+        std::fs::read_to_string(input_vcf)?
+    };
     let mut headers = Vec::new();
     let mut records = Vec::new();
     let mut has_gt = false;
@@ -259,8 +277,10 @@ fn run_impute_stage_inner(
         header_sorted.join("\n"),
         imputed_records.join("\n")
     );
-    atomic_write_bytes(&imputed_vcf, imputed_payload.as_bytes())?;
-    atomic_write_bytes(&imputed_tbi, b"tabix-index-placeholder\n")?;
+    let tmp_vcf = out_dir.join("imputed.tmp.vcf");
+    atomic_write_bytes(&tmp_vcf, imputed_payload.as_bytes())?;
+    let _ = crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, &imputed_vcf)?;
+    let _ = std::fs::remove_file(&tmp_vcf);
     assert_bgzip_tabix_artifacts(&imputed_vcf, &imputed_tbi)?;
 
     let mut info_values = Vec::<f64>::new();

@@ -60,19 +60,18 @@ fn canonical_contig_label(raw: &str) -> String {
 }
 
 fn write_postprocess_vcf_with_best_effort_index(out_vcf: &Path, payload: &str) -> Result<PathBuf> {
-    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcf.display()));
     let plain_vcf = out_vcf
         .parent()
         .ok_or_else(|| anyhow!("postprocess output path has no parent"))?
         .join("postprocess.tmp.vcf");
     atomic_write_bytes(&plain_vcf, payload.as_bytes())?;
-    if crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).is_ok() && out_tbi.exists() {
-        let _ = std::fs::remove_file(&plain_vcf);
-        return Ok(out_tbi);
-    }
+    let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).map_err(|err| {
+        anyhow!(
+            "postprocess bgzip+tabix failed for {}: {err}",
+            out_vcf.display()
+        )
+    })?;
     let _ = std::fs::remove_file(&plain_vcf);
-    atomic_write_bytes(out_vcf, payload.as_bytes())?;
-    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
     Ok(out_tbi)
 }
 
