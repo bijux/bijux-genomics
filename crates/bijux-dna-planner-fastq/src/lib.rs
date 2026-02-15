@@ -344,6 +344,7 @@ pub fn resolve_preprocess_pipeline(
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     decisions: &PreprocessDecisions,
 ) -> PipelineSpec {
+    let shotgun_mode = args.mode == crate::selection::args::FastqPlannerMode::Shotgun;
     let enable_merge = decisions.enable_merge;
     let enable_correct = decisions.enable_correct;
     let enable_qc_post = !args.no_qc_post;
@@ -356,6 +357,9 @@ pub fn resolve_preprocess_pipeline(
             Ok(profile) => {
                 let mut stages: Vec<String> = fastq_pipeline_id_catalog(profile.id.as_str());
                 stages = apply_layout_branching(stages, args.r2.is_some());
+                if !shotgun_mode {
+                    stages.retain(|stage| stage != "fastq.polyg_tailing");
+                }
                 if !enable_merge {
                     stages.retain(|stage| stage != STAGE_MERGE.as_str());
                 }
@@ -385,6 +389,9 @@ pub fn resolve_preprocess_pipeline(
                     },
                 });
                 spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
+                if !shotgun_mode {
+                    spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
+                }
                 spec
             }
         }
@@ -402,6 +409,9 @@ pub fn resolve_preprocess_pipeline(
             },
         });
         spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
+        if !shotgun_mode {
+            spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
+        }
         spec
     }
 }

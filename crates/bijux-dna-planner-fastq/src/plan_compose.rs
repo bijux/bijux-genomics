@@ -138,6 +138,13 @@ where
                 (plan, next_r1, None)
             }
             stage if stage == STAGE_VALIDATE_PRE.as_str() => {
+                if !matches!(tool.tool_id.as_str(), "fastqvalidator" | "seqkit") {
+                    return Err(anyhow!(
+                        "{} requires a canonical validator tool (fastqvalidator/seqkit); got {}",
+                        STAGE_VALIDATE_PRE.as_str(),
+                        tool.tool_id
+                    ));
+                }
                 let plan =
                     crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
