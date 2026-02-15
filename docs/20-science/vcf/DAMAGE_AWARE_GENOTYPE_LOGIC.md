@@ -58,3 +58,14 @@ Terminal threshold:
 - If `BIJUX_ADNA_MODE=1` and `vcf.damage_filter` is not scheduled, pipeline refuses unless:
   - `BIJUX_ALLOW_SKIP_DAMAGE_FILTER=1`
 - Ancient QC defaults skip modern-only HWE metrics unless explicitly enabled.
+
+## Accept Examples
+
+- `udg_regime=non_udg`, `library_type=ssdna`, and stage input includes `GL` plus any damage INFO tags:
+  - Stage runs with terminal-aware thresholds and emits `damage_genotype_manifest.json`.
+- `udg_regime=udg`, `library_type=dsdna`, with PMD absent:
+  - Stage still runs, records proxy usage in warnings when required fields are missing, and keeps deterministic outputs.
+
+## Post-Impute Residual Check
+
+- Downstream imputation stage writes residual transition asymmetry diagnostics and warnings so damage signatures can be re-audited after imputation merge.
