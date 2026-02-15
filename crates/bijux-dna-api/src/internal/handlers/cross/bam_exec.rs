@@ -174,6 +174,258 @@ fn enforce_stage_refusal_rules(
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Align && reference.is_none() {
         return Err(anyhow!("bam.align requires resolved reference fasta"));
     }
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Sex {
+        let Some(reference) = reference else {
+            return Err(anyhow!(
+                "bam.sex requires reference fasta to validate sex contigs"
+            ));
+        };
+        let fai = PathBuf::from(format!("{}.fai", reference.display()));
+        if !fai.exists() {
+            return Err(anyhow!(
+                "bam.sex requires reference index (.fai): {}",
+                fai.display()
+            ));
+        }
+        let raw = std::fs::read_to_string(&fai)
+            .with_context(|| format!("read {}", fai.display()))?;
+        let has_x = raw.lines().any(|line| line.starts_with("X\t") || line.starts_with("chrX\t"));
+        let has_y = raw.lines().any(|line| line.starts_with("Y\t") || line.starts_with("chrY\t"));
+        if !(has_x && has_y) {
+            return Err(anyhow!(
+                "bam.sex refusal: reference lacks required X/Y contigs in {}",
+                fai.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn parse_flagstat_mapped_fraction(path: &Path) -> Result<Option<f64>> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut total: Option<f64> = None;
+    let mut mapped: Option<f64> = None;
+    for line in raw.lines() {
+        let line = line.trim();
+        if total.is_none() && line.contains("in total") {
+            if let Some(first) = line.split_whitespace().next() {
+                total = first.parse::<f64>().ok();
+            }
+        }
+        if mapped.is_none() && line.contains(" mapped (") {
+            if let Some(first) = line.split_whitespace().next() {
+                mapped = first.parse::<f64>().ok();
+            }
+        }
+    }
+    let Some(total) = total else {
+        return Ok(None);
+    };
+    let Some(mapped) = mapped else {
+        return Ok(None);
+    };
+    if total <= 0.0 {
+        return Ok(None);
+    }
+    Ok(Some(mapped / total))
+}
+
+fn write_udg_metadata(stage_dir: &Path, plan: &bijux_dna_stage_contract::StagePlanV1) -> Result<()> {
+    let udg_model = plan
+        .params
+        .get("udg_model")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("unknown");
+    let path = stage_dir.join("udg_regime.json");
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "udg_model": udg_model,
+            "stage_id": plan.stage_id.as_str(),
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))
+}
+
+fn write_damage_unified(stage_dir: &Path) -> Result<()> {
+    let mut measurements = Vec::new();
+    let pydamage = stage_dir.join("damage.pydamage.json");
+    if pydamage.exists() {
+        if let Ok(parsed) = bijux_dna_domain_bam::metrics::parse_pydamage_json(&pydamage) {
+            measurements.push(("pydamage", parsed));
+        }
+    }
+    let profiler = stage_dir.join("damage.profiler.json");
+    if profiler.exists() {
+        if let Ok(parsed) = bijux_dna_domain_bam::metrics::parse_damageprofiler_json(&profiler) {
+            measurements.push(("damageprofiler", parsed));
+        }
+    }
+    let mapdamage = stage_dir.join("damage.mapdamage2.txt");
+    if mapdamage.exists() {
+        if let Ok(parsed) =
+            bijux_dna_domain_bam::metrics::parse_mapdamage2_misincorporation(&mapdamage)
+        {
+            measurements.push(("mapdamage2", parsed));
+        }
+    }
+    let canonical = measurements
+        .first()
+        .map(|(_, metric)| metric.clone())
+        .unwrap_or_else(bijux_dna_domain_bam::metrics::DamageMetricsV1::empty);
+    let comparison = if measurements.len() >= 2 {
+        Some(bijux_dna_domain_bam::metrics::compare_damage_metrics(
+            measurements[0].0,
+            &measurements[0].1,
+            measurements[1].0,
+            &measurements[1].1,
+            0.05,
+        ))
+    } else {
+        None
+    };
+    let path = stage_dir.join("damage.unified_metrics.json");
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "canonical": canonical,
+            "tools_seen": measurements.iter().map(|(name, _)| *name).collect::<Vec<_>>(),
+            "comparison": comparison,
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))
+}
+
+fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
+    let damage_unified = stage_dir.join("damage.unified_metrics.json");
+    let damage_value: serde_json::Value = if damage_unified.exists() {
+        serde_json::from_str(
+            &std::fs::read_to_string(&damage_unified)
+                .with_context(|| format!("read {}", damage_unified.display()))?,
+        )?
+    } else {
+        serde_json::json!({})
+    };
+    let damage = damage_value
+        .get("canonical")
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
+    let c_to_t = damage
+        .get("c_to_t_5p")
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let g_to_a = damage
+        .get("g_to_a_3p")
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let contamination_path = stage_dir.join("contamination.summary.json");
+    let contamination_estimate = if contamination_path.exists() {
+        let contamination =
+            bijux_dna_domain_bam::metrics::parse_contamination_json(&contamination_path)?;
+        contamination.estimate
+    } else {
+        0.0
+    };
+    let damage_signal = c_to_t.max(g_to_a);
+    let score = (damage_signal.min(0.3) / 0.3 * 0.7)
+        + ((1.0 - contamination_estimate.min(1.0)) * 0.3);
+    let path = stage_dir.join("authenticity_composite.json");
+    bijux_dna_infra::atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "damage_signal": damage_signal,
+            "contamination_estimate": contamination_estimate,
+            "composite_score": score,
+            "confidence": (0.5 + score / 2.0).min(1.0),
+        }),
+    )
+    .with_context(|| format!("write {}", path.display()))
+}
+
+fn stage_postprocess(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<()> {
+    match stage {
+        bijux_dna_planner_bam::stage_api::BamStage::Damage => {
+            write_udg_metadata(stage_dir, plan)?;
+            write_damage_unified(stage_dir)?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Authenticity => {
+            write_udg_metadata(stage_dir, plan)?;
+            write_authenticity_composite(stage_dir)?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::BiasMitigation => {
+            write_udg_metadata(stage_dir, plan)?;
+            let path = stage_dir.join("bias_mitigation.policy.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "gc_bias_correction": plan.params.get("gc_bias_correction").cloned(),
+                    "map_bias_correction": plan.params.get("map_bias_correction").cloned(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
+            let flagstat = stage_dir.join("flagstat.txt");
+            let mapped_fraction = parse_flagstat_mapped_fraction(&flagstat)?;
+            let path = stage_dir.join("endogenous.content.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "method": "mapped_fraction_from_flagstat",
+                    "mapped_fraction": mapped_fraction,
+                    "competitive_mapping_enabled": false,
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Contamination => {
+            let tool_scope = plan
+                .params
+                .get("tool_scope")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("both");
+            let logical_scope = plan
+                .params
+                .get("scope")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!("both"));
+            let path = stage_dir.join("contamination_modes.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "logical_scope": logical_scope,
+                    "tool_scope": tool_scope,
+                    "mitochondrial_mode": tool_scope == "mt" || tool_scope == "both",
+                    "nuclear_mode": tool_scope == "nuclear" || tool_scope == "both",
+                    "sex_chr_mode": plan.params.get("sex_specific").and_then(serde_json::Value::as_bool).unwrap_or(false),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Haplogroups => {
+            let path = stage_dir.join("haplogroups.normalized.json");
+            let summary_path = stage_dir.join("haplogroups.summary.json");
+            let summary_exists = summary_path.exists();
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "schema_version": "bijux.bam.haplogroups.v1",
+                    "summary_present": summary_exists,
+                    "panel": plan.params.get("reference_panel").cloned(),
+                    "min_coverage": plan.params.get("min_coverage").cloned(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        _ => {}
+    }
     Ok(())
 }
 
@@ -299,6 +551,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         timeout: None,
     })?
     .stage_result;
+    stage_postprocess(stage, &stage_dir, &plan)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     Ok(StageExecutionSummary { plan: step, result })
 }
