@@ -1715,6 +1715,19 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_enabled_vcf_panel_metadata"
+path = "scripts/checks/check-enabled-vcf-panel-metadata.sh"
+purpose = "checks script"
+inputs = [
+  "configs/runtime/profiles/vcf_downstream_local.toml",
+  "configs/vcf/panels/panels.toml",
+  "configs/vcf/panels/locks/panel_locks.toml",
+  "configs/vcf/panels/locks/lock.json",
+]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_param_registry_completeness"
 path = "scripts/checks/check-param-registry-completeness.sh"
 purpose = "checks script"
