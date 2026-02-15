@@ -95,3 +95,23 @@ fn fastq_amplicon_tables_define_expected_schema_headers() {
         "abundance normalization table must include normalized_abundance header contract"
     );
 }
+
+#[test]
+fn fastq_amplicon_runtime_invokes_real_tool_paths() {
+    let root = repo_root();
+    let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess.rs");
+    let raw =
+        std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
+    for needle in [
+        "cutadapt_primer_normalization",
+        "vsearch_uchime_denovo",
+        "vsearch_cluster_fast",
+        "dada2_rscript",
+        "seqkit_fq2fa",
+    ] {
+        assert!(
+            raw.contains(needle),
+            "expected amplicon tool execution path marker `{needle}` in preprocess runtime"
+        );
+    }
+}
