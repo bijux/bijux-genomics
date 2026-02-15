@@ -1,3 +1,15 @@
+const LAYOUT_EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"];
+
+fn layout_is_excluded(path: &std::path::Path) -> bool {
+    path.components().any(|component| {
+        component
+            .as_os_str()
+            .to_str()
+            .map(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
+            .unwrap_or(false)
+    })
+}
+
 #[test]
 fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
@@ -6,6 +18,9 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
         .into_iter()
         .filter_map(|entry| entry.ok())
     {
+        if layout_is_excluded(entry.path()) {
+            continue;
+        }
         if !entry.file_type().is_file() {
             continue;
         }

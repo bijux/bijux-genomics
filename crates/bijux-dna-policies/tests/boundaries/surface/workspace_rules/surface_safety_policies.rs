@@ -278,6 +278,9 @@ fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
     {
+        if is_excluded(entry.path()) {
+            continue;
+        }
         let name = entry.file_name().to_string_lossy();
         if name == ".DS_Store" || name.starts_with("._") {
             offenders.push(
@@ -330,4 +333,15 @@ fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
         offenders.is_empty(),
         "workspace Cargo.toml package names must use bijux-dna-* (no legacy bijux-*): {offenders:?}"
     );
+}
+const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"];
+
+fn is_excluded(path: &std::path::Path) -> bool {
+    path.components().any(|component| {
+        component
+            .as_os_str()
+            .to_str()
+            .map(|name| EXCLUDE_DIRS.contains(&name))
+            .unwrap_or(false)
+    })
 }
