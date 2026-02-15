@@ -18,10 +18,7 @@ pub struct QcStageOutputs {
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
 pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
     if params.is_ancient_dna && !params.allow_hwe_for_ancient {
-        // HWE is intentionally skipped by default for aDNA.
-    }
-    if params.is_ancient_dna && params.allow_hwe_for_ancient {
-        bail!("vcf.qc refusal: HWE is not enabled by default for ancient DNA");
+        // HWE and other modern-only metrics are intentionally skipped by default for aDNA.
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
@@ -113,7 +110,11 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
     table.push_str(&format!(
         "hwe_status\t{}\n",
-        if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+        if params.is_ancient_dna && !params.allow_hwe_for_ancient {
+            "skipped_ancient_default"
+        } else {
+            "computed_modern"
+        }
     ));
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     let qc_histograms_json = out_dir.join("qc_histograms.json");
@@ -137,7 +138,7 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "rsq_mean": rsq_mean,
             "allele_frequency_shift_abs_mean": af_mean,
             "depth_distribution": depth,
-            "hwe_status": if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+            "hwe_status": if params.is_ancient_dna && !params.allow_hwe_for_ancient { "skipped_ancient_default" } else { "computed_modern" }
         }),
     )?;
     Ok(QcStageOutputs {

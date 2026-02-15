@@ -60,10 +60,7 @@ fn parse_gt_counts(format_field: &str, sample_fields: &[&str]) -> Option<(u64, u
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
 pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
     if params.is_ancient_dna && !params.allow_hwe_for_ancient {
-        // HWE is intentionally skipped by default for aDNA.
-    }
-    if params.is_ancient_dna && params.allow_hwe_for_ancient {
-        bail!("vcf.qc refusal: HWE is not enabled by default for ancient DNA");
+        // HWE and other modern-only metrics are intentionally skipped by default for aDNA.
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = read_vcf_text(input_vcf)?;
@@ -117,7 +114,7 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
                     site_missingness.push(site_missing as f64 / site_total as f64);
                 }
             }
-            if !params.is_ancient_dna {
+            if !params.is_ancient_dna || params.allow_hwe_for_ancient {
                 if let Some((hom_ref, het, hom_alt, total)) = parse_gt_counts(fields[8], &fields[9..]) {
                     if total > 0 {
                         let n = total as f64;
@@ -200,7 +197,11 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     }
     table.push_str(&format!(
         "hwe_status\t{}\n",
-        if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+        if params.is_ancient_dna && !params.allow_hwe_for_ancient {
+            "skipped_ancient_default"
+        } else {
+            "computed_modern"
+        }
     ));
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
@@ -238,7 +239,7 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             "site_missingness_mean": site_missingness_mean,
             "depth_distribution": depth,
             "hwe_pvalue_mean": hwe_p_mean,
-            "hwe_status": if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
+            "hwe_status": if params.is_ancient_dna && !params.allow_hwe_for_ancient { "skipped_ancient_default" } else { "computed_modern" }
         }),
     )?;
     Ok(QcStageOutputs {
