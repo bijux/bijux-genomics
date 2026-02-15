@@ -19,7 +19,7 @@ fn is_excluded(path: &std::path::Path) -> bool {
 }
 
 #[test]
-fn policy__contracts__no_appledouble__no_appledouble_or_ds_store() {
+fn slow__policy__contracts__no_appledouble__no_appledouble_or_ds_store() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 

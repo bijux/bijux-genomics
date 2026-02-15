@@ -23,7 +23,7 @@ fn policy__contracts__bench_layout_policy__root_bench_directory_is_forbidden() {
 }
 
 #[test]
-fn policy__contracts__bench_layout_policy__bench_suites_live_only_under_bench_crate() {
+fn slow__policy__contracts__bench_layout_policy__bench_suites_live_only_under_bench_crate() {
     let root = workspace_root();
     let canonical = root.join("crates/bijux-dna-bench/bench/suites");
     let mut offenders = Vec::new();
