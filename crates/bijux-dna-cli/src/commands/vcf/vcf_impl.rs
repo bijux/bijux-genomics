@@ -134,8 +134,8 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
 
 fn default_species_context() -> SpeciesContext {
     SpeciesContext {
-        species_id: "hsapiens".to_string(),
-        build_id: "grch38".to_string(),
+        species_id: "Homo sapiens".to_string(),
+        build_id: "GRCh38".to_string(),
         contig_set_digest: "grch38-minimal-cli".to_string(),
         contigs: vec![ContigSpec {
             name: "1".to_string(),

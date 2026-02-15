@@ -1,6 +1,5 @@
 /// # Errors
 /// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
-#[allow(clippy::too_many_lines)]
 pub fn ensure_apptainer_images(
     registry_path: &Path,
     hpc_root: &Path,

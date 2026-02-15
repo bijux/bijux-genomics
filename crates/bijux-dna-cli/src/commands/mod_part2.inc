@@ -1,4 +1,3 @@
-#[allow(clippy::too_many_lines)]
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         ensure_apptainer_images, env_doctor, generate_apptainer_qa_matrix_markdown,

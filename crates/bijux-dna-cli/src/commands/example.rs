@@ -294,7 +294,6 @@ pub fn scaffold_examples_series(cwd: &Path, series: &str, count: usize) -> Resul
     Ok(())
 }
 
-#[allow(clippy::too_many_lines)]
 fn scaffold_one_example(
     cwd: &Path,
     template_root: &Path,
@@ -425,7 +424,6 @@ fn scaffold_one_example(
     Ok(())
 }
 
-#[allow(clippy::too_many_lines)]
 fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<()> {
     if spec.schema_version != "bijux.example.v1" {
         return Err(anyhow!("unsupported example schema `{}`", spec.schema_version));
