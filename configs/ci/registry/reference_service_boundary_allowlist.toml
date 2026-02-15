@@ -1,0 +1,71 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Temporary allowlist for reference-service boundary debt.
+# authority = bijux-dna-infra
+# stability = evolving
+# last_updated = 2026-02-15
+
+[[allow]]
+path = "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_contracts.rs"
+expires_on = "2026-06-30"
+reason = "Legacy BAM contract helper uses direct path checks; migrate to db-ref service wiring."
+
+[[allow]]
+path = "crates/bijux-dna-api/src/internal/handlers/cross/manifests.rs"
+expires_on = "2026-06-30"
+reason = "Cross-domain manifest assembly still resolves some reference paths directly."
+
+[[allow]]
+path = "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec.rs"
+expires_on = "2026-06-30"
+reason = "BAM runtime still performs direct reference-file probes before full ref-service handoff."
+
+[[allow]]
+path = "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_stage_runtime.rs"
+expires_on = "2026-06-30"
+reason = "Stage runtime uses direct path joins pending shared RefService adapter extraction."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/runtime/call_and_damage_stages.rs"
+expires_on = "2026-06-30"
+reason = "VCF runtime damage/call section has direct reference file usage to be migrated."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/population/reference_panel_preparation.rs"
+expires_on = "2026-06-30"
+reason = "Panel prep code uses direct paths while integrating RefService boundary."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/imputation_core.rs"
+expires_on = "2026-06-30"
+reason = "Imputation core still consumes direct reference paths in runner templates."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/phasing_and_imputation_entrypoints.rs"
+expires_on = "2026-06-30"
+reason = "Entrypoint path wiring predates strict db-ref service enforcement."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/impute_stage_execution_engine.rs"
+expires_on = "2026-06-30"
+reason = "Execution engine still has direct path references for compatibility."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/runtime_and_orchestration.rs"
+expires_on = "2026-06-30"
+reason = "Runtime/orchestration owns legacy reference path glue pending refactor."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/population_and_panel_prep/ibd_demography_and_panel.rs"
+expires_on = "2026-06-30"
+reason = "Population/panel prep helper uses direct paths awaiting service extraction."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/postprocess/postprocess_normalization.rs"
+expires_on = "2026-06-30"
+reason = "Postprocess normalization still includes direct reference file checks."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc/qc_and_phasing_types.rs"
+expires_on = "2026-06-30"
+reason = "QC/phasing type checks currently use direct path and will be migrated."
