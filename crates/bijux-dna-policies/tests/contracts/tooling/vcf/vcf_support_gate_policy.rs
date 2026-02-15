@@ -226,3 +226,30 @@ fn policy__contracts__vcf_support_gate_policy__production_switch_requires_non_ex
         }
     }
 }
+
+#[test]
+fn policy__contracts__vcf_support_gate_policy__runtime_profiles_ban_non_production_shortcuts() {
+    let root = repo_root();
+    let profiles_dir = root.join("configs/runtime/profiles");
+    let entries = fs::read_dir(&profiles_dir)
+        .unwrap_or_else(|e| panic!("read {}: {e}", profiles_dir.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|e| panic!("read profile entry: {e}"));
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("toml") {
+            continue;
+        }
+        let raw =
+            fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        assert!(
+            !raw.contains("BIJUX_NON_PRODUCTION_MODE"),
+            "runtime profile must not enable BIJUX_NON_PRODUCTION_MODE: {}",
+            path.display()
+        );
+        assert!(
+            !raw.contains("mark_non_production"),
+            "runtime profile must not opt into mark_non_production mode: {}",
+            path.display()
+        );
+    }
+}
