@@ -7,3 +7,5 @@ mod mod_contracts_v1_cross_explain_roundtrip_rs;
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
 mod mod_contracts_v1_dry_run_manifest_rs;
+#[path = "contracts/v1_fastq_small_integration.rs"]
+mod mod_contracts_v1_fastq_small_integration_rs;
