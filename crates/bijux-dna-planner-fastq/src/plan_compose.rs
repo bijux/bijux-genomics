@@ -260,7 +260,12 @@ where
                     &out_dir,
                     serde_json::json!({
                         "orientation_policy": "normalize_to_forward_primer",
-                        "primer_set_id": "default"
+                        "primer_set_id": "default",
+                        "mismatch_policy": {
+                            "max_mismatches": 2,
+                            "allow_iupac_codes": true,
+                            "strict_5p_anchor": true
+                        }
                     }),
                 );
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -281,7 +286,8 @@ where
                     &out_dir,
                     serde_json::json!({
                         "method": "vsearch_denovo",
-                        "chimera_removed_definition": "exclude flagged reads from downstream feature tables"
+                        "chimera_removed_definition": "exclude flagged reads from downstream feature tables",
+                        "metrics": ["chimera_fraction", "non_chimera_reads", "chimera_reads"]
                     }),
                 );
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -302,7 +308,11 @@ where
                     &out_dir,
                     serde_json::json!({
                         "requires_r_runtime": true,
-                        "output_table_kind": "asv_abundance_table"
+                        "output_table_kind": "asv_abundance_table",
+                        "runtime_constraints": {
+                            "requires_r": true,
+                            "min_r_major": 4
+                        }
                     }),
                 );
                 (plan, current_r1.clone(), current_r2.clone())
@@ -322,7 +332,8 @@ where
                     &out_dir,
                     serde_json::json!({
                         "identity_threshold": 0.97,
-                        "output_table_kind": "otu_abundance_table"
+                        "output_table_kind": "otu_abundance_table",
+                        "output_naming": "deterministic"
                     }),
                 );
                 (plan, current_r1.clone(), current_r2.clone())
@@ -342,7 +353,8 @@ where
                     &out_dir,
                     serde_json::json!({
                         "method": "relative_abundance",
-                        "expected_columns": ["sample_id", "feature_id", "abundance"]
+                        "expected_columns": ["sample_id", "feature_id", "abundance"],
+                        "compositional_rule": "per_sample_sum_to_one"
                     }),
                 );
                 (plan, current_r1.clone(), current_r2.clone())
@@ -376,6 +388,73 @@ fn plan_amplicon_stage(
     out_dir: &std::path::Path,
     effective_params: serde_json::Value,
 ) -> StagePlanV1 {
+    let outputs = match stage_id {
+        "fastq.primer_normalization" => vec![
+                (
+                    "normalized_reads",
+                    out_dir.join("primer_normalized.fastq.gz"),
+                    bijux_dna_core::prelude::ArtifactRole::Reads,
+                ),
+                (
+                    "primer_orientation_report",
+                    out_dir.join("primer_orientation.tsv"),
+                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+                ),
+            ],
+        "fastq.chimera_detection" => vec![
+                (
+                    "chimera_filtered_reads",
+                    out_dir.join("chimera_filtered.fastq.gz"),
+                    bijux_dna_core::prelude::ArtifactRole::Reads,
+                ),
+                (
+                    "chimera_metrics_json",
+                    out_dir.join("chimera_metrics.json"),
+                    bijux_dna_core::prelude::ArtifactRole::MetricsJson,
+                ),
+            ],
+        "fastq.asv_inference" => vec![
+                (
+                    "asv_table_tsv",
+                    out_dir.join("asv_abundance.tsv"),
+                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+                ),
+                (
+                    "asv_sequences_fasta",
+                    out_dir.join("asv_sequences.fasta"),
+                    bijux_dna_core::prelude::ArtifactRole::Reads,
+                ),
+            ],
+        "fastq.otu_clustering" => vec![
+                (
+                    "otu_table_tsv",
+                    out_dir.join("otu_abundance.tsv"),
+                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+                ),
+                (
+                    "otu_sequences_fasta",
+                    out_dir.join("otu_representatives.fasta"),
+                    bijux_dna_core::prelude::ArtifactRole::Reads,
+                ),
+            ],
+        "fastq.abundance_normalization" => vec![(
+                "normalized_abundance_tsv",
+                out_dir.join("abundance_normalized.tsv"),
+                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+            )],
+        _ => vec![(
+                "stage_output",
+                out_dir.join(format!(
+                    "{}.out",
+                    stage_id
+                        .split_once('.')
+                        .map(|(_, suffix)| suffix)
+                        .unwrap_or(stage_id)
+                        .replace('.', "_")
+                )),
+                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+            )],
+    };
     StagePlanV1 {
         stage_id: StageId::new(stage_id),
         stage_version: bijux_dna_core::prelude::StageVersion(1),
@@ -390,18 +469,16 @@ fn plan_amplicon_stage(
                 input.to_path_buf(),
                 bijux_dna_core::prelude::ArtifactRole::Reads,
             )],
-            outputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                bijux_dna_core::prelude::ArtifactId::from_static("stage_output"),
-                out_dir.join(format!(
-                    "{}.out",
-                    stage_id
-                        .split_once('.')
-                        .map(|(_, suffix)| suffix)
-                        .unwrap_or(stage_id)
-                        .replace('.', "_")
-                )),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            )],
+            outputs: outputs
+                .into_iter()
+                .map(|(name, path, role)| {
+                    bijux_dna_stage_contract::ArtifactRef::required(
+                        bijux_dna_core::prelude::ArtifactId::new(name.to_string()),
+                        path,
+                        role,
+                    )
+                })
+                .collect(),
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({}),

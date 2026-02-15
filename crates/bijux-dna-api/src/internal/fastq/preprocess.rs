@@ -254,6 +254,24 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
+    if args.mode == bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::Shotgun {
+        let amplicon_only = [
+            "fastq.primer_normalization",
+            "fastq.chimera_detection",
+            "fastq.asv_inference",
+            "fastq.otu_clustering",
+            "fastq.abundance_normalization",
+        ];
+        if let Some(stage) = pipeline
+            .stages
+            .iter()
+            .find(|stage| amplicon_only.contains(&stage.as_str()))
+        {
+            return Err(anyhow!(
+                "stage {stage} is not applicable in shotgun mode; use --mode edna_amplicon or --mode pollen_amplicon"
+            ));
+        }
+    }
     let bench_repo = if args.auto {
         Some(SqliteBenchResultsRepository::new(args.out.clone()))
     } else {
