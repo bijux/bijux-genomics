@@ -515,9 +515,18 @@ mod tests {
                 .join("metrics.json");
             let payload: serde_json::Value =
                 serde_json::from_str(&std::fs::read_to_string(metrics_path)?)?;
+            let stage_metrics_path = stage_dir.join("metrics.json");
+            let stage_payload: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(stage_metrics_path)?)?;
             assert_eq!(
                 payload
                     .pointer("/metrics/schema_version")
+                    .and_then(serde_json::Value::as_str),
+                Some("bijux.bam.metrics.normalized.v1")
+            );
+            assert_eq!(
+                stage_payload
+                    .get("schema_version")
                     .and_then(serde_json::Value::as_str),
                 Some("bijux.bam.metrics.normalized.v1")
             );
@@ -527,8 +536,48 @@ mod tests {
                     .and_then(serde_json::Value::as_str),
                 Some(stage.as_str())
             );
+            assert_eq!(
+                stage_payload
+                    .get("stage_id")
+                    .and_then(serde_json::Value::as_str),
+                Some(stage.as_str())
+            );
             assert!(payload.pointer("/metrics/normalized_keys").is_some());
+            assert!(stage_payload.get("normalized_keys").is_some());
         }
+        Ok(())
+    }
+
+    #[test]
+    fn bam_smoke_runner_minimal_pipeline_validates_report_section_presence() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam_root = temp.path().join("bam");
+        let mapping = bam_root.join("mapping_summary");
+        let coverage = bam_root.join("coverage");
+        let contamination = bam_root.join("contamination");
+        for dir in [&mapping, &coverage, &contamination] {
+            bijux_dna_infra::ensure_dir(dir)?;
+        }
+        bijux_dna_infra::atomic_write_bytes(
+            &mapping.join("flagstat.txt"),
+            b"10 + 0 in total (QC-passed reads + QC-failed reads)\n8 + 0 mapped (80.00% : N/A)\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(&mapping.join("samtools_stats.txt"), b"MQ\t30\t10\n")?;
+        bijux_dna_infra::atomic_write_bytes(
+            &coverage.join("coverage.depth.txt"),
+            b"chr1\t1\t2\nchr1\t2\t3\n",
+        )?;
+        bijux_dna_infra::atomic_write_json(
+            &contamination.join("contamination.summary.json"),
+            &serde_json::json!({"estimate": 0.02}),
+        )?;
+        write_bam_qc_aggregator_tsv(&bam_root)?;
+        let qc = std::fs::read_to_string(bam_root.join("bam_qc.tsv"))?;
+        let header = qc.lines().next().unwrap_or_default();
+        assert!(header.contains("stage"));
+        assert!(header.contains("mapped_fraction"));
+        assert!(header.contains("contamination_estimate"));
+        assert!(qc.contains("mapping_summary"));
         Ok(())
     }
 

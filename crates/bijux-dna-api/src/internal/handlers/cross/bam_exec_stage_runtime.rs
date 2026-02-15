@@ -496,13 +496,16 @@ fn write_normalized_bam_metrics(
         },
         failure_class: (result.exit_code != 0).then_some("stage_failed".to_string()),
         failure_reason: (result.exit_code != 0).then_some("non_zero_exit_code".to_string()),
-        metrics: normalized_metrics,
+        metrics: normalized_metrics.clone(),
     };
     let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(stage_dir);
     bijux_dna_infra::ensure_dir(&run_artifacts)
         .with_context(|| format!("create {}", run_artifacts.display()))?;
     bijux_dna_runtime::recording::write_stage_metrics_json(&run_artifacts, &stage_metrics)
         .with_context(|| format!("write normalized metrics for {}", stage.as_str()))?;
+    let stage_metrics_path = stage_dir.join("metrics.json");
+    bijux_dna_infra::atomic_write_json(&stage_metrics_path, &normalized_metrics)
+        .with_context(|| format!("write {}", stage_metrics_path.display()))?;
     Ok(())
 }
 
@@ -644,6 +647,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         .join("bam")
         .join(stage.as_str().trim_start_matches(STAGE_PREFIX));
     bijux_dna_infra::ensure_dir(&stage_dir).context("create bam stage dir")?;
+    write_stage_refusal_catalog(&stage_dir, stage)?;
 
     let mut args = base_bam_args(
         stage,
@@ -750,6 +754,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     let regime = infer_alignment_regime(profile, args);
     let align_out = out_dir.join("bam").join("align");
     bijux_dna_infra::ensure_dir(&align_out)?;
+    write_stage_refusal_catalog(&align_out, bijux_dna_planner_bam::stage_api::BamStage::Align)?;
     let align_stage = bijux_dna_core::ids::StageId::from_static(
         bijux_dna_planner_bam::stage_api::BamStage::Align.as_str(),
     );
