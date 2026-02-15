@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-#[path = "../../../../support/fs.rs"]
+#[path = "../../../support/fs.rs"]
 mod support;
 
 const MAX_DIRECT_CHILDREN: usize = 10;
