@@ -346,4 +346,13 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn coverage_regime_classifier_uses_requested_bins() {
+        assert_eq!(classify_mean_depth(0.5), "<1x");
+        assert_eq!(classify_mean_depth(1.0), "1-5x");
+        assert_eq!(classify_mean_depth(5.0), "1-5x");
+        assert_eq!(classify_mean_depth(7.5), "5-10x");
+        assert_eq!(classify_mean_depth(12.0), ">10x");
+    }
+
 }
