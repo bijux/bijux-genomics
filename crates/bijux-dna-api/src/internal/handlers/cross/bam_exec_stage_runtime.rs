@@ -65,6 +65,20 @@ fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
     None
 }
 
+fn bam_header_contig_names_hint(bam_path: &Path) -> Vec<String> {
+    let Ok(raw) = std::fs::read_to_string(bam_path) else {
+        return Vec::new();
+    };
+    raw.lines()
+        .filter(|line| line.starts_with("@SQ"))
+        .filter_map(|line| {
+            line.split('\t')
+                .find_map(|field| field.strip_prefix("SN:"))
+                .map(std::string::ToString::to_string)
+        })
+        .collect()
+}
+
 fn read_group_presence_hint(bam_path: &Path) -> &'static str {
     let Ok(raw) = std::fs::read_to_string(bam_path) else {
         return "unknown";
@@ -562,6 +576,9 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     })?
     .stage_result;
     stage_postprocess(stage, &stage_dir, &plan)?;
+    if let Some(bam_root) = stage_dir.parent() {
+        write_bam_qc_aggregator_tsv(bam_root)?;
+    }
     write_bam_output_contract(stage, &stage_dir)?;
     enforce_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
@@ -647,6 +664,27 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_step,
     )?;
     write_alignment_regime_validation(&align_out, regime, tool_id.as_str(), &align_step)?;
+    let alignment_parameters_path = align_out.join("alignment.parameters.json");
+    bijux_dna_infra::atomic_write_json(
+        &alignment_parameters_path,
+        &serde_json::json!({
+            "schema_version": "bijux.bam.alignment_parameters.v1",
+            "tool_id": tool_id.as_str(),
+            "regime": regime,
+            "command_template": align_step.command.template.clone(),
+            "derived": {
+                "preset": align_args.aligner_preset.clone(),
+                "read_group": {
+                    "rg_id": align_args.rg_id.clone().unwrap_or_else(|| format!("rg-{}", sample_id)),
+                    "rg_sm": align_args.rg_sm.clone().unwrap_or_else(|| sample_id.clone()),
+                    "rg_pl": align_args.rg_pl.clone().unwrap_or_else(|| "ILLUMINA".to_string()),
+                    "rg_lb": align_args.rg_lb.clone().unwrap_or_else(|| "lib1".to_string()),
+                    "policy": align_args.rg_policy.clone().unwrap_or_else(|| "regenerate".to_string()),
+                }
+            }
+        }),
+    )
+    .with_context(|| format!("write {}", alignment_parameters_path.display()))?;
     if let Some(summary) = maybe_resume_bam_stage(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
         &align_out,
@@ -685,8 +723,14 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     })?
     .stage_result;
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
-    write_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
-    enforce_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
+    write_bam_output_contract(
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_out,
+    )?;
+    enforce_bam_output_contract(
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_out,
+    )?;
     write_normalized_bam_metrics(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
         &align_out,
