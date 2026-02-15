@@ -1,3 +1,48 @@
+fn write_downstream_readiness_artifact(
+    out_dir: &Path,
+    stage_id: &str,
+    sample_count: usize,
+    variant_density_per_mb: f64,
+    missingness: f64,
+    checks: &[(&str, bool)],
+) -> Result<PathBuf> {
+    let path = out_dir.join("vcf_ready_for_downstream.json");
+    let mut check_obj = serde_json::Map::new();
+    let mut all_passed = true;
+    for (name, passed) in checks {
+        check_obj.insert((*name).to_string(), serde_json::Value::Bool(*passed));
+        all_passed &= *passed;
+    }
+    atomic_write_json(
+        &path,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.ready_for_downstream.v1",
+            "stage_id": stage_id,
+            "sample_count": sample_count,
+            "variant_density_per_mb": variant_density_per_mb,
+            "missingness": missingness,
+            "checks": check_obj,
+            "ready_for_roh": all_passed,
+            "ready_for_ibd": all_passed,
+            "ready_for_demography": all_passed
+        }),
+    )?;
+    Ok(path)
+}
+
+fn require_readiness_gate(path: &Path, field: &str, stage_id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(path)?;
+    let json: serde_json::Value = serde_json::from_str(&raw)?;
+    let passes = json.get(field).and_then(|v| v.as_bool()).unwrap_or(false);
+    if !passes {
+        bail!(
+            "{stage_id} refusal: downstream readiness gate failed ({field}=false in {})",
+            path.display()
+        );
+    }
+    Ok(())
+}
+
 pub fn run_roh_stage(
     input_vcf: &Path,
     out_dir: &Path,
@@ -28,13 +73,29 @@ pub fn run_roh_stage(
     };
     let density = (variants.len() as f64) / ((contig_span as f64) / 1_000_000.0);
     let (_, _, missingness) = compute_variant_readiness(&raw);
-    if density < params.min_snp_density_per_mb {
+    let density_pass = density >= params.min_snp_density_per_mb;
+    let missingness_pass = missingness <= params.max_missingness;
+    let lowcov_pass =
+        missingness <= params.low_coverage_missingness_threshold || params.allow_pseudohaploid_low_coverage;
+    let readiness_json = write_downstream_readiness_artifact(
+        out_dir,
+        "vcf.roh",
+        sample_ids.len(),
+        density,
+        missingness,
+        &[
+            ("min_density", density_pass),
+            ("max_missingness", missingness_pass),
+            ("low_coverage_policy", lowcov_pass),
+        ],
+    )?;
+    if !density_pass {
         bail!("vcf.roh refusal: SNP density below configured threshold");
     }
-    if missingness > params.max_missingness {
+    if !missingness_pass {
         bail!("vcf.roh refusal: missingness above readiness threshold");
     }
-    if missingness > params.low_coverage_missingness_threshold && !params.allow_pseudohaploid_low_coverage {
+    if !lowcov_pass {
         bail!("vcf.roh refusal: low-coverage regime requires explicit pseudo-haploid support");
     }
 
@@ -162,7 +223,8 @@ pub fn run_roh_stage(
             },
             "tool_attempts": {
                 "plink2_homozyg": plink_homozyg_ok
-            }
+            },
+            "readiness_contract": readiness_json
         }
     });
     atomic_write_json(&metrics_json, &metrics_payload)?;
@@ -265,13 +327,28 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
         }
     }
     let (sample_count, density, missingness) = compute_variant_readiness(&raw);
-    if sample_count < params.min_samples {
+    let sample_count_pass = sample_count >= params.min_samples;
+    let density_pass = density >= params.min_variant_density_per_mb;
+    let missingness_pass = missingness <= params.max_missingness;
+    let readiness_json = write_downstream_readiness_artifact(
+        out_dir,
+        "vcf.ibd",
+        sample_count,
+        density,
+        missingness,
+        &[
+            ("min_samples", sample_count_pass),
+            ("min_density", density_pass),
+            ("max_missingness", missingness_pass),
+        ],
+    )?;
+    if !sample_count_pass {
         bail!("vcf.ibd refusal: insufficient sample count");
     }
-    if density < params.min_variant_density_per_mb {
+    if !density_pass {
         bail!("vcf.ibd refusal: variant density below readiness threshold");
     }
-    if missingness > params.max_missingness {
+    if !missingness_pass {
         bail!("vcf.ibd refusal: missingness above readiness threshold");
     }
     let samples = raw
@@ -387,7 +464,8 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             "tool_attempts": {
                 "germline": germline_ok,
                 "ibdhap": ibdhap_ok
-            }
+            },
+            "readiness_contract": readiness_json
         }),
     )?;
     atomic_write_json(
@@ -443,6 +521,12 @@ pub fn run_demography_stage(
     params: &DemographyStageParams,
 ) -> Result<DemographyStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    if let Ok(path) = std::env::var("BIJUX_VCF_READY_FOR_DOWNSTREAM") {
+        let readiness_path = Path::new(&path);
+        if readiness_path.exists() {
+            require_readiness_gate(readiness_path, "ready_for_demography", "vcf.demography")?;
+        }
+    }
     let raw = std::fs::read_to_string(input_ibd_segments)?;
     if let Some(expected) = params.expected_build.as_deref() {
         let observed = raw
@@ -475,6 +559,14 @@ pub fn run_demography_stage(
     if valid_segments < params.min_segments {
         bail!("vcf.demography refusal: not enough IBD segments for ibdne");
     }
+    let readiness_json = write_downstream_readiness_artifact(
+        out_dir,
+        "vcf.demography",
+        0,
+        0.0,
+        0.0,
+        &[("min_segments", true)],
+    )?;
     let ne_trajectory_tsv = out_dir.join("ne_trajectory.tsv");
     let demography_json = out_dir.join("demography.json");
     let demography_metrics_json = out_dir.join("demography_metrics.json");
@@ -515,6 +607,7 @@ pub fn run_demography_stage(
             "inference_status": inference_status,
             "segments_validated": valid_segments,
             "ne_trajectory_tsv": ne_trajectory_tsv,
+            "readiness_contract": readiness_json,
         }),
     )?;
     atomic_write_json(

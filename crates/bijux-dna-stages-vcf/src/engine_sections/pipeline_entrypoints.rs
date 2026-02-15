@@ -210,6 +210,52 @@ fn write_runtime_explain(
     Ok(())
 }
 
+fn build_vcf_provenance_line(stages: &[VcfStageOutputs]) -> String {
+    let mut tools = Vec::<String>::new();
+    let mut digests = Vec::<String>::new();
+    let mut panel_lock = String::from("none");
+    let mut reference_lock = String::from("none");
+    for stage in stages {
+        let tool_invocation = stage.artifact_dir.join("tool_invocation.json");
+        if let Some(json) = read_json(&tool_invocation) {
+            if let Some(tool) = json.get("tool_id").and_then(serde_json::Value::as_str) {
+                tools.push(tool.to_string());
+            }
+            if let Some(digest) = json.get("image_digest").and_then(serde_json::Value::as_str) {
+                digests.push(digest.to_string());
+            }
+        }
+        let panel_manifest = stage.artifact_dir.join("panel_manifest.json");
+        if panel_lock == "none" && panel_manifest.exists() {
+            if let Some(json) = read_json(&panel_manifest) {
+                panel_lock = json
+                    .get("panel")
+                    .and_then(|p| p.get("id"))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("unknown_panel")
+                    .to_string();
+                reference_lock = json
+                    .get("map")
+                    .and_then(|m| m.get("id"))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("unknown_map")
+                    .to_string();
+            }
+        }
+    }
+    tools.sort();
+    tools.dedup();
+    digests.sort();
+    digests.dedup();
+    format!(
+        "tools={} | digests={} | panel_lock={} | reference_lock={}",
+        if tools.is_empty() { "none".to_string() } else { tools.join(",") },
+        if digests.is_empty() { "none".to_string() } else { digests.join(",") },
+        panel_lock,
+        reference_lock
+    )
+}
+
 pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResult> {
     validate_request(request)?;
     let stage_list = deterministic_stage_list(&request.requested_stages)?;
@@ -257,6 +303,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
     write_runtime_explain(&preflight, &artifact_root, &stage_outputs, handoff)?;
 
     let report_path = request.run_root.join("report.json");
+    let provenance_line = build_vcf_provenance_line(&stage_outputs);
     atomic_write_json(
         &report_path,
         &serde_json::json!({
@@ -264,6 +311,7 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
             "run_output_contract": "docs/10-architecture/CONTRACTS/RUN_OUTPUT.md",
             "report_contract": "docs/30-operations/REPORT_CONTRACT.md",
             "artifact_root": artifact_root,
+            "vcf_provenance_line": provenance_line,
             "stages": stage_outputs,
         }),
     )?;

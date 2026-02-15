@@ -17,6 +17,17 @@ fn normalize_indel_alleles(reference: &str, alternate: &str) -> (String, String)
     (r_chars.iter().collect(), a_chars.iter().collect())
 }
 
+fn canonical_variant_id(contig: &str, pos: &str, reference: &str, alternate: &str) -> String {
+    format!("{contig}:{pos}:{reference}:{alternate}")
+}
+
+fn non_production_mode_enabled() -> bool {
+    std::env::var("BIJUX_NON_PRODUCTION_MODE")
+        .ok()
+        .as_deref()
+        == Some("1")
+}
+
 fn normalize_info_fields(info: &str, retain: &[String], remove: &[String]) -> String {
     let retain_set = retain
         .iter()
@@ -106,6 +117,8 @@ pub fn run_postprocess_stage(
     let mut merged_records = Vec::<String>::new();
     let mut invalid_record_count = 0_u64;
     let mut normalized_indel_count = 0_u64;
+    let mut split_multiallelic_count = 0_u64;
+    let mut normalized_variant_id_count = 0_u64;
     let mut standardized_filter_count = 0_u64;
     for src in &sources {
         let raw = std::fs::read_to_string(src)?;
@@ -131,31 +144,47 @@ pub fn run_postprocess_stage(
                 || fields[4].trim().is_empty()
                 || fields[3] == "."
                 || fields[4] == "."
-                || fields[3].contains(',')
-                || fields[4].contains(',')
             {
                 invalid_record_count += 1;
                 continue;
             }
-            let mut out = fields.iter().map(|x| x.to_string()).collect::<Vec<_>>();
-            if out[6].trim().is_empty() || out[6] == "." {
-                out[6] = "PASS".to_string();
-                standardized_filter_count += 1;
-            }
-            out[7] = normalize_info_fields(
-                fields[7],
-                &params.retain_info_fields,
-                &params.remove_info_fields,
-            );
-            if params.normalize_indels {
-                let (r, a) = normalize_indel_alleles(fields[3], fields[4]);
-                if r != fields[3] || a != fields[4] {
-                    normalized_indel_count += 1;
+            let alt_tokens = fields[4].split(',').collect::<Vec<_>>();
+            let emit_alts = if params.split_multiallelic && alt_tokens.len() > 1 {
+                split_multiallelic_count += (alt_tokens.len() - 1) as u64;
+                alt_tokens
+            } else {
+                vec![fields[4]]
+            };
+            for alt in emit_alts {
+                let mut out = fields.iter().map(|x| x.to_string()).collect::<Vec<_>>();
+                if out[6].trim().is_empty() || out[6] == "." {
+                    out[6] = "PASS".to_string();
+                    standardized_filter_count += 1;
                 }
-                out[3] = r;
-                out[4] = a;
+                out[7] = normalize_info_fields(
+                    fields[7],
+                    &params.retain_info_fields,
+                    &params.remove_info_fields,
+                );
+                let mut normalized_ref = fields[3].to_ascii_uppercase();
+                let mut normalized_alt = alt.to_ascii_uppercase();
+                if params.normalize_indels {
+                    let (r, a) = normalize_indel_alleles(&normalized_ref, &normalized_alt);
+                    if r != fields[3] || a != alt {
+                        normalized_indel_count += 1;
+                    }
+                    normalized_ref = r;
+                    normalized_alt = a;
+                }
+                out[3] = normalized_ref.clone();
+                out[4] = normalized_alt.clone();
+                let canonical_id = canonical_variant_id(&out[0], &out[1], &out[3], &out[4]);
+                if out[2] == "." || out[2].trim().is_empty() || out[2] != canonical_id {
+                    normalized_variant_id_count += 1;
+                    out[2] = canonical_id;
+                }
+                merged_records.push(out.join("\t"));
             }
-            merged_records.push(out.join("\t"));
         }
     }
     if merged_records.is_empty() {
@@ -248,8 +277,12 @@ pub fn run_postprocess_stage(
             let _ = std::process::Command::new("bcftools")
                 .args(["index", "-f", path_s])
                 .output();
-        } else {
+        } else if non_production_mode_enabled() {
             atomic_write_bytes(path, merged_payload.as_bytes())?;
+        } else {
+            bail!(
+                "postprocess bcf conversion failed and non-production fallback is disabled; set BIJUX_NON_PRODUCTION_MODE=1 to allow placeholder BCF"
+            );
         }
     }
     assert_bgzip_tabix_artifacts(&merged_vcf, &merged_tbi_real)?;
@@ -289,7 +322,10 @@ pub fn run_postprocess_stage(
             },
             "normalization": {
                 "indel_normalization_enabled": params.normalize_indels,
+                "split_multiallelic_enabled": params.split_multiallelic,
                 "indels_normalized": normalized_indel_count,
+                "multiallelic_records_split": split_multiallelic_count,
+                "variant_ids_normalized": normalized_variant_id_count,
                 "invalid_records_removed": invalid_record_count,
                 "filter_standardized_to_pass": standardized_filter_count
             },
@@ -336,11 +372,12 @@ pub fn run_postprocess_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "compression_level={}\ncompression_threads={}\nemit_bcf={}\nnormalize_indels={}\n",
+            "compression_level={}\ncompression_threads={}\nemit_bcf={}\nnormalize_indels={}\nsplit_multiallelic={}\n",
             params.compression_level,
             params.compression_threads,
             params.emit_bcf,
-            params.normalize_indels
+            params.normalize_indels,
+            params.split_multiallelic
         )
         .as_bytes(),
     )?;

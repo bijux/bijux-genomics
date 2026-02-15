@@ -42,6 +42,7 @@
                 compression_threads: 2,
                 emit_bcf: true,
                 normalize_indels: true,
+                split_multiallelic: true,
                 run_level_checksums_path: Some(
                     dir.path().join("run_level_artifact_checksums.json"),
                 ),
@@ -92,6 +93,7 @@
                 compression_threads: 2,
                 emit_bcf: false,
                 normalize_indels: true,
+                split_multiallelic: true,
                 run_level_checksums_path: None,
             },
         )
@@ -108,6 +110,78 @@
                 .unwrap_or_default(),
             1
         );
+        assert!(
+            manifest
+                .get("normalization")
+                .and_then(|v| v.get("split_multiallelic_enabled"))
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false)
+        );
+    }
+
+    #[test]
+    fn postprocess_splits_multiallelic_and_normalizes_variant_identity() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("multiallelic.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts2\ts1\n1\t100\t.\ta\tg,t\t60\t.\tMQ=50\tGT\t0/1\t1/2\n",
+        )
+        .unwrap_or_else(|err| panic!("write multiallelic fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_postprocess_stage(
+            &input,
+            dir.path(),
+            &species,
+            &PostprocessStageParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                per_chr_inputs: vec![],
+                retain_info_fields: vec![],
+                remove_info_fields: vec![],
+                compression_level: 6,
+                compression_threads: 2,
+                emit_bcf: false,
+                normalize_indels: true,
+                split_multiallelic: true,
+                run_level_checksums_path: None,
+            },
+        )
+        .unwrap_or_else(|err| panic!("postprocess multiallelic fixture: {err}"));
+        let merged = std::process::Command::new("bcftools")
+            .args(["view", &out.merged_vcf.to_string_lossy()])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+            .unwrap_or_else(|| {
+                panic!(
+                    "bcftools view failed for {}",
+                    out.merged_vcf.display()
+                )
+            });
+        let record_lines = merged
+            .lines()
+            .filter(|line| !line.starts_with('#'))
+            .collect::<Vec<_>>();
+        assert_eq!(record_lines.len(), 2, "multiallelic record must split into biallelic rows");
+        assert!(record_lines.iter().all(|line| line.contains("\t1:100:A:")));
+        let chrom = merged
+            .lines()
+            .find(|line| line.starts_with("#CHROM\t"))
+            .unwrap_or_default();
+        assert!(chrom.ends_with("\ts1\ts2"), "sample columns should be deterministically ordered");
     }
 
     #[test]
@@ -190,6 +264,7 @@
         assert!(out.metrics_json.exists());
         assert!(out.roh_summary_json.exists());
         assert!(out.roh_metrics_json.exists());
+        assert!(dir.path().join("vcf_ready_for_downstream.json").exists());
     }
 
     #[test]
@@ -257,6 +332,7 @@
         assert!(out.ibd_filtered_segments_tsv.exists());
         assert!(out.ibd_summary_json.exists());
         assert!(out.ibd_metrics_json.exists());
+        assert!(dir.path().join("vcf_ready_for_downstream.json").exists());
     }
 
     #[test]
