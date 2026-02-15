@@ -189,7 +189,13 @@ where
     let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
     writer(temp.as_file_mut()).map_err(IoError::from_io)?;
     temp.as_file_mut().sync_all().map_err(IoError::from_io)?;
-    let perm = default_permissions();
+    #[cfg(unix)]
+    let perm = {
+        use std::os::unix::fs::PermissionsExt;
+        Some(std::fs::Permissions::from_mode(0o644))
+    };
+    #[cfg(not(unix))]
+    let perm: Option<std::fs::Permissions> = None;
     if let Some(perm) = perm {
         temp.as_file_mut()
             .set_permissions(perm)
@@ -451,19 +457,6 @@ pub fn hash_file_sha256(path: &Path) -> Result<String, IoError> {
         hasher.update(&buffer[..count]);
     }
     Ok(format!("{:x}", hasher.finalize()))
-}
-
-#[allow(clippy::unnecessary_wraps)]
-fn default_permissions() -> Option<std::fs::Permissions> {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        Some(std::fs::Permissions::from_mode(0o644))
-    }
-    #[cfg(not(unix))]
-    {
-        None
-    }
 }
 
 #[cfg(test)]
