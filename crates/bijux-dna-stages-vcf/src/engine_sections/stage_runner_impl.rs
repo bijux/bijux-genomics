@@ -58,6 +58,39 @@ fn demography_params_for_species(species_id: &str) -> DemographyStageParams {
     params
 }
 
+fn infer_damage_filter_params_from_bam(run_root: &Path) -> Option<DamageFilterStageParams> {
+    let candidates = [
+        run_root.join("artifacts").join("bam").join("bam_metrics.json"),
+        run_root.join("artifacts").join("bam").join("metrics.json"),
+        run_root.join("artifacts").join("bam").join("summary.json"),
+    ];
+    let raw = candidates
+        .iter()
+        .find_map(|p| std::fs::read_to_string(p).ok())?;
+    let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let damage_rate = json
+        .get("damage_ct_ga_rate")
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let udg = json
+        .get("udg_treated")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let mut params = DamageFilterStageParams::default();
+    params.udg_regime = if udg {
+        crate::pipeline::DamageUdgRegime::Udg
+    } else {
+        crate::pipeline::DamageUdgRegime::NonUdg
+    };
+    params.strict_regime = false;
+    params.max_damage_ratio = if udg {
+        (damage_rate + 0.10).clamp(0.10, 0.50)
+    } else {
+        (damage_rate + 0.15).clamp(0.20, 0.60)
+    };
+    Some(params)
+}
+
 impl VcfStageRunner for DispatchRunner {
     fn stage(&self) -> VcfDomainStage {
         self.stage
@@ -155,6 +188,7 @@ impl VcfStageRunner for DispatchRunner {
                     .request
                     .damage_filter
                     .clone()
+                    .or_else(|| infer_damage_filter_params_from_bam(&ctx.request.run_root))
                     .unwrap_or_default();
                 let out = run_damage_filter_stage(input_vcf, &stage_dir, &params).map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
