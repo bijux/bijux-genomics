@@ -127,10 +127,19 @@
     #[test]
     fn population_structure_stage_emits_structured_outputs() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let metadata = dir.path().join("population_labels.json");
+        std::fs::write(
+            &metadata,
+            r#"{"samples":[{"sample":"sample1","population":"POP_A"},{"sample":"sample2","population":"POP_B"}]}"#,
+        )
+        .unwrap_or_else(|err| panic!("write metadata: {err}"));
         let out = run_population_structure_stage(
             Path::new("tests/fixtures/vcf/default/input.vcf"),
             dir.path(),
-            &PopulationStructureStageParams::default(),
+            &PopulationStructureStageParams {
+                sample_metadata_manifest: Some(metadata),
+                ..PopulationStructureStageParams::default()
+            },
         )
         .unwrap_or_else(|err| panic!("run population_structure stage: {err}"));
         assert!(out.pruned_variants_tsv.exists());
@@ -138,15 +147,26 @@
     }
 
     #[test]
-    fn admixture_stage_refuses_when_runtime_not_available() {
+    fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
-        let err = run_admixture_stage(
+        let metadata = dir.path().join("population_labels.json");
+        std::fs::write(
+            &metadata,
+            r#"{"samples":[{"sample":"sample1","population":"POP_A"},{"sample":"sample2","population":"POP_B"}]}"#,
+        )
+        .unwrap_or_else(|err| panic!("write metadata: {err}"));
+        let out = run_admixture_stage(
             Path::new("tests/fixtures/vcf/default/input.vcf"),
             dir.path(),
-            &AdmixtureStageParams::default(),
+            &AdmixtureStageParams {
+                sample_metadata_manifest: Some(metadata),
+                ..AdmixtureStageParams::default()
+            },
         )
-        .expect_err("admixture should refuse until container/runtime is enabled");
-        assert!(err.to_string().contains("refusal"));
+        .unwrap_or_else(|err| panic!("run admixture stage: {err}"));
+        assert!(out.q_matrix_tsv.exists());
+        assert!(out.k_selection_json.exists());
+        assert!(out.logs_txt.exists());
     }
 
     #[test]

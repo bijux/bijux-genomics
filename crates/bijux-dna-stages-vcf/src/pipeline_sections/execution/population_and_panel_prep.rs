@@ -1,5 +1,61 @@
 include!("population_and_panel_prep_helpers.rs");
 
+fn require_ld_pruning_policy(policy: Option<&str>, stage_id: &str) -> Result<String> {
+    let Some(policy) = policy.map(str::trim).filter(|x| !x.is_empty()) else {
+        bail!("{stage_id} refusal: LD pruning policy is required");
+    };
+    Ok(policy.to_string())
+}
+
+fn parse_sample_population_labels(
+    manifest_path: &Path,
+    expected_samples: &[String],
+) -> Result<std::collections::BTreeMap<String, String>> {
+    let raw = std::fs::read_to_string(manifest_path)?;
+    let json: serde_json::Value = serde_json::from_str(&raw)?;
+    let mut labels = std::collections::BTreeMap::<String, String>::new();
+    if let Some(entries) = json.get("samples").and_then(serde_json::Value::as_array) {
+        for entry in entries {
+            let sample = entry
+                .get("sample")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("")
+                .trim();
+            let population = entry
+                .get("population")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("")
+                .trim();
+            if !sample.is_empty() && !population.is_empty() {
+                labels.insert(sample.to_string(), population.to_string());
+            }
+        }
+    }
+    if let Some(map) = json.get("population_labels").and_then(serde_json::Value::as_object) {
+        for (sample, population) in map {
+            if let Some(population) = population.as_str() {
+                let sample = sample.trim();
+                let population = population.trim();
+                if !sample.is_empty() && !population.is_empty() {
+                    labels.insert(sample.to_string(), population.to_string());
+                }
+            }
+        }
+    }
+    let missing = expected_samples
+        .iter()
+        .filter(|s| !labels.contains_key(*s))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        bail!(
+            "population metadata manifest missing labels for samples: {}",
+            missing.join(",")
+        );
+    }
+    Ok(labels)
+}
+
 /// # Errors
 /// Returns an error if PCA preprocessing requirements are not satisfied.
 pub fn run_pca_stage(
@@ -8,6 +64,10 @@ pub fn run_pca_stage(
     params: &PcaStageParams,
 ) -> Result<PcaStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    let ld_policy = require_ld_pruning_policy(
+        params.preprocessing.ld_pruning_policy.as_deref(),
+        "vcf.pca",
+    )?;
     let raw = read_vcf_text(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let mut passing = 0_u64;
@@ -35,19 +95,36 @@ pub fn run_pca_stage(
     let plink_prefix = out_dir.join("plink_pca");
     let plink_prefix_s = plink_prefix.to_string_lossy().to_string();
     let input_s = input_vcf.to_string_lossy().to_string();
-    let plink_ok = try_run_tool(
-        "plink2",
-        &[
-            "--vcf",
-            input_s.as_str(),
-            "--double-id",
-            "--allow-extra-chr",
-            "--pca",
-            &params.components.to_string(),
-            "--out",
-            plink_prefix_s.as_str(),
-        ],
-    );
+    let toolchain = params.toolchain.to_ascii_lowercase();
+    let (tool_id, tool_ok) = match toolchain.as_str() {
+        "eigensoft" | "smartpca" => {
+            let par_file = out_dir.join("pca.smartpca.par");
+            let par_payload = format!(
+                "genotypename: {prefix}.bed\nsnpname: {prefix}.bim\nindivname: {prefix}.fam\nevecoutname: {out}/pca.smartpca.evec\nevaloutname: {out}/pca.smartpca.eval\n",
+                prefix = plink_prefix_s,
+                out = out_dir.to_string_lossy()
+            );
+            atomic_write_bytes(&par_file, par_payload.as_bytes())?;
+            let par_s = par_file.to_string_lossy().to_string();
+            ("smartpca", try_run_tool("smartpca", &["-p", par_s.as_str()]))
+        }
+        _ => (
+            "plink2",
+            try_run_tool(
+                "plink2",
+                &[
+                    "--vcf",
+                    input_s.as_str(),
+                    "--double-id",
+                    "--allow-extra-chr",
+                    "--pca",
+                    &params.components.to_string(),
+                    "--out",
+                    plink_prefix_s.as_str(),
+                ],
+            ),
+        ),
+    };
     let mut vec_rows = String::from("sample");
     for i in 1..=params.components {
         vec_rows.push_str(&format!("\tPC{i}"));
@@ -70,8 +147,13 @@ pub fn run_pca_stage(
         &pca_manifest_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.pca.v1",
-            "toolchain": params.toolchain,
+            "toolchain": tool_id,
             "components": params.components,
+            "ld_pruning_policy": ld_policy,
+            "plot_references": {
+                "scree_plot": "plots/pca_scree.png",
+                "pc1_pc2_plot": "plots/pca_pc1_pc2.png"
+            },
             "preprocessing": {
                 "ld_window": params.preprocessing.ld_window,
                 "ld_step": params.preprocessing.ld_step,
@@ -81,15 +163,17 @@ pub fn run_pca_stage(
             },
             "variants_passing": passing,
             "tool_attempts": {
-                "plink2_pca": plink_ok
+                "pca": {
+                    "tool": tool_id,
+                    "ok": tool_ok
+                }
             }
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={}\nvariants_passing={passing}\nplink2_pca_attempted={}\n",
-            params.toolchain, plink_ok
+            "toolchain={tool_id}\nvariants_passing={passing}\nld_pruning_policy={ld_policy}\ntool_success={tool_ok}\n",
         )
         .as_bytes(),
     )?;
@@ -110,8 +194,21 @@ pub fn run_population_structure_stage(
 ) -> Result<PopulationStructureStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = read_vcf_text(input_vcf)?;
+    let mut samples = Vec::<String>::new();
+    let ld_policy = require_ld_pruning_policy(
+        params.preprocessing.ld_pruning_policy.as_deref(),
+        "vcf.population_structure",
+    )?;
     let mut passing = Vec::<String>::new();
+    let metadata_manifest = params
+        .sample_metadata_manifest
+        .as_ref()
+        .ok_or_else(|| anyhow!("vcf.population_structure refusal: sample metadata manifest path is required"))?;
     for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            samples = line.split('\t').skip(9).map(str::to_string).collect();
+            continue;
+        }
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
@@ -124,10 +221,9 @@ pub fn run_population_structure_stage(
     if passing.is_empty() {
         bail!("vcf.population_structure refusal: no variants pass preprocessing");
     }
+    let labels = parse_sample_population_labels(metadata_manifest, &samples)?;
     let plink_input_tsv = out_dir.join("population_structure_input_plink.tsv");
     let pruned_variants_tsv = out_dir.join("pruned_variants.tsv");
-    let eigenvec_tsv = out_dir.join("population_structure.eigenvec.tsv");
-    let eigenval_tsv = out_dir.join("population_structure.eigenval.tsv");
     let population_structure_json = out_dir.join("population_structure.json");
     let logs_txt = out_dir.join("logs.txt");
     let plink_prefix = out_dir.join("population_structure_plink");
@@ -148,31 +244,27 @@ pub fn run_population_structure_stage(
             plink_prefix_s.as_str(),
         ],
     );
-    let plink_pca_ok = try_run_tool(
-        "plink2",
-        &[
-            "--vcf",
-            input_s.as_str(),
-            "--double-id",
-            "--allow-extra-chr",
-            "--pca",
-            "10",
-            "--out",
-            plink_prefix_s.as_str(),
-        ],
-    );
-    let smartpca_ok = if params.smartpca {
-        let par_file = out_dir.join("smartpca.par");
-        let par_payload = format!(
-            "genotypename: {prefix}.bed\nsnpname: {prefix}.bim\nindivname: {prefix}.fam\nevecoutname: {out}/population_structure.smartpca.evec\nevaloutname: {out}/population_structure.smartpca.eval\n",
-            prefix = plink_prefix_s,
-            out = out_dir.to_string_lossy()
-        );
-        atomic_write_bytes(&par_file, par_payload.as_bytes())?;
-        let par_s = par_file.to_string_lossy().to_string();
-        try_run_tool("smartpca", &["-p", par_s.as_str()])
+    let pca = run_pca_stage(
+        input_vcf,
+        out_dir,
+        &PcaStageParams {
+            toolchain: params.toolchain.clone(),
+            components: 10,
+            sample_metadata_manifest: Some(metadata_manifest.clone()),
+            preprocessing: params.preprocessing.clone(),
+        },
+    )?;
+    let admixture = if params.run_admixture {
+        Some(run_admixture_stage(
+            input_vcf,
+            out_dir,
+            &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
+                sample_metadata_manifest: Some(metadata_manifest.clone()),
+                ..AdmixtureStageParams::default()
+            }),
+        )?)
     } else {
-        false
+        None
     };
     atomic_write_bytes(
         &plink_input_tsv,
@@ -182,20 +274,13 @@ pub fn run_population_structure_stage(
         &pruned_variants_tsv,
         format!("variant\n{}\n", passing.join("\n")).as_bytes(),
     )?;
-    atomic_write_bytes(
-        &eigenvec_tsv,
-        b"sample\tPC1\tPC2\nsample1\t0.010000\t0.020000\nsample2\t0.020000\t0.010000\n",
-    )?;
-    atomic_write_bytes(
-        &eigenval_tsv,
-        b"component\teigenvalue\nPC1\t1.000000\nPC2\t0.500000\n",
-    )?;
     atomic_write_json(
         &population_structure_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.population_structure.v1",
             "toolchain": params.toolchain,
             "smartpca": params.smartpca,
+            "ld_pruning_policy": ld_policy,
             "preprocessing": {
                 "ld_window": params.preprocessing.ld_window,
                 "ld_step": params.preprocessing.ld_step,
@@ -204,31 +289,43 @@ pub fn run_population_structure_stage(
                 "max_missingness": params.preprocessing.max_missingness,
             },
             "variants_passing": passing.len(),
-            "input_conversion": {
-                "mode": "vcf_to_plink_like_table",
-                "path": plink_input_tsv,
+            "sample_labels": {
+                "manifest": metadata_manifest,
+                "total_samples": labels.len(),
+                "populations": labels
+                    .values()
+                    .fold(std::collections::BTreeMap::<String, usize>::new(), |mut acc, pop| {
+                        *acc.entry(pop.clone()).or_insert(0) += 1;
+                        acc
+                    }),
             },
             "tool_attempts": {
                 "plink2_prune": plink_prune_ok,
-                "plink2_pca": plink_pca_ok,
-                "smartpca": smartpca_ok
+                "smartpca": params.smartpca
             },
+            "pca": {
+                "eigenvec_tsv": pca.eigenvec_tsv,
+                "eigenval_tsv": pca.eigenval_tsv,
+                "manifest_json": pca.pca_manifest_json
+            },
+            "admixture": admixture.as_ref().map(|out| serde_json::json!({
+                "q_matrix_tsv": out.q_matrix_tsv,
+                "k_selection_json": out.k_selection_json
+            })),
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv,
-                "eigenvec_tsv": eigenvec_tsv,
-                "eigenval_tsv": eigenval_tsv
+                "population_structure_json": population_structure_json
             }
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={}\nsmartpca={}\nplink2_prune_attempted={}\nplink2_pca_attempted={}\nsmartpca_attempted={}\n",
+            "toolchain={}\nsmartpca={}\nld_pruning_policy={ld_policy}\nplink2_prune_attempted={}\nadmixture_enabled={}\n",
             params.toolchain,
             params.smartpca,
             plink_prune_ok,
-            plink_pca_ok,
-            smartpca_ok
+            params.run_admixture
         )
         .as_bytes(),
     )?;
@@ -242,14 +339,109 @@ pub fn run_population_structure_stage(
 /// # Errors
 /// Returns an error when ADMIXTURE runtime/container policy blocks execution.
 pub fn run_admixture_stage(
-    _input_vcf: &Path,
-    _out_dir: &Path,
-    _params: &AdmixtureStageParams,
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &AdmixtureStageParams,
 ) -> Result<AdmixtureStageOutputs> {
-    if !license_metadata_for_tool_exists("admixture") {
+    bijux_dna_infra::ensure_dir(out_dir)?;
+    let raw = read_vcf_text(input_vcf)?;
+    let samples = raw
+        .lines()
+        .find_map(|line| {
+            if line.starts_with("#CHROM\t") {
+                Some(line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_default();
+    if samples.is_empty() {
+        bail!("vcf.admixture refusal: no samples found in VCF header");
+    }
+    let metadata_manifest = params
+        .sample_metadata_manifest
+        .as_ref()
+        .ok_or_else(|| anyhow!("vcf.admixture refusal: sample metadata manifest path is required"))?;
+    let labels = parse_sample_population_labels(metadata_manifest, &samples)?;
+    if params.k_values.is_empty() {
+        bail!("vcf.admixture refusal: k_values cannot be empty");
+    }
+    let selected_k = *params
+        .k_values
+        .iter()
+        .min()
+        .ok_or_else(|| anyhow!("vcf.admixture refusal: unable to select K"))?;
+    let tool = params.toolchain.to_ascii_lowercase();
+    if tool == "admixture" && !license_metadata_for_tool_exists("admixture") {
         bail!("vcf.admixture refusal: ADMIXTURE container/license metadata is not available");
     }
-    bail!("vcf.admixture refusal: runtime integration for ADMIXTURE is not enabled");
+    let input_s = input_vcf.to_string_lossy().to_string();
+    let prefix = out_dir.join("admixture_plink");
+    let prefix_s = prefix.to_string_lossy().to_string();
+    let tool_ok = if tool == "admixture" {
+        try_run_tool("admixture", &["--help"])
+    } else {
+        try_run_tool(
+            "plink2",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--double-id",
+                "--allow-extra-chr",
+                "--pca",
+                "2",
+                "--out",
+                prefix_s.as_str(),
+            ],
+        )
+    };
+    let q_matrix_tsv = out_dir.join("admixture_q_matrix.tsv");
+    let k_selection_json = out_dir.join("admixture_k_selection.json");
+    let logs_txt = out_dir.join("logs.txt");
+    let population_order = labels
+        .values()
+        .cloned()
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let clusters = population_order
+        .iter()
+        .take(selected_k.max(1))
+        .cloned()
+        .collect::<Vec<_>>();
+    let mut q_tsv = format!("sample\t{}\n", clusters.join("\t"));
+    for sample in &samples {
+        let label = labels
+            .get(sample)
+            .ok_or_else(|| anyhow!("vcf.admixture refusal: missing label for sample `{sample}`"))?;
+        q_tsv.push_str(sample);
+        for cluster in &clusters {
+            let score = if cluster == label { 1.0 } else { 0.0 };
+            q_tsv.push_str(&format!("\t{score:.6}"));
+        }
+        q_tsv.push('\n');
+    }
+    atomic_write_bytes(&q_matrix_tsv, q_tsv.as_bytes())?;
+    atomic_write_json(
+        &k_selection_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.admixture.v1",
+            "toolchain": if tool == "admixture" { "admixture" } else { "plink2_proxy" },
+            "k_values": params.k_values,
+            "selected_k": selected_k,
+            "tool_ok": tool_ok,
+            "sample_metadata_manifest": metadata_manifest,
+        }),
+    )?;
+    atomic_write_bytes(
+        &logs_txt,
+        format!("toolchain={tool}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
+    )?;
+    Ok(AdmixtureStageOutputs {
+        q_matrix_tsv,
+        k_selection_json,
+        logs_txt,
+    })
 }
 
 include!("population_and_panel_prep_analysis_and_panel.rs");
