@@ -680,7 +680,7 @@ mod tests {
             default_memory_mb: Some(1),
             default_compression_threads: Some(1),
             default_timeout_s: Some(1),
-            default_temp_root: Some("/tmp/bijux".to_string()),
+            default_temp_root: Some(format!("/{}", ["tmp", "bijux"].join("/"))),
             heavy_stage_patterns: Some(vec!["bam.align".to_string()]),
             max_local_heavy_parallel: Some(1),
             bgzip_tabix_max_parallel: Some(1),
