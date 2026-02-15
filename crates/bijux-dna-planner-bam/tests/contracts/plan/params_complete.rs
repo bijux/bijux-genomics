@@ -329,3 +329,35 @@ fn kinship_params_complete() -> Result<()> {
     )?;
     Ok(())
 }
+
+#[test]
+#[cfg(feature = "bam_downstream")]
+fn kinship_rejects_empty_reference_panel() {
+    let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
+        reference_panel: String::new(),
+        min_overlap_snps: 1000,
+    };
+    let result = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
+        &dummy_tool("king"),
+        Path::new("reads.bam"),
+        Path::new("out"),
+        &params,
+    );
+    assert!(result.is_err(), "expected empty reference_panel to fail");
+}
+
+#[test]
+#[cfg(feature = "bam_downstream")]
+fn kinship_rejects_zero_overlap_threshold() {
+    let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
+        reference_panel: "king_default".to_string(),
+        min_overlap_snps: 0,
+    };
+    let result = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
+        &dummy_tool("king"),
+        Path::new("reads.bam"),
+        Path::new("out"),
+        &params,
+    );
+    assert!(result.is_err(), "expected min_overlap_snps=0 to fail");
+}

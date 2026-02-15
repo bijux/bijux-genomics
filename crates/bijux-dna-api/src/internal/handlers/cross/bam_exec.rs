@@ -436,14 +436,50 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Genotyping => {
+            let handoff = stage_dir.join("bam_to_vcf_handoff_contract.json");
+            bijux_dna_infra::atomic_write_json(
+                &handoff,
+                &serde_json::json!({
+                    "required_fields": ["CHROM","POS","REF","ALT","FORMAT","GT"],
+                    "recommended_fields": ["GL","GP","GQ","DP"],
+                    "requires_index": true,
+                    "vcf_path": stage_dir.join("genotyping.vcf.gz"),
+                    "index_path": stage_dir.join("genotyping.vcf.gz.tbi"),
+                }),
+            )
+            .with_context(|| format!("write {}", handoff.display()))?;
             let path = stage_dir.join("genotyping.producer_contract.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
                     "caller": plan.params.get("caller").cloned(),
                     "producer_contract": plan.params.get("producer_contract").cloned(),
+                    "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
                     "vcf_exists": stage_dir.join("genotyping.vcf.gz").exists(),
                     "vcf_index_exists": stage_dir.join("genotyping.vcf.gz.tbi").exists(),
+                }),
+            )
+            .with_context(|| format!("write {}", path.display()))?;
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::Kinship => {
+            let pseudo_hap_required = plan
+                .params
+                .get("pseudo_haploid_conversion")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false);
+            if pseudo_hap_required {
+                return Err(anyhow!(
+                    "bam.kinship refusal: pseudo-haploid conversion path is not enabled in this runner"
+                ));
+            }
+            let path = stage_dir.join("kinship.contract.json");
+            bijux_dna_infra::atomic_write_json(
+                &path,
+                &serde_json::json!({
+                    "reference_panel": plan.params.get("reference_panel").cloned(),
+                    "min_overlap_snps": plan.params.get("min_overlap_snps").cloned(),
+                    "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
+                    "segments_path": stage_dir.join("kinship.segments.tsv"),
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
