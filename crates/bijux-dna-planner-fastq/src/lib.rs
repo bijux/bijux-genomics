@@ -346,6 +346,13 @@ pub fn resolve_preprocess_pipeline(
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     decisions: &PreprocessDecisions,
 ) -> PipelineSpec {
+    let amplicon_only = [
+        "fastq.primer_normalization",
+        "fastq.chimera_detection",
+        "fastq.asv_inference",
+        "fastq.otu_clustering",
+        "fastq.abundance_normalization",
+    ];
     let shotgun_mode = args.mode == crate::selection::args::FastqPlannerMode::Shotgun;
     let enable_merge = decisions.enable_merge;
     let enable_correct = decisions.enable_correct;
@@ -374,6 +381,9 @@ pub fn resolve_preprocess_pipeline(
                 if !enable_screen {
                     stages.retain(|stage| stage != STAGE_SCREEN.as_str());
                 }
+                if shotgun_mode {
+                    stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
+                }
                 PipelineSpec { stages }
             }
             Err(err) => {
@@ -394,6 +404,10 @@ pub fn resolve_preprocess_pipeline(
                 if !shotgun_mode {
                     spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
                 }
+                if shotgun_mode {
+                    spec.stages
+                        .retain(|stage| !amplicon_only.contains(&stage.as_str()));
+                }
                 spec
             }
         }
@@ -413,6 +427,10 @@ pub fn resolve_preprocess_pipeline(
         spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
         if !shotgun_mode {
             spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
+        }
+        if shotgun_mode {
+            spec.stages
+                .retain(|stage| !amplicon_only.contains(&stage.as_str()));
         }
         spec
     }
