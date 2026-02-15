@@ -34,8 +34,14 @@ pub fn run_roh_stage(
     if missingness > params.max_missingness {
         bail!("vcf.roh refusal: missingness above readiness threshold");
     }
+    if missingness > params.low_coverage_missingness_threshold && !params.allow_pseudohaploid_low_coverage {
+        bail!("vcf.roh refusal: low-coverage regime requires explicit pseudo-haploid support");
+    }
 
     let roh_segments_tsv = out_dir.join("roh_segments.tsv");
+    let roh_per_sample_tsv = out_dir.join("roh_per_sample.tsv");
+    let roh_json = out_dir.join("roh.json");
+    let metrics_json = out_dir.join("metrics.json");
     let roh_summary_json = out_dir.join("roh_summary.json");
     let roh_metrics_json = out_dir.join("roh_metrics.json");
     let logs_txt = out_dir.join("logs.txt");
@@ -50,6 +56,12 @@ pub fn run_roh_stage(
             "--double-id",
             "--allow-extra-chr",
             "--homozyg",
+            "--homozyg-window-snp",
+            &params.plink_homozyg_window_snp.to_string(),
+            "--homozyg-kb",
+            &params.plink_homozyg_kb.to_string(),
+            "--homozyg-gap",
+            &params.plink_homozyg_gap_kb.to_string(),
             "--out",
             plink_prefix_s.as_str(),
         ],
@@ -87,27 +99,59 @@ pub fn run_roh_stage(
     }
     atomic_write_bytes(&roh_segments_tsv, rows.as_bytes())?;
     let segment_count = segment_lengths.len() as u64;
+    if segment_count > params.max_segment_count {
+        bail!("vcf.roh refusal: segment count sanity check failed");
+    }
     let mean_len = if segment_lengths.is_empty() {
         0.0
     } else {
         segment_lengths.iter().sum::<u64>() as f64 / segment_lengths.len() as f64
     };
+    let mut per_sample_counts = std::collections::BTreeMap::<String, u64>::new();
+    let mut per_sample_lengths = std::collections::BTreeMap::<String, u64>::new();
+    for line in rows.lines().skip(1) {
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 6 {
+            continue;
+        }
+        let sample = fields[0].to_string();
+        let len = fields[4].parse::<u64>().unwrap_or(0);
+        *per_sample_counts.entry(sample.clone()).or_insert(0) += 1;
+        *per_sample_lengths.entry(sample).or_insert(0) += len;
+    }
+    let mut per_sample_tsv = String::from("sample\tsegment_count\ttotal_length_bp\tmean_length_bp\n");
+    for sample in &sample_ids {
+        let count = *per_sample_counts.get(sample).unwrap_or(&0);
+        let total = *per_sample_lengths.get(sample).unwrap_or(&0);
+        let mean = if count == 0 { 0.0 } else { total as f64 / count as f64 };
+        per_sample_tsv.push_str(&format!("{sample}\t{count}\t{total}\t{mean:.3}\n"));
+    }
+    atomic_write_bytes(&roh_per_sample_tsv, per_sample_tsv.as_bytes())?;
+    let roh_payload = serde_json::json!({
+        "schema_version": "bijux.vcf.roh.summary.v2",
+        "toolchain": params.toolchain,
+        "segment_count": segment_count,
+        "total_length_bp": total_length,
+        "mean_length_bp": mean_len,
+        "per_sample_summary_tsv": roh_per_sample_tsv,
+        "readiness": {
+            "variant_density_per_mb": density,
+            "missingness": missingness,
+            "low_coverage_missingness_threshold": params.low_coverage_missingness_threshold,
+            "allow_pseudohaploid_low_coverage": params.allow_pseudohaploid_low_coverage
+        },
+        "tool_attempts": {
+            "plink2_homozyg": plink_homozyg_ok
+        }
+    });
+    atomic_write_json(&roh_json, &roh_payload)?;
     atomic_write_json(
         &roh_summary_json,
-        &serde_json::json!({
-            "schema_version": "bijux.vcf.roh.summary.v1",
-            "segment_count": segment_count,
-            "total_length_bp": total_length,
-            "mean_length_bp": mean_len,
-            "tool_attempts": {
-                "plink2_homozyg": plink_homozyg_ok
-            }
-        }),
+        &roh_payload,
     )?;
-    atomic_write_json(
-        &roh_metrics_json,
-        &serde_json::json!({
-            "schema_version": "bijux.vcf.roh.v1",
+    let metrics_payload = serde_json::json!({
+        "schema_version": "bijux.vcf.metrics.v1",
+        "roh": {
             "roh_count": segment_count,
             "roh_total_mb": total_length as f64 / 1_000_000.0,
             "roh_mean_length_mb": mean_len / 1_000_000.0,
@@ -119,19 +163,33 @@ pub fn run_roh_stage(
             "tool_attempts": {
                 "plink2_homozyg": plink_homozyg_ok
             }
-        }),
+        }
+    });
+    atomic_write_json(&metrics_json, &metrics_payload)?;
+    atomic_write_json(
+        &roh_metrics_json,
+        &metrics_payload,
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner=plink2_homozyg_like\nmin_snp_density_per_mb={}\nmin_segment_kb={}\nmax_gap_bp={}\nplink2_homozyg_attempted={}\n",
-            params.min_snp_density_per_mb, params.min_segment_kb, params.max_gap_bp, plink_homozyg_ok
+            "runner=plink2_homozyg_like\ntoolchain={}\nmin_snp_density_per_mb={}\nmax_missingness={}\nmin_segment_kb={}\nmax_gap_bp={}\nmax_segment_count={}\nplink2_homozyg_attempted={}\n",
+            params.toolchain,
+            params.min_snp_density_per_mb,
+            params.max_missingness,
+            params.min_segment_kb,
+            params.max_gap_bp,
+            params.max_segment_count,
+            plink_homozyg_ok
         )
         .as_bytes(),
     )?;
 
     Ok(RohStageOutputs {
         roh_segments_tsv,
+        roh_per_sample_tsv,
+        roh_json,
+        metrics_json,
         roh_summary_json,
         roh_metrics_json,
         logs_txt,
