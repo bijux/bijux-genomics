@@ -154,6 +154,41 @@ fn enforce_stage_refusal_rules(
             ));
         }
     }
+    if matches!(
+        stage,
+        bijux_dna_planner_bam::stage_api::BamStage::Contamination
+            | bijux_dna_planner_bam::stage_api::BamStage::Haplogroups
+    ) {
+        let Some(reference) = reference else {
+            return Err(anyhow!(
+                "{} refusal: mt-aware stage requires reference fasta",
+                stage.as_str()
+            ));
+        };
+        let fai = PathBuf::from(format!("{}.fai", reference.display()));
+        if !fai.exists() {
+            return Err(anyhow!(
+                "{} refusal: mt-aware stage requires reference index (.fai): {}",
+                stage.as_str(),
+                fai.display()
+            ));
+        }
+        let raw =
+            std::fs::read_to_string(&fai).with_context(|| format!("read {}", fai.display()))?;
+        let has_mt = raw.lines().any(|line| {
+            line.starts_with("MT\t")
+                || line.starts_with("chrMT\t")
+                || line.starts_with("M\t")
+                || line.starts_with("chrM\t")
+        });
+        if !has_mt {
+            return Err(anyhow!(
+                "{} refusal: reference lacks MT/chrMT contig in {}",
+                stage.as_str(),
+                fai.display()
+            ));
+        }
+    }
     Ok(())
 }
 
