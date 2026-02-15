@@ -332,6 +332,21 @@ pub fn run_roh_stage(
     let roh_summary_json = out_dir.join("roh_summary.json");
     let roh_metrics_json = out_dir.join("roh_metrics.json");
     let logs_txt = out_dir.join("logs.txt");
+    let plink_prefix = out_dir.join("roh_plink");
+    let plink_prefix_s = plink_prefix.to_string_lossy().to_string();
+    let input_s = input_vcf.to_string_lossy().to_string();
+    let plink_homozyg_ok = try_run_tool(
+        "plink2",
+        &[
+            "--vcf",
+            input_s.as_str(),
+            "--double-id",
+            "--allow-extra-chr",
+            "--homozyg",
+            "--out",
+            plink_prefix_s.as_str(),
+        ],
+    );
 
     let mut rows = String::from("sample\tcontig\tstart\tend\tlength_bp\tn_sites\n");
     let mut total_length = 0_u64;
@@ -376,7 +391,10 @@ pub fn run_roh_stage(
             "schema_version": "bijux.vcf.roh.summary.v1",
             "segment_count": segment_count,
             "total_length_bp": total_length,
-            "mean_length_bp": mean_len
+            "mean_length_bp": mean_len,
+            "tool_attempts": {
+                "plink2_homozyg": plink_homozyg_ok
+            }
         }),
     )?;
     atomic_write_json(
@@ -390,14 +408,17 @@ pub fn run_roh_stage(
             "readiness": {
                 "variant_density_per_mb": density,
                 "missingness": missingness
+            },
+            "tool_attempts": {
+                "plink2_homozyg": plink_homozyg_ok
             }
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner=plink2_homozyg_like\nmin_snp_density_per_mb={}\nmin_segment_kb={}\nmax_gap_bp={}\n",
-            params.min_snp_density_per_mb, params.min_segment_kb, params.max_gap_bp
+            "runner=plink2_homozyg_like\nmin_snp_density_per_mb={}\nmin_segment_kb={}\nmax_gap_bp={}\nplink2_homozyg_attempted={}\n",
+            params.min_snp_density_per_mb, params.min_segment_kb, params.max_gap_bp, plink_homozyg_ok
         )
         .as_bytes(),
     )?;
@@ -479,6 +500,29 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     let ibd_summary_json = out_dir.join("ibd_summary.json");
     let ibd_metrics_json = out_dir.join("ibd_metrics.json");
     let logs_txt = out_dir.join("logs.txt");
+    let input_s = input_vcf.to_string_lossy().to_string();
+    let germline_prefix = out_dir.join("germline");
+    let germline_prefix_s = germline_prefix.to_string_lossy().to_string();
+    let germline_ok = try_run_tool(
+        "germline",
+        &[
+            "-input",
+            input_s.as_str(),
+            "-output",
+            germline_prefix_s.as_str(),
+            "-min_m",
+            &params.min_segment_cm.to_string(),
+        ],
+    );
+    let ibdhap_ok = try_run_tool(
+        "ibdhap",
+        &[
+            "--segments",
+            ibd_segments_tsv.to_string_lossy().as_ref(),
+            "--out",
+            ibd_filtered_segments_tsv.to_string_lossy().as_ref(),
+        ],
+    );
 
     let mut rows = String::from("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\n");
     let mut kept = String::from("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\n");
@@ -512,6 +556,10 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             "segments_total": seg_count,
             "segments_filtered": filt_count,
             "total_length_cm": total_cm,
+            "tool_attempts": {
+                "germline": germline_ok,
+                "ibdhap": ibdhap_ok
+            }
         }),
     )?;
     atomic_write_json(
@@ -528,14 +576,18 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
                 "sample_count": sample_count,
                 "variant_density_per_mb": density,
                 "missingness": missingness
+            },
+            "tool_attempts": {
+                "germline": germline_ok,
+                "ibdhap": ibdhap_ok
             }
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner=germline+ibdhap_like\nmin_segment_cm={}\n",
-            params.min_segment_cm
+            "runner=germline+ibdhap_like\nmin_segment_cm={}\ngermline_attempted={}\nibdhap_attempted={}\n",
+            params.min_segment_cm, germline_ok, ibdhap_ok
         )
         .as_bytes(),
     )?;
@@ -578,6 +630,15 @@ pub fn run_demography_stage(
     let ne_trajectory_tsv = out_dir.join("ne_trajectory.tsv");
     let demography_metrics_json = out_dir.join("demography_metrics.json");
     let logs_txt = out_dir.join("logs.txt");
+    let ibdne_ok = try_run_tool(
+        "ibdne",
+        &[
+            "--segments",
+            input_ibd_segments.to_string_lossy().as_ref(),
+            "--out",
+            out_dir.join("ibdne").to_string_lossy().as_ref(),
+        ],
+    );
     let mut tsv = String::from("generation\tne\tci_low\tci_high\n");
     let mut series = Vec::<serde_json::Value>::new();
     for g in [5_u64, 10, 20, 40, 80] {
@@ -600,10 +661,16 @@ pub fn run_demography_stage(
             "segments_validated": valid_segments,
             "ne_recent": series.first().and_then(|v| v.get("ne")).unwrap_or(&serde_json::Value::Null),
             "ne_time_series": series,
-            "ne_confidence_interval": "generated_per_generation"
+            "ne_confidence_interval": "generated_per_generation",
+            "tool_attempts": {
+                "ibdne": ibdne_ok
+            }
         }),
     )?;
-    atomic_write_bytes(&logs_txt, b"runner=ibdne_like\n")?;
+    atomic_write_bytes(
+        &logs_txt,
+        format!("runner=ibdne_like\nibdne_attempted={ibdne_ok}\n").as_bytes(),
+    )?;
     Ok(DemographyStageOutputs {
         ne_trajectory_tsv,
         demography_metrics_json,
