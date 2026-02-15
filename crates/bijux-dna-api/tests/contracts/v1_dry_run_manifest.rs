@@ -91,12 +91,14 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
         Vec::new(),
     )
     .unwrap_or_else(|err| panic!("build graph: {err}"));
-    let err = execute(&ExecuteRequest {
+    let err = match execute(&ExecuteRequest {
         graph,
         runner: RuntimeKind::Docker,
         run_dir: temp.path().join("run"),
-    })
-    .expect_err("unknown stage prefix must fail before execution");
+    }) {
+        Ok(_) => panic!("unknown stage prefix must fail before execution"),
+        Err(err) => err,
+    };
     assert!(
         err.to_string().contains("no stage-runner contract"),
         "unexpected error: {err}"
