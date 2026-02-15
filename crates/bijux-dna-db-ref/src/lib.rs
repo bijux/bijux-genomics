@@ -188,14 +188,22 @@ fn load_toml<T: for<'a> Deserialize<'a>>(path: &Path) -> Result<T> {
 }
 
 pub trait RefService: Send + Sync {
+    /// # Errors
+    /// Returns an error if species/build resolution configuration cannot be loaded.
     fn resolve_coverage_profile(&self, species: &str, build: &str) -> Result<Option<String>>;
+    /// # Errors
+    /// Returns an error if the species/build reference bundle cannot be resolved.
     fn resolve_reference_bundle(&self, species: &str, build: &str) -> Result<ReferenceBundle>;
+    /// # Errors
+    /// Returns an error if panel catalogs cannot be loaded or no matching panel is found.
     fn resolve_panel(
         &self,
         species: &str,
         build: &str,
         panel_id: Option<&str>,
     ) -> Result<PanelCatalogEntry>;
+    /// # Errors
+    /// Returns an error if map catalogs cannot be loaded or no matching map is found.
     fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry>;
 }
 
