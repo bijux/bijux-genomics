@@ -58,8 +58,9 @@ mod tests {
             &validate_dir,
             &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate),
         )?;
-        let validate_summary: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(validate_dir.join("validation.summary.json"))?)?;
+        let validate_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            validate_dir.join("validation.summary.json"),
+        )?)?;
         assert_eq!(
             validate_summary
                 .get("schema_version")
@@ -73,14 +74,18 @@ mod tests {
             &mapping_dir.join("flagstat.txt"),
             b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
         )?;
-        bijux_dna_infra::atomic_write_bytes(&mapping_dir.join("samtools_stats.txt"), b"SN\traw total sequences:\t20\n")?;
+        bijux_dna_infra::atomic_write_bytes(
+            &mapping_dir.join("samtools_stats.txt"),
+            b"SN\traw total sequences:\t20\n",
+        )?;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::MappingSummary,
             &mapping_dir,
             &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary),
         )?;
-        let mapping_summary: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(mapping_dir.join("mapping_summary.json"))?)?;
+        let mapping_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            mapping_dir.join("mapping_summary.json"),
+        )?)?;
         assert_eq!(
             mapping_summary
                 .get("schema_version")
@@ -147,12 +152,15 @@ mod tests {
         ) else {
             panic!("align must require reference");
         };
-        assert!(err.to_string().contains("requires resolved reference fasta"));
+        assert!(err
+            .to_string()
+            .contains("requires resolved reference fasta"));
 
         let ref_fa = temp.path().join("ref.fa");
         let ref_fai = temp.path().join("ref.fa.fai");
         std::fs::write(&ref_fa, b">1\nACGT\n").unwrap_or_else(|err| panic!("write ref: {err}"));
-        std::fs::write(&ref_fai, b"1\t4\t0\t4\t5\n").unwrap_or_else(|err| panic!("write fai: {err}"));
+        std::fs::write(&ref_fai, b"1\t4\t0\t4\t5\n")
+            .unwrap_or_else(|err| panic!("write fai: {err}"));
         let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Sex,
             &bam,
@@ -201,8 +209,9 @@ mod tests {
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
         write_bam_invariants(&stage_dir, stage, &bam, Some(&bai), None)?;
         write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
-        let invariants: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(stage_dir.join("bam_invariants.json"))?)?;
+        let invariants: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("bam_invariants.json"),
+        )?)?;
         assert_eq!(
             invariants
                 .get("schema_version")
@@ -271,7 +280,10 @@ mod tests {
             ],
         };
         write_alignment_regime_validation(temp.path(), AlignmentRegime::Adna, "bwa", &step)?;
-        assert!(temp.path().join("alignment_regime_validation.json").exists());
+        assert!(temp
+            .path()
+            .join("alignment_regime_validation.json")
+            .exists());
         Ok(())
     }
 
@@ -285,8 +297,9 @@ mod tests {
             "optical_duplicates": "mark_only"
         });
         write_duplicate_policy_split(temp.path(), &plan)?;
-        let payload: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("duplicate_policy_split.json"))?)?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("duplicate_policy_split.json"),
+        )?)?;
         assert_eq!(
             payload
                 .get("selected_executor")
@@ -343,6 +356,110 @@ mod tests {
                 .and_then(serde_json::Value::as_f64),
             Some(0.07)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn contamination_postprocess_refuses_verifybamid2_without_af_reference() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("contamination");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Contamination);
+        plan.tool_id = ToolId::new("verifybamid2");
+        plan.params = serde_json::json!({
+            "scope": "both",
+            "tool_scope": "both"
+        });
+        let err = stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::Contamination,
+            &stage_dir,
+            &plan,
+        )
+        .expect_err("verifybamid2 should fail without AF reference");
+        assert!(err
+            .to_string()
+            .contains("requires population AF reference panel"));
+        Ok(())
+    }
+
+    #[test]
+    fn mapping_summary_fails_when_mapq_regime_is_below_floor() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("mapping_summary");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.txt"),
+            b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(&stage_dir.join("samtools_stats.txt"), b"MQ\t0\t20\n")?;
+        let err = stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::MappingSummary,
+            &stage_dir,
+            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary),
+        )
+        .expect_err("mapq regime should fail for zero MAPQ");
+        assert!(err.to_string().contains("mapQ mean"));
+        Ok(())
+    }
+
+    #[test]
+    fn overlap_and_endogenous_postprocess_emit_explicit_artifacts() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let overlap_dir = temp.path().join("overlap_correction");
+        bijux_dna_infra::ensure_dir(&overlap_dir)?;
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection,
+            &overlap_dir,
+            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection),
+        )?;
+        assert!(overlap_dir.join("overlap_correction.outputs.json").exists());
+
+        let endogenous_dir = temp.path().join("endogenous_content");
+        bijux_dna_infra::ensure_dir(&endogenous_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &endogenous_dir.join("flagstat.txt"),
+            b"10 + 0 in total (QC-passed reads + QC-failed reads)\n6 + 0 mapped (60.00% : N/A)\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent);
+        plan.params = serde_json::json!({ "competitive_mapping": true });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent,
+            &endogenous_dir,
+            &plan,
+        )?;
+        let endogenous: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            endogenous_dir.join("endogenous.content.json"),
+        )?)?;
+        assert_eq!(
+            endogenous
+                .get("competitive_mapping_enabled")
+                .and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn bam_qc_aggregator_emits_tsv_with_stage_rows() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam_root = temp.path().join("bam");
+        let stage_dir = bam_root.join("mapping_summary");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.txt"),
+            b"10 + 0 in total (QC-passed reads + QC-failed reads)\n8 + 0 mapped (80.00% : N/A)\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("samtools_stats.txt"),
+            b"MQ\t30\t10\n",
+        )?;
+        write_bam_qc_aggregator_tsv(&bam_root)?;
+        let raw = std::fs::read_to_string(bam_root.join("bam_qc.tsv"))?;
+        assert!(raw
+            .lines()
+            .next()
+            .is_some_and(|line| line.contains("stage")));
+        assert!(raw.contains("mapping_summary"));
         Ok(())
     }
 
@@ -404,8 +521,8 @@ mod tests {
             .and_then(std::path::Path::parent)
             .ok_or_else(|| anyhow::anyhow!("resolve workspace root"))?;
         let toy_sam = workspace.join("assets/golden/smoke-inputs-v1/bam/toy.sam");
-        let sample_bam =
-            workspace.join("crates/bijux-dna-planner-bam/tests/fixtures/plan_inputs/default/sample.bam");
+        let sample_bam = workspace
+            .join("crates/bijux-dna-planner-bam/tests/fixtures/plan_inputs/default/sample.bam");
         assert!(toy_sam.exists(), "missing {}", toy_sam.display());
         assert!(sample_bam.exists(), "missing {}", sample_bam.display());
 
@@ -445,5 +562,4 @@ mod tests {
         );
         Ok(())
     }
-
 }
