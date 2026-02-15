@@ -136,21 +136,104 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
 }
 
 fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
-    if planned.step_id.as_str() != "fastq.screen" {
+    let stage = planned.step_id.as_str();
+    if !matches!(
+        stage,
+        "fastq.screen" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
+    ) {
         return Ok(());
     }
     let template = planned.command.template.join(" ");
     if template.contains("http://") || template.contains("https://") {
         return Err(anyhow!(
-            "fastq.screen governance refusal: remote URL database not allowed at runtime; materialize locally first"
+            "{stage} governance refusal: remote URL database/reference not allowed at runtime; materialize locally first"
         ));
     }
     let lower = template.to_ascii_lowercase();
-    let has_db_flag = [" --db ", "--database", "--index", "kraken_db", "db_path"]
+    let has_db_flag = [" --db ", "--database", "--index", "kraken_db", "db_path", "--ref", "--reference"]
         .iter()
         .any(|needle| lower.contains(needle));
     if !has_db_flag {
         return Ok(());
+    }
+    Ok(())
+}
+
+fn emit_fastq_stage_extra_artifacts(
+    stage_root: &std::path::Path,
+    stage_id: &str,
+    execution: &StageResultV1,
+) -> Result<()> {
+    let payload = match stage_id {
+        "fastq.filter" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.filter_reasons.v1",
+            "stage": stage_id,
+            "reasons": {
+                "low_quality": parse_first_u64_after_key(&execution.stderr, "low quality"),
+                "too_short": parse_first_u64_after_key(&execution.stderr, "too short"),
+                "too_many_n": parse_first_u64_after_key(&execution.stderr, "N"),
+            }
+        })),
+        "fastq.low_complexity" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.low_complexity.v1",
+            "stage": stage_id,
+            "removed_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
+        })),
+        "fastq.polyg_tailing" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.polyg.v1",
+            "stage": stage_id,
+            "before_after_distribution": {
+                "before_polyg_reads": parse_first_u64_after_key(&execution.stdout, "polyG before"),
+                "after_polyg_reads": parse_first_u64_after_key(&execution.stdout, "polyG after"),
+            }
+        })),
+        "fastq.contaminant_screen" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.contaminant_screen.v1",
+            "stage": stage_id,
+            "bank_usage": "assets/reference contaminant bank required",
+        })),
+        "fastq.rrna" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.rrna.v1",
+            "stage": stage_id,
+            "db_governance": "explicit local sortmerna db required",
+        })),
+        "fastq.host_depletion" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.host_depletion.v1",
+            "stage": stage_id,
+            "reference_resolution": "explicit host reference required via planned command inputs",
+        })),
+        "fastq.primer_normalization" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.primer_normalization.v1",
+            "stage": stage_id,
+            "orientation_policy": "enforced_by_tool_backend",
+            "mismatch_policy": "configured_in_stage_params",
+        })),
+        "fastq.chimera_detection" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.chimera_detection.v1",
+            "stage": stage_id,
+            "chimera_removed": parse_first_u64_after_key(&execution.stderr, "chimera"),
+        })),
+        "fastq.otu_clustering" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.otu_clustering.v1",
+            "stage": stage_id,
+            "applicability": "edna_pollen_only",
+        })),
+        "fastq.asv_inference" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.asv_inference.v1",
+            "stage": stage_id,
+            "runtime_contract": "R_runtime_required",
+            "applicability": "edna_pollen_only",
+        })),
+        "fastq.abundance_normalization" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.abundance_normalization.v1",
+            "stage": stage_id,
+            "normalized_table_emitted": true,
+        })),
+        _ => None,
+    };
+    if let Some(v) = payload {
+        bijux_dna_infra::atomic_write_json(&stage_root.join("stage.extra.json"), &v)
+            .context("write stage.extra.json")?;
     }
     Ok(())
 }
@@ -270,6 +353,31 @@ fn write_stage_standardized_metrics(
             "fields": ["qc_modules", "warnings", "failures"],
             "report_html": out_dir.join("multiqc").join("multiqc_report.html"),
             "report_data_dir": out_dir.join("multiqc").join("multiqc_data"),
+        }),
+        "fastq.primer_normalization" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
+        }),
+        "fastq.chimera_detection" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "chimeras_removed"],
+        }),
+        "fastq.asv_inference" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["asv_count", "nonchimera_reads", "sample_count"],
+        }),
+        "fastq.otu_clustering" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["otu_count", "cluster_radius", "sample_count"],
+        }),
+        "fastq.abundance_normalization" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["table_rows", "sample_count", "normalization_method"],
         }),
         _ => return Ok(()),
     };
@@ -394,6 +502,11 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.rrna" => &["schema_version", "stage", "fields"],
         "fastq.screen" => &["schema_version", "stage", "fields"],
         "fastq.qc_post" => &["schema_version", "stage", "fields"],
+        "fastq.primer_normalization" => &["schema_version", "stage", "fields"],
+        "fastq.chimera_detection" => &["schema_version", "stage", "fields"],
+        "fastq.asv_inference" => &["schema_version", "stage", "fields"],
+        "fastq.otu_clustering" => &["schema_version", "stage", "fields"],
+        "fastq.abundance_normalization" => &["schema_version", "stage", "fields"],
         _ => &[],
     }
 }
@@ -862,6 +975,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_span.end();
         let execution = invocation?.stage_result;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
+        emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &execution)?;
         enforce_metrics_schema(&stage_root, &stage_id)?;
         write_fastq_output_contract(&stage_root, planned, &execution)?;
         write_retention_report(&stage_root, planned)?;
