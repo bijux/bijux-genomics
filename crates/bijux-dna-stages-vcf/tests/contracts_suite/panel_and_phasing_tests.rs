@@ -187,7 +187,10 @@
         )
         .unwrap_or_else(|err| panic!("chunk run: {err}"));
         assert!(outputs.merged_vcf.exists());
+        assert!(PathBuf::from(format!("{}.tbi", outputs.merged_vcf.display())).exists());
         assert!(outputs.chunks_json.exists());
+        let logs_root = dir.path().join("logs").join("vcf.chunked_merge");
+        assert!(logs_root.exists(), "chunk logs root must exist");
     }
 
     #[test]

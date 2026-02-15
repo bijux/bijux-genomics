@@ -6,7 +6,7 @@ mod contracts {
         clippy::unreadable_literal,
         unused_imports
     )]
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
     use bijux_dna_domain_vcf::params::VcfCallParams;
