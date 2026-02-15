@@ -1,6 +1,23 @@
 use std::path::Path;
 
+use bijux_dna_domain_bam::params::ValidateEffectiveParams;
 use bijux_dna_domain_bam::params::FilterEffectiveParams;
+
+#[must_use]
+pub fn validate_args(
+    bam: &Path,
+    flagstat: &Path,
+    report: &Path,
+    _params: &ValidateEffectiveParams,
+) -> Vec<String> {
+    let command = format!(
+        "bamtools stats -in {bam} > {report} && samtools flagstat {bam} > {flagstat}",
+        bam = bam.display(),
+        report = report.display(),
+        flagstat = flagstat.display()
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
 
 #[must_use]
 #[allow(clippy::too_many_arguments)]
