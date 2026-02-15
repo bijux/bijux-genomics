@@ -5,6 +5,8 @@
 configs/OWNERS.toml
 configs/bench/index.md
 configs/bench/knobs.toml
+configs/ci/clippy_allowlist.toml
+configs/ci/clippy_allowlist_baseline.toml
 configs/ci/index.md
 configs/ci/params/index.md
 configs/ci/params/param_registry.toml
@@ -62,6 +64,7 @@ configs/nextest/index.md
 configs/nextest/nextest.toml
 configs/runtime/cargo_build.toml
 configs/runtime/coverage_regimes.toml
+configs/runtime/execution_kernel.toml
 configs/runtime/genetic_map_bank.toml
 configs/runtime/index.md
 configs/runtime/organellar_policy.toml
