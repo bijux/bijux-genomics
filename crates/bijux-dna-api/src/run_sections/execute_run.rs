@@ -16,6 +16,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let run_id = format!("{}__{}", request.plan.stage_id, request.plan.tool_id);
     let run_artifacts_dir = request.plan.out_dir.join("run_artifacts");
     bijux_dna_infra::ensure_dir(&run_artifacts_dir)?;
+    maybe_emit_reference_manifest(request, &run_artifacts_dir)?;
     let telemetry_path = run_artifacts_dir.join("telemetry.jsonl");
     let trace_id = format!("trace-{}", request.plan.stage_id);
     let span_id = format!("span-{}", request.plan.tool_id);
@@ -496,4 +497,88 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     maybe_write_site_lock(&request.plan.out_dir)?;
     let _ = bijux_dna_infra::remove_dir_all(&tmp_root);
     Ok(ExecuteRunResult)
+}
+
+fn maybe_emit_reference_manifest(
+    request: &ExecuteRunRequest,
+    run_artifacts_dir: &std::path::Path,
+) -> Result<()> {
+    let reference_inputs = request
+        .plan
+        .io
+        .inputs
+        .iter()
+        .filter(|artifact| {
+            let name = artifact.name.to_string().to_ascii_lowercase();
+            name.contains("reference") || name.contains("fasta") || name.contains("ref")
+        })
+        .collect::<Vec<_>>();
+    if reference_inputs.is_empty() {
+        return Ok(());
+    }
+
+    let species = request
+        .plan
+        .params
+        .get("species_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+    let build = request
+        .plan
+        .params
+        .get("build_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+    let usecase = request
+        .plan
+        .params
+        .get("usecase")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+
+    let mut inputs = Vec::new();
+    for artifact in reference_inputs {
+        let resolved = request.plan.out_dir.join(&artifact.path);
+        let sha256 = if resolved.exists() {
+            Some(bijux_dna_infra::hash_file_sha256(&resolved)?)
+        } else {
+            None
+        };
+        inputs.push(serde_json::json!({
+            "name": artifact.name,
+            "path": resolved,
+            "sha256": sha256,
+        }));
+    }
+
+    let authority = if let (Some(species_id), Some(build_id)) = (species.as_deref(), build.as_deref()) {
+        let bundle = bijux_dna_db_ref::resolve_reference_bundle(species_id, build_id)?;
+        let bank = bijux_dna_db_ref::resolve_reference_bank(species_id, build_id)?;
+        let sex_rule = bijux_dna_db_ref::resolve_sex_chromosome_rule(species_id, build_id).ok();
+        let organellar = bijux_dna_db_ref::resolve_organellar_policy(species_id, build_id).ok();
+        let default_set = usecase
+            .as_deref()
+            .and_then(|kind| bijux_dna_db_ref::resolve_default_reference_set(species_id, kind).ok());
+        Some(serde_json::json!({
+            "species_id": species_id,
+            "build_id": build_id,
+            "bundle": bundle,
+            "bank": bank,
+            "sex_chromosome_rule": sex_rule,
+            "organellar_policy": organellar,
+            "default_reference_set": default_set,
+        }))
+    } else {
+        None
+    };
+
+    let payload = serde_json::json!({
+        "schema_version": "bijux.reference_manifest.v1",
+        "stage_id": request.plan.stage_id.to_string(),
+        "tool_id": request.plan.tool_id.to_string(),
+        "reference_inputs": inputs,
+        "authority": authority,
+    });
+    bijux_dna_infra::atomic_write_json(&run_artifacts_dir.join("reference_manifest.json"), &payload)?;
+    Ok(())
 }

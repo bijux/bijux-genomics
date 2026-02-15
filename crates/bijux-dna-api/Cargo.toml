@@ -31,6 +31,7 @@ bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["tracing"] }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
 
 [features]
 bam_downstream = ["bijux-dna-planner-bam/bam_downstream", "bijux-dna-pipelines/bam_downstream"]

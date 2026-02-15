@@ -1,6 +1,25 @@
 include!("call_filter_and_gl_helpers.rs");
 include!("call_filter_and_gl_types.rs");
 
+fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
+    if let Some(reference) = params.reference_fasta.as_deref() {
+        let reference_path = Path::new(reference);
+        if !reference_path.exists() {
+            bail!(
+                "call stage BAM flow reference_fasta does not exist: {}",
+                reference_path.display()
+            );
+        }
+        return Ok(reference.to_string());
+    }
+    let species = std::env::var("BIJUX_SPECIES_ID")
+        .map_err(|_| anyhow!("call stage BAM flow requires reference_fasta or BIJUX_SPECIES_ID"))?;
+    let build = std::env::var("BIJUX_BUILD_ID")
+        .map_err(|_| anyhow!("call stage BAM flow requires reference_fasta or BIJUX_BUILD_ID"))?;
+    let bundle = bijux_dna_db_ref::resolve_reference_bundle(&species, &build)
+        .map_err(|err| anyhow!("db-ref resolution failed for {species}:{build}: {err}"))?;
+    Ok(bundle.fasta)
+}
 
 fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<()> {
     if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
@@ -10,16 +29,9 @@ fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<
     if !bai.exists() {
         bail!("call stage BAM flow requires BAM index: {}", bai.display());
     }
-    let reference = params
-        .reference_fasta
-        .as_deref()
-        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
-    let reference_path = Path::new(reference);
-    if !reference_path.exists() {
-        bail!(
-            "call stage BAM flow reference_fasta does not exist: {}",
-            reference_path.display()
-        );
+    let reference = resolve_reference_path(params)?;
+    if !Path::new(&reference).exists() {
+        bail!("call stage BAM flow reference does not exist: {}", reference);
     }
     Ok(())
 }
@@ -43,10 +55,7 @@ fn run_bcftools_mpileup_call(
     include_gl_fields: bool,
 ) -> Result<()> {
     ensure_bam_prerequisites(input_bam, params)?;
-    let reference = params
-        .reference_fasta
-        .as_deref()
-        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
+    let reference = resolve_reference_path(params)?;
     let mpileup_bcf = out_vcf
         .parent()
         .ok_or_else(|| anyhow!("output path has no parent"))?
@@ -69,7 +78,7 @@ fn run_bcftools_mpileup_call(
             "FORMAT/PL,FORMAT/DP",
             "-Ob",
             "-f",
-            reference,
+            reference.as_str(),
             "-q",
             min_map_q.as_str(),
             "-Q",
@@ -86,7 +95,7 @@ fn run_bcftools_mpileup_call(
             "mpileup",
             "-Ob",
             "-f",
-            reference,
+            reference.as_str(),
             "-q",
             min_map_q.as_str(),
             "-Q",
@@ -106,10 +115,7 @@ fn run_bcftools_mpileup_call(
 
 fn try_run_angsd_gl_from_bam(input_bam: &Path, out_dir: &Path, params: &VcfCallParams) -> Result<bool> {
     ensure_bam_prerequisites(input_bam, params)?;
-    let reference = params
-        .reference_fasta
-        .as_deref()
-        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
+    let reference = resolve_reference_path(params)?;
     let min_map_q = params.min_mapping_quality.to_string();
     let min_base_q = params.min_base_quality.to_string();
     let out_prefix = out_dir.join("angsd_gl");
@@ -123,7 +129,7 @@ fn try_run_angsd_gl_from_bam(input_bam: &Path, out_dir: &Path, params: &VcfCallP
         "-i",
         input_bam_s,
         "-ref",
-        reference,
+        reference.as_str(),
         "-GL",
         "2",
         "-doGlf",
