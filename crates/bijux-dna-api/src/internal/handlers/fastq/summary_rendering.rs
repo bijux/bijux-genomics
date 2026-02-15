@@ -61,6 +61,7 @@ pub(crate) fn render_run_summary(
         "stages": stages,
         "failures": failures_json,
         "run_provenance": run_provenance,
+        "fastq_scientific_summary": fastq_scientific_summary(stage_runs),
         "pipeline_decisions": {
             "merge": merge_decision,
             "correct": correct_decision,
@@ -103,6 +104,56 @@ pub(crate) fn render_run_summary(
         summary_json_path,
         summary_tsv_path,
         report_html_path,
+    })
+}
+
+fn fastq_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json::Value {
+    let mut pre_qc_stages = 0_u64;
+    let mut post_qc_stages = 0_u64;
+    let mut classification_stages = 0_u64;
+    let mut transforms = 0_u64;
+    for entry in stage_runs {
+        let id = entry.plan.stage_id.as_str();
+        if id == "fastq.validate_pre" || id == "fastq.length_distribution_pre" {
+            pre_qc_stages += 1;
+        }
+        if id == "fastq.qc_post" {
+            post_qc_stages += 1;
+        }
+        if id == "fastq.screen" || id == "fastq.contaminant_screen" || id == "fastq.rrna" {
+            classification_stages += 1;
+        }
+        if matches!(
+            id,
+            "fastq.trim"
+                | "fastq.filter"
+                | "fastq.correct"
+                | "fastq.merge"
+                | "fastq.deduplicate"
+                | "fastq.umi"
+                | "fastq.host_depletion"
+                | "fastq.primer_normalization"
+                | "fastq.chimera_detection"
+                | "fastq.asv_inference"
+                | "fastq.otu_clustering"
+                | "fastq.abundance_normalization"
+        ) {
+            transforms += 1;
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq.scientific_summary.v1",
+        "qc": {
+            "pre_qc_stages": pre_qc_stages,
+            "post_qc_stages": post_qc_stages
+        },
+        "read_loss_proxy": {
+            "transform_stages": transforms,
+            "note": "Use stage.metrics.standardized.json and retention reports for exact losses."
+        },
+        "classification": {
+            "classification_stages": classification_stages
+        }
     })
 }
 
