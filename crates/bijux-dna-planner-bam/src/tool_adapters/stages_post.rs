@@ -103,7 +103,7 @@ pub mod complexity {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::ComplexityEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -123,13 +123,33 @@ pub mod complexity {
             bijux_dna_domain_bam::BamStage::Complexity,
             out_dir,
         );
+        let preseq_txt = out_dir.join("preseq.txt");
+        let complexity_json = out_dir.join("complexity.json");
+        let summary_json = out_dir.join("complexity.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: tool.command.clone(),
+            command: CommandSpecV1 {
+                template: match tool.tool_id.as_str() {
+                    "preseq" => crate::tool_adapters::tools::preseq::args_with_outputs(
+                        bam,
+                        &preseq_txt,
+                        &complexity_json,
+                        &summary_json,
+                        params,
+                    ),
+                    _ => crate::tool_adapters::tools::preseq::args_with_outputs(
+                        bam,
+                        &preseq_txt,
+                        &complexity_json,
+                        &summary_json,
+                        params,
+                    ),
+                },
+            },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -156,6 +176,109 @@ pub mod complexity {
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
             &["complexity_report", "preseq", "summary"],
+        )
+    }
+}
+
+pub mod duplication_metrics {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::MarkDupEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::DuplicationMetrics.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &MarkDupEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::DuplicationMetrics,
+            out_dir,
+        );
+        let report = out_dir.join("duplication.metrics.json");
+        let histogram = out_dir.join("duplication.histogram.txt");
+        let summary = out_dir.join("duplication.summary.json");
+        let command = match tool.tool_id.as_str() {
+            "picard" => vec![
+                "/bin/sh".to_string(),
+                "-c".to_string(),
+                format!(
+                    "picard MarkDuplicates I={bam} O={tmp_bam} M={histogram} && \
+python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"method\": \"picard\", \"histogram\": \"{histogram}\"}}, indent=2))\nPY && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
+                    bam = bam.display(),
+                    tmp_bam = out_dir.join("duplication.tmp.bam").display(),
+                    histogram = histogram.display(),
+                    report = report.display(),
+                    summary = summary.display(),
+                    optical = format!("{:?}", params.optical_duplicates),
+                    action = format!("{:?}", params.duplicate_action),
+                ),
+            ],
+            _ => vec![
+                "/bin/sh".to_string(),
+                "-c".to_string(),
+                format!(
+                    "samtools stats {bam} > {histogram} && \
+python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"method\": \"samtools\", \"stats\": \"{histogram}\"}}, indent=2))\nPY && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.duplication_metrics\", \"optical_duplicates\": \"{optical}\", \"duplicate_action\": \"{action}\"}}, indent=2))\nPY",
+                    bam = bam.display(),
+                    histogram = histogram.display(),
+                    report = report.display(),
+                    summary = summary.display(),
+                    optical = format!("{:?}", params.optical_duplicates),
+                    action = format!("{:?}", params.duplicate_action),
+                ),
+            ],
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "optical_duplicates": params.optical_duplicates,
+                "umi_policy": params.umi_policy,
+                "duplicate_action": params.duplicate_action,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &[
+                "duplication_report",
+                "duplication_histogram",
+                "summary",
+                "stage_metrics",
+            ],
         )
     }
 }
@@ -392,7 +515,7 @@ pub mod recalibration {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::BqsrEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -412,13 +535,33 @@ pub mod recalibration {
             bijux_dna_domain_bam::BamStage::Recalibration,
             out_dir,
         );
+        let out_bam = out_dir.join("recalibrated.bam");
+        let recal_report = out_dir.join("recalibration.table");
+        let summary = out_dir.join("recalibration.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: tool.command.clone(),
+            command: CommandSpecV1 {
+                template: match tool.tool_id.as_str() {
+                    "gatk" => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
+                        bam,
+                        &out_bam,
+                        &recal_report,
+                        &summary,
+                        params,
+                    ),
+                    _ => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
+                        bam,
+                        &out_bam,
+                        &recal_report,
+                        &summary,
+                        params,
+                    ),
+                },
+            },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(

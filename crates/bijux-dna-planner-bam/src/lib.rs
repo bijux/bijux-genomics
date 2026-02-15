@@ -240,7 +240,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("duplication_metrics params mismatch"));
             };
-            let mut plan = tool_adapters::stages_post::markdup::plan(
+            let mut plan = tool_adapters::stages_post::duplication_metrics::plan(
                 request.tool,
                 bam,
                 request.out_dir,
