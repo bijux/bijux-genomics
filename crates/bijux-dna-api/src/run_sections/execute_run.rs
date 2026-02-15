@@ -68,6 +68,18 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .out_dir
         .join("run_artifacts")
         .join("stage_resume.json");
+    let output_checksums = || -> std::collections::BTreeMap<String, String> {
+        let mut checksums = std::collections::BTreeMap::new();
+        for artifact in &request.plan.io.outputs {
+            let path = request.plan.out_dir.join(&artifact.path);
+            if path.exists() {
+                if let Ok(sum) = bijux_dna_runtime::recording::hash_file_sha256(&path) {
+                    checksums.insert(artifact.name.to_string(), sum);
+                }
+            }
+        }
+        checksums
+    };
     if idempotent {
         let outputs_exist = request.plan.io.outputs.iter().all(|artifact| {
             let path = request.plan.out_dir.join(&artifact.path);
@@ -82,7 +94,18 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
                 .get("manifest_hash")
                 .and_then(serde_json::Value::as_str)
                 == Some(manifest_hash.as_str());
-            if same_manifest {
+            let same_checksums = meta
+                .get("output_checksums")
+                .and_then(serde_json::Value::as_object)
+                .is_some_and(|existing| {
+                    let current = output_checksums();
+                    existing.iter().all(|(key, value)| {
+                        value.as_str().is_some_and(|stored| {
+                            current.get(key).is_some_and(|actual| actual == stored)
+                        })
+                    })
+                });
+            if same_manifest && same_checksums {
                 let stage_end = bijux_dna_runtime::TelemetryEventV1 {
                     schema_version: "bijux.telemetry.v1".to_string(),
                     run_id: run_id.clone(),
@@ -158,17 +181,99 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         warn!("failed to write tool_invocation telemetry: {err}");
     }
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&request.plan);
-    let unique_tmp = if hpc_context_enabled() {
-        let tmp_root =
-            std::env::var("TMPDIR").map_or_else(|_| run_artifacts_dir.join("tmp"), PathBuf::from);
-        let tmp = tmp_root.join(&run_id);
-        bijux_dna_infra::ensure_dir(&tmp)?;
-        std::env::set_var("TMPDIR", &tmp);
-        Some(tmp)
+    let tmp_root = std::env::var("TMPDIR")
+        .map_or_else(|_| run_artifacts_dir.join("tmp"), PathBuf::from)
+        .join(&run_id);
+    let input_root = request
+        .plan
+        .io
+        .inputs
+        .first()
+        .and_then(|artifact| request.plan.out_dir.join(&artifact.path).parent().map(Path::to_path_buf))
+        .unwrap_or_else(|| request.plan.out_dir.clone());
+    let network_policy = if request
+        .plan
+        .reason
+        .details
+        .get("network")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|value| value.eq_ignore_ascii_case("forbid"))
+    {
+        crate::execution_kernel::NetworkPolicy::Forbid
     } else {
-        None
+        crate::execution_kernel::NetworkPolicy::Allow
     };
-    if let Err(err) = bijux_dna_runner::execute::execute_step(&step, request.runner, None) {
+    let context = crate::execution_kernel::ToolContext {
+        run_id: run_id.clone(),
+        stage_id: request.plan.stage_id.to_string(),
+        tool_id: request.plan.tool_id.to_string(),
+        sample_id: request
+            .plan
+            .reason
+            .details
+            .get("sample_id")
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string),
+        stage_root: run_artifacts_dir.clone(),
+        input_root,
+        output_root: request.plan.out_dir.clone(),
+        tmp_root: tmp_root.clone(),
+        threads: request.plan.resources.threads.max(1),
+        memory_hint_mb: Some(u64::from(request.plan.resources.mem_gb).saturating_mul(1024)),
+        seed: request
+            .plan
+            .reason
+            .details
+            .get("seed")
+            .and_then(serde_json::Value::as_u64),
+        network_policy,
+    };
+    let invocation_request = crate::execution_kernel::ToolInvocationRequest {
+        step: step.clone(),
+        runner: request.runner,
+        context,
+        timeout: None,
+    };
+    let invocation_result = match crate::execution_kernel::invoke_tool(&invocation_request) {
+        Ok(result) => result,
+        Err(err) => {
+            let fail_code = if err
+                .to_string()
+                .contains("path contract violated")
+                || err.to_string().contains("network policy violation")
+            {
+                bijux_dna_runtime::FailureCode::InvariantViolation
+            } else {
+                bijux_dna_runtime::FailureCode::ToolFailed
+            };
+            let fail_event = bijux_dna_runtime::TelemetryEventV1 {
+                schema_version: "bijux.telemetry.v1".to_string(),
+                run_id: run_id.clone(),
+                stage_id: request.plan.stage_id.to_string(),
+                tool_id: request.plan.tool_id.to_string(),
+                event_name: bijux_dna_runtime::TelemetryEventName::RunFailed,
+                timestamp: chrono::Utc::now(),
+                duration_ms: Some(millis_u64(started_at.elapsed())),
+                status: "error".to_string(),
+                trace_id: format!("trace-{}", request.plan.stage_id),
+                span_id: format!("span-{}", request.plan.tool_id),
+                attrs: std::collections::BTreeMap::from([(
+                    "error".to_string(),
+                    bijux_dna_runtime::AttrValue::Str(err.to_string()),
+                )]),
+                failure_code: Some(fail_code),
+            };
+            let _ =
+                bijux_dna_runtime::recording::write_telemetry_event(&telemetry_path, &fail_event);
+            return Err(err);
+        }
+    };
+    if invocation_result.stage_result.exit_code != 0 {
+        let err = anyhow!(
+            "stage {} failed with exit code {}",
+            request.plan.stage_id,
+            invocation_result.stage_result.exit_code
+        );
         let fail_event = bijux_dna_runtime::TelemetryEventV1 {
             schema_version: "bijux.telemetry.v1".to_string(),
             run_id: run_id.clone(),
@@ -204,6 +309,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         "params_hash": params_hash,
         "stage_semver": request.plan.stage_version.0,
         "idempotent": idempotent,
+        "output_checksums": output_checksums(),
     });
     bijux_dna_infra::atomic_write_json(&resume_meta_path, &resume_payload)?;
     for artifact in &request.plan.io.outputs {
@@ -344,8 +450,6 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         &compact_summary,
     )?;
     maybe_write_site_lock(&request.plan.out_dir)?;
-    if let Some(tmp) = unique_tmp {
-        let _ = bijux_dna_infra::remove_dir_all(&tmp);
-    }
+    let _ = bijux_dna_infra::remove_dir_all(&tmp_root);
     Ok(ExecuteRunResult)
 }
