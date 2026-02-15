@@ -4,9 +4,10 @@ use crate::commands::command_prelude::{
     Path, Result, StageId, ToolId,
 };
 use bijux_dna_api::v1::api::plan::Domain;
+use bijux_dna_api::v1::api::run::ExecuteRunRequest;
 use bijux_dna_api::v1::api::run::RuntimeKind;
 use bijux_dna_api::v1::api::run::ToolRegistry;
-use bijux_dna_api::v1::api::run::{build_tool_execution_spec, execute_step};
+use bijux_dna_api::v1::api::run::{build_tool_execution_spec, execute_run};
 
 #[allow(clippy::missing_errors_doc)]
 pub fn handle_bam_commands(
@@ -94,8 +95,10 @@ fn run_bam_stage(
     if args.dry_run {
         return Ok(());
     }
-    let step = bijux_dna_api::v1::api::run::execution_step_from_stage_plan(&plan);
-    execute_step(&step, RuntimeKind::Docker, None)?;
+    execute_run(&ExecuteRunRequest {
+        plan,
+        runner: RuntimeKind::Docker,
+    })?;
     Ok(())
 }
 

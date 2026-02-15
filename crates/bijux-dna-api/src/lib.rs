@@ -18,6 +18,7 @@ pub(crate) mod api_internal {
 pub(crate) mod execution_kernel;
 pub(crate) mod input_validation;
 pub(crate) mod qa;
+pub(crate) mod reference_resolution;
 pub(crate) mod request_args;
 pub(crate) mod run;
 pub(crate) mod tooling;
