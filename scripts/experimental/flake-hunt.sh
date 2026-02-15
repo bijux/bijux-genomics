@@ -4,6 +4,12 @@ IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "Usage: $0 '<nextest filter expression>' [runs]" >&2
+  echo "Example: $0 'test(mod_contracts_pipeline_rs::pipeline_e2e::pipeline_bam_shotgun_report_snapshot)' 20" >&2
+  exit 0
+fi
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 '<nextest filter expression>' [runs]" >&2
   echo "Example: $0 'test(mod_contracts_pipeline_rs::pipeline_e2e::pipeline_bam_shotgun_report_snapshot)' 20" >&2
