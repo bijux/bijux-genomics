@@ -105,7 +105,6 @@ pub struct ImageRequirements {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct StageSpec {
     pub stage_id: StageId,
     #[serde(default)]
@@ -116,8 +115,6 @@ pub struct StageSpec {
     pub output_kind: ArtifactKind,
     #[serde(default)]
     pub produced_artifacts: Vec<String>,
-    #[serde(default)]
-    pub idempotent: bool,
     #[serde(default = "default_stage_semver")]
     pub stage_semver: String,
     #[serde(default = "default_runtime_scale")]
@@ -132,16 +129,63 @@ pub struct StageSpec {
     pub metrics: Vec<StageMetricSpec>,
     #[serde(default)]
     pub description: Option<String>,
-    #[serde(default)]
-    pub mutates_fastq: bool,
-    #[serde(default)]
-    pub report_only: bool,
-    #[serde(default)]
-    pub may_change_read_count: bool,
+    #[serde(flatten, default)]
+    pub behavior: StageBehavior,
     #[serde(default)]
     pub image_requirements: Option<ImageRequirements>,
     #[serde(default)]
     pub extends: Option<StageId>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct StageBehavior {
+    #[serde(default)]
+    pub idempotent: bool,
+    #[serde(default)]
+    pub mutates_fastq: bool,
+    #[serde(default)]
+    pub report_only: bool,
+    #[serde(default, with = "read_count_change_policy_bool")]
+    pub read_count_change: ReadCountChangePolicy,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub enum ReadCountChangePolicy {
+    #[default]
+    Stable,
+    MayChange,
+}
+
+impl ReadCountChangePolicy {
+    #[must_use]
+    pub const fn from_bool(may_change: bool) -> Self {
+        if may_change {
+            Self::MayChange
+        } else {
+            Self::Stable
+        }
+    }
+}
+
+mod read_count_change_policy_bool {
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    use super::ReadCountChangePolicy;
+
+    pub fn serialize<S>(value: &ReadCountChangePolicy, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_bool(matches!(value, ReadCountChangePolicy::MayChange))
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<ReadCountChangePolicy, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let may_change = bool::deserialize(deserializer)?;
+        Ok(ReadCountChangePolicy::from_bool(may_change))
+    }
 }
 
 fn default_stage_semver() -> String {

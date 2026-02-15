@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec, RuntimeScale,
-    StageId, StageParameterSpec, StageSemanticKind, StageSpec, ToolConstraints, ToolManifest,
-    ToolRegistry, ToolRole,
+    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec,
+    ReadCountChangePolicy, RuntimeScale, StageBehavior, StageId, StageParameterSpec,
+    StageSemanticKind, StageSpec, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::StageMetricSpec;
@@ -136,7 +136,6 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                         &stage.stage_id,
                         output_artifact_kind_from_stage(&stage.stage_id),
                     ),
-                    idempotent: true,
                     stage_semver: "1.0.0".to_string(),
                     runtime_scale: RuntimeScale::Small,
                     inputs: to_ports(stage.inputs),
@@ -144,9 +143,14 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                     parameters: stage.parameters,
                     metrics: stage.metrics,
                     description: stage.description,
-                    mutates_fastq: stage.mutates_fastq,
-                    report_only: stage.report_only,
-                    may_change_read_count: stage.may_change_read_count,
+                    behavior: StageBehavior {
+                        idempotent: true,
+                        mutates_fastq: stage.mutates_fastq,
+                        report_only: stage.report_only,
+                        read_count_change: ReadCountChangePolicy::from_bool(
+                            stage.may_change_read_count,
+                        ),
+                    },
                     image_requirements: stage.image_requirements,
                     extends,
                 });
@@ -402,10 +406,6 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
             input_kind,
             output_kind,
             produced_artifacts: stable_produced_artifacts(stage_id_raw, output_kind),
-            idempotent: stage
-                .get("idempotent")
-                .and_then(toml::Value::as_bool)
-                .unwrap_or(true),
             stage_semver: parse_stage_semver(&stage),
             runtime_scale: stage_scale_from_row(&stage),
             inputs: vec![PortSpec {
@@ -421,9 +421,15 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: Some("generated from configs/ci/registry/tool_registry.toml".to_string()),
-            mutates_fastq: false,
-            report_only: false,
-            may_change_read_count: false,
+            behavior: StageBehavior {
+                idempotent: stage
+                    .get("idempotent")
+                    .and_then(toml::Value::as_bool)
+                    .unwrap_or(true),
+                mutates_fastq: false,
+                report_only: false,
+                read_count_change: ReadCountChangePolicy::Stable,
+            },
             image_requirements: None,
             extends: None,
         };

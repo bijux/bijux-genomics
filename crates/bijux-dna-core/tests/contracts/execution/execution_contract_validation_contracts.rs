@@ -7,7 +7,9 @@ use bijux_dna_core::contract::execution::{
 use bijux_dna_core::contract::{
     ArtifactRole, ExecutionContract, PlanPolicy, StageIO, ToolConstraints,
 };
-use bijux_dna_core::metrics::{validate_derived_metric_id_str, ToolInvocationV1};
+use bijux_dna_core::metrics::{
+    validate_derived_metric_id_str, ToolInvocationSpecV1, ToolInvocationV1,
+};
 use bijux_dna_core::prelude::{
     ArtifactId, CommandSpecV1, ContainerImageRefV1, ContractVersion, StageId, StepId, ToolId,
 };
@@ -188,28 +190,28 @@ fn derived_metric_validation_and_tool_invocation_constructor_paths() {
     assert!(validate_derived_metric_id_str("error_reduction_proxy").is_ok());
     assert!(validate_derived_metric_id_str("nope").is_err());
 
-    let invocation = ToolInvocationV1::new(
-        "bijux.tool_invocation.v1".to_string(),
-        ContractVersion::v1(),
-        StageId::new("fastq.trim"),
-        ToolId::new("fastp"),
-        "0.23.4".to_string(),
-        Some("0.23.4+patched".to_string()),
-        "sha256:abc".to_string(),
-        "container".to_string(),
-        "linux/arm64".to_string(),
-        serde_json::json!({"k": "v"}),
-        serde_json::json!({"k": "v"}),
-        serde_json::json!({"k": "v"}),
-        serde_json::json!({"k": "v"}),
-        serde_json::json!({"src": "test"}),
-        serde_json::json!({"src": "test"}),
-        ToolConstraints::default(),
-        BTreeMap::from([("RUST_LOG".to_string(), "info".to_string())]),
-        vec!["in_hash".to_string()],
-        vec!["out_hash".to_string()],
-        Some("fastp -i in -o out".to_string()),
-    );
+    let invocation = ToolInvocationV1::new(ToolInvocationSpecV1 {
+        schema_version: "bijux.tool_invocation.v1".to_string(),
+        contract_version: ContractVersion::v1(),
+        stage_id: StageId::new("fastq.trim"),
+        tool_id: ToolId::new("fastp"),
+        tool_version: "0.23.4".to_string(),
+        resolved_tool_version: Some("0.23.4+patched".to_string()),
+        image_digest: "sha256:abc".to_string(),
+        runner_kind: "container".to_string(),
+        platform: "linux/arm64".to_string(),
+        parameters_json: serde_json::json!({"k": "v"}),
+        parameters_json_normalized: serde_json::json!({"k": "v"}),
+        effective_params_json: serde_json::json!({"k": "v"}),
+        effective_params_json_normalized: serde_json::json!({"k": "v"}),
+        params_provenance: serde_json::json!({"src": "test"}),
+        params_provenance_normalized: serde_json::json!({"src": "test"}),
+        resources: ToolConstraints::default(),
+        environment: BTreeMap::from([("RUST_LOG".to_string(), "info".to_string())]),
+        input_hashes: vec!["in_hash".to_string()],
+        output_hashes: vec!["out_hash".to_string()],
+        executed_command: Some("fastp -i in -o out".to_string()),
+    });
 
     assert_eq!(invocation.schema_version, "bijux.tool_invocation.v1");
     assert_eq!(invocation.stage_id.as_str(), "fastq.trim");

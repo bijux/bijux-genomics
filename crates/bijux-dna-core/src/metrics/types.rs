@@ -304,56 +304,65 @@ pub struct ToolInvocationV1 {
 }
 
 impl ToolInvocationV1 {
-    #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        schema_version: String,
-        contract_version: ContractVersion,
-        stage_id: StageId,
-        tool_id: ToolId,
-        tool_version: String,
-        resolved_tool_version: Option<String>,
-        image_digest: String,
-        runner_kind: String,
-        platform: String,
-        parameters_json: serde_json::Value,
-        parameters_json_normalized: serde_json::Value,
-        effective_params_json: serde_json::Value,
-        effective_params_json_normalized: serde_json::Value,
-        params_provenance: serde_json::Value,
-        params_provenance_normalized: serde_json::Value,
-        resources: ToolConstraints,
-        environment: BTreeMap<String, String>,
-        input_hashes: Vec<String>,
-        output_hashes: Vec<String>,
-        executed_command: Option<String>,
-    ) -> Self {
+    pub fn new(spec: ToolInvocationSpecV1) -> Self {
         Self {
-            schema_version,
-            contract_version,
-            stage_id,
-            tool_id,
-            tool_version,
-            resolved_tool_version,
-            image_digest,
-            runner_kind,
-            platform,
-            parameters_json,
-            parameters_json_normalized,
-            effective_params_json,
-            effective_params_json_normalized,
-            params_provenance,
-            params_provenance_normalized,
+            schema_version: spec.schema_version,
+            contract_version: spec.contract_version,
+            stage_id: spec.stage_id,
+            tool_id: spec.tool_id,
+            tool_version: spec.tool_version,
+            resolved_tool_version: spec.resolved_tool_version,
+            image_digest: spec.image_digest,
+            runner_kind: spec.runner_kind,
+            platform: spec.platform,
+            parameters_json: spec.parameters_json,
+            parameters_json_normalized: spec.parameters_json_normalized,
+            effective_params_json: spec.effective_params_json,
+            effective_params_json_normalized: spec.effective_params_json_normalized,
+            params_provenance: spec.params_provenance,
+            params_provenance_normalized: spec.params_provenance_normalized,
             adapter_bank: None,
             banks: None,
             bank_assets: None,
-            resources,
-            environment,
-            input_hashes,
-            output_hashes,
-            executed_command,
+            resources: spec.resources,
+            environment: spec.environment,
+            input_hashes: spec.input_hashes,
+            output_hashes: spec.output_hashes,
+            executed_command: spec.executed_command,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ToolInvocationSpecV1 {
+    pub schema_version: String,
+    pub contract_version: ContractVersion,
+    pub stage_id: StageId,
+    pub tool_id: ToolId,
+    pub tool_version: String,
+    #[serde(default)]
+    pub resolved_tool_version: Option<String>,
+    pub image_digest: String,
+    pub runner_kind: String,
+    pub platform: String,
+    pub parameters_json: serde_json::Value,
+    pub parameters_json_normalized: serde_json::Value,
+    #[serde(default)]
+    pub effective_params_json: serde_json::Value,
+    #[serde(default)]
+    pub effective_params_json_normalized: serde_json::Value,
+    #[serde(default)]
+    pub params_provenance: serde_json::Value,
+    #[serde(default)]
+    pub params_provenance_normalized: serde_json::Value,
+    pub resources: ToolConstraints,
+    pub environment: BTreeMap<String, String>,
+    pub input_hashes: Vec<String>,
+    pub output_hashes: Vec<String>,
+    #[serde(default)]
+    pub executed_command: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
