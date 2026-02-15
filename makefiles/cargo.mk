@@ -312,6 +312,22 @@ vcf-certification: ## Local-only VCF certification run (sequential VCF stage con
 	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh tooling cargo-targets vcf-certification
 
+certify-fastq: ## Local FASTQ certification smoke.
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh smoke run fastq
+
+certify-bam: ## Local BAM certification smoke.
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh smoke run bam
+
+certify-vcf: ## Local VCF certification suite.
+	@./bin/require-isolate >/dev/null
+	@$(MAKE) vcf-certification
+
+certify-all: ## Local cross-domain certification bundle (FASTQ+BAM+VCF downstream mini).
+	@./bin/require-isolate >/dev/null
+	@$(MAKE) local-certification-gate
+
 examples-validate:
 	@$(MAKE) _examples-validate
 
@@ -343,6 +359,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
+		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden
 release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
 	@./bin/require-isolate >/dev/null
