@@ -1,0 +1,32 @@
+default_threads = 1
+default_compression_threads = 1
+default_temp_root = "artifacts/runtime-tmp"
+max_local_heavy_parallel = 1
+bgzip_tabix_max_parallel = 1
+cache_root = "artifacts/runtime-cache"
+
+heavy_stage_patterns = [
+  "bam.align",
+  "vcf.phasing",
+  "vcf.impute",
+]
+
+[deterministic_env]
+lc_all = "C"
+lang = "C"
+tz = "UTC"
+umask = "027"
+
+[per_stage."vcf.impute"]
+threads = 4
+compression_threads = 2
+timeout_s = 21600
+
+[per_stage."bam.align"]
+threads = 4
+compression_threads = 2
+timeout_s = 14400
+
+[per_stage."fastq.*"]
+threads = 2
+compression_threads = 1
