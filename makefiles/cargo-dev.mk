@@ -6,6 +6,7 @@ SHELL := /bin/sh
 #   make -f makefiles/cargo-dev.mk dev-lint
 #   make -f makefiles/cargo-dev.mk dev-lint-scripts
 #   make -f makefiles/cargo-dev.mk dev-lint-clippy
+#   make -f makefiles/cargo-dev.mk dev-lint-clippy-executors
 #   make -f makefiles/cargo-dev.mk dev-test
 #   make -f makefiles/cargo-dev.mk dev-test-full
 #   make -f makefiles/cargo-dev.mk dev-vcf-certification
@@ -24,7 +25,7 @@ ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
 help:
 	@printf '%s\n' \
 	  'cargo-dev.mk targets:' \
-	  '  dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
+	  '  dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
 	  '' \
 	  'Behavior:' \
 	  '  - Runs through one reusable isolate tag for fast local iteration.' \
@@ -45,6 +46,9 @@ dev-lint-scripts:
 
 dev-lint-clippy:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _clippy
+
+dev-lint-clippy-executors:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _clippy-executors
 
 dev-realness-gate:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) realness-gate
@@ -71,7 +75,7 @@ dev-clean:
 	@echo "removed artifacts/isolates/$(DEV_ISO_TAG)"
 
 ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
-.PHONY: help dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: help dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 else
-.PHONY: dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 endif

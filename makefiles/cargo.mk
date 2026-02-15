@@ -75,8 +75,15 @@ _lint-clippy:
 	@./bin/require-isolate >/dev/null
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
+_lint-clippy-executors:
+	@./bin/require-isolate >/dev/null
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy-executors
+
 _clippy: ## Run workspace clippy only (no script gates).
 	@$(MAKE) _lint-clippy
+
+_clippy-executors: ## Run deny-warnings clippy for runner/executor crates.
+	@$(MAKE) _lint-clippy-executors
 
 test:
 	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
@@ -330,7 +337,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
 		_test-fast \
-		_clippy _lint _lint-scripts _lint-clippy \
+		_clippy _clippy-executors _lint _lint-scripts _lint-clippy _lint-clippy-executors \
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \

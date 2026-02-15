@@ -66,6 +66,9 @@ case "${cmd}" in
   vcf-certification)
     run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo nextest run -p bijux-dna-stages-vcf --all-features --failure-output immediate-final --no-tests pass"
     ;;
+  ci-clippy-executors)
+    ./scripts/tooling/ci-clippy-executors.sh
+    ;;
   *)
     echo "unsupported subcommand: ${cmd}" >&2
     exit 2

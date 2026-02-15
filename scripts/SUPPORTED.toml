@@ -2620,3 +2620,35 @@ purpose = "tooling script"
 inputs = ["artifacts/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "ci_clippy_executors"
+path = "scripts/tooling/ci-clippy-executors.sh"
+purpose = "tooling script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_executor_no_unwrap"
+path = "scripts/checks/check-executor-no-unwrap.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_clippy_allowlist_expiry"
+path = "scripts/checks/check-clippy-allowlist-expiry.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_executor_features_docs"
+path = "scripts/checks/check-executor-features-docs.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true

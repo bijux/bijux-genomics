@@ -77,6 +77,9 @@ make _examples-validate
 ./scripts/run.sh checks check-network-usage
 ./scripts/run.sh checks check-no-temp-leaks
 ./scripts/run.sh checks check-hidden-tmp-usage
+./scripts/run.sh checks check-executor-no-unwrap
+./scripts/run.sh checks check-clippy-allowlist-expiry
+./scripts/run.sh checks check-executor-features-docs
 ./scripts/run.sh checks check-no-parallel-accidental
 ./scripts/run.sh checks check-hpc-safety
 ./scripts/run.sh checks check-output-roots
