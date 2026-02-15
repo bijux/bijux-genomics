@@ -124,6 +124,14 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.low_complexity" => &["bbduk", "prinseq", "dustmasker"],
         "fastq.polyg_tailing" => &["fastp", "bbduk"],
         "fastq.screen" => &["kraken2", "bracken", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
+        "fastq.contaminant_screen" => &["bbduk", "bowtie2"],
+        "fastq.rrna" => &["sortmerna"],
+        "fastq.host_depletion" => &["bowtie2", "samtools"],
+        "fastq.primer_normalization" => &["cutadapt"],
+        "fastq.chimera_detection" => &["vsearch"],
+        "fastq.otu_clustering" => &["vsearch"],
+        "fastq.asv_inference" => &["dada2"],
+        "fastq.abundance_normalization" => &["seqfu", "seqkit"],
         _ => return Ok(()),
     };
     if allowed.iter().any(|x| *x == tool_id) {
