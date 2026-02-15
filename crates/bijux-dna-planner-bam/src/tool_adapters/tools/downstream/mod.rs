@@ -3,13 +3,12 @@
 pub mod authenticity;
 pub mod authenticity_signal;
 pub mod angsd_sex;
-pub mod contammix;
+pub mod contamination;
 pub mod gatk;
 pub mod genotyping;
 pub mod kinship;
 pub mod rxy;
-pub mod schmutzi;
-pub mod verifybamid2;
+pub use contamination::{contammix, schmutzi, verifybamid2};
 
 #[must_use]
 pub const fn module_name() -> &'static str {
