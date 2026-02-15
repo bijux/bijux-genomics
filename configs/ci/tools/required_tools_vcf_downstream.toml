@@ -7,6 +7,7 @@
 
 schema_version = "bijux.required_tools.v1"
 required_tools = [
+  "angsd",
   "beagle",
   "eagle",
   "eigensoft",
