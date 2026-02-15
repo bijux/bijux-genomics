@@ -3,15 +3,15 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
-use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_LENGTH_DISTRIBUTION_PRE, STAGE_OVERREPRESENTED_SEQUENCES, STAGE_POLYG_TAILING,
 };
+use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
-    STAGE_CONTAMINANT_SCREEN, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER,
-    STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING,
+    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
+    STAGE_CONTAMINANT_SCREEN, STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
+    STAGE_FILTER, STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING,
     STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
     STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
@@ -225,11 +225,8 @@ where
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_RRNA.as_str() => {
-                let plan = crate::tool_adapters::fastq::rrna::plan_rrna(
-                    tool,
-                    &current_r1,
-                    &out_dir,
-                )?;
+                let plan =
+                    crate::tool_adapters::fastq::rrna::plan_rrna(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_SCREEN.as_str() => {
@@ -390,70 +387,70 @@ fn plan_amplicon_stage(
 ) -> StagePlanV1 {
     let outputs = match stage_id {
         "fastq.primer_normalization" => vec![
-                (
-                    "normalized_reads",
-                    out_dir.join("primer_normalized.fastq.gz"),
-                    bijux_dna_core::prelude::ArtifactRole::Reads,
-                ),
-                (
-                    "primer_orientation_report",
-                    out_dir.join("primer_orientation.tsv"),
-                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-                ),
-            ],
+            (
+                "normalized_reads",
+                out_dir.join("primer_normalized.fastq.gz"),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            ),
+            (
+                "primer_orientation_report",
+                out_dir.join("primer_orientation.tsv"),
+                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+            ),
+        ],
         "fastq.chimera_detection" => vec![
-                (
-                    "chimera_filtered_reads",
-                    out_dir.join("chimera_filtered.fastq.gz"),
-                    bijux_dna_core::prelude::ArtifactRole::Reads,
-                ),
-                (
-                    "chimera_metrics_json",
-                    out_dir.join("chimera_metrics.json"),
-                    bijux_dna_core::prelude::ArtifactRole::MetricsJson,
-                ),
-            ],
+            (
+                "chimera_filtered_reads",
+                out_dir.join("chimera_filtered.fastq.gz"),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            ),
+            (
+                "chimera_metrics_json",
+                out_dir.join("chimera_metrics.json"),
+                bijux_dna_core::prelude::ArtifactRole::MetricsJson,
+            ),
+        ],
         "fastq.asv_inference" => vec![
-                (
-                    "asv_table_tsv",
-                    out_dir.join("asv_abundance.tsv"),
-                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-                ),
-                (
-                    "asv_sequences_fasta",
-                    out_dir.join("asv_sequences.fasta"),
-                    bijux_dna_core::prelude::ArtifactRole::Reads,
-                ),
-            ],
+            (
+                "asv_table_tsv",
+                out_dir.join("asv_abundance.tsv"),
+                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+            ),
+            (
+                "asv_sequences_fasta",
+                out_dir.join("asv_sequences.fasta"),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            ),
+        ],
         "fastq.otu_clustering" => vec![
-                (
-                    "otu_table_tsv",
-                    out_dir.join("otu_abundance.tsv"),
-                    bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-                ),
-                (
-                    "otu_sequences_fasta",
-                    out_dir.join("otu_representatives.fasta"),
-                    bijux_dna_core::prelude::ArtifactRole::Reads,
-                ),
-            ],
+            (
+                "otu_table_tsv",
+                out_dir.join("otu_abundance.tsv"),
+                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+            ),
+            (
+                "otu_sequences_fasta",
+                out_dir.join("otu_representatives.fasta"),
+                bijux_dna_core::prelude::ArtifactRole::Reads,
+            ),
+        ],
         "fastq.abundance_normalization" => vec![(
-                "normalized_abundance_tsv",
-                out_dir.join("abundance_normalized.tsv"),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            )],
+            "normalized_abundance_tsv",
+            out_dir.join("abundance_normalized.tsv"),
+            bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+        )],
         _ => vec![(
-                "stage_output",
-                out_dir.join(format!(
-                    "{}.out",
-                    stage_id
-                        .split_once('.')
-                        .map(|(_, suffix)| suffix)
-                        .unwrap_or(stage_id)
-                        .replace('.', "_")
-                )),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            )],
+            "stage_output",
+            out_dir.join(format!(
+                "{}.out",
+                stage_id
+                    .split_once('.')
+                    .map(|(_, suffix)| suffix)
+                    .unwrap_or(stage_id)
+                    .replace('.', "_")
+            )),
+            bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
+        )],
     };
     StagePlanV1 {
         stage_id: StageId::new(stage_id),
@@ -461,7 +458,7 @@ fn plan_amplicon_stage(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: tool.command.clone(),
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: tool.command.template.to_vec() },
         resources: tool.resources.clone(),
         io: bijux_dna_stage_contract::StageIO {
             inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(

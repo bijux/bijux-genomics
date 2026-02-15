@@ -10,7 +10,7 @@ Commands:
 - `scripts/examples/check-drift.sh <example-id>` (manual, non-CI by default)
 - `scripts/examples/run.sh <example-id>`
 
-`run.sh` writes a `bundle.tar.gz` file under `artifacts/examples/` containing:
+`run.sh` writes a `bundle.tar.gz` file under a runtime artifacts directory (for example, under isolate artifacts) containing:
 - `manifest.json`
 - `metrics.json`
 - `logs.txt`

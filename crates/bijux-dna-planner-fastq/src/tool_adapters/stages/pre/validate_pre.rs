@@ -37,7 +37,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: tool.command.clone(),
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: tool.command.template.to_vec() },
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
