@@ -25,7 +25,7 @@ ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
 help:
 	@printf '%s\n' \
 	  'cargo-dev.mk targets:' \
-	  '  dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
+	  '  dev-fmt dev-lint dev-lint-rustfmt dev-lint-clippy dev-lint-scripts dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
 	  '' \
 	  'Behavior:' \
 	  '  - Runs through one reusable isolate tag for fast local iteration.' \
@@ -39,13 +39,25 @@ dev-fmt:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _fmt
 
 dev-lint:
-	@$(ISO_DEV) sh -ceu '$(MAKE) -f $(ROOT_MAKE) _lint-scripts & $(MAKE) -f $(ROOT_MAKE) _clippy & wait'
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint
+
+dev-lint-rustfmt:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint-rustfmt
 
 dev-lint-scripts:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint-scripts
 
 dev-lint-clippy:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _clippy
+
+dev-lint-docs:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint-docs
+
+dev-lint-configs:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint-configs
+
+dev-lint-fast:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) lint-fast
 
 dev-lint-clippy-executors:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _clippy-executors
@@ -75,7 +87,7 @@ dev-clean:
 	@echo "removed artifacts/isolates/$(DEV_ISO_TAG)"
 
 ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
-.PHONY: help dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: help dev-fmt dev-lint dev-lint-rustfmt dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 else
-.PHONY: dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: dev-fmt dev-lint dev-lint-rustfmt dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 endif

@@ -1,0 +1,24 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Baseline keys for clippy allowlist non-growth gate.
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-02-15
+
+max_entries = 4
+
+[[entry]]
+path = "crates/bijux-dna-runner/src/execute.rs"
+lint = "too_many_lines"
+
+[[entry]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/chunking_and_resume.rs"
+lint = "too_many_arguments"
+
+[[entry]]
+path = "crates/bijux-dna-stages-fastq/src/observer/artifacts.rs"
+lint = "too_many_arguments"
+
+[[entry]]
+path = "crates/bijux-dna-stages-fastq/src/metrics/fastqc.rs"
+lint = "cast_precision_loss"

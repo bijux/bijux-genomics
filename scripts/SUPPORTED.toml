@@ -2673,3 +2673,35 @@ purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "lint_fast"
+path = "scripts/tooling/lint-fast.sh"
+purpose = "tooling script"
+inputs = ["crates/", "scripts/", "docs/", "configs/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "check_clippy_allowlist_growth"
+path = "scripts/checks/check-clippy-allowlist-growth.sh"
+purpose = "checks script"
+inputs = ["configs/ci/clippy_allowlist.toml", "configs/ci/clippy_allowlist_baseline.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_rustflags_consistency"
+path = "scripts/checks/check-rustflags-consistency.sh"
+purpose = "checks script"
+inputs = ["scripts/", "makefiles/", "crates/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "flake_hunt"
+path = "scripts/experimental/flake-hunt.sh"
+purpose = "experimental script"
+inputs = ["configs/nextest/nextest.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = false
