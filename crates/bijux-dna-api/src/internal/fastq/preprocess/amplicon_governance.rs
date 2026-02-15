@@ -21,14 +21,19 @@ fn governance_config_path() -> PathBuf {
 fn read_f64_from_toml(value: Option<&toml::Value>, default: f64) -> f64 {
     value
         .and_then(toml::Value::as_float)
-        .or_else(|| value.and_then(toml::Value::as_integer).map(|v| v as f64))
+        .or_else(|| {
+            value
+                .and_then(toml::Value::as_integer)
+                .and_then(|v| v.to_string().parse::<f64>().ok())
+        })
         .unwrap_or(default)
 }
 
 fn read_u64_from_toml(value: Option<&toml::Value>, default: u64) -> u64 {
     value
         .and_then(toml::Value::as_integer)
-        .map_or(default, |v| v as u64)
+        .and_then(|v| u64::try_from(v).ok())
+        .unwrap_or(default)
 }
 
 fn load_amplicon_governance() -> Result<toml::Value> {
@@ -106,8 +111,15 @@ fn enforce_primer_governance(
     bijux_dna_infra::atomic_write_json(&lock_path, &lock_payload)?;
 
     let observed_mean = invariants.r1.read_length_mean;
-    let observed_ok = observed_mean >= expected_amplicon_min_bp as f64
-        && observed_mean <= expected_amplicon_max_bp as f64;
+    let expected_min = expected_amplicon_min_bp
+        .to_string()
+        .parse::<f64>()
+        .unwrap_or(0.0);
+    let expected_max = expected_amplicon_max_bp
+        .to_string()
+        .parse::<f64>()
+        .unwrap_or(f64::MAX);
+    let observed_ok = observed_mean >= expected_min && observed_mean <= expected_max;
     let priors_payload = serde_json::json!({
         "schema_version": "bijux.fastq.amplicon_length_priors.v1",
         "marker_id": marker_id,
@@ -122,8 +134,7 @@ fn enforce_primer_governance(
     )?;
     if !observed_ok {
         return Err(anyhow!(
-            "amplicon length prior refusal: observed mean read length {:.2} not in [{}, {}] for marker {}",
-            observed_mean, expected_amplicon_min_bp, expected_amplicon_max_bp, marker_id
+            "amplicon length prior refusal: observed mean read length {observed_mean:.2} not in [{expected_amplicon_min_bp}, {expected_amplicon_max_bp}] for marker {marker_id}",
         ));
     }
     Ok(Some(PrimerGovernanceResult {
@@ -141,12 +152,12 @@ fn write_reference_db_validation_artifact(
     contaminant_bank: Option<&serde_json::Value>,
     primer: Option<&PrimerGovernanceResult>,
 ) -> Result<()> {
-    let governance =
-        load_amplicon_governance().unwrap_or_else(|_| toml::Value::Table(Default::default()));
+    let governance = load_amplicon_governance()
+        .unwrap_or_else(|_| toml::Value::Table(toml::map::Map::default()));
     let taxonomy_cfg = governance
         .get("taxonomy")
         .cloned()
-        .unwrap_or(toml::Value::Table(Default::default()));
+        .unwrap_or(toml::Value::Table(toml::map::Map::default()));
     let db_path = taxonomy_cfg
         .get("db_path")
         .and_then(toml::Value::as_str)
@@ -267,7 +278,11 @@ fn write_batch_effect_summary(
                     .and_then(serde_json::Value::as_f64)
             })
             .sum::<f64>()
-            / samples.len() as f64
+            / samples
+                .len()
+                .to_string()
+                .parse::<f64>()
+                .unwrap_or(1.0)
     };
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.batch_effect_summary.v1",
@@ -305,9 +320,9 @@ fn enforce_amplicon_merge_determinism(
     let policy = amplicon_merge_policy()?;
     let merged = format!("{}\n{}", execution.stdout, execution.stderr);
     let overlap = parse_first_u64_after_key(&merged, "overlap").unwrap_or(policy.min_overlap_bp);
-    let mismatch_pct = parse_first_u64_after_key(&merged, "mismatch")
-        .map(|v| v as f64 / 100.0)
-        .unwrap_or(0.0);
+    let mismatch_pct = parse_first_u64_after_key(&merged, "mismatch").map_or(0.0, |v| {
+        v.to_string().parse::<f64>().unwrap_or(0.0) / 100.0
+    });
     let pass = overlap >= policy.min_overlap_bp && mismatch_pct <= policy.max_mismatch_rate;
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.amplicon_merge_determinism.v1",
@@ -320,8 +335,7 @@ fn enforce_amplicon_merge_determinism(
     bijux_dna_infra::atomic_write_json(&stage_root.join("amplicon_merge_policy.json"), &payload)?;
     if !pass {
         return Err(anyhow!(
-            "amplicon merge refusal: overlap/mismatch policy not satisfied (overlap={}, mismatch_rate={:.4})",
-            overlap, mismatch_pct
+            "amplicon merge refusal: overlap/mismatch policy not satisfied (overlap={overlap}, mismatch_rate={mismatch_pct:.4})",
         ));
     }
     Ok(())
