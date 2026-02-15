@@ -9,7 +9,7 @@ use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_dna_core::contract::PlanPolicy;
-use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::ContainerImageRefV1;
@@ -110,10 +110,112 @@ fn write_stage_standardized_metrics(
             },
             "report_json": out_dir.join("low_complexity_report.json"),
         }),
+        "fastq.trim" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "bases_in", "bases_out"],
+            "report_json": out_dir.join("trim_report.json"),
+        }),
+        "fastq.filter" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "filtered_low_quality", "filtered_too_short", "filtered_n_content"],
+            "report_json": out_dir.join("filter_report.json"),
+        }),
+        "fastq.correct" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "bases_corrected", "substitutions_corrected"],
+            "report_json": out_dir.join("correct_report.json"),
+        }),
+        "fastq.merge" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["pairs_in", "pairs_merged", "pairs_unmerged"],
+            "report_json": out_dir.join("merge_report.json"),
+        }),
+        "fastq.deduplicate" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "duplicate_reads"],
+            "report_json": out_dir.join("deduplicate_report.json"),
+        }),
+        "fastq.umi" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "umi_groups", "umi_collisions"],
+            "report_json": out_dir.join("umi_report.json"),
+        }),
+        "fastq.host_depletion" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_unmapped_out", "host_mapped_reads"],
+            "report_json": out_dir.join("host_depletion_report.json"),
+        }),
+        "fastq.contaminant_screen" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "reads_out", "contaminant_mapped_reads"],
+            "report_json": out_dir.join("contaminant_screen_report.json"),
+        }),
+        "fastq.rrna" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["reads_in", "rrna_hits", "rrna_fraction"],
+            "report_tsv": out_dir.join("rrna_report.tsv"),
+            "report_json": out_dir.join("rrna_report.json"),
+        }),
+        "fastq.screen" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["classified_reads", "unclassified_reads", "top_taxa"],
+            "report_tsv": out_dir.join("screen_report.tsv"),
+            "report_json": out_dir.join("classification.report.json"),
+        }),
+        "fastq.qc_post" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["qc_modules", "warnings", "failures"],
+            "report_html": out_dir.join("multiqc").join("multiqc_report.html"),
+            "report_data_dir": out_dir.join("multiqc").join("multiqc_data"),
+        }),
         _ => return Ok(()),
     };
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.metrics.standardized.json"), &metrics)
         .context("write standardized stage metrics")
+}
+
+fn write_fastq_output_contract(
+    stage_root: &std::path::Path,
+    planned: &ExecutionStep,
+    execution: &StageResultV1,
+) -> Result<()> {
+    let declared_outputs = planned
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| {
+            serde_json::json!({
+                "name": artifact.name,
+                "role": artifact.role.as_str(),
+                "path": artifact.path,
+            })
+        })
+        .collect::<Vec<_>>();
+    let emitted_outputs = execution
+        .outputs
+        .iter()
+        .map(|path| serde_json::json!({ "path": path }))
+        .collect::<Vec<_>>();
+    let contract = serde_json::json!({
+        "schema_version": "bijux.fastq.output_contract.v1",
+        "stage_id": planned.stage_id,
+        "step_id": planned.step_id,
+        "declared_outputs": declared_outputs,
+        "emitted_outputs": emitted_outputs,
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.output.contract.json"), &contract)
+        .context("write stage output contract")
 }
 
 /// Run the preprocess pipeline.
@@ -462,6 +564,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_span.end();
         let execution = invocation?.stage_result;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
+        write_fastq_output_contract(&stage_root, planned, &execution)?;
         if execution.exit_code != 0 {
             if stage_id == "fastq.validate_pre" {
                 return Err(anyhow!(
