@@ -239,9 +239,20 @@ mod tests {
         let stage_dir = temp.path().join("align");
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
-        std::fs::write(stage_dir.join("align.bam"), b"bam")?;
-        std::fs::write(stage_dir.join("align.bam.bai"), b"bai")?;
-        std::fs::write(stage_dir.join("stage_loss_accounting.json"), b"{}")?;
+        let bam = stage_dir.join("align.bam");
+        let bai = stage_dir.join("align.bam.bai");
+        std::fs::write(&bam, b"bam")?;
+        std::fs::write(&bai, b"bai")?;
+        let bam_sha = bijux_dna_infra::hash_file_sha256(&bam)?;
+        let bai_sha = bijux_dna_infra::hash_file_sha256(&bai)?;
+        let accounting = serde_json::json!({
+            "stage_id": "bam.align",
+            "output_checksums": [
+                {"path": bam, "sha256": bam_sha},
+                {"path": bai, "sha256": bai_sha}
+            ]
+        });
+        bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
         write_bam_output_contract(stage, &stage_dir)?;
 
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(stage));

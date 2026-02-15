@@ -65,6 +65,62 @@ fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
     None
 }
 
+fn command_stdout(bin: &str, args: &[&str]) -> Option<String> {
+    let out = std::process::Command::new(bin).args(args).output().ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    Some(String::from_utf8_lossy(&out.stdout).to_string())
+}
+
+fn bam_sort_order_samtools(bam_path: &Path) -> Option<String> {
+    let out = command_stdout("samtools", &["view", "-H", bam_path.to_string_lossy().as_ref()])?;
+    for line in out.lines() {
+        if !line.starts_with("@HD") {
+            continue;
+        }
+        for field in line.split('\t') {
+            if let Some(value) = field.strip_prefix("SO:") {
+                return Some(value.to_string());
+            }
+        }
+    }
+    None
+}
+
+fn bam_header_contig_names_samtools(bam_path: &Path) -> Vec<String> {
+    let Some(out) = command_stdout("samtools", &["view", "-H", bam_path.to_string_lossy().as_ref()])
+    else {
+        return Vec::new();
+    };
+    out.lines()
+        .filter(|line| line.starts_with("@SQ"))
+        .filter_map(|line| {
+            line.split('\t')
+                .find_map(|field| field.strip_prefix("SN:"))
+                .map(std::string::ToString::to_string)
+        })
+        .collect()
+}
+
+fn bam_read_group_presence_samtools(bam_path: &Path) -> Option<bool> {
+    let out = command_stdout("samtools", &["view", "-H", bam_path.to_string_lossy().as_ref()])?;
+    Some(out.lines().any(|line| line.starts_with("@RG")))
+}
+
+fn bam_quickcheck_ok(bam_path: &Path) -> Option<bool> {
+    let status = std::process::Command::new("samtools")
+        .args(["quickcheck", bam_path.to_string_lossy().as_ref()])
+        .status()
+        .ok()?;
+    Some(status.success())
+}
+
+fn bam_has_dup_tag_samtools(bam_path: &Path) -> Option<bool> {
+    let out = command_stdout("samtools", &["view", bam_path.to_string_lossy().as_ref()])?;
+    Some(out.lines().take(200).any(|line| line.contains("\tDT:")))
+}
+
 fn bam_header_contig_names_hint(bam_path: &Path) -> Vec<String> {
     let Ok(raw) = std::fs::read_to_string(bam_path) else {
         return Vec::new();
@@ -113,31 +169,58 @@ fn write_bam_invariants(
     bai_path: Option<&PathBuf>,
     reference: Option<&PathBuf>,
 ) -> Result<()> {
-    let sort_order = parse_sort_order_from_header_hint(bam_path).unwrap_or_else(|| {
+    let sort_order = bam_sort_order_samtools(bam_path)
+        .or_else(|| parse_sort_order_from_header_hint(bam_path))
+        .unwrap_or_else(|| {
         bijux_dna_domain_bam::contract_for_stage(stage.as_str())
             .map(|contract| contract.sorting)
             .unwrap_or("unspecified")
             .to_string()
-    });
+        });
     let duplicate_policy = bijux_dna_domain_bam::contract_for_stage(stage.as_str())
         .map(|contract| contract.duplicate_policy)
         .unwrap_or("unspecified")
         .to_string();
-    let contigs = reference_contig_names(reference);
+    let header_contigs = {
+        let contigs = bam_header_contig_names_samtools(bam_path);
+        if contigs.is_empty() {
+            bam_header_contig_names_hint(bam_path)
+        } else {
+            contigs
+        }
+    };
+    let reference_contigs = reference_contig_names(reference);
+    let contig_mismatch = !header_contigs.is_empty()
+        && !reference_contigs.is_empty()
+        && header_contigs != reference_contigs;
+    let read_group_status = if let Some(has_rg) = bam_read_group_presence_samtools(bam_path) {
+        if has_rg { "present" } else { "absent" }
+    } else {
+        read_group_presence_hint(bam_path)
+    };
+    let quickcheck_ok = bam_quickcheck_ok(bam_path);
+    let has_duplicate_tags = bam_has_dup_tag_samtools(bam_path);
     let path = stage_dir.join("bam_invariants.json");
     let payload = serde_json::json!({
         "schema_version": "bijux.bam.invariants.v1",
         "stage_id": stage.as_str(),
         "bam_path": bam_path,
         "sort_order": sort_order,
-        "header_contigs": contigs,
+        "header_contigs": header_contigs,
+        "reference_contigs": reference_contigs,
+        "contig_mismatch": contig_mismatch,
         "read_groups": {
-            "status": read_group_presence_hint(bam_path),
+            "status": read_group_status,
         },
         "index": {
             "required": bai_path.is_some(),
             "path": bai_path,
             "exists": bai_path.is_some_and(|path| path.exists()),
+        },
+        "bam_quickcheck_ok": quickcheck_ok,
+        "duplicate_tags": {
+            "policy": duplicate_policy,
+            "has_dt_tag": has_duplicate_tags,
         },
         "duplicate_tags_policy": duplicate_policy,
     });
@@ -202,6 +285,25 @@ fn enforce_bam_output_contract(
             missing.join(", ")
         ));
     }
+    for bam in &bams {
+        if bam.extension().and_then(|ext| ext.to_str()) != Some("bam") {
+            return Err(anyhow!(
+                "{} output contract violation: non-.bam artifact in BAM slot: {}",
+                stage.as_str(),
+                bam.display()
+            ));
+        }
+        let has_matching_index = indices
+            .iter()
+            .any(|idx| idx == &PathBuf::from(format!("{}.bai", bam.display())));
+        if !has_matching_index {
+            return Err(anyhow!(
+                "{} output contract violation: missing matching .bai for {}",
+                stage.as_str(),
+                bam.display()
+            ));
+        }
+    }
     Ok(())
 }
 
@@ -237,6 +339,35 @@ fn maybe_resume_bam_stage(
     if !expected.iter().all(|path| path.exists()) {
         return Ok(None);
     }
+    let accounting_raw = std::fs::read_to_string(&accounting)
+        .with_context(|| format!("read {}", accounting.display()))?;
+    let accounting_json: serde_json::Value =
+        serde_json::from_str(&accounting_raw).with_context(|| "parse stage accounting json")?;
+    let prior_checksums = accounting_json
+        .get("output_checksums")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut checksum_map = std::collections::BTreeMap::new();
+    for entry in prior_checksums {
+        if let (Some(path), Some(sha)) = (
+            entry.get("path").and_then(serde_json::Value::as_str),
+            entry.get("sha256").and_then(serde_json::Value::as_str),
+        ) {
+            checksum_map.insert(path.to_string(), sha.to_string());
+        }
+    }
+    for path in &expected {
+        let key = path.display().to_string();
+        let Some(previous) = checksum_map.get(&key) else {
+            return Ok(None);
+        };
+        let current = bijux_dna_infra::hash_file_sha256(path)
+            .with_context(|| format!("hash output {}", path.display()))?;
+        if &current != previous {
+            return Ok(None);
+        }
+    }
     let resume_path = stage_resume_summary_path(stage_dir);
     let payload = serde_json::json!({
         "schema_version": "bijux.bam.resume.v1",
@@ -262,6 +393,7 @@ fn write_tool_wrapper_contract(
     let path = stage_dir.join("tool_wrapper.json");
     let payload = serde_json::json!({
         "schema_version": "bijux.bam.tool_wrapper.v1",
+        "wrapper_kind": "standard_tool_exec_v1",
         "stage_id": stage.as_str(),
         "tool_id": plan.tool_id,
         "tool_version": plan.tool_version,
@@ -272,6 +404,7 @@ fn write_tool_wrapper_contract(
             "memory_gb": plan.resources.mem_gb,
         },
         "logs": {
+            "policy": "stage_root/stdout.log + stage_root/stderr.log",
             "stdout": "stdout.log",
             "stderr": "stderr.log",
         }

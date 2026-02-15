@@ -22,6 +22,18 @@ fn write_stage_accounting(
     stage_id: &str,
     result: &bijux_dna_runner::execute::StageResultV1,
 ) -> Result<()> {
+    let checksums = result
+        .outputs
+        .iter()
+        .filter(|path| path.exists())
+        .map(|path| {
+            let sha256 = bijux_dna_infra::hash_file_sha256(path).unwrap_or_else(|_| "unknown".to_string());
+            serde_json::json!({
+                "path": path,
+                "sha256": sha256,
+            })
+        })
+        .collect::<Vec<_>>();
     let payload = serde_json::json!({
         "stage_id": stage_id,
         "exit_code": result.exit_code,
@@ -29,6 +41,7 @@ fn write_stage_accounting(
         "memory_mb": result.memory_mb,
         "output_count": result.outputs.len(),
         "outputs": result.outputs,
+        "output_checksums": checksums,
     });
     let path = stage_dir.join("stage_loss_accounting.json");
     bijux_dna_infra::atomic_write_json(&path, &payload)
