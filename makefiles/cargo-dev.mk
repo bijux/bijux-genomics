@@ -8,6 +8,7 @@ SHELL := /bin/sh
 #   make -f makefiles/cargo-dev.mk dev-lint-clippy
 #   make -f makefiles/cargo-dev.mk dev-test
 #   make -f makefiles/cargo-dev.mk dev-test-full
+#   make -f makefiles/cargo-dev.mk dev-vcf-certification
 #   make -f makefiles/cargo-dev.mk dev-coverage
 #   make -f makefiles/cargo-dev.mk dev-all
 #   DEV_ISO_TAG=my-fast-loop make -f makefiles/cargo-dev.mk dev-test
@@ -23,7 +24,7 @@ ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
 help:
 	@printf '%s\n' \
 	  'cargo-dev.mk targets:' \
-	  '  dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-coverage dev-all dev-clean' \
+	  '  dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
 	  '' \
 	  'Behavior:' \
 	  '  - Runs through one reusable isolate tag for fast local iteration.' \
@@ -57,6 +58,9 @@ dev-test:
 dev-test-full:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _test
 
+dev-vcf-certification:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) vcf-certification
+
 dev-coverage:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _coverage
 
@@ -67,7 +71,7 @@ dev-clean:
 	@echo "removed artifacts/isolates/$(DEV_ISO_TAG)"
 
 ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
-.PHONY: help dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-coverage dev-all dev-clean
+.PHONY: help dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 else
-.PHONY: dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-coverage dev-all dev-clean
+.PHONY: dev-fmt dev-lint dev-lint-scripts dev-lint-clippy dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 endif

@@ -63,6 +63,9 @@ case "${cmd}" in
   policy-only-fast-gate)
     run_in_isolate "./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"; cargo test -p bijux-dna-policies --test contracts --test boundaries --test determinism -- --nocapture; cargo test -p bijux-dna-core --test contracts -- --nocapture; cargo test -p bijux-dna-pipelines --test contracts -- --nocapture; cargo test -p bijux-dna-runtime --test contracts -- --nocapture"
     ;;
+  vcf-certification)
+    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo nextest run -p bijux-dna-stages-vcf --all-features --failure-output immediate-final --no-tests pass"
+    ;;
   *)
     echo "unsupported subcommand: ${cmd}" >&2
     exit 2

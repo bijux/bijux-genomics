@@ -299,6 +299,10 @@ local-certification-gate: ## Run local mini-domain certification suite and emit 
 	@./bin/require-isolate >/dev/null
 	@./scripts/run.sh tooling certification-gate
 
+vcf-certification: ## Local-only VCF certification run (sequential VCF stage contract suite).
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh tooling cargo-targets vcf-certification
+
 examples-validate:
 	@$(MAKE) _examples-validate
 
