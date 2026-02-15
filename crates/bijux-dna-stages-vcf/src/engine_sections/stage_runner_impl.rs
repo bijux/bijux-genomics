@@ -88,7 +88,7 @@ fn infer_damage_filter_params_from_bam(run_root: &Path) -> Option<DamageFilterSt
         } else {
             (damage_rate + 0.15).clamp(0.20, 0.60)
         },
-        ..DamageFilterStageParams::default()
+        ..DamageFilterStageParams::recommended()
     };
     Some(params)
 }
@@ -191,7 +191,7 @@ impl VcfStageRunner for DispatchRunner {
                     .damage_filter
                     .clone()
                     .or_else(|| infer_damage_filter_params_from_bam(&ctx.request.run_root))
-                    .unwrap_or_default();
+                    .unwrap_or_else(DamageFilterStageParams::recommended);
                 let out = run_damage_filter_stage(input_vcf, &stage_dir, &params).map_err(|err| {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
@@ -205,7 +205,11 @@ impl VcfStageRunner for DispatchRunner {
                 ]);
             }
             VcfDomainStage::GlPropagation => {
-                let params = ctx.request.gl_propagation.clone().unwrap_or_default();
+                let params = ctx
+                    .request
+                    .gl_propagation
+                    .clone()
+                    .unwrap_or_else(GlPropagationStageParams::recommended);
                 let out =
                     run_gl_propagation_stage(input_vcf, &stage_dir, &params).map_err(|err| {
                         let (code, hint) = map_runner_error(&err.to_string());

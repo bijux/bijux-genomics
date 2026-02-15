@@ -6,8 +6,9 @@ pub struct DamageFilterStageParams {
     pub max_damage_ratio: f64,
 }
 
-impl Default for DamageFilterStageParams {
-    fn default() -> Self {
+impl DamageFilterStageParams {
+    #[must_use]
+    pub fn recommended() -> Self {
         Self {
             udg_regime: DamageUdgRegime::Unknown,
             strict_regime: true,
@@ -32,8 +33,9 @@ pub struct GlPropagationStageParams {
     pub emit_bcf: bool,
 }
 
-impl Default for GlPropagationStageParams {
-    fn default() -> Self {
+impl GlPropagationStageParams {
+    #[must_use]
+    pub fn recommended() -> Self {
         Self {
             require_gl_or_pl: true,
             expected_ploidy: Some(2),

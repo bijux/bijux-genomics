@@ -6,4 +6,5 @@ Public modules exported from src/lib.rs:
 - metrics
 - pipeline
 - stage_specs
+- vcf_io
 - wrappers

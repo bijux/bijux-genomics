@@ -312,7 +312,7 @@
             &DamageFilterStageParams {
                 udg_regime: DamageUdgRegime::Unknown,
                 strict_regime: true,
-                ..DamageFilterStageParams::default()
+                ..DamageFilterStageParams::recommended()
             },
         )
         .expect_err("strict mode must refuse unknown UDG regime");
@@ -438,7 +438,7 @@
         let out = run_gl_propagation_stage(
             &input,
             dir.path(),
-            &GlPropagationStageParams::default(),
+            &GlPropagationStageParams::recommended(),
         )
         .unwrap_or_else(|err| panic!("run gl propagation: {err}"));
         assert!(out.normalized_vcf.exists());
@@ -483,7 +483,7 @@
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
-            gl_propagation: Some(GlPropagationStageParams::default()),
+            gl_propagation: Some(GlPropagationStageParams::recommended()),
             qc: None,
             phasing: None,
             impute: None,

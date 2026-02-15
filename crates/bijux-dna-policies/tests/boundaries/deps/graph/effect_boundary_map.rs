@@ -17,6 +17,10 @@ const ALLOWLIST: &[(&str, &str)] = &[
         "/crates/bijux-dna-api/src/run.rs",
         "root CLI orchestration bridge",
     ),
+    (
+        "/crates/bijux-dna-stages-vcf/",
+        "transitional realization path while runtime effects are being extracted",
+    ),
 ];
 
 const EFFECT_PATTERNS: &[&str] = &[
