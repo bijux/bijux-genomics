@@ -85,6 +85,98 @@ fn base_bam_args(
     }
 }
 
+#[derive(Debug, Clone, Copy, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+enum AlignmentRegime {
+    Adna,
+    Modern,
+    Edna,
+}
+
+fn alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Option<String> {
+    for entry in &args.alignment_meta {
+        if let Some((found_key, found_value)) = entry.split_once('=') {
+            if found_key == key {
+                return Some(found_value.to_string());
+            }
+        }
+    }
+    None
+}
+
+fn infer_alignment_regime(profile: &PipelineProfile, args: &FastqCrossArgs) -> AlignmentRegime {
+    if let Some(explicit) = alignment_meta_value(args, "alignment_regime") {
+        return match explicit.as_str() {
+            "adna" => AlignmentRegime::Adna,
+            "edna" | "pollen" => AlignmentRegime::Edna,
+            "modern" => AlignmentRegime::Modern,
+            _ => AlignmentRegime::Modern,
+        };
+    }
+    let profile_id = profile.id.as_str().to_ascii_lowercase();
+    if profile_id.contains("edna") || profile_id.contains("pollen")
+    {
+        return AlignmentRegime::Edna;
+    }
+    if profile_id.contains("adna") {
+        return AlignmentRegime::Adna;
+    }
+    AlignmentRegime::Modern
+}
+
+fn write_stage_accounting(
+    stage_dir: &Path,
+    stage_id: &str,
+    result: &bijux_dna_runner::execute::StageResultV1,
+) -> Result<()> {
+    let payload = serde_json::json!({
+        "stage_id": stage_id,
+        "exit_code": result.exit_code,
+        "runtime_s": result.runtime_s,
+        "memory_mb": result.memory_mb,
+        "output_count": result.outputs.len(),
+        "outputs": result.outputs,
+    });
+    let path = stage_dir.join("stage_loss_accounting.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+fn enforce_stage_refusal_rules(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    bam_path: &Path,
+    bai_path: Option<&PathBuf>,
+    reference: Option<&PathBuf>,
+) -> Result<()> {
+    if !bam_path.exists() {
+        return Err(anyhow!(
+            "bam input missing for {}: {}",
+            stage.as_str(),
+            bam_path.display()
+        ));
+    }
+    if matches!(
+        stage,
+        bijux_dna_planner_bam::stage_api::BamStage::Validate
+            | bijux_dna_planner_bam::stage_api::BamStage::QcPre
+            | bijux_dna_planner_bam::stage_api::BamStage::MappingSummary
+            | bijux_dna_planner_bam::stage_api::BamStage::MapqFilter
+            | bijux_dna_planner_bam::stage_api::BamStage::Filter
+            | bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection
+            | bijux_dna_planner_bam::stage_api::BamStage::LengthFilter
+    ) && bai_path.is_none()
+    {
+        return Err(anyhow!(
+            "{} requires BAM index (.bai) but none was provided",
+            stage.as_str()
+        ));
+    }
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Align && reference.is_none() {
+        return Err(anyhow!("bam.align requires resolved reference fasta"));
+    }
+    Ok(())
+}
+
 #[allow(clippy::too_many_lines)]
 pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
@@ -150,6 +242,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     reference: Option<&PathBuf>,
     out_dir: &Path,
 ) -> Result<StageExecutionSummary> {
+    enforce_stage_refusal_rules(stage, bam_path, bai_path, reference)?;
     let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
     let tool_id = profile
         .defaults
@@ -206,6 +299,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         timeout: None,
     })?
     .stage_result;
+    write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     Ok(StageExecutionSummary { plan: step, result })
 }
 
@@ -224,6 +318,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         .as_ref()
         .ok_or_else(|| anyhow!("--r1 required for cross align"))?;
     let sample_id = args.sample_id.as_deref().unwrap_or("sample").to_string();
+    let regime = infer_alignment_regime(profile, args);
     let align_out = out_dir.join("bam").join("align");
     bijux_dna_infra::ensure_dir(&align_out)?;
     let align_stage = bijux_dna_core::ids::StageId::from_static(
@@ -255,6 +350,11 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     align_args.r2.clone_from(&args.r2);
     align_args.tool = Some(tool_id.as_str().to_string());
     align_args.build_reference_indices = true;
+    align_args.aligner_preset = Some(match regime {
+        AlignmentRegime::Adna => "adna_sensitive".to_string(),
+        AlignmentRegime::Modern => "modern_default".to_string(),
+        AlignmentRegime::Edna => "edna_metagenomic".to_string(),
+    });
     let align_plan = plan_for_bam_stage_with_profile(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
         &spec,
@@ -267,7 +367,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         run_id: format!("bam-{}-{}", align_step.step_id, tool_id.as_str()),
         stage_id: align_step.step_id.to_string(),
         tool_id: tool_id.as_str().to_string(),
-        sample_id: Some(sample_id),
+        sample_id: Some(sample_id.clone()),
         stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&align_out),
         input_root: r1
             .parent()
@@ -287,6 +387,29 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         timeout: None,
     })?
     .stage_result;
+    write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
+    let header_normalization = serde_json::json!({
+        "stage_id": align_step.step_id,
+        "regime": regime,
+        "policy": "read_group_normalization",
+        "rg_id": align_args.rg_id.as_deref().unwrap_or("auto"),
+        "rg_sm": align_args.rg_sm.as_deref().unwrap_or(&sample_id),
+        "rg_pl": align_args.rg_pl.as_deref().unwrap_or("ILLUMINA"),
+        "rg_lb": align_args.rg_lb.as_deref().unwrap_or("lib1"),
+    });
+    let header_norm_path = align_out.join("header_normalization.json");
+    bijux_dna_infra::atomic_write_json(&header_norm_path, &header_normalization)
+        .with_context(|| format!("write {}", header_norm_path.display()))?;
+    let regime_path = align_out.join("alignment_regime.json");
+    bijux_dna_infra::atomic_write_json(
+        &regime_path,
+        &serde_json::json!({
+            "regime": regime,
+            "profile_id": profile.id,
+            "source": "explicit_or_profile_inference",
+        }),
+    )
+    .with_context(|| format!("write {}", regime_path.display()))?;
     let mut runs = vec![StageExecutionSummary {
         plan: align_step,
         result: align_result,
