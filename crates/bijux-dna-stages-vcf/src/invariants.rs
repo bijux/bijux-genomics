@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Result};
+use bijux_dna_db_ref::{normalize_contig_name, resolve_reference_bundle};
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
 use serde::Serialize;
@@ -91,6 +92,15 @@ fn parse_variant_key(line: &str) -> Option<(String, u64, String, String)> {
         fields.get(3)?.to_string(),
         fields.get(4)?.to_string(),
     ))
+}
+
+fn is_canonical_ref_allele(ref_allele: &str) -> bool {
+    if ref_allele.is_empty() {
+        return false;
+    }
+    ref_allele
+        .bytes()
+        .all(|b| matches!(b, b'A' | b'C' | b'G' | b'T' | b'N'))
 }
 
 fn infer_build_from_header(header_lines: &[String]) -> Option<String> {
@@ -295,6 +305,46 @@ pub fn run_vcf_preflight(
     if input_has_chr != species_has_chr && !config.allow_contig_aliasing {
         summary.refused.push("chr_prefix_mismatch".to_string());
         bail!("vcf.validate_inputs refusal: chr prefix mismatch between input and species context");
+    }
+
+    summary
+        .checked
+        .push("allele_ref_validation_vs_reference_service".to_string());
+    let reference_bundle = resolve_reference_bundle(&species.species_id, &species.build_id)
+        .map_err(|err| anyhow!("reference bundle resolution failed: {err}"))?;
+    if !reference_bundle
+        .build_id
+        .eq_ignore_ascii_case(&species.build_id)
+        || !reference_bundle
+            .species_id
+            .eq_ignore_ascii_case(&species.species_id)
+    {
+        summary
+            .refused
+            .push("allele_ref_validation_vs_reference_service".to_string());
+        bail!(
+            "vcf.validate_inputs refusal: resolved reference bundle species/build does not match SpeciesContext"
+        );
+    }
+    for line in &records {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        let contig = fields[0];
+        normalize_contig_name(&reference_bundle, contig).map_err(|err| {
+            anyhow!("vcf.validate_inputs refusal: contig {contig} not valid for reference policy: {err}")
+        })?;
+        let ref_allele = fields[3].to_ascii_uppercase();
+        if !is_canonical_ref_allele(&ref_allele) {
+            summary
+                .refused
+                .push("allele_ref_validation_vs_reference_service".to_string());
+            bail!(
+                "vcf.validate_inputs refusal: REF allele contains non-canonical bases for record on {}:{}",
+                fields[0],
+                fields[1]
+            );
+        }
     }
 
     summary.checked.push("sorted_by_contig_and_pos".to_string());
