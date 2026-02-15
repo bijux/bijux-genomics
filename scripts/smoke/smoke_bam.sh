@@ -12,9 +12,16 @@ if [[ ! -f assets/golden/smoke-inputs-v1/bam/sample.bam ]]; then
   exit 1
 fi
 
+mkdir -p artifacts/smoke_bam
+
 bijux bam stage \
   --stage validate \
   --bam assets/golden/smoke-inputs-v1/bam/sample.bam \
   --out artifacts/smoke_bam \
   --sample-id smoke_bam \
   --dry-run
+
+"${ROOT_DIR}/bin/isolate" sh -ceu '
+  export CARGO_TARGET_DIR="$ISO_ROOT/target-test"
+  cargo test -p bijux-dna-api bam_smoke_runner_minimal_pipeline_validates_report_section_presence -- --exact
+'
