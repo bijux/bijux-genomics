@@ -33,6 +33,14 @@ pub mod deduplicate {
     pub use crate::tool_adapters::stages::transform::deduplicate::*;
 }
 
+pub mod host_depletion {
+    pub use crate::tool_adapters::stages::transform::host_depletion::*;
+}
+
+pub mod contaminant_screen {
+    pub use crate::tool_adapters::stages::transform::contaminant_screen::*;
+}
+
 pub mod low_complexity {
     pub use crate::tool_adapters::stages::transform::low_complexity::*;
 }
@@ -59,6 +67,10 @@ pub mod stats_neutral {
 
 pub mod qc_post {
     pub use crate::tool_adapters::stages::qc::qc_post::*;
+}
+
+pub mod rrna {
+    pub use crate::tool_adapters::stages::qc::rrna::*;
 }
 
 pub mod screen {
@@ -112,6 +124,16 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: crate::tool_adapters::stages::transform::deduplicate::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::deduplicate::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::transform::host_depletion::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::host_depletion::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::transform::contaminant_screen::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::contaminant_screen::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
@@ -177,6 +199,11 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: crate::tool_adapters::stages::qc::qc_post::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::qc::qc_post::STAGE_VERSION,
+            affects_read_counts: false,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::qc::rrna::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::qc::rrna::STAGE_VERSION,
             affects_read_counts: false,
         },
     ]
