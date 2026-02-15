@@ -33,6 +33,49 @@ fn load_downstream_acceptance_for_stage(stage_id: &str) -> Vec<String> {
     parse_acceptance_stage_keys(&raw, stage_id)
 }
 
+fn write_impute_bgzip_index_best_effort(
+    out_vcfgz: &Path,
+    payload: &str,
+    tmp_name: &str,
+) -> Result<PathBuf> {
+    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
+    let tmp_vcf = out_vcfgz
+        .parent()
+        .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
+        .join(tmp_name);
+    atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
+    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
+        let _ = std::fs::remove_file(&tmp_vcf);
+        return Ok(out_tbi);
+    }
+    let _ = std::fs::remove_file(&tmp_vcf);
+    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
+    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
+    Ok(out_tbi)
+}
+
+fn choose_backend_by_regime(
+    requested: ImputeBackend,
+    has_gl_or_gp: bool,
+    has_phased_gt: bool,
+    map_present: bool,
+    panel_supports_minimac: bool,
+) -> ImputeBackend {
+    if !matches!(requested, ImputeBackend::Beagle) {
+        return requested;
+    }
+    if has_gl_or_gp {
+        return ImputeBackend::Glimpse;
+    }
+    if has_phased_gt && panel_supports_minimac && map_present {
+        return ImputeBackend::Minimac4;
+    }
+    if has_phased_gt && map_present {
+        return ImputeBackend::Impute5;
+    }
+    ImputeBackend::Beagle
+}
+
 fn run_impute_stage_inner(
     input_vcf: &Path,
     out_dir: &Path,
@@ -92,6 +135,7 @@ fn run_impute_stage_inner(
     let mut has_gt = false;
     let mut has_gl_or_gp = false;
     let mut has_phased_gt = false;
+    let mut has_sex_chr = false;
     let mut contig_seen = std::collections::BTreeSet::<String>::new();
     let species_contigs = species_context
         .contigs
@@ -116,6 +160,9 @@ fn run_impute_stage_inner(
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
+        if matches!(fields[0], "X" | "Y" | "chrX" | "chrY") {
+            has_sex_chr = true;
+        }
         contig_seen.insert(fields[0].to_string());
         if !species_contig_set.contains(fields[0]) {
             ref_mismatch_like += 1;
@@ -177,6 +224,21 @@ fn run_impute_stage_inner(
     if overlap_fraction < overlap_threshold {
         bail!("panel/species overlap below threshold");
     }
+    if has_sex_chr
+        && species_context
+            .par_policy
+            .eq_ignore_ascii_case("unsupported")
+    {
+        bail!("sex chromosome imputation requires explicit PAR policy in SpeciesContext");
+    }
+
+    let recommended_backend = choose_backend_by_regime(
+        params.backend,
+        has_gl_or_gp,
+        has_phased_gt,
+        map.is_some(),
+        panel.compatibility.supports_minimac_m3vcf,
+    );
 
     let sample_header = headers
         .iter()
@@ -234,7 +296,6 @@ fn run_impute_stage_inner(
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let imputed_vcf = out_dir.join("imputed.vcf.gz");
-    let imputed_tbi = out_dir.join("imputed.vcf.gz.tbi");
     let imputation_qc_json = out_dir.join("imputation_qc.json");
     let imputation_qc_tsv = out_dir.join("imputation_qc.tsv");
     let maf_bin_quality_tsv = out_dir.join("maf_bins.tsv");
@@ -294,8 +355,11 @@ fn run_impute_stage_inner(
         header_sorted.join("\n"),
         imputed_records.join("\n")
     );
-    atomic_write_bytes(&imputed_vcf, imputed_payload.as_bytes())?;
-    atomic_write_bytes(&imputed_tbi, b"tabix-index-placeholder\n")?;
+    let imputed_tbi = write_impute_bgzip_index_best_effort(
+        &imputed_vcf,
+        &imputed_payload,
+        "imputed.tmp.vcf",
+    )?;
     assert_bgzip_tabix_artifacts(&imputed_vcf, &imputed_tbi)?;
 
     let mut info_values = Vec::<f64>::new();
@@ -734,6 +798,16 @@ fn run_impute_stage_inner(
             "schema_version": "bijux.vcf.imputation.manifest.v1",
             "stage_id": "vcf.impute",
             "backend": params.backend.as_str(),
+            "backend_selection": {
+                "requested": params.backend.as_str(),
+                "recommended_from_regime": recommended_backend.as_str(),
+                "evidence": {
+                    "has_gl_or_gp": has_gl_or_gp,
+                    "has_phased_gt": has_phased_gt,
+                    "map_present": map.is_some(),
+                    "panel_supports_minimac_m3vcf": panel.compatibility.supports_minimac_m3vcf
+                }
+            },
             "semantics": "vcf.impute heavy engine stage",
             "tool_digest": resolve_tool_digest(params.backend.as_str())?,
             "panel_id": panel.id,
