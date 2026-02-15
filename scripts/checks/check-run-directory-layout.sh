@@ -6,6 +6,15 @@ export LC_ALL
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'USAGE'
+Usage: scripts/checks/check-run-directory-layout.sh [scan_root]
+Validates deterministic run directory layout and run artifact envelope keys.
+Default scan_root: artifacts/
+USAGE
+  exit 0
+fi
+
 scan_root="${1:-$ROOT_DIR/artifacts}"
 if [[ ! -d "$scan_root" ]]; then
   echo "check-run-directory-layout: SKIP ($scan_root not found)"
