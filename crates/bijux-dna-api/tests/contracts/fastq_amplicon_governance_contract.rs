@@ -27,6 +27,10 @@ fn fastq_amplicon_governance_has_marker_ranges_and_primer_files() {
             .get("primer_fasta")
             .and_then(toml::Value::as_str)
             .unwrap_or_else(|| panic!("marker {marker} missing primer_fasta"));
+        let primer_sha256_locked = row
+            .get("primer_sha256")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_else(|| panic!("marker {marker} missing primer_sha256"));
         let min_bp = row
             .get("expected_amplicon_min_bp")
             .and_then(toml::Value::as_integer)
@@ -44,6 +48,12 @@ fn fastq_amplicon_governance_has_marker_ranges_and_primer_files() {
             primer_path.exists(),
             "marker {marker} primer fasta missing: {}",
             primer_path.display()
+        );
+        let actual_sha = bijux_dna_infra::hash_file_sha256(&primer_path)
+            .unwrap_or_else(|e| panic!("hash {}: {e}", primer_path.display()));
+        assert_eq!(
+            actual_sha, primer_sha256_locked,
+            "marker {marker} primer sha256 lock mismatch"
         );
     }
 }
@@ -65,6 +75,10 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
         .get("db_path")
         .and_then(toml::Value::as_str)
         .unwrap_or_else(|| panic!("taxonomy.db_path missing in {}", cfg.display()));
+    let db_sha256 = taxonomy
+        .get("db_sha256")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_else(|| panic!("taxonomy.db_sha256 missing in {}", cfg.display()));
     let license = taxonomy
         .get("license")
         .and_then(toml::Value::as_str)
@@ -78,14 +92,20 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
         "taxonomy db_path must exist: {}",
         root.join(db_path).display()
     );
+    let actual_sha = bijux_dna_infra::hash_file_sha256(&root.join(db_path))
+        .unwrap_or_else(|e| panic!("hash {}: {e}", root.join(db_path).display()));
+    assert_eq!(
+        actual_sha, db_sha256,
+        "taxonomy db_sha256 must lock current db_path content"
+    );
 }
 
 #[test]
 fn fastq_amplicon_tables_define_expected_schema_headers() {
     let root = repo_root();
-    let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess.rs");
-    let raw =
-        std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
+    let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_runtime.rs");
+    let raw = std::fs::read_to_string(&src)
+        .unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
     assert!(
         raw.contains("sample_id\\tfeature_id\\tabundance"),
         "ASV/OTU tables must include sample_id/feature_id/abundance header contract"
@@ -99,15 +119,21 @@ fn fastq_amplicon_tables_define_expected_schema_headers() {
 #[test]
 fn fastq_amplicon_runtime_invokes_real_tool_paths() {
     let root = repo_root();
-    let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess.rs");
-    let raw =
-        std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
+    let runtime_src =
+        root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_runtime.rs");
+    let governance_src =
+        root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_governance.rs");
+    let raw_runtime = std::fs::read_to_string(&runtime_src)
+        .unwrap_or_else(|e| panic!("read {}: {e}", runtime_src.display()));
+    let raw_governance = std::fs::read_to_string(&governance_src)
+        .unwrap_or_else(|e| panic!("read {}: {e}", governance_src.display()));
+    let raw = format!("{raw_runtime}\n{raw_governance}");
     for needle in [
         "cutadapt_primer_normalization",
         "vsearch_uchime_denovo",
         "vsearch_cluster_fast",
         "dada2_rscript",
-        "seqkit_fq2fa",
+        "seqkit_fx2tab",
     ] {
         assert!(
             raw.contains(needle),
