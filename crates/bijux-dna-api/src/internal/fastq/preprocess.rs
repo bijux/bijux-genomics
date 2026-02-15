@@ -43,6 +43,7 @@ use std::path::PathBuf;
 
 include!("preprocess/stage_backend_policy.rs");
 include!("preprocess/stage_artifacts.rs");
+include!("preprocess/amplicon_governance.rs");
 
 #[derive(Debug, Clone, serde::Serialize)]
 struct FastqInvariantsReport {

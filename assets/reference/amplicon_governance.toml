@@ -1,0 +1,26 @@
+[markers.16S]
+primer_set_id = "16S_universal_v1"
+primer_fasta = "assets/reference/primers/16S_universal_v1.fasta"
+expected_amplicon_min_bp = 120
+expected_amplicon_max_bp = 320
+
+[markers.COI]
+primer_set_id = "COI_folmer_v1"
+primer_fasta = "assets/reference/primers/COI_folmer_v1.fasta"
+expected_amplicon_min_bp = 240
+expected_amplicon_max_bp = 720
+
+[markers.ITS]
+primer_set_id = "ITS2_plant_v1"
+primer_fasta = "assets/reference/primers/ITS2_plant_v1.fasta"
+expected_amplicon_min_bp = 150
+expected_amplicon_max_bp = 450
+
+[taxonomy]
+provider = "kraken2"
+db_path = "assets/reference/contaminants/db_bank.v1.yaml"
+license = "CC-BY-4.0"
+
+[merge_policy]
+min_overlap_bp = 12
+max_mismatch_rate = 0.10
