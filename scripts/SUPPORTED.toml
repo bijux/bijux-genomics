@@ -2638,7 +2638,15 @@ ci_allowed = false
 id = "check_hidden_tmp_usage"
 path = "scripts/checks/check-hidden-tmp-usage.sh"
 purpose = "checks script"
-inputs = ["crates/bijux-dna-api/src/runtime/", "crates/bijux-dna-api/src/internal/handlers/cross/"]
+inputs = ["crates/bijux-dna-api/src/runtime/", "crates/bijux-dna-api/src/internal/handlers/cross/", "crates/bijux-dna-runner/src/"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_certification_schema_docs"
+path = "scripts/checks/check-certification-schema-docs.sh"
+purpose = "checks script"
+inputs = ["docs/50-reference/MANIFEST_MIGRATION.md"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
@@ -2649,6 +2657,38 @@ purpose = "tooling script"
 inputs = ["artifacts/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
+[[script]]
+id = "certify_fastq"
+path = "scripts/tooling/certify-fastq.sh"
+purpose = "tooling script"
+inputs = ["examples/fastq/edna-mini/", "artifacts/examples/fastq_edna_mini/"]
+outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "certify_bam"
+path = "scripts/tooling/certify-bam.sh"
+purpose = "tooling script"
+inputs = ["crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/"]
+outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "certify_vcf"
+path = "scripts/tooling/certify-vcf.sh"
+purpose = "tooling script"
+inputs = ["examples/vcf/"]
+outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "certify_all"
+path = "scripts/tooling/certify-all.sh"
+purpose = "tooling script"
+inputs = ["examples/fastq/", "examples/vcf/", "crates/bijux-dna-analyze/tests/fixtures/golden_spine/"]
+outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+ci_allowed = false
 
 [[script]]
 id = "ci_clippy_executors"

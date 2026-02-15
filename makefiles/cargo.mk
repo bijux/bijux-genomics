@@ -381,19 +381,19 @@ vcf-certification: ## Local-only VCF certification run (sequential VCF stage con
 
 certify-fastq: ## Local FASTQ certification smoke.
 	@./bin/require-isolate >/dev/null
-	@./scripts/run.sh smoke run fastq
+	@./scripts/run.sh tooling certify-fastq
 
 certify-bam: ## Local BAM certification smoke.
 	@./bin/require-isolate >/dev/null
-	@./scripts/run.sh smoke run bam
+	@./scripts/run.sh tooling certify-bam
 
 certify-vcf: ## Local VCF certification suite.
 	@./bin/require-isolate >/dev/null
-	@$(MAKE) vcf-certification
+	@./scripts/run.sh tooling certify-vcf
 
 certify-all: ## Local cross-domain certification bundle (FASTQ+BAM+VCF downstream mini).
 	@./bin/require-isolate >/dev/null
-	@$(MAKE) local-certification-gate
+	@./scripts/run.sh tooling certify-all
 
 examples-validate:
 	@$(MAKE) _examples-validate
