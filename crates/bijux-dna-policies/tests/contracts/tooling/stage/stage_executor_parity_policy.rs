@@ -65,7 +65,11 @@ fn domain_stage_docs(root: &Path) -> BTreeMap<String, serde_yaml::Value> {
             if path.extension().and_then(|s| s.to_str()) != Some("yaml") {
                 continue;
             }
-            if path.file_name().and_then(|s| s.to_str()).is_some_and(|n| n.starts_with('_')) {
+            if path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .is_some_and(|n| n.starts_with('_'))
+            {
                 continue;
             }
             let raw = std::fs::read_to_string(&path)
@@ -152,7 +156,11 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
     }
     let tools_by_id = tool_rows
         .iter()
-        .filter_map(|row| row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row)))
+        .filter_map(|row| {
+            row.get("id")
+                .and_then(toml::Value::as_str)
+                .map(|id| (id.to_string(), row))
+        })
         .collect::<BTreeMap<_, _>>();
     let config_rows = config_stage_rows_by_id(&root);
 
@@ -205,7 +213,9 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
         }
         let metrics = yaml_metric_keys(doc);
         if status == "supported" && metrics.is_empty() {
-            offenders.push(format!("supported stage {stage_id} must declare metrics keys"));
+            offenders.push(format!(
+                "supported stage {stage_id} must declare metrics keys"
+            ));
         }
         if status == "out_of_scope" {
             if yaml_list(doc, "planned_out_of_scope").is_empty() {
@@ -296,14 +306,23 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
     let stable_stage_ids = stage_rows(&root.join("configs/ci/stages/stages.toml"))
         .into_iter()
         .filter(|row| row.get("status").and_then(toml::Value::as_str) == Some("supported"))
-        .filter_map(|row| row.get("id").and_then(toml::Value::as_str).map(str::to_string))
+        .filter_map(|row| {
+            row.get("id")
+                .and_then(toml::Value::as_str)
+                .map(str::to_string)
+        })
         .collect::<Vec<_>>();
     for stage_id in stable_stage_ids {
         let Some(executor) = executors.get(&stage_id) else {
-            offenders.push(format!("stable profile stage {stage_id} missing code-backed executor"));
+            offenders.push(format!(
+                "stable profile stage {stage_id} missing code-backed executor"
+            ));
             continue;
         };
-        if !matches!(executor.readiness, ReadinessBadge::Supported | ReadinessBadge::Certified) {
+        if !matches!(
+            executor.readiness,
+            ReadinessBadge::Supported | ReadinessBadge::Certified
+        ) {
             offenders.push(format!(
                 "stable profile stage {stage_id} has non-stable readiness badge {:?}",
                 executor.readiness

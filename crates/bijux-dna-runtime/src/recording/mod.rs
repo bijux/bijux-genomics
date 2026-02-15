@@ -4,8 +4,8 @@
 //! - Only write under the run layout.
 //! - No heavy dependencies; keep this module lightweight and stable.
 
-mod io;
 mod envelope;
+mod io;
 mod manifests;
 mod metrics;
 mod provenance;

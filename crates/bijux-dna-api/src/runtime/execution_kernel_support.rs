@@ -594,4 +594,3 @@ pub(super) fn write_crash_bundle(
     bijux_dna_infra::atomic_write_json(&crash_path, &payload)?;
     Ok(crash_path)
 }
-

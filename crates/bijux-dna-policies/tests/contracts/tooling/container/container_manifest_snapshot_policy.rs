@@ -19,9 +19,8 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
 fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_matches_committed_snapshot(
 ) {
     let root = support::workspace_root();
-    let snapshot_path = root.join(
-        "crates/bijux-dna-policies/tests/fixtures/container_manifest.snapshot.json",
-    );
+    let snapshot_path =
+        root.join("crates/bijux-dna-policies/tests/fixtures/container_manifest.snapshot.json");
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
