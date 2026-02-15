@@ -163,7 +163,7 @@ pub mod kinship {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::KinshipEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -179,17 +179,39 @@ pub mod kinship {
         out_dir: &Path,
         params: &KinshipEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
+        if params.reference_panel.trim().is_empty() {
+            return Err(anyhow::anyhow!(
+                "bam.kinship requires non-empty reference_panel"
+            ));
+        }
+        if params.min_overlap_snps == 0 {
+            return Err(anyhow::anyhow!(
+                "bam.kinship requires min_overlap_snps > 0"
+            ));
+        }
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Kinship,
             out_dir,
         );
+        let report = out_dir.join("kinship.json");
+        let summary = out_dir.join("kinship.summary.json");
+        let segments = out_dir.join("kinship.segments.tsv");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: tool.command.clone(),
+            command: CommandSpecV1 {
+                template: crate::tool_adapters::tools::kinship::args_with_outputs(
+                    tool.tool_id.as_str(),
+                    bam,
+                    &report,
+                    &summary,
+                    &segments,
+                    params,
+                ),
+            },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -204,6 +226,8 @@ pub mod kinship {
                 "bam": bam,
                 "reference_panel": params.reference_panel,
                 "min_overlap_snps": params.min_overlap_snps,
+                "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
+                "required_inputs": ["diploid_genotypes_or_explicit_pseudohap_conversion"],
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {

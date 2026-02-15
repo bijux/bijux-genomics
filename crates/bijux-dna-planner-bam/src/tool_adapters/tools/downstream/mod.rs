@@ -4,6 +4,7 @@ pub mod authenticity;
 pub mod contammix;
 pub mod gatk;
 pub mod genotyping;
+pub mod kinship;
 pub mod rxy;
 pub mod schmutzi;
 pub mod verifybamid2;
