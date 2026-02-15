@@ -18,11 +18,12 @@ pub(crate) mod api_internal {
 pub(crate) mod cross_runtime;
 pub(crate) mod execution_kernel;
 pub(crate) mod input_validation;
-pub(crate) mod qa;
-pub(crate) mod reference_resolution;
+pub(crate) mod support;
 pub(crate) mod request_args;
 pub(crate) mod run;
-pub(crate) mod tooling;
 pub(crate) mod writers;
+pub(crate) use support::qa;
+pub(crate) use support::reference_resolution;
+pub(crate) use support::tooling;
 
 pub mod v1;
