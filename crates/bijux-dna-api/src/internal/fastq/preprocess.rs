@@ -44,6 +44,296 @@ use std::path::PathBuf;
 include!("preprocess/stage_backend_policy.rs");
 include!("preprocess/stage_artifacts.rs");
 
+#[derive(Debug, Clone, serde::Serialize)]
+struct FastqInvariantsReport {
+    schema_version: String,
+    r1: FastqFileInvariant,
+    r2: Option<FastqFileInvariant>,
+    paired_consistent: bool,
+    paired_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct FastqFileInvariant {
+    path: PathBuf,
+    gzip: bool,
+    read_count: u64,
+    read_length_min: usize,
+    read_length_max: usize,
+    read_length_mean: f64,
+    qscore_ascii_min: u8,
+    qscore_ascii_max: u8,
+    quality_encoding: String,
+}
+
+#[derive(Debug, Clone)]
+struct FastqScanStats {
+    read_count: u64,
+    read_length_min: usize,
+    read_length_max: usize,
+    read_length_mean: f64,
+    qscore_ascii_min: u8,
+    qscore_ascii_max: u8,
+    first_headers: Vec<String>,
+}
+
+fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = String>>> {
+    if path
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
+    {
+        let output = std::process::Command::new("gzip")
+            .args(["-cd", path.to_string_lossy().as_ref()])
+            .output()
+            .with_context(|| format!("gzip -cd {}", path.display()))?;
+        if !output.status.success() {
+            return Err(anyhow!(
+                "failed to decompress {}: {}",
+                path.display(),
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+        let text = String::from_utf8_lossy(&output.stdout).into_owned();
+        let lines = text.lines().map(ToString::to_string).collect::<Vec<_>>();
+        return Ok(Box::new(lines.into_iter()));
+    }
+    let f = std::fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
+    let reader = std::io::BufReader::new(f);
+    let mut lines = Vec::new();
+    for line in reader.lines() {
+        lines.push(line?);
+    }
+    Ok(Box::new(lines.into_iter()))
+}
+
+fn quality_encoding_from_ascii(min_ascii: u8, max_ascii: u8) -> String {
+    if min_ascii >= 33 && max_ascii <= 74 {
+        "phred+33".to_string()
+    } else if min_ascii >= 64 && max_ascii <= 104 {
+        "phred+64".to_string()
+    } else {
+        "unknown".to_string()
+    }
+}
+
+fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
+    let mut read_count = 0_u64;
+    let mut len_min = usize::MAX;
+    let mut len_max = 0_usize;
+    let mut len_total = 0_u64;
+    let mut q_min = u8::MAX;
+    let mut q_max = 0_u8;
+    let mut first_headers = Vec::new();
+    let mut i = 0_u64;
+    let mut it = open_fastq_lines(path)?;
+    loop {
+        let h = it.next();
+        let seq = it.next();
+        let plus = it.next();
+        let qual = it.next();
+        let (Some(h), Some(seq), Some(plus), Some(qual)) = (h, seq, plus, qual) else {
+            break;
+        };
+        if !h.starts_with('@') || !plus.starts_with('+') {
+            return Err(anyhow!("invalid FASTQ record framing in {}", path.display()));
+        }
+        let l = seq.len();
+        len_min = len_min.min(l);
+        len_max = len_max.max(l);
+        len_total += l as u64;
+        for c in qual.bytes() {
+            q_min = q_min.min(c);
+            q_max = q_max.max(c);
+        }
+        if i < 16 {
+            first_headers.push(h);
+        }
+        read_count += 1;
+        i += 1;
+    }
+    if read_count == 0 {
+        return Err(anyhow!("no reads detected in {}", path.display()));
+    }
+    Ok(FastqScanStats {
+        read_count,
+        read_length_min: len_min,
+        read_length_max: len_max,
+        read_length_mean: len_total as f64 / read_count as f64,
+        qscore_ascii_min: q_min,
+        qscore_ascii_max: q_max,
+        first_headers,
+    })
+}
+
+fn normalize_pair_header(header: &str) -> String {
+    let core = header
+        .trim_start_matches('@')
+        .split_whitespace()
+        .next()
+        .unwrap_or(header);
+    core.trim_end_matches("/1")
+        .trim_end_matches("/2")
+        .to_string()
+}
+
+fn write_fastq_entry_invariants(
+    root: &std::path::Path,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+) -> Result<FastqInvariantsReport> {
+    let r1s = scan_fastq_invariants(r1)?;
+    let r1_inv = FastqFileInvariant {
+        path: r1.to_path_buf(),
+        gzip: r1
+            .extension()
+            .and_then(|x| x.to_str())
+            .is_some_and(|x| x.eq_ignore_ascii_case("gz")),
+        read_count: r1s.read_count,
+        read_length_min: r1s.read_length_min,
+        read_length_max: r1s.read_length_max,
+        read_length_mean: r1s.read_length_mean,
+        qscore_ascii_min: r1s.qscore_ascii_min,
+        qscore_ascii_max: r1s.qscore_ascii_max,
+        quality_encoding: quality_encoding_from_ascii(r1s.qscore_ascii_min, r1s.qscore_ascii_max),
+    };
+    let (r2_inv, paired_consistent, paired_reason) = if let Some(r2_path) = r2 {
+        let r2s = scan_fastq_invariants(r2_path)?;
+        let mut ok = r1s.read_count == r2s.read_count;
+        let mut reason = None;
+        if ok {
+            for (lhs, rhs) in r1s.first_headers.iter().zip(r2s.first_headers.iter()) {
+                if normalize_pair_header(lhs) != normalize_pair_header(rhs) {
+                    ok = false;
+                    reason = Some("header pairing mismatch".to_string());
+                    break;
+                }
+            }
+        } else {
+            reason = Some("read count mismatch between R1 and R2".to_string());
+        }
+        (
+            Some(FastqFileInvariant {
+                path: r2_path.to_path_buf(),
+                gzip: r2_path
+                    .extension()
+                    .and_then(|x| x.to_str())
+                    .is_some_and(|x| x.eq_ignore_ascii_case("gz")),
+                read_count: r2s.read_count,
+                read_length_min: r2s.read_length_min,
+                read_length_max: r2s.read_length_max,
+                read_length_mean: r2s.read_length_mean,
+                qscore_ascii_min: r2s.qscore_ascii_min,
+                qscore_ascii_max: r2s.qscore_ascii_max,
+                quality_encoding: quality_encoding_from_ascii(
+                    r2s.qscore_ascii_min,
+                    r2s.qscore_ascii_max,
+                ),
+            }),
+            ok,
+            reason,
+        )
+    } else {
+        (None, true, None)
+    };
+    let report = FastqInvariantsReport {
+        schema_version: "bijux.fastq.invariants.v1".to_string(),
+        r1: r1_inv,
+        r2: r2_inv,
+        paired_consistent,
+        paired_reason,
+    };
+    bijux_dna_infra::atomic_write_json(&root.join("fastq_invariants.json"), &report)
+        .context("write fastq_invariants.json")?;
+    Ok(report)
+}
+
+fn write_stage_path_contract(
+    stage_root: &std::path::Path,
+    stage_id: &str,
+    planned: &ExecutionStep,
+    is_paired: bool,
+) -> Result<()> {
+    bijux_dna_infra::ensure_dir(stage_root).context("create stage root for path contract")?;
+    let outputs = planned
+        .io
+        .outputs
+        .iter()
+        .map(|x| {
+            serde_json::json!({
+                "name": x.name,
+                "role": x.role.as_str(),
+                "path": x.path
+            })
+        })
+        .collect::<Vec<_>>();
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.path_contract.v1",
+        "stage_id": stage_id,
+        "layout": if is_paired { "pe" } else { "se" },
+        "deterministic_root": stage_root,
+        "intermediate_root": stage_root.join("tmp"),
+        "outputs": outputs,
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.path_contract.json"), &payload)
+        .context("write stage.path_contract.json")
+}
+
+fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
+    let output = std::process::Command::new(tool_bin).arg("--version").output();
+    let (ok, raw) = match output {
+        Ok(out) => {
+            let raw = if out.stdout.is_empty() {
+                String::from_utf8_lossy(&out.stderr).to_string()
+            } else {
+                String::from_utf8_lossy(&out.stdout).to_string()
+            };
+            (out.status.success(), raw)
+        }
+        Err(err) => (false, format!("failed to execute --version: {err}")),
+    };
+    let line = raw.lines().find(|x| !x.trim().is_empty()).unwrap_or("").trim();
+    let version = line
+        .split_whitespace()
+        .find(|tok| tok.chars().next().is_some_and(|c| c.is_ascii_digit()))
+        .unwrap_or("unknown")
+        .to_string();
+    let payload = serde_json::json!({
+        "schema_version": "bijux.tool_version_capture.v1",
+        "tool": tool_bin,
+        "ok": ok,
+        "raw": raw,
+        "parsed": {
+            "first_line": line,
+            "version": version
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.tool_version.json"), &payload)
+        .context("write stage.tool_version.json")
+}
+
+fn write_merge_join_contract(
+    stage_root: &std::path::Path,
+    execution: &StageResultV1,
+    paired_consistent: bool,
+) -> Result<()> {
+    let success = execution.exit_code == 0 && paired_consistent;
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.merge_join_contract.v1",
+        "stage_id": "fastq.merge",
+        "success": success,
+        "criteria": {
+            "exit_code_zero": execution.exit_code == 0,
+            "paired_input_consistent": paired_consistent,
+            "outputs_emitted": !execution.outputs.is_empty()
+        },
+        "failure_reason": if success { None::<String> } else { Some("paired-end join contract failed".to_string()) },
+        "artifacts": execution.outputs,
+    });
+    bijux_dna_infra::atomic_write_json(&stage_root.join("merge.join_contract.json"), &payload)
+        .context("write merge.join_contract.json")
+}
+
 fn enforce_stage_applicability(
     planned: &ExecutionStep,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
@@ -262,6 +552,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS.as_str()))?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
+    let run_root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
+    bijux_dna_infra::ensure_dir(&run_root).context("create preprocess run dir")?;
+    let entry_invariants = write_fastq_entry_invariants(&run_root, &args.r1, args.r2.as_deref())?;
+    if args.r2.is_some() && !entry_invariants.paired_consistent {
+        return Err(anyhow!(
+            "fastq entry invariants failed: {}",
+            entry_invariants
+                .paired_reason
+                .unwrap_or_else(|| "paired-end consistency failed".to_string())
+        ));
+    }
 
     ensure_bench_runner(platform, runner_override)?;
 
@@ -590,7 +891,28 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
         let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
-        let invocation =
+        write_stage_path_contract(&stage_root, &stage_id, planned, args.r2.is_some())?;
+        let expected_outputs = planned
+            .io
+            .outputs
+            .iter()
+            .map(|a| a.path.clone())
+            .collect::<Vec<_>>();
+        let runtime_marker = stage_root.join("runtime_provenance.json");
+        let resume_hit = runtime_marker.exists() && expected_outputs.iter().all(|p| p.exists());
+        let execution = if resume_hit {
+            StageResultV1 {
+                run_id: format!("fastq-preprocess-{}", planned.step_id),
+                exit_code: 0,
+                runtime_s: 0.0,
+                memory_mb: 0.0,
+                outputs: expected_outputs.clone(),
+                metrics_path: None,
+                stdout: "resumed".to_string(),
+                stderr: String::new(),
+                command: "resume".to_string(),
+            }
+        } else {
             execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
                 step: planned.clone(),
                 runner: platform.runner,
@@ -613,14 +935,27 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 },
                 timeout: None,
                 mode: execution_kernel::ToolExecMode::Execute,
-            });
+            })?
+            .stage_result
+        };
         stage_span.end();
-        let execution = invocation?.stage_result;
+        capture_tool_version(
+            &stage_root,
+            planned
+                .command
+                .template
+                .first()
+                .map(String::as_str)
+                .unwrap_or("unknown"),
+        )?;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
         emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &execution)?;
         write_stage_governance_artifacts(&stage_root, planned, contaminant_bank.as_ref())?;
         enforce_metrics_schema(&stage_root, &stage_id)?;
         write_fastq_output_contract(&stage_root, planned, &execution)?;
+        if stage_id == "fastq.merge" {
+            write_merge_join_contract(&stage_root, &execution, entry_invariants.paired_consistent)?;
+        }
         write_retention_report(&stage_root, planned)?;
         if execution.exit_code != 0 {
             let hint = classify_failure_hint(&stage_id, &execution.stdout, &execution.stderr);
