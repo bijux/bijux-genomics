@@ -200,6 +200,24 @@
     }
 
     #[test]
+    fn pca_stage_refuses_without_ld_pruning_policy() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let err = run_pca_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &PcaStageParams {
+                preprocessing: PopulationPreprocessingParams {
+                    ld_pruning_policy: None,
+                    ..PopulationPreprocessingParams::default()
+                },
+                ..PcaStageParams::default()
+            },
+        )
+        .expect_err("pca should refuse without explicit ld pruning policy");
+        assert!(err.to_string().contains("LD pruning policy"));
+    }
+
+    #[test]
     fn population_structure_stage_emits_structured_outputs() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let metadata = dir.path().join("population_labels.json");
@@ -219,6 +237,18 @@
         .unwrap_or_else(|err| panic!("run population_structure stage: {err}"));
         assert!(out.pruned_variants_tsv.exists());
         assert!(out.population_structure_json.exists());
+    }
+
+    #[test]
+    fn population_structure_refuses_without_metadata_manifest() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let err = run_population_structure_stage(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            dir.path(),
+            &PopulationStructureStageParams::default(),
+        )
+        .expect_err("population_structure should refuse without sample metadata manifest");
+        assert!(err.to_string().contains("sample metadata manifest"));
     }
 
     #[test]
