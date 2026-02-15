@@ -38,6 +38,10 @@ lint:
 	fi
 
 _lint:
+	@$(MAKE) _lint-scripts
+	@$(MAKE) _lint-clippy
+
+_lint-scripts:
 	@./bin/require-isolate >/dev/null
 	./scripts/run.sh tooling repo-doctor --fast
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
@@ -57,11 +61,22 @@ _lint:
 			exit 1; \
 		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
+
+lint-scripts: ## Run repo-doctor + script/container lint checks (parallelized), without clippy.
+	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
+	@if [ -z "$$ISO_ROOT" ]; then \
+		tag="$(AUTO_ISO_TAG_PREFIX)-lint-scripts-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
+		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-scripts; \
+	else \
+		$(MAKE) _lint-scripts; \
+	fi
+
+_lint-clippy:
+	@./bin/require-isolate >/dev/null
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 _clippy: ## Run workspace clippy only (no script gates).
-	@./bin/require-isolate >/dev/null
-	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
+	@$(MAKE) _lint-clippy
 
 test:
 	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
@@ -256,6 +271,11 @@ _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/run.sh checks check-no-raw-cargo-in-makefiles
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 
+realness-gate: ## Run strict realness checks (placeholder artifacts + planner realization).
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh checks check-domain-realization
+	@./scripts/run.sh checks check-no-fake-artifacts
+
 _policy-index: ## Generate policy index under artifacts/.
 	@./scripts/run.sh tooling generate-policy-index
 
@@ -295,13 +315,14 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
+.PHONY: fmt lint lint-scripts test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
 		_clean-isolates \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
 		_test-fast \
-		_clippy \
+		_clippy _lint _lint-scripts _lint-clippy \
+		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
 		refresh-assets-toy refresh-assets-golden

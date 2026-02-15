@@ -377,6 +377,30 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_no_fake_artifacts"
+path = "scripts/checks/check-no-fake-artifacts.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "check_domain_realization"
+path = "scripts/checks/check-domain-realization.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
+id = "test_fastq_gold_repro"
+path = "scripts/test/fastq-gold-repro.sh"
+purpose = "test script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "build_apptainer_all"
 path = "scripts/containers/build-apptainer-all.sh"
 purpose = "containers script"
