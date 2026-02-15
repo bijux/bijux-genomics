@@ -4,34 +4,58 @@ SHELL := /bin/sh
 # Expected empty output when constraints are satisfied.
 
 culprits-max_loc:
-	@find crates -name "*.rs" -print0 \
+	@out=$$(find crates -name "*.rs" -print0 \
 	| xargs -0 wc -l \
 	| sort -n \
-	| awk '$$2 ~ /^crates\// && $$1 > 1000'
+	| awk '$$2 ~ /^crates\// && $$1 > 1000'); \
+	if [ -n "$$out" ]; then \
+		printf '%s\n' "WARN: max_loc policy violations (LOC > 1000):"; \
+		printf '%s\n' "$$out"; \
+	else \
+		printf '%s\n' "INFO: max_loc policy compliant across all crates."; \
+	fi
 
 culprits-max_depth:
-	@find crates -name "*.rs" -print0 \
+	@out=$$(find crates -name "*.rs" -print0 \
 	| xargs -0 -I{} sh -c 'p="{}"; d=$$(printf "%s\n" "$$p" | awk -F/ "{print NF}"); echo "$$d $$p"' \
 	| sort -n \
-	| awk '$$1 > 7'
+	| awk '$$1 > 7'); \
+	if [ -n "$$out" ]; then \
+		printf '%s\n' "WARN: max_depth policy violations (depth > 7):"; \
+		printf '%s\n' "$$out"; \
+	else \
+		printf '%s\n' "INFO: max_depth policy compliant across all crates."; \
+	fi
 
 culprits-file-max_rs_files_per_dir:
-	@find crates -name "*.rs" -print0 \
+	@out=$$(find crates -name "*.rs" -print0 \
 	| xargs -0 -n1 dirname \
 	| sort \
 	| uniq -c \
 	| awk '$$1 > 10' \
-	| sort -nr
+	| sort -nr); \
+	if [ -n "$$out" ]; then \
+		printf '%s\n' "WARN: max_rs_files_per_dir policy violations (files > 10):"; \
+		printf '%s\n' "$$out"; \
+	else \
+		printf '%s\n' "INFO: max_rs_files_per_dir policy compliant across all crates."; \
+	fi
 
 culprits-file-max_modules_per_dir:
-	@find crates -name "*.rs" -print0 \
+	@out=$$(find crates -name "*.rs" -print0 \
 	| xargs -0 -n1 dirname \
 	| sort \
 	| uniq -c \
 	| awk '$$1 > 16' \
-	| sort -nr
+	| sort -nr); \
+	if [ -n "$$out" ]; then \
+		printf '%s\n' "WARN: max_modules_per_dir policy violations (modules > 16):"; \
+		printf '%s\n' "$$out"; \
+	else \
+		printf '%s\n' "INFO: max_modules_per_dir policy compliant across all crates."; \
+	fi
 
 culprits-all: culprits-max_loc culprits-max_depth culprits-file-max_rs_files_per_dir culprits-file-max_modules_per_dir
-	@:
+	@printf '%s\n' "INFO: culprits-all completed."
 
 .PHONY: culprits-all culprits-max_loc culprits-max_depth culprits-file-max_rs_files_per_dir culprits-file-max_modules_per_dir
