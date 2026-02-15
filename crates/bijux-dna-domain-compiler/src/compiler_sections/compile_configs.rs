@@ -205,7 +205,12 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
                 "expected_version_regex = \"bcftools [0-9]+[.][0-9]+\""
             );
             let _ = writeln!(tools_vcf_toml, "healthcheck_cmd = \"{}\"", tool.help_cmd);
-            let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", tool.tool_id);
+            let expected_bin = tool
+                .version_cmd
+                .split_whitespace()
+                .next()
+                .unwrap_or(tool.tool_id.as_str());
+            let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", expected_bin);
             let _ = writeln!(
                 tools_vcf_toml,
                 "expected_artifacts = {}",

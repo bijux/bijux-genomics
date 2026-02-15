@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 3681dcb6ef8db63909e4f90cca61167a93f8203d
+# source_commit: 351b4c91f141a95572bc29537de5b4329b1ee76d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -442,3 +442,4 @@ comparability_notes = "External planned tool for imputation; containerization pe
 dockerfile = "containers/docker/arm64/Dockerfile.bcftools"
 apptainer_def = "containers/apptainer/non-bijux/bcftools.def"
 require_labels = true
+
