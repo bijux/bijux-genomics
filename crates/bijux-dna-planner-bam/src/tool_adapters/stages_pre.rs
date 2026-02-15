@@ -55,13 +55,13 @@ pub mod validate {
             image: tool.image.clone(),
             command: CommandSpecV1 {
                 template: match tool.tool_id.as_str() {
-                    "bamtools" => crate::tool_adapters::tools::samtools::validate_args(
+                    "bamtools" => crate::tool_adapters::tools::bamtools::validate_args(
                         bam,
                         &flagstat,
                         &report,
                         &effective_params,
                     ),
-                    "bedtools" => crate::tool_adapters::tools::samtools::validate_args(
+                    "bedtools" => crate::tool_adapters::tools::bedtools::validate_args(
                         bam,
                         &flagstat,
                         &report,

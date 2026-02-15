@@ -11,7 +11,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "samtools quickcheck -v tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
+      "bamtools stats -in tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
     ]
   },
   "resources": {
