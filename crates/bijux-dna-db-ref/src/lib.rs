@@ -667,4 +667,28 @@ mod tests {
             .expect_err("full panel must refuse minimac4");
         assert!(err.to_string().contains("minimac4"));
     }
+
+    #[test]
+    fn invalid_lock_ref_is_rejected() {
+        let panel = PanelCatalogEntry {
+            id: "panel".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            status: "production".to_string(),
+            version: "1.0.0".to_string(),
+            license: "CC-BY-4.0".to_string(),
+            lock_ref: "not_a_lock_ref".to_string(),
+            citation: None,
+            files: vec![],
+            compatibility: CatalogCompatibility {
+                tool_tags: vec!["glimpse".to_string()],
+                requires_phased: true,
+                supports_gl_input: true,
+                supports_minimac_m3vcf: false,
+                glimpse_reference_format: "bcf+sites".to_string(),
+            },
+        };
+        let err = resolve_panel_lock(&panel).expect_err("invalid lock_ref must fail");
+        assert!(err.to_string().contains("invalid lock_ref"));
+    }
 }
