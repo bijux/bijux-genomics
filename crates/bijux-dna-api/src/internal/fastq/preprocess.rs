@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_dna_core::contract::PlanPolicy;
@@ -356,9 +357,32 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_dna_runner::execute::execute_step(planned, platform.runner, None);
+        let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
+        let invocation = execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+            step: planned.clone(),
+            runner: platform.runner,
+            context: execution_kernel::ToolContext {
+                run_id: format!("fastq-preprocess-{}", planned.step_id),
+                stage_id: planned.step_id.to_string(),
+                tool_id: planned.image.image.clone(),
+                sample_id: Some(args.sample_id.clone()),
+                stage_root: stage_root.clone(),
+                input_root: args
+                    .r1
+                    .parent()
+                    .map(std::path::Path::to_path_buf)
+                    .unwrap_or_else(|| out_dir.clone()),
+                output_root: out_dir.clone(),
+                tmp_root: stage_root.join("tmp"),
+                threads: 1,
+                memory_hint_mb: None,
+                seed: None,
+                network_policy: NetworkPolicy::Allow,
+            },
+            timeout: None,
+        });
         stage_span.end();
-        let execution = execution?;
+        let execution = invocation?.stage_result;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: stage_id,

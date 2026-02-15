@@ -1,5 +1,6 @@
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::filter_tools_by_role;
+use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::ToolRegistry;
@@ -9,7 +10,6 @@ use bijux_dna_pipelines::registry;
 use bijux_dna_pipelines::Domain;
 use bijux_dna_planner_bam::stage_api::STAGE_PREFIX;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use bijux_dna_runner::execute::execute_step;
 use std::path::PathBuf;
 
 use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
@@ -126,7 +126,30 @@ pub fn bench_bam_stage(
                 bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
             } else {
                 let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-                execute_step(&step, RuntimeKind::Docker, None)?;
+                let ctx = execution_kernel::ToolContext {
+                    run_id: format!("bam-bench-{stage_id}-{tool}-rep-{rep}"),
+                    stage_id: stage_id.to_string(),
+                    tool_id: tool.to_string(),
+                    sample_id: Some(args.sample_id.clone()),
+                    stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&run_dir),
+                    input_root: args
+                        .bam
+                        .parent()
+                        .map(std::path::Path::to_path_buf)
+                        .unwrap_or_else(|| args.out.clone()),
+                    output_root: run_dir.clone(),
+                    tmp_root: run_dir.join("tmp"),
+                    threads: plan.resources.threads.max(1),
+                    memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
+                    seed: None,
+                    network_policy: NetworkPolicy::Allow,
+                };
+                execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+                    step: step.clone(),
+                    runner: RuntimeKind::Docker,
+                    context: ctx,
+                    timeout: None,
+                })?;
             }
             run_dirs.push(run_dir);
         }
