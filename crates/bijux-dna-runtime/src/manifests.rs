@@ -3,12 +3,12 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec,
-    ReadCountChangePolicy, RuntimeScale, StageBehavior, StageId, StageParameterSpec,
-    StageSemanticKind, StageSpec, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
+    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec, RuntimeScale,
+    StageId, StageParameterSpec, StageSemanticKind, StageSpec, ToolConstraints, ToolManifest,
+    ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
-use bijux_dna_core::prelude::tooling::StageMetricSpec;
+use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior, StageMetricSpec};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default)]

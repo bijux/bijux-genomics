@@ -204,7 +204,12 @@ pub trait RefService: Send + Sync {
     ) -> Result<PanelCatalogEntry>;
     /// # Errors
     /// Returns an error if map catalogs cannot be loaded or no matching map is found.
-    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry>;
+    fn resolve_map(
+        &self,
+        species: &str,
+        build: &str,
+        map_id: Option<&str>,
+    ) -> Result<MapCatalogEntry>;
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -228,7 +233,12 @@ impl RefService for RuntimeRefService {
         resolve_panel(species, build, panel_id)
     }
 
-    fn resolve_map(&self, species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
+    fn resolve_map(
+        &self,
+        species: &str,
+        build: &str,
+        map_id: Option<&str>,
+    ) -> Result<MapCatalogEntry> {
         resolve_map(species, build, map_id)
     }
 }

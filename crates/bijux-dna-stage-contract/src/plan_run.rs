@@ -88,7 +88,14 @@ pub fn build_run_execution_plan(
         })
         .collect();
 
-    let stage = build_stage_plan(run_spec, tool_manifest, stage_spec, run_dir.clone(), inputs, outputs)?;
+    let stage = build_stage_plan(
+        run_spec,
+        tool_manifest,
+        stage_spec,
+        run_dir.clone(),
+        inputs,
+        outputs,
+    )?;
 
     let planned_artifacts = stage
         .io
