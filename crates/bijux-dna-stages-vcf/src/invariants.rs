@@ -7,6 +7,8 @@ use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json};
 use serde::Serialize;
 
+use crate::path_contract::VcfPathContract;
+
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum InputRegime {
@@ -459,21 +461,15 @@ pub fn run_vcf_preflight(
     normalized_header.extend(contigs);
     normalized_header.push(chrom);
 
-    let normalized_input = if input_vcf.extension().and_then(|s| s.to_str()) == Some("bcf") {
-        artifact_dir.join("normalized.bcf")
-    } else {
-        artifact_dir.join("normalized.vcf.gz")
-    };
+    let contract = VcfPathContract::for_stage(artifact_dir, "normalized");
+    let normalized_input = contract.vcf_gz.clone();
+    let normalized_plain = artifact_dir.join("normalized.vcf");
     let normalized_payload = format!("{}\n{}\n", normalized_header.join("\n"), records.join("\n"));
-    atomic_write_bytes(&normalized_input, normalized_payload.as_bytes())?;
+    atomic_write_bytes(&normalized_plain, normalized_payload.as_bytes())?;
 
     summary.checked.push("ensure_bgzip_tabix".to_string());
-    let index_path = if normalized_input.extension().and_then(|s| s.to_str()) == Some("bcf") {
-        artifact_dir.join("normalized.bcf.csi")
-    } else {
-        artifact_dir.join("normalized.vcf.gz.tbi")
-    };
-    atomic_write_bytes(&index_path, b"deterministic-index-placeholder\n")?;
+    let index_path = crate::vcf_io::vcf_index_bgzip_tabix(&normalized_plain, &normalized_input)?;
+    let _ = std::fs::remove_file(&normalized_plain);
 
     let regime = detect_regime(&records);
     summary.checked.push("input_regime_detection".to_string());
@@ -486,7 +482,7 @@ pub fn run_vcf_preflight(
         bail!("vcf.validate_inputs refusal: overlap below configured threshold");
     }
 
-    let invariants_json = artifact_dir.join("invariants.json");
+    let invariants_json = artifact_dir.join("vcf_invariants.json");
     atomic_write_json(
         &invariants_json,
         &serde_json::json!({

@@ -20,6 +20,7 @@
 pub mod engine;
 pub mod invariants;
 pub mod metrics;
+pub mod path_contract;
 pub mod pipeline;
 pub mod stage_specs;
 pub mod vcf_io;

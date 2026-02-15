@@ -155,7 +155,11 @@ fn write_sidecars(
     argv: &[String],
     tmp_dir: &Path,
 ) -> Result<()> {
-    atomic_write_bytes(&out_dir.join("command.txt"), argv.join("\n").as_bytes())?;
+    let contract = VcfPathContract::for_stage(out_dir, "stage_output");
+    let chunk_logs_dir = contract.chunk_logs_dir(stage.as_str(), "chunk-000");
+    bijux_dna_infra::ensure_dir(&chunk_logs_dir)?;
+    let command_payload = argv.join("\n");
+    atomic_write_bytes(&out_dir.join("command.txt"), command_payload.as_bytes())?;
     atomic_write_bytes(
         &out_dir.join("env.txt"),
         format!(
@@ -168,6 +172,12 @@ fn write_sidecars(
     )?;
     atomic_write_bytes(&out_dir.join("stdout.log"), b"captured-by-dispatch-runner\n")?;
     atomic_write_bytes(&out_dir.join("stderr.log"), b"")?;
+    atomic_write_bytes(&chunk_logs_dir.join("command.txt"), command_payload.as_bytes())?;
+    atomic_write_bytes(
+        &chunk_logs_dir.join("stdout.log"),
+        b"captured-by-dispatch-runner\n",
+    )?;
+    atomic_write_bytes(&chunk_logs_dir.join("stderr.log"), b"")?;
     Ok(())
 }
 

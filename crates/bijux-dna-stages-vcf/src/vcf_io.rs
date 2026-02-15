@@ -233,6 +233,7 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 /// Returns an error if bgzip/tabix indexing fails.
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
     let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
+    let tmp_vcfgz = PathBuf::from(format!("{}.tmp", output_vcfgz.display()));
     let bgzip_output = Command::new("bgzip")
         .args(["-c", &input_vcf.display().to_string()])
         .output()
@@ -243,20 +244,23 @@ pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<Pa
             String::from_utf8_lossy(&bgzip_output.stderr)
         );
     }
-    bijux_dna_infra::atomic_write_bytes(output_vcfgz, &bgzip_output.stdout)?;
+    bijux_dna_infra::atomic_write_bytes(&tmp_vcfgz, &bgzip_output.stdout)?;
     let tabix_args = vec![
         "-f".to_string(),
         "-p".to_string(),
         "vcf".to_string(),
-        output_vcfgz.display().to_string(),
+        tmp_vcfgz.display().to_string(),
     ];
     let _ = run_cmd("tabix", &tabix_args)?;
-    if !output_tbi.exists() {
+    let tmp_tbi = PathBuf::from(format!("{}.tbi", tmp_vcfgz.display()));
+    if !tmp_tbi.exists() {
         bail!(
             "vcf_index_bgzip_tabix: tabix did not create {}",
-            output_tbi.display()
+            tmp_tbi.display()
         );
     }
+    std::fs::rename(&tmp_vcfgz, output_vcfgz)?;
+    std::fs::rename(&tmp_tbi, &output_tbi)?;
     Ok(output_tbi)
 }
 
@@ -312,28 +316,43 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
     if inputs.is_empty() {
         bail!("vcf_concat: no inputs");
     }
+    let mut sorted_inputs = inputs.to_vec();
+    sorted_inputs.sort_by_cached_key(|path| {
+        let region_key = path
+            .file_stem()
+            .and_then(|x| x.to_str())
+            .map(ToString::to_string)
+            .unwrap_or_else(|| path.display().to_string());
+        (region_key, path.display().to_string())
+    });
+    let output_tmp = PathBuf::from(format!("{}.tmp", output_vcfgz.display()));
     let mut args = vec![
         "concat".to_string(),
         "-a".to_string(),
+        "--threads".to_string(),
+        "1".to_string(),
         "-Oz".to_string(),
         "-o".to_string(),
-        output_vcfgz.display().to_string(),
+        output_tmp.display().to_string(),
     ];
-    args.extend(inputs.iter().map(|p| p.display().to_string()));
+    args.extend(sorted_inputs.iter().map(|p| p.display().to_string()));
     let _ = run_cmd("bcftools", &args)?;
     let out_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
+    let out_tmp_tbi = PathBuf::from(format!("{}.tbi", output_tmp.display()));
     let _ = run_cmd(
         "tabix",
         &[
             "-f".to_string(),
             "-p".to_string(),
             "vcf".to_string(),
-            output_vcfgz.display().to_string(),
+            output_tmp.display().to_string(),
         ],
     )?;
-    if !out_tbi.exists() {
-        bail!("vcf_concat: missing output index {}", out_tbi.display());
+    if !out_tmp_tbi.exists() {
+        bail!("vcf_concat: missing output index {}", out_tmp_tbi.display());
     }
+    std::fs::rename(&output_tmp, output_vcfgz)?;
+    std::fs::rename(&out_tmp_tbi, &out_tbi)?;
     let output_contigs = run_cmd(
         "bcftools",
         &[
@@ -349,7 +368,7 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
     .map(ToString::to_string)
     .collect::<BTreeSet<_>>();
     let mut expected_contigs = BTreeSet::new();
-    for input in inputs {
+    for input in &sorted_inputs {
         let contigs = run_cmd(
             "bcftools",
             &[

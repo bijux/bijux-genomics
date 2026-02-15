@@ -117,6 +117,13 @@
             .find(|s| s.stage_id == "vcf.qc")
             .unwrap_or_else(|| panic!("missing qc stage"));
         assert!(stage.artifact_dir.join("qc_summary.json").exists());
+        let chunk_logs = stage
+            .artifact_dir
+            .join("logs")
+            .join("vcf.qc")
+            .join("chunk-000");
+        assert!(chunk_logs.join("stdout.log").exists());
+        assert!(chunk_logs.join("stderr.log").exists());
     }
 
     #[test]
@@ -164,6 +171,8 @@
         assert!(out.index_path.exists());
         assert!(out.invariants_json.exists());
         assert!(out.overlap_json.exists());
+        assert!(out.index_path.ends_with("normalized.vcf.gz.tbi"));
+        assert!(out.invariants_json.ends_with("vcf_invariants.json"));
         assert!(matches!(
             out.regime.regime,
             InputRegime::GtOnly | InputRegime::Mixed | InputRegime::GlOnly
