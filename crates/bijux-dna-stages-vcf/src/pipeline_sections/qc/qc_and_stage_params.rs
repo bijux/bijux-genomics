@@ -11,6 +11,8 @@ pub struct QcStageParams {
 pub struct QcStageOutputs {
     pub qc_summary_json: PathBuf,
     pub qc_tables_tsv: PathBuf,
+    pub imputation_qc_tsv: PathBuf,
+    pub warnings_json: PathBuf,
     pub qc_histograms_json: PathBuf,
 }
 
@@ -183,6 +185,7 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
         }
     }
     let qc_tables_tsv = out_dir.join("qc_tables.tsv");
+    let imputation_qc_tsv = out_dir.join("imputation_qc.tsv");
     let mut table = String::from("metric\tvalue\n");
     table.push_str(&format!("sample_name\t{}\n", params.sample_name));
     table.push_str(&format!("variants\t{variants}\n"));
@@ -200,6 +203,15 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
         if params.is_ancient_dna { "skipped_ancient_default" } else { "computed_modern" }
     ));
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
+    atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
+    let warnings_json = out_dir.join("warnings.json");
+    atomic_write_json(
+        &warnings_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.qc_warnings.v1",
+            "warnings": Vec::<String>::new(),
+        }),
+    )?;
     let qc_histograms_json = out_dir.join("qc_histograms.json");
     atomic_write_json(
         &qc_histograms_json,
@@ -232,6 +244,8 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     Ok(QcStageOutputs {
         qc_summary_json,
         qc_tables_tsv,
+        imputation_qc_tsv,
+        warnings_json,
         qc_histograms_json,
     })
 }

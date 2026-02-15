@@ -32,6 +32,8 @@
         .unwrap_or_else(|err| panic!("run qc stage: {err}"));
         assert!(out.qc_summary_json.exists());
         assert!(out.qc_tables_tsv.exists());
+        assert!(out.imputation_qc_tsv.exists());
+        assert!(out.warnings_json.exists());
         assert!(out.qc_histograms_json.exists());
     }
 
@@ -117,6 +119,8 @@
             .find(|s| s.stage_id == "vcf.qc")
             .unwrap_or_else(|| panic!("missing qc stage"));
         assert!(stage.artifact_dir.join("qc_summary.json").exists());
+        assert!(stage.artifact_dir.join("imputation_qc.tsv").exists());
+        assert!(stage.artifact_dir.join("warnings.json").exists());
         let chunk_logs = stage
             .artifact_dir
             .join("logs")

@@ -257,7 +257,13 @@ impl VcfStageRunner for DispatchRunner {
                     let (code, hint) = map_runner_error(&err.to_string());
                     refusal(code, hint)
                 })?;
-                artifacts.extend([out.qc_summary_json, out.qc_tables_tsv, out.qc_histograms_json]);
+                artifacts.extend([
+                    out.qc_summary_json,
+                    out.qc_tables_tsv,
+                    out.imputation_qc_tsv,
+                    out.warnings_json,
+                    out.qc_histograms_json,
+                ]);
             }
             VcfDomainStage::PrepareReferencePanel => {
                 let params = ctx
