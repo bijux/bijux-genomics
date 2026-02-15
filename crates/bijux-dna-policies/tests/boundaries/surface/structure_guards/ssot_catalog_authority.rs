@@ -30,7 +30,8 @@ fn policy__boundaries__ssot_catalog_authority__ssot_catalog_authority() {
             continue;
         }
         if path_str.contains("/crates/bijux-dna-api/src/runtime/execution_kernel.rs")
-            || path_str.contains("/crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_contracts.rs")
+            || path_str
+                .contains("/crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_contracts.rs")
         {
             continue;
         }

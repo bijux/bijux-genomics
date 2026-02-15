@@ -28,6 +28,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-runtime"
                 || dep == "bijux-dna-stage-contract"
                 || dep == "bijux-dna-stages-vcf"
+                || dep == "bijux-dna-planner-vcf"
                 || dep == "bijux-dna-policies",
             "cli must not depend on workspace crate {dep}"
         );
@@ -52,6 +53,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                     || dep == "bijux-dna-runtime"
                     || dep == "bijux-dna-stage-contract"
                     || dep == "bijux-dna-stages-vcf"
+                    || dep == "bijux-dna-planner-vcf"
                     || dep == "bijux-dna-policies",
                 "bijux-dna must not depend on workspace crate {dep}"
             );

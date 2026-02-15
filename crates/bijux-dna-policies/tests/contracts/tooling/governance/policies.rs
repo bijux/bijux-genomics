@@ -251,8 +251,7 @@ fn policy__contracts__policies__policy_test_names_are_consistent() {
             if awaiting_fn {
                 if let Some(rest) = trimmed.strip_prefix("fn ") {
                     if let Some(name) = rest.split(['(', ' ']).next() {
-                        let normalized_name =
-                            name.strip_prefix("slow__").unwrap_or(name);
+                        let normalized_name = name.strip_prefix("slow__").unwrap_or(name);
                         if !normalized_name.starts_with(&expected_prefix) {
                             offenders.push(format!(
                                 "{}: expected prefix {} but found {}",
