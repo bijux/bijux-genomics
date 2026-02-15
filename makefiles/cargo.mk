@@ -151,6 +151,7 @@ _doctor:
 	@./scripts/run.sh checks check-runtime-profiles-contract
 	@./scripts/run.sh checks check-logging-contract
 	@./scripts/run.sh checks check-hpc-rsync-docs-parity
+	@./scripts/run.sh checks check-run-directory-layout
 	@./scripts/run.sh checks check-registry-required-tools-parity
 	@./scripts/run.sh checks check-domain-tool-parity
 	@./scripts/run.sh checks check-stage-domain-parity
@@ -294,6 +295,10 @@ _smoke-fastq: ## Quick local FASTQ smoke dry-run.
 _smoke-bam: ## Quick local BAM smoke dry-run.
 	@./scripts/run.sh smoke run bam
 
+local-certification-gate: ## Run local mini-domain certification suite and emit bundle.
+	@./bin/require-isolate >/dev/null
+	@./scripts/run.sh tooling certification-gate
+
 examples-validate:
 	@$(MAKE) _examples-validate
 
@@ -324,7 +329,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_clippy _lint _lint-scripts _lint-clippy \
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
-		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam _test-slow _policy-index _policy-only-fast-gate \
+		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
 		refresh-assets-toy refresh-assets-golden
 release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
 	@./bin/require-isolate >/dev/null
