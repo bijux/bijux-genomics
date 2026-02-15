@@ -184,6 +184,20 @@
         assert!(dip.call_metrics_json.exists());
         assert!(dip.call_manifest_json.exists());
 
+        let dip_gatk = run_call_diploid_stage(
+            input,
+            &dir.path().join("diploid_gatk"),
+            &bijux_dna_domain_vcf::params::VcfCallParams {
+                caller: "gatk".to_string(),
+                sample_name: "sample1".to_string(),
+                ..bijux_dna_domain_vcf::params::VcfCallParams::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("diploid call stage with gatk caller contract: {err}"));
+        assert!(dip_gatk.called_vcf.exists());
+        assert!(dip_gatk.called_tbi.exists());
+        assert!(dip_gatk.call_manifest_json.exists());
+
         let pseudo = run_call_pseudohaploid_stage(input, &dir.path().join("pseudo"), &params)
             .unwrap_or_else(|err| panic!("pseudo call stage: {err}"));
         assert!(pseudo.called_vcf.exists());
