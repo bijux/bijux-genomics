@@ -4,6 +4,7 @@
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let runner_contract = match request.runner {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
+        bijux_dna_environment::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
         other => {
             return Err(anyhow!(
                 "runner {other} not supported for execute_run stage coverage"
@@ -233,8 +234,9 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         runner: request.runner,
         context,
         timeout: None,
+        mode: crate::execution_kernel::ToolExecMode::Execute,
     };
-    let invocation_result = match crate::execution_kernel::invoke_tool(&invocation_request) {
+    let invocation_result = match crate::execution_kernel::ToolExec::invoke(&invocation_request) {
         Ok(result) => result,
         Err(err) => {
             let fail_code = if err

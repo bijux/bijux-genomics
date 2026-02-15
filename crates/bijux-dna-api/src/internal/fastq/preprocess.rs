@@ -735,7 +735,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
         let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
-        let invocation = execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+        let invocation = execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
             step: planned.clone(),
             runner: platform.runner,
             context: execution_kernel::ToolContext {
@@ -757,6 +757,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 network_policy: NetworkPolicy::Allow,
             },
             timeout: None,
+            mode: execution_kernel::ToolExecMode::Execute,
         });
         stage_span.end();
         let execution = invocation?.stage_result;

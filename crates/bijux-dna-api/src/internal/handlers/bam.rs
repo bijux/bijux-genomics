@@ -144,11 +144,12 @@ pub fn bench_bam_stage(
                     seed: None,
                     network_policy: NetworkPolicy::Allow,
                 };
-                execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+                execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
                     step: step.clone(),
                     runner: RuntimeKind::Docker,
                     context: ctx,
                     timeout: None,
+                    mode: execution_kernel::ToolExecMode::Execute,
                 })?;
             }
             run_dirs.push(run_dir);
