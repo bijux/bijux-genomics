@@ -99,6 +99,19 @@ fn build_apptainer_exec_args(
         "--bind".to_string(),
         output_mount,
     ];
+    if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
+        let out_dir_prefix = format!("{}/", out_dir.display());
+        let workdir_in_container = if workdir.starts_with(&out_dir_prefix) {
+            format!(
+                "/data/output/{}",
+                workdir.trim_start_matches(&out_dir_prefix)
+            )
+        } else {
+            "/data/output".to_string()
+        };
+        args.push("--pwd".to_string());
+        args.push(workdir_in_container);
+    }
     if !network_allowed() {
         match runner {
             RuntimeKind::Apptainer => {
@@ -116,6 +129,29 @@ fn build_apptainer_exec_args(
         ));
     }
     Ok(args)
+}
+
+fn runtime_env_exports() -> Vec<(String, String)> {
+    let mut pairs = Vec::new();
+    for key in [
+        "LC_ALL",
+        "LANG",
+        "TZ",
+        "TMPDIR",
+        "HOME",
+        "XDG_CACHE_HOME",
+        "BIJUX_CACHE_ROOT",
+        "BIJUX_STAGE_THREADS",
+        "BIJUX_STAGE_MEMORY_MB",
+        "BIJUX_COMPRESSION_THREADS",
+        "BIJUX_STAGE_SEED",
+        "BIJUX_UMASK",
+    ] {
+        if let Ok(value) = std::env::var(key) {
+            pairs.push((key.to_string(), value));
+        }
+    }
+    pairs
 }
 
 /// Execute a single step using docker.
@@ -151,6 +187,23 @@ pub fn execute_step(
                 "--name".to_string(),
                 container_name.clone(),
             ];
+            if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
+                let out_dir_prefix = format!("{}/", out_dir.display());
+                let workdir_in_container = if workdir.starts_with(&out_dir_prefix) {
+                    format!(
+                        "/data/output/{}",
+                        workdir.trim_start_matches(&out_dir_prefix)
+                    )
+                } else {
+                    "/data/output".to_string()
+                };
+                args.push("-w".to_string());
+                args.push(workdir_in_container);
+            }
+            for (key, value) in runtime_env_exports() {
+                args.push("-e".to_string());
+                args.push(format!("{key}={value}"));
+            }
             if !network_allowed() {
                 args.push("--network".to_string());
                 args.push("none".to_string());
