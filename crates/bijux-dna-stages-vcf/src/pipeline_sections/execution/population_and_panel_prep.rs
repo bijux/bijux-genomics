@@ -56,6 +56,53 @@ fn parse_sample_population_labels(
     Ok(labels)
 }
 
+fn run_tool(bin: &str, args: &[&str], workdir: Option<&Path>) -> bool {
+    let mut cmd = std::process::Command::new(bin);
+    cmd.args(args);
+    if let Some(dir) = workdir {
+        cmd.current_dir(dir);
+    }
+    cmd.output()
+        .map(|x| x.status.success())
+        .unwrap_or(false)
+}
+
+fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let mut out = String::from("sample");
+    for i in 1..=components {
+        out.push_str(&format!("\tPC{i}"));
+    }
+    out.push('\n');
+    for line in raw.lines() {
+        let cols = line.split_whitespace().collect::<Vec<_>>();
+        if cols.len() < components + 3 {
+            continue;
+        }
+        let sample = cols[1];
+        out.push_str(sample);
+        for idx in 0..components {
+            out.push('\t');
+            out.push_str(cols.get(2 + idx).copied().unwrap_or("0.0"));
+        }
+        out.push('\n');
+    }
+    Some(out)
+}
+
+fn parse_plink2_eigenval(path: &Path) -> Option<String> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let mut out = String::from("component\teigenvalue\n");
+    for (idx, line) in raw.lines().enumerate() {
+        let value = line.trim();
+        if value.is_empty() {
+            continue;
+        }
+        out.push_str(&format!("PC{}\t{}\n", idx + 1, value));
+    }
+    Some(out)
+}
+
 /// # Errors
 /// Returns an error if PCA preprocessing requirements are not satisfied.
 pub fn run_pca_stage(
@@ -106,11 +153,29 @@ pub fn run_pca_stage(
             );
             atomic_write_bytes(&par_file, par_payload.as_bytes())?;
             let par_s = par_file.to_string_lossy().to_string();
-            ("smartpca", try_run_tool("smartpca", &["-p", par_s.as_str()]))
+            let make_bed_ok = run_tool(
+                "plink2",
+                &[
+                    "--vcf",
+                    input_s.as_str(),
+                    "--double-id",
+                    "--allow-extra-chr",
+                    "--make-bed",
+                    "--out",
+                    plink_prefix_s.as_str(),
+                ],
+                None,
+            );
+            let smartpca_ok = if make_bed_ok {
+                run_tool("smartpca", &["-p", par_s.as_str()], Some(out_dir))
+            } else {
+                false
+            };
+            ("smartpca", smartpca_ok)
         }
         _ => (
             "plink2",
-            try_run_tool(
+            run_tool(
                 "plink2",
                 &[
                     "--vcf",
@@ -122,25 +187,51 @@ pub fn run_pca_stage(
                     "--out",
                     plink_prefix_s.as_str(),
                 ],
+                None,
             ),
         ),
     };
-    let mut vec_rows = String::from("sample");
-    for i in 1..=params.components {
-        vec_rows.push_str(&format!("\tPC{i}"));
-    }
-    vec_rows.push('\n');
-    for (idx, s) in samples.iter().enumerate() {
-        vec_rows.push_str(s);
-        for i in 1..=params.components {
-            vec_rows.push_str(&format!("\t{:.6}", ((idx + i) as f64) / 100.0));
+    let plink_eigenvec = out_dir.join("plink_pca.eigenvec");
+    let plink_eigenval = out_dir.join("plink_pca.eigenval");
+    let mut execution_mode = "fallback_proxy";
+    let vec_rows = if tool_ok && plink_eigenvec.exists() {
+        if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
+            execution_mode = "real_tool";
+            parsed
+        } else {
+            String::new()
         }
-        vec_rows.push('\n');
-    }
+    } else {
+        String::new()
+    };
+    let vec_rows = if vec_rows.is_empty() {
+        let mut synthetic = String::from("sample");
+        for i in 1..=params.components {
+            synthetic.push_str(&format!("\tPC{i}"));
+        }
+        synthetic.push('\n');
+        for (idx, s) in samples.iter().enumerate() {
+            synthetic.push_str(s);
+            for i in 1..=params.components {
+                synthetic.push_str(&format!("\t{:.6}", ((idx + i) as f64) / 100.0));
+            }
+            synthetic.push('\n');
+        }
+        synthetic
+    } else {
+        vec_rows
+    };
     atomic_write_bytes(&eigenvec_tsv, vec_rows.as_bytes())?;
-    let mut val_rows = String::from("component\teigenvalue\n");
-    for i in 1..=params.components {
-        val_rows.push_str(&format!("PC{i}\t{:.6}\n", 1.0 / i as f64));
+    let mut val_rows = if tool_ok && plink_eigenval.exists() {
+        parse_plink2_eigenval(&plink_eigenval).unwrap_or_default()
+    } else {
+        String::new()
+    };
+    if val_rows.is_empty() {
+        val_rows = String::from("component\teigenvalue\n");
+        for i in 1..=params.components {
+            val_rows.push_str(&format!("PC{i}\t{:.6}\n", 1.0 / i as f64));
+        }
     }
     atomic_write_bytes(&eigenval_tsv, val_rows.as_bytes())?;
     atomic_write_json(
@@ -148,6 +239,7 @@ pub fn run_pca_stage(
         &serde_json::json!({
             "schema_version": "bijux.vcf.pca.v1",
             "toolchain": tool_id,
+            "execution_mode": execution_mode,
             "components": params.components,
             "ld_pruning_policy": ld_policy,
             "plot_references": {
@@ -173,7 +265,7 @@ pub fn run_pca_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={tool_id}\nvariants_passing={passing}\nld_pruning_policy={ld_policy}\ntool_success={tool_ok}\n",
+            "toolchain={tool_id}\nexecution_mode={execution_mode}\nvariants_passing={passing}\nld_pruning_policy={ld_policy}\ntool_success={tool_ok}\n",
         )
         .as_bytes(),
     )?;
@@ -299,6 +391,12 @@ pub fn run_population_structure_stage(
                         acc
                     }),
             },
+            "metrics": {
+                "sample_count": labels.len(),
+                "population_count": labels.values().collect::<std::collections::BTreeSet<_>>().len(),
+                "variants_passing_after_pruning": passing.len(),
+                "admixture_enabled": params.run_admixture
+            },
             "tool_attempts": {
                 "plink2_prune": plink_prune_ok,
                 "smartpca": params.smartpca
@@ -379,9 +477,31 @@ pub fn run_admixture_stage(
     let prefix = out_dir.join("admixture_plink");
     let prefix_s = prefix.to_string_lossy().to_string();
     let tool_ok = if tool == "admixture" {
-        try_run_tool("admixture", &["--help"])
+        let make_bed_ok = run_tool(
+            "plink2",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--double-id",
+                "--allow-extra-chr",
+                "--make-bed",
+                "--out",
+                prefix_s.as_str(),
+            ],
+            None,
+        );
+        if !make_bed_ok {
+            false
+        } else {
+            let bed = format!("{prefix_s}.bed");
+            run_tool(
+                "admixture",
+                &[bed.as_str(), &selected_k.to_string()],
+                Some(out_dir),
+            )
+        }
     } else {
-        try_run_tool(
+        run_tool(
             "plink2",
             &[
                 "--vcf",
@@ -393,6 +513,7 @@ pub fn run_admixture_stage(
                 "--out",
                 prefix_s.as_str(),
             ],
+            None,
         )
     };
     let q_matrix_tsv = out_dir.join("admixture_q_matrix.tsv");
@@ -409,17 +530,36 @@ pub fn run_admixture_stage(
         .take(selected_k.max(1))
         .cloned()
         .collect::<Vec<_>>();
-    let mut q_tsv = format!("sample\t{}\n", clusters.join("\t"));
-    for sample in &samples {
-        let label = labels
-            .get(sample)
-            .ok_or_else(|| anyhow!("vcf.admixture refusal: missing label for sample `{sample}`"))?;
-        q_tsv.push_str(sample);
-        for cluster in &clusters {
-            let score = if cluster == label { 1.0 } else { 0.0 };
-            q_tsv.push_str(&format!("\t{score:.6}"));
+    let mut execution_mode = "fallback_proxy";
+    let mut q_tsv = String::new();
+    if tool == "admixture" && tool_ok {
+        let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
+        if let Ok(q_raw) = std::fs::read_to_string(&q_path) {
+            execution_mode = "real_tool";
+            q_tsv = format!("sample\t{}\n", (1..=selected_k).map(|k| format!("Q{k}")).collect::<Vec<_>>().join("\t"));
+            for (sample, row) in samples.iter().zip(q_raw.lines()) {
+                q_tsv.push_str(sample);
+                for value in row.split_whitespace() {
+                    q_tsv.push('\t');
+                    q_tsv.push_str(value);
+                }
+                q_tsv.push('\n');
+            }
         }
-        q_tsv.push('\n');
+    }
+    if q_tsv.is_empty() {
+        q_tsv = format!("sample\t{}\n", clusters.join("\t"));
+        for sample in &samples {
+            let label = labels
+                .get(sample)
+                .ok_or_else(|| anyhow!("vcf.admixture refusal: missing label for sample `{sample}`"))?;
+            q_tsv.push_str(sample);
+            for cluster in &clusters {
+                let score = if cluster == label { 1.0 } else { 0.0 };
+                q_tsv.push_str(&format!("\t{score:.6}"));
+            }
+            q_tsv.push('\n');
+        }
     }
     atomic_write_bytes(&q_matrix_tsv, q_tsv.as_bytes())?;
     atomic_write_json(
@@ -427,6 +567,7 @@ pub fn run_admixture_stage(
         &serde_json::json!({
             "schema_version": "bijux.vcf.admixture.v1",
             "toolchain": if tool == "admixture" { "admixture" } else { "plink2_proxy" },
+            "execution_mode": execution_mode,
             "k_values": params.k_values,
             "selected_k": selected_k,
             "tool_ok": tool_ok,
@@ -435,7 +576,7 @@ pub fn run_admixture_stage(
     )?;
     atomic_write_bytes(
         &logs_txt,
-        format!("toolchain={tool}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
+        format!("toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
     )?;
     Ok(AdmixtureStageOutputs {
         q_matrix_tsv,
