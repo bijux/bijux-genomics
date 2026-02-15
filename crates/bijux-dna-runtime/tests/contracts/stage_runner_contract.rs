@@ -17,13 +17,11 @@ fn docker_runner_contract_covers_core_domains() {
 
 #[test]
 fn docker_runner_contract_rejects_unknown_stage_prefixes() {
-    let err = match ensure_stage_supported_by_runner(
-        RunnerContractKind::Docker,
-        "toy.unknown_stage",
-    ) {
-        Ok(()) => panic!("unknown stage prefix must fail fast"),
-        Err(err) => err,
-    };
+    let err =
+        match ensure_stage_supported_by_runner(RunnerContractKind::Docker, "toy.unknown_stage") {
+            Ok(()) => panic!("unknown stage prefix must fail fast"),
+            Err(err) => err,
+        };
     assert!(
         err.to_string().contains("no stage-runner contract"),
         "unexpected error: {err}"

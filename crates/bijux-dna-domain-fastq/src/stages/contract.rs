@@ -449,8 +449,7 @@ pub fn normalize_outputs(
             })
         }
         FastqArtifactKind::StatsOnly
-        |
-        FastqArtifactKind::AmpliconTable
+        | FastqArtifactKind::AmpliconTable
         | FastqArtifactKind::RepresentativeFasta
         | FastqArtifactKind::TaxonomyMapping => Ok(NormalizedOutputs {
             r1: None,
