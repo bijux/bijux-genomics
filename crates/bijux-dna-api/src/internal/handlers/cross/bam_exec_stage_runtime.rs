@@ -9,6 +9,7 @@ pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     let bam_path = PathBuf::from(&boundary.bam_path);
     let bai_path = boundary.bai_path.as_ref().map(PathBuf::from);
     let reference = boundary.reference.as_ref().map(PathBuf::from);
+    let rg_policy_override = boundary.rg_policy.as_deref();
 
     let mut runs = Vec::new();
     for stage_id in bijux_dna_planner_bam::pipeline_id_catalog(profile.id.as_str()) {
@@ -25,6 +26,7 @@ pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
             &bam_path,
             bai_path.as_ref(),
             reference.as_ref(),
+            rg_policy_override,
             out_dir,
         )?;
         runs.push(summary);
@@ -618,9 +620,10 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     bam_path: &Path,
     bai_path: Option<&PathBuf>,
     reference: Option<&PathBuf>,
+    rg_policy_override: Option<&str>,
     out_dir: &Path,
 ) -> Result<StageExecutionSummary> {
-    enforce_stage_refusal_rules(stage, bam_path, bai_path, reference)?;
+    enforce_stage_refusal_rules(stage, bam_path, bai_path, reference, rg_policy_override)?;
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Recalibration
         && profile.id.as_str().to_ascii_lowercase().contains("adna")
     {

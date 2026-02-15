@@ -114,6 +114,7 @@ fn enforce_stage_refusal_rules(
     bam_path: &Path,
     bai_path: Option<&PathBuf>,
     reference: Option<&PathBuf>,
+    rg_policy_override: Option<&str>,
 ) -> Result<()> {
     if !bam_path.exists() {
         return Err(anyhow!(
@@ -164,7 +165,13 @@ fn enforce_stage_refusal_rules(
             .to_ascii_lowercase()
             .contains("requires_read_groups")
     });
-    if rg_required && read_group_presence_hint(bam_path) == "absent" {
+    let missing_rg_allowed = rg_policy_override.is_some_and(|policy| {
+        matches!(
+            policy.to_ascii_lowercase().as_str(),
+            "allow_missing" | "allow_missing_if_unavailable" | "allow-missing"
+        )
+    });
+    if rg_required && !missing_rg_allowed && read_group_presence_hint(bam_path) == "absent" {
         return Err(anyhow!(
             "{} refusal: missing read groups in BAM header; set explicit rg_policy override if intentional",
             stage.as_str()
@@ -309,6 +316,13 @@ fn validate_stage_hard_failures(
         .find(|input| input.path.extension().and_then(|s| s.to_str()) == Some("bam"))
         .map(|input| input.path.as_path())
     {
+        let inferred_index = PathBuf::from(format!("{}.bai", input_bam.display()));
+        if !inferred_index.exists() {
+            return Err(anyhow!(
+                "bam.validate hard failure: missing BAM index {}",
+                inferred_index.display()
+            ));
+        }
         if let Some(sort_order) = parse_sort_order_from_header_hint(input_bam) {
             if sort_order != expected_sorting {
                 return Err(anyhow!(

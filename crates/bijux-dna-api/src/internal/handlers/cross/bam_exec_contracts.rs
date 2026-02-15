@@ -149,6 +149,7 @@ mod tests {
             &bam,
             None,
             None,
+            None,
         ) else {
             panic!("align must require reference");
         };
@@ -166,6 +167,7 @@ mod tests {
             &bam,
             Some(&temp.path().join("x.bam.bai")),
             Some(&ref_fa),
+            None,
         ) else {
             panic!("sex must require X/Y contigs");
         };
@@ -188,9 +190,51 @@ mod tests {
             &bam,
             Some(&bai),
             Some(&ref_fa),
+            None,
         )
         .expect_err("contamination must fail when mt contig is absent");
         assert!(err.to_string().contains("lacks MT/chrMT contig"));
+        Ok(())
+    }
+
+    #[test]
+    fn refusal_rules_allow_missing_read_groups_when_policy_override_set() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("x.bam");
+        let bai = temp.path().join("x.bam.bai");
+        let ref_fa = temp.path().join("ref.fa");
+        let ref_fai = temp.path().join("ref.fa.fai");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n")?;
+        std::fs::write(&bai, b"bai")?;
+        std::fs::write(&ref_fa, b">chr1\nACGT\n>chrX\nACGT\n>chrY\nACGT\n>chrM\nACGT\n")?;
+        std::fs::write(&ref_fai, b"chr1\t4\t0\t4\t5\nchrX\t4\t10\t4\t5\nchrY\t4\t20\t4\t5\nchrM\t4\t30\t4\t5\n")?;
+
+        enforce_stage_refusal_rules(
+            bijux_dna_planner_bam::stage_api::BamStage::Validate,
+            &bam,
+            Some(&bai),
+            Some(&ref_fa),
+            Some("allow_missing"),
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn validate_stage_hard_fails_without_bam_index() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("validate");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        std::fs::write(
+            stage_dir.join("flagstat.txt"),
+            b"10 + 0 in total (QC-passed reads + QC-failed reads)\n",
+        )?;
+        let bam = temp.path().join("input.bam");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:4\n")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
+        plan.io.inputs[0].path = bam.clone();
+        let err = validate_stage_hard_failures(&stage_dir, &plan)
+            .expect_err("validate should fail when .bai is missing");
+        assert!(err.to_string().contains("missing BAM index"));
         Ok(())
     }
 
