@@ -1,6 +1,7 @@
 //! Downstream tool adapter implementations for BAM pipelines.
 
 pub mod authenticity;
+pub mod authenticity_signal;
 pub mod angsd_sex;
 pub mod contammix;
 pub mod gatk;

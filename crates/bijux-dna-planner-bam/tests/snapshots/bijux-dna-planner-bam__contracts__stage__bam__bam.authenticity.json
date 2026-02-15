@@ -8,7 +8,11 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "authenticity_tool --input tests/fixtures/plan_inputs/default/sample.bam --mode aggregate > out/authenticity.json && python - <<'PY' > out/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"authenticity_tool\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
+    ]
   },
   "resources": {
     "runtime": "docker",

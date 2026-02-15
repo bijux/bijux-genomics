@@ -130,7 +130,9 @@ pub mod authenticity {
                 &summary,
                 params,
             ),
-            _ => tool.command.template.clone(),
+            _ => crate::tool_adapters::tools::authenticity_signal::args_with_outputs(
+                bam, &report, &summary, params,
+            ),
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
