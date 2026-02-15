@@ -233,6 +233,79 @@ fn run_bcftools_mpileup_call(
     Ok(())
 }
 
+fn try_run_angsd_gl_from_bam(input_bam: &Path, out_dir: &Path, params: &VcfCallParams) -> Result<bool> {
+    ensure_bam_prerequisites(input_bam, params)?;
+    let reference = params
+        .reference_fasta
+        .as_deref()
+        .ok_or_else(|| anyhow!("call stage BAM flow requires reference_fasta"))?;
+    let min_map_q = params.min_mapping_quality.to_string();
+    let min_base_q = params.min_base_quality.to_string();
+    let out_prefix = out_dir.join("angsd_gl");
+    let out_prefix_s = out_prefix
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 angsd output prefix"))?;
+    let input_bam_s = input_bam
+        .to_str()
+        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let args = [
+        "-i",
+        input_bam_s,
+        "-ref",
+        reference,
+        "-GL",
+        "2",
+        "-doGlf",
+        "2",
+        "-doMajorMinor",
+        "1",
+        "-doMaf",
+        "1",
+        "-minMapQ",
+        min_map_q.as_str(),
+        "-minQ",
+        min_base_q.as_str(),
+        "-out",
+        out_prefix_s,
+    ];
+    let output = std::process::Command::new("angsd").args(args).output();
+    let log_path = out_dir.join("angsd_call_gl.log");
+    match output {
+        Ok(result) if result.status.success() => {
+            let mut log = String::from("status=ok\n");
+            if !result.stdout.is_empty() {
+                log.push_str("stdout:\n");
+                log.push_str(&String::from_utf8_lossy(&result.stdout));
+                log.push('\n');
+            }
+            if !result.stderr.is_empty() {
+                log.push_str("stderr:\n");
+                log.push_str(&String::from_utf8_lossy(&result.stderr));
+                log.push('\n');
+            }
+            atomic_write_bytes(&log_path, log.as_bytes())?;
+            Ok(true)
+        }
+        Ok(result) => {
+            let mut log = format!("status=failed\nexit={}\n", result.status);
+            if !result.stderr.is_empty() {
+                log.push_str("stderr:\n");
+                log.push_str(&String::from_utf8_lossy(&result.stderr));
+                log.push('\n');
+            }
+            atomic_write_bytes(&log_path, log.as_bytes())?;
+            Ok(false)
+        }
+        Err(err) => {
+            atomic_write_bytes(
+                &log_path,
+                format!("status=missing_or_failed_to_launch\nerror={err}\n").as_bytes(),
+            )?;
+            Ok(false)
+        }
+    }
+}
+
 fn write_vcf_with_best_effort_index(
     out_vcf: &Path,
     payload: &str,
@@ -408,6 +481,9 @@ pub fn run_call_gl_from_bam_stage(
         bail!("vcf.call_gl (bam flow) requires caller=angsd|bcftools");
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
+    if params.caller == "angsd" {
+        let _ = try_run_angsd_gl_from_bam(input_bam, out_dir, params)?;
+    }
     let out_vcf = out_dir.join("called_gl.vcf.gz");
     run_bcftools_mpileup_call(input_bam, &out_vcf, params, true)?;
     write_call_outputs(out_dir, CallStageKind::Gl, input_bam, &out_vcf, params)
