@@ -162,6 +162,7 @@ _doctor:
 	@./scripts/run.sh checks check-registry-required-tools-parity
 	@./scripts/run.sh checks check-domain-tool-parity
 	@./scripts/run.sh checks check-stage-domain-parity
+	@./scripts/run.sh checks check-stage-registry-governance
 	@./scripts/run.sh checks check-param-registry-completeness
 	@./scripts/run.sh checks check-deprecations-enforcement
 	@./scripts/run.sh checks check-no-raw-cargo-in-makefiles

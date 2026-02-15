@@ -1707,6 +1707,14 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
+id = "check_stage_registry_governance"
+path = "scripts/checks/check-stage-registry-governance.sh"
+purpose = "checks script"
+inputs = []
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
+
+[[script]]
 id = "check_param_registry_completeness"
 path = "scripts/checks/check-param-registry-completeness.sh"
 purpose = "checks script"
