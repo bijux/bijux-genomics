@@ -683,13 +683,34 @@ pub fn run_prepare_reference_panel_stage(
     }
     let panel_total: u64 = panel_by_chr.values().sum();
     let overlap_total: u64 = overlap_by_chr.values().sum();
+    let mismatch_total: u64 = mismatch_by_chr.values().sum();
     let overlap_fraction = if panel_total == 0 {
         0.0
     } else {
         overlap_total as f64 / panel_total as f64
     };
-    if panel_total > 0 && overlap_fraction < 0.05 {
-        bail!("prepare_reference_panel refusal: too few overlapping sites with target VCF");
+    let mismatch_fraction = if panel_total == 0 {
+        0.0
+    } else {
+        mismatch_total as f64 / panel_total as f64
+    };
+    let overlap_min = std::env::var("BIJUX_VCF_PANEL_OVERLAP_MIN")
+        .ok()
+        .and_then(|v| v.parse::<f64>().ok())
+        .unwrap_or(0.05);
+    let mismatch_max = std::env::var("BIJUX_VCF_PANEL_MISMATCH_MAX")
+        .ok()
+        .and_then(|v| v.parse::<f64>().ok())
+        .unwrap_or(0.10);
+    if panel_total > 0 && overlap_fraction < overlap_min {
+        bail!(
+            "prepare_reference_panel refusal: too few overlapping sites with target VCF (observed={overlap_fraction:.4}, min={overlap_min:.4})"
+        );
+    }
+    if panel_total > 0 && mismatch_fraction > mismatch_max {
+        bail!(
+            "prepare_reference_panel refusal: allele mismatch fraction above threshold (observed={mismatch_fraction:.4}, max={mismatch_max:.4})"
+        );
     }
 
     bijux_dna_infra::ensure_dir(out_dir)?;
@@ -893,8 +914,9 @@ pub fn run_prepare_reference_panel_stage(
         "global": {
             "panel_sites": panel_total,
             "overlap_sites": overlap_total,
-            "allele_mismatch_count": mismatch_by_chr.values().sum::<u64>(),
+            "allele_mismatch_count": mismatch_total,
             "overlap_fraction": overlap_fraction,
+            "allele_mismatch_fraction": mismatch_fraction,
         },
         "per_chr": per_chr,
         "per_region": per_region,
