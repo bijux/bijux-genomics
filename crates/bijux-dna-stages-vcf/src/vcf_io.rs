@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
@@ -51,6 +52,35 @@ fn parse_key(line: &str) -> Option<(String, u64)> {
     Some((fields.first()?.to_string(), pos))
 }
 
+fn read_vcf_text(path: &Path) -> Result<String> {
+    let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
+    if ext == "gz" || ext == "bcf" {
+        return run_cmd(
+            "bcftools",
+            &["view".to_string(), path.display().to_string()],
+        );
+    }
+    std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
+}
+
+fn query_site_keys(path: &Path) -> Result<BTreeSet<String>> {
+    let rows = run_cmd(
+        "bcftools",
+        &[
+            "query".to_string(),
+            "-f".to_string(),
+            "%CHROM:%POS:%REF:%ALT\n".to_string(),
+            path.display().to_string(),
+        ],
+    )?;
+    Ok(rows
+        .lines()
+        .map(str::trim)
+        .filter(|x| !x.is_empty())
+        .map(ToString::to_string)
+        .collect::<BTreeSet<_>>())
+}
+
 /// # Errors
 /// Returns an error if the VCF input violates required contracts.
 pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfValidationSummary> {
@@ -70,8 +100,7 @@ pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfV
     if !tabix {
         bail!("vcf_validate_input: missing tabix/csi index for {}", input.display());
     }
-    let raw = std::fs::read_to_string(input)
-        .with_context(|| format!("read {} (test fixtures are plain-text .vcf.gz)", input.display()))?;
+    let raw = read_vcf_text(input)?;
     let headers = raw
         .lines()
         .filter(|line| line.starts_with("##"))
@@ -288,6 +317,42 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
     if !out_tbi.exists() {
         bail!("vcf_concat: missing output index {}", out_tbi.display());
     }
+    let output_contigs = run_cmd(
+        "bcftools",
+        &[
+            "query".to_string(),
+            "-f".to_string(),
+            "%CHROM\n".to_string(),
+            output_vcfgz.display().to_string(),
+        ],
+    )?
+    .lines()
+    .map(str::trim)
+    .filter(|x| !x.is_empty())
+    .map(ToString::to_string)
+    .collect::<BTreeSet<_>>();
+    let mut expected_contigs = BTreeSet::new();
+    for input in inputs {
+        let contigs = run_cmd(
+            "bcftools",
+            &[
+                "query".to_string(),
+                "-f".to_string(),
+                "%CHROM\n".to_string(),
+                input.display().to_string(),
+            ],
+        )?;
+        expected_contigs.extend(
+            contigs
+                .lines()
+                .map(str::trim)
+                .filter(|x| !x.is_empty())
+                .map(ToString::to_string),
+        );
+    }
+    if output_contigs != expected_contigs {
+        bail!("vcf_concat: contig coverage mismatch after concat");
+    }
     Ok(out_tbi)
 }
 
@@ -318,6 +383,26 @@ pub fn vcf_region_extract(input_vcfgz: &Path, regions_file: &Path, output_vcfgz:
     )?;
     if !out_tbi.exists() {
         bail!("vcf_region_extract: missing output index");
+    }
+    let expected = run_cmd(
+        "bcftools",
+        &[
+            "query".to_string(),
+            "-R".to_string(),
+            regions_file.display().to_string(),
+            "-f".to_string(),
+            "%CHROM:%POS:%REF:%ALT\n".to_string(),
+            input_vcfgz.display().to_string(),
+        ],
+    )?
+    .lines()
+    .map(str::trim)
+    .filter(|x| !x.is_empty())
+    .map(ToString::to_string)
+    .collect::<BTreeSet<_>>();
+    let observed = query_site_keys(output_vcfgz)?;
+    if observed != expected {
+        bail!("vcf_region_extract: boundary correctness failed (dropped/extra variants)");
     }
     Ok(out_tbi)
 }
@@ -352,7 +437,22 @@ pub fn vcf_checksum_set(paths: &[PathBuf]) -> Result<BTreeMap<String, String>> {
 /// # Errors
 /// Returns an error if species/build and contig contracts fail.
 pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result<()> {
-    let raw = std::fs::read_to_string(input_vcf)?;
+    let raw = read_vcf_text(input_vcf)?;
+    let declared_build = raw.lines().find_map(|line| {
+        if line.starts_with("##reference=") {
+            return Some(line.trim_start_matches("##reference=").trim().to_string());
+        }
+        None
+    });
+    if let Some(build) = declared_build {
+        if build != species.build_id {
+            bail!(
+                "vcf_ref_match_check: build mismatch (declared={}, expected={})",
+                build,
+                species.build_id
+            );
+        }
+    }
     let contigs = raw
         .lines()
         .filter_map(|line| parse_fields(line).and_then(|f| f.first().map(|x| (*x).to_string())))
@@ -371,6 +471,33 @@ pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result
 /// # Errors
 /// Returns an error if overlap computation fails.
 pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde_json::Value> {
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let isec_tmp = std::env::temp_dir().join(format!("bijux-vcf-isec-{stamp}.vcf.gz"));
+    let _ = run_cmd(
+        "bcftools",
+        &[
+            "isec".to_string(),
+            "-n=2".to_string(),
+            "-w1".to_string(),
+            "-Oz".to_string(),
+            "-o".to_string(),
+            isec_tmp.display().to_string(),
+            input_vcfgz.display().to_string(),
+            panel_vcfgz.display().to_string(),
+        ],
+    )?;
+    let shared_rows = run_cmd(
+        "bcftools",
+        &[
+            "query".to_string(),
+            "-f".to_string(),
+            "%CHROM:%POS:%REF:%ALT\n".to_string(),
+            isec_tmp.display().to_string(),
+        ],
+    )?;
     let input = run_cmd(
         "bcftools",
         &[
@@ -391,14 +518,22 @@ pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde
     )?;
     let input_set = input.lines().map(str::to_string).collect::<BTreeSet<_>>();
     let panel_set = panel.lines().map(str::to_string).collect::<BTreeSet<_>>();
-    let shared = input_set.intersection(&panel_set).count() as u64;
-    let per_chr = input_set
-        .intersection(&panel_set)
+    let shared_set = shared_rows
+        .lines()
+        .map(str::trim)
+        .filter(|x| !x.is_empty())
+        .map(ToString::to_string)
+        .collect::<BTreeSet<_>>();
+    let shared = shared_set.len() as u64;
+    let per_chr = shared_set
+        .iter()
         .fold(BTreeMap::<String, u64>::new(), |mut acc, key| {
             let chr = key.split(':').next().unwrap_or_default().to_string();
             *acc.entry(chr).or_insert(0) += 1;
             acc
         });
+    let _ = std::fs::remove_file(&isec_tmp);
+    let _ = std::fs::remove_file(PathBuf::from(format!("{}.tbi", isec_tmp.display())));
     Ok(serde_json::json!({
         "shared_variants_count": shared,
         "input_sites": input_set.len(),
