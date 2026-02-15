@@ -1,6 +1,7 @@
 use bijux_dna::commands::run_with_args;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();

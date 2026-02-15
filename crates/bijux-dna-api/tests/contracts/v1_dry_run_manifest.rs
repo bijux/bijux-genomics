@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{dry_run, execute, DryRunRequest, ExecuteRequest, RuntimeKind};
 use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep, PlanPolicy};
@@ -79,7 +81,7 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
             )],
         },
         out_dir: temp.path().join("out"),
-        aux_images: Default::default(),
+        aux_images: BTreeMap::default(),
         expected_artifact_ids: Vec::new(),
         metrics_schema_ids: Vec::new(),
     };
@@ -91,13 +93,12 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
         Vec::new(),
     )
     .unwrap_or_else(|err| panic!("build graph: {err}"));
-    let err = match execute(&ExecuteRequest {
+    let Err(err) = execute(&ExecuteRequest {
         graph,
         runner: RuntimeKind::Docker,
         run_dir: temp.path().join("run"),
-    }) {
-        Ok(_) => panic!("unknown stage prefix must fail before execution"),
-        Err(err) => err,
+    }) else {
+        panic!("unknown stage prefix must fail before execution");
     };
     assert!(
         err.to_string().contains("no stage-runner contract"),

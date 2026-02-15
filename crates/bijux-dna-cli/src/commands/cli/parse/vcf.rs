@@ -33,6 +33,7 @@ pub struct VcfRunArgs {
 }
 
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum VcfCommand {
     Plan {
         #[arg(long, default_value = "vcf-to-vcf__minimal__v1")]
