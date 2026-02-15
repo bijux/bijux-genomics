@@ -296,6 +296,11 @@
         assert!(out.roh_summary_json.exists());
         assert!(out.roh_metrics_json.exists());
         assert!(dir.path().join("vcf_ready_for_downstream.json").exists());
+        let roh_raw = std::fs::read_to_string(&out.roh_json)
+            .unwrap_or_else(|err| panic!("read roh json: {err}"));
+        let roh_json: serde_json::Value = serde_json::from_str(&roh_raw)
+            .unwrap_or_else(|err| panic!("parse roh json: {err}"));
+        assert!(roh_json.get("execution_mode").is_some());
     }
 
     #[test]
@@ -364,6 +369,11 @@
         assert!(out.ibd_summary_json.exists());
         assert!(out.ibd_metrics_json.exists());
         assert!(dir.path().join("vcf_ready_for_downstream.json").exists());
+        let ibd_summary_raw = std::fs::read_to_string(&out.ibd_summary_json)
+            .unwrap_or_else(|err| panic!("read ibd summary: {err}"));
+        let ibd_summary_json: serde_json::Value = serde_json::from_str(&ibd_summary_raw)
+            .unwrap_or_else(|err| panic!("parse ibd summary: {err}"));
+        assert!(ibd_summary_json.get("execution_mode").is_some());
     }
 
     #[test]
@@ -430,6 +440,18 @@
         assert!(out.ne_trajectory_tsv.exists());
         assert!(out.demography_json.exists());
         assert!(out.demography_metrics_json.exists());
+        let demography_raw = std::fs::read_to_string(&out.demography_json)
+            .unwrap_or_else(|err| panic!("read demography json: {err}"));
+        let demography_json: serde_json::Value = serde_json::from_str(&demography_raw)
+            .unwrap_or_else(|err| panic!("parse demography json: {err}"));
+        assert_eq!(
+            demography_json
+                .get("schema_version")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default(),
+            "bijux.vcf.demography.contract.v1"
+        );
+        assert!(demography_json.get("inference_status").is_some());
     }
 
     #[test]
