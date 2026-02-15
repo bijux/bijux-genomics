@@ -416,6 +416,32 @@ pub fn run_prepare_reference_panel_stage(
     if map.species_id != species_context.species_id || map.build_id != species_context.build_id {
         bail!("map species/build does not match SpeciesContext");
     }
+    let panel_lock = resolve_panel_lock(&panel)?;
+    let map_lock = resolve_map_lock(&map)?;
+    for backend in ["glimpse", "impute5", "minimac4"] {
+        validate_imputation_tool_compatibility(backend, &panel, &map).map_err(|err| {
+            anyhow!(
+                "prepare_reference_panel refusal: panel/map compatibility failed for backend {backend}: {err}"
+            )
+        })?;
+    }
+    if !panel.compatibility.tool_tags.iter().any(|t| t == "beagle") {
+        bail!("prepare_reference_panel refusal: panel {} does not advertise beagle support", panel.id);
+    }
+    if !panel.compatibility.supports_gl_input {
+        bail!("prepare_reference_panel refusal: beagle compatibility requires GL input support");
+    }
+    if !panel.status.eq_ignore_ascii_case("production") {
+        bail!(
+            "prepare_reference_panel refusal: panel {} is not enabled (status={})",
+            panel.id,
+            panel.status
+        );
+    }
+    let required_map_files = map.files.iter().filter(|f| f.required).count();
+    if required_map_files == 0 {
+        bail!("prepare_reference_panel refusal: map {} declares no required files", map.id);
+    }
 
     let panel_parent = panel_vcf
         .parent()
@@ -437,13 +463,39 @@ pub fn run_prepare_reference_panel_stage(
 
     let input_raw = read_vcf_text(input_vcf)?;
     let panel_raw = read_vcf_text(panel_vcf)?;
+    let chunk_plan = plan_regions_deterministic(species_context, &ChunkingPlanParams::default())?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
+    let mut input_locus =
+        std::collections::BTreeMap::<(String, u64), (String, String)>::new();
     let mut panel_by_chr = std::collections::BTreeMap::<String, u64>::new();
     let mut overlap_by_chr = std::collections::BTreeMap::<String, u64>::new();
+    let mut mismatch_by_chr = std::collections::BTreeMap::<String, u64>::new();
+    let mut panel_by_region = std::collections::BTreeMap::<String, u64>::new();
+    let mut overlap_by_region = std::collections::BTreeMap::<String, u64>::new();
+    let mut mismatch_by_region = std::collections::BTreeMap::<String, u64>::new();
+
+    let region_for_pos = |chr: &str, pos: u64| -> String {
+        for c in &chunk_plan {
+            if c.contig == chr && pos >= c.start && pos <= c.end {
+                return c.chunk_id.clone();
+            }
+        }
+        format!("{chr}:unassigned")
+    };
+
     for line in input_raw.lines() {
         if let Some(fields) = parse_record_fields(line) {
             if let Some((_chr, key)) = variant_key(&fields) {
                 input_keys.insert(key);
+            }
+            if let (Some(chr), Some(pos), Some(reference), Some(alt)) =
+                (fields.first(), fields.get(1), fields.get(3), fields.get(4))
+            {
+                let parsed_pos = pos.parse::<u64>().unwrap_or(0);
+                input_locus.insert(
+                    ((*chr).to_string(), parsed_pos),
+                    ((*reference).to_string(), (*alt).to_string()),
+                );
             }
         }
     }
@@ -451,8 +503,22 @@ pub fn run_prepare_reference_panel_stage(
         if let Some(fields) = parse_record_fields(line) {
             if let Some((chr, key)) = variant_key(&fields) {
                 *panel_by_chr.entry(chr.clone()).or_insert(0) += 1;
+                let pos = fields
+                    .get(1)
+                    .and_then(|p| p.parse::<u64>().ok())
+                    .unwrap_or(0);
+                let region_key = region_for_pos(&chr, pos);
+                *panel_by_region.entry(region_key.clone()).or_insert(0) += 1;
                 if input_keys.contains(&key) {
-                    *overlap_by_chr.entry(chr).or_insert(0) += 1;
+                    *overlap_by_chr.entry(chr.clone()).or_insert(0) += 1;
+                    *overlap_by_region.entry(region_key).or_insert(0) += 1;
+                } else if let Some((input_ref, input_alt)) = input_locus.get(&(chr.clone(), pos)) {
+                    let panel_ref = fields.get(3).copied().unwrap_or_default();
+                    let panel_alt = fields.get(4).copied().unwrap_or_default();
+                    if input_ref != panel_ref || input_alt != panel_alt {
+                        *mismatch_by_chr.entry(chr.clone()).or_insert(0) += 1;
+                        *mismatch_by_region.entry(region_key).or_insert(0) += 1;
+                    }
                 }
             }
         }
@@ -470,14 +536,28 @@ pub fn run_prepare_reference_panel_stage(
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let lock_seed = format!(
-        "{}|{}|{}",
-        panel.id, panel.version, panel.build_id
+        "{}|{}|{}|{}|{}",
+        panel.id,
+        panel.version,
+        panel_lock
+            .files
+            .iter()
+            .map(|f| f.checksum_sha256.as_str())
+            .collect::<Vec<_>>()
+            .join(","),
+        map.id,
+        map_lock
+            .files
+            .iter()
+            .map(|f| f.checksum_sha256.as_str())
+            .collect::<Vec<_>>()
+            .join(","),
     );
     let lock_hash = checksum_hex(lock_seed.as_bytes());
     let panel_root = out_dir
         .join("panels")
         .join(panel.id.clone())
-        .join(lock_hash);
+        .join(&lock_hash);
     let local_raw = panel_root.join("raw");
     let local_normalized = panel_root.join("normalized");
     let local_derived = panel_root.join("derived");
@@ -576,30 +656,47 @@ pub fn run_prepare_reference_panel_stage(
         atomic_write_bytes(&minimac_ready, b"true\n")?;
     }
 
+    let panel_checksums = serde_json::json!({
+        "raw_panel_sha256": checksum_hex(&std::fs::read(&local_raw_panel_vcf)?),
+        "prepared_panel_sha256": checksum_hex(&std::fs::read(&prepared_panel_vcf)?),
+        "prepared_panel_tbi_sha256": checksum_hex(&std::fs::read(&prepared_panel_tbi)?),
+    });
     let manifest = serde_json::json!({
         "schema_version": "bijux.vcf.prepare_reference_panel.manifest.v1",
         "species_id": params.species_id,
         "build_id": params.build_id,
         "panel_root": panel_root,
         "source_panel_root": source_panel_root,
+        "lock_hash": lock_hash,
+        "license_pointer": format!("configs/vcf/panels/panels.toml#panel.{}.license", panel.id),
+        "checksums": panel_checksums,
         "panel": {
             "id": panel.id,
             "version": panel.version,
+            "status": panel.status,
+            "license": panel.license,
+            "lock_ref": panel.lock_ref,
             "file_count": panel.files.len(),
+            "lock_files": panel_lock.files,
             "compatibility": panel.compatibility,
         },
         "map": {
             "id": map.id,
             "version": map.version,
+            "status": map.status,
+            "lock_ref": map.lock_ref,
             "file_count": map.files.len(),
+            "lock_files": map_lock.files,
             "compatibility": map.compatibility,
-        }
+        },
+        "contigs": species_context.contigs,
     });
     atomic_write_json(&panel_manifest_json, &manifest)?;
     let per_chr = panel_by_chr
         .iter()
         .map(|(chr, total)| {
             let overlap = *overlap_by_chr.get(chr).unwrap_or(&0);
+            let mismatch = *mismatch_by_chr.get(chr).unwrap_or(&0);
             let frac = if *total == 0 {
                 0.0
             } else {
@@ -609,6 +706,26 @@ pub fn run_prepare_reference_panel_stage(
                 "chr": chr,
                 "panel_sites": total,
                 "overlap_sites": overlap,
+                "allele_mismatch_count": mismatch,
+                "overlap_fraction": frac,
+            })
+        })
+        .collect::<Vec<_>>();
+    let per_region = panel_by_region
+        .iter()
+        .map(|(region, total)| {
+            let overlap = *overlap_by_region.get(region).unwrap_or(&0);
+            let mismatch = *mismatch_by_region.get(region).unwrap_or(&0);
+            let frac = if *total == 0 {
+                0.0
+            } else {
+                overlap as f64 / *total as f64
+            };
+            serde_json::json!({
+                "region": region,
+                "panel_sites": total,
+                "overlap_sites": overlap,
+                "allele_mismatch_count": mismatch,
                 "overlap_fraction": frac,
             })
         })
@@ -618,9 +735,11 @@ pub fn run_prepare_reference_panel_stage(
         "global": {
             "panel_sites": panel_total,
             "overlap_sites": overlap_total,
+            "allele_mismatch_count": mismatch_by_chr.values().sum::<u64>(),
             "overlap_fraction": overlap_fraction,
         },
         "per_chr": per_chr,
+        "per_region": per_region,
     });
     atomic_write_json(&overlap_json, &overlap_payload)?;
     atomic_write_json(&panel_overlap_json, &overlap_payload)?;
@@ -632,19 +751,20 @@ pub fn run_prepare_reference_panel_stage(
         "derived_files": [site_list, chunk_regions],
     });
     atomic_write_json(&panel_files_json, &panel_files_payload)?;
-    let mut tsv = String::from("chr\tpanel_sites\toverlap_sites\toverlap_fraction\n");
+    let mut tsv =
+        String::from("chr\tpanel_sites\toverlap_sites\tallele_mismatch_count\toverlap_fraction\n");
     for (chr, total) in &panel_by_chr {
         let overlap = *overlap_by_chr.get(chr).unwrap_or(&0);
+        let mismatch = *mismatch_by_chr.get(chr).unwrap_or(&0);
         let frac = if *total == 0 {
             0.0
         } else {
             overlap as f64 / *total as f64
         };
-        tsv.push_str(&format!("{chr}\t{total}\t{overlap}\t{frac:.6}\n"));
+        tsv.push_str(&format!("{chr}\t{total}\t{overlap}\t{mismatch}\t{frac:.6}\n"));
     }
     atomic_write_bytes(&overlap_tsv, tsv.as_bytes())?;
 
-    let chunk_plan = plan_regions_deterministic(species_context, &ChunkingPlanParams::default())?;
     let chunk_rows = chunk_plan
         .iter()
         .map(|c| {
