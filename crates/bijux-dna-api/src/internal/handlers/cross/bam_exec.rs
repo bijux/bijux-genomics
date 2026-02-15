@@ -6,8 +6,8 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_environment::resolve::ReferenceRecord;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use bijux_dna_runner::execute::execute_step;
 
+use crate::execution_kernel::{invoke_tool, NetworkPolicy, ToolContext, ToolInvocationRequest};
 use crate::internal::handlers::fastq::StageExecutionSummary;
 use crate::request_args::{BamRunArgs, FastqCrossArgs};
 use crate::v1::bam::downstream_enabled;
@@ -182,7 +182,30 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
 
     let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-    let result = execute_step(&step, platform.runner, None)?;
+    let context = ToolContext {
+        run_id: format!("bam-{}-{}", stage.as_str(), tool_id.as_str()),
+        stage_id: stage.as_str().to_string(),
+        tool_id: tool_id.as_str().to_string(),
+        sample_id: None,
+        stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir),
+        input_root: bam_path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| out_dir.to_path_buf()),
+        output_root: stage_dir.clone(),
+        tmp_root: stage_dir.join("tmp"),
+        threads: plan.resources.threads.max(1),
+        memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
+        seed: None,
+        network_policy: NetworkPolicy::Allow,
+    };
+    let result = invoke_tool(&ToolInvocationRequest {
+        step: step.clone(),
+        runner: platform.runner,
+        context,
+        timeout: None,
+    })?
+    .stage_result;
     Ok(StageExecutionSummary { plan: step, result })
 }
 
@@ -240,7 +263,30 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_out,
     )?;
     let align_step = bijux_dna_stage_contract::execution_step_from_stage_plan(&align_plan);
-    let align_result = execute_step(&align_step, platform.runner, None)?;
+    let align_context = ToolContext {
+        run_id: format!("bam-{}-{}", align_step.step_id, tool_id.as_str()),
+        stage_id: align_step.step_id.to_string(),
+        tool_id: tool_id.as_str().to_string(),
+        sample_id: Some(sample_id),
+        stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&align_out),
+        input_root: r1
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| out_dir.to_path_buf()),
+        output_root: align_out.clone(),
+        tmp_root: align_out.join("tmp"),
+        threads: align_plan.resources.threads.max(1),
+        memory_hint_mb: Some(u64::from(align_plan.resources.mem_gb).saturating_mul(1024)),
+        seed: None,
+        network_policy: NetworkPolicy::Allow,
+    };
+    let align_result = invoke_tool(&ToolInvocationRequest {
+        step: align_step.clone(),
+        runner: platform.runner,
+        context: align_context,
+        timeout: None,
+    })?
+    .stage_result;
     let mut runs = vec![StageExecutionSummary {
         plan: align_step,
         result: align_result,
