@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -28,6 +29,7 @@ pub(crate) struct ToolContext {
     pub tmp_root: PathBuf,
     pub threads: u32,
     pub memory_hint_mb: Option<u64>,
+    pub compression_threads: Option<u32>,
     pub seed: Option<u64>,
     pub network_policy: NetworkPolicy,
 }
@@ -48,6 +50,7 @@ pub(crate) enum ToolExecMode {
     #[default]
     Execute,
     DryRun,
+    DryRunExplain,
     PrintCommands,
 }
 
@@ -71,6 +74,214 @@ impl ToolExec {
     pub fn invoke(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> {
         invoke_tool(req)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StageResourceKnobs {
+    threads: Option<u32>,
+    memory_mb: Option<u64>,
+    compression_threads: Option<u32>,
+    timeout_s: Option<u64>,
+    temp_root: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DeterministicEnvKnobs {
+    lc_all: Option<String>,
+    lang: Option<String>,
+    tz: Option<String>,
+    umask: Option<String>,
+    path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RuntimeExecutionConfig {
+    default_threads: Option<u32>,
+    default_memory_mb: Option<u64>,
+    default_compression_threads: Option<u32>,
+    default_timeout_s: Option<u64>,
+    default_temp_root: Option<String>,
+    heavy_stage_patterns: Option<Vec<String>>,
+    max_local_heavy_parallel: Option<u32>,
+    bgzip_tabix_max_parallel: Option<u32>,
+    cache_root: Option<String>,
+    deterministic_env: Option<DeterministicEnvKnobs>,
+    per_stage: Option<std::collections::BTreeMap<String, StageResourceKnobs>>,
+}
+
+#[derive(Debug, Clone)]
+struct EffectiveRuntimePolicy {
+    threads: u32,
+    memory_mb: Option<u64>,
+    compression_threads: Option<u32>,
+    timeout: Option<Duration>,
+    temp_root: Option<PathBuf>,
+    cache_root: Option<PathBuf>,
+    heavy_patterns: Vec<String>,
+    max_local_heavy_parallel: u32,
+    bgzip_tabix_max_parallel: u32,
+    deterministic_env: DeterministicEnvKnobs,
+}
+
+static EXEC_POLICY: OnceLock<RuntimeExecutionConfig> = OnceLock::new();
+
+fn workspace_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
+}
+
+fn load_runtime_execution_config() -> RuntimeExecutionConfig {
+    let path = workspace_root().join("configs/runtime/execution_kernel.toml");
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+        return RuntimeExecutionConfig {
+            default_threads: None,
+            default_memory_mb: None,
+            default_compression_threads: Some(1),
+            default_timeout_s: None,
+            default_temp_root: None,
+            heavy_stage_patterns: Some(vec![
+                "bam.align".to_string(),
+                "vcf.impute".to_string(),
+                "vcf.phasing".to_string(),
+            ]),
+            max_local_heavy_parallel: Some(1),
+            bgzip_tabix_max_parallel: Some(1),
+            cache_root: None,
+            deterministic_env: Some(DeterministicEnvKnobs {
+                lc_all: Some("C".to_string()),
+                lang: Some("C".to_string()),
+                tz: Some("UTC".to_string()),
+                umask: Some("027".to_string()),
+                path: None,
+            }),
+            per_stage: None,
+        };
+    };
+    toml::from_str::<RuntimeExecutionConfig>(&raw)
+        .unwrap_or_else(|err| panic!("invalid runtime execution config {}: {err}", path.display()))
+}
+
+fn runtime_execution_config() -> &'static RuntimeExecutionConfig {
+    EXEC_POLICY.get_or_init(load_runtime_execution_config)
+}
+
+fn stage_matches(pattern: &str, stage_id: &str) -> bool {
+    if let Some(prefix) = pattern.strip_suffix('*') {
+        stage_id.starts_with(prefix)
+    } else {
+        stage_id == pattern
+    }
+}
+
+fn effective_runtime_policy(req: &ToolInvocationRequest) -> EffectiveRuntimePolicy {
+    let cfg = runtime_execution_config();
+    let root = workspace_root();
+    let mut stage_knobs = StageResourceKnobs {
+        threads: None,
+        memory_mb: None,
+        compression_threads: None,
+        timeout_s: None,
+        temp_root: None,
+    };
+    if let Some(per_stage) = &cfg.per_stage {
+        for (pattern, knobs) in per_stage {
+            if stage_matches(pattern, &req.context.stage_id) {
+                stage_knobs = knobs.clone();
+            }
+        }
+    }
+    let threads = stage_knobs
+        .threads
+        .or(cfg.default_threads)
+        .unwrap_or(req.context.threads)
+        .max(1);
+    let memory_mb = stage_knobs
+        .memory_mb
+        .or(cfg.default_memory_mb)
+        .or(req.context.memory_hint_mb);
+    let compression_threads = stage_knobs
+        .compression_threads
+        .or(cfg.default_compression_threads)
+        .or(req.context.compression_threads)
+        .map(|v| v.max(1));
+    let timeout = req.timeout.or_else(|| {
+        stage_knobs
+            .timeout_s
+            .or(cfg.default_timeout_s)
+            .map(Duration::from_secs)
+    });
+    let temp_root = stage_knobs
+        .temp_root
+        .or_else(|| cfg.default_temp_root.clone())
+        .map(PathBuf::from)
+        .map(|path| {
+            if path.is_absolute() {
+                path
+            } else {
+                root.join(path)
+            }
+        });
+    let cache_root = cfg.cache_root.clone().map(PathBuf::from).map(|path| {
+        if path.is_absolute() {
+            path
+        } else {
+            root.join(path)
+        }
+    });
+    let deterministic_env = cfg
+        .deterministic_env
+        .clone()
+        .unwrap_or(DeterministicEnvKnobs {
+            lc_all: Some("C".to_string()),
+            lang: Some("C".to_string()),
+            tz: Some("UTC".to_string()),
+            umask: Some("027".to_string()),
+            path: None,
+        });
+    EffectiveRuntimePolicy {
+        threads,
+        memory_mb,
+        compression_threads,
+        timeout,
+        temp_root,
+        cache_root,
+        heavy_patterns: cfg.heavy_stage_patterns.clone().unwrap_or_default(),
+        max_local_heavy_parallel: cfg.max_local_heavy_parallel.unwrap_or(1).max(1),
+        bgzip_tabix_max_parallel: cfg.bgzip_tabix_max_parallel.unwrap_or(1).max(1),
+        deterministic_env,
+    }
+}
+
+fn acquire_slot_lock(
+    base: &Path,
+    prefix: &str,
+    slots: u32,
+) -> Result<Option<bijux_dna_infra::FileLock>> {
+    if slots <= 1 {
+        let lock = bijux_dna_infra::FileLock::acquire(
+            &base.join(format!("{prefix}.lock")),
+            Duration::from_secs(300),
+        )
+        .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
+        return Ok(Some(lock));
+    }
+    for slot in 0..slots {
+        let path = base.join(format!("{prefix}.{slot}.lock"));
+        if let Ok(lock) = bijux_dna_infra::FileLock::acquire(&path, Duration::from_millis(150)) {
+            return Ok(Some(lock));
+        }
+    }
+    let lock = bijux_dna_infra::FileLock::acquire(
+        &base.join(format!("{prefix}.0.lock")),
+        Duration::from_secs(300),
+    )
+    .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
+    Ok(Some(lock))
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -280,6 +491,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     enforce_path_contracts(req)?;
     require_pinned_digest(&req.step)?;
     crate::input_validation::validate_stage_inputs(&req.step)?;
+    let policy = effective_runtime_policy(req);
     if network_policy_violation(&req.context.network_policy) {
         let _ = bijux_dna_infra::atomic_write_json(
             &req.context.stage_root.join("stage_result_status.json"),
@@ -301,7 +513,11 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         );
     }
     bijux_dna_infra::ensure_dir(&req.context.stage_root)?;
-    bijux_dna_infra::ensure_dir(&req.context.tmp_root)?;
+    let effective_tmp_root = policy
+        .temp_root
+        .clone()
+        .unwrap_or_else(|| req.context.tmp_root.clone());
+    bijux_dna_infra::ensure_dir(&effective_tmp_root)?;
     let work_dir = req
         .context
         .output_root
@@ -310,26 +526,79 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         .join(&req.context.stage_id)
         .join(req.step.step_id.as_str());
     bijux_dna_infra::ensure_dir(&work_dir)?;
-    let cache_root = req.context.output_root.join("cache");
+    let cache_root = policy
+        .cache_root
+        .clone()
+        .unwrap_or_else(|| req.context.output_root.join("cache"));
     bijux_dna_infra::ensure_dir(&cache_root)?;
     let home_dir = work_dir.join("home");
     bijux_dna_infra::ensure_dir(&home_dir)?;
-    std::env::set_var("LC_ALL", "C");
-    std::env::set_var("LANG", "C");
-    std::env::set_var("TZ", "UTC");
-    std::env::set_var("BIJUX_STAGE_THREADS", req.context.threads.to_string());
-    if let Some(memory_hint_mb) = req.context.memory_hint_mb {
+    std::env::set_var(
+        "LC_ALL",
+        policy.deterministic_env.lc_all.as_deref().unwrap_or("C"),
+    );
+    std::env::set_var(
+        "LANG",
+        policy.deterministic_env.lang.as_deref().unwrap_or("C"),
+    );
+    std::env::set_var(
+        "TZ",
+        policy.deterministic_env.tz.as_deref().unwrap_or("UTC"),
+    );
+    if let Some(path) = policy.deterministic_env.path.as_deref() {
+        std::env::set_var("PATH", path);
+    }
+    if let Some(umask) = policy.deterministic_env.umask.as_deref() {
+        std::env::set_var("BIJUX_UMASK", umask);
+    }
+    std::env::set_var("BIJUX_STAGE_THREADS", policy.threads.to_string());
+    if let Some(memory_hint_mb) = policy.memory_mb {
         std::env::set_var("BIJUX_STAGE_MEMORY_MB", memory_hint_mb.to_string());
+    }
+    if let Some(compression_threads) = policy.compression_threads {
+        std::env::set_var("BIJUX_COMPRESSION_THREADS", compression_threads.to_string());
     }
     if let Some(seed) = req.context.seed {
         std::env::set_var("BIJUX_STAGE_SEED", seed.to_string());
     }
-    std::env::set_var("TMPDIR", &req.context.tmp_root);
+    std::env::set_var("TMPDIR", &effective_tmp_root);
     std::env::set_var("HOME", &home_dir);
     std::env::set_var("XDG_CACHE_HOME", &cache_root);
     std::env::set_var("BIJUX_CACHE_ROOT", &cache_root);
+    for var in ["XDG_CACHE_HOME", "BIJUX_CACHE_ROOT"] {
+        if let Ok(value) = std::env::var(var) {
+            let path = PathBuf::from(value);
+            if !path.starts_with(&cache_root) {
+                bail!(
+                    "cache policy violation: {var} must be under {}",
+                    cache_root.display()
+                );
+            }
+        }
+    }
 
-    if req.mode == ToolExecMode::PrintCommands || req.mode == ToolExecMode::DryRun {
+    let lock_root = req.context.output_root.join(".runtime_locks");
+    bijux_dna_infra::ensure_dir(&lock_root)?;
+    let is_heavy = policy
+        .heavy_patterns
+        .iter()
+        .any(|pattern| stage_matches(pattern, &req.context.stage_id));
+    let _heavy_lock = if is_heavy {
+        acquire_slot_lock(&lock_root, "heavy", policy.max_local_heavy_parallel)?
+    } else {
+        None
+    };
+    let command_line = req.step.command.template.join(" ").to_ascii_lowercase();
+    let _io_lock = if command_line.contains("bgzip") || command_line.contains("tabix") {
+        acquire_slot_lock(&lock_root, "bgzip_tabix", policy.bgzip_tabix_max_parallel)?
+    } else {
+        None
+    };
+
+    if req.mode == ToolExecMode::PrintCommands
+        || req.mode == ToolExecMode::DryRun
+        || req.mode == ToolExecMode::DryRunExplain
+    {
         let dry_path = req.context.stage_root.join("print_commands.txt");
         let image = req.step.image.image.clone();
         let digest = req.step.image.digest.clone().unwrap_or_default();
@@ -340,7 +609,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             req.step.command.template.join(" ")
         );
         bijux_dna_infra::atomic_write_bytes(&dry_path, cmd.as_bytes())?;
-        if req.mode == ToolExecMode::DryRun {
+        if req.mode == ToolExecMode::DryRun || req.mode == ToolExecMode::DryRunExplain {
             let summary_path = req.context.stage_root.join("stage_human_summary.json");
             let stage_status_path = req.context.stage_root.join("stage_result_status.json");
             let summary = serde_json::json!({
@@ -366,6 +635,26 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
                 bijux_dna_runtime::recording::StageResultStatus::Ok,
                 "DRY_RUN",
             );
+            if req.mode == ToolExecMode::DryRunExplain {
+                let explain_path = req.context.stage_root.join("dry_run_explain.json");
+                let payload = serde_json::json!({
+                    "schema_version": "bijux.dry_run_explain.v1",
+                    "stage_id": req.context.stage_id,
+                    "tool_id": req.context.tool_id,
+                    "runner": req.runner,
+                    "command": req.step.command.template,
+                    "io": req.step.io,
+                    "resources": {
+                        "threads": policy.threads,
+                        "memory_mb": policy.memory_mb,
+                        "compression_threads": policy.compression_threads,
+                        "timeout_s": policy.timeout.map(|d| d.as_secs()),
+                        "temp_root": effective_tmp_root,
+                        "cache_root": cache_root,
+                    },
+                });
+                bijux_dna_infra::atomic_write_json(&explain_path, &payload)?;
+            }
         }
         return Ok(ToolInvocationResult {
             stage_result: StageResultV1 {
@@ -466,7 +755,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         &serde_json::to_string(&tool_event)?,
     )?;
 
-    let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
+    let stage_result = execute_step(&req.step, req.runner, policy.timeout)?;
     validate_required_outputs(&req.step)?;
     let stage_metrics_path = req.context.stage_root.join("stage.metrics.json");
     let log_paths =
@@ -548,8 +837,9 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "stage_id": req.context.stage_id,
         "tool_id": req.context.tool_id,
         "sample_id": req.context.sample_id,
-        "threads": req.context.threads,
-        "memory_hint_mb": req.context.memory_hint_mb,
+        "threads": policy.threads,
+        "memory_hint_mb": policy.memory_mb,
+        "compression_threads": policy.compression_threads,
         "seed": req.context.seed,
         "network_policy": req.context.network_policy,
         "inputs": req.step.io.inputs,
@@ -579,7 +869,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "wall_time_ms": duration_ms,
         "memory_mb": stage_result.memory_mb,
         "exit_code": stage_result.exit_code,
-        "threads": req.context.threads,
+        "threads": policy.threads,
         "output_checksums": output_checksums,
     });
     if req.context.stage_id.starts_with("vcf.") {
@@ -727,6 +1017,7 @@ mod tests {
                 tmp_root: stage_root.join("tmp"),
                 threads: 1,
                 memory_hint_mb: Some(512),
+                compression_threads: Some(1),
                 seed: Some(7),
                 network_policy: NetworkPolicy::Forbid,
             },
@@ -739,6 +1030,74 @@ mod tests {
         assert!(
             version.to_ascii_lowercase().contains("bcftools"),
             "unexpected bcftools --version output: {version}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn dry_run_explain_emits_plan_and_resource_details() -> Result<()> {
+        let tmp = TempDir::new()?;
+        let stage_root = tmp.path().join("artifacts").join("stage");
+        let out_root = tmp.path().join("out");
+        let in_root = tmp.path().join("in");
+        bijux_dna_infra::ensure_dir(&stage_root)?;
+        bijux_dna_infra::ensure_dir(&out_root)?;
+        bijux_dna_infra::ensure_dir(&in_root)?;
+        let step = ExecutionStep {
+            step_id: StepId::new("vcf.qc.dry_run_explain"),
+            stage_id: StageId::new("vcf.qc"),
+            command: CommandSpecV1 {
+                template: vec!["bcftools".to_string(), "--version".to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "quay.io/biocontainers/bcftools:1.20--h8b25389_0".to_string(),
+                digest: Some(
+                    "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+                        .to_string(),
+                ),
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![],
+                outputs: vec![],
+            },
+            out_dir: out_root.clone(),
+            aux_images: std::collections::BTreeMap::new(),
+            expected_artifact_ids: vec![],
+            metrics_schema_ids: vec![],
+        };
+        let req = ToolInvocationRequest {
+            step,
+            runner: RuntimeKind::Docker,
+            context: ToolContext {
+                run_id: "run-dry-run-explain".to_string(),
+                stage_id: "vcf.qc".to_string(),
+                tool_id: "bcftools".to_string(),
+                sample_id: None,
+                stage_root: stage_root.clone(),
+                input_root: in_root,
+                output_root: out_root.clone(),
+                tmp_root: stage_root.join("tmp"),
+                threads: 1,
+                memory_hint_mb: Some(256),
+                compression_threads: Some(1),
+                seed: Some(11),
+                network_policy: NetworkPolicy::Forbid,
+            },
+            timeout: None,
+            mode: ToolExecMode::DryRunExplain,
+        };
+        let result = ToolExec::invoke(&req)?;
+        assert_eq!(result.stage_result.exit_code, 0);
+        let explain_path = stage_root.join("dry_run_explain.json");
+        assert!(explain_path.exists());
+        let payload: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(explain_path)?)?;
+        assert_eq!(
+            payload
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.dry_run_explain.v1")
         );
         Ok(())
     }
