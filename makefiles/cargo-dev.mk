@@ -4,6 +4,7 @@ SHELL := /bin/sh
 # Usage examples:
 #   make -f makefiles/cargo-dev.mk dev-fmt
 #   make -f makefiles/cargo-dev.mk dev-lint
+#   make -f makefiles/cargo-dev.mk dev-lint-clippy
 #   make -f makefiles/cargo-dev.mk dev-test
 #   make -f makefiles/cargo-dev.mk dev-test-fast
 #   make -f makefiles/cargo-dev.mk dev-coverage
@@ -21,7 +22,7 @@ ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
 help:
 	@printf '%s\n' \
 	  'cargo-dev.mk targets:' \
-	  '  dev-fmt dev-lint dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean' \
+	  '  dev-fmt dev-lint dev-lint-clippy dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean' \
 	  '' \
 	  'Behavior:' \
 	  '  - Runs through one reusable isolate tag for fast local iteration.' \
@@ -36,6 +37,9 @@ dev-fmt:
 
 dev-lint:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _lint
+
+dev-lint-clippy:
+	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _clippy
 
 dev-audit:
 	@$(ISO_DEV) $(MAKE) -f $(ROOT_MAKE) _audit
@@ -56,7 +60,7 @@ dev-clean:
 	@echo "removed artifacts/isolates/$(DEV_ISO_TAG)"
 
 ifeq ($(firstword $(MAKEFILE_LIST)),$(lastword $(MAKEFILE_LIST)))
-.PHONY: help dev-fmt dev-lint dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean
+.PHONY: help dev-fmt dev-lint dev-lint-clippy dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean
 else
-.PHONY: dev-fmt dev-lint dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean
+.PHONY: dev-fmt dev-lint dev-lint-clippy dev-audit dev-test dev-test-fast dev-coverage dev-all dev-clean
 endif
