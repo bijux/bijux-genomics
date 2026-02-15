@@ -135,7 +135,7 @@ _lint:
 
 _clippy: ## Run workspace clippy only (no script gates).
 	@./bin/require-isolate >/dev/null
-	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" cargo clippy --workspace --all-targets
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 test:
 	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
