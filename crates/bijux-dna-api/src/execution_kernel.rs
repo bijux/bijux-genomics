@@ -5,8 +5,10 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runner::execute::{execute_step, StageResultV1};
-use bijux_dna_runtime::recording::{write_artifact_checksums_json, write_execution_logs_bounded};
+use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};
+
+use crate::writers::ArtifactWriter;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NetworkPolicy {
@@ -166,14 +168,7 @@ fn validate_required_outputs(step: &ExecutionStep) -> Result<()> {
 }
 
 fn output_checksums(step: &ExecutionStep) -> Result<serde_json::Value> {
-    let output_spec = step
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| (artifact.name.to_string(), artifact.path.clone()))
-        .collect::<Vec<_>>();
-    let checksums = write_artifact_checksums_json(&step.out_dir, &output_spec)?;
-    Ok(serde_json::to_value(checksums)?)
+    ArtifactWriter::write_output_checksums(&step.out_dir, &step.io.outputs)
 }
 
 fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
@@ -356,15 +351,11 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 
     let stage_result = execute_step(&req.step, req.runner, req.timeout)?;
     validate_required_outputs(&req.step)?;
-    let output_spec = req
-        .step
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| (artifact.name.to_string(), artifact.path.clone()))
-        .collect::<Vec<_>>();
-    let output_checksums = write_artifact_checksums_json(&req.context.stage_root, &output_spec)
-        .context("write stage artifact checksums")?;
+    let output_checksums = ArtifactWriter::write_output_checksums(
+        &req.context.stage_root,
+        &req.step.io.outputs,
+    )
+    .context("write stage artifact checksums")?;
     let log_paths = write_execution_logs_bounded(&logs_dir, &stage_result.stdout, &stage_result.stderr)
         .context("write stage logs")?;
     let stdout_path = logs_dir.join("tool.stdout.log");
@@ -431,7 +422,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         "logs": log_paths,
         "runtime_provenance": runtime_provenance_path,
     });
-    bijux_dna_infra::atomic_write_json(&stage_manifest_path, &stage_manifest)?;
+    ArtifactWriter::write_stage_manifest(&stage_manifest_path, &stage_manifest)?;
 
     let end_event = serde_json::json!({
         "schema_version": "bijux.stage_events.v1",
