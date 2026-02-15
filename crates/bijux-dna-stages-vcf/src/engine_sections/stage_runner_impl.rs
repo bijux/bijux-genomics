@@ -64,8 +64,10 @@ fn ibd_params_for_species(species_id: &str, build_id: &str) -> IbdStageParams {
 }
 
 fn demography_params_for_species(species_id: &str, build_id: &str) -> DemographyStageParams {
-    let mut params = DemographyStageParams::default();
-    params.expected_build = Some(build_id.to_string());
+    let mut params = DemographyStageParams {
+        expected_build: Some(build_id.to_string()),
+        ..DemographyStageParams::default()
+    };
     if species_id.to_ascii_lowercase().contains("homo sapiens") {
         params.min_segments = 3;
     }

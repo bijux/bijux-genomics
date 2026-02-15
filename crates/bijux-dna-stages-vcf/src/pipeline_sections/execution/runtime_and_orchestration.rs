@@ -272,7 +272,7 @@ fn beagle_with_gt_from_gl(line: &str) -> String {
         return line.to_string();
     }
     let fmt_keys = fields[8].split(':').collect::<Vec<_>>();
-    if fmt_keys.iter().any(|k| *k == "GT") {
+    if fmt_keys.contains(&"GT") {
         return line.replace("\t0/1", "\t0|1").replace("\t1/0", "\t1|0");
     }
     let sample_col = fields[9].clone();

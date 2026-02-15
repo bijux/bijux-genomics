@@ -105,7 +105,7 @@ fn plan_alignment_qc_stage(
             })
         }
         bijux_dna_planner_bam::stage_api::BamStage::Filter => {
-            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let stage_key = bijux_dna_core::ids::parse_stage_id(stage.as_str()).unwrap_or_else(|_| bijux_dna_core::ids::StageId::new(stage.as_str()));
             let default_params = profile
                 .defaults
                 .params
@@ -161,7 +161,7 @@ fn plan_alignment_qc_stage(
             })
         }
         bijux_dna_planner_bam::stage_api::BamStage::MapqFilter => {
-            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let stage_key = bijux_dna_core::ids::parse_stage_id(stage.as_str()).unwrap_or_else(|_| bijux_dna_core::ids::StageId::new(stage.as_str()));
             let default_params = profile
                 .defaults
                 .params
@@ -202,7 +202,7 @@ fn plan_alignment_qc_stage(
             })
         }
         bijux_dna_planner_bam::stage_api::BamStage::LengthFilter => {
-            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let stage_key = bijux_dna_core::ids::parse_stage_id(stage.as_str()).unwrap_or_else(|_| bijux_dna_core::ids::StageId::new(stage.as_str()));
             let default_params = profile
                 .defaults
                 .params
@@ -243,7 +243,7 @@ fn plan_alignment_qc_stage(
             })
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
-            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let stage_key = bijux_dna_core::ids::parse_stage_id(stage.as_str()).unwrap_or_else(|_| bijux_dna_core::ids::StageId::new(stage.as_str()));
             let default_params = profile
                 .defaults
                 .params

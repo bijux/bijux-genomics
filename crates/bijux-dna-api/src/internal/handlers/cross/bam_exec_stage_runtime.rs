@@ -492,7 +492,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
             "bam.recalibration refusal: modern-DNA-only by default; select a modern profile"
         ));
     }
-    let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+    let stage_key = bijux_dna_core::ids::parse_stage_id(stage.as_str()).unwrap_or_else(|_| bijux_dna_core::ids::StageId::new(stage.as_str()));
     let tool_id = profile
         .defaults
         .tools
