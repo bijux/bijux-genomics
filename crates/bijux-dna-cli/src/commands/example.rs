@@ -644,7 +644,7 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) ->
         },
     })
 }
-include!("example_resolution.rs");
+include!("example/resolution.rs");
 
 fn ensure_required_banks(cwd: &Path, spec: &ExampleSpec, hpc_root: &Path) -> Result<()> {
     let required = spec.required_banks.clone().unwrap_or_default();

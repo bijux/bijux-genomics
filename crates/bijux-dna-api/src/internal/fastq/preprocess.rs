@@ -42,8 +42,8 @@ use std::io::BufRead;
 use std::path::PathBuf;
 
 
-include!("preprocess_helpers.rs");
-include!("preprocess_stage_artifacts.rs");
+include!("preprocess/helpers.rs");
+include!("preprocess/stage_artifacts.rs");
 
 fn enforce_stage_applicability(
     planned: &ExecutionStep,
