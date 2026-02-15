@@ -15,6 +15,7 @@ pub(crate) mod api_internal {
     use crate::internal as internal_mod;
     pub(crate) use internal_mod::handlers;
 }
+pub(crate) mod cross_runtime;
 pub(crate) mod execution_kernel;
 pub(crate) mod input_validation;
 pub(crate) mod qa;
