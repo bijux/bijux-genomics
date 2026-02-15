@@ -26,6 +26,8 @@ Define a damage-aware genotype calling contract for VCF workflows, including GL-
 - PMD thresholding: reads/sites above threshold are filtered or annotated per policy.
 - All active thresholds must appear in report artifacts and fixture contracts.
 - Bias audit must report before/after summary of damage-sensitive signals.
+- If explicit `vcf.damage_filter` params are absent, BAM handoff metrics can seed defaults:
+  `udg_treated` -> UDG regime and `damage_ct_ga_rate` -> `max_damage_ratio`.
 
 ## GL Propagation Rules
 - GL/PL retention is mandatory for GL-based downstream stages.
@@ -41,3 +43,4 @@ Define a damage-aware genotype calling contract for VCF workflows, including GL-
 - Dropping GL/PL tags during filtering, making downstream inference invalid.
 - Unreported PMD or transition mask changes causing irreproducible results.
 - Missing before/after bias audit section in report artifacts.
+- Ignoring BAM damage handoff in low-coverage aDNA runs when no explicit damage filter params are set.
