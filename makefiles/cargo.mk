@@ -56,6 +56,7 @@ _lint:
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
 		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
+	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 _clippy: ## Run workspace clippy only (no script gates).
