@@ -22,6 +22,7 @@ pub mod invariants;
 pub mod metrics;
 pub mod pipeline;
 pub mod stage_specs;
+pub mod vcf_io;
 pub mod wrappers;
 
 #[must_use]
