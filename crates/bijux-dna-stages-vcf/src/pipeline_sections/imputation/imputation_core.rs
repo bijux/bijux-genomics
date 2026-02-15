@@ -313,15 +313,27 @@ fn run_impute_stage_inner(
     let variant_density_per_mb = imputed_records.len() as f64 / 10.0;
     let missingness_block_count = if missingness_pre > 0.25 { 4_u64 } else { 1_u64 };
     let warnings = {
-        let mut rows = Vec::<String>::new();
+        let mut rows = Vec::<serde_json::Value>::new();
         if allele_frequency_shift_abs_mean > 0.05 {
-            rows.push("allele_frequency_shift_high".to_string());
+            rows.push(serde_json::json!({
+                "code": "W_VCF_IMPUTE_ALLELE_FREQ_SHIFT_HIGH",
+                "severity": "warn",
+                "message": "allele frequency shift versus panel is above warning threshold"
+            }));
         }
         if ref_mismatch_like > 0 {
-            rows.push("ref_mismatch_like_sites_present".to_string());
+            rows.push(serde_json::json!({
+                "code": "W_VCF_IMPUTE_REF_MISMATCH_LIKE",
+                "severity": "warn",
+                "message": "reference mismatch-like sites detected during panel overlap checks"
+            }));
         }
         if residual_ct_ga_asymmetry > 0.35 {
-            rows.push("residual_damage_asymmetry_high".to_string());
+            rows.push(serde_json::json!({
+                "code": "W_VCF_IMPUTE_RESIDUAL_DAMAGE_ASYMMETRY",
+                "severity": "warn",
+                "message": "residual C>T/G>A asymmetry remains high after imputation flow"
+            }));
         }
         rows
     };
@@ -386,6 +398,7 @@ fn run_impute_stage_inner(
     let warnings_payload = serde_json::json!({
         "schema_version": "bijux.vcf.imputation.warnings.v1",
         "warnings": warnings,
+        "warning_codes": warnings.iter().filter_map(|w| w.get("code").and_then(serde_json::Value::as_str)).collect::<Vec<_>>(),
         "strand_flip_like_sites": allele_flip_like,
         "allele_flip_like_sites": allele_flip_like,
     });
@@ -693,4 +706,3 @@ fn run_impute_stage_inner(
         logs_txt,
     })
 }
-
