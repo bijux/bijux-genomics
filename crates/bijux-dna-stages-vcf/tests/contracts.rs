@@ -26,8 +26,9 @@ mod contracts {
         run_stats_stage_real, AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams,
         DamageFilterStageParams, DamageUdgRegime, DemographyStageParams, GlPropagationStageParams,
         IbdStageParams, ImputationAcceptMode, ImputeBackend, ImputeStageParams, PcaStageParams,
-        PhasingBackend, PhasingStageParams, PopulationStructureStageParams, PostprocessStageParams,
-        PrepareReferencePanelParams, QcStageParams, RohStageParams,
+        PhasingBackend, PhasingStageParams, PopulationPreprocessingParams,
+        PopulationStructureStageParams, PostprocessStageParams, PrepareReferencePanelParams,
+        QcStageParams, RohStageParams,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
