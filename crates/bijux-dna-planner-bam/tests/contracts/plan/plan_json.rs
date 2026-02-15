@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -79,13 +79,15 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
         .join("fixtures")
         .join("plan_inputs")
         .join("default");
-    let tool_id =
-        tool_id_from_snapshot(stage).unwrap_or_else(|| bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage));
+    // Avoid any dependency on process CWD in concurrent test runs.
+    let out_dir = fixtures.join("out");
+    let tool_id = tool_id_from_snapshot(stage)
+        .unwrap_or_else(|| bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage));
     let tool = dummy_tool(tool_id.as_str());
     plan_stage(StagePlanRequest {
         stage_id: stage.as_str(),
         tool: &tool,
-        out_dir: Path::new("out"),
+        out_dir: out_dir.as_path(),
         bam: Some(&fixtures.join("sample.bam")),
         bam_index: Some(&fixtures.join("sample.bam.bai")),
         r1: Some(&fixtures.join("reads_R1.fastq.gz")),
@@ -106,10 +108,8 @@ fn has_tool_candidates(stage: BamStage) -> bool {
 fn sort_json(value: Value) -> Value {
     match value {
         Value::Object(map) => {
-            let sorted: BTreeMap<String, Value> = map
-                .into_iter()
-                .map(|(k, v)| (k, sort_json(v)))
-                .collect();
+            let sorted: BTreeMap<String, Value> =
+                map.into_iter().map(|(k, v)| (k, sort_json(v))).collect();
             Value::Object(sorted.into_iter().collect())
         }
         Value::Array(items) => Value::Array(items.into_iter().map(sort_json).collect()),
@@ -122,6 +122,9 @@ fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
     let mut payload = serde_json::to_string_pretty(&canonical)?;
     let crate_root = format!("{}/", PathBuf::from(env!("CARGO_MANIFEST_DIR")).display());
     payload = payload.replace(&crate_root, "");
+    payload = payload.replace("tests/fixtures/plan_inputs/default/out/", "out/");
+    payload = payload.replace("tests/fixtures/plan_inputs/default/out", "out");
+    payload = payload.replace("\"tests/fixtures/plan_inputs/default/out\"", "\"out\"");
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
@@ -130,7 +133,9 @@ fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
         fs::write(&snapshot_path, payload)?;
         return Ok(());
     }
-    let expected = fs::read_to_string(&snapshot_path)?;
+    let expected_raw = fs::read_to_string(&snapshot_path)?;
+    let expected_json: Value = serde_json::from_str(&expected_raw)?;
+    let expected = serde_json::to_string_pretty(&sort_json(expected_json))?;
     assert_eq!(
         payload.trim_end_matches('\n'),
         expected.trim_end_matches('\n')

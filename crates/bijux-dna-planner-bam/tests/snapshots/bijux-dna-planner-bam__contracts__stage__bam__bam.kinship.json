@@ -1,48 +1,47 @@
 {
-  "stage_id": "bam.kinship",
-  "stage_version": 1,
-  "tool_id": "king",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "king -b tests/fixtures/plan_inputs/default/sample.bam --kinship --related --prefix out/kinship && if [ -f out/kinship.kin0 ]; then cp out/kinship.kin0 out/kinship.segments.tsv; else : > out/kinship.segments.tsv; fi && python - <<'PY' > out/kinship.summary.json\nimport json\nprint(json.dumps({\"method\": \"king\", \"reference_panel\": \"panel.vcf\", \"min_overlap_snps\": 200}, indent=2))\nPY && python - <<'PY' > out/kinship.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"tool\": \"king\", \"segments\": \"out/kinship.segments.tsv\"}, indent=2))\nPY"
+    ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "min_overlap_snps": 200,
+    "reference_panel": "panel.vcf"
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "kinship_report",
+        "optional": false,
         "path": "out/kinship.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/kinship.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -50,19 +49,28 @@
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "min_overlap_snps": 200,
-    "reference_panel": "panel.vcf"
+    "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
+    "reference_panel": "panel.vcf",
+    "required_inputs": [
+      "diploid_genotypes_or_explicit_pseudohap_conversion"
+    ]
   },
-  "effective_params": {
-    "min_overlap_snps": 200,
-    "reference_panel": "panel.vcf"
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool king selected by planner",
     "details": {
       "contract_hash": "cd88eac342af41ce45f5959f6248d363e107124056d378fed3b96c6959aeb4d5",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool king selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.kinship",
+  "stage_version": 1,
+  "tool_id": "king",
+  "tool_version": "1.0.0"
 }
