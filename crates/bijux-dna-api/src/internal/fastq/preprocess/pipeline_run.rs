@@ -420,6 +420,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     tmp_root: stage_root.join("tmp"),
                     threads: 1,
                     memory_hint_mb: None,
+                    compression_threads: Some(1),
                     seed: None,
                     network_policy: stage_network_policy(&stage_id),
                 },

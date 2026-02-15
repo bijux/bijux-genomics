@@ -5,7 +5,9 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
         bijux_dna_environment::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
         other @ bijux_dna_environment::api::RuntimeKind::Singularity => {
-            return Err(anyhow!("runner {other} not supported for execute_run stage coverage"));
+            return Err(anyhow!(
+                "runner {other} not supported for execute_run stage coverage"
+            ));
         }
     };
     ensure_stage_supported_by_runner(runner_contract, request.plan.stage_id.as_str())?;
@@ -189,7 +191,14 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .io
         .inputs
         .first()
-        .and_then(|artifact| request.plan.out_dir.join(&artifact.path).parent().map(Path::to_path_buf))
+        .and_then(|artifact| {
+            request
+                .plan
+                .out_dir
+                .join(&artifact.path)
+                .parent()
+                .map(Path::to_path_buf)
+        })
         .unwrap_or_else(|| request.plan.out_dir.clone());
     let network_policy = if request
         .plan
@@ -220,6 +229,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         tmp_root: tmp_root.clone(),
         threads: request.plan.resources.threads.max(1),
         memory_hint_mb: Some(u64::from(request.plan.resources.mem_gb).saturating_mul(1024)),
+        compression_threads: Some(1),
         seed: request
             .plan
             .reason
@@ -238,9 +248,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let invocation_result = match crate::execution_kernel::ToolExec::invoke(&invocation_request) {
         Ok(result) => result,
         Err(err) => {
-            let fail_code = if err
-                .to_string()
-                .contains("path contract violated")
+            let fail_code = if err.to_string().contains("path contract violated")
                 || err.to_string().contains("network policy violation")
             {
                 bijux_dna_runtime::FailureCode::InvariantViolation
@@ -553,26 +561,27 @@ fn maybe_emit_reference_manifest(
         }));
     }
 
-    let authority = if let (Some(species_id), Some(build_id)) = (species.as_deref(), build.as_deref()) {
-        let bundle = bijux_dna_db_ref::resolve_reference_bundle(species_id, build_id)?;
-        let bank = bijux_dna_db_ref::resolve_reference_bank(species_id, build_id)?;
-        let sex_rule = bijux_dna_db_ref::resolve_sex_chromosome_rule(species_id, build_id).ok();
-        let organellar = bijux_dna_db_ref::resolve_organellar_policy(species_id, build_id).ok();
-        let default_set = usecase
-            .as_deref()
-            .and_then(|kind| bijux_dna_db_ref::resolve_default_reference_set(species_id, kind).ok());
-        Some(serde_json::json!({
-            "species_id": species_id,
-            "build_id": build_id,
-            "bundle": bundle,
-            "bank": bank,
-            "sex_chromosome_rule": sex_rule,
-            "organellar_policy": organellar,
-            "default_reference_set": default_set,
-        }))
-    } else {
-        None
-    };
+    let authority =
+        if let (Some(species_id), Some(build_id)) = (species.as_deref(), build.as_deref()) {
+            let bundle = bijux_dna_db_ref::resolve_reference_bundle(species_id, build_id)?;
+            let bank = bijux_dna_db_ref::resolve_reference_bank(species_id, build_id)?;
+            let sex_rule = bijux_dna_db_ref::resolve_sex_chromosome_rule(species_id, build_id).ok();
+            let organellar = bijux_dna_db_ref::resolve_organellar_policy(species_id, build_id).ok();
+            let default_set = usecase.as_deref().and_then(|kind| {
+                bijux_dna_db_ref::resolve_default_reference_set(species_id, kind).ok()
+            });
+            Some(serde_json::json!({
+                "species_id": species_id,
+                "build_id": build_id,
+                "bundle": bundle,
+                "bank": bank,
+                "sex_chromosome_rule": sex_rule,
+                "organellar_policy": organellar,
+                "default_reference_set": default_set,
+            }))
+        } else {
+            None
+        };
 
     let payload = serde_json::json!({
         "schema_version": "bijux.reference_manifest.v1",
@@ -581,7 +590,10 @@ fn maybe_emit_reference_manifest(
         "reference_inputs": inputs,
         "authority": authority,
     });
-    bijux_dna_infra::atomic_write_json(&run_artifacts_dir.join("reference_manifest.json"), &payload)?;
+    bijux_dna_infra::atomic_write_json(
+        &run_artifacts_dir.join("reference_manifest.json"),
+        &payload,
+    )?;
     Ok(())
 }
 
@@ -638,14 +650,20 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
     let (selected, trigger) = if let Some(mean_depth) = observed_mean_depth {
         classify_depth_to_regime(mean_depth, thresholds)
     } else if let Some(regime) = requested.as_deref() {
-        (regime, "requested coverage_regime used because observed mean depth is unavailable".to_string())
+        (
+            regime,
+            "requested coverage_regime used because observed mean depth is unavailable".to_string(),
+        )
     } else if stage_requires_regime(request.plan.stage_id.as_str()) {
         return Err(anyhow!(
             "coverage regime required for stage {} but cannot be resolved: provide coverage_regime or mean_depth_x/FASTQ expected genome size inputs",
             request.plan.stage_id
         ));
     } else {
-        ("unknown", "regime not required for stage and no observed/requested signal available".to_string())
+        (
+            "unknown",
+            "regime not required for stage and no observed/requested signal available".to_string(),
+        )
     };
 
     let (impute_backend_default, chunk_size_bp_default) = match selected {
@@ -686,7 +704,10 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
     }))
 }
 
-fn classify_depth_to_regime(mean_depth: f64, thresholds: CoverageThresholds) -> (&'static str, String) {
+fn classify_depth_to_regime(
+    mean_depth: f64,
+    thresholds: CoverageThresholds,
+) -> (&'static str, String) {
     if mean_depth <= thresholds.gl_max_depth {
         (
             "gl",
@@ -747,7 +768,11 @@ fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
     let read_f = |obj: &toml::Value, key: &str| -> Result<f64> {
         obj.get(key)
             .and_then(toml::Value::as_float)
-            .or_else(|| obj.get(key).and_then(toml::Value::as_integer).map(|v| v as f64))
+            .or_else(|| {
+                obj.get(key)
+                    .and_then(toml::Value::as_integer)
+                    .map(|v| v as f64)
+            })
             .ok_or_else(|| anyhow!("missing or invalid threshold key `{key}`"))
     };
     Ok(CoverageThresholds {
@@ -775,7 +800,12 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
         .params
         .get("expected_genome_size_bp")
         .and_then(serde_json::Value::as_u64)
-        .or_else(|| std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP").ok()?.parse::<u64>().ok())?;
+        .or_else(|| {
+            std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP")
+                .ok()?
+                .parse::<u64>()
+                .ok()
+        })?;
     if expected_genome_size_bp == 0 {
         return None;
     }
@@ -795,7 +825,9 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
         if inv.exists() {
             if let Ok(raw) = std::fs::read_to_string(&inv) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {
-                    let r1_count = json.pointer("/r1/read_count").and_then(serde_json::Value::as_u64);
+                    let r1_count = json
+                        .pointer("/r1/read_count")
+                        .and_then(serde_json::Value::as_u64);
                     let r1_len = json
                         .pointer("/r1/read_length_mean")
                         .and_then(serde_json::Value::as_f64);

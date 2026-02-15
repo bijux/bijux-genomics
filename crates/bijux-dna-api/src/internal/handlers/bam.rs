@@ -140,6 +140,7 @@ pub fn bench_bam_stage(
                     tmp_root: run_dir.join("tmp"),
                     threads: plan.resources.threads.max(1),
                     memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
+                    compression_threads: Some(1),
                     seed: None,
                     network_policy: NetworkPolicy::Allow,
                 };
