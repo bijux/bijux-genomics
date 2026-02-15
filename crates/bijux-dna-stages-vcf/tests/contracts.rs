@@ -9,6 +9,7 @@ mod contracts {
     use std::path::Path;
 
     use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
+    use bijux_dna_domain_vcf::params::VcfCallParams;
     use bijux_dna_domain_vcf::VcfDomainStage;
     use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
     use bijux_dna_stages_vcf::invariants::{run_vcf_preflight, InputRegime, InvariantConfig};

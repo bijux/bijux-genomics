@@ -349,6 +349,11 @@
         assert!(summary.pointer("/masking_strategy/mode").is_some());
         assert!(summary.pointer("/thresholds/terminal_damage_threshold").is_some());
         assert!(summary.pointer("/thresholds/pmd_min").is_some());
+        let counts_raw = std::fs::read_to_string(&out.damage_filter_counts_json)
+            .unwrap_or_else(|err| panic!("read damage_filter_counts.json: {err}"));
+        let counts: serde_json::Value = serde_json::from_str(&counts_raw)
+            .unwrap_or_else(|err| panic!("parse damage_filter_counts json: {err}"));
+        assert!(counts.pointer("/counts/kept").is_some());
     }
 
     #[test]
@@ -416,6 +421,76 @@
             .unwrap_or_else(|| panic!("missing damage_filter stage"));
         assert!(stage.artifact_dir.join("damage_filter_summary.json").exists());
         assert!(stage.artifact_dir.join("damage_filter_counts.json").exists());
+        assert!(stage.artifact_dir.join("warnings.json").exists());
+        assert!(stage
+            .artifact_dir
+            .join("damage_genotype_manifest.json")
+            .exists());
+        let warnings_raw = std::fs::read_to_string(stage.artifact_dir.join("warnings.json"))
+            .unwrap_or_else(|err| panic!("read warnings.json: {err}"));
+        let warnings_json: serde_json::Value = serde_json::from_str(&warnings_raw)
+            .unwrap_or_else(|err| panic!("parse warnings json: {err}"));
+        assert!(warnings_json
+            .to_string()
+            .contains("filtered_and_why"));
+    }
+
+    #[test]
+    fn adna_mode_refuses_pipeline_without_damage_filter_unless_override() {
+        let old_mode = std::env::var("BIJUX_ADNA_MODE").ok();
+        let old_override = std::env::var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER").ok();
+        std::env::set_var("BIJUX_ADNA_MODE", "1");
+        std::env::remove_var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER");
+
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "chr1".to_string(),
+                length_bp: 248_956_422,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_vcf_pipeline(&VcfPipelineRequest {
+            run_root: dir.path().to_path_buf(),
+            input_vcf: input.to_path_buf(),
+            species_context: species,
+            sample_name: "sample1".to_string(),
+            requested_stages: vec![VcfDomainStage::CallGl],
+            production_profile: false,
+            reference_fasta: None,
+            prepare_panel: None,
+            panel_vcf: None,
+            damage_filter: None,
+            gl_propagation: None,
+            qc: None,
+            phasing: None,
+            impute: None,
+            postprocess: None,
+            invariants: InvariantConfig {
+                allow_contig_aliasing: true,
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        })
+        .expect_err("aDNA mode should require damage_filter");
+        assert!(err.to_string().contains("requires vcf.damage_filter"));
+
+        if let Some(v) = old_mode {
+            std::env::set_var("BIJUX_ADNA_MODE", v);
+        } else {
+            std::env::remove_var("BIJUX_ADNA_MODE");
+        }
+        if let Some(v) = old_override {
+            std::env::set_var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER", v);
+        } else {
+            std::env::remove_var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER");
+        }
     }
 
     #[test]
@@ -458,6 +533,33 @@
             .as_ref()
             .is_some_and(|p| p.exists()));
         assert!(out.gl_propagation_report_json.exists());
+    }
+
+    #[test]
+    fn pseudohaploid_call_can_be_derived_from_gl_probabilities() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("gl_only.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t50\tPASS\tDP=8\tGP\t0.02,0.08,0.90\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let out = run_call_pseudohaploid_stage(
+            &input,
+            dir.path(),
+            &VcfCallParams {
+                caller: "angsd".to_string(),
+                sample_name: "s1".to_string(),
+                ..VcfCallParams::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run pseudohaploid from GL fixture: {err}"));
+        let output = std::process::Command::new("bcftools")
+            .args(["view", &out.called_vcf.display().to_string()])
+            .output()
+            .unwrap_or_else(|err| panic!("run bcftools view: {err}"));
+        let raw = String::from_utf8_lossy(&output.stdout).to_string();
+        assert!(raw.contains("\t1\n"), "expected haploid allele 1 from GP argmax");
     }
 
     #[test]

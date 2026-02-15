@@ -216,6 +216,8 @@ impl VcfStageRunner for DispatchRunner {
                     out.filtered_tbi,
                     out.damage_filter_summary_json,
                     out.damage_filter_counts_json,
+                    out.warnings_json,
+                    out.damage_genotype_manifest_json,
                 ]);
             }
             VcfDomainStage::GlPropagation => {

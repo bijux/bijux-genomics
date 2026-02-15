@@ -428,6 +428,11 @@ fn run_provenance_from_cross(
     let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
     let build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let library_type = std::env::var("BIJUX_LIBRARY_TYPE")
+        .ok()
+        .map(|v| v.to_ascii_lowercase())
+        .filter(|v| matches!(v.as_str(), "ssdna" | "dsdna"))
+        .unwrap_or_else(|| "unknown".to_string());
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     let workspace_root = out_dir.parent().and_then(Path::parent).unwrap_or(out_dir);
@@ -484,6 +489,7 @@ fn run_provenance_from_cross(
         "pipeline_id": pipeline_id,
         "git_commit": git_commit,
         "build_profile": build_profile,
+        "library_type": library_type,
         "plan_hash": plan_hash,
         "coverage_regime": coverage_regime,
         "coverage_mean_depth": mean_depth,
@@ -513,6 +519,8 @@ mod tests {
 
     #[test]
     fn cross_run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
+        let old_library_type = std::env::var("BIJUX_LIBRARY_TYPE").ok();
+        std::env::set_var("BIJUX_LIBRARY_TYPE", "ssdna");
         let temp = bijux_dna_infra::temp_dir("bijux-dna-cross-manifest")?;
         let out_dir = temp.path();
         let profile = profile_by_id(Domain::Cross, "fastq-to-bam__default__v1")?;
@@ -544,6 +552,17 @@ mod tests {
                 .and_then(serde_json::Value::as_str),
             Some("1x_to_5x")
         );
+        assert_eq!(
+            manifest
+                .pointer("/run_provenance/library_type")
+                .and_then(serde_json::Value::as_str),
+            Some("ssdna")
+        );
+        if let Some(v) = old_library_type {
+            std::env::set_var("BIJUX_LIBRARY_TYPE", v);
+        } else {
+            std::env::remove_var("BIJUX_LIBRARY_TYPE");
+        }
         Ok(())
     }
 }

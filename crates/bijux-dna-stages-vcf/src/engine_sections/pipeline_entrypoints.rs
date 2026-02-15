@@ -53,6 +53,12 @@ fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> {
                 "filter_breakdown.tsv",
             ],
             "vcf.stats" => &["bcftools_stats.txt", "stats.json"],
+            "vcf.damage_filter" => &[
+                "damage_filter_summary.json",
+                "damage_filter_counts.json",
+                "warnings.json",
+                "damage_genotype_manifest.json",
+            ],
             "vcf.postprocess" => &[
                 "postprocess.vcf.gz",
                 "postprocess.vcf.gz.tbi",
@@ -207,6 +213,21 @@ fn write_runtime_explain(
 pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResult> {
     validate_request(request)?;
     let stage_list = deterministic_stage_list(&request.requested_stages)?;
+    let adna_mode = std::env::var("BIJUX_ADNA_MODE")
+        .ok()
+        .is_some_and(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes"));
+    let allow_skip_damage = std::env::var("BIJUX_ALLOW_SKIP_DAMAGE_FILTER")
+        .ok()
+        .is_some_and(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes"));
+    if adna_mode
+        && !allow_skip_damage
+        && !stage_list.iter().any(|stage| *stage == VcfDomainStage::DamageFilter)
+    {
+        return Err(refusal(
+            VcfRefusalCode::PlanningFailed,
+            "aDNA mode requires vcf.damage_filter; set BIJUX_ALLOW_SKIP_DAMAGE_FILTER=1 only with explicit override rationale",
+        ));
+    }
     let artifact_root = request.run_root.join("artifacts").join("vcf");
     bijux_dna_infra::ensure_dir(&artifact_root)?;
     let preflight = run_vcf_preflight(
