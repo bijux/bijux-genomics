@@ -6,6 +6,10 @@ fn normalize_indel_alleles(reference: &str, alternate: &str) -> (String, String)
     }
     let mut r_chars = r.chars().collect::<Vec<_>>();
     let mut a_chars = a.chars().collect::<Vec<_>>();
+    while r_chars.len() > 1 && a_chars.len() > 1 && r_chars.last() == a_chars.last() {
+        let _ = r_chars.pop();
+        let _ = a_chars.pop();
+    }
     while r_chars.len() > 1 && a_chars.len() > 1 && r_chars.first() == a_chars.first() {
         r_chars.remove(0);
         a_chars.remove(0);
@@ -176,7 +180,29 @@ pub fn run_postprocess_stage(
             .unwrap_or(usize::MAX);
         ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2))
     });
-    all_headers.sort();
+    let contig_rank = species_context
+        .contigs
+        .iter()
+        .enumerate()
+        .map(|(idx, c)| (canonical_contig_label(&c.name), idx))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    all_headers.sort_by_cached_key(|h| {
+        if !h.starts_with("##contig=<") {
+            return (0usize, h.clone());
+        }
+        let id = h
+            .split("ID=")
+            .nth(1)
+            .and_then(|x| x.split([',', '>']).next())
+            .unwrap_or_default();
+        (
+            contig_rank
+                .get(&canonical_contig_label(id))
+                .copied()
+                .unwrap_or(usize::MAX),
+            h.clone(),
+        )
+    });
     all_headers.dedup();
     let mut normalized_headers = Vec::new();
     normalized_headers.push("##fileformat=VCFv4.2".to_string());
