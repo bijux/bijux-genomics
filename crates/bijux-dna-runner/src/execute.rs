@@ -291,6 +291,16 @@ fn network_allowed() -> bool {
         .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
 }
 
+fn infer_tool_version_from_image(image: &str) -> String {
+    let without_digest = image.split('@').next().unwrap_or(image);
+    if let Some((_, tag)) = without_digest.rsplit_once(':') {
+        if !tag.is_empty() && tag != "latest" {
+            return tag.to_string();
+        }
+    }
+    "unknown".to_string()
+}
+
 fn write_minimum_run_artifacts(
     step: &ExecutionStep,
     input_hashes: &[String],
@@ -321,6 +331,7 @@ fn write_minimum_run_artifacts(
 
     let tool_invocation_path = run_artifacts_dir.join("tool_invocation.json");
     if !tool_invocation_path.exists() {
+        let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
         let parameters_json = serde_json::json!({ "command": step.command.template });
         let params_provenance = serde_json::json!({
             "tool_params": parameters_json,
@@ -335,14 +346,14 @@ fn write_minimum_run_artifacts(
             bijux_dna_core::contract::ContractVersion::v1(),
             step.stage_id.clone(),
             bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
-            "unknown".to_string(),
+            inferred_tool_version.clone(),
             None,
             step.image
                 .digest
                 .clone()
                 .unwrap_or_else(|| step.image.image.clone()),
             format!("{runner:?}"),
-            "unknown".to_string(),
+            inferred_tool_version.clone(),
             parameters_json.clone(),
             parameters_json,
             serde_json::json!({}),
@@ -361,6 +372,7 @@ fn write_minimum_run_artifacts(
 
     let stage_report_path = run_artifacts_dir.join("stage_report.json");
     if !stage_report_path.exists() {
+        let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
         let summary_params_hash =
             params_hash(&serde_json::json!({ "command": step.command.template.clone() }))
                 .unwrap_or_else(|_| "unknown".to_string());
@@ -369,7 +381,7 @@ fn write_minimum_run_artifacts(
             "stage_id": step.stage_id.to_string(),
             "stage_version": 1,
             "tool_id": step.image.image.clone(),
-            "tool_version": "unknown",
+            "tool_version": inferred_tool_version,
             "metrics_path": metrics_path.display().to_string(),
             "tool_invocation_path": tool_invocation_path.display().to_string(),
             "effective_config_path": effective_config_path.display().to_string(),
@@ -380,7 +392,7 @@ fn write_minimum_run_artifacts(
                     "run_id": std::env::var("BIJUX_RUN_ID").unwrap_or_else(|_| "unknown".to_string()),
                     "stage_id": step.stage_id.to_string(),
                     "tool_id": step.image.image.clone(),
-                    "tool_version": "unknown",
+                    "tool_version": inferred_tool_version,
                     "params_hash": summary_params_hash,
                     "input_artifact_hashes": input_hashes,
                 }
