@@ -177,6 +177,22 @@ pub fn run_stats_stage_real(
     params: &VcfStatsParams,
 ) -> Result<StatsStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
+    if input_vcf
+        .extension()
+        .and_then(|x| x.to_str())
+        .is_some_and(|x| x == "gz" || x == "bcf")
+    {
+        if let Ok(real_metrics) = crate::vcf_io::vcf_stats_basic(input_vcf, &bcftools_stats_txt) {
+            let stats_json = out_dir.join("stats.json");
+            atomic_write_json(&stats_json, &serde_json::to_value(&real_metrics)?)?;
+            return Ok(StatsStageOutputs {
+                bcftools_stats_txt,
+                stats_json,
+                metrics: real_metrics,
+            });
+        }
+    }
     let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
     let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
     let raw = std::fs::read_to_string(input_vcf)?;
@@ -203,7 +219,6 @@ pub fn run_stats_stage_real(
     } else {
         None
     };
-    let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
     let mut lines = vec![
         "## bcftools stats (simulated deterministic output)".to_string(),
         format!("SN\t0\tnumber of records:\t{}", call.variants_called),
