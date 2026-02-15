@@ -704,14 +704,24 @@ fn stage_postprocess(
             .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
+            let library_type = plan
+                .params
+                .get("library_type")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("dsdna");
             let path = stage_dir.join("markdup.policy.json");
             bijux_dna_infra::atomic_write_json(
                 &path,
                 &serde_json::json!({
+                    "library_type": library_type,
                     "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
                     "umi_policy": plan.params.get("umi_policy").cloned(),
                     "duplicate_action": plan.params.get("duplicate_action").cloned(),
                     "policy_scope": "pcr_vs_optical",
+                    "library_semantics": {
+                        "dsdna": "PCR/optical duplicate marking/removal is default",
+                        "ssdna": "conservative interpretation; avoid over-removal of authentic short fragments"
+                    },
                 }),
             )
             .with_context(|| format!("write {}", path.display()))?;
