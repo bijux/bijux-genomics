@@ -247,10 +247,13 @@
                 max_missingness: 1.0,
                 min_samples: 1,
                 min_segment_cm: 1.0,
+                ..IbdStageParams::default()
             },
         )
         .unwrap_or_else(|err| panic!("run ibd stage: {err}"));
+        assert!(out.ibd_input_tsv.exists());
         assert!(out.ibd_segments_tsv.exists());
+        assert!(out.ibd_merged_segments_tsv.exists());
         assert!(out.ibd_filtered_segments_tsv.exists());
         assert!(out.ibd_summary_json.exists());
         assert!(out.ibd_metrics_json.exists());
@@ -267,10 +270,36 @@
                 max_missingness: 0.0,
                 min_samples: 100,
                 min_segment_cm: 2.0,
+                ..IbdStageParams::default()
             },
         )
         .expect_err("ibd must refuse when readiness constraints fail");
         assert!(err.to_string().contains("refusal"));
+    }
+
+    #[test]
+    fn ibd_stage_refuses_on_genome_build_mismatch() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("build_mismatch.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh37\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t0/0\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let err = run_ibd_stage(
+            &input,
+            dir.path(),
+            &IbdStageParams {
+                expected_build: Some("GRCh38".to_string()),
+                min_variant_density_per_mb: 0.00001,
+                max_missingness: 1.0,
+                min_samples: 2,
+                min_segment_cm: 1.0,
+                ..IbdStageParams::default()
+            },
+        )
+        .expect_err("genome build mismatch must refuse");
+        assert!(err.to_string().contains("genome build mismatch"));
     }
 
     #[test]
@@ -285,10 +314,14 @@
         let out = run_demography_stage(
             &ibd_segments,
             &dir.path().join("demography"),
-            &DemographyStageParams { min_segments: 1 },
+            &DemographyStageParams {
+                min_segments: 1,
+                ..DemographyStageParams::default()
+            },
         )
         .unwrap_or_else(|err| panic!("run demography: {err}"));
         assert!(out.ne_trajectory_tsv.exists());
+        assert!(out.demography_json.exists());
         assert!(out.demography_metrics_json.exists());
     }
 
@@ -360,6 +393,7 @@
                 max_missingness: 1.0,
                 min_samples: 2,
                 min_segment_cm: 1.0,
+                ..IbdStageParams::default()
             },
         )
         .unwrap_or_else(|err| panic!("run mini ibd: {err}"));
