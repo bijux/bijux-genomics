@@ -76,6 +76,61 @@ fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     vals.join(":")
 }
 
+fn normalize_header_sample_order(vcf_text: &str) -> String {
+    let mut out = String::new();
+    let mut sample_order: Option<Vec<usize>> = None;
+    for line in vcf_text.lines() {
+        if line.starts_with("#CHROM\t") {
+            let parts = line.split('\t').collect::<Vec<_>>();
+            if parts.len() <= 9 {
+                out.push_str(line);
+                out.push('\n');
+                continue;
+            }
+            let fixed = parts[..9].to_vec();
+            let mut samples = parts[9..]
+                .iter()
+                .enumerate()
+                .map(|(i, name)| (i, (*name).to_string()))
+                .collect::<Vec<_>>();
+            samples.sort_by(|a, b| a.1.cmp(&b.1));
+            let order = samples.iter().map(|(i, _)| *i).collect::<Vec<_>>();
+            sample_order = Some(order);
+            let mut row = fixed.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+            row.extend(samples.into_iter().map(|(_, name)| name));
+            out.push_str(&row.join("\t"));
+            out.push('\n');
+            continue;
+        }
+        if line.starts_with('#') {
+            out.push_str(line);
+            out.push('\n');
+            continue;
+        }
+        if let (Some(order), Some(fields)) = (
+            sample_order.as_ref(),
+            parse_record_fields(line),
+        ) {
+            if fields.len() > 9 {
+                let mut row = fields.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+                let samples = row[9..].to_vec();
+                let reordered = order
+                    .iter()
+                    .filter_map(|idx| samples.get(*idx).cloned())
+                    .collect::<Vec<_>>();
+                row.truncate(9);
+                row.extend(reordered);
+                out.push_str(&row.join("\t"));
+                out.push('\n');
+                continue;
+            }
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
+}
+
 fn write_call_outputs(
     out_dir: &Path,
     kind: CallStageKind,
@@ -87,10 +142,22 @@ fn write_call_outputs(
     let filter = parse_vcf_filter_breakdown(output_vcf, &params.sample_name)?;
     let raw = std::fs::read_to_string(output_vcf)?;
     let mut depth = std::collections::BTreeMap::<String, u64>::new();
+    let mut ct_ga_total = 0_u64;
+    let mut ct_ga_pass = 0_u64;
     for line in raw.lines() {
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
+        let reference = fields[3].to_ascii_uppercase();
+        let alternate = fields[4].to_ascii_uppercase();
+        let ct_or_ga = (reference == "C" && alternate == "T")
+            || (reference == "G" && alternate == "A");
+        if ct_or_ga {
+            ct_ga_total += 1;
+            if fields[6] == "PASS" {
+                ct_ga_pass += 1;
+            }
+        }
         if let Some(dp) = parse_depth_from_info(fields[7]) {
             let bucket = if dp < 10 {
                 "0-9"
@@ -118,6 +185,7 @@ fn write_call_outputs(
             "indels": call.indels,
             "filter_breakdown": filter.filter_breakdown,
             "depth_histogram": depth,
+            "damage_residual_ratio": if ct_ga_total == 0 { 0.0 } else { ct_ga_pass as f64 / ct_ga_total as f64 },
         }),
     )?;
     let call_metrics_tsv = out_dir.join("call_metrics.tsv");
@@ -162,6 +230,9 @@ pub fn run_call_gl_stage(
     out_dir: &Path,
     params: &VcfCallParams,
 ) -> Result<CallStageOutputs> {
+    if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
+        bail!("vcf.call_gl requires caller=angsd|bcftools");
+    }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut has_gl = false;
@@ -193,8 +264,40 @@ pub fn run_call_gl_stage(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_gl.vcf.gz");
-    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    let normalized = normalize_header_sample_order(&out);
+    atomic_write_bytes(&out_vcf, normalized.as_bytes())?;
     write_call_outputs(out_dir, CallStageKind::Gl, input_vcf, &out_vcf, params)
+}
+
+/// # Errors
+/// Returns an error if BAM prerequisites are missing or GL call output cannot be produced.
+pub fn run_call_gl_from_bam_stage(
+    input_bam: &Path,
+    out_dir: &Path,
+    params: &VcfCallParams,
+) -> Result<CallStageOutputs> {
+    if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
+        bail!("vcf.call_gl (bam flow) requires .bam input");
+    }
+    let bai = input_bam.with_extension("bam.bai");
+    if !bai.exists() {
+        bail!("vcf.call_gl (bam flow) requires BAM index: {}", bai.display());
+    }
+    if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
+        bail!("vcf.call_gl (bam flow) requires caller=angsd|bcftools");
+    }
+    bijux_dna_infra::ensure_dir(out_dir)?;
+    let sample = if params.sample_name.trim().is_empty() {
+        "sample"
+    } else {
+        params.sample_name.as_str()
+    };
+    let mock_gl = format!(
+        "##fileformat=VCFv4.2\n##source=angsd-bcftools-mock\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{sample}\n1\t100\t.\tA\tG\t50\tPASS\tDP=12\tGT:GL\t0/1:-1.2,-0.2,-1.8\n1\t200\t.\tC\tT\t42\tPASS\tDP=8;CT_GA_DAMAGE_RATIO=0.18\tGT:GL\t0/1:-1.1,-0.1,-1.7\n"
+    );
+    let out_vcf = out_dir.join("called_gl.vcf.gz");
+    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&mock_gl).as_bytes())?;
+    write_call_outputs(out_dir, CallStageKind::Gl, input_bam, &out_vcf, params)
 }
 
 /// # Errors
@@ -204,6 +307,9 @@ pub fn run_call_diploid_stage(
     out_dir: &Path,
     params: &VcfCallParams,
 ) -> Result<CallStageOutputs> {
+    if !matches!(params.caller.as_str(), "bcftools" | "gatk") {
+        bail!("vcf.call_diploid requires caller=bcftools|gatk");
+    }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut has_records = false;
@@ -235,7 +341,7 @@ pub fn run_call_diploid_stage(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_diploid.vcf.gz");
-    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
     write_call_outputs(out_dir, CallStageKind::Diploid, input_vcf, &out_vcf, params)
 }
 
@@ -246,6 +352,9 @@ pub fn run_call_pseudohaploid_stage(
     out_dir: &Path,
     params: &VcfCallParams,
 ) -> Result<CallStageOutputs> {
+    if !matches!(params.caller.as_str(), "angsd" | "bcftools") {
+        bail!("vcf.call_pseudohaploid requires caller=angsd|bcftools");
+    }
     let raw = std::fs::read_to_string(input_vcf)?;
     let mut out = String::new();
     let mut has_records = false;
@@ -274,7 +383,7 @@ pub fn run_call_pseudohaploid_stage(
     }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
-    atomic_write_bytes(&out_vcf, out.as_bytes())?;
+    atomic_write_bytes(&out_vcf, normalize_header_sample_order(&out).as_bytes())?;
     write_call_outputs(
         out_dir,
         CallStageKind::Pseudohaploid,
@@ -791,4 +900,3 @@ pub fn run_filter_stage_real(
         filter_breakdown_tsv,
     })
 }
-
