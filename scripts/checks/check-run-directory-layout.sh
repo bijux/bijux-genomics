@@ -4,7 +4,10 @@ IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+source "${ROOT_DIR}/scripts/_lib/common.sh"
+require_stable_env
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   cat <<'USAGE'
@@ -19,6 +22,10 @@ scan_root="${1:-$ROOT_DIR/artifacts}"
 if [[ ! -d "$scan_root" ]]; then
   echo "check-run-directory-layout: SKIP ($scan_root not found)"
   exit 0
+fi
+
+if [[ -z "${1:-}" && -d "$ROOT_DIR/artifacts/runs" ]]; then
+  scan_root="$ROOT_DIR/artifacts/runs"
 fi
 
 fail=0
@@ -51,7 +58,11 @@ PY
       done
     done < <(find "$run_artifacts" -type f -name 'run_artifact_envelope.json' | sort)
   fi
-done < <(find "$scan_root" -type f -name 'run_manifest.json' | sort)
+done < <(
+  find "$scan_root" \
+    \( -path "*/isolates/*" -o -path "*/tmp/*" -o -path "*/target*" \) -prune -o \
+    -type f -name 'run_manifest.json' -print | sort
+)
 
 if [[ "$fail" -ne 0 ]]; then
   exit 1
