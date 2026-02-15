@@ -31,7 +31,20 @@ nextest_profile="${NEXTEST_PROFILE:-$cfg_profile}"
 nextest_threads="${NEXTEST_TEST_THREADS:-$cfg_threads}"
 nextest_no_tests="${NEXTEST_NO_TESTS:-pass}"
 run_ignored="${RUN_IGNORED:-$cfg_run_ignored}"
-nextest_expr="${NEXTEST_TEST_EXPR:-not test(/::slow__/)}"
+if [[ -n "${NEXTEST_TEST_EXPR:-}" ]]; then
+  nextest_expr="${NEXTEST_TEST_EXPR}"
+elif [[ -n "${NEXTEST_FAST_EXPR:-}" ]]; then
+  nextest_expr="${NEXTEST_FAST_EXPR}"
+elif [[ "${nextest_profile}" == "fast-unit" ]]; then
+  nextest_expr="not test(/::slow__/)"
+else
+  nextest_expr=""
+fi
+
+expr_arg=""
+if [[ -n "${nextest_expr}" ]]; then
+  expr_arg="-E \"${nextest_expr}\""
+fi
 
 ./bin/isolate sh -ceu "
 ./bin/require-isolate >/dev/null
@@ -49,6 +62,6 @@ export TEST_PROFRAW_DIR=\"\$ISO_ROOT/profraw-test\"
 export COV_PROFRAW_DIR=\"\$ISO_ROOT/profraw-cov\"
 export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"
 unset RUSTC_WRAPPER
-cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} -E \"${nextest_expr}\"
+cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} ${expr_arg}
 ./scripts/checks/check-isolation-contract.sh
 "
