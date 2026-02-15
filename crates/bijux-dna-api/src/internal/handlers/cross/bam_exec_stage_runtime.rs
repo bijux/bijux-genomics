@@ -50,6 +50,198 @@ fn should_skip_bam_truth_stage(stage: bijux_dna_planner_bam::stage_api::BamStage
     false
 }
 
+fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
+    let raw = std::fs::read_to_string(bam_path).ok()?;
+    for line in raw.lines() {
+        if !line.starts_with("@HD") {
+            continue;
+        }
+        for field in line.split('\t') {
+            if let Some(value) = field.strip_prefix("SO:") {
+                return Some(value.to_string());
+            }
+        }
+    }
+    None
+}
+
+fn read_group_presence_hint(bam_path: &Path) -> &'static str {
+    let Ok(raw) = std::fs::read_to_string(bam_path) else {
+        return "unknown";
+    };
+    if raw.lines().any(|line| line.starts_with("@RG")) {
+        "present"
+    } else if raw.lines().any(|line| line.starts_with('@')) {
+        "absent"
+    } else {
+        "unknown"
+    }
+}
+
+fn reference_contig_names(reference: Option<&PathBuf>) -> Vec<String> {
+    let Some(reference) = reference else {
+        return Vec::new();
+    };
+    let fai = PathBuf::from(format!("{}.fai", reference.display()));
+    let Ok(raw) = std::fs::read_to_string(fai) else {
+        return Vec::new();
+    };
+    raw.lines()
+        .filter_map(|line| line.split('\t').next())
+        .map(std::string::ToString::to_string)
+        .collect()
+}
+
+fn write_bam_invariants(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    bam_path: &Path,
+    bai_path: Option<&PathBuf>,
+    reference: Option<&PathBuf>,
+) -> Result<()> {
+    let sort_order = parse_sort_order_from_header_hint(bam_path).unwrap_or_else(|| {
+        bijux_dna_domain_bam::contract_for_stage(stage.as_str())
+            .map(|contract| contract.sorting)
+            .unwrap_or("unspecified")
+            .to_string()
+    });
+    let duplicate_policy = bijux_dna_domain_bam::contract_for_stage(stage.as_str())
+        .map(|contract| contract.duplicate_policy)
+        .unwrap_or("unspecified")
+        .to_string();
+    let contigs = reference_contig_names(reference);
+    let path = stage_dir.join("bam_invariants.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.invariants.v1",
+        "stage_id": stage.as_str(),
+        "bam_path": bam_path,
+        "sort_order": sort_order,
+        "header_contigs": contigs,
+        "read_groups": {
+            "status": read_group_presence_hint(bam_path),
+        },
+        "index": {
+            "required": bai_path.is_some(),
+            "path": bai_path,
+            "exists": bai_path.is_some_and(|path| path.exists()),
+        },
+        "duplicate_tags_policy": duplicate_policy,
+    });
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+fn expected_bam_contract_outputs(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+) -> (Vec<PathBuf>, Vec<PathBuf>) {
+    let mut bams = Vec::new();
+    let mut indices = Vec::new();
+    for artifact in bijux_dna_domain_bam::required_audit_artifacts(stage) {
+        let output = stage_dir.join(artifact.filename);
+        if artifact.filename.ends_with(".bam") {
+            bams.push(output);
+        } else if artifact.filename.ends_with(".bam.bai") {
+            indices.push(output);
+        }
+    }
+    (bams, indices)
+}
+
+fn write_bam_output_contract(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+) -> Result<()> {
+    let (bams, indices) = expected_bam_contract_outputs(stage, stage_dir);
+    let contract_path = stage_dir.join("bam_output_contract.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.output_contract.v1",
+        "stage_id": stage.as_str(),
+        "deterministic_root": stage_dir,
+        "required_bam": bams,
+        "required_bai": indices,
+        "all_required_present": bams.iter().all(|path| path.exists()) && indices.iter().all(|path| path.exists()),
+        "naming_policy": "deterministic",
+    });
+    bijux_dna_infra::atomic_write_json(&contract_path, &payload)
+        .with_context(|| format!("write {}", contract_path.display()))
+}
+
+fn stage_resume_summary_path(stage_dir: &Path) -> PathBuf {
+    stage_dir.join("stage_resume.json")
+}
+
+fn build_resumed_stage_result(outputs: Vec<PathBuf>) -> bijux_dna_runner::execute::StageResultV1 {
+    bijux_dna_runner::execute::StageResultV1 {
+        run_id: "resume-skip".to_string(),
+        exit_code: 0,
+        runtime_s: 0.0,
+        memory_mb: 0.0,
+        outputs,
+        metrics_path: None,
+        stdout: "skipped: existing outputs verified".to_string(),
+        stderr: String::new(),
+        command: "resume-skip".to_string(),
+    }
+}
+
+fn maybe_resume_bam_stage(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+    step: &bijux_dna_core::contract::ExecutionStep,
+) -> Result<Option<StageExecutionSummary>> {
+    let accounting = stage_dir.join("stage_loss_accounting.json");
+    if !accounting.exists() {
+        return Ok(None);
+    }
+    let (bams, indices) = expected_bam_contract_outputs(stage, stage_dir);
+    let expected = bams.into_iter().chain(indices).collect::<Vec<_>>();
+    if !expected.iter().all(|path| path.exists()) {
+        return Ok(None);
+    }
+    let resume_path = stage_resume_summary_path(stage_dir);
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.resume.v1",
+        "stage_id": stage.as_str(),
+        "resume": true,
+        "reason": "existing_artifacts_match_contract",
+        "output_count": expected.len(),
+    });
+    bijux_dna_infra::atomic_write_json(&resume_path, &payload)
+        .with_context(|| format!("write {}", resume_path.display()))?;
+    Ok(Some(StageExecutionSummary {
+        plan: step.clone(),
+        result: build_resumed_stage_result(expected),
+    }))
+}
+
+fn write_tool_wrapper_contract(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    step: &bijux_dna_core::contract::ExecutionStep,
+) -> Result<()> {
+    let path = stage_dir.join("tool_wrapper.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.bam.tool_wrapper.v1",
+        "stage_id": stage.as_str(),
+        "tool_id": plan.tool_id,
+        "tool_version": plan.tool_version,
+        "container_image": plan.image.image,
+        "command_template": step.command.template,
+        "resources": {
+            "threads": plan.resources.threads,
+            "memory_gb": plan.resources.mem_gb,
+        },
+        "logs": {
+            "stdout": "stdout.log",
+            "stderr": "stderr.log",
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
 fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -118,6 +310,11 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         }
     }
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
+    write_bam_invariants(&stage_dir, stage, bam_path, bai_path, reference)?;
+    write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
+    if let Some(summary) = maybe_resume_bam_stage(stage, &stage_dir, &step)? {
+        return Ok(summary);
+    }
     let context = ToolContext {
         run_id: format!("bam-{}-{}", stage.as_str(), tool_id.as_str()),
         stage_id: stage.as_str().to_string(),
@@ -143,6 +340,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     })?
     .stage_result;
     stage_postprocess(stage, &stage_dir, &plan)?;
+    write_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     if result.exit_code != 0 {
         write_stage_failure_hint(&stage_dir, stage, &result)?;
@@ -209,6 +407,28 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_out,
     )?;
     let align_step = bijux_dna_stage_contract::execution_step_from_stage_plan(&align_plan);
+    let align_bam = align_out.join("align.bam");
+    let align_bai = align_out.join("align.bam.bai");
+    write_bam_invariants(
+        &align_out,
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_bam,
+        Some(&align_bai),
+        Some(&reference.fasta),
+    )?;
+    write_tool_wrapper_contract(
+        &align_out,
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_plan,
+        &align_step,
+    )?;
+    if let Some(summary) = maybe_resume_bam_stage(
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_out,
+        &align_step,
+    )? {
+        return Ok(vec![summary]);
+    }
     let align_context = ToolContext {
         run_id: format!("bam-{}-{}", align_step.step_id, tool_id.as_str()),
         stage_id: align_step.step_id.to_string(),
@@ -234,6 +454,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     })?
     .stage_result;
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
+    write_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
     let header_normalization = serde_json::json!({
         "stage_id": align_step.step_id,
         "regime": regime,
