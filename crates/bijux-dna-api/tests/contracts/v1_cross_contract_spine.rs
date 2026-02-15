@@ -258,10 +258,7 @@ fn bam_smoke_runner_minimal_path_has_report_sections() -> Result<()> {
     for section in required {
         if let Some(name) = section.as_str() {
             let in_root = report.get(name).is_some();
-            let in_sections = report
-                .get("sections")
-                .and_then(|v| v.get(name))
-                .is_some();
+            let in_sections = report.get("sections").and_then(|v| v.get(name)).is_some();
             assert!(in_root || in_sections, "missing report section {name}");
         }
     }

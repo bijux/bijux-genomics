@@ -137,7 +137,10 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
             break;
         };
         if !h.starts_with('@') || !plus.starts_with('+') {
-            return Err(anyhow!("invalid FASTQ record framing in {}", path.display()));
+            return Err(anyhow!(
+                "invalid FASTQ record framing in {}",
+                path.display()
+            ));
         }
         let l = seq.len();
         len_min = len_min.min(l);
@@ -349,7 +352,12 @@ fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThre
         profile_thresholds
             .get(key)
             .and_then(toml::Value::as_float)
-            .or_else(|| profile_thresholds.get(key).and_then(toml::Value::as_integer).map(|v| v as f64))
+            .or_else(|| {
+                profile_thresholds
+                    .get(key)
+                    .and_then(toml::Value::as_integer)
+                    .map(|v| v as f64)
+            })
             .ok_or_else(|| anyhow!("missing threshold key `{key}`"))
     };
     Ok(FastqCoverageThresholds {
@@ -391,7 +399,9 @@ fn write_stage_path_contract(
 }
 
 fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
-    let output = std::process::Command::new(tool_bin).arg("--version").output();
+    let output = std::process::Command::new(tool_bin)
+        .arg("--version")
+        .output();
     let (ok, raw) = match output {
         Ok(out) => {
             let raw = if out.stdout.is_empty() {
@@ -403,7 +413,11 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
         }
         Err(err) => (false, format!("failed to execute --version: {err}")),
     };
-    let line = raw.lines().find(|x| !x.trim().is_empty()).unwrap_or("").trim();
+    let line = raw
+        .lines()
+        .find(|x| !x.trim().is_empty())
+        .unwrap_or("")
+        .trim();
     let version = line
         .split_whitespace()
         .find(|tok| tok.chars().next().is_some_and(|c| c.is_ascii_digit()))
@@ -471,7 +485,8 @@ fn copy_if_missing(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
     if let Some(parent) = dst.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
     }
-    std::fs::copy(src, dst).with_context(|| format!("copy {} -> {}", src.display(), dst.display()))?;
+    std::fs::copy(src, dst)
+        .with_context(|| format!("copy {} -> {}", src.display(), dst.display()))?;
     Ok(())
 }
 
@@ -651,17 +666,33 @@ fn enforce_amplicon_qc_thresholds(
     match stage_id {
         "fastq.primer_normalization" => {
             let value = read_metric("primer_trimmed_fraction").unwrap_or(1.0);
-            if value < *thresholds.get("fastq_primer_trimmed_fraction_fail").unwrap_or(&0.80) {
+            if value
+                < *thresholds
+                    .get("fastq_primer_trimmed_fraction_fail")
+                    .unwrap_or(&0.80)
+            {
                 failures.push("primer_trimmed_fraction_below_fail".to_string());
-            } else if value < *thresholds.get("fastq_primer_trimmed_fraction_warn").unwrap_or(&0.90) {
+            } else if value
+                < *thresholds
+                    .get("fastq_primer_trimmed_fraction_warn")
+                    .unwrap_or(&0.90)
+            {
                 warnings.push("primer_trimmed_fraction_below_warn".to_string());
             }
         }
         "fastq.chimera_detection" => {
             let value = read_metric("chimera_fraction").unwrap_or(0.0);
-            if value > *thresholds.get("fastq_chimera_fraction_fail").unwrap_or(&0.30) {
+            if value
+                > *thresholds
+                    .get("fastq_chimera_fraction_fail")
+                    .unwrap_or(&0.30)
+            {
                 failures.push("chimera_fraction_above_fail".to_string());
-            } else if value > *thresholds.get("fastq_chimera_fraction_warn").unwrap_or(&0.20) {
+            } else if value
+                > *thresholds
+                    .get("fastq_chimera_fraction_warn")
+                    .unwrap_or(&0.20)
+            {
                 warnings.push("chimera_fraction_above_warn".to_string());
             }
         }
@@ -683,9 +714,17 @@ fn enforce_amplicon_qc_thresholds(
         }
         "fastq.abundance_normalization" => {
             let value = read_metric("zero_fraction").unwrap_or(0.0);
-            if value > *thresholds.get("fastq_abundance_zero_fraction_fail").unwrap_or(&0.95) {
+            if value
+                > *thresholds
+                    .get("fastq_abundance_zero_fraction_fail")
+                    .unwrap_or(&0.95)
+            {
                 failures.push("abundance_zero_fraction_above_fail".to_string());
-            } else if value > *thresholds.get("fastq_abundance_zero_fraction_warn").unwrap_or(&0.80) {
+            } else if value
+                > *thresholds
+                    .get("fastq_abundance_zero_fraction_warn")
+                    .unwrap_or(&0.80)
+            {
                 warnings.push("abundance_zero_fraction_above_warn".to_string());
             }
         }
@@ -898,6 +937,5 @@ fn write_taxonomy_db_drift_report(
     bijux_dna_infra::atomic_write_json(&lock_path, &report).context("write taxonomy_db lock")?;
     Ok(())
 }
-
 
 include!("preprocess/pipeline_run.rs");

@@ -146,10 +146,10 @@ mod mod_contracts_tooling_smoke_manifest_policy_rs;
 mod mod_contracts_tooling_smoke_probe_policy_rs;
 #[path = "contracts/tooling/governance_quality/snapshot_hygiene_policy.rs"]
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
-#[path = "contracts/tooling/stage/stage_id_symmetry_policy.rs"]
-mod mod_contracts_tooling_stage_id_symmetry_policy_rs;
 #[path = "contracts/tooling/stage/stage_executor_parity_policy.rs"]
 mod mod_contracts_tooling_stage_executor_parity_policy_rs;
+#[path = "contracts/tooling/stage/stage_id_symmetry_policy.rs"]
+mod mod_contracts_tooling_stage_id_symmetry_policy_rs;
 #[path = "contracts/tooling/stage/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 #[path = "contracts/tooling/stage/stage_tool_matrix_policy.rs"]

@@ -527,7 +527,10 @@ mod tests {
         write_defaults_ledger(out_dir, &profile)?;
         bijux_dna_infra::ensure_dir(&out_dir.join("bam").join("coverage"))?;
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("bam").join("coverage").join("coverage.regime.json"),
+            &out_dir
+                .join("bam")
+                .join("coverage")
+                .join("coverage.regime.json"),
             &serde_json::json!({
                 "coverage_regime": "1x_to_5x",
                 "mean_depth": 3.2
