@@ -39,6 +39,83 @@ use bijux_dna_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 
+fn normalize_sample_identity(sample_id: &str) -> String {
+    let mut out = String::with_capacity(sample_id.len());
+    for ch in sample_id.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '-' {
+            out.push(ch.to_ascii_lowercase());
+        } else {
+            out.push('_');
+        }
+    }
+    out.trim_matches('_').to_string()
+}
+
+fn parse_low_complexity_filtered_count(stdout: &str, stderr: &str) -> Option<u64> {
+    let haystack = format!("{stdout}\n{stderr}");
+    for line in haystack.lines() {
+        if line.to_ascii_lowercase().contains("filtered") {
+            let digits: String = line.chars().filter(char::is_ascii_digit).collect();
+            if let Ok(parsed) = digits.parse::<u64>() {
+                return Some(parsed);
+            }
+        }
+    }
+    None
+}
+
+fn write_stage_standardized_metrics(
+    stage_root: &std::path::Path,
+    stage_id: &str,
+    out_dir: &std::path::Path,
+    execution: &StageResultV1,
+) -> Result<()> {
+    let metrics = match stage_id {
+        "fastq.detect_adapters" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "adapter_inference": {
+                "detected": out_dir.join("fastqc").exists(),
+                "source": "stage_outputs",
+                "output_dir": out_dir.join("fastqc"),
+            },
+        }),
+        "fastq.length_distribution_pre" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["sample_id", "read_length", "count"],
+            "tsv_path": out_dir.join("length_distribution.tsv"),
+            "json_path": out_dir.join("length_distribution.json"),
+        }),
+        "fastq.overrepresented_sequences" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "fields": ["sequence", "count", "fraction", "flag"],
+            "tsv_path": out_dir.join("overrepresented_sequences.tsv"),
+            "json_path": out_dir.join("overrepresented_sequences.json"),
+        }),
+        "fastq.polyg_tailing" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "applicability": {
+                "requires_illumina_like_cycle_artifacts": true,
+            },
+            "report_json": out_dir.join("polyg_tailing_report.json"),
+        }),
+        "fastq.low_complexity" => serde_json::json!({
+            "schema_version": "bijux.fastq_stage_metrics.v1",
+            "stage": stage_id,
+            "filter_counts": {
+                "filtered_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
+            },
+            "report_json": out_dir.join("low_complexity_report.json"),
+        }),
+        _ => return Ok(()),
+    };
+    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.metrics.standardized.json"), &metrics)
+        .context("write standardized stage metrics")
+}
+
 /// Run the preprocess pipeline.
 ///
 /// # Errors
@@ -63,6 +140,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
+    let normalized_sample_id = normalize_sample_identity(&args.sample_id);
     let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS)
         .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS.as_str()))?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
@@ -342,7 +420,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let telemetry = build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
-    pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
+    pipeline_attrs.insert("sample_id".to_string(), normalized_sample_id.clone());
     pipeline_attrs.insert(
         "pipeline".to_string(),
         STAGE_PREPROCESS.as_str().to_string(),
@@ -365,7 +443,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 run_id: format!("fastq-preprocess-{}", planned.step_id),
                 stage_id: planned.step_id.to_string(),
                 tool_id: planned.image.image.clone(),
-                sample_id: Some(args.sample_id.clone()),
+                sample_id: Some(normalized_sample_id.clone()),
                 stage_root: stage_root.clone(),
                 input_root: args
                     .r1
@@ -383,7 +461,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         });
         stage_span.end();
         let execution = invocation?.stage_result;
+        write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
         if execution.exit_code != 0 {
+            if stage_id == "fastq.validate_pre" {
+                return Err(anyhow!(
+                    "strict validation failed in fastq.validate_pre; refusing pipeline execution"
+                ));
+            }
             failures.push(RawFailure {
                 stage: stage_id,
                 tool: tool.clone(),
@@ -437,6 +521,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
     let decision_trace_path = root.join("decision_trace.json");
+    let identity_norm = serde_json::json!({
+        "schema_version": "bijux.identity_normalization.v1",
+        "sample_id_raw": args.sample_id.clone(),
+        "sample_id_normalized": normalized_sample_id,
+        "lane_id": "L001",
+    });
+    bijux_dna_infra::atomic_write_json(&root.join("identity_normalization.json"), &identity_norm)
+        .context("write identity_normalization.json")?;
     let decision_trace = serde_json::json!({
         "schema_version": "bijux.decision_trace.v1",
         "stage": STAGE_PREPROCESS.as_str(),
