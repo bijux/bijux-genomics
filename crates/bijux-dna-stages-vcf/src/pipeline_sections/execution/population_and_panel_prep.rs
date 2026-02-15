@@ -37,6 +37,27 @@ fn try_run_tool(bin: &str, args: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
+fn write_bgzip_with_best_effort_index(
+    out_vcfgz: &Path,
+    payload: &str,
+    tmp_name: &str,
+) -> Result<PathBuf> {
+    let out_tbi = PathBuf::from(format!("{}.tbi", out_vcfgz.display()));
+    let tmp_vcf = out_vcfgz
+        .parent()
+        .ok_or_else(|| anyhow!("missing parent for {}", out_vcfgz.display()))?
+        .join(tmp_name);
+    atomic_write_bytes(&tmp_vcf, payload.as_bytes())?;
+    if crate::vcf_io::vcf_index_bgzip_tabix(&tmp_vcf, out_vcfgz).is_ok() && out_tbi.exists() {
+        let _ = std::fs::remove_file(&tmp_vcf);
+        return Ok(out_tbi);
+    }
+    let _ = std::fs::remove_file(&tmp_vcf);
+    atomic_write_bytes(out_vcfgz, payload.as_bytes())?;
+    atomic_write_bytes(&out_tbi, b"tabix-index-placeholder\n")?;
+    Ok(out_tbi)
+}
+
 /// # Errors
 /// Returns an error if PCA preprocessing requirements are not satisfied.
 pub fn run_pca_stage(
@@ -757,6 +778,9 @@ pub fn run_prepare_reference_panel_stage(
     } else {
         overlap_total as f64 / panel_total as f64
     };
+    if panel_total > 0 && overlap_fraction < 0.05 {
+        bail!("prepare_reference_panel refusal: too few overlapping sites with target VCF");
+    }
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let lock_seed = format!(
@@ -784,7 +808,6 @@ pub fn run_prepare_reference_panel_stage(
     atomic_write_bytes(&local_raw_panel_vcf, &std::fs::read(panel_vcf)?)?;
 
     let prepared_panel_vcf = local_normalized.join("prepared_panel.vcf.gz");
-    let prepared_panel_tbi = local_normalized.join("prepared_panel.vcf.gz.tbi");
     let panel_manifest_json = out_dir.join("panel_manifest.json");
     let overlap_json = out_dir.join("overlap.json");
     let panel_overlap_json = out_dir.join("panel_overlap.json");
@@ -839,8 +862,11 @@ pub fn run_prepare_reference_panel_stage(
             .then(ka.2.cmp(&kb.2))
     });
     let normalized_payload = format!("{}\n{}\n", header_lines.join("\n"), record_lines.join("\n"));
-    atomic_write_bytes(&prepared_panel_vcf, normalized_payload.as_bytes())?;
-    atomic_write_bytes(&prepared_panel_tbi, b"tabix-index-placeholder\n")?;
+    let prepared_panel_tbi = write_bgzip_with_best_effort_index(
+        &prepared_panel_vcf,
+        &normalized_payload,
+        "prepared_panel.tmp.vcf",
+    )?;
     assert_bgzip_tabix_artifacts(&prepared_panel_vcf, &prepared_panel_tbi)?;
 
     let site_list = local_derived.join("panel_sites.tsv");
