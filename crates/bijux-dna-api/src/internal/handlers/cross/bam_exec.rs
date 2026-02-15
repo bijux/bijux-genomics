@@ -7,7 +7,7 @@ use bijux_dna_environment::resolve::ReferenceRecord;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
-use crate::execution_kernel::{invoke_tool, NetworkPolicy, ToolContext, ToolInvocationRequest};
+use crate::execution_kernel::{NetworkPolicy, ToolContext, ToolInvocationRequest};
 use crate::internal::handlers::fastq::StageExecutionSummary;
 use crate::request_args::{BamRunArgs, FastqCrossArgs};
 use crate::v1::bam::downstream_enabled;
@@ -742,11 +742,12 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         seed: None,
         network_policy: NetworkPolicy::Allow,
     };
-    let result = invoke_tool(&ToolInvocationRequest {
+    let result = crate::execution_kernel::ToolExec::invoke(&ToolInvocationRequest {
         step: step.clone(),
         runner: platform.runner,
         context,
         timeout: None,
+        mode: crate::execution_kernel::ToolExecMode::Execute,
     })?
     .stage_result;
     stage_postprocess(stage, &stage_dir, &plan)?;
@@ -834,11 +835,12 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         seed: None,
         network_policy: NetworkPolicy::Allow,
     };
-    let align_result = invoke_tool(&ToolInvocationRequest {
+    let align_result = crate::execution_kernel::ToolExec::invoke(&ToolInvocationRequest {
         step: align_step.clone(),
         runner: platform.runner,
         context: align_context,
         timeout: None,
+        mode: crate::execution_kernel::ToolExecMode::Execute,
     })?
     .stage_result;
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;

@@ -304,11 +304,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         seed: None,
         network_policy: NetworkPolicy::Allow,
     };
-    let execution = execution_kernel::invoke_tool(&execution_kernel::ToolInvocationRequest {
+    let execution = execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
         step: step.clone(),
         runner: bench_inputs.runner,
         context: tool_context,
         timeout: None,
+        mode: execution_kernel::ToolExecMode::Execute,
     })?
     .stage_result;
 

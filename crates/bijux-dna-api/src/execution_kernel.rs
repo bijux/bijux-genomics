@@ -36,9 +36,21 @@ pub struct ToolInvocationRequest {
     pub runner: RuntimeKind,
     pub context: ToolContext,
     pub timeout: Option<Duration>,
+    #[serde(default)]
+    pub mode: ToolExecMode,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolExecMode {
+    #[default]
+    Execute,
+    DryRun,
+    PrintCommands,
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ToolInvocationResult {
     pub stage_result: StageResultV1,
     pub runtime_provenance_path: PathBuf,
@@ -46,6 +58,17 @@ pub struct ToolInvocationResult {
     pub stdout_path: PathBuf,
     pub stderr_path: PathBuf,
     pub summary_path: PathBuf,
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct ToolExec;
+
+impl ToolExec {
+    /// # Errors
+    /// Returns an error if path contracts fail, tool execution fails, or artifacts cannot be written.
+    pub fn invoke(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> {
+        invoke_tool(req)
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -95,6 +118,21 @@ fn enforce_path_contracts(req: &ToolInvocationRequest) -> Result<()> {
     Ok(())
 }
 
+fn require_pinned_digest(step: &ExecutionStep) -> Result<()> {
+    let digest = step
+        .image
+        .digest
+        .as_deref()
+        .ok_or_else(|| anyhow!("tool resolution failed: missing image digest for {}", step.image.image))?;
+    if !digest.starts_with("sha256:") || digest.len() < 16 {
+        bail!(
+            "tool resolution failed: unpinned/invalid digest `{digest}` for {}",
+            step.image.image
+        );
+    }
+    Ok(())
+}
+
 fn classify_exit_code(exit_code: i32) -> ExitTaxonomy {
     match exit_code {
         0 => ExitTaxonomy::ToolFailure,
@@ -127,10 +165,83 @@ fn validate_required_outputs(step: &ExecutionStep) -> Result<()> {
     Ok(())
 }
 
+fn output_checksums(step: &ExecutionStep) -> Result<serde_json::Value> {
+    let output_spec = step
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| (artifact.name.to_string(), artifact.path.clone()))
+        .collect::<Vec<_>>();
+    let checksums = write_artifact_checksums_json(&step.out_dir, &output_spec)?;
+    Ok(serde_json::to_value(checksums)?)
+}
+
+fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
+    let manifest_path = req.context.stage_root.join("stage_manifest.json");
+    if !manifest_path.exists() {
+        return Ok(false);
+    }
+    let all_outputs_exist = req
+        .step
+        .io
+        .outputs
+        .iter()
+        .all(|artifact| artifact.optional || artifact.path.exists());
+    if !all_outputs_exist {
+        return Ok(false);
+    }
+    let raw = std::fs::read_to_string(&manifest_path)?;
+    let manifest: serde_json::Value = serde_json::from_str(&raw)?;
+    let stored = manifest.get("output_checksums").cloned().unwrap_or(serde_json::Value::Null);
+    let current = output_checksums(&req.step)?;
+    Ok(stored == current && stored != serde_json::Value::Null)
+}
+
+fn write_crash_bundle(
+    req: &ToolInvocationRequest,
+    stderr_tail: &str,
+    exit_code: i32,
+    command: &str,
+) -> Result<PathBuf> {
+    let crash_path = req.context.stage_root.join("crash.json");
+    let mut inputs = serde_json::Map::new();
+    for artifact in &req.step.io.inputs {
+        if artifact.path.exists() {
+            let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path).unwrap_or_else(|_| "unknown".to_string());
+            inputs.insert(
+                artifact.name.to_string(),
+                serde_json::json!({"path": artifact.path, "sha256": checksum}),
+            );
+        }
+    }
+    let env_subset = serde_json::json!({
+        "LC_ALL": std::env::var("LC_ALL").ok(),
+        "LANG": std::env::var("LANG").ok(),
+        "TZ": std::env::var("TZ").ok(),
+        "TMPDIR": std::env::var("TMPDIR").ok(),
+        "HOME": std::env::var("HOME").ok(),
+    });
+    let payload = serde_json::json!({
+        "schema_version": "bijux.stage_crash.v1",
+        "run_id": req.context.run_id,
+        "stage_id": req.context.stage_id,
+        "tool_id": req.context.tool_id,
+        "exit_code": exit_code,
+        "command": command,
+        "stderr_tail": stderr_tail,
+        "inputs": inputs,
+        "env_summary": env_subset,
+        "tool_digest": req.step.image.digest,
+    });
+    bijux_dna_infra::atomic_write_json(&crash_path, &payload)?;
+    Ok(crash_path)
+}
+
 /// # Errors
 /// Returns an error if path contracts fail, tool execution fails, or artifacts cannot be written.
 pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> {
     enforce_path_contracts(req)?;
+    require_pinned_digest(&req.step)?;
     crate::input_validation::validate_stage_inputs(&req.step)?;
     if network_policy_violation(&req.context.network_policy) {
         bail!(
@@ -140,6 +251,16 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     }
     bijux_dna_infra::ensure_dir(&req.context.stage_root)?;
     bijux_dna_infra::ensure_dir(&req.context.tmp_root)?;
+    let work_dir = req
+        .context
+        .output_root
+        .join("work")
+        .join(&req.context.run_id)
+        .join(&req.context.stage_id)
+        .join(req.step.step_id.as_str());
+    bijux_dna_infra::ensure_dir(&work_dir)?;
+    let home_dir = work_dir.join("home");
+    bijux_dna_infra::ensure_dir(&home_dir)?;
     std::env::set_var("LC_ALL", "C");
     std::env::set_var("LANG", "C");
     std::env::set_var("TZ", "UTC");
@@ -151,6 +272,70 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         std::env::set_var("BIJUX_STAGE_SEED", seed.to_string());
     }
     std::env::set_var("TMPDIR", &req.context.tmp_root);
+    std::env::set_var("HOME", &home_dir);
+
+    if req.mode == ToolExecMode::PrintCommands || req.mode == ToolExecMode::DryRun {
+        let dry_path = req.context.stage_root.join("print_commands.txt");
+        let image = req.step.image.image.clone();
+        let digest = req.step.image.digest.clone().unwrap_or_default();
+        let cmd = format!(
+            "{} run {} {}",
+            req.runner,
+            image,
+            req.step.command.template.join(" ")
+        );
+        bijux_dna_infra::atomic_write_bytes(&dry_path, cmd.as_bytes())?;
+        if req.mode == ToolExecMode::DryRun {
+            let summary_path = req.context.stage_root.join("stage_human_summary.json");
+            let summary = serde_json::json!({
+                "schema_version": "bijux.stage_summary.v1",
+                "stage_id": req.context.stage_id,
+                "tool_id": req.context.tool_id,
+                "status": "dry_run",
+                "command": cmd,
+                "tool_digest": digest,
+            });
+            bijux_dna_infra::atomic_write_json(&summary_path, &summary)?;
+        }
+        return Ok(ToolInvocationResult {
+            stage_result: StageResultV1 {
+                run_id: req.context.run_id.clone(),
+                exit_code: 0,
+                runtime_s: 0.0,
+                memory_mb: 0.0,
+                outputs: vec![],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: cmd,
+            },
+            runtime_provenance_path: req.context.stage_root.join("runtime_provenance.json"),
+            stage_manifest_path: req.context.stage_root.join("stage_manifest.json"),
+            stdout_path: req.context.stage_root.join("logs").join("tool.stdout.log"),
+            stderr_path: req.context.stage_root.join("logs").join("tool.stderr.log"),
+            summary_path: req.context.stage_root.join("stage_human_summary.json"),
+        });
+    }
+    if can_resume(req)? {
+        return Ok(ToolInvocationResult {
+            stage_result: StageResultV1 {
+                run_id: req.context.run_id.clone(),
+                exit_code: 0,
+                runtime_s: 0.0,
+                memory_mb: 0.0,
+                outputs: req.step.io.outputs.iter().map(|a| a.path.clone()).collect(),
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "resume-skip".to_string(),
+            },
+            runtime_provenance_path: req.context.stage_root.join("runtime_provenance.json"),
+            stage_manifest_path: req.context.stage_root.join("stage_manifest.json"),
+            stdout_path: req.context.stage_root.join("logs").join("tool.stdout.log"),
+            stderr_path: req.context.stage_root.join("logs").join("tool.stderr.log"),
+            summary_path: req.context.stage_root.join("stage_human_summary.json"),
+        });
+    }
 
     let logs_dir = req.context.stage_root.join("logs");
     bijux_dna_infra::ensure_dir(&logs_dir)?;
@@ -189,6 +374,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 
     let exit_taxonomy = classify_exit_code(stage_result.exit_code);
     if stage_result.exit_code != 0 {
+        let _ = write_crash_bundle(req, &stderr_tail, stage_result.exit_code, &stage_result.command);
         let message = format!(
             "tool {} failed with exit code {} ({exit_taxonomy:?})\nstdout_tail:\n{}\nstderr_tail:\n{}",
             req.context.tool_id,
@@ -283,4 +469,87 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         stderr_path,
         summary_path,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_core::contract::{ArtifactRole, ArtifactSpec, StageIO, ToolConstraints};
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
+    use tempfile::TempDir;
+
+    #[test]
+    fn tool_exec_bcftools_version_in_container() -> Result<()> {
+        if std::env::var("BIJUX_E2E").is_err() {
+            return Ok(());
+        }
+        let tmp = TempDir::new()?;
+        let stage_root = tmp.path().join("artifacts").join("stage");
+        let out_root = tmp.path().join("out");
+        let in_root = tmp.path().join("in");
+        bijux_dna_infra::ensure_dir(&stage_root)?;
+        bijux_dna_infra::ensure_dir(&out_root)?;
+        bijux_dna_infra::ensure_dir(&in_root)?;
+        let out_file = out_root.join("bcftools.version.txt");
+        let step = ExecutionStep {
+            step_id: StepId::new("vcf.stats.bcftools_version"),
+            stage_id: StageId::new("vcf.stats"),
+            command: CommandSpecV1 {
+                template: vec![
+                    "sh".to_string(),
+                    "-lc".to_string(),
+                    "bcftools --version > /data/output/bcftools.version.txt".to_string(),
+                ],
+            },
+            image: ContainerImageRefV1 {
+                image: "quay.io/biocontainers/bcftools:1.20--h8b25389_0".to_string(),
+                digest: Some(
+                    "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+                        .to_string(),
+                ),
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![],
+                outputs: vec![ArtifactSpec::required(
+                    ArtifactId::new("version"),
+                    out_file.clone(),
+                    ArtifactRole::Log,
+                )],
+            },
+            out_dir: out_root.clone(),
+            aux_images: std::collections::BTreeMap::new(),
+            expected_artifact_ids: vec![],
+            metrics_schema_ids: vec![],
+        };
+        let req = ToolInvocationRequest {
+            step,
+            runner: RuntimeKind::Docker,
+            context: ToolContext {
+                run_id: "run-e2e-tool-exec".to_string(),
+                stage_id: "vcf.stats".to_string(),
+                tool_id: "bcftools".to_string(),
+                sample_id: None,
+                stage_root: stage_root.clone(),
+                input_root: in_root,
+                output_root: out_root.clone(),
+                tmp_root: stage_root.join("tmp"),
+                threads: 1,
+                memory_hint_mb: Some(512),
+                seed: Some(7),
+                network_policy: NetworkPolicy::Forbid,
+            },
+            timeout: None,
+            mode: ToolExecMode::Execute,
+        };
+        let result = ToolExec::invoke(&req)?;
+        assert_eq!(result.stage_result.exit_code, 0);
+        let version = std::fs::read_to_string(out_file)?;
+        assert!(
+            version.to_ascii_lowercase().contains("bcftools"),
+            "unexpected bcftools --version output: {version}"
+        );
+        Ok(())
+    }
 }
