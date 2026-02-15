@@ -167,6 +167,30 @@ fn write_bam_output_contract(
         .with_context(|| format!("write {}", contract_path.display()))
 }
 
+fn enforce_bam_output_contract(
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    stage_dir: &Path,
+) -> Result<()> {
+    let (bams, indices) = expected_bam_contract_outputs(stage, stage_dir);
+    if bams.is_empty() && indices.is_empty() {
+        return Ok(());
+    }
+    let missing = bams
+        .iter()
+        .chain(indices.iter())
+        .filter(|path| !path.exists())
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        return Err(anyhow!(
+            "{} output contract violation: missing artifacts: {}",
+            stage.as_str(),
+            missing.join(", ")
+        ));
+    }
+    Ok(())
+}
+
 fn stage_resume_summary_path(stage_dir: &Path) -> PathBuf {
     stage_dir.join("stage_resume.json")
 }
@@ -341,6 +365,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     .stage_result;
     stage_postprocess(stage, &stage_dir, &plan)?;
     write_bam_output_contract(stage, &stage_dir)?;
+    enforce_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     if result.exit_code != 0 {
         write_stage_failure_hint(&stage_dir, stage, &result)?;
@@ -455,6 +480,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     .stage_result;
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
     write_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
+    enforce_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
     let header_normalization = serde_json::json!({
         "stage_id": align_step.step_id,
         "regime": regime,
