@@ -24,15 +24,11 @@ impl ReferenceResolver for LocalReferenceResolver {
     fn resolve(&self, species_id: &str, build_id: &str) -> Result<ResolvedReference> {
         let root = self.root.clone().unwrap_or_else(|| {
             std::env::var("BIJUX_REFERENCE_ROOT")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("assets/reference"))
+                .map_or_else(|_| PathBuf::from("assets/reference"), PathBuf::from)
         });
         let fasta = root.join(species_id).join(build_id).join("reference.fa");
         if !fasta.exists() {
-            return Err(anyhow!(
-                "reference resolution failed: {}",
-                fasta.display()
-            ));
+            return Err(anyhow!("reference resolution failed: {}", fasta.display()));
         }
         Ok(ResolvedReference {
             species_id: species_id.to_string(),

@@ -33,7 +33,6 @@ pub struct VcfRunArgs {
 }
 
 #[derive(Debug, Subcommand)]
-#[allow(clippy::large_enum_variant)]
 pub enum VcfCommand {
     Plan {
         #[arg(long, default_value = "vcf-to-vcf__minimal__v1")]
@@ -43,5 +42,5 @@ pub enum VcfCommand {
         #[arg(long, default_value = "vcf-to-vcf__minimal__v1")]
         profile: String,
     },
-    Run(VcfRunArgs),
+    Run(Box<VcfRunArgs>),
 }

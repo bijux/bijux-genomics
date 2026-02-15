@@ -107,8 +107,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
             .params
             .get("reference_panels")
             .and_then(serde_json::Value::as_array)
-            .map(|arr| !arr.is_empty())
-            .unwrap_or(false);
+            .is_some_and(|arr| !arr.is_empty());
         let scope = plan
             .params
             .get("scope")
@@ -129,8 +128,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&stage_dir),
         input_root: bam_path
             .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| out_dir.to_path_buf()),
+            .map_or_else(|| out_dir.to_path_buf(), Path::to_path_buf),
         output_root: stage_dir.clone(),
         tmp_root: stage_dir.join("tmp"),
         threads: plan.resources.threads.max(1),
@@ -222,8 +220,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&align_out),
         input_root: r1
             .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| out_dir.to_path_buf()),
+            .map_or_else(|| out_dir.to_path_buf(), Path::to_path_buf),
         output_root: align_out.clone(),
         tmp_root: align_out.join("tmp"),
         threads: align_plan.resources.threads.max(1),
@@ -285,4 +282,3 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     runs.append(&mut rest);
     Ok(runs)
 }
-

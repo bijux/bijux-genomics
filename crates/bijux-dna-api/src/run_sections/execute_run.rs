@@ -5,10 +5,8 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let runner_contract = match request.runner {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
         bijux_dna_environment::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
-        other => {
-            return Err(anyhow!(
-                "runner {other} not supported for execute_run stage coverage"
-            ));
+        other @ bijux_dna_environment::api::RuntimeKind::Singularity => {
+            return Err(anyhow!("runner {other} not supported for execute_run stage coverage"));
         }
     };
     ensure_stage_supported_by_runner(runner_contract, request.plan.stage_id.as_str())?;
@@ -307,7 +305,9 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
             bijux_dna_environment::api::RuntimeKind::Apptainer => {
                 bijux_dna_environment::api::RuntimeKind::Docker
             }
-            _ => request.runner,
+            bijux_dna_environment::api::RuntimeKind::Singularity => {
+                bijux_dna_environment::api::RuntimeKind::Singularity
+            }
         };
         if secondary_runner != request.runner {
             let parity = crate::cross_runtime::check_invocation_parity(

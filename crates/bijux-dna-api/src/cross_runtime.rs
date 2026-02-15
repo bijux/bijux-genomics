@@ -28,7 +28,7 @@ pub fn check_invocation_parity(
     secondary_request.context.stage_root = request
         .context
         .stage_root
-        .join(format!("parity_{}", secondary_runtime));
+        .join(format!("parity_{secondary_runtime}"));
     secondary_request.context.tmp_root = secondary_request.context.stage_root.join("tmp");
     let secondary = invoke_tool(&secondary_request)?;
     let matched = primary.stage_result.exit_code == secondary.stage_result.exit_code
