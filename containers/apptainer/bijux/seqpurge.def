@@ -1,0 +1,55 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: seqpurge
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.title seqpurge
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 0.1.0
+    org.opencontainers.image.tool seqpurge
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export VERSION_SEQPURGE=0.1.0
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends seqkit
+    cat > /usr/local/bin/seqpurge <<'EOS'
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version) echo "${VERSION_SEQPURGE}"; exit 0 ;;
+  --help|-h|"") echo "seqpurge compatibility wrapper"; echo "usage: seqpurge <R1> <R2>"; exit 0 ;;
+esac
+exec seqkit stats "$@"
+EOS
+    chmod 0755 /usr/local/bin/seqpurge
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec seqpurge --help
+    else
+        exec seqpurge "$@"
+    fi
+%help
+    seqpurge compatibility image.

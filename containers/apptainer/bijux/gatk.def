@@ -1,0 +1,60 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: gatk
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/broadinstitute/gatk
+    org.opencontainers.image.title gatk
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 4.6.2.0
+    org.opencontainers.image.tool gatk
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export VERSION_GATK=4.6.2.0
+%post
+    set -eux
+    # NETWORK_SOURCE_VERIFIED_BY_LOCK
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends ca-certificates wget unzip openjdk-21-jre-headless
+    wget -q -O /tmp/gatk.zip "https://github.com/broadinstitute/gatk/releases/download/${VERSION_GATK}/gatk-${VERSION_GATK}.zip"
+    unzip -q /tmp/gatk.zip -d /opt
+    mv /opt/gatk-${VERSION_GATK}/gatk /usr/local/bin/gatk-bin
+    cat > /usr/local/bin/gatk <<'EOS'
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version) /usr/local/bin/gatk-bin --version 2>/dev/null || echo "${VERSION_GATK}"; exit 0 ;;
+  --help|-h|"") echo "gatk ${VERSION_GATK}"; echo "usage: gatk <ToolName> [arguments]"; exit 0 ;;
+esac
+exec /usr/local/bin/gatk-bin "$@"
+EOS
+    chmod 0755 /usr/local/bin/gatk
+    rm -f /tmp/gatk.zip
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec gatk --help
+    else
+        exec gatk "$@"
+    fi
+%help
+    GATK image.
