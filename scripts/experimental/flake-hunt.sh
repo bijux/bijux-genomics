@@ -4,6 +4,11 @@ IFS=$'\n\t'
 LC_ALL=C
 export LC_ALL
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+source "${ROOT_DIR}/scripts/_lib/common.sh"
+require_stable_env
+
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   echo "Usage: $0 '<nextest filter expression>' [runs]" >&2
   echo "Example: $0 'test(mod_contracts_pipeline_rs::pipeline_e2e::pipeline_bam_shotgun_report_snapshot)' 20" >&2
@@ -27,7 +32,7 @@ fi
 pass=0
 fail=0
 
-./bin/isolate sh -ceu '
+"$ROOT_DIR"/bin/isolate sh -ceu '
 ./bin/require-isolate >/dev/null
 export TZ=UTC LC_ALL=C
 export CARGO_TARGET_DIR="$ISO_ROOT/target-test"
@@ -38,8 +43,8 @@ runs="$2"
 pass=0
 fail=0
 for i in $(seq 1 "$runs"); do
-  echo "[$i/$runs] cargo nextest run --config-file configs/nextest/nextest.toml --profile flake -E $expr"
-  if cargo nextest run --config-file configs/nextest/nextest.toml --profile flake -E "$expr" >"$log_dir/last.log" 2>&1; then
+  echo "[$i/$runs] nextest run --config-file configs/nextest/nextest.toml --profile flake -E $expr"
+  if "$ROOT_DIR"/scripts/run.sh tooling cargo-targets nextest-run --config-file configs/nextest/nextest.toml --profile flake -E "$expr" >"$log_dir/last.log" 2>&1; then
     pass=$((pass + 1))
     echo "  PASS"
   else

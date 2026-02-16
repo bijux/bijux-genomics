@@ -69,6 +69,12 @@ case "${cmd}" in
   ci-clippy-executors)
     ./scripts/tooling/ci-clippy-executors.sh
     ;;
+  nextest-run)
+    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo nextest run $*"
+    ;;
+  bam-smoke-test)
+    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-api bam_smoke_runner_minimal_pipeline_validates_report_section_presence -- --exact"
+    ;;
   *)
     echo "unsupported subcommand: ${cmd}" >&2
     exit 2

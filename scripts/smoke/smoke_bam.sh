@@ -23,5 +23,5 @@ bijux bam stage \
 
 "${ROOT_DIR}/bin/isolate" sh -ceu '
   export CARGO_TARGET_DIR="$ISO_ROOT/target-test"
-  cargo test -p bijux-dna-api bam_smoke_runner_minimal_pipeline_validates_report_section_presence -- --exact
+  "$ROOT_DIR"/scripts/run.sh tooling cargo-targets bam-smoke-test
 '
