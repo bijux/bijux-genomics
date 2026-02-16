@@ -8,8 +8,8 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-cfg="${ROOT_DIR}/configs/ci/clippy_allowlist.toml"
-baseline="${ROOT_DIR}/configs/ci/clippy_allowlist_baseline.toml"
+cfg="${ROOT_DIR}/configs/ci/lints/clippy_allowlist.toml"
+baseline="${ROOT_DIR}/configs/ci/lints/clippy_allowlist_baseline.toml"
 
 python3 - "$cfg" "$baseline" <<'PY'
 from __future__ import annotations

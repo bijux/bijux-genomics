@@ -2,7 +2,7 @@
 # owner = bijux-dna-infra
 # purpose = Temporary clippy allowlist with expiry for executor crates.
 # authority = bijux-dna-infra
-# stability = evolving
+# stability = experimental
 # last_updated = 2026-02-15
 
 [[allow]]

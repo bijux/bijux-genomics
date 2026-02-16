@@ -8,7 +8,7 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-cfg="${ROOT_DIR}/configs/ci/clippy_allowlist.toml"
+cfg="${ROOT_DIR}/configs/ci/lints/clippy_allowlist.toml"
 if [[ ! -f "$cfg" ]]; then
   echo "ERROR: missing clippy allowlist config: $cfg" >&2
   exit 1

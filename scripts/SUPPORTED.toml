@@ -2152,7 +2152,7 @@ id = "acquire_panels"
 path = "scripts/tooling/acquire-panels.sh"
 purpose = "tooling script"
 inputs = ["configs/vcf/panels/panels.toml"]
-outputs = ["configs/vcf/panels/locks/", "artifacts/", "$ISO_ROOT/"]
+outputs = ["configs/vcf/panels/locks/",  "artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -2663,7 +2663,7 @@ id = "certify_fastq"
 path = "scripts/tooling/certify-fastq.sh"
 purpose = "tooling script"
 inputs = ["examples/fastq/edna-mini/", "artifacts/examples/fastq_edna_mini/"]
-outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+outputs = ["artifacts/", "artifacts/certification/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -2671,7 +2671,7 @@ id = "certify_bam"
 path = "scripts/tooling/certify-bam.sh"
 purpose = "tooling script"
 inputs = ["crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/"]
-outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+outputs = ["artifacts/", "artifacts/certification/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -2679,7 +2679,7 @@ id = "certify_vcf"
 path = "scripts/tooling/certify-vcf.sh"
 purpose = "tooling script"
 inputs = ["examples/vcf/"]
-outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+outputs = ["artifacts/", "artifacts/certification/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -2687,7 +2687,15 @@ id = "certify_all"
 path = "scripts/tooling/certify-all.sh"
 purpose = "tooling script"
 inputs = ["examples/fastq/", "examples/vcf/", "crates/bijux-dna-analyze/tests/fixtures/golden_spine/"]
-outputs = ["artifacts/certification/", "$ISO_ROOT/"]
+outputs = ["artifacts/", "artifacts/certification/", "$ISO_ROOT/"]
+ci_allowed = false
+
+[[script]]
+id = "certify_domains"
+path = "scripts/tooling/certify-domains.sh"
+purpose = "tooling script"
+inputs = ["examples/fastq/", "examples/vcf/", "crates/bijux-dna-analyze/tests/fixtures/golden_spine/"]
+outputs = ["artifacts/", "artifacts/certification/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
@@ -2734,7 +2742,7 @@ ci_allowed = false
 id = "check_clippy_allowlist_growth"
 path = "scripts/checks/check-clippy-allowlist-growth.sh"
 purpose = "checks script"
-inputs = ["configs/ci/clippy_allowlist.toml", "configs/ci/clippy_allowlist_baseline.toml"]
+inputs = ["configs/ci/lints/clippy_allowlist.toml", "configs/ci/lints/clippy_allowlist_baseline.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
@@ -2753,3 +2761,12 @@ purpose = "experimental script"
 inputs = ["configs/nextest/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
+
+
+[[script]]
+id = "flake_hunt_tooling"
+path = "scripts/tooling/flake-hunt.sh"
+purpose = "tooling script"
+inputs = ["configs/nextest/nextest.toml"]
+outputs = ["artifacts/", "$ISO_ROOT/"]
+ci_allowed = true
