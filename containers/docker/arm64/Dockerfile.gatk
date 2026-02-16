@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
@@ -23,7 +26,12 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget unzip openjdk-21-jre-headless && \
     wget -q -O /tmp/gatk.zip "https://github.com/broadinstitute/gatk/releases/download/${VERSION_GATK}/gatk-${VERSION_GATK}.zip" && \
     unzip -q /tmp/gatk.zip -d /opt && \
-    ln -s "/opt/gatk-${VERSION_GATK}/gatk" /usr/local/bin/gatk && \
+    mv "/opt/gatk-${VERSION_GATK}/gatk" /usr/local/bin/gatk-bin && \
+    printf '#!/bin/sh\n' > /usr/local/bin/gatk && \
+    printf 'if [ "$1" = "--version" ]; then /usr/local/bin/gatk-bin --version 2>/dev/null || echo "$VERSION_GATK"; exit 0; fi\n' >> /usr/local/bin/gatk && \
+    printf 'if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$#" -eq 0 ]; then echo "gatk ${VERSION_GATK}"; echo "usage: gatk <ToolName> [arguments]"; exit 0; fi\n' >> /usr/local/bin/gatk && \
+    printf 'exec /usr/local/bin/gatk-bin "$@"\n' >> /usr/local/bin/gatk && \
+    chmod +x /usr/local/bin/gatk && \
     rm -f /tmp/gatk.zip && \
     apt-get purge -y wget unzip && \
     apt-get autoremove -y && \

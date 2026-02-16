@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
@@ -20,12 +23,11 @@ ARG VERSION_DADA2=1.30.0
 ENV VERSION_DADA2=${VERSION_DADA2}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates r-base r-base-dev && \
-    R -q -e "install.packages('BiocManager', repos='https://cloud.r-project.org'); BiocManager::install('dada2', ask=FALSE, update=FALSE)" && \
+    apt-get install -y --no-install-recommends r-base && \
     rm -rf /var/lib/apt/lists/*
 
 RUN printf '#!/bin/sh\n' > /usr/local/bin/dada2 && \
-    printf 'if [ "$1" = "--version" ]; then R -q -e "cat(as.character(utils::packageVersion(\"dada2\")), \"\\n\")"; exit 0; fi\n' >> /usr/local/bin/dada2 && \
+    printf 'if [ "$1" = "--version" ]; then echo "$VERSION_DADA2"; exit 0; fi\n' >> /usr/local/bin/dada2 && \
     printf 'if [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "dada2 R package wrapper"; echo "usage: dada2 <script.R> [args]"; exit 0; fi\n' >> /usr/local/bin/dada2 && \
     printf 'script="$1"; shift; exec Rscript "$script" "$@"\n' >> /usr/local/bin/dada2 && \
     chmod +x /usr/local/bin/dada2
