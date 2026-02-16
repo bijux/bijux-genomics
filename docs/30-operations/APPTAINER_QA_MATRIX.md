@@ -25,6 +25,7 @@ Derived from tool registries and container metadata fields.
 | `atropos` | `containers/apptainer/bijux/atropos.def` | `atropos --version` | `atropos --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `authenticct` | `containers/apptainer/bijux/authenticct.def` | `authenticct --version` | `authenticct --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bamtools` | `containers/apptainer/bijux/bamtools.def` | `bamtools --version` | `bamtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `bamutil` | `containers/apptainer/bijux/bamutil.def` | `bamutil --version` | `bamutil --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `bayeshammer` | `containers/apptainer/bijux/bayeshammer.def` | `bayeshammer --version` | `bayeshammer --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `bbduk` | `containers/apptainer/bijux/bbduk.def` | `bbduk --version` | `bbduk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bbmerge` | `containers/apptainer/bijux/bbmerge.def` | `bbmerge --version` | `bbmerge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -35,19 +36,26 @@ Derived from tool registries and container metadata fields.
 | `bracken` | `containers/apptainer/bijux/bracken.def` | `bracken --version` | `bracken -h` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bwa` | `containers/apptainer/bijux/bwa.def` | `bwa --version` | `bwa --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `centrifuge` | `containers/apptainer/bijux/centrifuge.def` | `centrifuge --version` | `centrifuge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `clumpify` | `containers/apptainer/bijux/clumpify.def` | `clumpify --version` | `clumpify --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `contammix` | `containers/apptainer/bijux/contammix.def` | `contammix --version` | `contammix --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `cutadapt` | `containers/apptainer/bijux/cutadapt.def` | `cutadapt --version` | `cutadapt --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `dada2` | `containers/apptainer/bijux/dada2.def` | `dada2 --version` | `dada2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `damageprofiler` | `containers/apptainer/bijux/damageprofiler.def` | `damageprofiler --version` | `damageprofiler --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `diamond` | `containers/apptainer/bijux/diamond.def` | `diamond --version` | `diamond --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `dustmasker` | `containers/apptainer/bijux/dustmasker.def` | `dustmasker --version` | `dustmasker --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `eagle` | `containers/apptainer/non-bijux/eagle.def` | `eagle --version` | `eagle --help` | `eagle --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `experimental` |
 | `eigensoft` | `containers/apptainer/non-bijux/eigensoft.def` | `smartpca -h` | `smartpca -h` | `smartpca -h` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastp` | `containers/apptainer/bijux/fastp.def` | `fastp --version` | `fastp --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fastq.validate_pre` | `containers/apptainer/bijux/vsearch.def` | `vsearch --version` | `vsearch --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `fastq_scan` | `containers/apptainer/bijux/fastq_scan.def` | `fastq_scan --version` | `fastq_scan --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastq_screen` | `containers/apptainer/bijux/fastq_screen.def` | `fastq_screen --version` | `fastq_screen --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastqc` | `containers/apptainer/bijux/fastqc.def` | `fastqc --version` | `fastqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fastqvalidator` | `containers/apptainer/bijux/fastqvalidator.def` | `fastqvalidator --version` | `fastqvalidator --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `fastuniq` | `containers/apptainer/bijux/fastuniq.def` | `fastuniq --version` | `fastuniq --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastx_clipper` | `containers/apptainer/bijux/fastx_clipper.def` | `fastx_clipper --version` | `fastx_clipper --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `flash2` | `containers/apptainer/bijux/flash2.def` | `flash2 --version` | `flash2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fqtools` | `containers/apptainer/bijux/fqtools.def` | `fqtools --version` | `fqtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `gatk` | `containers/apptainer/bijux/gatk.def` | `gatk --version` | `gatk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `germline` | `containers/apptainer/non-bijux/germline.def` | `germline --version` | `germline --help` | `germline --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `glimpse` | `containers/apptainer/non-bijux/glimpse.def` | `glimpse --version` | `glimpse --help` | `glimpse --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `planned` |
 | `ibdhap` | `containers/apptainer/non-bijux/ibdhap.def` | `ibdhap --version` | `ibdhap --help` | `ibdhap --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `planned` |
@@ -66,10 +74,13 @@ Derived from tool registries and container metadata fields.
 | `mosdepth` | `containers/apptainer/bijux/mosdepth.def` | `mosdepth --version` | `mosdepth --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `multiqc` | `containers/apptainer/bijux/multiqc.def` | `multiqc --version` | `multiqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `musket` | `containers/apptainer/bijux/musket.def` | `musket --version` | `musket --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `ngsbriggs` | `containers/apptainer/bijux/ngsbriggs.def` | `ngsbriggs --version` | `ngsbriggs --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pear` | `containers/apptainer/bijux/pear.def` | `pear --version` | `pear --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `picard` | `containers/apptainer/bijux/picard.def` | `picard --version` | `picard --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `plink` | `containers/apptainer/bijux/plink.def` | `plink --version` | `plink --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink --file \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.frq\` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `plink2` | `containers/apptainer/bijux/plink2.def` | `plink2 --version` | `plink2 --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink2 --pedmap \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.afreq\` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pmdtools` | `containers/apptainer/bijux/pmdtools.def` | `pmdtools --version` | `pmdtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `preseq` | `containers/apptainer/bijux/preseq.def` | `preseq --version` | `preseq --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `prinseq` | `containers/apptainer/bijux/prinseq.def` | `prinseq++ --version` | `prinseq++ --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pydamage` | `containers/apptainer/bijux/pydamage.def` | `pydamage --version` | `pydamage --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `qualimap` | `containers/apptainer/bijux/qualimap.def` | `qualimap --version` | `qualimap --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -77,8 +88,11 @@ Derived from tool registries and container metadata fields.
 | `rxy` | `containers/apptainer/bijux/rxy.def` | `rxy --version` | `rxy --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `samtools` | `containers/apptainer/bijux/samtools.def` | `samtools --version` | `samtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `schmutzi` | `containers/apptainer/bijux/schmutzi.def` | `schmutzi --version` | `schmutzi --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `seqfu` | `containers/apptainer/bijux/seqfu.def` | `seqfu --version` | `seqfu --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `seqkit` | `containers/apptainer/bijux/seqkit.def` | `seqkit --version` | `seqkit --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `seqkit_stats` | `containers/apptainer/bijux/seqkit_stats.def` | `seqkit_stats --version` | `seqkit_stats --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `seqprep` | `containers/apptainer/bijux/seqprep.def` | `seqprep --version` | `seqprep --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `seqpurge` | `containers/apptainer/bijux/seqpurge.def` | `seqpurge --version` | `seqpurge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `seqtk` | `containers/apptainer/bijux/seqtk.def` | `seqtk --version` | `seqtk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `shapeit` | `-` | `shapeit --version` | `shapeit --help` | `shapeit --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `planned` |
 | `shapeit5` | `containers/apptainer/non-bijux/shapeit5.def` | `shapeit5 --version` | `shapeit5 --help` | `shapeit5 --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `experimental` |

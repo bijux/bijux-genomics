@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "seqfu"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/telatin/seqfu2"
+upstream_version = "2.4.0"
+upstream_checksum = "sha256:6e8fb5563184c42672acd4dbb82fceb9fe49a981411b72a19ed22b6b9b7999b2"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/telatin/seqfu2"
+version = "2.4.0"

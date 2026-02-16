@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "gatk"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/broadinstitute/gatk"
+upstream_version = "4.6.2.0"
+upstream_checksum = "sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/broadinstitute/gatk"
+version = "4.6.2.0"

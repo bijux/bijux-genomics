@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "bamutil"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/statgen/bamUtil"
+upstream_version = "1.0.15"
+upstream_checksum = "sha256:21f5139115d04c564a5fd5617cb5f501f81a0c36e7c9303de51cad144de93493"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/statgen/bamUtil"
+version = "1.0.15"

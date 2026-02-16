@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "dustmasker"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
+upstream_version = "2.15.0"
+upstream_checksum = "sha256:2c0da17408ebfaf422870ecf49ce3efacc33b43ceff28307fe17740bd4e89ba1"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://www.ncbi.nlm.nih.gov/books/NBK279690/"
+version = "2.15.0"
