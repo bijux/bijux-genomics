@@ -843,7 +843,7 @@ citation = "upstream:https://github.com/statgen/bamUtil"
 pinned_commit = "release:1.0.15"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/bamutil@sha256:e778ce438bf88f6006533158ce8023ba96a08a03344f68b6f9f703b1cd81df59"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "bamutil --version"
 help_cmd = "bamutil --help"
@@ -856,6 +856,7 @@ expected_artifacts = ["overlap_corrected_bam"]
 metrics_schema = "bijux.bam.overlap_correction.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
+apptainer_def = "containers/apptainer/bijux/bamutil.def"
 require_labels = true
 
 [[tools]]
@@ -876,7 +877,7 @@ citation = "upstream:https://sourceforge.net/projects/bbmap/"
 pinned_commit = "release:39.06"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/clumpify@sha256:e6d2c456b7364dc557ab7214aa51c431e4e630a21c6134b6104ecddf18cd723b"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "clumpify --version"
 help_cmd = "clumpify --help"
@@ -889,6 +890,7 @@ expected_artifacts = ["deduplicated_fastq"]
 metrics_schema = "bijux.fastq.deduplicate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.clumpify"
+apptainer_def = "containers/apptainer/bijux/clumpify.def"
 require_labels = true
 
 [[tools]]
@@ -909,7 +911,7 @@ citation = "upstream:https://bioconductor.org/packages/dada2"
 pinned_commit = "release:1.30.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/dada2@sha256:6d60cb45b61601de067fb49d90629bb216fb7af937482d65d68b290606fdc243"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "dada2 --version"
 help_cmd = "dada2 --help"
@@ -922,6 +924,7 @@ expected_artifacts = ["asv_table"]
 metrics_schema = "bijux.fastq.asv_inference.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.dada2"
+apptainer_def = "containers/apptainer/bijux/dada2.def"
 require_labels = true
 
 [[tools]]
@@ -942,7 +945,7 @@ citation = "upstream:https://github.com/bbuchfink/diamond"
 pinned_commit = "release:2.1.10"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/diamond@sha256:6563fa0a7c816c4d69cdcf860d8ad35b4d1ce41a91a655e81b47e2813c426e7f"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "diamond --version"
 help_cmd = "diamond --help"
@@ -955,6 +958,7 @@ expected_artifacts = ["screen_report"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.diamond"
+apptainer_def = "containers/apptainer/bijux/diamond.def"
 require_labels = true
 
 [[tools]]
@@ -975,7 +979,7 @@ citation = "upstream:https://www.ncbi.nlm.nih.gov/books/NBK279690/"
 pinned_commit = "release:2.15.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/dustmasker@sha256:ff9493759e93f5d24b9d12e04496ae08c9108f573d6a79cfe3eeac12a1b5671c"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "dustmasker --version"
 help_cmd = "dustmasker --help"
@@ -988,6 +992,7 @@ expected_artifacts = ["low_complexity_report"]
 metrics_schema = "bijux.fastq.low_complexity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.dustmasker"
+apptainer_def = "containers/apptainer/bijux/dustmasker.def"
 require_labels = true
 
 [[tools]]
@@ -1008,7 +1013,7 @@ citation = "upstream:https://github.com/bijux/bijux-dna"
 pinned_commit = "release:0.0.1"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/fastq_scan@sha256:1382b4343e10253e54342e6b17eedbd4ed46a6dc2245b5ddfe06308caeaa30bd"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "fastq_scan --version"
 help_cmd = "fastq_scan --help"
@@ -1021,6 +1026,7 @@ expected_artifacts = ["validation_report"]
 metrics_schema = "bijux.fastq.validate_pre.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_scan"
+apptainer_def = "containers/apptainer/bijux/fastq_scan.def"
 require_labels = true
 
 [[tools]]
@@ -1041,7 +1047,7 @@ citation = "upstream:https://sourceforge.net/projects/fastuniq/"
 pinned_commit = "release:1.1"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/fastuniq@sha256:981f86e2540d4dfde3382f14fc84c61cce5f5cd10e3e6f3d6ad83f8881db38a7"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "fastuniq --version"
 help_cmd = "fastuniq --help"
@@ -1054,6 +1060,7 @@ expected_artifacts = ["deduplicated_fastq"]
 metrics_schema = "bijux.fastq.deduplicate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastuniq"
+apptainer_def = "containers/apptainer/bijux/fastuniq.def"
 require_labels = true
 
 [[tools]]
@@ -1074,7 +1081,7 @@ citation = "upstream:https://github.com/broadinstitute/gatk"
 pinned_commit = "release:4.6.2.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/gatk@sha256:4d1edc7129d57c856809790f43a99fcdcdd00eacac381b945454d06feb9f3f22"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "gatk --version"
 help_cmd = "gatk --help"
@@ -1087,6 +1094,7 @@ expected_artifacts = ["vcf"]
 metrics_schema = "bijux.bam.genotyping.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.gatk"
+apptainer_def = "containers/apptainer/bijux/gatk.def"
 require_labels = true
 
 [[tools]]
@@ -1107,7 +1115,7 @@ citation = "upstream:https://pypi.org/project/ngsbriggs/"
 pinned_commit = "release:0.1.3"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/ngsbriggs@sha256:c5652986313eba8fe06af7676933d549954025d69399df221da769b92dc0f1fb"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "ngsbriggs --version"
 help_cmd = "ngsbriggs --help"
@@ -1120,6 +1128,7 @@ expected_artifacts = ["damage_profile"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
+apptainer_def = "containers/apptainer/bijux/ngsbriggs.def"
 require_labels = true
 
 [[tools]]
@@ -1140,7 +1149,7 @@ citation = "upstream:https://github.com/broadinstitute/picard"
 pinned_commit = "release:3.3.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/picard@sha256:31caaf26dbdb5c3dfa72a4ea7da96471420d246b993d01b5b0894a7e6944cd22"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "picard --version"
 help_cmd = "picard --help"
@@ -1153,6 +1162,7 @@ expected_artifacts = ["metrics"]
 metrics_schema = "bijux.bam.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.picard"
+apptainer_def = "containers/apptainer/bijux/picard.def"
 require_labels = true
 
 [[tools]]
@@ -1173,7 +1183,7 @@ citation = "upstream:https://github.com/smithlabcode/preseq"
 pinned_commit = "release:3.2.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/preseq@sha256:902c96c071fbdfd6e72c2b6919fa1dadcd22e2c1224e0b955b27cede75f3717a"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "preseq --version"
 help_cmd = "preseq --help"
@@ -1186,6 +1196,7 @@ expected_artifacts = ["complexity_curve"]
 metrics_schema = "bijux.bam.complexity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.preseq"
+apptainer_def = "containers/apptainer/bijux/preseq.def"
 require_labels = true
 
 [[tools]]
@@ -1206,7 +1217,7 @@ citation = "upstream:https://github.com/telatin/seqfu2"
 pinned_commit = "release:2.4.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/seqfu@sha256:e4311e131dbd4997d393ac560d6a3df0eca322d06eb9051eeaee37cc2760a2b5"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "seqfu --version"
 help_cmd = "seqfu --help"
@@ -1219,6 +1230,7 @@ expected_artifacts = ["fastq_stats"]
 metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
+apptainer_def = "containers/apptainer/bijux/seqfu.def"
 require_labels = true
 
 [[tools]]
@@ -1239,7 +1251,7 @@ citation = "upstream:https://github.com/jstjohn/SeqPrep"
 pinned_commit = "release:1.3.2"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/seqprep@sha256:c42ad524ae8a4bc258c6ba1ac12e309a2255e80b65c124825608c954a10c0780"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "seqprep --version"
 help_cmd = "seqprep --help"
@@ -1252,6 +1264,7 @@ expected_artifacts = ["merged_fastq"]
 metrics_schema = "bijux.fastq.merge.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
+apptainer_def = "containers/apptainer/bijux/seqprep.def"
 require_labels = true
 
 [[tools]]
@@ -1272,7 +1285,7 @@ citation = "upstream:https://github.com/bijux/bijux-dna"
 pinned_commit = "release:0.1.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/seqpurge@sha256:0d9710da265f68bb9c17a23adcf098a42f47fe856c61b4ca555ef4e5efa51167"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "seqpurge --version"
 help_cmd = "seqpurge --help"
@@ -1285,4 +1298,5 @@ expected_artifacts = ["trimmed_fastq"]
 metrics_schema = "bijux.fastq.trim.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
+apptainer_def = "containers/apptainer/bijux/seqpurge.def"
 require_labels = true

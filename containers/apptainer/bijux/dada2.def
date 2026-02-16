@@ -1,0 +1,56 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: dada2
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://bioconductor.org/packages/dada2
+    org.opencontainers.image.title dada2
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 1.30.0
+    org.opencontainers.image.tool dada2
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export VERSION_DADA2=1.30.0
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends r-base
+    cat > /usr/local/bin/dada2 <<'EOS'
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version) echo "${VERSION_DADA2}"; exit 0 ;;
+  --help|-h|"") echo "dada2 R package wrapper"; echo "usage: dada2 <script.R> [args]"; exit 0 ;;
+esac
+script="$1"; shift
+exec Rscript "$script" "$@"
+EOS
+    chmod 0755 /usr/local/bin/dada2
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec dada2 --help
+    else
+        exec dada2 "$@"
+    fi
+%help
+    dada2 wrapper image.
