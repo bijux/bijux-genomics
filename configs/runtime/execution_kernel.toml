@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-runtime
+# purpose = Runtime execution kernel policy knobs.
+# authority = bijux-dna-runtime
+# stability = stable
+# last_updated = 2026-02-15
+
 default_threads = 1
 default_compression_threads = 1
 default_temp_root = "artifacts/runtime-tmp"

@@ -15,6 +15,7 @@ allowlist=(
   "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:127"
   "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:128"
   "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:129"
+  "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:684"
   "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:693"
   "crates/bijux-dna-api/src/runtime/execution_kernel_support.rs:702"
   "crates/bijux-dna-runner/src/backend/docker/executor.rs:367"

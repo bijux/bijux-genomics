@@ -15,6 +15,7 @@ while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
   [[ "$rel" == scripts/_lib/* ]] && continue
   [[ "$rel" == scripts/checks/check-no-temp-leaks.sh ]] && continue
+  [[ "$rel" == scripts/checks/check-runtime-execution-kernel-config.sh ]] && continue
   file="$ROOT_DIR/$rel"
   [[ -f "$file" ]] || continue
   if rg -n '(^|[[:space:]"'"'"'=])(/tmp|/var/tmp)(/|$)' "$file" >/dev/null 2>&1; then

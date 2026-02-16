@@ -11,3 +11,4 @@ Files:
 - `configs/ci/registry/tool_registry_lock.sha256`
 - `configs/ci/registry/tool_registry_vcf.toml`
 - `configs/ci/registry/tool_registry_vcf_downstream.toml`
+- `configs/ci/registry/reference_service_boundary_allowlist.toml`

@@ -2,7 +2,7 @@
 # owner = bijux-dna-infra
 # purpose = Temporary allowlist for reference-service boundary debt.
 # authority = bijux-dna-infra
-# stability = evolving
+# stability = experimental
 # last_updated = 2026-02-15
 
 [[allow]]
@@ -69,3 +69,8 @@ reason = "Postprocess normalization still includes direct reference file checks.
 path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc/qc_and_phasing_types.rs"
 expires_on = "2026-06-30"
 reason = "QC/phasing type checks currently use direct path and will be migrated."
+
+[[allow]]
+path = "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/population_and_panel_prep/ibd_demography_and_panel_runtime.rs"
+expires_on = "2026-06-30"
+reason = "Population/panel runtime split retains temporary direct path usage pending RefService extraction."
