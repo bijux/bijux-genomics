@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-02-13T21:03:33+01:00",
+  "build_date_utc": "2026-02-16T01:12:42+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "scripts/containers/generate-version-lock.sh",
@@ -116,6 +116,22 @@
       "status": "production",
       "tool": "bamtools",
       "version": "2.5.2"
+    },
+    {
+      "entry_sha256": "8189a1af70b8abe8f031aa68066a405305298d23c9ffcd95307b6fc1edd01f1f",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/statgen/bamUtil",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bamutil",
+      "version": "1.0.15"
     },
     {
       "entry_sha256": "617d6878f57aa3b4b631d5f0f51c6ed205aab641d60377dcd774452cb79d796b",
@@ -278,6 +294,22 @@
       "version": "1.0.4"
     },
     {
+      "entry_sha256": "1533186b6e3e5a13f230ab826c214de806e2f7412c2902f83d2c9a05a7af95e2",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://sourceforge.net/projects/bbmap/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "clumpify",
+      "version": "39.06"
+    },
+    {
       "entry_sha256": "1df113e1619e6f7a3fc75eb26a06ae8916529b2b167fafd556f53717d5d122e0",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -310,6 +342,22 @@
       "version": "4.9"
     },
     {
+      "entry_sha256": "d47d946fa21423f083ee87144a55dc86d1ac7242e17b4bbadfe56e69833f17c4",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://bioconductor.org/packages/dada2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "dada2",
+      "version": "1.30.0"
+    },
+    {
       "entry_sha256": "a9428013a11bbf4631268524cefadbe1006a8bb264d452a4198cb30cd2c1cfad",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -324,6 +372,38 @@
       "status": "production",
       "tool": "damageprofiler",
       "version": "1.1"
+    },
+    {
+      "entry_sha256": "add8693454a9da05da05494095295bfad726f5a23578b3f80901017634a5ed45",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/bbuchfink/diamond",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "diamond",
+      "version": "2.1.10"
+    },
+    {
+      "entry_sha256": "db750c89a467747688131d0b4263956bb048c1a9d7ca0d9e36850e81354a135d",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://www.ncbi.nlm.nih.gov/books/NBK279690/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "dustmasker",
+      "version": "2.15.0"
     },
     {
       "entry_sha256": "14e38644b3b2bc47f0271df18c7bddfb9c82217482a25c59108d92567eb584e3",
@@ -374,6 +454,22 @@
       "version": "0.23.4"
     },
     {
+      "entry_sha256": "408fbd490d2bf730bb2318b49bab07186633472ce8a1bb1def34db880629789c",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/bijux/bijux-dna",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fastq_scan",
+      "version": "0.0.1"
+    },
+    {
       "entry_sha256": "4ef1f58f54658396dfb005da8958bfdb9aa5010b2dc69f598466fd5ab6c946a6",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -422,6 +518,22 @@
       "version": "0.1.1"
     },
     {
+      "entry_sha256": "eab86f20d006de4ac2111ea8b9b1fa26b27711dc4cea6c4c51c9132af4600958",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://sourceforge.net/projects/fastuniq/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "fastuniq",
+      "version": "1.1"
+    },
+    {
       "entry_sha256": "c1f027e627275cacb5321b6edd0072db7dc4285d33f36beef53733364eb8dddf",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -468,6 +580,22 @@
       "status": "production",
       "tool": "fqtools",
       "version": "2.0"
+    },
+    {
+      "entry_sha256": "d050f77d2e10d1bf72d7a4aef412112df1efb4a6ec489a9870c5ddd3b03cc99b",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/broadinstitute/gatk",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "gatk",
+      "version": "4.6.2.0"
     },
     {
       "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
@@ -758,6 +886,22 @@
       "version": "1.1"
     },
     {
+      "entry_sha256": "4489041f8fd6f147371f9cbc8e08379edb8ea7e35cda1601c7a019c211ac055c",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://pypi.org/project/ngsbriggs/",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "ngsbriggs",
+      "version": "0.1.3"
+    },
+    {
       "entry_sha256": "9c1623fde9cb4f9c49bc9aa60b92a7fe4b5832f3a729d4f622ad6b433a46d8c5",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -772,6 +916,22 @@
       "status": "production",
       "tool": "pear",
       "version": "0.9.6"
+    },
+    {
+      "entry_sha256": "762b83ada99604cb9a7db12f34e48744c3eaf36f6570b0f3741840913833aac3",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/broadinstitute/picard",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "picard",
+      "version": "3.3.0"
     },
     {
       "entry_sha256": "f36c891662f00efecd29034d46262373967e0c9b9df4ab64e1bf4677bc57b5af",
@@ -820,6 +980,22 @@
       "status": "production",
       "tool": "pmdtools",
       "version": "0.60"
+    },
+    {
+      "entry_sha256": "bd48c3cc58c3549b03a95fafb1b2a87d9478daedbb4aa471a9f0e58151f963ba",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/smithlabcode/preseq",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "preseq",
+      "version": "3.2.0"
     },
     {
       "entry_sha256": "430aed38ac5538b1085e27c8c1fc25a16354a41e2ef57640fffa927fa98e03a3",
@@ -934,6 +1110,22 @@
       "version": "1.5.4"
     },
     {
+      "entry_sha256": "118c3e5633ed78ece88e4b054516dbca1e1a52b5d2b5248b70ebd870d7980cb7",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/telatin/seqfu2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "seqfu",
+      "version": "2.4.0"
+    },
+    {
       "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -964,6 +1156,38 @@
       "status": "production",
       "tool": "seqkit_stats",
       "version": "2.8.2"
+    },
+    {
+      "entry_sha256": "51eb4ebb3104c76ee23e9b9732a520c1ed15ff0aafc2ee92d0c38f6b57186634",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/jstjohn/SeqPrep",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "seqprep",
+      "version": "1.3.2"
+    },
+    {
+      "entry_sha256": "437e3766bca03ef4f54315bea6b879a26ce7d6cf2bc32156b73361a7bb550f9c",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/bijux/bijux-dna",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "seqpurge",
+      "version": "0.1.0"
     },
     {
       "entry_sha256": "0a4aa66f7506c6d6d2716e60613c07b6869bd3c16da6237a70c6b81b0c834e41",
@@ -1176,6 +1400,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "0c3b380b8835d132d52a409c3fde58974df708714de7e01994aac0acac6f9e3c",
+  "source_sha256": "6953e07c98f980435503844c1f2ebb8f5d50791b32dca35144dc49075a373005",
   "version_map_source": "artifacts/containers/version_map.json"
 }
