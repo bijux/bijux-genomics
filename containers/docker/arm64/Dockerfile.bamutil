@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="bamutil"
+LABEL org.opencontainers.image.title="bamutil"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_BAMUTIL=1.0.15
+ENV VERSION_BAMUTIL=${VERSION_BAMUTIL}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      git \
+      build-essential \
+      cmake \
+      zlib1g-dev \
+      libbz2-dev \
+      liblzma-dev \
+      libcurl4-openssl-dev && \
+    git clone --depth 1 --branch v${VERSION_BAMUTIL} https://github.com/statgen/bamUtil.git /tmp/bamUtil && \
+    cmake -S /tmp/bamUtil -B /tmp/bamUtil/build -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/bamUtil/build -j"$(nproc)" && \
+    install -m 0755 /tmp/bamUtil/build/bin/bam /usr/local/bin/bam && \
+    rm -rf /tmp/bamUtil && \
+    apt-get purge -y git build-essential cmake zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN printf '#!/bin/sh\n' > /usr/local/bin/bamutil && \
+    printf 'if [ "$1" = "--version" ]; then echo "$VERSION_BAMUTIL"; exit 0; fi\n' >> /usr/local/bin/bamutil && \
+    printf 'if [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then exec bam --help; fi\n' >> /usr/local/bin/bamutil && \
+    printf 'exec bam "$@"\n' >> /usr/local/bin/bamutil && \
+    chmod +x /usr/local/bin/bamutil
+
+WORKDIR /data
+ENTRYPOINT ["/bin/sh", "-c", "bamutil \"$@\"", "--"]
+CMD ["--help"]
