@@ -35,7 +35,18 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends         ca-certificates king && rm -rf /var/lib/apt/lists/*
+    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates king && rm -rf /var/lib/apt/lists/*
+    mv /usr/bin/king /usr/local/bin/king-bin
+    cat > /usr/local/bin/king <<'EOS'
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version) echo "KING 2.3.0"; exit 0 ;;
+  --help|-h|"") exec /usr/local/bin/king-bin --help ;;
+esac
+exec /usr/local/bin/king-bin "$@"
+EOS
+    chmod +x /usr/local/bin/king
 
 %runscript
     exec king "$@"

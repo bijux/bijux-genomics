@@ -37,7 +37,7 @@ expected_bin = "beagle"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/non-bijux/beagle.def"
+apptainer_def = "containers/apptainer/lunarc/beagle.def"
 dockerfile = "containers/docker/arm64/Dockerfile.beagle"
 require_labels = true
 
@@ -74,7 +74,7 @@ expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid
 metrics_schema = "bijux.vcf.gl.v1"
 comparability_notes = "Comparable only when GL model, PMD filters, and reference build are identical."
 dockerfile = "containers/docker/arm64/Dockerfile.angsd"
-apptainer_def = "containers/apptainer/bijux/angsd.def"
+apptainer_def = "containers/apptainer/lunarc/angsd.def"
 require_labels = true
 
 [[tools]]
@@ -144,7 +144,7 @@ expected_artifacts = ["qc_report", "admixture_report"]
 metrics_schema = "bijux.vcf.qc.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.plink"
-apptainer_def = "containers/apptainer/bijux/plink.def"
+apptainer_def = "containers/apptainer/lunarc/plink.def"
 require_labels = true
 
 [[tools]]
@@ -180,7 +180,7 @@ expected_artifacts = ["analysis_report"]
 metrics_schema = "bijux.vcf.pca.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.plink2"
-apptainer_def = "containers/apptainer/bijux/plink2.def"
+apptainer_def = "containers/apptainer/lunarc/plink2.def"
 require_labels = true
 
 [[tools]]
@@ -215,7 +215,7 @@ expected_bin = "smartpca"
 expected_artifacts = ["pca_report"]
 metrics_schema = "bijux.vcf.pca.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/non-bijux/eigensoft.def"
+apptainer_def = "containers/apptainer/lunarc/eigensoft.def"
 dockerfile = "containers/docker/arm64/Dockerfile.eigensoft"
 require_labels = true
 
@@ -251,7 +251,7 @@ expected_bin = "germline"
 expected_artifacts = ["ibd_segments"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/non-bijux/germline.def"
+apptainer_def = "containers/apptainer/lunarc/germline.def"
 dockerfile = "containers/docker/arm64/Dockerfile.germline"
 require_labels = true
 
@@ -321,7 +321,7 @@ expected_bin = "ibdhap"
 expected_artifacts = ["ibd_haplotype_report"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/non-bijux/ibdhap.def"
+apptainer_def = "containers/apptainer/lunarc/ibdhap.def"
 dockerfile = "containers/docker/arm64/Dockerfile.ibdhap"
 require_labels = true
 
@@ -357,7 +357,7 @@ expected_bin = "ibdne"
 expected_artifacts = ["demography_report"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/non-bijux/ibdne.def"
+apptainer_def = "containers/apptainer/lunarc/ibdne.def"
 dockerfile = "containers/docker/arm64/Dockerfile.ibdne"
 require_labels = true
 
@@ -395,7 +395,7 @@ expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.glimpse"
-apptainer_def = "containers/apptainer/non-bijux/glimpse.def"
+apptainer_def = "containers/apptainer/lunarc/glimpse.def"
 require_labels = true
 
 [[tools]]
@@ -432,7 +432,7 @@ expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.impute5"
-apptainer_def = "containers/apptainer/non-bijux/impute5.def"
+apptainer_def = "containers/apptainer/lunarc/impute5.def"
 require_labels = true
 
 [[tools]]
@@ -469,7 +469,7 @@ expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.shapeit5"
-apptainer_def = "containers/apptainer/non-bijux/shapeit5.def"
+apptainer_def = "containers/apptainer/lunarc/shapeit5.def"
 require_labels = true
 
 [[tools]]
@@ -506,7 +506,7 @@ expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.eagle"
-apptainer_def = "containers/apptainer/non-bijux/eagle.def"
+apptainer_def = "containers/apptainer/lunarc/eagle.def"
 require_labels = true
 
 [[tools]]
@@ -543,5 +543,5 @@ expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation.v1"
 comparability_notes = "planned"
 dockerfile = "containers/docker/arm64/Dockerfile.minimac4"
-apptainer_def = "containers/apptainer/non-bijux/minimac4.def"
+apptainer_def = "containers/apptainer/lunarc/minimac4.def"
 require_labels = true

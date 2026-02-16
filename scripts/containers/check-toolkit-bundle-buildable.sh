@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 root = Path(sys.argv[1])
 bundles = tomllib.loads((root / "configs/ci/tools/toolkit_bundles.toml").read_text(encoding="utf-8")).get("bundles", {})
 images = tomllib.loads((root / "configs/ci/tools/images.toml").read_text(encoding="utf-8"))
-appt = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")} | {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+appt = {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")} | {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
 dock = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
 errors = []
 

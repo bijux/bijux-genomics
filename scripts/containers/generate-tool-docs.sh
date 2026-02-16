@@ -48,8 +48,8 @@ for p in sorted((root / "artifacts/containers").glob("*.json")):
         status[tool] = str(d.get("status", "unknown"))
 
 docker_ids = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
-apptainer_ids = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
-apptainer_ids |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+apptainer_ids = {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
+apptainer_ids |= {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
 
 for tool in sorted(versions.keys()):
     v = versions.get(tool, {})

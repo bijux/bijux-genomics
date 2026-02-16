@@ -52,9 +52,9 @@ for f in sorted(root.glob("domain/*/tools/*.yaml")):
 container_tools: set[str] = set()
 for p in (root / "containers/docker/arm64").glob("Dockerfile.*"):
     container_tools.add(p.name.split("Dockerfile.", 1)[1])
-for p in (root / "containers/apptainer/bijux").glob("*.def"):
+for p in (root / "containers/apptainer/lunarc").glob("*.def"):
     container_tools.add(p.stem)
-for p in (root / "containers/apptainer/non-bijux").glob("*.def"):
+for p in (root / "containers/apptainer/lunarc").glob("*.def"):
     container_tools.add(p.stem)
 
 errors: list[str] = []

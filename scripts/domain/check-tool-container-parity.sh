@@ -24,8 +24,8 @@ external = set(tomllib.loads(external_cfg.read_text(encoding="utf-8")).get("non_
 docker_tools = set()
 for p in (root / "containers/docker/arm64").glob("Dockerfile.*"):
     docker_tools.add(p.name.split("Dockerfile.", 1)[1])
-appt_tools = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
-appt_tools |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+appt_tools = {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
+appt_tools |= {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
 all_container_tools = docker_tools | appt_tools
 
 errors = []

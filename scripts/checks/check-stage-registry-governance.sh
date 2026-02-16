@@ -87,9 +87,9 @@ def collect_container_tools(root: Path) -> set[str]:
     ids: set[str] = set()
     for p in (root / "containers/docker/arm64").glob("Dockerfile.*"):
         ids.add(p.name.split("Dockerfile.", 1)[1])
-    for p in (root / "containers/apptainer/bijux").glob("*.def"):
+    for p in (root / "containers/apptainer/lunarc").glob("*.def"):
         ids.add(p.stem)
-    for p in (root / "containers/apptainer/non-bijux").glob("*.def"):
+    for p in (root / "containers/apptainer/lunarc").glob("*.def"):
         ids.add(p.stem)
     return ids
 

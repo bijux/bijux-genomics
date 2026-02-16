@@ -32,7 +32,7 @@ if not summary.exists():
 
 data = json.loads(summary.read_text(encoding="utf-8"))
 versions = tomllib.loads((root / "containers/versions/versions.toml").read_text(encoding="utf-8"))
-apptainer_tools = set(p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")) | set(p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def"))
+apptainer_tools = set(p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")) | set(p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def"))
 items = {str(i.get("tool", "")).strip(): i for i in data.get("items", [])}
 errors = []
 

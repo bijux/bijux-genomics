@@ -18,5 +18,5 @@ capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.ibd.v1"
 comparability_notes: "Planned tool; compare only within pinned profile and reference build."
 container:
-  image: "containers/apptainer/non-bijux/ibdhap.def"
+  image: "containers/apptainer/lunarc/ibdhap.def"
   digest: "planned"
