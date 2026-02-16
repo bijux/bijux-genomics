@@ -6,3 +6,23 @@ FASTQ stages that require references must resolve species/build authority via `b
 - Do not hardcode host filesystem reference paths.
 - Reference acquisition is only allowed through `scripts/tooling/acquire-reference.sh`.
 - Runtime writes `run_artifacts/reference_manifest.json` for reference-consuming stages.
+
+
+## Purpose
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Scope
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Non-Goals
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Contracts
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.

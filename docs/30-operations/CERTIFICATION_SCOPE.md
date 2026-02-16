@@ -19,3 +19,23 @@
 - `artifacts/certification/run_stamp.json`
 - `artifacts/certification/certification_bundle.json`
 
+
+
+## Purpose
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Scope
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Non-Goals
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Contracts
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
