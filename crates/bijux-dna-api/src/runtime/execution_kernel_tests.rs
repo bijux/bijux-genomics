@@ -10,8 +10,8 @@ fn tool_exec_bcftools_version_in_container() -> Result<()> {
         return Ok(());
     }
     let tmp = TempDir::new()?;
-    let stage_root = tmp.path().join("artifacts").join("stage");
     let out_root = tmp.path().join("out");
+    let stage_root = out_root.join("stage");
     let in_root = tmp.path().join("in");
     bijux_dna_infra::ensure_dir(&stage_root)?;
     bijux_dna_infra::ensure_dir(&out_root)?;
@@ -82,8 +82,8 @@ fn tool_exec_bcftools_version_in_container() -> Result<()> {
 #[test]
 fn dry_run_explain_emits_plan_and_resource_details() -> Result<()> {
     let tmp = TempDir::new()?;
-    let stage_root = tmp.path().join("artifacts").join("stage");
     let out_root = tmp.path().join("out");
+    let stage_root = out_root.join("stage");
     let in_root = tmp.path().join("in");
     bijux_dna_infra::ensure_dir(&stage_root)?;
     bijux_dna_infra::ensure_dir(&out_root)?;
