@@ -65,6 +65,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "fastq.damage_aware_pretrim",
+        executor: FASTQ_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "fastq.deduplicate",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,

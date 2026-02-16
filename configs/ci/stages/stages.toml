@@ -630,3 +630,23 @@ stage_id = "fastq.trim"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
 
+
+[[stages]]
+id = "fastq.damage_aware_pretrim"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.validate_pre"]
+prerequisites = ["fastq.validate_pre"]
+resource_memory_gb = 8
+resource_time_minutes = 30
+resource_threads = 4
+sanity_metrics = ["ct_ga_asymmetry_pre", "ct_ga_asymmetry_post"]
+output_size_estimates_mb = ["trimmed_fastq:1200", "damage_pretrim_metrics:3"]
+qc_thresholds = ["ct_ga_asymmetry_post|warn=>0.4|fail=>0.6"]
+contamination_thresholds = ["not_applicable"]
+authenticity_thresholds = ["not_applicable"]
+duplication_thresholds = ["not_applicable"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["cutadapt", "seqkit"]
+metrics_schema = "bijux.fastq.metrics.damage_aware_pretrim.v1"

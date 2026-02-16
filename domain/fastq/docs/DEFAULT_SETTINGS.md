@@ -36,6 +36,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.umi`: default `umi_tools`.
 - `fastq.overrepresented_sequences`: default `fastqc`.
 - `fastq.screen`: default `kraken2`.
+- `fastq.damage_aware_pretrim`: default `cutadapt`. rationale: deterministic terminal mask/trim policy for aDNA damage-aware pretrim.
 - `fastq.primer_normalization`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
 - `fastq.chimera_detection`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
 - `fastq.otu_clustering`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
@@ -51,3 +52,5 @@ single_tool_justification: fastq.chimera_detection
 single_tool_justification: fastq.otu_clustering
 single_tool_justification: fastq.asv_inference
 single_tool_justification: fastq.abundance_normalization
+
+single_tool_justification: fastq.damage_aware_pretrim
