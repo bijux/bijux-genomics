@@ -260,6 +260,90 @@ contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
+tool_id = "bamutil"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "clumpify"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "dada2"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "diamond"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "dustmasker"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "fastq_scan"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "fastuniq"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "gatk"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "ngsbriggs"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "picard"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "preseq"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "seqfu"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "seqprep"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
+tool_id = "seqpurge"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
 tool_id = "minimac4"
 team = "bijux-dna-platform"
 contact = "bijux.github.io@gmail.com"
