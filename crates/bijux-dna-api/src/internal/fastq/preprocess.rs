@@ -111,7 +111,6 @@ fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
     }
     let mut magic = [0_u8; 2];
     let mut file = std::fs::File::open(path)?;
-    use std::io::Read;
     if file.read_exact(&mut magic).is_err() || magic != [0x1f, 0x8b] {
         return Ok(false);
     }
@@ -220,7 +219,7 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
         read_count,
         read_length_min: len_min,
         read_length_max: len_max,
-        read_length_mean: len_total as f64 / read_count as f64,
+        read_length_mean: u64_to_f64(len_total) / u64_to_f64(read_count),
         read_length_histogram,
         qscore_ascii_min: q_min,
         qscore_ascii_max: q_max,
@@ -345,30 +344,32 @@ fn maybe_write_fastq_coverage_classifier(
     } else {
         invariants.r1.read_length_mean
     };
-    let estimated_depth_x = (reads as f64 * mean_len) / genome_bp as f64;
+    let estimated_depth_x =
+        (reads.to_string().parse::<f64>().unwrap_or(0.0) * mean_len)
+            / genome_bp.to_string().parse::<f64>().unwrap_or(1.0);
     let thresholds = load_coverage_thresholds_for_fastq("default")?;
-    let (selected_regime, trigger) = if estimated_depth_x <= thresholds.gl_max_depth {
+    let (selected_regime, trigger) = if estimated_depth_x <= thresholds.gl_max {
         (
             "gl",
             format!(
                 "estimated_depth_x <= gl_max_depth ({estimated_depth_x:.4} <= {})",
-                thresholds.gl_max_depth
+                thresholds.gl_max
             ),
         )
-    } else if estimated_depth_x <= thresholds.pseudohaploid_max_depth {
+    } else if estimated_depth_x <= thresholds.pseudohaploid_max {
         (
             "pseudohaploid",
             format!(
                 "gl_max_depth < estimated_depth_x <= pseudohaploid_max_depth ({} < {estimated_depth_x:.4} <= {})",
-                thresholds.gl_max_depth, thresholds.pseudohaploid_max_depth
+                thresholds.gl_max, thresholds.pseudohaploid_max
             ),
         )
-    } else if estimated_depth_x >= thresholds.diploid_min_depth {
+    } else if estimated_depth_x >= thresholds.diploid_min {
         (
             "diploid",
             format!(
                 "estimated_depth_x >= diploid_min_depth ({estimated_depth_x:.4} >= {})",
-                thresholds.diploid_min_depth
+                thresholds.diploid_min
             ),
         )
     } else {
@@ -386,9 +387,9 @@ fn maybe_write_fastq_coverage_classifier(
         "selected_regime": selected_regime,
         "trigger": trigger,
         "thresholds_used": {
-            "gl_max_depth": thresholds.gl_max_depth,
-            "pseudohaploid_max_depth": thresholds.pseudohaploid_max_depth,
-            "diploid_min_depth": thresholds.diploid_min_depth,
+            "gl_max_depth": thresholds.gl_max,
+            "pseudohaploid_max_depth": thresholds.pseudohaploid_max,
+            "diploid_min_depth": thresholds.diploid_min,
         }
     });
     bijux_dna_infra::atomic_write_json(&root.join("coverage_regime.fastq.json"), &payload)
@@ -399,9 +400,9 @@ fn maybe_write_fastq_coverage_classifier(
 
 #[derive(Debug, Clone, Copy)]
 struct FastqCoverageThresholds {
-    gl_max_depth: f64,
-    pseudohaploid_max_depth: f64,
-    diploid_min_depth: f64,
+    gl_max: f64,
+    pseudohaploid_max: f64,
+    diploid_min: f64,
 }
 
 fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThresholds> {
@@ -430,14 +431,14 @@ fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThre
                 profile_thresholds
                     .get(key)
                     .and_then(toml::Value::as_integer)
-                    .map(|v| v as f64)
+                    .and_then(|v| v.to_string().parse::<f64>().ok())
             })
             .ok_or_else(|| anyhow!("missing threshold key `{key}`"))
     };
     Ok(FastqCoverageThresholds {
-        gl_max_depth: read_f("gl_max_depth")?,
-        pseudohaploid_max_depth: read_f("pseudohaploid_max_depth")?,
-        diploid_min_depth: read_f("diploid_min_depth")?,
+        gl_max: read_f("gl_max_depth")?,
+        pseudohaploid_max: read_f("pseudohaploid_max_depth")?,
+        diploid_min: read_f("diploid_min_depth")?,
     })
 }
 
@@ -528,3 +529,8 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
 }
 
 include!("preprocess/runtime_tail.rs");
+use std::io::Read;
+
+    fn u64_to_f64(v: u64) -> f64 {
+        v.to_string().parse::<f64>().unwrap_or(0.0)
+    }

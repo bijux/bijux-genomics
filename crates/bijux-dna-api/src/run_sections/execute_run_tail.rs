@@ -208,9 +208,9 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
         "regime_profile": profile,
         "trigger": trigger,
         "thresholds_used": {
-            "gl_max_depth": thresholds.gl_max_depth,
-            "pseudohaploid_max_depth": thresholds.pseudohaploid_max_depth,
-            "diploid_min_depth": thresholds.diploid_min_depth,
+            "gl_max_depth": thresholds.gl_max,
+            "pseudohaploid_max_depth": thresholds.pseudohaploid_max,
+            "diploid_min_depth": thresholds.diploid_min,
         },
         "observed_coverage_stats": {
             "mean_depth_x": observed_mean_depth,
@@ -235,28 +235,28 @@ fn classify_depth_to_regime(
     mean_depth: f64,
     thresholds: CoverageThresholds,
 ) -> (&'static str, String) {
-    if mean_depth <= thresholds.gl_max_depth {
+    if mean_depth <= thresholds.gl_max {
         (
             "gl",
             format!(
                 "mean_depth_x <= gl_max_depth ({mean_depth:.4} <= {})",
-                thresholds.gl_max_depth
+                thresholds.gl_max
             ),
         )
-    } else if mean_depth <= thresholds.pseudohaploid_max_depth {
+    } else if mean_depth <= thresholds.pseudohaploid_max {
         (
             "pseudohaploid",
             format!(
                 "gl_max_depth < mean_depth_x <= pseudohaploid_max_depth ({} < {mean_depth:.4} <= {})",
-                thresholds.gl_max_depth, thresholds.pseudohaploid_max_depth
+                thresholds.gl_max, thresholds.pseudohaploid_max
             ),
         )
-    } else if mean_depth >= thresholds.diploid_min_depth {
+    } else if mean_depth >= thresholds.diploid_min {
         (
             "diploid",
             format!(
                 "mean_depth_x >= diploid_min_depth ({mean_depth:.4} >= {})",
-                thresholds.diploid_min_depth
+                thresholds.diploid_min
             ),
         )
     } else {
@@ -269,9 +269,9 @@ fn classify_depth_to_regime(
 
 #[derive(Debug, Clone, Copy)]
 struct CoverageThresholds {
-    gl_max_depth: f64,
-    pseudohaploid_max_depth: f64,
-    diploid_min_depth: f64,
+    gl_max: f64,
+    pseudohaploid_max: f64,
+    diploid_min: f64,
 }
 
 fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
@@ -298,14 +298,14 @@ fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
             .or_else(|| {
                 obj.get(key)
                     .and_then(toml::Value::as_integer)
-                    .map(|v| v as f64)
+                    .and_then(|v| v.to_string().parse::<f64>().ok())
             })
             .ok_or_else(|| anyhow!("missing or invalid threshold key `{key}`"))
     };
     Ok(CoverageThresholds {
-        gl_max_depth: read_f(profile_thresholds, "gl_max_depth")?,
-        pseudohaploid_max_depth: read_f(profile_thresholds, "pseudohaploid_max_depth")?,
-        diploid_min_depth: read_f(profile_thresholds, "diploid_min_depth")?,
+        gl_max: read_f(profile_thresholds, "gl_max_depth")?,
+        pseudohaploid_max: read_f(profile_thresholds, "pseudohaploid_max_depth")?,
+        diploid_min: read_f(profile_thresholds, "diploid_min_depth")?,
     })
 }
 
@@ -366,20 +366,24 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
     if read_count == 0 || files == 0 {
         return None;
     }
-    let avg_len = mean_len_sum / files as f64;
-    Some((read_count as f64 * avg_len) / expected_genome_size_bp as f64)
+    let files_f = files.to_string().parse::<f64>().unwrap_or(1.0);
+    let read_count_f = read_count.to_string().parse::<f64>().unwrap_or(0.0);
+    let genome_bp_f = expected_genome_size_bp
+        .to_string()
+        .parse::<f64>()
+        .unwrap_or(1.0);
+    let avg_len = mean_len_sum / files_f;
+    Some((read_count_f * avg_len) / genome_bp_f)
 }
 
 fn is_fastq_like_path(path: &Path) -> bool {
-    let name = path
-        .file_name()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    name.ends_with(".fastq")
-        || name.ends_with(".fq")
-        || name.ends_with(".fastq.gz")
-        || name.ends_with(".fq.gz")
+    let file_name = path.file_name().and_then(|x| x.to_str()).unwrap_or_default();
+    let lower = file_name.to_ascii_lowercase();
+    let ext_fastq = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("fastq") || ext.eq_ignore_ascii_case("fq"));
+    ext_fastq || lower.ends_with(".fastq.gz") || lower.ends_with(".fq.gz")
 }
 
 fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
@@ -388,10 +392,18 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
     for artifact in &request.plan.io.inputs {
         let p = request.plan.out_dir.join(&artifact.path);
         let name = p.file_name().and_then(|x| x.to_str()).unwrap_or_default();
-        if !(name.ends_with(".vcf") || name.ends_with(".vcf.gz")) {
+        let ext_is_vcf = std::path::Path::new(name)
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("vcf"));
+        if !(ext_is_vcf || name.to_ascii_lowercase().ends_with(".vcf.gz")) {
             continue;
         }
-        let raw = if name.ends_with(".gz") {
+        let raw = if std::path::Path::new(name)
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+        {
             std::process::Command::new("gzip")
                 .args(["-cd", p.to_string_lossy().as_ref()])
                 .output()
@@ -418,10 +430,13 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
     if variants == 0 || span_bp == 0 {
         return None;
     }
-    Some(variants as f64 / (span_bp as f64 / 1_000_000_f64))
+    let variants_f = variants.to_string().parse::<f64>().unwrap_or(0.0);
+    let span_f = span_bp.to_string().parse::<f64>().unwrap_or(1.0);
+    Some(variants_f / (span_f / 1_000_000_f64))
 }
 
 #[cfg(test)]
+#[allow(clippy::items_after_test_module)]
 mod coverage_regime_tests {
     use super::{
         classify_depth_to_regime, is_fastq_like_path, stage_requires_regime, CoverageThresholds,
@@ -431,9 +446,9 @@ mod coverage_regime_tests {
     #[test]
     fn same_input_depth_yields_same_regime_deterministically() {
         let t = CoverageThresholds {
-            gl_max_depth: 1.5,
-            pseudohaploid_max_depth: 6.0,
-            diploid_min_depth: 8.0,
+            gl_max: 1.5,
+            pseudohaploid_max: 6.0,
+            diploid_min: 8.0,
         };
         let (a, _) = classify_depth_to_regime(1.2, t);
         let (b, _) = classify_depth_to_regime(1.2, t);
@@ -446,9 +461,9 @@ mod coverage_regime_tests {
     #[test]
     fn depth_boundaries_route_to_expected_regime() {
         let t = CoverageThresholds {
-            gl_max_depth: 1.5,
-            pseudohaploid_max_depth: 6.0,
-            diploid_min_depth: 8.0,
+            gl_max: 1.5,
+            pseudohaploid_max: 6.0,
+            diploid_min: 8.0,
         };
         assert_eq!(classify_depth_to_regime(1.5, t).0, "gl");
         assert_eq!(classify_depth_to_regime(1.5001, t).0, "pseudohaploid");

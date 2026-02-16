@@ -12,10 +12,10 @@ fn write_stage_resume_contract(
             .unwrap_or("unknown")
             .to_string();
         let value = if path.exists() {
-            bijux_dna_infra::hash_file_sha256(path)
-                .ok()
-                .map(serde_json::Value::String)
-                .unwrap_or(serde_json::Value::Null)
+            bijux_dna_infra::hash_file_sha256(path).ok().map_or(
+                serde_json::Value::Null,
+                serde_json::Value::String,
+            )
         } else {
             serde_json::Value::Null
         };
@@ -243,9 +243,14 @@ fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_json::Value> 
             break;
         }
     }
-    let denom = (ct_events + ga_events) as f64;
+    let denom = (ct_events + ga_events)
+        .to_string()
+        .parse::<f64>()
+        .unwrap_or(0.0);
     let asymmetry = if denom > 0.0 {
-        (ct_events as f64 - ga_events as f64) / denom
+        (ct_events.to_string().parse::<f64>().unwrap_or(0.0)
+            - ga_events.to_string().parse::<f64>().unwrap_or(0.0))
+            / denom
     } else {
         0.0
     };
@@ -450,4 +455,4 @@ fn write_taxonomy_db_drift_report(
     Ok(())
 }
 
-include!("preprocess/pipeline_run.rs");
+include!("pipeline_run.rs");
