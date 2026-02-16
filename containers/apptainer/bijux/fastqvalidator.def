@@ -53,8 +53,10 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
         https://github.com/statgen/fastQValidator.git /opt/fastQValidator && \
     cd /opt/fastQValidator && git checkout "$FASTQVALIDATOR_COMMIT" && cd - >/dev/null && \
 
+    cd /opt/libStatGen && \
+    make -j1 && \
     cd /opt/fastQValidator && \
-    make -j$(nproc) LIB_PATH_FASTQ_VALIDATOR=/opt/libStatGen && \
+    make -j1 LIB_PATH_FASTQ_VALIDATOR=/opt/libStatGen && \
     make install PREFIX=/usr/local && \
 
     mv /usr/local/bin/fastQValidator /usr/local/bin/fq-validator-bin && \
