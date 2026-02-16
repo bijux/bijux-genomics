@@ -11,8 +11,8 @@ upstream: "https://github.com/DReichLab/EIG"
 pin_strategy: "container_digest"
 license: "GPL-2.0"
 citation: "planned"
-version_cmd: "smartpca -h"
-help_cmd: "smartpca -h"
+version_cmd: "smartpca --version"
+help_cmd: "smartpca --help"
 expected_artifacts: ["pca_report", "population_structure_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.population_structure.v1"
