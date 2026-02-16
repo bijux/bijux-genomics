@@ -49,14 +49,20 @@ mod tests {
         let temp = tempfile::tempdir()?;
         let validate_dir = temp.path().join("validate");
         bijux_dna_infra::ensure_dir(&validate_dir)?;
+        let validate_bam = validate_dir.join("in.bam");
+        let validate_bai = validate_dir.join("in.bam.bai");
+        std::fs::write(&validate_bam, b"@HD\tVN:1.6\n")?;
+        std::fs::write(&validate_bai, b"bai")?;
         bijux_dna_infra::atomic_write_bytes(
             &validate_dir.join("flagstat.txt"),
             b"10 + 0 in total (QC-passed reads + QC-failed reads)\n8 + 0 mapped (80.00% : N/A)\n2 + 0 duplicates\n",
         )?;
+        let mut validate_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
+        validate_plan.io.inputs[0].path = validate_bam;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &validate_dir,
-            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate),
+            &validate_plan,
         )?;
         let validate_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             validate_dir.join("validation.summary.json"),
@@ -70,6 +76,10 @@ mod tests {
 
         let mapping_dir = temp.path().join("mapping_summary");
         bijux_dna_infra::ensure_dir(&mapping_dir)?;
+        let mapping_bam = mapping_dir.join("in.bam");
+        let mapping_bai = mapping_dir.join("in.bam.bai");
+        std::fs::write(&mapping_bam, b"@HD\tVN:1.6\n")?;
+        std::fs::write(&mapping_bai, b"bai")?;
         bijux_dna_infra::atomic_write_bytes(
             &mapping_dir.join("flagstat.txt"),
             b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
@@ -78,10 +88,13 @@ mod tests {
             &mapping_dir.join("samtools_stats.txt"),
             b"SN\traw total sequences:\t20\n",
         )?;
+        let mut mapping_plan =
+            mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary);
+        mapping_plan.io.inputs[0].path = mapping_bam;
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::MappingSummary,
             &mapping_dir,
-            &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MappingSummary),
+            &mapping_plan,
         )?;
         let mapping_summary: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             mapping_dir.join("mapping_summary.json"),
