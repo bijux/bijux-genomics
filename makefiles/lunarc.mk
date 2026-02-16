@@ -9,6 +9,7 @@ ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
 DATA_MANIFEST_GLOB ?=
 LUNARC_APPTAINER_DIR ?= $(LUNARC_ROOT)/bijux-dna-apptainer
+LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/lunarc-apptainer
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
@@ -69,7 +70,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 	fi
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
-		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs"; \
+		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs" "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs"; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04 || echo "warning: ubuntu base pull failed; trying non-docker fallback"; \
 		fi; \
@@ -104,10 +105,10 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
 			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
-			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			ARTIFACT_DIR="$(LUNARC_APPTAINER_ARTIFACT_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			./scripts/run.sh containers smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
+			./scripts/run.sh containers smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
@@ -116,17 +117,17 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 	fi
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
-		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
+		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs" "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs"; \
 		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)-test" env \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \
 			VM_OUT_DIR="$(LUNARC_APPTAINER_DIR)" \
-			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
+			ARTIFACT_DIR="$(LUNARC_APPTAINER_ARTIFACT_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
-			./scripts/run.sh containers smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
-		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"'
+			./scripts/run.sh containers smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
 apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-apptainer
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
