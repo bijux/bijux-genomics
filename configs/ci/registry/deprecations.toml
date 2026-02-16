@@ -13,9 +13,3 @@ removal_after = "2026-07-01"
 rationale = "Example policy entry used to enforce deprecation-window contract checks."
 replacement = "samtools"
 
-[[deprecations]]
-stage = "fastq.asv_inference"
-deprecated_since = "2026-02-15"
-removal_after = "2026-12-31"
-rationale = "Out-of-scope by policy: use-case is documented as presentation/example-only until certified support exists."
-replacement = "fastq.otu_clustering"

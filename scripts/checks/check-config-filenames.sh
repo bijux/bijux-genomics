@@ -25,7 +25,9 @@ while IFS= read -r file; do
     configs/schema/CONFIG_SCHEMA_RULES.md|\
     configs/schema/validate.py|\
     configs/vcf/panels/locks/lock.json|\
-    configs/vcf/panels/locks/lock.json.sha256)
+    configs/vcf/panels/locks/lock.json.sha256|\
+    configs/runtime/references/locks/lock.json|\
+    configs/runtime/references/locks/lock.json.sha256)
       continue
       ;;
   esac

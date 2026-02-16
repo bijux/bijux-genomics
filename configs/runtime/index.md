@@ -33,6 +33,7 @@ Fields:
 - `configs/runtime/references/locks/index.md`
 - `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
+- `configs/runtime/execution_kernel.toml`
 
 ## profiles/ Layout
 - Path: `configs/runtime/profiles/<profile>.toml`
