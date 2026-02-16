@@ -33,6 +33,7 @@ version_cmd = "alientrimmer --version"
 help_cmd = "alientrimmer --help"
 smoke_version_cmd = "alientrimmer --version"
 smoke_help_cmd = "alientrimmer --help"
+smoke_negative_expected_pattern = "invalid|unknown|error|usage|not bundled"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "alientrimmer --help"
 expected_bin = "alientrimmer"
@@ -1632,4 +1633,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-
