@@ -33,6 +33,7 @@ version_cmd = "adapterremoval --version"
 help_cmd = "adapterremoval --help"
 smoke_version_cmd = "adapterremoval --version"
 smoke_help_cmd = "adapterremoval --help"
+smoke_negative_exit_code = 1
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "adapterremoval --help"
 expected_bin = "adapterremoval"
