@@ -203,10 +203,7 @@ fn bam_smoke_runner_minimal_path_has_report_sections() -> Result<()> {
         assumptions: Vec::new(),
         citations: BTreeMap::new(),
     };
-    bijux_dna_infra::write_bytes(
-        &base_dir.join("defaults_ledger.json"),
-        serde_json::to_vec(&defaults)?,
-    )?;
+    bijux_dna_infra::write_bytes(base_dir.join("defaults_ledger.json"), serde_json::to_vec(&defaults)?)?;
     let mut rows = Vec::new();
     for (idx, stage_id) in ["bam.validate", "bam.mapping_summary", "bam.coverage"]
         .into_iter()

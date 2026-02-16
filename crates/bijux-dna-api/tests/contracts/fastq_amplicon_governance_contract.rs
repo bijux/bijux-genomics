@@ -1,11 +1,13 @@
 use std::path::Path;
 
 fn repo_root() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
+    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(|p| p.parent())
-        .expect("repo root")
-        .to_path_buf()
+    else {
+        panic!("repo root");
+    };
+    root.to_path_buf()
 }
 
 #[test]
@@ -104,8 +106,8 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
 fn fastq_amplicon_tables_define_expected_schema_headers() {
     let root = repo_root();
     let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_runtime.rs");
-    let raw = std::fs::read_to_string(&src)
-        .unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
+    let raw =
+        std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
     assert!(
         raw.contains("sample_id\\tfeature_id\\tabundance"),
         "ASV/OTU tables must include sample_id/feature_id/abundance header contract"
