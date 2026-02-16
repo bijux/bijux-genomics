@@ -346,7 +346,7 @@ _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 flake-hunt: ## Run repeated flake hunt for an expression (EXPR required, RUNS optional).
 	@./bin/require-isolate >/dev/null
 	@if [ -z "$(EXPR)" ]; then echo "EXPR is required, e.g. make flake-hunt EXPR='test(...)' RUNS=20" >&2; exit 2; fi
-	@./scripts/experimental/flake-hunt.sh "$(EXPR)" "$(or $(RUNS),20)"
+	@./scripts/run.sh tooling flake-hunt --expr "$(EXPR)" --runs "$(or $(RUNS),20)"
 
 realness-gate: ## Run strict realness checks (placeholder artifacts + planner realization).
 	@./bin/require-isolate >/dev/null
