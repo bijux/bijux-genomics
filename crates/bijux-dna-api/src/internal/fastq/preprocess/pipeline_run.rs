@@ -436,8 +436,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 .command
                 .template
                 .first()
-                .map(String::as_str)
-                .unwrap_or("unknown"),
+                .map_or("unknown", String::as_str),
         )?;
         write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
         emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &execution)?;

@@ -176,7 +176,7 @@ fn bam_read_group_missing_required_fields(bam_path: &Path) -> Vec<String> {
     let mut missing = std::collections::BTreeSet::new();
     for rg in rgs {
         for field in required {
-            if rg.get(field).is_none_or(|value| value.trim().is_empty()) {
+            if rg.get(field).map_or(true, |value| value.trim().is_empty()) {
                 missing.insert(field.to_string());
             }
         }
@@ -221,13 +221,11 @@ fn write_bam_invariants(
         .or_else(|| parse_sort_order_from_header_hint(bam_path))
         .unwrap_or_else(|| {
         bijux_dna_domain_bam::contract_for_stage(stage.as_str())
-            .map(|contract| contract.sorting)
-            .unwrap_or("unspecified")
+            .map_or("unspecified", |contract| contract.sorting)
             .to_string()
         });
     let duplicate_policy = bijux_dna_domain_bam::contract_for_stage(stage.as_str())
-        .map(|contract| contract.duplicate_policy)
-        .unwrap_or("unspecified")
+        .map_or("unspecified", |contract| contract.duplicate_policy)
         .to_string();
     let header_contigs = {
         let contigs = bam_header_contig_names_samtools(bam_path);
@@ -289,9 +287,13 @@ fn expected_bam_contract_outputs(
     let mut indices = Vec::new();
     for artifact in bijux_dna_domain_bam::required_audit_artifacts(stage) {
         let output = stage_dir.join(artifact.filename);
-        if artifact.filename.ends_with(".bam") {
+        let ext = std::path::Path::new(artifact.filename)
+            .extension()
+            .and_then(|value| value.to_str());
+        let lower = artifact.filename.to_ascii_lowercase();
+        if ext.is_some_and(|value| value.eq_ignore_ascii_case("bam")) {
             bams.push(output);
-        } else if artifact.filename.ends_with(".bam.bai") {
+        } else if lower.ends_with(".bam.bai") {
             indices.push(output);
         }
     }

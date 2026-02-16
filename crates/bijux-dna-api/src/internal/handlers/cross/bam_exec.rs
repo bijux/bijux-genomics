@@ -317,8 +317,7 @@ fn validate_stage_hard_failures(
         ));
     }
     let expected_sorting = bijux_dna_domain_bam::contract_for_stage("bam.validate")
-        .map(|spec| spec.sorting.to_string())
-        .unwrap_or_else(|| "coordinate".to_string());
+        .map_or_else(|| "coordinate".to_string(), |spec| spec.sorting.to_string());
     if let Some(input_bam) = plan
         .io
         .inputs

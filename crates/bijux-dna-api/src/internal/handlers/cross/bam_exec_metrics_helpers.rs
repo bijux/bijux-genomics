@@ -145,14 +145,11 @@ fn write_bam_qc_aggregator_tsv(bam_root: &Path) -> Result<()> {
         }
         let stage = entry.file_name().to_string_lossy().to_string();
         let mapq_mean = parse_mapq_summary(&stage_dir.join("samtools_stats.txt"))?
-            .map(|m| format!("{:.4}", m.mean))
-            .unwrap_or_else(|| "na".to_string());
+            .map_or_else(|| "na".to_string(), |m| format!("{mean:.4}", mean = m.mean));
         let mapped_fraction = parse_flagstat_mapped_fraction(&stage_dir.join("flagstat.txt"))?
-            .map(|v| format!("{:.6}", v))
-            .unwrap_or_else(|| "na".to_string());
+            .map_or_else(|| "na".to_string(), |v| format!("{v:.6}"));
         let mean_depth = parse_mean_depth_from_depth_file(&stage_dir.join("coverage.depth.txt"))?
-            .map(|v| format!("{:.6}", v))
-            .unwrap_or_else(|| "na".to_string());
+            .map_or_else(|| "na".to_string(), |v| format!("{v:.6}"));
         let contamination = if stage_dir.join("contamination.summary.json").exists() {
             match bam_metrics::parse_contamination_json(
                 &stage_dir.join("contamination.summary.json"),
@@ -179,4 +176,3 @@ fn write_bam_qc_aggregator_tsv(bam_root: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_bytes(&out, body.as_bytes())
         .with_context(|| format!("write {}", out.display()))
 }
-
