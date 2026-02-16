@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="clumpify"
+LABEL org.opencontainers.image.title="clumpify"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_BBMAP=39.06
+ENV VERSION_BBMAP=${VERSION_BBMAP}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates wget default-jre && \
+    wget -q -O /tmp/bbmap.tar.gz "https://sourceforge.net/projects/bbmap/files/BBMap_${VERSION_BBMAP}.tar.gz/download" && \
+    mkdir -p /opt && tar -xzf /tmp/bbmap.tar.gz -C /opt && \
+    ln -s /opt/bbmap/clumpify.sh /usr/local/bin/clumpify && \
+    rm -f /tmp/bbmap.tar.gz && apt-get purge -y wget && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /data
+ENTRYPOINT ["clumpify"]
+CMD ["--help"]
