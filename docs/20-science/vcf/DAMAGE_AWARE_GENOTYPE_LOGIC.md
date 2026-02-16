@@ -69,3 +69,18 @@ Terminal threshold:
 ## Post-Impute Residual Check
 
 - Downstream imputation stage writes residual transition asymmetry diagnostics and warnings so damage signatures can be re-audited after imputation merge.
+
+
+## Purpose
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Non-Goals
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Contracts
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.

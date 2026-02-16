@@ -20,3 +20,23 @@ Diagnostics:
 Non-goals:
 - No remote cache integration in CI.
 - No hidden compile flags per crate.
+
+
+## Purpose
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Scope
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Non-Goals
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Contracts
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.

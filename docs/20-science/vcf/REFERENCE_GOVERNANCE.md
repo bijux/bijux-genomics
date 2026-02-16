@@ -6,3 +6,23 @@ VCF stages use `bijux-dna-db-ref` for reference bundles, panel/map compatibility
 - Use db-ref APIs (`resolve_reference_bundle`, `resolve_reference_bank`, `resolve_genetic_map_bank`) instead of direct path literals.
 - Required references and maps must have lock-backed checksums.
 - Runtime writes `run_artifacts/reference_manifest.json` per stage when references are involved.
+
+
+## Purpose
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Scope
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Non-Goals
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+
+
+## Contracts
+
+Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
