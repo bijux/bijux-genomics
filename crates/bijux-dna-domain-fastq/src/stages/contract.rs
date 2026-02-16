@@ -21,7 +21,9 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "trim_galore",
             "seqpurge",
         ],
-        "fastq.damage_aware_pretrim" => vec!["cutadapt", "seqkit"],
+        "fastq.damage_aware_pretrim" | "fastq.primer_normalization" => {
+            vec!["cutadapt", "seqkit"]
+        }
         "fastq.filter" => vec!["prinseq", "seqkit", "fastp"],
         "fastq.deduplicate" => vec!["fastuniq", "clumpify", "prinseq"],
         "fastq.low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
@@ -30,7 +32,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.contaminant_screen" => vec!["bbduk", "bowtie2"],
         "fastq.length_distribution_pre" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
-        "fastq.primer_normalization" => vec!["cutadapt", "seqkit"],
         "fastq.chimera_detection" | "fastq.otu_clustering" => vec!["vsearch"],
         "fastq.asv_inference" => vec!["dada2"],
         "fastq.abundance_normalization" => vec!["seqfu", "seqkit"],

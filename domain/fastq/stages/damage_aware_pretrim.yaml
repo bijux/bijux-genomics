@@ -11,19 +11,14 @@ outputs:
   - name: "trimmed_reads"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "filtered_reads"
+    data_type: "fastq"
+    cardinality: "Many"
 metrics:
-  - name: "udg_classification"
-    meaning: "Library damage treatment classification (udg/partial/non_udg)."
-  - name: "terminal_base_composition_pre"
-    meaning: "5p/3p terminal base composition before pretrim."
-  - name: "terminal_base_composition_post"
-    meaning: "5p/3p terminal base composition after pretrim."
-  - name: "ct_ga_asymmetry_pre"
-    meaning: "C>T/G>A terminal asymmetry before pretrim."
-  - name: "ct_ga_asymmetry_post"
-    meaning: "C>T/G>A terminal asymmetry after pretrim."
-  - name: "masked_or_trimmed_reads"
-    meaning: "Reads modified by terminal mask/trim policy."
+  - name: "reads_in"
+    meaning: "Number of input reads."
+  - name: "reads_out"
+    meaning: "Number of reads after damage-aware pretrim."
 description: "Damage-aware FASTQ pretrim for aDNA libraries with explicit terminal masking/trimming policies."
 mutates_fastq: true
 report_only: false
@@ -34,7 +29,9 @@ image_requirements:
   forbids:
     - network
 required_inputs: []
-required_outputs: []
+required_outputs:
+  - trimmed_reads
+  - filtered_reads
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"

@@ -187,3 +187,8 @@ schema_version = "bijux.fastq.params.v1"
 stage_id = "fastq.abundance_normalization"
 param_type_id = "fastq.abundance_normalization"
 schema_version = "bijux.fastq.params.v1"
+
+[[entries]]
+stage_id = "fastq.damage_aware_pretrim"
+param_type_id = "fastq.damage_aware_pretrim"
+schema_version = "bijux.fastq.params.v1"

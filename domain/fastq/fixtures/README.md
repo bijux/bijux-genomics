@@ -36,3 +36,5 @@ Each fixture file under `domain/fastq/fixtures/<stage>/*.txt` must define:
 - `fastq.trim`: intent = stage-specific command contract coverage for `fastq.trim`.
 - `fastq.umi`: intent = stage-specific command contract coverage for `fastq.umi`.
 - `fastq.validate_pre`: intent = stage-specific command contract coverage for `fastq.validate_pre`.
+
+- `fastq.damage_aware_pretrim`: intent = stage-specific command contract coverage for `fastq.damage_aware_pretrim`.

@@ -1,0 +1,9 @@
+tool=cutadapt
+tool_version=pinned
+stage=fastq.damage_aware_pretrim
+domain=fastq
+fixture_kind=truth
+command=cutadapt
+args=-u 2 -u -2 --overlap 8 -e 0.12 -o pretrim.fastq.gz reads.fastq.gz
+expected_outputs=pretrim.fastq.gz
+expected_stdout_patterns=contract_ok,ct_ga_asymmetry_pre,ct_ga_asymmetry_post,udg_classification
