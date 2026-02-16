@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "dada2"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://bioconductor.org/packages/dada2"
+upstream_version = "1.30.0"
+upstream_checksum = "sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://bioconductor.org/packages/dada2"
+version = "1.30.0"

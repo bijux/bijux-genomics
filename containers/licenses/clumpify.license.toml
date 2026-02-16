@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "clumpify"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://sourceforge.net/projects/bbmap/"
+upstream_version = "39.06"
+upstream_checksum = "sha256:af7229d9de71b8f6d015b24434bec824f603049db61562aad1640108edf677cd"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://sourceforge.net/projects/bbmap/"
+version = "39.06"

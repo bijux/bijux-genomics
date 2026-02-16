@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "ngsbriggs"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://pypi.org/project/ngsbriggs/"
+upstream_version = "0.1.3"
+upstream_checksum = "sha256:55750621e1acdb654a0370fce1194b4b24e944cad5fce2b4b678fd0fb5cf843c"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://pypi.org/project/ngsbriggs/"
+version = "0.1.3"

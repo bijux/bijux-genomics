@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "diamond"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/bbuchfink/diamond"
+upstream_version = "2.1.10"
+upstream_checksum = "sha256:a89e4dbd4099a8facf8c244ccc591dc0b20fcb7d026dd469b346a2c7a04839c7"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/bbuchfink/diamond"
+version = "2.1.10"

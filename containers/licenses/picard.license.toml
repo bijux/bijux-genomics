@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "picard"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/broadinstitute/picard"
+upstream_version = "3.3.0"
+upstream_checksum = "sha256:a8274ec032205d9b910479b4663375b4380430b0416b53a851b755c37a4c55ca"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/broadinstitute/picard"
+version = "3.3.0"

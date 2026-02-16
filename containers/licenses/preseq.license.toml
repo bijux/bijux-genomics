@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "preseq"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
+upstream_url = "https://github.com/smithlabcode/preseq"
+upstream_version = "3.2.0"
+upstream_checksum = "sha256:64ba0ddd9cf6ac5af43dac29ca81570bb54a6d5c0a2b8681c71552ec13581114"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/smithlabcode/preseq"
+version = "3.2.0"
