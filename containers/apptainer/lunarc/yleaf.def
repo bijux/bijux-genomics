@@ -41,15 +41,25 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     cd /opt/yleaf
     git checkout f3aae50653cb685a7c3d6e4c08aa170c47a85263
     python3 -m pip install --no-cache-dir .
-    mv /usr/local/bin/yleaf /usr/local/bin/yleaf-bin
 
     cat > /usr/local/bin/yleaf <<'EOS'
 #!/usr/bin/env sh
 case "${1:-}" in
-  --version) yleaf-bin --version; exit 0 ;;
-  --help|-h|"") yleaf-bin --help; exit 0 ;;
+  --version)
+    python3 - <<'PY'
+import importlib.metadata as m
+for name in ("Yleaf", "yleaf"):
+    try:
+        print(m.version(name))
+        break
+    except Exception:
+        pass
+PY
+    exit 0
+    ;;
+  --help|-h|"") exec /usr/local/bin/Yleaf --help ;;
 esac
-exec yleaf-bin "$@"
+exec /usr/local/bin/Yleaf "$@"
 EOS
     chmod +x /usr/local/bin/yleaf
 
