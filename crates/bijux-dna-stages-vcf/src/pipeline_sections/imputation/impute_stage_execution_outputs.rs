@@ -1,3 +1,4 @@
+{
     bijux_dna_infra::ensure_dir(out_dir)?;
     let imputed_vcf = out_dir.join("imputed.vcf.gz");
     let imputation_qc_json = out_dir.join("imputation_qc.json");

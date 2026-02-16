@@ -432,17 +432,15 @@ pub fn run_postprocess_stage(
         if let Some(reference_fasta) =
             resolve_postprocess_reference_fasta(&params.species_id, &params.build_id)
         {
-            match write_postprocess_vcf_with_left_alignment(&merged_vcf, &merged_payload, &reference_fasta)
+            if let Ok(tbi) =
+                write_postprocess_vcf_with_left_alignment(&merged_vcf, &merged_payload, &reference_fasta)
             {
-                Ok(tbi) => {
-                    left_align_applied = true;
-                    left_align_reason = "bcftools_norm_with_reference".to_string();
-                    tbi
-                }
-                Err(_) => {
-                    left_align_reason = "bcftools_norm_failed_fallback_to_internal".to_string();
-                    write_postprocess_vcf_with_best_effort_index(&merged_vcf, &merged_payload)?
-                }
+                left_align_applied = true;
+                left_align_reason = "bcftools_norm_with_reference".to_string();
+                tbi
+            } else {
+                left_align_reason = "bcftools_norm_failed_fallback_to_internal".to_string();
+                write_postprocess_vcf_with_best_effort_index(&merged_vcf, &merged_payload)?
             }
         } else {
             left_align_reason = "reference_unavailable_fallback_to_internal".to_string();

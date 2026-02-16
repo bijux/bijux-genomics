@@ -249,4 +249,6 @@ fn run_impute_stage_inner(
         }
     }
 
-    include!("impute_stage_execution_outputs.rs");
+    return include!("impute_stage_execution_outputs.rs");
+
+}

@@ -711,6 +711,5 @@ fn run_phasing_stage_inner(
     })
 }
 
-/// # Errors
-/// Returns an error if backend prerequisites, species/panel/map checks, or artifact writes fail.
+// Errors are propagated from backend checks and artifact write contracts.
 include!("runtime_orchestration_tail.rs");
