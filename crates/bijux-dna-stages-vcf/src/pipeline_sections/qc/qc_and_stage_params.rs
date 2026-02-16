@@ -485,6 +485,5 @@ pub fn run_stats_stage_real(
     })
 }
 
-/// # Errors
-/// Returns an error if VCF/index artifact pairing is invalid.
+// Errors are surfaced from helpers and include deserialization/index checks.
 include!("qc_stage_params_tail.rs");
