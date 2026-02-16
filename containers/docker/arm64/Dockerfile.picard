@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
@@ -24,6 +27,7 @@ RUN apt-get update && \
     wget -q -O /opt/picard.jar "https://github.com/broadinstitute/picard/releases/download/${VERSION_PICARD}/picard.jar" && \
     printf '#!/bin/sh\n' > /usr/local/bin/picard && \
     printf 'if [ "$1" = "--version" ]; then echo "picard %s"; exit 0; fi\n' "$VERSION_PICARD" >> /usr/local/bin/picard && \
+    printf 'if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$#" -eq 0 ]; then echo "picard ${VERSION_PICARD}"; echo "usage: picard <Command> [options]"; exit 0; fi\n' >> /usr/local/bin/picard && \
     printf 'exec java -jar /opt/picard.jar "$@"\n' >> /usr/local/bin/picard && \
     chmod +x /usr/local/bin/picard && \
     apt-get purge -y wget && apt-get autoremove -y && \
