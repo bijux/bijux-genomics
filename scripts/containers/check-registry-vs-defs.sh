@@ -56,9 +56,9 @@ for reg in regs:
 def_ids = set()
 for d in (root / "containers/docker/arm64").glob("Dockerfile.*"):
     def_ids.add(d.name.split("Dockerfile.", 1)[1])
-for d in (root / "containers/apptainer/bijux").glob("*.def"):
+for d in (root / "containers/apptainer/lunarc").glob("*.def"):
     def_ids.add(d.stem)
-for d in (root / "containers/apptainer/non-bijux").glob("*.def"):
+for d in (root / "containers/apptainer/lunarc").glob("*.def"):
     def_ids.add(d.stem)
 
 orphans = sorted((def_ids - registry_ids) - retired)

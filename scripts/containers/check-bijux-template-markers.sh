@@ -13,12 +13,12 @@ from pathlib import Path
 import sys
 
 root = Path(sys.argv[1])
-bijux_dir = root / "containers/apptainer/bijux"
+bijux_dir = root / "containers/apptainer/lunarc"
 template = bijux_dir / "TEMPLATE.def.inc"
 errors = []
 
 if not template.exists():
-    errors.append("missing template file containers/apptainer/bijux/TEMPLATE.def.inc")
+    errors.append("missing template file containers/apptainer/lunarc/TEMPLATE.def.inc")
 
 for path in sorted(bijux_dir.glob("*.def")):
     head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:20])

@@ -9,7 +9,7 @@ Purpose: Define required gates for status transitions (`planned` -> `experimenta
    - Classification is about recipe ownership/provenance, not license type.
 1. License clarity:
    - Registry entry has a known license.
-   - Non-bijux tools are present in `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
+   - Non-bijux tools are present in `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`.
 2. Provenance:
    - Upstream source URL and checksum are recorded.
    - Version row exists in `containers/versions/versions.toml`.

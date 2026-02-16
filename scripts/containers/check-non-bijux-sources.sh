@@ -14,7 +14,7 @@ import re
 import sys
 
 root = Path(sys.argv[1])
-non_bijux_dir = root / "containers/apptainer/non-bijux"
+non_bijux_dir = root / "containers/apptainer/lunarc"
 sources_doc = non_bijux_dir / "NON_BIJUX_SOURCES.md"
 
 if not sources_doc.exists():
@@ -40,7 +40,7 @@ for tool_id in defs:
         errors.append(f"{tool_id}: missing row in NON_BIJUX_SOURCES.md")
         continue
     def_path, why_non_bijux, upstream, license_field, checksum, patching_rules = rows[tool_id]
-    expected_path = f"containers/apptainer/non-bijux/{tool_id}.def"
+    expected_path = f"containers/apptainer/lunarc/{tool_id}.def"
     if def_path != expected_path:
         errors.append(f"{tool_id}: def path mismatch, expected {expected_path}, got {def_path}")
     if not upstream.startswith(("http://", "https://")):

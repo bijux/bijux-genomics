@@ -33,8 +33,8 @@ for raw in (root / "containers/TOOL_IDS.txt").read_text(encoding="utf-8").splitl
         continue
     tool_ids.add(line.split("\t", 1)[0])
 docker_ids = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
-apptainer_ids = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
-apptainer_ids |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+apptainer_ids = {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
+apptainer_ids |= {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
 domain_ids = {p.stem for p in (root / "domain").glob("*/tools/*.yaml") if p.stem != "_schema"}
 
 tools = {}

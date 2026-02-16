@@ -4,7 +4,7 @@
 # Copyright (C) 2026 Bijan Mousavi
 # BIJUX_TEMPLATE: v1
 
-# Tool ID: yleaf
+# Tool ID: seqkit_stats
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
 # Build date policy: org.opencontainers.image.created set by release pipeline
@@ -21,40 +21,48 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 3.0.3
-    org.opencontainers.image.tool yleaf
-    org.opencontainers.image.title yleaf
+    org.opencontainers.image.version 2.8.2
+    org.opencontainers.image.tool seqkit_stats
+    org.opencontainers.image.title seqkit_stats
 
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
+    export VERSION_SEQKIT=2.8.2
     DEBIAN_FRONTEND=noninteractive
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends         python3 python3-pip python3-venv git ca-certificates &&         rm -rf /var/lib/apt/lists/*
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends ca-certificates curl tar && \
+    curl -fsSL --retry 5 --retry-delay 2 \
+      "https://github.com/shenwei356/seqkit/releases/download/v2.8.2/seqkit_linux_amd64.tar.gz" \
+      -o /tmp/seqkit.tar.gz && \
+    tar -xzf /tmp/seqkit.tar.gz -C /usr/local/bin && \
+    mv /usr/local/bin/seqkit /usr/local/bin/seqkit-bin && \
+    chmod 0755 /usr/local/bin/seqkit-bin && \
+    rm -f /tmp/seqkit.tar.gz && \
+    rm -rf /var/lib/apt/lists/*
 
-    git clone --depth 1 https://github.com/genid/Yleaf.git /opt/yleaf
-    cd /opt/yleaf
-    git checkout f3aae50653cb685a7c3d6e4c08aa170c47a85263
-    python3 -m pip install --no-cache-dir .
-
-    cat > /usr/local/bin/yleaf <<'EOS'
+    cat > /usr/local/bin/seqkit_stats <<'EOS'
 #!/usr/bin/env sh
-case "${1:-}" in
-  --version) yleaf --version; exit 0 ;;
-  --help|-h|"") yleaf --help; exit 0 ;;
-esac
-exec yleaf "$@"
+if [ "${1:-}" = "--version" ]; then
+  echo "${VERSION_SEQKIT}"
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  exec /usr/local/bin/seqkit-bin stats --help
+fi
+exec /usr/local/bin/seqkit-bin stats "$@"
 EOS
-    chmod +x /usr/local/bin/yleaf
+    chmod +x /usr/local/bin/seqkit_stats
 
 %runscript
-    exec /usr/local/bin/yleaf "$@"
+    exec /usr/local/bin/seqkit_stats "$@"
 
 %help
-    Apptainer image for yleaf.
-    Default runscript forwards arguments to the tool entrypoint.
+    Apptainer image for seqkit_stats.
+    Default runscript forwards arguments to the seqkit stats wrapper.

@@ -29,8 +29,8 @@ for raw in tool_ids.read_text(encoding="utf-8").splitlines():
     if len(parts) != 2:
         raise SystemExit(f"invalid TOOL_IDS row: {line}")
     tool_id, status = parts
-    ap_bijux = (root / "containers/apptainer/bijux" / f"{tool_id}.def").exists()
-    ap_non = (root / "containers/apptainer/non-bijux" / f"{tool_id}.def").exists()
+    ap_bijux = (root / "containers/apptainer/lunarc" / f"{tool_id}.def").exists()
+    ap_non = (root / "containers/apptainer/lunarc" / f"{tool_id}.def").exists()
     dk_arm64 = (root / "containers/docker/arm64" / f"Dockerfile.{tool_id}").exists()
     dk_amd64 = (root / "containers/docker/amd64" / f"Dockerfile.{tool_id}").exists()
 
@@ -85,7 +85,7 @@ lines.append("## Authority")
 lines.append("- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).")
 lines.append("- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.")
 lines.append("- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.")
-lines.append("- Non-bijux provenance: `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.")
+lines.append("- Non-bijux provenance: `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`.")
 lines.append("- Ownership map: `containers/OWNERS.toml`.")
 lines.append("")
 lines.append("## Tool Container Coverage")

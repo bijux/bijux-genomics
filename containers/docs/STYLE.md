@@ -81,7 +81,7 @@ Must export deterministic runtime env:
 
 ## Download/Provenance Policy
 - Network downloads in `%post` require checksum verification or explicit lock-policy marker.
-- Non-bijux definitions must have provenance rows in `containers/apptainer/non-bijux/NON_BIJUX_SOURCES.md`.
+- Non-bijux definitions must have provenance rows in `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`.
 
 ## Runtime UID Safety
 - Definitions must avoid broad write permissions (`chmod 777` forbidden).
@@ -89,7 +89,7 @@ Must export deterministic runtime env:
 
 ## Bijux Template Marker
 - Bijux-owned defs for newly admitted tools must include `BIJUX_TEMPLATE: v1` near the top.
-- Template contract lives in `containers/apptainer/bijux/TEMPLATE.def.inc`.
+- Template contract lives in `containers/apptainer/lunarc/TEMPLATE.def.inc`.
 - Lint enforces marker presence for downstream bijux-owned defs.
 
 ## Wrapper Policy

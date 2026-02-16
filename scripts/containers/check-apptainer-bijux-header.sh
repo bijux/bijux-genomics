@@ -21,7 +21,7 @@ expected = [
 ]
 
 errors = []
-for path in sorted((root / "containers/apptainer/bijux").glob("*.def")):
+for path in sorted((root / "containers/apptainer/lunarc").glob("*.def")):
     lines = path.read_text(encoding="utf-8").splitlines()
     head = lines[:4]
     if head != expected:

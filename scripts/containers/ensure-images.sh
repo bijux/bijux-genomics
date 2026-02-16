@@ -218,16 +218,16 @@ build_one_apptainer_tool() {
   local tool="$1"
   local started ended duration
   started="$(date +%s)"
-  if [[ -f "$ROOT_DIR/containers/apptainer/bijux/${tool}.def" ]]; then
+  if [[ -f "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" ]]; then
     ./scripts/run.sh containers build-apptainer-all \
-      --defs-dir containers/apptainer/bijux \
-      --build-one "$ROOT_DIR/containers/apptainer/bijux/${tool}.def" \
+      --defs-dir containers/apptainer/lunarc \
+      --build-one "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" \
       --vm-out "${HOME}/apptainer-build" \
       --copy-back "$ROOT_DIR/artifacts/containers/apptainer"
-  elif [[ -f "$ROOT_DIR/containers/apptainer/non-bijux/${tool}.def" ]]; then
+  elif [[ -f "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" ]]; then
     ./scripts/run.sh containers build-apptainer-all \
-      --defs-dir containers/apptainer/non-bijux \
-      --build-one "$ROOT_DIR/containers/apptainer/non-bijux/${tool}.def" \
+      --defs-dir containers/apptainer/lunarc \
+      --build-one "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" \
       --vm-out "${HOME}/apptainer-build" \
       --copy-back "$ROOT_DIR/artifacts/containers/apptainer"
   else

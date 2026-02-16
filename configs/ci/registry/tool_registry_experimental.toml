@@ -40,7 +40,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
-apptainer_def = "containers/apptainer/bijux/adapterremoval.def"
+apptainer_def = "containers/apptainer/lunarc/adapterremoval.def"
 require_labels = true
 
 [[tools]]
@@ -74,7 +74,7 @@ expected_artifacts = ["damage_profile", "damage_clusters"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.addeam"
-apptainer_def = "containers/apptainer/bijux/addeam.def"
+apptainer_def = "containers/apptainer/lunarc/addeam.def"
 require_labels = true
 
 [[tools]]
@@ -108,7 +108,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.atropos"
-apptainer_def = "containers/apptainer/bijux/atropos.def"
+apptainer_def = "containers/apptainer/lunarc/atropos.def"
 require_labels = true
 
 [[tools]]
@@ -142,7 +142,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
-apptainer_def = "containers/apptainer/bijux/bayeshammer.def"
+apptainer_def = "containers/apptainer/lunarc/bayeshammer.def"
 require_labels = true
 
 [[tools]]
@@ -176,7 +176,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
-apptainer_def = "containers/apptainer/bijux/bbmerge.def"
+apptainer_def = "containers/apptainer/lunarc/bbmerge.def"
 require_labels = true
 
 [[tools]]
@@ -210,7 +210,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
-apptainer_def = "containers/apptainer/bijux/centrifuge.def"
+apptainer_def = "containers/apptainer/lunarc/centrifuge.def"
 require_labels = true
 
 [[tools]]
@@ -244,7 +244,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
-apptainer_def = "containers/apptainer/bijux/cutadapt.def"
+apptainer_def = "containers/apptainer/lunarc/cutadapt.def"
 require_labels = true
 
 [[tools]]
@@ -278,7 +278,7 @@ expected_artifacts = ["damage_profile", "damage_plot"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.damageprofiler"
-apptainer_def = "containers/apptainer/bijux/damageprofiler.def"
+apptainer_def = "containers/apptainer/lunarc/damageprofiler.def"
 require_labels = true
 
 [[tools]]
@@ -312,7 +312,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
-apptainer_def = "containers/apptainer/bijux/fastq_screen.def"
+apptainer_def = "containers/apptainer/lunarc/fastq_screen.def"
 require_labels = true
 
 [[tools]]
@@ -346,7 +346,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.flash2"
-apptainer_def = "containers/apptainer/bijux/flash2.def"
+apptainer_def = "containers/apptainer/lunarc/flash2.def"
 require_labels = true
 
 [[tools]]
@@ -380,7 +380,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
-apptainer_def = "containers/apptainer/bijux/fqtools.def"
+apptainer_def = "containers/apptainer/lunarc/fqtools.def"
 require_labels = true
 
 [[tools]]
@@ -414,7 +414,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
-apptainer_def = "containers/apptainer/bijux/kaiju.def"
+apptainer_def = "containers/apptainer/lunarc/kaiju.def"
 require_labels = true
 
 [[tools]]
@@ -448,7 +448,7 @@ expected_artifacts = ["trimmed_fastq_r1", "merged_fastq", "merge_report"]
 metrics_schema = "bijux.fastq.merge.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.leehom"
-apptainer_def = "containers/apptainer/bijux/leehom.def"
+apptainer_def = "containers/apptainer/lunarc/leehom.def"
 require_labels = true
 
 [[tools]]
@@ -482,7 +482,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.lighter"
-apptainer_def = "containers/apptainer/bijux/lighter.def"
+apptainer_def = "containers/apptainer/lunarc/lighter.def"
 require_labels = true
 
 [[tools]]
@@ -516,7 +516,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
-apptainer_def = "containers/apptainer/bijux/metaphlan.def"
+apptainer_def = "containers/apptainer/lunarc/metaphlan.def"
 require_labels = true
 
 [[tools]]
@@ -550,7 +550,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.musket"
-apptainer_def = "containers/apptainer/bijux/musket.def"
+apptainer_def = "containers/apptainer/lunarc/musket.def"
 require_labels = true
 
 [[tools]]
@@ -584,7 +584,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
-apptainer_def = "containers/apptainer/bijux/prinseq.def"
+apptainer_def = "containers/apptainer/lunarc/prinseq.def"
 require_labels = true
 
 [[tools]]
@@ -618,7 +618,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
-apptainer_def = "containers/apptainer/bijux/qualimap.def"
+apptainer_def = "containers/apptainer/lunarc/qualimap.def"
 require_labels = true
 
 [[tools]]
@@ -652,7 +652,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
-apptainer_def = "containers/apptainer/bijux/seqtk.def"
+apptainer_def = "containers/apptainer/lunarc/seqtk.def"
 require_labels = true
 
 [[tools]]
@@ -686,7 +686,7 @@ expected_artifacts = ["trimmed_fastq_r1", "trimmed_fastq_r2", "trim_report"]
 metrics_schema = "bijux.fastq.trim.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.skewer"
-apptainer_def = "containers/apptainer/bijux/skewer.def"
+apptainer_def = "containers/apptainer/lunarc/skewer.def"
 require_labels = true
 
 [[tools]]
@@ -720,7 +720,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.spades"
-apptainer_def = "containers/apptainer/bijux/spades.def"
+apptainer_def = "containers/apptainer/lunarc/spades.def"
 require_labels = true
 
 [[tools]]
@@ -754,7 +754,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
-apptainer_def = "containers/apptainer/bijux/trim_galore.def"
+apptainer_def = "containers/apptainer/lunarc/trim_galore.def"
 require_labels = true
 
 [[tools]]
@@ -788,7 +788,7 @@ expected_artifacts = ["report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
-apptainer_def = "containers/apptainer/bijux/trimmomatic.def"
+apptainer_def = "containers/apptainer/lunarc/trimmomatic.def"
 require_labels = true
 
 [[tools]]
@@ -822,7 +822,7 @@ expected_artifacts = ["haplogroup_report"]
 metrics_schema = "bijux.bam.sex.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
-apptainer_def = "containers/apptainer/bijux/yleaf.def"
+apptainer_def = "containers/apptainer/lunarc/yleaf.def"
 require_labels = true
 
 [[tools]]
@@ -856,7 +856,7 @@ expected_artifacts = ["overlap_corrected_bam"]
 metrics_schema = "bijux.bam.overlap_correction.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
-apptainer_def = "containers/apptainer/bijux/bamutil.def"
+apptainer_def = "containers/apptainer/lunarc/bamutil.def"
 require_labels = true
 
 [[tools]]
@@ -890,7 +890,7 @@ expected_artifacts = ["deduplicated_fastq"]
 metrics_schema = "bijux.fastq.deduplicate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.clumpify"
-apptainer_def = "containers/apptainer/bijux/clumpify.def"
+apptainer_def = "containers/apptainer/lunarc/clumpify.def"
 require_labels = true
 
 [[tools]]
@@ -924,7 +924,7 @@ expected_artifacts = ["asv_table"]
 metrics_schema = "bijux.fastq.asv_inference.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.dada2"
-apptainer_def = "containers/apptainer/bijux/dada2.def"
+apptainer_def = "containers/apptainer/lunarc/dada2.def"
 require_labels = true
 
 [[tools]]
@@ -958,7 +958,7 @@ expected_artifacts = ["screen_report"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.diamond"
-apptainer_def = "containers/apptainer/bijux/diamond.def"
+apptainer_def = "containers/apptainer/lunarc/diamond.def"
 require_labels = true
 
 [[tools]]
@@ -992,7 +992,7 @@ expected_artifacts = ["low_complexity_report"]
 metrics_schema = "bijux.fastq.low_complexity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.dustmasker"
-apptainer_def = "containers/apptainer/bijux/dustmasker.def"
+apptainer_def = "containers/apptainer/lunarc/dustmasker.def"
 require_labels = true
 
 [[tools]]
@@ -1026,7 +1026,7 @@ expected_artifacts = ["validation_report"]
 metrics_schema = "bijux.fastq.validate_pre.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_scan"
-apptainer_def = "containers/apptainer/bijux/fastq_scan.def"
+apptainer_def = "containers/apptainer/lunarc/fastq_scan.def"
 require_labels = true
 
 [[tools]]
@@ -1060,7 +1060,7 @@ expected_artifacts = ["deduplicated_fastq"]
 metrics_schema = "bijux.fastq.deduplicate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastuniq"
-apptainer_def = "containers/apptainer/bijux/fastuniq.def"
+apptainer_def = "containers/apptainer/lunarc/fastuniq.def"
 require_labels = true
 
 [[tools]]
@@ -1094,7 +1094,7 @@ expected_artifacts = ["vcf"]
 metrics_schema = "bijux.bam.genotyping.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.gatk"
-apptainer_def = "containers/apptainer/bijux/gatk.def"
+apptainer_def = "containers/apptainer/lunarc/gatk.def"
 require_labels = true
 
 [[tools]]
@@ -1128,7 +1128,7 @@ expected_artifacts = ["damage_profile"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
-apptainer_def = "containers/apptainer/bijux/ngsbriggs.def"
+apptainer_def = "containers/apptainer/lunarc/ngsbriggs.def"
 require_labels = true
 
 [[tools]]
@@ -1162,7 +1162,7 @@ expected_artifacts = ["metrics"]
 metrics_schema = "bijux.bam.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.picard"
-apptainer_def = "containers/apptainer/bijux/picard.def"
+apptainer_def = "containers/apptainer/lunarc/picard.def"
 require_labels = true
 
 [[tools]]
@@ -1196,7 +1196,7 @@ expected_artifacts = ["complexity_curve"]
 metrics_schema = "bijux.bam.complexity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.preseq"
-apptainer_def = "containers/apptainer/bijux/preseq.def"
+apptainer_def = "containers/apptainer/lunarc/preseq.def"
 require_labels = true
 
 [[tools]]
@@ -1230,7 +1230,7 @@ expected_artifacts = ["fastq_stats"]
 metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
-apptainer_def = "containers/apptainer/bijux/seqfu.def"
+apptainer_def = "containers/apptainer/lunarc/seqfu.def"
 require_labels = true
 
 [[tools]]
@@ -1264,7 +1264,7 @@ expected_artifacts = ["merged_fastq"]
 metrics_schema = "bijux.fastq.merge.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
-apptainer_def = "containers/apptainer/bijux/seqprep.def"
+apptainer_def = "containers/apptainer/lunarc/seqprep.def"
 require_labels = true
 
 [[tools]]
@@ -1298,5 +1298,5 @@ expected_artifacts = ["trimmed_fastq"]
 metrics_schema = "bijux.fastq.trim.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
-apptainer_def = "containers/apptainer/bijux/seqpurge.def"
+apptainer_def = "containers/apptainer/lunarc/seqpurge.def"
 require_labels = true

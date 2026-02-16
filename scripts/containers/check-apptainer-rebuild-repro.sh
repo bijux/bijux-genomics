@@ -18,10 +18,10 @@ USAGE
   exit 2
 fi
 
-if [[ -f "$ROOT_DIR/containers/apptainer/bijux/${tool}.def" ]]; then
-  def="$ROOT_DIR/containers/apptainer/bijux/${tool}.def"
-elif [[ -f "$ROOT_DIR/containers/apptainer/non-bijux/${tool}.def" ]]; then
-  def="$ROOT_DIR/containers/apptainer/non-bijux/${tool}.def"
+if [[ -f "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" ]]; then
+  def="$ROOT_DIR/containers/apptainer/lunarc/${tool}.def"
+elif [[ -f "$ROOT_DIR/containers/apptainer/lunarc/${tool}.def" ]]; then
+  def="$ROOT_DIR/containers/apptainer/lunarc/${tool}.def"
 else
   echo "apptainer rebuild repro: skip (no def for $tool)"
   exit 0

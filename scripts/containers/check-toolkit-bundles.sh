@@ -61,8 +61,8 @@ for ip in images_paths:
         if isinstance(val, dict):
             images[key] = val
 
-apptainer_tools = {p.stem for p in (root / "containers/apptainer/bijux").glob("*.def")}
-apptainer_tools |= {p.stem for p in (root / "containers/apptainer/non-bijux").glob("*.def")}
+apptainer_tools = {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
+apptainer_tools |= {p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def")}
 docker_tools = {p.name.split("Dockerfile.", 1)[1] for p in (root / "containers/docker/arm64").glob("Dockerfile.*")}
 
 errors = []

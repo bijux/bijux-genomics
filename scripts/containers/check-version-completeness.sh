@@ -25,9 +25,9 @@ known = set(versions.keys())
 container_tools = set()
 for path in (root / "containers/docker/arm64").glob("Dockerfile.*"):
     container_tools.add(path.name.split("Dockerfile.", 1)[1])
-for path in (root / "containers/apptainer/bijux").glob("*.def"):
+for path in (root / "containers/apptainer/lunarc").glob("*.def"):
     container_tools.add(path.stem)
-for path in (root / "containers/apptainer/non-bijux").glob("*.def"):
+for path in (root / "containers/apptainer/lunarc").glob("*.def"):
     container_tools.add(path.stem)
 
 missing = sorted(tool for tool in container_tools if tool not in known)

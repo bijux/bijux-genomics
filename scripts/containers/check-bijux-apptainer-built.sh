@@ -16,7 +16,7 @@ import sys
 root = Path(sys.argv[1])
 in_ci = bool(__import__("os").environ.get("CI"))
 summary_path = root / "artifacts/containers/summary.json"
-bijux_defs = sorted(p.stem for p in (root / "containers/apptainer/bijux").glob("*.def"))
+bijux_defs = sorted(p.stem for p in (root / "containers/apptainer/lunarc").glob("*.def"))
 
 if not in_ci:
     print("bijux apptainer built: SKIP (CI-only gate)")

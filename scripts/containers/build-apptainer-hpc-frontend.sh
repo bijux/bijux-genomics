@@ -43,11 +43,11 @@ mkdir -p "$OUT_DIR"
 
 # Build bijux + non-bijux defs on frontend node.
 "$SCRIPT_DIR/build-apptainer-all.sh" \
-  --defs-dir "$ROOT_DIR/containers/apptainer/bijux" \
+  --defs-dir "$ROOT_DIR/containers/apptainer/lunarc" \
   --vm-out "$VM_OUT_DIR" \
   --copy-back "$COPY_BACK_DIR"
 "$SCRIPT_DIR/build-apptainer-all.sh" \
-  --defs-dir "$ROOT_DIR/containers/apptainer/non-bijux" \
+  --defs-dir "$ROOT_DIR/containers/apptainer/lunarc" \
   --vm-out "$VM_OUT_DIR" \
   --copy-back "$COPY_BACK_DIR"
 

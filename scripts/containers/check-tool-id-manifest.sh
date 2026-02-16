@@ -32,9 +32,9 @@ grep -vE '^(#|$)' "$manifest" | awk -F'\t' '{print $1}' | sort -u > "$tmp_expect
 {
   find "$ROOT_DIR/containers/docker/arm64" -type f -name 'Dockerfile.*' -print \
     | sed -E 's#^.*/Dockerfile\.##'
-  find "$ROOT_DIR/containers/apptainer/bijux" -type f -name '*.def' -print \
+  find "$ROOT_DIR/containers/apptainer/lunarc" -type f -name '*.def' -print \
     | sed -E 's#^.*/##; s#\.def$##'
-  find "$ROOT_DIR/containers/apptainer/non-bijux" -type f -name '*.def' -print \
+  find "$ROOT_DIR/containers/apptainer/lunarc" -type f -name '*.def' -print \
     | sed -E 's#^.*/##; s#\.def$##'
 } | sort -u > "$tmp_files"
 
