@@ -9,3 +9,4 @@ Layout:
 - `configs/ci/params/`: parameter schema registries.
 
 Rule: no config files are allowed directly under `configs/ci/` except this index.
+- `configs/ci/lints/`: clippy allowlist contracts.

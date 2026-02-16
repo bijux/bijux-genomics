@@ -5,9 +5,10 @@
 configs/OWNERS.toml
 configs/bench/index.md
 configs/bench/knobs.toml
-configs/ci/clippy_allowlist.toml
-configs/ci/clippy_allowlist_baseline.toml
 configs/ci/index.md
+configs/ci/lints/clippy_allowlist.toml
+configs/ci/lints/clippy_allowlist_baseline.toml
+configs/ci/lints/index.md
 configs/ci/params/index.md
 configs/ci/params/param_registry.toml
 configs/ci/params/param_registry_downstream.toml
@@ -16,6 +17,7 @@ configs/ci/registry/LOCK_RULES.md
 configs/ci/registry/deprecations.toml
 configs/ci/registry/domains.toml
 configs/ci/registry/index.md
+configs/ci/registry/reference_service_boundary_allowlist.toml
 configs/ci/registry/tool_registry.toml
 configs/ci/registry/tool_registry_experimental.toml
 configs/ci/registry/tool_registry_lock.sha256
