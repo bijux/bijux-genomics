@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
+use crate::application::domain::DomainApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
 
 #[derive(Parser, Debug)]
@@ -19,6 +20,7 @@ pub struct Cli {
 enum Command {
     Checks(ChecksCommand),
     Containers(ContainersCommand),
+    Domain(DomainCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -53,6 +55,22 @@ enum ContainersSubcommand {
     },
 }
 
+#[derive(Parser, Debug)]
+pub struct DomainCommand {
+    #[command(subcommand)]
+    command: DomainSubcommand,
+}
+
+#[derive(Subcommand, Debug)]
+enum DomainSubcommand {
+    List,
+    Run {
+        id: String,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+}
+
 /// # Errors
 /// Returns an error if CLI parsing or command execution fails.
 pub fn run() -> Result<()> {
@@ -60,6 +78,7 @@ pub fn run() -> Result<()> {
     match cli.command {
         Command::Checks(command) => run_checks(command),
         Command::Containers(command) => run_containers(command),
+        Command::Domain(command) => run_domain(command),
     }
 }
 
@@ -126,6 +145,34 @@ fn run_containers(command: ContainersCommand) -> Result<()> {
             if !outcome.is_success() {
                 anyhow::bail!(
                     "container command `{id}` failed with exit code {}",
+                    outcome.exit_code
+                );
+            }
+            Ok(())
+        }
+    }
+}
+
+fn run_domain(command: DomainCommand) -> Result<()> {
+    let app = DomainApplication::new()?;
+    match command.command {
+        DomainSubcommand::List => {
+            for command in app.registry()? {
+                println!("{}", command.id);
+            }
+            Ok(())
+        }
+        DomainSubcommand::Run { id, args } => {
+            let outcome = app.run(&id, &args)?;
+            if !outcome.stdout.is_empty() {
+                print!("{}", outcome.stdout);
+            }
+            if !outcome.stderr.is_empty() {
+                eprint!("{}", outcome.stderr);
+            }
+            if !outcome.is_success() {
+                anyhow::bail!(
+                    "domain command `{id}` failed with exit code {}",
                     outcome.exit_code
                 );
             }
