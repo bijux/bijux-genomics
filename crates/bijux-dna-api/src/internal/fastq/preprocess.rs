@@ -114,9 +114,9 @@ fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
     if file.read_exact(&mut magic).is_err() || magic != [0x1f, 0x8b] {
         return Ok(false);
     }
-    let status = std::process::Command::new("gzip")
-        .args(["-t", path.to_string_lossy().as_ref()])
-        .status();
+    let path_arg = path.to_string_lossy().into_owned();
+    let args = ["-t", path_arg.as_str()];
+    let status = bijux_dna_infra::command_status("gzip", &args);
     Ok(status.map(|s| s.success()).unwrap_or(false))
 }
 
@@ -136,9 +136,9 @@ fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = St
         .and_then(|x| x.to_str())
         .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
     {
-        let output = std::process::Command::new("gzip")
-            .args(["-cd", path.to_string_lossy().as_ref()])
-            .output()
+        let path_arg = path.to_string_lossy().into_owned();
+        let args = ["-cd", path_arg.as_str()];
+        let output = bijux_dna_infra::command_output("gzip", &args)
             .with_context(|| format!("gzip -cd {}", path.display()))?;
         if !output.status.success() {
             return Err(anyhow!(
@@ -480,9 +480,8 @@ fn write_stage_path_contract(
 }
 
 fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
-    let output = std::process::Command::new(tool_bin)
-        .arg("--version")
-        .output();
+    let args = ["--version"];
+    let output = bijux_dna_infra::command_output(tool_bin, &args);
     let (ok, raw) = match output {
         Ok(out) => {
             let raw = if out.stdout.is_empty() {
