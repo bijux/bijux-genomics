@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use crate::application::checks::CheckApplication;
+use crate::application::containers::ContainerApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
 
 #[derive(Parser, Debug)]
@@ -17,6 +18,7 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 enum Command {
     Checks(ChecksCommand),
+    Containers(ContainersCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -35,12 +37,29 @@ enum ChecksSubcommand {
     },
 }
 
+#[derive(Parser, Debug)]
+pub struct ContainersCommand {
+    #[command(subcommand)]
+    command: ContainersSubcommand,
+}
+
+#[derive(Subcommand, Debug)]
+enum ContainersSubcommand {
+    List,
+    Run {
+        id: String,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+}
+
 /// # Errors
 /// Returns an error if CLI parsing or command execution fails.
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Checks(command) => run_checks(command),
+        Command::Containers(command) => run_containers(command),
     }
 }
 
@@ -81,6 +100,34 @@ fn run_checks(command: ChecksCommand) -> Result<()> {
             }
             if failed {
                 anyhow::bail!("one or more checks failed");
+            }
+            Ok(())
+        }
+    }
+}
+
+fn run_containers(command: ContainersCommand) -> Result<()> {
+    let app = ContainerApplication::new()?;
+    match command.command {
+        ContainersSubcommand::List => {
+            for command in app.registry()? {
+                println!("{}", command.id);
+            }
+            Ok(())
+        }
+        ContainersSubcommand::Run { id, args } => {
+            let outcome = app.run(&id, &args)?;
+            if !outcome.stdout.is_empty() {
+                print!("{}", outcome.stdout);
+            }
+            if !outcome.stderr.is_empty() {
+                eprint!("{}", outcome.stderr);
+            }
+            if !outcome.is_success() {
+                anyhow::bail!(
+                    "container command `{id}` failed with exit code {}",
+                    outcome.exit_code
+                );
             }
             Ok(())
         }

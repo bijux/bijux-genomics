@@ -1,31 +1,12 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Deserialize;
 use walkdir::WalkDir;
 
 use crate::infrastructure::process::ProcessRunner;
+pub(crate) use crate::infrastructure::script_catalog::load_supported_scripts;
 use crate::infrastructure::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
-
-#[derive(Debug, Clone, Deserialize)]
-pub(crate) struct SupportedScriptCatalog {
-    #[serde(rename = "script")]
-    pub entries: Vec<SupportedScript>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub(crate) struct SupportedScript {
-    #[serde(rename = "id")]
-    pub _id: String,
-    pub path: String,
-    #[serde(default)]
-    pub outputs: Vec<String>,
-    #[serde(default)]
-    pub network_allowed: bool,
-    #[serde(default)]
-    pub ci_allowed: bool,
-}
 
 pub(crate) fn pass(check: &CheckDefinition, detail: impl Into<String>) -> Result<CheckOutcome> {
     Ok(CheckOutcome::leaf(
@@ -41,15 +22,6 @@ pub(crate) fn fail(check: &CheckDefinition, detail: impl Into<String>) -> Result
         CheckStatus::Failed,
         detail.into(),
     ))
-}
-
-pub(crate) fn load_supported_scripts(workspace: &Workspace) -> Result<Vec<SupportedScript>> {
-    let spec_path = workspace.path("scripts/SUPPORTED.toml");
-    let raw = std::fs::read_to_string(&spec_path)
-        .with_context(|| format!("read {}", spec_path.display()))?;
-    let parsed: SupportedScriptCatalog =
-        toml::from_str(&raw).with_context(|| format!("parse {}", spec_path.display()))?;
-    Ok(parsed.entries)
 }
 
 pub(crate) fn shell_script_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
