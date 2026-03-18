@@ -8,16 +8,14 @@ use bijux_dna_runner::stage_execution::{execute_step, StageResultV1};
 use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};
 
-use crate::writers::{ArtifactWriter, MetricsWriter};
-#[path = "execution_kernel_support.rs"]
-mod execution_kernel_support;
-use execution_kernel_support::{
+use super::invocation_policy::{
     acquire_slot_lock, can_resume, classify_exit_code, effective_runtime_policy,
-    enforce_large_file_guard, enforce_path_contracts, enforce_seed_policy, infer_tool_version_from_image,
-    infer_version_line, mark_partial_failure_invalid, network_policy_violation,
-    require_pinned_digest, rewrite_long_region_args, stage_matches, update_resume_report,
-    validate_required_outputs, write_crash_bundle,
+    enforce_large_file_guard, enforce_path_contracts, enforce_seed_policy,
+    infer_tool_version_from_image, infer_version_line, mark_partial_failure_invalid,
+    network_policy_violation, require_pinned_digest, rewrite_long_region_args, stage_matches,
+    update_resume_report, validate_required_outputs, write_crash_bundle,
 };
+use crate::writers::{ArtifactWriter, MetricsWriter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) enum NetworkPolicy {

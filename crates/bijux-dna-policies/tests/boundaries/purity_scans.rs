@@ -343,7 +343,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-domain-compiler/src/compiler_sections/domain_models_and_utils.rs",
         "crates/bijux-dna-domain-fastq/src/stages/contract.rs",
         "crates/bijux-dna-domain-bam/src/stage_specs/mod.rs",
-        "crates/bijux-dna-api/src/internal/fastq/preprocess/stage_backend_policy.rs",
+        "crates/bijux-dna-api/src/internal/fastq/stages/preprocess/stage_backend_policy.rs",
     ];
 
     for entry in WalkDir::new(root.join("crates"))

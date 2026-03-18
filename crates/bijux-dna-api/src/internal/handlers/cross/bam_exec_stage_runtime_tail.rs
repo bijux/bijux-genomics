@@ -166,7 +166,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
             .params
             .get("reference_panels")
             .and_then(serde_json::Value::as_array)
-            .is_some_and(|arr| !arr.is_empty());
+            .map_or(false, |arr| !arr.is_empty());
         let scope = plan
             .params
             .get("scope")

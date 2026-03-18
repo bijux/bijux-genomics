@@ -24,9 +24,13 @@ fn api_has_no_planning_policy_keywords() {
     ];
     let allowlist_paths = [
         "/src/explain.rs",
-        "/src/internal/fastq/stats_neutral.rs",
+        "/src/internal/fastq/stages/preprocess.rs",
+        "/src/internal/fastq/stages/stats_neutral.rs",
         "/src/internal/handlers/bam.rs",
         "/src/internal/handlers/cross/bam_exec.rs",
+        "/src/internal/handlers/cross/bam_exec_contracts.rs",
+        "/src/internal/handlers/cross/bam_exec_metrics_helpers.rs",
+        "/src/internal/handlers/cross/bam_exec_stage_runtime.rs",
         "/src/internal/handlers/fastq/summary.rs",
         "/src/internal/handlers/fastq/summary_rendering.rs",
         "/src/internal/handlers/fastq/summary_contracts.rs",

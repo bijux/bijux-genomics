@@ -105,7 +105,8 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
 #[test]
 fn fastq_amplicon_tables_define_expected_schema_headers() {
     let root = repo_root();
-    let src = root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_runtime.rs");
+    let src =
+        root.join("crates/bijux-dna-api/src/internal/fastq/stages/preprocess/amplicon_runtime.rs");
     let raw =
         std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
     assert!(
@@ -122,9 +123,9 @@ fn fastq_amplicon_tables_define_expected_schema_headers() {
 fn fastq_amplicon_runtime_invokes_real_tool_paths() {
     let root = repo_root();
     let runtime_src =
-        root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_runtime.rs");
-    let governance_src =
-        root.join("crates/bijux-dna-api/src/internal/fastq/preprocess/amplicon_governance.rs");
+        root.join("crates/bijux-dna-api/src/internal/fastq/stages/preprocess/amplicon_runtime.rs");
+    let governance_src = root
+        .join("crates/bijux-dna-api/src/internal/fastq/stages/preprocess/amplicon_governance.rs");
     let raw_runtime = std::fs::read_to_string(&runtime_src)
         .unwrap_or_else(|e| panic!("read {}: {e}", runtime_src.display()));
     let raw_governance = std::fs::read_to_string(&governance_src)
