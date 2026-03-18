@@ -22,8 +22,8 @@ actual_dna="$tmp_root/release_help_snapshot.actual.txt"
 
 "$ROOT_DIR/bin/isolate" sh -ceu "
   export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-cli-snapshot\"
-  cargo run --quiet --bin bijux -- --help > \"$actual_root\"
-  cargo run --quiet --bin bijux -- dna --help > \"$actual_dna\"
+  cargo run --quiet --bin bijux-dna -- --help > \"$actual_root\"
+  cargo run --quiet --bin bijux-dna -- --help > \"$actual_dna\"
 "
 
 if ! diff -u "$root_snap" "$actual_root" >/dev/null; then
@@ -31,7 +31,7 @@ if ! diff -u "$root_snap" "$actual_root" >/dev/null; then
   exit 1
 fi
 if ! diff -u "$dna_snap" "$actual_dna" >/dev/null; then
-  echo "cli snapshot drift: docs/cli/release_help_snapshot.txt differs from controlled bijux dna --help output" >&2
+  echo "cli snapshot drift: docs/cli/release_help_snapshot.txt differs from controlled bijux-dna --help output" >&2
   exit 1
 fi
 

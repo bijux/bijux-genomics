@@ -34,37 +34,89 @@ pub(crate) mod vcf;
 
 include!("policies.rs");
 
+fn global_option_value_arity(flag: &str) -> Option<usize> {
+    match flag {
+        "--log-level" | "--profile" | "--platform" | "--telemetry-jsonl" => Some(1),
+        _ => None,
+    }
+}
+
+fn is_global_switch(flag: &str) -> bool {
+    matches!(
+        flag,
+        "-v"
+            | "--verbose"
+            | "-q"
+            | "--quiet"
+            | "--print-effective-config"
+            | "--dump-effective-config"
+            | "--json"
+    )
+}
+
+fn normalize_cli_argv(argv: &[String]) -> Vec<String> {
+    let raw = match argv.first() {
+        Some(first) => {
+            let executable = Path::new(first)
+                .file_stem()
+                .and_then(|value| value.to_str())
+                .unwrap_or(first.as_str());
+            match executable {
+                "bijux" | "bijux-dna" => &argv[1..],
+                _ => argv,
+            }
+        }
+        None => argv,
+    };
+
+    let mut normalized = vec!["bijux-dna".to_string()];
+    let mut index = 0usize;
+    while index < raw.len() {
+        let token = raw[index].as_str();
+        if let Some(value_arity) = global_option_value_arity(token) {
+            normalized.push(raw[index].clone());
+            for offset in 1..=value_arity {
+                if let Some(value) = raw.get(index + offset) {
+                    normalized.push(value.clone());
+                }
+            }
+            index = (index + 1 + value_arity).min(raw.len());
+            continue;
+        }
+        if is_global_switch(token) {
+            normalized.push(raw[index].clone());
+            index += 1;
+            continue;
+        }
+        break;
+    }
+
+    if raw.get(index).is_some_and(|token| token == "dna") {
+        index += 1;
+    }
+
+    normalized.extend(raw[index..].iter().cloned());
+    normalized
+}
+
+/// # Errors
+/// Returns an error if the provided argv cannot be parsed into the direct DNA CLI surface.
+pub fn parse_cli_from_argv(argv: &[String]) -> Result<cli::Cli> {
+    let normalized = normalize_cli_argv(argv);
+    cli::Cli::try_parse_from(normalized).map_err(|err| anyhow!("{err}"))
+}
+
+#[must_use]
+pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
+    let normalized = normalize_cli_argv(argv);
+    cli::Cli::parse_from(normalized)
+}
+
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let normalized_args = if matches!(args.first(), Some(&"bijux")) {
-        &args[1..]
-    } else {
-        args
-    };
-    let mut args_with_bin = vec!["bijux"];
-    if matches!(normalized_args.first(), Some(&"dna")) {
-        args_with_bin.extend(normalized_args.iter().copied());
-    } else {
-        let mut insert_at = 0usize;
-        while insert_at < normalized_args.len() {
-            match normalized_args[insert_at] {
-                "--profile" | "--platform" | "--telemetry-jsonl" => {
-                    insert_at = (insert_at + 2).min(normalized_args.len());
-                }
-                "--print-effective-config" | "--dump-effective-config" | "--json" => {
-                    insert_at += 1;
-                }
-                _ => break,
-            }
-        }
-        args_with_bin.extend(normalized_args[..insert_at].iter().copied());
-        if !matches!(normalized_args.get(insert_at), Some(&"dna")) {
-            args_with_bin.push("dna");
-        }
-        args_with_bin.extend(normalized_args[insert_at..].iter().copied());
-    }
-    let cli = cli::Cli::try_parse_from(args_with_bin).map_err(|err| anyhow!("{err}"))?;
+    let argv = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
+    let cli = parse_cli_from_argv(&argv)?;
     run_with_cli(&cli, cwd)
 }
 
@@ -98,9 +150,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let domain_dir = cwd.join("domain");
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
 
-    let dna_command = match &cli.command {
-        cli::RootCommand::Dna { command } => command,
-    };
+    let dna_command = &cli.command;
     match dna_command {
         cli::DnaCommand::Environment { command } => {
             return handle_environment_root(command, cwd);

@@ -2,7 +2,7 @@ use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 #[derive(Debug, Parser)]
-#[command(name = "bijux", version, about = "Bijux DNA CLI", subcommand_required = true, arg_required_else_help = true)]
+#[command(name = "bijux-dna", version, about = "Bijux DNA CLI", subcommand_required = true, arg_required_else_help = true)]
 pub struct Cli {
     #[arg(short = 'v', long, global = true, default_value_t = false)]
     pub verbose: bool,
@@ -25,15 +25,7 @@ pub struct Cli {
     #[arg(long, global = true, default_value_t = false)]
     pub json: bool,
     #[command(subcommand)]
-    pub command: RootCommand,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum RootCommand {
-    Dna {
-        #[command(subcommand)]
-        command: DnaCommand,
-    },
+    pub command: DnaCommand,
 }
 
 #[derive(Debug, Args)]
@@ -284,4 +276,3 @@ pub struct AnalyzeMetricsArgs {
     pub search_root: PathBuf,
     pub run_id: String,
 }
-

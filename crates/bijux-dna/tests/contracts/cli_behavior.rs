@@ -98,14 +98,14 @@ fn cli_env_info_is_deterministic() {
     workspace.setup_configs();
 
     let stdout =
-        run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "info"]).expect("cli ok");
+        run_cli_capture(&workspace, &["--platform", "test", "env", "info"]).expect("cli ok");
     if stdout.trim().is_empty() {
         return;
     }
     assert!(stdout.contains("platform: test"));
     assert!(stdout.contains("runner: docker"));
     let images_stdout =
-        run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "images"])
+        run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
             .unwrap_or_else(|err| panic!("cli images failed: {err}"));
     let image_count = images_stdout.lines().count();
     assert!(stdout.contains(&format!("image count: {image_count}")));
@@ -123,7 +123,7 @@ fn cli_env_images_are_listed_in_order() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
 
-    let stdout = run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "images"])
+    let stdout = run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
         .expect("cli ok");
     let lines: Vec<&str> = stdout.lines().collect();
     if lines.is_empty() {
@@ -157,12 +157,12 @@ fastp = { version = "99.99.99+fixture" }
 
     let stdout_a = run_cli_capture(
         &workspace_a,
-        &["--platform", "test", "dna", "env", "images"],
+        &["--platform", "test", "env", "images"],
     )
     .expect("cli ok");
     let stdout_b = run_cli_capture(
         &workspace_b,
-        &["--platform", "test", "dna", "env", "images"],
+        &["--platform", "test", "env", "images"],
     )
     .expect("cli ok");
 

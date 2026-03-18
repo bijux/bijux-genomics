@@ -21,7 +21,7 @@ fn policy__contracts__scripts_registry_wrapper_policy__registry_script_is_cli_wr
         std::fs::read_to_string(&script).expect("read scripts/containers/registry-tools.sh");
 
     bijux_dna_policies::policy_assert!(
-        content.contains("cargo run --bin bijux -- dna registry"),
+        content.contains("cargo run --bin bijux-dna -- registry"),
         "scripts/containers/registry-tools.sh must delegate to CLI registry commands"
     );
     bijux_dna_policies::policy_assert!(

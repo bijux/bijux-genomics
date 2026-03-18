@@ -16,4 +16,4 @@ USAGE
 fi
 
 ./bin/require-isolate >/dev/null
-cargo run --bin bijux -- dna "$@"
+cargo run --bin bijux-dna -- "$@"

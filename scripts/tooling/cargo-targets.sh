@@ -45,7 +45,7 @@ case "${cmd}" in
     ./bin/isolate cargo test -p bijux-dna-policies
     ;;
   domain-coverage)
-    ./bin/isolate cargo run -p bijux-dna --bin bijux -- dna domain coverage --domain-dir domain
+    ./bin/isolate cargo run -p bijux-dna --bin bijux-dna -- domain coverage --domain-dir domain
     ;;
   snapshots)
     ./bin/isolate cargo insta test --workspace

@@ -1,10 +1,34 @@
 Bijux DNA CLI
 
-Usage: bijux [OPTIONS] <COMMAND>
+Usage: bijux-dna [OPTIONS] <COMMAND>
 
 Commands:
-  dna   
-  help  Print this message or the help of the given subcommand(s)
+  env                 
+  registry            
+  ena                 
+  corpus              
+  tool                
+  domain              
+  lab                 
+  config              
+  status              
+  run                 
+  bam                 
+  vcf                 
+  plan                
+  analyze             
+  explain             
+  validate-manifests  
+  platform            
+  image-qa            
+  replay              
+  compare             
+  bench               
+  policies            
+  ci                  
+  debug               
+  collect             
+  help                Print this message or the help of the given subcommand(s)
 
 Options:
   -v, --verbose                 

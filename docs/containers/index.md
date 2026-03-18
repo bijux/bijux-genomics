@@ -22,7 +22,7 @@ All container build/smoke/lint scripts must live under `scripts/containers/`.
 
 ## Governance Rules
 - Registry is the authority for container scope: smoke/build targets are resolved from registry runtime mappings, not static file lists.
-- Promotion is performed via `bijux dna registry promote --tool <id>` and must update:
+- Promotion is performed via `bijux-dna registry promote --tool <id>` and must update:
   - registry status for the tool
   - `containers/versions/versions.toml`
   - `artifacts/container_manifest.json`

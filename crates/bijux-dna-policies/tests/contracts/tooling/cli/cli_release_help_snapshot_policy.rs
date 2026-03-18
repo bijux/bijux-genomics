@@ -10,8 +10,12 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
         .unwrap_or_else(|| root.join("target"))
 }
 
-fn run_workspace_bijux(root: &std::path::Path, args: &[&str], context: &str) -> std::process::Output {
-    let debug_binary = cargo_target_dir(root).join("debug/bijux");
+fn run_workspace_bijux_dna(
+    root: &std::path::Path,
+    args: &[&str],
+    context: &str,
+) -> std::process::Output {
+    let debug_binary = cargo_target_dir(root).join("debug/bijux-dna");
     let mut command = if debug_binary.exists() {
         let mut command = Command::new(debug_binary);
         command.current_dir(root);
@@ -20,7 +24,7 @@ fn run_workspace_bijux(root: &std::path::Path, args: &[&str], context: &str) -> 
         let mut command = Command::new("cargo");
         command
             .current_dir(root)
-            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux", "--"]);
+            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux-dna", "--"]);
         command
     };
     command.args(args).output().unwrap_or_else(|err| {
@@ -35,13 +39,13 @@ fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_sna
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let output = run_workspace_bijux(&root, &["dna", "--help"], "run debug help");
+    let output = run_workspace_bijux_dna(&root, &["--help"], "run debug help");
     assert!(output.status.success(), "debug help command failed");
     let actual = String::from_utf8(output.stdout).expect("debug help must be valid UTF-8");
 
     assert_eq!(
         actual.trim(),
         expected.trim(),
-        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/debug/bijux dna --help > docs/cli/release_help_snapshot.txt"
+        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/debug/bijux-dna --help > docs/cli/release_help_snapshot.txt"
     );
 }

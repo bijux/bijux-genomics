@@ -37,7 +37,7 @@ fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_mat
         .unwrap_or_else(|err| panic!("build release bijux binary: {err}"));
     assert!(build.success(), "release build failed");
 
-    let bijux_bin = cargo_target_dir(&root).join("release/bijux");
+    let bijux_bin = cargo_target_dir(&root).join("release/bijux-dna");
     let output = Command::new(&bijux_bin)
         .arg("dna")
         .arg("registry")
@@ -62,6 +62,6 @@ fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_mat
     assert_eq!(
         normalized_json(&actual).trim(),
         normalized_json(&expected).trim(),
-        "container manifest snapshot is stale. Regenerate with: bijux dna registry export-containers --json > crates/bijux-dna-policies/tests/fixtures/container_manifest_snapshot/manifest.snapshot.json"
+        "container manifest snapshot is stale. Regenerate with: bijux-dna registry export-containers --json > crates/bijux-dna-policies/tests/fixtures/container_manifest_snapshot/manifest.snapshot.json"
     );
 }

@@ -1,9 +1,7 @@
 use anyhow::Context;
 use anyhow::Result;
-use bijux_dna::cli::Cli;
 use bijux_dna_api::v1::api::run::CategorizedError;
 use bijux_dna_api::v1::api::run::ErrorCategory;
-use clap::Parser;
 
 fn main() {
     if let Err(err) = run() {
@@ -47,7 +45,8 @@ fn print_refusal_if_present(err: &anyhow::Error) {
 }
 
 fn run() -> Result<()> {
-    let cli = Cli::parse();
+    let argv = std::env::args().collect::<Vec<_>>();
+    let cli = bijux_dna::commands::parse_process_cli(&argv);
     let cwd = std::env::current_dir().context("resolve current directory")?;
     bijux_dna::commands::run_with_cli(&cli, &cwd)
 }
