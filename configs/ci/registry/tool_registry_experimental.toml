@@ -215,40 +215,6 @@ apptainer_def = "containers/apptainer/lunarc/centrifuge.def"
 require_labels = true
 
 [[tools]]
-id = "cutadapt"
-tool_id = "cutadapt"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.trim", "fastq.primer_normalization"]
-bindings = ["fastq.primer_normalization", "fastq.trim"]
-tool_role = "transform"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/cutadapt/cutadapt"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/cutadapt/cutadapt"
-pinned_commit = "sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "cutadapt --version"
-help_cmd = "cutadapt --help"
-smoke_version_cmd = "cutadapt --version"
-smoke_help_cmd = "cutadapt --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "cutadapt --help"
-expected_bin = "cutadapt"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
-apptainer_def = "containers/apptainer/lunarc/cutadapt.def"
-require_labels = true
-
-[[tools]]
 id = "damageprofiler"
 tool_id = "damageprofiler"
 domain = "bam"
