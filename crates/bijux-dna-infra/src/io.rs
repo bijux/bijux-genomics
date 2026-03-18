@@ -71,6 +71,18 @@ pub fn ensure_dir<P: AsRef<Path>>(path: P) -> Result<(), IoError> {
     std::fs::create_dir_all(path.as_ref()).map_err(IoError::from_io)
 }
 
+/// Create a file for writing, ensuring the parent directory exists first.
+///
+/// # Errors
+/// Returns an IO error if the parent cannot be created or the file cannot be opened.
+pub fn create_file(path: &Path) -> Result<File, IoError> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
+    ensure_dir(parent)?;
+    File::create(path).map_err(IoError::from_io)
+}
+
 /// Atomically write bytes to a path (temp + rename).
 ///
 /// # Errors
