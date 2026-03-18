@@ -14,3 +14,6 @@ rand.workspace = true
 
 [lib]
 path = "src/lib.rs"
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
