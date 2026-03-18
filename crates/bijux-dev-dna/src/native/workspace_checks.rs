@@ -1666,7 +1666,7 @@ pub(crate) fn check_tool_registry_lock(
         );
     }
     let marker_text = read(&marker)?;
-    if !marker_text.contains("generated_by=scripts/domain/lock-registry.sh")
+    if !marker_text.contains("generated_by=bijux-dev-dna domain run lock-registry")
         || !marker_text.contains(&format!("lock_sha256={actual}"))
     {
         return fail(check, "tool registry lock marker is stale or invalid");

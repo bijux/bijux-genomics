@@ -205,7 +205,6 @@ pub(crate) fn check_script_arg_style(
         "scripts/containers/make.sh",
         "scripts/assets/make.sh",
         "scripts/docs/make.sh",
-        "scripts/domain/make.sh",
         "scripts/examples/make.sh",
         "scripts/hpc/make.sh",
         "scripts/lab/make.sh",
@@ -453,7 +452,6 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
     let allowlist = [
         "scripts/containers/registry-tools.sh",
         "scripts/containers/smoke-apptainer.sh",
-        "scripts/domain/validate.sh",
         "scripts/lab/run_bench.sh",
         "scripts/lab/run_pipelines.sh",
         "scripts/run.sh",
