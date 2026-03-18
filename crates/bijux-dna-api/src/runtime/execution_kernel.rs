@@ -572,4 +572,4 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
 }
 
 #[cfg(test)]
-mod execution_kernel_tests;
+mod execution_kernel_contract;

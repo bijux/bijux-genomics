@@ -19,7 +19,7 @@ fn tool_exec_bcftools_version_in_container() -> Result<()> {
     let out_file = out_root.join("bcftools.version.txt");
     let step = ExecutionStep {
         step_id: StepId::new("vcf.stats.bcftools_version"),
-        stage_id: StageId::new("vcf.stats"),
+        stage_id: StageId::from_static("vcf.stats"),
         command: CommandSpecV1 {
             template: vec![
                 "sh".to_string(),
@@ -90,7 +90,7 @@ fn dry_run_explain_emits_plan_and_resource_details() -> Result<()> {
     bijux_dna_infra::ensure_dir(&in_root)?;
     let step = ExecutionStep {
         step_id: StepId::new("vcf.qc.dry_run_explain"),
-        stage_id: StageId::new("vcf.qc"),
+        stage_id: StageId::from_static("vcf.qc"),
         command: CommandSpecV1 {
             template: vec!["bcftools".to_string(), "--version".to_string()],
         },

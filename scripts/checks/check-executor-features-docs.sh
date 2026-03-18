@@ -31,9 +31,9 @@ errors = []
 for crate in crates:
     crate_dir = root / "crates" / crate
     cargo_toml = crate_dir / "Cargo.toml"
-    features_md = crate_dir / "FEATURES.md"
+    features_md = crate_dir / "docs" / "FEATURES.md"
     if not features_md.exists():
-        errors.append(f"{crate}: missing FEATURES.md")
+        errors.append(f"{crate}: missing docs/FEATURES.md")
         continue
     cargo = tomllib.loads(cargo_toml.read_text(encoding="utf-8"))
     feature_keys = sorted((cargo.get("features") or {}).keys())
@@ -44,7 +44,7 @@ for crate in crates:
     if undocumented:
         errors.append(f"{crate}: undocumented features: {', '.join(undocumented)}")
     if extra:
-        errors.append(f"{crate}: features listed in FEATURES.md but missing in Cargo.toml: {', '.join(extra)}")
+        errors.append(f"{crate}: features listed in docs/FEATURES.md but missing in Cargo.toml: {', '.join(extra)}")
 
 if errors:
     print("ERROR: executor feature docs contract failed", file=sys.stderr)

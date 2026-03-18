@@ -213,6 +213,7 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
         "BENCH_FORMAT.md",
         "EXPLAINABILITY.md",
         "SUITE_DESIGN.md",
+        "FEATURES.md",
         "LEGACY.md",
         "REPRODUCIBILITY.md",
         "MODEL_GLOSSARY.md",
