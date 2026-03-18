@@ -472,7 +472,7 @@ fn parse_coverage_regime(raw: &str) -> Result<bijux_dna_domain_vcf::taxonomy::Co
 }
 
 #[cfg(test)]
-mod lib_tests {
+mod reference_provider_contract {
     use super::*;
-    include!("lib_tests.rs");
+    include!("reference_provider_contract.rs");
 }
