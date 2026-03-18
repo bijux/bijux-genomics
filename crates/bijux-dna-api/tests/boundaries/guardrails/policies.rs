@@ -24,7 +24,7 @@ fn api_has_no_planning_policy_keywords() {
     ];
     let allowlist_paths = [
         "/src/explain.rs",
-        "/src/fastq_stats_neutral.rs",
+        "/src/internal/fastq/stats_neutral.rs",
         "/src/internal/handlers/bam.rs",
         "/src/internal/handlers/cross/bam_exec.rs",
         "/src/internal/handlers/fastq/summary.rs",

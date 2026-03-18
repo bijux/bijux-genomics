@@ -1,5 +1,6 @@
 //! Internal FASTQ wiring (non-public).
 
+pub(crate) mod stats_neutral;
 pub mod stages;
 
 #[allow(dead_code)]
