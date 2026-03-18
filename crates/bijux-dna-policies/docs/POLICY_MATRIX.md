@@ -50,7 +50,6 @@ Authoritative registry of policy tests owned by `bijux-dna-policies`.
 | `tests/surface/no_helpers_policy.rs` | surface | Ban helpers/utils buckets. | `docs/TESTS.md` |
 | `tests/surface/no_policy_duplication.rs` | surface | Policies only in bijux-dna-policies. | `docs/TESTS.md` |
 | `tests/surface/no_serde_json_writer.rs` | surface | Canonical JSON writer only via core. | `docs/TESTS.md` |
-| `tests/surface/no_src_crowd_policy.rs` | surface | Limit root src modules. | `docs/TESTS.md` |
 | `tests/surface/no_thin_modules_policy.rs` | surface | No thin module directories. | `docs/TESTS.md` |
 | `tests/surface/ownership_contract.rs` | surface | Ownership rules for IDs, defaults, metrics. | `docs/TESTS.md` |
 | `tests/surface/path_policies.rs` | surface | Path and write location rules. | `docs/TESTS.md` |
@@ -60,7 +59,6 @@ Authoritative registry of policy tests owned by `bijux-dna-policies`.
 | `tests/surface/ssot_catalog_authority.rs` | surface | Catalog SSOT ownership. | `docs/TESTS.md` |
 | `tests/surface/stage_specs_purity.rs` | surface | Stage specs are declarative. | `docs/TESTS.md` |
 | `tests/surface/style_policy.rs` | surface | Style policy entrypoint. | `docs/TESTS.md` |
-| `tests/surface/test_grouping_policy.rs` | surface | Tests grouped into suites. | `docs/TESTS.md` |
 | `tests/surface/tool_id_uniqueness.rs` | surface | Tool IDs unique across planners. | `docs/TESTS.md` |
 | `tests/surface/workspace.rs` | surface | Workspace layout + guardrail contracts. | `docs/TESTS.md` |
 | `tests/tooling/ci_tools_policy.rs` | tooling | CI uses make-only commands + YAML scoping. | `docs/TESTS.md` |

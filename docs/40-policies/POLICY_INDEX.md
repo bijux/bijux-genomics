@@ -39,7 +39,6 @@ Policies are enforced by tests under `crates/bijux-dna-policies/tests`.
 | no_helpers_policy | no helpers buckets | helpers/utils | all crates | `tests/surface/no_helpers_policy.rs` |
 | no_policy_duplication | centralize policy logic | policy redefs | all crates | `tests/surface/no_policy_duplication.rs` |
 | no_serde_json_writer | canonical JSON only | raw serde_json writes | all crates | `tests/surface/no_serde_json_writer.rs` |
-| no_src_crowd_policy | module crowding | too many src entries | all crates | `tests/surface/no_src_crowd_policy.rs` |
 | no_thin_modules_policy | no thin dirs | mod.rs-only dirs | all crates | `tests/surface/no_thin_modules_policy.rs` |
 | planner_purity | planner purity | parsing logic in planners | planners | `tests/surface/planner_purity.rs` |
 | policy_docs_anchor | policy docs link | missing policy listing | policies crate | `tests/surface/policy_docs_anchor.rs` |

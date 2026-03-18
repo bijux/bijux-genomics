@@ -10,7 +10,6 @@
 | readme_policy | README required links + link validity | workspace | build fails | add missing links or fix targets | none |
 | architecture_pointer_policy | crate architecture docs stay brief | workspace | build fails | shorten ARCHITECTURE.md | none |
 | docs_spine_contract | required doc spine snapshot | workspace | build fails | add missing docs or update allowlist | per-crate missing docs |
-| test_grouping_policy | test suites grouped into subsuites | workspace | build fails | add tests/ subdirs + spines | per-crate allowlist |
 | no_appledouble | ban AppleDouble/DS_Store | workspace | build fails | delete files and re-run | none |
 
 ## Policy boundaries rationale

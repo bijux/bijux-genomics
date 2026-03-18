@@ -57,7 +57,6 @@ Tests become documentation for governance rules.
 - `no_helpers_policy.rs` — ban helpers/utils buckets.
 - `no_policy_duplication.rs` — policies only in bijux-dna-policies.
 - `no_serde_json_writer.rs` — canonical JSON writer only via core.
-- `no_src_crowd_policy.rs` — limit root src modules.
 - `no_thin_modules_policy.rs` — no thin module directories.
 - `ownership_contract.rs` — ownership rules for IDs/defaults/metrics.
 - `path_policies.rs` — path and write location rules.
@@ -67,7 +66,6 @@ Tests become documentation for governance rules.
 - `ssot_catalog_authority.rs` — catalog SSOT ownership.
 - `stage_specs_purity.rs` — stage specs are declarative.
 - `style_policy.rs` — style policy entrypoint.
-- `test_grouping_policy.rs` — tests grouped into suites.
 - `tool_id_uniqueness.rs` — tool IDs unique across planners.
 - `workspace.rs` — workspace layout + guardrail contracts.
 
