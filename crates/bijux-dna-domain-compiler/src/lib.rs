@@ -14,7 +14,8 @@ use bijux_dna_infra::{ensure_dir, write_string};
 use serde::{Deserialize, Serialize};
 
 include!("compiler_sections/domain_models_and_utils.rs");
-include!("compiler_sections/domain_loading_and_collection.rs");
+include!("compiler_sections/domain_loading/load_and_collect.rs");
+include!("compiler_sections/domain_loading/registry_emitters.rs");
 include!("compiler_sections/compile_configs.rs");
-include!("compiler_sections/validation.rs");
+include!("compiler_sections/domain_validation_pipeline.rs");
 include!("compiler_sections/coverage_report_and_contracts.rs");
