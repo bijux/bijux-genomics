@@ -378,6 +378,9 @@ fn stage_requires_banks(stage_id: &str) -> bool {
 }
 
 fn handle_observability_commands(dna_command: &cli::DnaCommand, _cwd: &Path) -> Result<bool> {
+    #[cfg(debug_assertions)]
+    let cwd = _cwd;
+
     match dna_command {
         #[cfg(debug_assertions)]
         cli::DnaCommand::Debug(args) => {

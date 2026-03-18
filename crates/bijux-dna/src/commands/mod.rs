@@ -1,3 +1,3 @@
 #![allow(dead_code)]
-include!("mod_part1.inc");
-include!("mod_part2.inc");
+include!("command_dispatch.rs");
+include!("root_command_handlers.rs");
