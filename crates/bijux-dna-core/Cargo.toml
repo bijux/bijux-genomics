@@ -17,7 +17,7 @@ sysinfo = { workspace = true, optional = true }
 sha2.workspace = true
 regex.workspace = true
 anyhow.workspace = true
-bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+tempfile.workspace = true
 opentelemetry = { workspace = true, optional = true }
 
 [features]
@@ -26,6 +26,7 @@ sysinfo = ["dep:sysinfo"]
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-infra = { path = "../bijux-dna-infra" }
 tempfile.workspace = true
 insta.workspace = true
 
