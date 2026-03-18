@@ -15,7 +15,6 @@
 
 mod errors;
 mod executor;
-mod runtime_facade;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
