@@ -114,10 +114,9 @@ fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
     if file.read_exact(&mut magic).is_err() || magic != [0x1f, 0x8b] {
         return Ok(false);
     }
-    let path_arg = path.to_string_lossy().into_owned();
-    let args = ["-t", path_arg.as_str()];
-    let status = bijux_dna_infra::command_status("gzip", &args);
-    Ok(status.map(|s| s.success()).unwrap_or(false))
+    let args = vec!["-t".to_string(), path.to_string_lossy().into_owned()];
+    let output = bijux_dna_runner::runner_core::run_command("gzip", &args);
+    Ok(output.map(|result| result.exit_code == 0).unwrap_or(false))
 }
 
 fn quality_encoding_confidence(min_ascii: u8, max_ascii: u8) -> String {
@@ -136,18 +135,17 @@ fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = St
         .and_then(|x| x.to_str())
         .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
     {
-        let path_arg = path.to_string_lossy().into_owned();
-        let args = ["-cd", path_arg.as_str()];
-        let output = bijux_dna_infra::command_output("gzip", &args)
+        let args = vec!["-cd".to_string(), path.to_string_lossy().into_owned()];
+        let output = bijux_dna_runner::runner_core::run_command("gzip", &args)
             .with_context(|| format!("gzip -cd {}", path.display()))?;
-        if !output.status.success() {
+        if output.exit_code != 0 {
             return Err(anyhow!(
                 "failed to decompress {}: {}",
                 path.display(),
-                String::from_utf8_lossy(&output.stderr)
+                output.stderr
             ));
         }
-        let text = String::from_utf8_lossy(&output.stdout).into_owned();
+        let text = output.stdout;
         let lines = text.lines().map(ToString::to_string).collect::<Vec<_>>();
         return Ok(Box::new(lines.into_iter()));
     }
@@ -480,16 +478,16 @@ fn write_stage_path_contract(
 }
 
 fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
-    let args = ["--version"];
-    let output = bijux_dna_infra::command_output(tool_bin, &args);
+    let args = vec!["--version".to_string()];
+    let output = bijux_dna_runner::runner_core::run_command(tool_bin, &args);
     let (ok, raw) = match output {
         Ok(out) => {
             let raw = if out.stdout.is_empty() {
-                String::from_utf8_lossy(&out.stderr).to_string()
+                out.stderr
             } else {
-                String::from_utf8_lossy(&out.stdout).to_string()
+                out.stdout
             };
-            (out.status.success(), raw)
+            (out.exit_code == 0, raw)
         }
         Err(err) => (false, format!("failed to execute --version: {err}")),
     };

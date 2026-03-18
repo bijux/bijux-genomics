@@ -68,11 +68,12 @@ fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
 }
 
 fn command_stdout(bin: &str, args: &[&str]) -> Option<String> {
-    let out = bijux_dna_infra::command_output(bin, args).ok()?;
-    if !out.status.success() {
+    let args = args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>();
+    let out = bijux_dna_runner::runner_core::run_command(bin, &args).ok()?;
+    if out.exit_code != 0 {
         return None;
     }
-    Some(String::from_utf8_lossy(&out.stdout).to_string())
+    Some(out.stdout)
 }
 
 fn bam_sort_order_samtools(bam_path: &Path) -> Option<String> {
@@ -111,10 +112,9 @@ fn bam_read_group_presence_samtools(bam_path: &Path) -> Option<bool> {
 }
 
 fn bam_quickcheck_ok(bam_path: &Path) -> Option<bool> {
-    let bam_arg = bam_path.to_string_lossy().into_owned();
-    let args = ["quickcheck", bam_arg.as_str()];
-    let status = bijux_dna_infra::command_status("samtools", &args).ok()?;
-    Some(status.success())
+    let args = vec!["quickcheck".to_string(), bam_path.to_string_lossy().into_owned()];
+    let output = bijux_dna_runner::runner_core::run_command("samtools", &args).ok()?;
+    Some(output.exit_code == 0)
 }
 
 fn bam_has_dup_tag_samtools(bam_path: &Path) -> Option<bool> {

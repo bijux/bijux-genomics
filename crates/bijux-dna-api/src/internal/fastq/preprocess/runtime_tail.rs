@@ -115,8 +115,8 @@ fn copy_if_missing(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
 }
 
 fn command_exists(bin: &str) -> bool {
-    let args = ["--version"];
-    bijux_dna_infra::command_output(bin, &args).is_ok()
+    let args = vec!["--version".to_string()];
+    bijux_dna_runner::runner_core::run_command(bin, &args).is_ok()
 }
 
 fn run_stage_command(
@@ -125,12 +125,12 @@ fn run_stage_command(
     bin: &str,
     args: &[String],
 ) -> bool {
-    let output = bijux_dna_infra::command_output(bin, args);
+    let output = bijux_dna_runner::runner_core::run_command(bin, args);
     let (ok, stdout, stderr) = match output {
         Ok(out) => (
-            out.status.success(),
-            String::from_utf8_lossy(&out.stdout).to_string(),
-            String::from_utf8_lossy(&out.stderr).to_string(),
+            out.exit_code == 0,
+            out.stdout,
+            out.stderr,
         ),
         Err(err) => (false, String::new(), format!("{err}")),
     };

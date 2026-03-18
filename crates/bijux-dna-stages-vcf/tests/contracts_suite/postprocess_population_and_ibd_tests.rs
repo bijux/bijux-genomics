@@ -159,19 +159,8 @@
             },
         )
         .unwrap_or_else(|err| panic!("postprocess multiallelic fixture: {err}"));
-        let merged = std::process::Command::new("bcftools")
-            .args(["view", &out.merged_vcf.to_string_lossy()])
-            .output()
-            .ok()
-            .filter(|o| o.status.success())
-            .map_or_else(|| {
-                panic!(
-                    "bcftools view failed for {}",
-                    out.merged_vcf.display()
-                )
-            }, |o| {
-                String::from_utf8_lossy(&o.stdout).to_string()
-            });
+        let merged = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&out.merged_vcf)
+            .unwrap_or_else(|err| panic!("read merged VCF {}: {err}", out.merged_vcf.display()));
         let record_lines = merged
             .lines()
             .filter(|line| !line.starts_with('#'))

@@ -451,12 +451,8 @@
         )
         .unwrap_or_else(|err| panic!("GL-only explicit support should pass: {err}"));
         assert!(outputs.phasing_manifest_json.exists());
-        let phased_raw = std::process::Command::new("bcftools")
-            .args(["view", &outputs.phased_vcf.to_string_lossy()])
-            .output()
-            .map_or_else(|_| String::new(), |out| {
-                String::from_utf8_lossy(&out.stdout).to_string()
-            });
+        let phased_raw = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&outputs.phased_vcf)
+            .unwrap_or_else(|err| panic!("read phased VCF: {err}"));
         assert!(
             phased_raw.contains("\tGT:GL\t0|1:"),
             "beagle GL-only path must emit GT in output FORMAT/sample"
