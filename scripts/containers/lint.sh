@@ -198,14 +198,14 @@ cargo run -q -p bijux-dev-dna -- containers run check-apptainer-post-pins
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof
 cargo run -q -p bijux-dev-dna -- containers run check-bijux-apptainer-built
-"$SCRIPT_DIR/check-docker-labels.sh"
-"$SCRIPT_DIR/check-docker-hardening.sh"
-"$SCRIPT_DIR/check-docker-version-sync.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-docker-labels
+cargo run -q -p bijux-dev-dna -- containers run check-docker-hardening
+cargo run -q -p bijux-dev-dna -- containers run check-docker-version-sync
 "$SCRIPT_DIR/check-digest-changes-on-version-change.sh"
-"$SCRIPT_DIR/check-dockerfiles-built.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-dockerfiles-built
 "$SCRIPT_DIR/check-smoke-failure-classification.sh"
-"$SCRIPT_DIR/check-docker-unpinned-apt.sh"
-"$SCRIPT_DIR/check-docker-context.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-docker-unpinned-apt
+cargo run -q -p bijux-dev-dna -- containers run check-docker-context
 "$SCRIPT_DIR/check-smoke-contract.sh"
 "$SCRIPT_DIR/check-smoke-inputs-policy.sh"
 "$SCRIPT_DIR/check-tool-invocation-normalization.sh"
@@ -231,8 +231,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 cargo run -q -p bijux-dev-dna -- containers run check-bijux-template-markers
 cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
 cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
-"$SCRIPT_DIR/check-docker-arch-policy.sh"
-"$SCRIPT_DIR/check-docker-arm64-completeness.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-docker-arch-policy
+cargo run -q -p bijux-dev-dna -- containers run check-docker-arm64-completeness
 "$SCRIPT_DIR/check-time-locale-determinism.sh"
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 "$SCRIPT_DIR/check-release-checklist.sh"

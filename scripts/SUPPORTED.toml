@@ -89,14 +89,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_docker_arm64_completeness"
-path = "scripts/containers/check-docker-arm64-completeness.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_image_size_regression"
 path = "scripts/containers/check-image-size-regression.sh"
 purpose = "containers script"
@@ -538,30 +530,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_docker_unpinned_apt"
-path = "scripts/containers/check-docker-unpinned-apt.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_docker_version_sync"
-path = "scripts/containers/check-docker-version-sync.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_dockerfiles_built"
-path = "scripts/containers/check-dockerfiles-built.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_smoke_failure_classification"
 path = "scripts/containers/check-smoke-failure-classification.sh"
 purpose = "containers script"
@@ -618,14 +586,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_docker_arch_policy"
-path = "scripts/containers/check-docker-arch-policy.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_digest_output_policy"
 path = "scripts/containers/check-digest-output-policy.sh"
 purpose = "containers script"
@@ -644,14 +604,6 @@ ci_allowed = true
 [[script]]
 id = "check_apptainer_bijux_header"
 path = "scripts/containers/check-apptainer-bijux-header.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_docker_labels"
-path = "scripts/containers/check-docker-labels.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -797,23 +749,6 @@ ci_allowed = true
 id = "tooling_image_qa"
 path = "scripts/tooling/image-qa.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_docker_hardening"
-path = "scripts/containers/check-docker-hardening.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "containers_check_docker_context"
-path = "scripts/containers/check-docker-context.sh"
-purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
