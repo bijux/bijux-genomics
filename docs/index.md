@@ -58,7 +58,6 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - `no_policy_duplication.rs`
 - `no_repo_tree_snapshots.rs`
 - `no_serde_json_writer.rs`
-- `no_src_crowd_policy.rs`
 - `no_standalone_bijux_cli.rs`
 - `no_thin_modules_policy.rs`
 - `ownership_contract.rs`
@@ -75,7 +74,6 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 - `stage_specs_purity.rs`
 - `style_policy.rs`
 - `surface_safety_policies.rs`
-- `test_grouping_policy.rs`
 - `tests_taxonomy_policy.rs`
 - `tool_id_uniqueness.rs`
 - `workspace.rs`

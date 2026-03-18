@@ -2,7 +2,7 @@
 
 Directories:
 - `deps/`: dependency graph and layering policies (ex: `dependency_boundaries.rs`, `effect_boundary_map.rs`).
-- `surface/`: public surface and boundary guardrails (ex: `docs_spine.rs`, `no_helpers_policy.rs`, `test_grouping_policy.rs`).
+- `surface/`: public surface and boundary guardrails (ex: `docs_spine.rs`, `no_helpers_policy.rs`, `mod_naming_policy.rs`).
 - `data/`: data schema and snapshot policies (ex: `contract_handshake.rs`).
 - `tooling/`: tooling and CI enforcement (ex: `docs_links.rs`, `no_appledouble.rs`).
 

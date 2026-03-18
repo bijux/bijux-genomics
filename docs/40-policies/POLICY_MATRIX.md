@@ -22,5 +22,4 @@ Provides a single index for governance checks.
 - docs_required_policy.rs
 - no_thin_modules_policy.rs
 - no_helpers_policy.rs
-- no_src_crowd_policy.rs
 - mod_naming_policy.rs
