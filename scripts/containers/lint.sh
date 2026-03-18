@@ -207,8 +207,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-dockerfiles-built
 cargo run -q -p bijux-dev-dna -- containers run check-docker-unpinned-apt
 cargo run -q -p bijux-dev-dna -- containers run check-docker-context
 "$SCRIPT_DIR/check-smoke-contract.sh"
-"$SCRIPT_DIR/check-smoke-inputs-policy.sh"
-"$SCRIPT_DIR/check-tool-invocation-normalization.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
+cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
 "$SCRIPT_DIR/check-smoke-contract-lock.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-cross-runtime-smoke.sh"
@@ -220,12 +220,12 @@ cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-imputation-release-smoke.sh"
 "$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
 "$SCRIPT_DIR/check-cross-runtime-representative.sh"
-"$SCRIPT_DIR/check-no-secrets.sh"
-"$SCRIPT_DIR/check-vuln-allowlist.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-no-secrets
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-allowlist
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
-"$SCRIPT_DIR/check-runtime-downloads.sh"
-"$SCRIPT_DIR/check-vuln-hook.sh"
-"$SCRIPT_DIR/check-sbom-artifacts.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-hook
+cargo run -q -p bijux-dev-dna -- containers run check-sbom-artifacts
 "$SCRIPT_DIR/check-build-provenance.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 cargo run -q -p bijux-dev-dna -- containers run check-bijux-template-markers
@@ -233,7 +233,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
 cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 cargo run -q -p bijux-dev-dna -- containers run check-docker-arch-policy
 cargo run -q -p bijux-dev-dna -- containers run check-docker-arm64-completeness
-"$SCRIPT_DIR/check-time-locale-determinism.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 "$SCRIPT_DIR/check-release-checklist.sh"
 

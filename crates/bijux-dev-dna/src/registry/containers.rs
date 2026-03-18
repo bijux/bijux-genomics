@@ -348,6 +348,46 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckDockerfilesBuilt,
         ),
         native(
+            "check-no-secrets",
+            "Scan container recipes for committed secret patterns.",
+            NativeContainerCommandKey::CheckNoSecrets,
+        ),
+        native(
+            "check-runtime-downloads",
+            "Validate runtime download policy across recipe entrypoints and runtime commands.",
+            NativeContainerCommandKey::CheckRuntimeDownloads,
+        ),
+        native(
+            "check-vuln-allowlist",
+            "Validate vulnerability allowlist formatting, uniqueness, and expiry windows.",
+            NativeContainerCommandKey::CheckVulnAllowlist,
+        ),
+        native(
+            "check-vuln-hook",
+            "Validate promoted-tool vulnerability hook coverage and report artifacts.",
+            NativeContainerCommandKey::CheckVulnHook,
+        ),
+        native(
+            "check-sbom-artifacts",
+            "Validate SBOM artifacts and smoke-log evidence for promoted tool manifests.",
+            NativeContainerCommandKey::CheckSbomArtifacts,
+        ),
+        native(
+            "check-time-locale-determinism",
+            "Validate deterministic TZ and locale wiring across container runtimes.",
+            NativeContainerCommandKey::CheckTimeLocaleDeterminism,
+        ),
+        native(
+            "check-tool-invocation-normalization",
+            "Validate smoke command prefixes against expected tool binary names.",
+            NativeContainerCommandKey::CheckToolInvocationNormalization,
+        ),
+        native(
+            "check-smoke-inputs-policy",
+            "Validate smoke input fixtures declared in smoke_inputs_policy.toml.",
+            NativeContainerCommandKey::CheckSmokeInputsPolicy,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,
