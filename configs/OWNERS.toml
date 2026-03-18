@@ -46,7 +46,7 @@ prefix = "configs/logging/"
 owner = "bijux-dna-infra"
 
 [[rule]]
-prefix = "configs/nextest/"
+prefix = "configs/rust/"
 owner = "bijux-dna-infra"
 
 [[rule]]

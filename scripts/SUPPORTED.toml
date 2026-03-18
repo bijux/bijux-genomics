@@ -2758,7 +2758,7 @@ ci_allowed = true
 id = "flake_hunt"
 path = "scripts/experimental/flake-hunt.sh"
 purpose = "experimental script"
-inputs = ["configs/nextest/nextest.toml"]
+inputs = ["configs/rust/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
@@ -2767,6 +2767,6 @@ ci_allowed = false
 id = "flake_hunt_tooling"
 path = "scripts/tooling/flake-hunt.sh"
 purpose = "tooling script"
-inputs = ["configs/nextest/nextest.toml"]
+inputs = ["configs/rust/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true

@@ -12,5 +12,5 @@ export LC_ALL
 ./bin/require-isolate >/dev/null
 ./scripts/run.sh checks check-audit-allowlist
 command -v cargo-deny >/dev/null 2>&1 || { echo "missing required tool: cargo-deny"; echo "install once: cargo install cargo-deny --locked"; exit 1; }
-cargo deny check
+CARGO_TARGET_DIR="artifacts/rust/target" cargo deny check --config configs/rust/deny.toml
 '

@@ -6,7 +6,7 @@
 ## Layout
 - `configs/ci/`: generated and policy-governed CI/SSOT config inputs.
 - `configs/coverage/`: coverage thresholds and coverage gate inputs.
-- `configs/nextest/`: nextest profiles and test-runner configuration.
+- `configs/rust/`: Rust fmt, lint, audit, and nextest configuration.
 - `configs/logging/`: logging presets and logging format configuration.
 - `configs/bench/`: benchmark suite and benchmark profile configuration.
 - `configs/runtime/`: runtime defaults and platform/local runtime knobs.

@@ -25,7 +25,7 @@ Covers repository config contracts under `configs/**` and their owner mapping.
 | `configs/hpc/` | HPC sync/profile knobs (rsync include/exclude) | `configs/OWNERS.toml` |
 | `configs/bench/` | Benchmark execution knobs | `configs/OWNERS.toml` |
 | `configs/coverage/` | Coverage thresholds | `configs/OWNERS.toml` |
-| `configs/nextest/` | Test runner profile config | `configs/OWNERS.toml` |
+| `configs/rust/` | Rust fmt, lint, audit, and nextest config | `configs/OWNERS.toml` |
 
 ## Validation Path
 1. Run `./scripts/run.sh checks check-config-owners`.
