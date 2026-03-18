@@ -2,7 +2,7 @@ NEXTEST_PROFILE ?= ci
 NEXTEST_PROFILE_FAST ?= fast-unit
 NEXTEST_PROFILE_SLOW ?= slow-integration
 NEXTEST_PROFILE_CERT ?= certification
-ARTIFACTS_DIR ?= $(if $(ISO_ROOT),$(ISO_ROOT)/artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),no-runid),artifacts/isolate/$(or $(MAKECMDGOALS),manual)/$(or $(ISO_RUN_ID),local))
+ARTIFACTS_DIR ?= $(ARTIFACT_ROOT)/make/$(or $(MAKECMDGOALS),manual)
 NEXTEST_TOML := configs/rust/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
 NEXTEST_FAST_EXPR ?= not test(/::slow__/)
@@ -16,29 +16,18 @@ LINT_PARALLEL_COMMANDS_FILE ?= makes/lint.parallel.commands.txt
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
-AUTO_ISO_TAG_PREFIX ?= make
 
 fmt:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-fmt-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _fmt; \
-	else \
-		$(MAKE) _fmt; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _fmt
 
 _fmt:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling ci-fmt
 
 lint:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint; \
-	else \
-		$(MAKE) _lint; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint
 
 _lint:
 	@$(MAKE) _lint-rustfmt
@@ -48,23 +37,23 @@ _lint:
 	@$(MAKE) _lint-clippy
 
 _lint-rustfmt:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling ci-fmt
 
 _lint-configs:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh checks check-config-schema
 	@./scripts/run.sh checks check-config-layout
 	@./scripts/run.sh checks check-generated-configs
 	@./scripts/run.sh checks check-generated-config-headers
 
 _lint-docs:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh docs check-doc-links
 	@./scripts/run.sh checks check-docs-build-contract
 
 _lint-scripts:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	./scripts/run.sh tooling repo-doctor --fast
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
@@ -85,60 +74,35 @@ _lint-scripts:
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 
 lint-scripts: ## Run repo-doctor + script/container lint checks (parallelized), without clippy.
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-scripts-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-scripts; \
-	else \
-		$(MAKE) _lint-scripts; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-scripts
 
 lint-rustfmt: ## Run rustfmt gate only.
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-rustfmt-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-rustfmt; \
-	else \
-		$(MAKE) _lint-rustfmt; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-rustfmt
 
 lint-clippy: ## Run clippy gate only.
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-clippy-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-clippy; \
-	else \
-		$(MAKE) _lint-clippy; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-clippy
 
 lint-docs: ## Run docs lint gates only.
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-docs-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-docs; \
-	else \
-		$(MAKE) _lint-docs; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-docs
 
 lint-configs: ## Run config/schema lint gates only.
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-lint-configs-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _lint-configs; \
-	else \
-		$(MAKE) _lint-configs; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-configs
 
 lint-fast: ## Run lint checks relevant to changed paths only.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling lint-fast
 
 _lint-clippy:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy
 
 _lint-clippy-executors:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" ./scripts/run.sh tooling ci-clippy-executors
 
 _clippy: ## Run workspace clippy only (no script gates).
@@ -148,71 +112,47 @@ _clippy-executors: ## Run deny-warnings clippy for runner/executor crates.
 	@$(MAKE) _lint-clippy-executors
 
 test:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-test-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _test; \
-	else \
-		$(MAKE) _test; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _test
 
 test-fast:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-test-fast-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _test-fast; \
-	else \
-		$(MAKE) _test-fast; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _test-fast
 
 _test:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test
 
 _test-fast: ## Run fast test suite excluding only slow-labeled tests.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_FAST)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" ./scripts/run.sh tooling ci-test
 
 _test-slow: ## Run only slow-labeled tests (functions containing slow__).
+	@$(ensure_artifact_env)
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_SLOW)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" ./scripts/run.sh tooling ci-test-slow
 
 audit:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-audit-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _audit; \
-	else \
-		$(MAKE) _audit; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _audit
 
 _audit:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling ci-audit
 
 coverage:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-coverage-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _coverage; \
-	else \
-		$(MAKE) _coverage; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _coverage
 
 _coverage:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" ./scripts/run.sh tooling ci-coverage
 
 doctor:
-	@if [ -n "$$ISO_ROOT" ]; then ./bin/require-isolate >/dev/null; fi
-	@if [ -z "$$ISO_ROOT" ]; then \
-		tag="$(AUTO_ISO_TAG_PREFIX)-doctor-$$(date -u +%Y%m%dT%H%M%SZ)-$$PPID"; \
-		ISO_TAG="$$tag" ./bin/isolate --tag "$$tag" $(MAKE) _doctor; \
-	else \
-		$(MAKE) _doctor; \
-	fi
+	@$(ensure_artifact_env)
+	@$(MAKE) _doctor
 
 _doctor:
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling repo-doctor --fast
 	@./scripts/run.sh checks check-supported-scripts
 	@./scripts/run.sh checks check-config-schema
@@ -231,25 +171,29 @@ _doctor:
 	@./scripts/run.sh checks check-no-raw-cargo-in-makes
 
 _install-ci-tools: ## Install required cargo tools once per CI job.
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling ci-install-tools
 
 _domain-gates: _domain-validate _domain-inventory-drift _check-generated-configs _check-generated-config-headers
 
 ci:
-	@./bin/isolate sh -ceu 'export CARGO_TARGET_DIR="$$ISO_ROOT/target-ci"; ./scripts/run.sh tooling repo-doctor --fast; $(MAKE) fmt lint audit test coverage'
+	@$(ensure_artifact_env)
+	@./scripts/run.sh tooling repo-doctor --fast
+	@$(MAKE) fmt lint audit test coverage
 
 _check:
 	$(MAKE) fmt lint audit coverage
 
-_verify-parallel-isolation:
-	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > "$$ISO_ROOT/.verify_path"'
-	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'echo "$$ISO_ROOT" > "$$ISO_ROOT/.verify_path"'
-	@a_root="$$(ISO_TAG=verify-a ./bin/isolate --print-root)"; b_root="$$(ISO_TAG=verify-b ./bin/isolate --print-root)"; test "$$(cat "$$a_root/.verify_path")" != "$$(cat "$$b_root/.verify_path")"
-	@ISO_TAG=verify-a ./bin/isolate sh -ceu 'rm -f "$$ISO_ROOT/.verify_path"'
-	@ISO_TAG=verify-b ./bin/isolate sh -ceu 'rm -f "$$ISO_ROOT/.verify_path"'
+_verify-artifact-env:
+	@$(ensure_artifact_env)
+	@test -d "$(CARGO_TARGET_DIR)"
+	@test -d "$(CARGO_HOME)"
+	@test -d "$(TMPDIR)"
+	@test "$(ISO_ROOT)" = "$(abspath $(ARTIFACT_ROOT))"
 
-_clean-isolates:
-	@rm -rf artifacts/isolates/*
+_clean-artifact-scratch:
+	@$(call safe_rm,$(ARTIFACT_ROOT)/tmp)
+	@mkdir -p "$(ARTIFACT_ROOT)/tmp"
 
 _policy-fast: ## Run fast policy checks (no snapshots)
 	@./scripts/run.sh tooling cargo-targets policy-fast
@@ -286,7 +230,7 @@ _ci-slow: ## Slow CI tier (manual): heavier integration checks.
 	$(MAKE) _install-ci-tools
 	$(MAKE) audit
 	$(MAKE) coverage
-	$(MAKE) _docs-isolate
+	$(MAKE) _docs-contract
 	$(MAKE) _domain-gates
 	$(MAKE) _release-readiness
 
@@ -328,6 +272,7 @@ _test-triage: ## Group failed tests from a saved nextest log.
 	@./scripts/run.sh test test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
 
 generate-configs:
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling generate-configs
 
 _generate-configs:
@@ -344,12 +289,12 @@ _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	./scripts/run.sh checks check-no-raw-cargo-in-scripts
 
 flake-hunt: ## Run repeated flake hunt for an expression (EXPR required, RUNS optional).
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@if [ -z "$(EXPR)" ]; then echo "EXPR is required, e.g. make flake-hunt EXPR='test(...)' RUNS=20" >&2; exit 2; fi
 	@./scripts/run.sh tooling flake-hunt --expr "$(EXPR)" --runs "$(or $(RUNS),20)"
 
 realness-gate: ## Run strict realness checks (placeholder artifacts + planner realization).
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh checks check-domain-realization
 	@./scripts/run.sh checks check-no-fake-artifacts
 
@@ -372,27 +317,27 @@ _smoke-bam: ## Quick local BAM smoke dry-run.
 	@./scripts/run.sh smoke run bam
 
 local-certification-gate: ## Run local mini-domain certification suite and emit bundle.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling certification-gate
 
 vcf-certification: ## Local-only VCF certification run (sequential VCF stage contract suite).
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@NEXTEST_PROFILE="$(NEXTEST_PROFILE_CERT)" ./scripts/run.sh tooling cargo-targets vcf-certification
 
 certify-fastq: ## Local FASTQ certification smoke.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling certify-fastq
 
 certify-bam: ## Local BAM certification smoke.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling certify-bam
 
 certify-vcf: ## Local VCF certification suite.
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling certify-vcf
 
 certify-all: ## Local cross-domain certification bundle (FASTQ+BAM+VCF downstream mini).
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh tooling certify-all
 
 examples-validate:
@@ -416,8 +361,8 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@./scripts/run.sh assets refresh-golden
 
-.PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-scripts test test-fast audit coverage ci doctor _check _verify-parallel-isolation \
-		_clean-isolates \
+.PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-scripts test test-fast audit coverage ci doctor _check _verify-artifact-env \
+		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
@@ -428,8 +373,9 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
 		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden flake-hunt
+
 release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
-	@./bin/require-isolate >/dev/null
+	@$(ensure_artifact_env)
 	@./scripts/run.sh docs check-doc-links
 	@./scripts/run.sh checks check-docs-build-contract
 	@./scripts/run.sh checks check-tool-registry-lock

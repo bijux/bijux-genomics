@@ -11,4 +11,5 @@ export LC_ALL
 cargo_build_jobs="${CARGO_BUILD_JOBS:-8}"
 crate_args="-p bijux-dna-engine -p bijux-dna-runner -p bijux-dna-runtime -p bijux-dna-api -p bijux-dna-stages-bam -p bijux-dna-stages-vcf"
 
-./bin/isolate sh -ceu "./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS='${cargo_build_jobs}' cargo clippy --all-targets --all-features ${crate_args} -- -D warnings"
+require_artifact_env
+CARGO_BUILD_JOBS="${cargo_build_jobs}" cargo clippy --all-targets --all-features ${crate_args} -- -D warnings

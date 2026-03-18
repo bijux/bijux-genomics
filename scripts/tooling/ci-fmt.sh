@@ -8,4 +8,5 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-./bin/isolate sh -ceu './bin/require-isolate >/dev/null; cargo fmt --all -- --check'
+require_artifact_env
+cargo fmt --all -- --check

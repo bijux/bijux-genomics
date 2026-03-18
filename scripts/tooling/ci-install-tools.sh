@@ -8,4 +8,5 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-./bin/isolate sh -ceu './bin/require-isolate >/dev/null; cargo install --locked cargo-nextest cargo-llvm-cov cargo-deny'
+require_artifact_env
+cargo install --locked cargo-nextest cargo-llvm-cov cargo-deny

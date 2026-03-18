@@ -10,4 +10,5 @@ export LC_ALL
 
 cargo_build_jobs="${CARGO_BUILD_JOBS:-8}"
 
-./bin/isolate sh -ceu \"./bin/require-isolate >/dev/null; CLIPPY_CONF_DIR='configs/rust' CARGO_TARGET_DIR='artifacts/rust/target' CARGO_BUILD_JOBS='${cargo_build_jobs}' cargo clippy --workspace --all-targets --all-features -- -D warnings\"
+require_artifact_env
+CLIPPY_CONF_DIR='configs/rust' CARGO_BUILD_JOBS="${cargo_build_jobs}" cargo clippy --workspace --all-targets --all-features -- -D warnings

@@ -8,7 +8,7 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-./bin/require-isolate >/dev/null
+require_artifact_env
 
 base_ref="${LINT_FAST_BASE_REF:-}"
 if [[ -z "$base_ref" ]]; then

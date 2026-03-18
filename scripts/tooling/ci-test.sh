@@ -41,27 +41,23 @@ else
   nextest_expr=""
 fi
 
-expr_arg=""
-if [[ -n "${nextest_expr}" ]]; then
-  expr_arg="-E \"${nextest_expr}\""
-fi
-
-./bin/isolate sh -ceu "
-./bin/require-isolate >/dev/null
-./scripts/checks/check-isolation-contract.sh
+require_artifact_env
+./scripts/checks/check-artifact-env-contract.sh
 ./scripts/checks/check-ssot-guardrails.sh
 command -v cargo-nextest >/dev/null 2>&1 || { echo 'missing required tool: cargo-nextest'; echo 'install once: cargo install cargo-nextest --locked'; exit 1; }
 chmod -R a-w assets
 trap 'chmod -R u+w assets; chmod -R go-w assets' EXIT
 export TZ=UTC LC_ALL=C
-export TEST_TARGET_DIR=\"\$ISO_ROOT/target-test\"
-export COV_TARGET_DIR=\"\$ISO_ROOT/target-cov\"
-export TEST_TMP_DIR=\"\$ISO_ROOT/tmp-test\"
-export COV_TMP_DIR=\"\$ISO_ROOT/tmp-cov\"
-export TEST_PROFRAW_DIR=\"\$ISO_ROOT/profraw-test\"
-export COV_PROFRAW_DIR=\"\$ISO_ROOT/profraw-cov\"
-export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"
+export TEST_TARGET_DIR="${CARGO_TARGET_DIR}"
+export COV_TARGET_DIR="${CARGO_TARGET_DIR}"
+export TEST_TMP_DIR="${ARTIFACT_ROOT}/tmp/test"
+export COV_TMP_DIR="${ARTIFACT_ROOT}/tmp/coverage"
+export TEST_PROFRAW_DIR="${ARTIFACT_ROOT}/coverage/profraw-test"
+export COV_PROFRAW_DIR="${ARTIFACT_ROOT}/coverage/profraw-coverage"
 unset RUSTC_WRAPPER
-cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} ${expr_arg}
-./scripts/checks/check-isolation-contract.sh
-"
+expr_args=()
+if [[ -n "${nextest_expr}" ]]; then
+  expr_args=(-E "${nextest_expr}")
+fi
+cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} "${expr_args[@]}"
+./scripts/checks/check-artifact-env-contract.sh

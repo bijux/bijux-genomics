@@ -15,5 +15,5 @@ USAGE
   exit 0
 fi
 
-./bin/require-isolate >/dev/null
+require_artifact_env
 cargo run --bin bijux-dna -- "$@"

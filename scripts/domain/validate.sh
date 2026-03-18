@@ -11,21 +11,18 @@ repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$repo_root"
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  echo "Usage: scripts/domain/validate.sh [--allow-non-isolate]" >&2
+  echo "Usage: scripts/domain/validate.sh [--allow-non-artifacts]" >&2
   exit 0
 fi
 
-allow_non_isolate=0
-if [[ "${1:-}" == "--allow-non-isolate" ]]; then
-  allow_non_isolate=1
+allow_non_artifacts=0
+if [[ "${1:-}" == "--allow-non-artifacts" ]]; then
+  allow_non_artifacts=1
   shift
 fi
 
-if ! ./bin/require-isolate >/dev/null 2>&1; then
-  if [[ "$allow_non_isolate" -ne 1 ]]; then
-    echo "domain validate must run inside isolate; use --allow-non-isolate to override" >&2
-    exit 2
-  fi
+if [[ "$allow_non_artifacts" -ne 1 ]]; then
+  require_artifact_env
 fi
 
 ./scripts/domain/check-domain-layout.sh
@@ -46,4 +43,5 @@ fi
 ./scripts/domain/check-reference-bundle-lock.sh
 ./scripts/domain/check-inventory.sh
 
+setup_artifact_env
 cargo run -p bijux-dna-domain-compiler --bin domain_validate -- --domain-dir "$repo_root/domain"
