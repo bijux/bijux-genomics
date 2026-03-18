@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 351b4c91f141a95572bc29537de5b4329b1ee76d
+# source_commit: 1f61e3c735dd2ed5b43758187ab59aa44f8d225d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -33,7 +33,6 @@ version_cmd = "alientrimmer --version"
 help_cmd = "alientrimmer --help"
 smoke_version_cmd = "alientrimmer --version"
 smoke_help_cmd = "alientrimmer --help"
-smoke_negative_expected_pattern = "invalid|unknown|error|usage|not bundled"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "alientrimmer --help"
 expected_bin = "alientrimmer"
@@ -53,8 +52,8 @@ status = "production"
 stage_ids = ["bam.sex", "bam.kinship"]
 bindings = ["bam.kinship", "bam.sex"]
 tool_role = "transform"
-version = "6b5d906"
-default_version = "6b5d906"
+version = "0.940"
+default_version = "0.940"
 upstream = "https://github.com/ANGSD/angsd"
 version_rule = "pinned"
 license = "GPL-3.0"
@@ -68,8 +67,6 @@ version_cmd = "angsd --version"
 help_cmd = "angsd --help"
 smoke_version_cmd = "angsd --version"
 smoke_help_cmd = "angsd --help"
-smoke_negative_exit_code = 0
-smoke_negative_expected_pattern = "Unknown argument|unknown|invalid|error|usage"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "angsd --help"
 expected_bin = "angsd"
@@ -350,6 +347,40 @@ metrics_schema = "bijux.bam.contamination.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.contammix"
 apptainer_def = "containers/apptainer/lunarc/contammix.def"
+require_labels = true
+
+[[tools]]
+id = "cutadapt"
+tool_id = "cutadapt"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim", "fastq.primer_normalization", "fastq.damage_aware_pretrim"]
+bindings = ["fastq.damage_aware_pretrim", "fastq.primer_normalization", "fastq.trim"]
+tool_role = "trimmer"
+version = "4.9"
+default_version = "4.9"
+upstream = "https://github.com/cutadapt/cutadapt"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/cutadapt/cutadapt"
+pinned_commit = "sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "cutadapt --version"
+help_cmd = "cutadapt --help"
+smoke_version_cmd = "cutadapt --version"
+smoke_help_cmd = "cutadapt --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "cutadapt --help"
+expected_bin = "cutadapt"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.fastq.trim.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
+apptainer_def = "containers/apptainer/lunarc/cutadapt.def"
 require_labels = true
 
 [[tools]]
@@ -931,48 +962,14 @@ apptainer_def = "containers/apptainer/lunarc/schmutzi.def"
 require_labels = true
 
 [[tools]]
-id = "cutadapt"
-tool_id = "cutadapt"
-domain = "fastq"
-domains = ["fastq"]
-status = "production"
-stage_ids = ["fastq.trim", "fastq.primer_normalization", "fastq.damage_aware_pretrim"]
-bindings = ["fastq.damage_aware_pretrim", "fastq.primer_normalization", "fastq.trim"]
-tool_role = "transform"
-version = "4.9"
-default_version = "4.9"
-upstream = "https://github.com/cutadapt/cutadapt"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/cutadapt/cutadapt"
-pinned_commit = "sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "cutadapt --version"
-help_cmd = "cutadapt --help"
-smoke_version_cmd = "cutadapt --version"
-smoke_help_cmd = "cutadapt --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "cutadapt --help"
-expected_bin = "cutadapt"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
-apptainer_def = "containers/apptainer/lunarc/cutadapt.def"
-require_labels = true
-
-[[tools]]
 id = "seqkit"
 tool_id = "seqkit"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.filter", "fastq.primer_normalization"]
-bindings = ["fastq.filter", "fastq.primer_normalization"]
-tool_role = "filter"
+stage_ids = ["fastq.filter", "fastq.primer_normalization", "fastq.damage_aware_pretrim"]
+bindings = ["fastq.damage_aware_pretrim", "fastq.filter", "fastq.primer_normalization"]
+tool_role = "trimmer"
 version = "2.8.2"
 default_version = "2.8.2"
 upstream = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
@@ -1455,6 +1452,18 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.damage_aware_pretrim"
+required_tool_roles = ["trimmer"]
+primary_tools = ["cutadapt"]
+optional_alternatives = ["seqkit"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Damage-aware pretrim default uses deterministic terminal mask/trim policy for aDNA damage-aware pretrim."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.detect_adapters"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
@@ -1539,18 +1548,6 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.damage_aware_pretrim"
-required_tool_roles = ["transform"]
-primary_tools = ["cutadapt"]
-optional_alternatives = ["seqkit"]
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "Damage-aware pretrim defaults preserve a reproducible terminal trimming baseline for ancient DNA libraries."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
 id = "fastq.overrepresented_sequences"
 required_tool_roles = ["transform"]
 primary_tools = ["fastqc"]
@@ -1589,8 +1586,8 @@ requires_reporting = false
 [[stages]]
 id = "fastq.primer_normalization"
 required_tool_roles = ["transform"]
-primary_tools = ["seqkit"]
-optional_alternatives = []
+primary_tools = ["cutadapt"]
+optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1650,7 +1647,7 @@ requires_reporting = false
 id = "fastq.trim"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["bbduk", "fastp", "fastx_clipper", "seqkit"]
+optional_alternatives = ["bbduk", "cutadapt", "fastp", "fastx_clipper", "seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1681,3 +1678,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+

@@ -31,7 +31,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.deduplicate`: default `prinseq`.
 - `fastq.low_complexity`: default `bbduk`.
 - `fastq.host_depletion`: default `bowtie2`.
-- `fastq.contaminant_screen`: default `bbduk`.
+- `fastq.contaminant_screen`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
 - `fastq.correct`: default `rcorrector`.
 - `fastq.umi`: default `umi_tools`.
 - `fastq.overrepresented_sequences`: default `fastqc`.
