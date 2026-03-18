@@ -157,7 +157,7 @@ fn run_domain(command: DomainCommand) -> Result<()> {
     let app = DomainApplication::new()?;
     match command.command {
         DomainSubcommand::List => {
-            for command in app.registry()? {
+            for command in app.registry() {
                 println!("{}", command.id);
             }
             Ok(())

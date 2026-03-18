@@ -2,7 +2,38 @@
 pub struct DomainCommandDefinition {
     pub id: String,
     pub summary: String,
-    pub rel_path: String,
+    pub command: DomainCommandSpec,
+}
+
+#[derive(Debug, Clone)]
+pub enum DomainCommandSpec {
+    Native { key: NativeDomainCommandKey },
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum NativeDomainCommandKey {
+    CheckDefaultSettingsDocs,
+    CheckDocLinks,
+    CheckDomainIndex,
+    CheckDomainLayout,
+    CheckDomainSchema,
+    CheckDomainToolMetadata,
+    CheckExternalToolPolicy,
+    CheckFixtureContracts,
+    CheckInventory,
+    CheckOrphanFiles,
+    CheckPlannerFixtureCoverage,
+    CheckPlannerStageCoverage,
+    CheckReferenceBundleLock,
+    CheckRustStageCatalogParity,
+    CheckSharedTools,
+    CheckSsotAuthority,
+    CheckToolContainerParity,
+    GenerateIndex,
+    GenerateInventory,
+    InventoryDrift,
+    LockRegistry,
+    Validate,
 }
 
 #[derive(Debug, Clone)]
@@ -13,6 +44,24 @@ pub struct DomainCommandOutcome {
 }
 
 impl DomainCommandOutcome {
+    #[must_use]
+    pub fn success(stdout: impl Into<String>) -> Self {
+        Self {
+            exit_code: 0,
+            stdout: stdout.into(),
+            stderr: String::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn failure(stderr: impl Into<String>) -> Self {
+        Self {
+            exit_code: 1,
+            stdout: String::new(),
+            stderr: stderr.into(),
+        }
+    }
+
     #[must_use]
     pub fn from_output(output: std::process::Output) -> Self {
         Self {

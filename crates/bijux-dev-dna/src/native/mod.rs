@@ -1,4 +1,5 @@
 mod containers;
+mod domain;
 mod script_surface;
 mod support;
 mod workspace_checks;
@@ -8,6 +9,7 @@ use anyhow::Result;
 use crate::infrastructure::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, NativeCheckKey};
 use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
+use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};
 
 /// # Errors
 /// Returns an error if the native check cannot run.
@@ -148,4 +150,14 @@ pub fn run_native_container_command(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     containers::run_native_container_command(key, workspace, args)
+}
+
+/// # Errors
+/// Returns an error if the native domain command cannot run.
+pub fn run_native_domain_command(
+    key: &NativeDomainCommandKey,
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<DomainCommandOutcome> {
+    domain::run_native_domain_command(key, workspace, args)
 }
