@@ -20,7 +20,7 @@ examples=(
 )
 
 for ex in "${examples[@]}"; do
-  "$ROOT_DIR/scripts/examples/run.sh" --allow-non-isolate "$ex"
+  "$ROOT_DIR/scripts/examples/run.sh" --allow-non-artifacts "$ex"
 done
 
 python3 - "$ROOT_DIR" "$OUT_DIR" <<'PY'

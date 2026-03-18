@@ -19,7 +19,9 @@ pub fn run_native_check(
         NativeCheckKey::ArtifactEnvContract => {
             workspace_checks::check_artifact_env_contract(workspace, check)
         }
-        NativeCheckKey::ArtifactsLayout => workspace_checks::check_artifacts_layout(workspace, check),
+        NativeCheckKey::ArtifactsLayout => {
+            workspace_checks::check_artifacts_layout(workspace, check)
+        }
         NativeCheckKey::ArtifactsTracked => {
             workspace_checks::check_artifacts_tracked(workspace, check)
         }
@@ -47,6 +49,9 @@ pub fn run_native_check(
             workspace_checks::check_clippy_allowlist_growth(workspace, check)
         }
         NativeCheckKey::ConfigSchema => workspace_checks::check_config_schema(workspace, check),
+        NativeCheckKey::DocsBuildContract => {
+            workspace_checks::check_docs_build_contract(workspace, check)
+        }
         NativeCheckKey::DocsRequirementsLock => {
             workspace_checks::check_docs_requirements_lock(workspace, check)
         }
@@ -54,20 +59,34 @@ pub fn run_native_check(
             workspace_checks::check_examples_runner_contract(workspace, check)
         }
         NativeCheckKey::ExitCodes => script_surface::check_exit_codes(workspace, check),
-        NativeCheckKey::GeneratedConfigs => workspace_checks::check_generated_configs(workspace, check),
+        NativeCheckKey::FrontendMiniDomainValidation => {
+            workspace_checks::check_frontend_mini_domain_validation(workspace, check)
+        }
+        NativeCheckKey::GeneratedConfigs => {
+            workspace_checks::check_generated_configs(workspace, check)
+        }
         NativeCheckKey::GitignoreContract => {
             workspace_checks::check_gitignore_contract(workspace, check)
         }
-        NativeCheckKey::HiddenTmpUsage => workspace_checks::check_hidden_tmp_usage(workspace, check),
+        NativeCheckKey::HiddenTmpUsage => {
+            workspace_checks::check_hidden_tmp_usage(workspace, check)
+        }
         NativeCheckKey::HpcSafety => workspace_checks::check_hpc_safety(workspace, check),
+        NativeCheckKey::HpcRsyncDocsParity => {
+            workspace_checks::check_hpc_rsync_docs_parity(workspace, check)
+        }
         NativeCheckKey::LibApi => script_surface::check_lib_api(workspace, check),
-        NativeCheckKey::LoggingContract => workspace_checks::check_logging_contract(workspace, check),
+        NativeCheckKey::LoggingContract => {
+            workspace_checks::check_logging_contract(workspace, check)
+        }
         NativeCheckKey::MakeHelpSync => workspace_checks::check_make_help_sync(workspace, check),
         NativeCheckKey::NetworkUsage => script_surface::check_network_usage(workspace, check),
         NativeCheckKey::NoFakeArtifacts => {
             workspace_checks::check_no_fake_artifacts(workspace, check)
         }
-        NativeCheckKey::NoOrphanScripts => script_surface::check_no_orphan_scripts(workspace, check),
+        NativeCheckKey::NoOrphanScripts => {
+            script_surface::check_no_orphan_scripts(workspace, check)
+        }
         NativeCheckKey::NoParallelAccidental => {
             script_surface::check_no_parallel_accidental(workspace, check)
         }
@@ -99,17 +118,19 @@ pub fn run_native_check(
             script_surface::check_script_entrypoint(workspace, check)
         }
         NativeCheckKey::ScriptHelp => script_surface::check_script_help(workspace, check),
-        NativeCheckKey::ScriptInterface => {
-            script_surface::check_script_interface(workspace, check)
-        }
+        NativeCheckKey::ScriptInterface => script_surface::check_script_interface(workspace, check),
         NativeCheckKey::ScriptWrites => script_surface::check_script_writes(workspace, check),
         NativeCheckKey::ShellPortability => {
             script_surface::check_shell_portability(workspace, check)
         }
         NativeCheckKey::SsotGuardrails => workspace_checks::check_ssot_guardrails(workspace, check),
         NativeCheckKey::SpeciesAliases => workspace_checks::check_species_aliases(workspace, check),
-        NativeCheckKey::SupportedScripts => script_surface::check_supported_scripts(workspace, check),
-        NativeCheckKey::ToolRegistryLock => workspace_checks::check_tool_registry_lock(workspace, check),
+        NativeCheckKey::SupportedScripts => {
+            script_surface::check_supported_scripts(workspace, check)
+        }
+        NativeCheckKey::ToolRegistryLock => {
+            workspace_checks::check_tool_registry_lock(workspace, check)
+        }
         NativeCheckKey::TreeIntent => script_surface::check_tree_intent(workspace, check),
         NativeCheckKey::VcfCompatibilityMatrix => {
             workspace_checks::check_vcf_compatibility_matrix(workspace, check)

@@ -27,10 +27,7 @@ pub(crate) fn check_supported_scripts(
     }
 
     let referenced = referenced_scripts_from_make(workspace)?;
-    let referenced_missing = referenced
-        .difference(&listed)
-        .cloned()
-        .collect::<Vec<_>>();
+    let referenced_missing = referenced.difference(&listed).cloned().collect::<Vec<_>>();
 
     let runnable = runnable_script_paths(workspace)?
         .into_iter()
@@ -44,7 +41,10 @@ pub(crate) fn check_supported_scripts(
 
     let mut lines = Vec::new();
     if !missing_files.is_empty() {
-        lines.push(format!("listed script files missing: {}", missing_files.join(", ")));
+        lines.push(format!(
+            "listed script files missing: {}",
+            missing_files.join(", ")
+        ));
     }
     if !referenced_missing.is_empty() {
         lines.push(format!(
@@ -122,12 +122,13 @@ pub(crate) fn check_script_interface(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let mut violations = Vec::new();
+    let tmp_root = workspace.path("artifacts/tmp");
+    std::fs::create_dir_all(&tmp_root).with_context(|| format!("create {}", tmp_root.display()))?;
+    let pollution_dir = workspace.path("artifacts/containers/smoke/pollution");
     let pollution = workspace.path("--__bijux_invalid_flag__");
+    let timestamp = chrono::Utc::now().format("%Y%m%dT%H%M%SZ").to_string();
 
-    if pollution.exists() {
-        std::fs::remove_file(&pollution)
-            .with_context(|| format!("remove stale {}", pollution.display()))?;
-    }
+    capture_root_pollution(workspace, &pollution, &pollution_dir, &timestamp)?;
 
     for path in runnable_script_paths(workspace)? {
         let rel = workspace.rel(&path).to_string_lossy().to_string();
@@ -145,34 +146,43 @@ pub(crate) fn check_script_interface(
             violations.push(format!("{rel}: help output missing Usage:"));
         }
         if help_text.contains("--verbose") {
-            let verbose =
-                run_command(workspace, "timeout", &["8s", &script, "--verbose", "--help"])?;
+            let verbose = run_command(
+                workspace,
+                "timeout",
+                &["8s", &script, "--verbose", "--help"],
+            )?;
             if !verbose.status.success() {
                 violations.push(format!("{rel}: --verbose --help failed"));
             }
         }
         if help_text.contains("--dry-run") {
-            let dry_run =
-                run_command(workspace, "timeout", &["8s", &script, "--dry-run", "--help"])?;
+            let dry_run = run_command(
+                workspace,
+                "timeout",
+                &["8s", &script, "--dry-run", "--help"],
+            )?;
             if !dry_run.status.success() {
                 violations.push(format!("{rel}: --dry-run --help failed"));
             }
         }
-        let probe = run_command(
-            workspace,
-            "timeout",
-            &["1s", &script, "--__bijux_invalid_flag__"],
-        )?;
-        if pollution.exists() {
-            violations.push(format!(
-                "{rel}: invalid flag probe wrote {}",
-                workspace.rel(&pollution).display()
-            ));
-            std::fs::remove_file(&pollution)
-                .with_context(|| format!("remove {}", pollution.display()))?;
+        let probe_dir = tmp_root.join(format!("script-interface-probe-{}", std::process::id()));
+        if probe_dir.exists() {
+            std::fs::remove_dir_all(&probe_dir)
+                .with_context(|| format!("remove {}", probe_dir.display()))?;
         }
-        if probe.status.code().is_some_and(|code| code == 0) {
-            violations.push(format!("{rel}: invalid flag unexpectedly succeeded"));
+        std::fs::create_dir_all(&probe_dir)
+            .with_context(|| format!("create {}", probe_dir.display()))?;
+        std::process::Command::new("timeout")
+            .args(["1s", &script, "--__bijux_invalid_flag__"])
+            .current_dir(&probe_dir)
+            .status()
+            .with_context(|| format!("run invalid-flag probe for {rel}"))?;
+        std::fs::remove_dir_all(&probe_dir)
+            .with_context(|| format!("remove {}", probe_dir.display()))?;
+        if capture_root_pollution(workspace, &pollution, &pollution_dir, &timestamp)? {
+            violations.push(format!(
+                "{rel}: invalid-flag probe wrote --__bijux_invalid_flag__ at repo root"
+            ));
         }
     }
 
@@ -241,7 +251,10 @@ pub(crate) fn check_script_deps(
             .map(|dir| dir.join("README.md"))
             .context("script path has no parent")?;
         if !readme.is_file() {
-            violations.push(format!("{rel}: missing {}/README.md", readme.parent().unwrap().display()));
+            violations.push(format!(
+                "{rel}: missing {}/README.md",
+                readme.parent().unwrap().display()
+            ));
             continue;
         }
         let raw = read(&readme)?;
@@ -291,22 +304,27 @@ pub(crate) fn check_shell_portability(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let forbidden = [
-        ("function ", "prefer POSIX-style name() declarations"),
-        ("readarray", "readarray is not portable"),
-        ("mapfile", "mapfile is not portable"),
-    ];
     let mut violations = Vec::new();
-    for path in shell_script_paths(workspace)? {
-        if path.extension().and_then(|ext| ext.to_str()) != Some("sh") {
+    let sed_in_place = Regex::new(r"\bsed\s+-i(\s|$)").expect("regex");
+    let readlink_f = Regex::new(r"\breadlink -f\b").expect("regex");
+    for entry in load_supported_scripts(workspace)? {
+        let path = workspace.path(&entry.path);
+        if path.extension().and_then(|ext| ext.to_str()) != Some("sh") || !path.is_file() {
             continue;
         }
         let rel = workspace.rel(&path).to_string_lossy().to_string();
         let raw = read(&path)?;
-        for (needle, reason) in forbidden {
-            if raw.contains(needle) {
-                violations.push(format!("{rel}: {reason}"));
-            }
+        let first = raw.lines().next().unwrap_or_default();
+        if first == "#!/bin/sh" {
+            violations.push(format!("{rel}: uses #!/bin/sh"));
+        }
+        if sed_in_place.is_match(&raw) && !raw.contains("compat_sed_inplace") {
+            violations.push(format!("{rel}: uses sed -i without compatibility wrapper"));
+        }
+        if readlink_f.is_match(&raw) && !raw.contains("compat_readlink_f") {
+            violations.push(format!(
+                "{rel}: uses readlink -f without compatibility wrapper"
+            ));
         }
     }
     if violations.is_empty() {
@@ -354,11 +372,7 @@ pub(crate) fn check_ci_shell_scripts(
         if !workflows.contains(&rel) {
             continue;
         }
-        let head = read(&path)?
-            .lines()
-            .take(16)
-            .collect::<Vec<_>>()
-            .join("\n");
+        let head = read(&path)?.lines().take(16).collect::<Vec<_>>().join("\n");
         if !head.contains("set -euo pipefail") && !head.contains("set -Eeuo pipefail") {
             violations.push(format!("{rel}: missing strict mode header"));
         }
@@ -367,7 +381,10 @@ pub(crate) fn check_ci_shell_scripts(
         }
     }
     if violations.is_empty() {
-        return pass(check, "CI shell scripts keep strict mode and locale headers");
+        return pass(
+            check,
+            "CI shell scripts keep strict mode and locale headers",
+        );
     }
     fail(check, violations.join("\n"))
 }
@@ -376,31 +393,49 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let allowed = load_supported_scripts(workspace)?
+    let ci_allowed = load_supported_scripts(workspace)?
         .into_iter()
         .filter(|entry| entry.ci_allowed)
         .map(|entry| entry.path)
         .collect::<BTreeSet<_>>();
+    let raw_cargo_re = Regex::new(r"^\t@?.*\bcargo(\s|$)").expect("regex");
+    let tool_re = Regex::new(
+        r"(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\b",
+    )
+    .expect("regex");
+    let direct_script_re = Regex::new(r"^\t@?.*scripts/[A-Za-z0-9_./-]+\.sh").expect("regex");
+    let run_script_re =
+        Regex::new(r"scripts/run\.sh[[:space:]]+([a-z_]+)[[:space:]]+([A-Za-z0-9_./-]+)")
+            .expect("regex");
     let mut violations = Vec::new();
     for file in make_files(workspace)? {
         let rel = workspace.rel(&file).to_string_lossy().to_string();
         let raw = read(&file)?;
         for line in raw.lines() {
-            let trimmed = line.trim();
-            if trimmed.starts_with('#') {
-                continue;
-            }
-            if trimmed.contains("cargo ")
-                && !trimmed.contains("scripts/run.sh")
-                && !trimmed.contains("./scripts/run.sh")
+            if raw_cargo_re.is_match(line)
+                && !line.contains("install once: cargo install")
+                && !line.contains("policy-no-raw-cargo")
             {
-                violations.push(format!("{rel}: direct cargo usage `{trimmed}`"));
+                violations.push(format!("{rel}:{line}"));
             }
-            if let Some(script) = direct_script_path(trimmed) {
-                if !allowed.contains(&script) {
-                    violations.push(format!(
-                        "{rel}: non-ci script referenced from make `{script}`"
-                    ));
+            if tool_re.is_match(line) && !line.contains("scripts/tooling/") {
+                violations.push(format!("{rel}:{line}"));
+            }
+            if direct_script_re.is_match(line) && !line.contains("scripts/run.sh") {
+                violations.push(format!("{rel}:{line}"));
+            }
+            for script in script_paths_in_line(line) {
+                if script != "scripts/run.sh" && !ci_allowed.contains(&script) {
+                    violations.push(format!("{rel}:{line} -> {script} not ci_allowed=true"));
+                }
+            }
+            if let Some(caps) = run_script_re.captures(line) {
+                if &caps[1] == "checks" {
+                    continue;
+                }
+                let script = format!("scripts/{}/make.sh", &caps[1]);
+                if !ci_allowed.contains(&script) {
+                    violations.push(format!("{rel}:{line} -> {script} not ci_allowed=true"));
                 }
             }
         }
@@ -421,19 +456,48 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
         "scripts/domain/validate.sh",
         "scripts/lab/run_bench.sh",
         "scripts/lab/run_pipelines.sh",
+        "scripts/run.sh",
         "scripts/tooling/bijux.sh",
         "scripts/tooling/generate-configs.sh",
         "scripts/tooling/image-qa.sh",
     ];
+    let cargo_re = Regex::new(
+        r"cargo (fmt|clippy|test|run|deny|nextest|llvm-cov|insta|build|check|doc|install)\b",
+    )
+    .expect("regex");
+    let container_re =
+        Regex::new(r"(^|[[:space:];|&])(docker|apptainer)([[:space:]]|$)").expect("regex");
     let mut violations = Vec::new();
-    for path in shell_script_paths(workspace)? {
-        let rel = workspace.rel(&path).to_string_lossy().to_string();
+    for entry in load_supported_scripts(workspace)? {
+        let rel = entry.path;
         if allowlist.contains(&rel.as_str()) {
             continue;
         }
+        if rel.starts_with("scripts/tooling/ci-") || rel == "scripts/tooling/cargo-targets.sh" {
+            continue;
+        }
+        if !rel.ends_with(".sh") {
+            continue;
+        }
+        let path = workspace.path(&rel);
+        if !path.is_file() {
+            continue;
+        }
         let raw = read(&path)?;
-        if raw.contains("cargo ") || raw.contains("docker ") || raw.contains("apptainer ") {
-            violations.push(format!("{rel}: direct tool invocation detected"));
+        for (index, line) in raw.lines().enumerate() {
+            if cargo_re.is_match(line)
+                && !line.contains("require_artifact_env")
+                && !line.contains("Regenerate with: cargo run")
+                && !line.contains("ARTIFACT_ROOT=artifacts cargo nextest run")
+                && !line.contains("cargo nextest must use")
+                && !line.contains("cargo install|policy-no-raw-cargo")
+                && !line.contains("cargo llvm-cov nextest must use")
+            {
+                violations.push(format!("{rel}:{}:{line}", index + 1));
+            }
+            if !rel.starts_with("scripts/containers/") && container_re.is_match(line) {
+                violations.push(format!("{rel}:{}:{line}", index + 1));
+            }
         }
     }
     if violations.is_empty() {
@@ -446,27 +510,63 @@ pub(crate) fn check_no_parallel_accidental(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let scripts = load_supported_scripts(workspace)?;
-    let mut seen = BTreeSet::new();
-    let mut duplicates = Vec::new();
     let write_re = Regex::new(r"artifacts/[A-Za-z0-9._/-]+").expect("regex");
-    for entry in scripts {
+    let variable_re =
+        Regex::new(r"\$\{?(ISO_ROOT|RUN_ID|TAG|TIMESTAMP|UUID|RANDOM|tmp|TMP)").expect("regex");
+    let mut violations = Vec::new();
+    for entry in load_supported_scripts(workspace)? {
         let path = workspace.path(&entry.path);
         if !path.is_file() {
             continue;
         }
         let raw = read(&path)?;
-        for capture in write_re.find_iter(&raw) {
-            let key = capture.as_str().to_string();
-            if !seen.insert(key.clone()) {
-                duplicates.push(format!("{}: {key}", entry.path));
+        for artifact_path in write_re
+            .find_iter(&raw)
+            .map(|capture| capture.as_str().to_string())
+            .collect::<BTreeSet<_>>()
+        {
+            if [
+                "artifacts/tmp",
+                "artifacts/inventory",
+                "artifacts/test-logs",
+                "artifacts/coverage",
+                "artifacts/docs",
+                "artifacts/policies",
+                "artifacts/assets-refresh",
+                "artifacts/containers",
+                "artifacts/examples",
+                "artifacts/domain",
+                "artifacts/vcf",
+                "artifacts/reference_store",
+                "artifacts/test",
+                "artifacts/smoke_bam",
+                "artifacts/smoke_fastq",
+                "artifacts/configs",
+            ]
+            .iter()
+            .any(|prefix| {
+                artifact_path == *prefix || artifact_path.starts_with(&format!("{prefix}/"))
+            }) {
+                continue;
+            }
+            for line in raw.lines().filter(|line| line.contains(&artifact_path)) {
+                if !variable_re.is_match(line) && looks_like_write_line(line) {
+                    violations.push(format!(
+                        "{} -> fixed artifact path may collide in parallel runs: {}",
+                        entry.path, artifact_path
+                    ));
+                    break;
+                }
             }
         }
     }
-    if duplicates.is_empty() {
-        return pass(check, "supported scripts do not share accidental artifact roots");
+    if violations.is_empty() {
+        return pass(
+            check,
+            "supported scripts do not share accidental artifact roots",
+        );
     }
-    fail(check, duplicates.join("\n"))
+    fail(check, violations.join("\n"))
 }
 
 pub(crate) fn check_no_temp_leaks(
@@ -496,20 +596,39 @@ pub(crate) fn check_network_usage(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let allowlist = [
-        "scripts/tooling/acquire-maps.sh",
-        "scripts/tooling/acquire-panels.sh",
-        "scripts/tooling/acquire-reference.sh",
-    ];
+    let network_re = Regex::new(r"\bcurl\b|\bwget\b|git[[:space:]]+clone\b").expect("regex");
     let mut violations = Vec::new();
-    for path in shell_script_paths(workspace)? {
-        let rel = workspace.rel(&path).to_string_lossy().to_string();
-        if allowlist.contains(&rel.as_str()) {
+    let listed = load_supported_scripts(workspace)?;
+    let listed_paths = listed
+        .iter()
+        .map(|entry| entry.path.clone())
+        .collect::<BTreeSet<_>>();
+    for entry in listed {
+        let rel = entry.path;
+        let path = workspace.path(&rel);
+        if !path.is_file() {
             continue;
         }
         let raw = read(&path)?;
-        if raw.contains("curl ") || raw.contains("wget ") || raw.contains("git clone ") {
-            violations.push(format!("{rel}: network primitive detected"));
+        if network_re.is_match(&raw) && !entry.network_allowed {
+            violations.push(format!(
+                "{rel} uses network command(s) but network_allowed != true"
+            ));
+        }
+    }
+    for path in shell_script_paths(workspace)? {
+        if path.extension().and_then(|ext| ext.to_str()) != Some("sh") {
+            continue;
+        }
+        let rel = workspace.rel(&path).to_string_lossy().to_string();
+        if rel.starts_with("scripts/experimental/") || listed_paths.contains(&rel) {
+            continue;
+        }
+        let raw = read(&path)?;
+        if network_re.is_match(&raw) {
+            violations.push(format!(
+                "{rel} uses network command(s) but is not declared in scripts/SUPPORTED.toml with network_allowed=true"
+            ));
         }
     }
     if violations.is_empty() {
@@ -523,8 +642,9 @@ pub(crate) fn check_script_writes(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let mut violations = Vec::new();
-    let absolute_write_re = Regex::new(r"(>|>>|cp |mv |mkdir -p|rm -rf)\s*/(tmp|var|opt|usr|etc|home|Users)\b")
-        .expect("regex");
+    let absolute_write_re =
+        Regex::new(r"(>|>>|cp |mv |mkdir -p|rm -rf)\s*/(tmp|var|opt|usr|etc|home|Users)\b")
+            .expect("regex");
     for entry in load_supported_scripts(workspace)? {
         if entry.outputs.is_empty() {
             violations.push(format!("{}: empty outputs contract", entry.path));
@@ -567,11 +687,7 @@ pub(crate) fn check_lib_api(
         read(&path)
             .unwrap_or_default()
             .lines()
-            .filter_map(|line| {
-                function_re
-                    .captures(line)
-                    .map(|caps| caps[1].to_string())
-            })
+            .filter_map(|line| function_re.captures(line).map(|caps| caps[1].to_string()))
             .collect::<Vec<_>>()
     })
     .collect::<BTreeSet<_>>();
@@ -619,7 +735,9 @@ pub(crate) fn check_tree_intent(
 ) -> Result<CheckOutcome> {
     let scripts_root = workspace.path("scripts");
     let mut violations = Vec::new();
-    for entry in std::fs::read_dir(&scripts_root).with_context(|| format!("read {}", scripts_root.display()))? {
+    for entry in std::fs::read_dir(&scripts_root)
+        .with_context(|| format!("read {}", scripts_root.display()))?
+    {
         let entry = entry?;
         if !entry.file_type()?.is_dir() {
             continue;
@@ -630,7 +748,10 @@ pub(crate) fn check_tree_intent(
             continue;
         }
         if !read(&readme)?.contains("Purpose:") {
-            violations.push(format!("{}: missing Purpose:", workspace.rel(&readme).display()));
+            violations.push(format!(
+                "{}: missing Purpose:",
+                workspace.rel(&readme).display()
+            ));
         }
     }
     if violations.is_empty() {
@@ -651,9 +772,47 @@ fn referenced_scripts_from_make(workspace: &Workspace) -> Result<BTreeSet<String
     Ok(referenced)
 }
 
-fn direct_script_path(line: &str) -> Option<String> {
+fn capture_root_pollution(
+    workspace: &Workspace,
+    pollution: &std::path::Path,
+    pollution_dir: &std::path::Path,
+    timestamp: &str,
+) -> Result<bool> {
+    if !pollution.is_file() {
+        return Ok(false);
+    }
+    std::fs::create_dir_all(pollution_dir)
+        .with_context(|| format!("create {}", pollution_dir.display()))?;
+    let target = pollution_dir.join(format!(
+        "--__bijux_invalid_flag__.check-script-interface.{}.{}",
+        timestamp,
+        std::process::id()
+    ));
+    std::fs::rename(pollution, &target).with_context(|| {
+        format!(
+            "move {} -> {}",
+            pollution.display(),
+            workspace.rel(&target).display()
+        )
+    })?;
+    Ok(true)
+}
+
+fn script_paths_in_line(line: &str) -> Vec<String> {
     Regex::new(r"scripts/[A-Za-z0-9_./-]+\.(?:sh|py)")
         .expect("regex")
-        .find(line)
+        .find_iter(line)
         .map(|hit| hit.as_str().to_string())
+        .collect()
+}
+
+fn looks_like_write_line(line: &str) -> bool {
+    let trimmed = line.trim();
+    trimmed.contains('>')
+        || trimmed.contains("cp ")
+        || trimmed.contains("mv ")
+        || trimmed.contains("mkdir ")
+        || trimmed.contains("tar ")
+        || trimmed.contains("write_json_sorted_file ")
+        || trimmed.contains("cat >")
 }

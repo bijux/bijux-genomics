@@ -3,7 +3,10 @@ use crate::model::check::{CheckDefinition, CommandSpec, ExecutionMode, NativeChe
 #[must_use]
 pub fn check_registry() -> Vec<CheckDefinition> {
     vec![
-        native("check-artifact-env-contract", NativeCheckKey::ArtifactEnvContract),
+        native(
+            "check-artifact-env-contract",
+            NativeCheckKey::ArtifactEnvContract,
+        ),
         native("check-artifacts-layout", NativeCheckKey::ArtifactsLayout),
         native("check-artifacts-tracked", NativeCheckKey::ArtifactsTracked),
         policy("check-asset-checksums", "assets_governance_policy"),
@@ -11,7 +14,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         policy("check-assets-contracts", "assets_governance_policy"),
         policy("check-assets-drift", "assets_governance_policy"),
         policy("check-assets-large-file-allowlist", "assets_scope_policy"),
-        native("check-assets-reference-schema", NativeCheckKey::AssetsReferenceSchema),
+        native(
+            "check-assets-reference-schema",
+            NativeCheckKey::AssetsReferenceSchema,
+        ),
         native("check-audit-allowlist", NativeCheckKey::AuditAllowlist),
         native(
             "check-bench-knob-discipline-downstream",
@@ -22,7 +28,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "check-benchmark-integrity-policy",
             NativeCheckKey::BenchmarkIntegrityPolicy,
         ),
-        native("check-cargo-config-policy", NativeCheckKey::CargoConfigPolicy),
+        native(
+            "check-cargo-config-policy",
+            NativeCheckKey::CargoConfigPolicy,
+        ),
         native(
             "check-certification-schema-docs",
             NativeCheckKey::CertificationSchemaDocs,
@@ -44,62 +53,112 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         policy("check-config-layout", "configs_layout_policy"),
         policy("check-config-owners", "contract_authority_policy"),
         native("check-config-schema", NativeCheckKey::ConfigSchema),
-        policy("check-container-ssot-parity", "container_registry_parity_policy"),
-        policy("check-coverage-regimes-schema", "vcf_coverage_regime_policy"),
-        policy("check-deprecations-enforcement", "tool_registry_reproducibility_policy"),
-        policy("check-docs-build-contract", "boundary_docs_policy"),
+        policy(
+            "check-container-ssot-parity",
+            "container_registry_parity_policy",
+        ),
+        policy(
+            "check-coverage-regimes-schema",
+            "vcf_coverage_regime_policy",
+        ),
+        policy(
+            "check-deprecations-enforcement",
+            "tool_registry_reproducibility_policy",
+        ),
+        native(
+            "check-docs-build-contract",
+            NativeCheckKey::DocsBuildContract,
+        ),
         native(
             "check-docs-requirements-lock",
             NativeCheckKey::DocsRequirementsLock,
         ),
         policy("check-domain-realization", "domain_catalog_symmetry_policy"),
-        policy("check-domain-tool-parity", "tool_registry_stage_domain_policy"),
-        policy("check-enabled-vcf-panel-metadata", "vcf_support_gate_policy"),
+        policy(
+            "check-domain-tool-parity",
+            "tool_registry_stage_domain_policy",
+        ),
+        policy(
+            "check-enabled-vcf-panel-metadata",
+            "vcf_support_gate_policy",
+        ),
         composite(
             "check-examples-cli-snapshot",
             &["check-cli-command-snapshot", "check-examples-policy"],
         ),
-        policy("check-examples-corpus-checksums", "examples_golden_hygiene_policy"),
-        policy("check-examples-corpus-layout", "examples_cli_command_policy"),
-        policy("check-examples-corpus-manifests", "examples_golden_hygiene_policy"),
+        policy(
+            "check-examples-corpus-checksums",
+            "examples_golden_hygiene_policy",
+        ),
+        policy(
+            "check-examples-corpus-layout",
+            "examples_cli_command_policy",
+        ),
+        policy(
+            "check-examples-corpus-manifests",
+            "examples_golden_hygiene_policy",
+        ),
         policy("check-examples-golden", "examples_golden_hygiene_policy"),
         policy("check-examples-index-ssot", "examples_cli_command_policy"),
-        policy("check-examples-notebook-policy", "examples_cli_command_policy"),
+        policy(
+            "check-examples-notebook-policy",
+            "examples_cli_command_policy",
+        ),
         policy("check-examples-policy", "examples_cli_command_policy"),
         native(
             "check-examples-runner-contract",
             NativeCheckKey::ExamplesRunnerContract,
         ),
         policy("check-examples-structure", "examples_cli_command_policy"),
-        policy("check-executor-features-docs", "stage_executor_parity_policy"),
+        policy(
+            "check-executor-features-docs",
+            "stage_executor_parity_policy",
+        ),
         policy("check-executor-no-unwrap", "stage_executor_parity_policy"),
         native("check-exit-codes", NativeCheckKey::ExitCodes),
         policy("check-frontend-mini-artifacts", "artifacts_policy"),
-        process(
+        native(
             "check-frontend-mini-domain-validation",
-            "./scripts/tooling/validate-frontend-mini-domain-stacks.sh",
-            &[],
+            NativeCheckKey::FrontendMiniDomainValidation,
         ),
-        policy("check-frontend-observability-proof", "opentelemetry_version_policy"),
-        policy("check-frontend-telemetry-sanity", "opentelemetry_version_policy"),
+        policy(
+            "check-frontend-observability-proof",
+            "opentelemetry_version_policy",
+        ),
+        policy(
+            "check-frontend-telemetry-sanity",
+            "opentelemetry_version_policy",
+        ),
         policy("check-generated-config-headers", "generated_configs_policy"),
         native("check-generated-configs", NativeCheckKey::GeneratedConfigs),
-        native("check-gitignore-contract", NativeCheckKey::GitignoreContract),
-        policy("check-golden-artifact-schema", "examples_golden_hygiene_policy"),
+        native(
+            "check-gitignore-contract",
+            NativeCheckKey::GitignoreContract,
+        ),
+        policy(
+            "check-golden-artifact-schema",
+            "examples_golden_hygiene_policy",
+        ),
         native("check-hidden-tmp-usage", NativeCheckKey::HiddenTmpUsage),
         process(
             "check-hpc-frontend-constraints",
             "./scripts/hpc/validate-frontend-constraints.sh",
             &["--confirm"],
         ),
-        policy("check-hpc-rsync-docs-parity", "boundary_docs_policy"),
+        native(
+            "check-hpc-rsync-docs-parity",
+            NativeCheckKey::HpcRsyncDocsParity,
+        ),
         native("check-hpc-safety", NativeCheckKey::HpcSafety),
         native("check-lib-api", NativeCheckKey::LibApi),
         native("check-logging-contract", NativeCheckKey::LoggingContract),
         native("check-make-help-sync", NativeCheckKey::MakeHelpSync),
         policy("check-map-locks", "vcf_support_gate_policy"),
         native("check-network-usage", NativeCheckKey::NetworkUsage),
-        policy("check-nextest-profile-contract", "nextest_determinism_policy"),
+        policy(
+            "check-nextest-profile-contract",
+            "nextest_determinism_policy",
+        ),
         native("check-no-fake-artifacts", NativeCheckKey::NoFakeArtifacts),
         native("check-no-orphan-scripts", NativeCheckKey::NoOrphanScripts),
         native(
@@ -126,10 +185,16 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         native("check-output-roots", NativeCheckKey::OutputRoots),
         policy("check-panel-license-policy", "vcf_support_gate_policy"),
         policy("check-panel-locks", "vcf_support_gate_policy"),
-        policy("check-param-registry-completeness", "contract_authority_policy"),
+        policy(
+            "check-param-registry-completeness",
+            "contract_authority_policy",
+        ),
         native("check-readme-links", NativeCheckKey::ReadmeLinks),
         policy("check-reference-fetch-paths", "error_boundary_policy"),
-        policy("check-reference-path-governance", "assets_governance_policy"),
+        policy(
+            "check-reference-path-governance",
+            "assets_governance_policy",
+        ),
         policy("check-reference-service-boundary", "error_boundary_policy"),
         policy(
             "check-registry-required-tools-parity",
@@ -173,7 +238,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         policy("check-vcf-deprecation-lifecycle", "vcf_support_gate_policy"),
         policy("check-vcf-downstream-readiness", "vcf_support_gate_policy"),
         policy("check-vcf-reference-governance", "vcf_support_gate_policy"),
-        policy_alias("check-stage-executor-parity", "stage_executor_parity_policy"),
+        policy_alias(
+            "check-stage-executor-parity",
+            "stage_executor_parity_policy",
+        ),
         policy_alias("check-stage-id-symmetry", "stage_id_symmetry_policy"),
         policy_alias("check-registry-ssot", "registry_ssot_completeness_policy"),
         policy_alias(

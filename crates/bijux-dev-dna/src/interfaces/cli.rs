@@ -5,7 +5,10 @@ use crate::application::checks::CheckApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
 
 #[derive(Parser, Debug)]
-#[command(name = "bijux-dev-dna", about = "Versioned development control-plane for the Bijux DNA workspace")]
+#[command(
+    name = "bijux-dev-dna",
+    about = "Versioned development control-plane for the Bijux DNA workspace"
+)]
 pub struct Cli {
     #[command(subcommand)]
     command: Command,
