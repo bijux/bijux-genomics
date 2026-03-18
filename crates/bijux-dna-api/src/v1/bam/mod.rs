@@ -6,5 +6,6 @@ pub use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArg
 
 pub mod feature_flags;
 pub(crate) mod plan;
+pub(crate) mod stage_planning;
 
 pub use feature_flags::downstream_enabled;

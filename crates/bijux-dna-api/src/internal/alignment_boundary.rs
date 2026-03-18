@@ -1,0 +1,13 @@
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AlignmentBoundary {
+    pub bam_path: String,
+    #[serde(default)]
+    pub bai_path: Option<String>,
+    #[serde(default)]
+    pub reference: Option<String>,
+    #[serde(default)]
+    pub rg_policy: Option<String>,
+    #[serde(default)]
+    pub aligner_meta: Option<std::collections::BTreeMap<String, String>>,
+}
