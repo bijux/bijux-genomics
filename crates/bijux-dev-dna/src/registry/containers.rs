@@ -413,6 +413,36 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckSmokeContractLock,
         ),
         native(
+            "check-vcf-imputation-toolchain",
+            "Validate the governed VCF imputation toolchain across registry, docs, and container metadata.",
+            NativeContainerCommandKey::CheckVcfImputationToolchain,
+        ),
+        native(
+            "check-imputation-runtime-constraints",
+            "Validate documented runtime constraints for governed VCF imputation tools.",
+            NativeContainerCommandKey::CheckImputationRuntimeConstraints,
+        ),
+        native(
+            "check-imputation-network-policy",
+            "Validate network metadata for governed VCF imputation tools.",
+            NativeContainerCommandKey::CheckImputationNetworkPolicy,
+        ),
+        native(
+            "check-imputation-hardening",
+            "Validate Docker hardening exceptions and entrypoint coverage for governed VCF imputation tools.",
+            NativeContainerCommandKey::CheckImputationHardening,
+        ),
+        native(
+            "check-imputation-release-smoke",
+            "Validate Docker and Apptainer release smoke summaries for governed VCF imputation tools.",
+            NativeContainerCommandKey::CheckImputationReleaseSmoke,
+        ),
+        native(
+            "check-imputation-cross-runtime-parity",
+            "Validate version parity across Docker and Apptainer for governed VCF imputation tools.",
+            NativeContainerCommandKey::CheckImputationCrossRuntimeParity,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,

@@ -28,17 +28,17 @@ cargo run -q -p bijux-dev-dna -- containers run check-version-authority
 cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract
-"$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-vcf-imputation-toolchain
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
 cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
-"$SCRIPT_DIR/check-imputation-release-smoke.sh"
-"$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-release-smoke
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-cross-runtime-parity
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-build-provenance.sh"
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
-"$SCRIPT_DIR/check-imputation-network-policy.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-network-policy
 cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
 cargo run -q -p bijux-dev-dna -- containers run check-sbom-artifacts
 cargo run -q -p bijux-dev-dna -- containers run check-vuln-hook
@@ -49,8 +49,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-owners
 cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
-"$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
-"$SCRIPT_DIR/check-imputation-hardening.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constraints
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
 "$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
