@@ -634,30 +634,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_missing_images"
-path = "scripts/containers/check-missing-images.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_container_coverage"
-path = "scripts/containers/check-tool-container-coverage.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_non_bijux_sources"
-path = "scripts/containers/check-non-bijux-sources.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_lock_matches_built_output"
 path = "scripts/containers/check-lock-matches-built-output.sh"
 purpose = "containers script"
@@ -690,32 +666,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "check_registry_vs_defs"
-path = "scripts/containers/check-registry-vs-defs.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_name_collision"
-path = "scripts/containers/check-tool-name-collision.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_build_provenance"
 path = "scripts/containers/check-build-provenance.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_bijux_template_markers"
-path = "scripts/containers/check-bijux-template-markers.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -850,22 +802,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "containers_check_tool_id_contract"
-path = "scripts/containers/check-tool-id-contract.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_owners"
-path = "scripts/containers/check-owners.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_check_docker_hardening"
 path = "scripts/containers/check-docker-hardening.sh"
 purpose = "containers script"
@@ -973,22 +909,6 @@ ci_allowed = true
 [[script]]
 id = "containers_check_sbom_artifacts"
 path = "scripts/containers/check-sbom-artifacts.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_hpc_image_naming"
-path = "scripts/containers/check-hpc-image-naming.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_toolkit_bundles"
-path = "scripts/containers/check-toolkit-bundles.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -1152,14 +1072,6 @@ id = "check_vuln_allowlist"
 path = "scripts/containers/check-vuln-allowlist.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/vuln_allowlist.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_planned_actionability"
-path = "scripts/containers/check-planned-actionability.sh"
-purpose = "containers script"
-inputs = ["containers/docs/PLANNED.md"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 

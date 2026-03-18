@@ -165,10 +165,10 @@ if [ -s "$tmp" ]; then
   exit 1
 fi
 
-"$SCRIPT_DIR/check-missing-images.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-missing-images
 cargo run -q -p bijux-dev-dna -- containers run check-index
-"$SCRIPT_DIR/check-non-bijux-sources.sh"
-"$SCRIPT_DIR/check-owners.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-non-bijux-sources
+cargo run -q -p bijux-dev-dna -- containers run check-owners
 cargo run -q -p bijux-dev-dna -- containers run check-promotion-policy
 cargo run -q -p bijux-dev-dna -- containers run check-version-completeness
 cargo run -q -p bijux-dev-dna -- containers run check-version-authority
@@ -184,11 +184,11 @@ cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations
 cargo run -q -p bijux-dev-dna -- containers run check-promotion-lock-integrity
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-tool-id-manifest
-"$SCRIPT_DIR/check-tool-id-contract.sh"
-"$SCRIPT_DIR/check-registry-vs-defs.sh"
-"$SCRIPT_DIR/check-tool-name-collision.sh"
-"$SCRIPT_DIR/check-toolkit-bundles.sh"
-"$SCRIPT_DIR/check-hpc-image-naming.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
+cargo run -q -p bijux-dev-dna -- containers run check-registry-vs-defs
+cargo run -q -p bijux-dev-dna -- containers run check-tool-name-collision
+cargo run -q -p bijux-dev-dna -- containers run check-toolkit-bundles
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-image-naming
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
@@ -228,7 +228,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 "$SCRIPT_DIR/check-sbom-artifacts.sh"
 "$SCRIPT_DIR/check-build-provenance.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
-"$SCRIPT_DIR/check-bijux-template-markers.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-bijux-template-markers
 cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
 cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 "$SCRIPT_DIR/check-docker-arch-policy.sh"

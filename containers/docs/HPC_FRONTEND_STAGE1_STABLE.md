@@ -8,16 +8,16 @@ This freeze marks governance checks for container policy Stage 1 on HPC frontend
 
 ## Evidence
 - `cargo run -p bijux-dev-dna -- containers run check-tool-id-manifest` -> `OK`
-- `scripts/containers/check-tool-id-contract.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-tool-id-contract` -> `OK`
 - `scripts/checks/check-domain-tool-parity.sh` -> `OK`
-- `scripts/containers/check-tool-container-coverage.sh` -> `OK`
-- `scripts/containers/check-non-bijux-sources.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-tool-container-coverage` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-non-bijux-sources` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-promotion-policy` -> `OK`
 - `scripts/checks/check-deprecations-enforcement.sh` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-deprecations` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-lock` -> `OK`
 - `scripts/containers/check-docker-labels.sh` -> `OK`
-- `scripts/containers/check-registry-vs-defs.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-registry-vs-defs` -> `OK`
 - `scripts/checks/check-container-ssot-parity.sh` -> `OK`
 - `scripts/checks/check-registry-required-tools-parity.sh` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-qa-matrix-generated` -> `OK`
