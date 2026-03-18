@@ -36,7 +36,7 @@ if pat and re.search(pat, hn):
 PY
 
 # Frontend builds require pinned versions only.
-"$SCRIPT_DIR/check-version-hash-pin.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 
 ensure_artifacts_dir "$OUT_DIR"
 mkdir -p "$OUT_DIR"

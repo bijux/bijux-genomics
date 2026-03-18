@@ -44,7 +44,7 @@ if pat and re.search(pat, hn):
 PY
 
 # Frontend deterministic builds must use pinned versions only.
-"$SCRIPT_DIR/check-version-hash-pin.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 
 default_count="$(python3 - "$POLICY_TOML" <<'PY'
 import sys
