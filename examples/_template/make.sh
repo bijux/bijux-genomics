@@ -4,6 +4,8 @@ IFS=$'\n\t'
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+source "${ROOT_DIR}/scripts/_lib/common.sh"
+require_stable_env
 
 usage() {
   cat <<'EOF'
@@ -20,9 +22,7 @@ fi
 [[ $# -eq 1 ]] || { usage >&2; exit 2; }
 example_id="$1"
 
-"$ROOT_DIR/bin/isolate" sh -ceu "
-  ./scripts/examples/run.sh ${example_id}
-"
+run_with_artifact_env "$ROOT_DIR/scripts/examples/run.sh" "${example_id}"
 
 example_dir="$(find "$ROOT_DIR/examples" -type f -name example.toml -print | while read -r f; do
   if rg -q \"^id\\s*=\\s*\\\"${example_id}\\\"\\s*$\" \"$f\"; then
@@ -32,12 +32,7 @@ example_dir="$(find "$ROOT_DIR/examples" -type f -name example.toml -print | whi
 done)"
 [[ -n "$example_dir" ]] || { echo "unknown example id: $example_id" >&2; exit 1; }
 
-iso_root="$(ISO_TAG="${ISO_TAG:-}" "$ROOT_DIR/bin/isolate" --print-root 2>/dev/null || true)"
-if [[ -z "$iso_root" ]]; then
-  iso_root="$ROOT_DIR/artifacts/isolates"
-fi
-
-art_dir="$(find "$ROOT_DIR/artifacts/isolates" -type d -path \"*/examples/${example_id}\" | sort | tail -n1)"
+art_dir="$ROOT_DIR/artifacts/examples/${example_id}"
 [[ -n "$art_dir" ]] || { echo "no artifacts found for $example_id" >&2; exit 1; }
 
 cp -f "$art_dir/plan.json" "$example_dir/golden/plan.json"

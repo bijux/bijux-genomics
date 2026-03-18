@@ -10,10 +10,7 @@ export LC_ALL
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 CONFIG_PATH="${CONFIG_PATH:-configs/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then

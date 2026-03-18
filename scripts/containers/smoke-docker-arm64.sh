@@ -10,10 +10,7 @@ export LC_ALL
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 source "$ROOT_DIR/scripts/_lib/common.sh"
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 DOCKER_DIR="${DOCKER_DIR:-$ROOT_DIR/containers/docker/arm64}"

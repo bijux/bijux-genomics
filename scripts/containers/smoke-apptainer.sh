@@ -10,10 +10,7 @@ export LC_ALL
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 source "$ROOT_DIR/scripts/_lib/common.sh"
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 SELF_SCRIPT="$SCRIPT_DIR/$(basename -- "$0")"
 if [ ! -f "$SELF_SCRIPT" ]; then
   SELF_SCRIPT="$SCRIPT_DIR/smoke-apptainer.sh"

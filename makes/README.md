@@ -25,7 +25,7 @@ Target -> script mapping (no hidden magic):
 - `coverage` -> `./scripts/run.sh tooling ci-coverage`
 - `doctor` -> `./scripts/run.sh tooling repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
-- `ci` -> `./bin/isolate ... make fmt lint audit test coverage`
+- `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 CI profile scripts:
 - Fast: `./scripts/run.sh tooling ci-fast`

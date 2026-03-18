@@ -100,7 +100,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
+		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
@@ -118,7 +118,7 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		cd "$(LUNARC_REPO_DIR)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs" "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs"; \
-		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)-test" env \
+		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \
@@ -167,7 +167,7 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)" env \
+		env ARTIFACT_ROOT="$(LUNARC_ROOT)/bijux-dna/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
@@ -186,7 +186,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		./bin/isolate --tag "$(LUNARC_APPTAINER_BUILD_TAG)-test" env \
+		env ARTIFACT_ROOT="$(LUNARC_ROOT)/bijux-dna/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \

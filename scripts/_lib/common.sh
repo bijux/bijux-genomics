@@ -95,6 +95,11 @@ require_artifact_env() {
   esac
 }
 
+run_with_artifact_env() {
+  require_artifact_env "${ARTIFACT_ROOT:-}"
+  "$@"
+}
+
 ensure_artifacts_dir() {
   local dir_path="$1"
   case "$dir_path" in
