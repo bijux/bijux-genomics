@@ -410,4 +410,15 @@ mod tests {
         let uniq = ids.iter().copied().collect::<BTreeSet<_>>();
         assert_eq!(ids.len(), uniq.len(), "duplicate stage ids in registry");
     }
+
+    #[test]
+    fn stage_executor_registry_surfaces_lookup_helpers() {
+        let _ = ReadinessBadge::Certified;
+
+        assert!(has_executor("fastq.filter"));
+        assert_eq!(
+            entry("fastq.filter").map(|value| value.executor),
+            Some(FASTQ_EXECUTOR)
+        );
+    }
 }
