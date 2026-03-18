@@ -16,64 +16,72 @@ fi
 cmd="$1"
 shift
 
-run_in_isolate() {
-  ./bin/isolate sh -ceu "$1"
+run_in_artifact_env() {
+  require_artifact_env
+  bash -ceu "$1" bash "$@"
 }
 
-common_test_env='export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$(command -v sccache)"; fi;'
+common_test_env='export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="${CARGO_TARGET_DIR}"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$(command -v sccache)"; fi;'
 
 case "${cmd}" in
   policy-fast)
-    ./bin/isolate cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
+    require_artifact_env
+    cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
     ;;
   ssot-policy-fast)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-policies --test contracts policy_test_names_are_consistent -- --nocapture; cargo test -p bijux-dna-policies --test contracts supported_stages_and_tools_are_complete -- --nocapture; cargo test -p bijux-dna-policies --test contracts each_tool_has_exactly_one_domain_and_stage_binding -- --nocapture"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-policies --test contracts policy_test_names_are_consistent -- --nocapture; cargo test -p bijux-dna-policies --test contracts supported_stages_and_tools_are_complete -- --nocapture; cargo test -p bijux-dna-policies --test contracts each_tool_has_exactly_one_domain_and_stage_binding -- --nocapture"
     ;;
   test-profile-invariants)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-pipelines --test invariant_fast -- --nocapture"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-pipelines --test invariant_fast -- --nocapture"
     ;;
   registry-lint)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-policies --test contracts production_registry_is_pinned_and_non_floating -- --nocapture; cargo test -p bijux-dna-policies --test contracts profiles_only_use_valid_production_tools -- --nocapture"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-policies --test contracts production_registry_is_pinned_and_non_floating -- --nocapture; cargo test -p bijux-dna-policies --test contracts profiles_only_use_valid_production_tools -- --nocapture"
     ;;
   unit-contract-fast)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-runner --lib -- --nocapture; cargo test -p bijux-dna-planner-fastq --lib -- --nocapture; cargo test -p bijux-dna-planner-bam --lib -- --nocapture; cargo test -p bijux-dna-stages-fastq --lib -- --nocapture; cargo test -p bijux-dna-stages-bam --lib -- --nocapture; cargo test -p bijux-dna-api --lib -- --nocapture"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-runner --lib -- --nocapture; cargo test -p bijux-dna-planner-fastq --lib -- --nocapture; cargo test -p bijux-dna-planner-bam --lib -- --nocapture; cargo test -p bijux-dna-stages-fastq --lib -- --nocapture; cargo test -p bijux-dna-stages-bam --lib -- --nocapture; cargo test -p bijux-dna-api --lib -- --nocapture"
     ;;
   release-readiness)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-policies --test contracts profiles_release_readiness_gate -- --nocapture; cargo test -p bijux-dna-policies --test contracts reference_adna_profile_uses_production_tools_only -- --nocapture"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-policies --test contracts profiles_release_readiness_gate -- --nocapture; cargo test -p bijux-dna-policies --test contracts reference_adna_profile_uses_production_tools_only -- --nocapture"
     ;;
   policy-full)
-    ./bin/isolate cargo test -p bijux-dna-policies
+    require_artifact_env
+    cargo test -p bijux-dna-policies
     ;;
   domain-coverage)
-    ./bin/isolate cargo run -p bijux-dna --bin bijux-dna -- domain coverage --domain-dir domain
+    require_artifact_env
+    cargo run -p bijux-dna --bin bijux-dna -- domain coverage --domain-dir domain
     ;;
   snapshots)
-    ./bin/isolate cargo insta test --workspace
+    require_artifact_env
+    cargo insta test --workspace
     ;;
   snapshots-accept)
-    ./bin/isolate cargo insta accept --workspace
+    require_artifact_env
+    cargo insta accept --workspace
     ;;
   snapshots-review)
-    ./bin/isolate cargo insta review
+    require_artifact_env
+    cargo insta review
     ;;
   fix-snapshots)
-    ./bin/isolate cargo insta test --workspace
-    ./bin/isolate cargo insta accept --workspace
+    require_artifact_env
+    cargo insta test --workspace
+    cargo insta accept --workspace
     ;;
   policy-only-fast-gate)
-    run_in_isolate "./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR=\"\$ISO_ROOT/target-test\"; cargo test -p bijux-dna-policies --test contracts --test boundaries --test determinism -- --nocapture; cargo test -p bijux-dna-core --test contracts -- --nocapture; cargo test -p bijux-dna-pipelines --test contracts -- --nocapture; cargo test -p bijux-dna-runtime --test contracts -- --nocapture"
+    run_in_artifact_env 'export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="${CARGO_TARGET_DIR}"; cargo test -p bijux-dna-policies --test contracts --test boundaries --test determinism -- --nocapture; cargo test -p bijux-dna-core --test contracts -- --nocapture; cargo test -p bijux-dna-pipelines --test contracts -- --nocapture; cargo test -p bijux-dna-runtime --test contracts -- --nocapture'
     ;;
   vcf-certification)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo nextest run -p bijux-dna-stages-vcf --all-features --failure-output immediate-final --no-tests pass"
+    run_in_artifact_env "${common_test_env} cargo nextest run -p bijux-dna-stages-vcf --all-features --failure-output immediate-final --no-tests pass"
     ;;
   ci-clippy-executors)
     ./scripts/tooling/ci-clippy-executors.sh
     ;;
   nextest-run)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo nextest run $*"
+    run_in_artifact_env "${common_test_env} cargo nextest run $*"
     ;;
   bam-smoke-test)
-    run_in_isolate "./bin/require-isolate >/dev/null; ${common_test_env} cargo test -p bijux-dna-api bam_smoke_runner_minimal_pipeline_validates_report_section_presence -- --exact"
+    run_in_artifact_env "${common_test_env} cargo test -p bijux-dna-api bam_smoke_runner_minimal_pipeline_validates_report_section_presence -- --exact"
     ;;
   *)
     echo "unsupported subcommand: ${cmd}" >&2

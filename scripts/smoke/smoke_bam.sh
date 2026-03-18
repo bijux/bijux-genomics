@@ -21,7 +21,5 @@ bijux bam stage \
   --sample-id smoke_bam \
   --dry-run
 
-"${ROOT_DIR}/bin/isolate" sh -ceu '
-  export CARGO_TARGET_DIR="$ISO_ROOT/target-test"
-  "$ROOT_DIR"/scripts/run.sh tooling cargo-targets bam-smoke-test
-'
+require_artifact_env
+"${ROOT_DIR}"/scripts/run.sh tooling cargo-targets bam-smoke-test

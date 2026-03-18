@@ -61,7 +61,38 @@ require_env() {
 }
 
 repo_root() {
-  cd "$(dirname "${BASH_SOURCE[1]:-$0}")/.." && pwd
+  cd "${_COMMON_LIB_DIR}/../.." && pwd
+}
+
+setup_artifact_env() {
+  local root_dir="${1:-}"
+  if [[ -z "$root_dir" ]]; then
+    root_dir="$(repo_root)"
+    root_dir="${ARTIFACT_ROOT:-$root_dir/artifacts}"
+  fi
+  mkdir -p "$root_dir"
+  root_dir="$(cd "$root_dir" && pwd)"
+
+  export ARTIFACT_ROOT="$root_dir"
+  export ISO_ROOT="$ARTIFACT_ROOT"
+  export CARGO_TARGET_DIR="$ARTIFACT_ROOT/target"
+  export CARGO_HOME="$ARTIFACT_ROOT/cargo/home"
+  export TMPDIR="$ARTIFACT_ROOT/tmp"
+  export TMP="$TMPDIR"
+  export TEMP="$TMPDIR"
+
+  mkdir -p "$ARTIFACT_ROOT" "$ISO_ROOT" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR" "$TMP" "$TEMP"
+}
+
+require_artifact_env() {
+  setup_artifact_env "${1:-}"
+  case "$ARTIFACT_ROOT" in
+    */artifacts|*/artifacts/*) ;;
+    *)
+      echo "artifact root must stay under artifacts/: $ARTIFACT_ROOT" >&2
+      exit 2
+      ;;
+  esac
 }
 
 ensure_artifacts_dir() {

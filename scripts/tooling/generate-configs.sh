@@ -7,4 +7,5 @@ source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 LC_ALL=C
 export LC_ALL
-./bin/isolate cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+require_artifact_env
+cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs

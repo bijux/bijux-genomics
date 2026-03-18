@@ -8,9 +8,7 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-./bin/isolate sh -ceu '
-./bin/require-isolate >/dev/null
+require_artifact_env
 ./scripts/run.sh checks check-audit-allowlist
 command -v cargo-deny >/dev/null 2>&1 || { echo "missing required tool: cargo-deny"; echo "install once: cargo install cargo-deny --locked"; exit 1; }
-CARGO_TARGET_DIR="artifacts/rust/target" cargo deny check --config configs/rust/deny.toml
-'
+cargo deny check --config configs/rust/deny.toml

@@ -28,7 +28,7 @@ while IFS= read -r rel; do
     continue
   fi
   case "$rel" in
-    scripts/checks/check-generated-configs.sh|scripts/containers/registry-tools.sh|scripts/containers/smoke-apptainer.sh|scripts/domain/validate.sh|scripts/lab/run_bench.sh|scripts/lab/run_pipelines.sh)
+    scripts/checks/check-generated-configs.sh|scripts/containers/registry-tools.sh|scripts/containers/smoke-apptainer.sh|scripts/domain/validate.sh|scripts/lab/run_bench.sh|scripts/lab/run_pipelines.sh|scripts/tooling/generate-configs.sh|scripts/tooling/bijux.sh)
       continue
       ;;
   esac
@@ -39,6 +39,9 @@ while IFS= read -r rel; do
     line=$(printf '%s' "$row" | cut -d: -f3-)
 
     if [[ "$line" == *"./bin/isolate cargo "* ]]; then
+      continue
+    fi
+    if [[ "$line" == *"require_artifact_env"* ]]; then
       continue
     fi
     if [[ "$line" == *"Regenerate with: cargo run"* ]]; then

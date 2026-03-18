@@ -32,16 +32,10 @@ fi
 pass=0
 fail=0
 
-"$ROOT_DIR"/bin/isolate sh -ceu '
-./bin/require-isolate >/dev/null
+require_artifact_env
 export TZ=UTC LC_ALL=C
-export CARGO_TARGET_DIR="$ISO_ROOT/target-test"
-log_dir="$ISO_ROOT/artifacts/flake-hunt"
+log_dir="$ARTIFACT_ROOT/flake-hunt"
 mkdir -p "$log_dir"
-expr="$1"
-runs="$2"
-pass=0
-fail=0
 for i in $(seq 1 "$runs"); do
   echo "[$i/$runs] nextest run --config-file configs/rust/nextest.toml --profile flake -E $expr"
   if "$ROOT_DIR"/scripts/run.sh tooling cargo-targets nextest-run --config-file configs/rust/nextest.toml --profile flake -E "$expr" >"$log_dir/last.log" 2>&1; then
@@ -55,4 +49,3 @@ for i in $(seq 1 "$runs"); do
 done
 printf "Expression: %s\nRuns: %s\nPassed: %s\nFailed: %s\n" "$expr" "$runs" "$pass" "$fail"
 [[ "$fail" -eq 0 ]]
-' sh "$expr" "$runs"

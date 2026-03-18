@@ -23,7 +23,17 @@ _docs-serve: $(DOCS_VENV)/bin/activate ## Serve docs locally
 _docs-clean: ## Remove built docs
 	@./scripts/run.sh tooling clean-docs "$(DOCS_ROOT)"
 
-_docs-isolate: ## Build docs in strict mode under an isolate dir
-	@./bin/isolate sh -ceu './scripts/run.sh docs check-domain-doc-references; ./scripts/run.sh docs check-doc-links; ./scripts/run.sh docs check-docs-graph; ./scripts/run.sh docs check-doc-root-layout; ./scripts/run.sh docs check-doc-depth; ./scripts/run.sh docs check-no-placeholder-language; ./scripts/run.sh docs check-generated-docs; ./scripts/run.sh docs check-doc-assets; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) _docs-lint; ./scripts/run.sh docs check-root-pollution'
+_docs-contract: ## Build docs in strict mode under the shared artifacts contract
+	@$(ensure_artifact_env)
+	@./scripts/run.sh docs check-domain-doc-references
+	@./scripts/run.sh docs check-doc-links
+	@./scripts/run.sh docs check-docs-graph
+	@./scripts/run.sh docs check-doc-root-layout
+	@./scripts/run.sh docs check-doc-depth
+	@./scripts/run.sh docs check-no-placeholder-language
+	@./scripts/run.sh docs check-generated-docs
+	@./scripts/run.sh docs check-doc-assets
+	@DOCS_ROOT="$(ARTIFACT_ROOT)/docs" $(MAKE) _docs-lint
+	@./scripts/run.sh docs check-root-pollution
 
-.PHONY: _docs _docs-lint _docs-serve _docs-clean _docs-isolate
+.PHONY: _docs _docs-lint _docs-serve _docs-clean _docs-contract
