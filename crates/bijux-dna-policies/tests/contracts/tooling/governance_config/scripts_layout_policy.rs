@@ -66,7 +66,6 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
         "scripts/assets/",
         "scripts/containers/",
         "scripts/docs/",
-        "scripts/domain/",
         "scripts/examples/",
         "scripts/hpc/",
         "scripts/lab/",
@@ -167,7 +166,6 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
             || rel.starts_with("scripts/assets/")
             || rel.starts_with("scripts/containers/")
             || rel.starts_with("scripts/docs/")
-            || rel.starts_with("scripts/domain/")
             || rel.starts_with("scripts/examples/")
             || rel.starts_with("scripts/hpc/")
             || rel.starts_with("scripts/lab/")
@@ -272,7 +270,6 @@ fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or
     let bad_write = Regex::new(r#"(?m)^\s*(mkdir\s+-p|>\s*|>>\s*|cp\s+|mv\s+).*$"#).expect("regex");
     for rel in ci_scripts {
         if rel.starts_with("scripts/containers/")
-            || rel.starts_with("scripts/domain/")
             || rel.starts_with("scripts/tooling/")
         {
             continue;

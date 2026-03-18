@@ -38,7 +38,6 @@ fn policy__contracts__scripts_registry_wrapper_policy__scripts_do_not_parse_tool
     let allowlist = [
         root.join("scripts/docs/check-domain-doc-references.sh"),
         root.join("scripts/containers/smoke-apptainer.sh"),
-        root.join("scripts/domain/lock-registry.sh"),
     ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&scripts_dir)
