@@ -33,7 +33,7 @@ while IFS= read -r p; do
   [[ -f "$ROOT_DIR/$p" ]] || { echo "supported-scripts: listed script file missing: $p" >&2; exit 1; }
 done <<< "$listed_paths"
 
-referenced=$(grep -RhoE 'scripts/[A-Za-z0-9_./-]+\.sh' "$ROOT_DIR/Makefile" "$ROOT_DIR/makefiles" | sort -u)
+referenced=$(grep -RhoE 'scripts/[A-Za-z0-9_./-]+\.sh' "$ROOT_DIR/Makefile" "$ROOT_DIR/makes" | sort -u)
 missing=()
 while IFS= read -r p; do
   [[ -n "$p" ]] || continue

@@ -10,7 +10,7 @@ export LC_ALL
 banned='/(home|Users)/bijan/'
 
 matches="$(rg -n --pcre2 "$banned" \
-  crates scripts makefiles .github Makefile \
+  crates scripts makes .github Makefile \
   --glob '!docs/**' \
   --glob '!examples/**' \
   --glob '!**/*.md' || true)"

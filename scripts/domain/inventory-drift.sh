@@ -80,9 +80,9 @@ rg -No 'StageId::from_static\("([a-z0-9._-]+)"\)' "$ROOT_DIR/crates" \
 
 grep -Fxf "$DOM_STAGES" "$CODE_STAGES.raw" | sort -u > "$CODE_STAGES" || :
 
-# Resolve tools indirectly referenced by makefiles via stage-tools calls.
+# Resolve tools indirectly referenced by makes via stage-tools calls.
 STAGES_FILE="$TMP_DIR/make_stage_ids.txt"
-rg -No 'stage-tools ([a-z0-9._-]+) all' "$ROOT_DIR/makefiles" \
+rg -No 'stage-tools ([a-z0-9._-]+) all' "$ROOT_DIR/makes" \
   | sed -E 's/.*stage-tools ([a-z0-9._-]+) all.*/\1/' \
   | sort -u > "$STAGES_FILE" || :
 

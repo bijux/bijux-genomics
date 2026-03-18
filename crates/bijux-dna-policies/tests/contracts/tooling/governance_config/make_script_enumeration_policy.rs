@@ -48,7 +48,7 @@ fn policy__contracts__make_script_enumeration_policy__tool_stage_lists_live_in_r
     let stage_markers = ["fastq.", "bam.", "vcf."];
     let mut offenders = Vec::new();
 
-    for rel in ["makefiles", "scripts"] {
+    for rel in ["makes", "scripts"] {
         for entry in WalkDir::new(root.join(rel))
             .into_iter()
             .filter_map(Result::ok)

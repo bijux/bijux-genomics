@@ -23,13 +23,13 @@ offenders="$(
       --glob "!scripts/checks/check-no-target-paths-in-tests.sh" \
       --glob "!scripts/checks/check-gitignore-contract.sh" \
       || true
-    rg -n "target/" makefiles \
+    rg -n "target/" makes \
       --glob "**/*.mk" \
       || true
   } | sed '/^$/d'
 )"
 if [[ -n "${offenders}" ]]; then
-  echo "hardcoded target/ paths in tests/scripts/makefiles are forbidden; use env vars/current_exe:" >&2
+  echo "hardcoded target/ paths in tests/scripts/makes are forbidden; use env vars/current_exe:" >&2
   echo "${offenders}" >&2
   exit 1
 fi

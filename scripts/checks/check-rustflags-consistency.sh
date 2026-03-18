@@ -16,7 +16,7 @@ if rg -n "RUSTFLAGS\s*=\s*\"" "$ROOT_DIR/crates" --glob '**/.cargo/config.toml' 
   viol=1
 fi
 
-matches="$(rg -n "RUSTFLAGS=" "$ROOT_DIR/scripts" "$ROOT_DIR/makefiles" "$ROOT_DIR/Makefile" -S || true)"
+matches="$(rg -n "RUSTFLAGS=" "$ROOT_DIR/scripts" "$ROOT_DIR/makes" "$ROOT_DIR/Makefile" -S || true)"
 if [[ -n "$matches" ]]; then
   filtered="$(printf '%s\n' "$matches" | rg -v "scripts/tooling/ci-coverage.sh|check-rustflags-consistency.sh" || true)"
   if [[ -n "$filtered" ]]; then

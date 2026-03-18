@@ -16,7 +16,7 @@ mkdir -p "$tmp_root"
 refs_file="$(mktemp "$tmp_root/tmp-config-paths.XXXXXX")"
 trap 'rm -f "$refs_file"' EXIT
 
-rg -No --no-filename 'configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)' Makefile makefiles crates scripts docs .github \
+rg -No --no-filename 'configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)' Makefile makes crates scripts docs .github \
   | perl -pe 's/[`"'"'"',;:)]*$//' \
   | sort -u > "$refs_file"
 
