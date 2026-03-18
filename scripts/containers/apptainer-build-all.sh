@@ -41,6 +41,6 @@ SMOKE_LEVEL=contract \
 
 MANIFEST_DIR="$ARTIFACT_DIR" cargo run -q -p bijux-dev-dna -- containers run summary -- --json "$ARTIFACT_DIR/summary.json" >/dev/null
 cargo run -q -p bijux-dev-dna -- containers run generate-version-lock >/dev/null
-"$SCRIPT_DIR/check-smoke-contract-lock.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
 
 echo "apptainer-build-all: OK"

@@ -27,11 +27,11 @@ cargo run -q -p bijux-dev-dna -- containers run check-version-lock
 cargo run -q -p bijux-dev-dna -- containers run check-version-authority
 cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
-"$SCRIPT_DIR/check-smoke-contract.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract
 "$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
 cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
-"$SCRIPT_DIR/check-smoke-contract-lock.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
 "$SCRIPT_DIR/check-imputation-release-smoke.sh"
 "$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
