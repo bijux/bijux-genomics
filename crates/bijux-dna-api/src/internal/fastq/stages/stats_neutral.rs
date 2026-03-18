@@ -40,7 +40,7 @@ use bijux_dna_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
-use crate::api_internal::handlers::fastq::{
+use crate::public_bridge::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_STATS_NEUTRAL,
 };
 use bijux_dna_core::contract::{ContractVersion, ExecutionManifest};
