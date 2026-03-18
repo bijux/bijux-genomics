@@ -21,6 +21,19 @@ use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 use bijux_dna_stage_contract::{build_run_execution_plan, RunExecutionPlan};
 use cargo_metadata::MetadataCommand;
 
-include!("../run_sections/planning_and_hpc.rs");
-include!("../run_sections/execute_run.rs");
-include!("../run_sections/reporting_and_audit.rs");
+mod execution;
+mod execution_support;
+mod planning;
+mod reporting;
+
+use planning::{
+    enforce_hpc_results_layout, file_len_i64, hpc_context_enabled, maybe_write_site_lock,
+    millis_u64,
+};
+
+pub use execution::execute_run;
+pub use planning::{plan_only, plan_run, run_pipeline, select_pipeline, select_pipelines, RunMode};
+pub use reporting::{
+    dry_run, execute, execute_and_report, plan, policy_audit, render_report, replay_manifest,
+    status, workspace_edges, write_workspace_audit,
+};
