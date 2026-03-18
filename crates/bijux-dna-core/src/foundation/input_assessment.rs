@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use crate::foundation::{ContractVersion, Result};
-use bijux_dna_infra::atomic_write_bytes;
 use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -216,10 +215,23 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
 /// Returns an error if serialization or writing fails.
 pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Result<()> {
     let payload = serde_json::to_string_pretty(assessment)?;
-    atomic_write_bytes(path, payload.as_bytes()).map_err(|err| {
+    write_atomic_bytes(path, payload.as_bytes()).map_err(|err| {
         crate::foundation::BijuxError::Io(format!("write input assessment: {err}"))
     })?;
     Ok(())
+}
+
+fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+
+    let parent = path.parent().ok_or_else(|| {
+        std::io::Error::new(std::io::ErrorKind::NotFound, "path has no parent directory")
+    })?;
+    std::fs::create_dir_all(parent)?;
+    let mut temp = tempfile::NamedTempFile::new_in(parent)?;
+    temp.as_file_mut().write_all(bytes)?;
+    temp.as_file_mut().sync_all()?;
+    temp.persist(path).map(|_| ()).map_err(|err| err.error)
 }
 
 fn hash_file_sha256(path: &Path) -> Result<String> {
