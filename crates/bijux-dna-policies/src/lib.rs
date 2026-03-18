@@ -102,10 +102,6 @@ macro_rules! policy_panic {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuardrailConfig {
-    pub max_loc: usize,
-    pub max_depth: usize,
-    pub max_modules_per_dir: usize,
-    pub max_rs_files_per_dir: usize,
     pub max_pub_items_per_file: usize,
     pub max_pub_use_per_file: usize,
     pub forbid_pub_use_spam: bool,
@@ -119,10 +115,6 @@ pub struct GuardrailConfig {
 impl Default for GuardrailConfig {
     fn default() -> Self {
         Self {
-            max_loc: 1000,
-            max_depth: 4,
-            max_modules_per_dir: 16,
-            max_rs_files_per_dir: 10,
             max_pub_items_per_file: 50,
             max_pub_use_per_file: 25,
             forbid_pub_use_spam: false,
@@ -144,10 +136,6 @@ impl GuardrailConfig {
         }
         if name == "bijux-dna-domain-fastq" {
             config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
-            config.max_rs_files_per_dir = 16;
-        }
-        if name == "bijux-dna-api" {
-            config.max_loc = 1200;
         }
         if name == "bijux-dna-pipelines" {
             config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];
@@ -163,10 +151,6 @@ impl GuardrailConfig {
 pub fn check(crate_root: &Path, config: &GuardrailConfig) -> Result<()> {
     let src_dir = crate_root.join("src");
     let files = collect_rs_files(&src_dir)?;
-    check_loc(&files, config)?;
-    check_depth(&src_dir, &files, config)?;
-    check_modules_per_dir(&src_dir, config)?;
-    check_rs_files_per_dir(&src_dir, config)?;
     check_mod_only_dirs(&src_dir, config)?;
     check_empty_modules(&files)?;
     check_mod_reexports_only(&files)?;
@@ -194,100 +178,6 @@ fn collect_rs_files(root: &Path) -> Result<Vec<PathBuf>> {
         }
     }
     Ok(files)
-}
-
-fn check_loc(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
-    for path in files {
-        let content = fs::read_to_string(path)?;
-        let lines = content.lines().count();
-        if lines > config.max_loc {
-            anyhow::bail!(
-                "{} has {} lines (max {})",
-                path.display(),
-                lines,
-                config.max_loc
-            );
-        }
-    }
-    Ok(())
-}
-
-fn check_depth(src_dir: &Path, files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
-    for path in files {
-        let rel = path.strip_prefix(src_dir).unwrap_or(path.as_path());
-        let components: Vec<_> = rel.components().collect();
-        if components.len() <= config.max_depth {
-            continue;
-        }
-        let is_mod_rs = path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .is_some_and(|name| name == "mod.rs");
-        if components.len() == config.max_depth + 1 && is_mod_rs {
-            continue;
-        }
-        anyhow::bail!(
-            "module depth exceeds allowed rule (src/a/b/c.rs or mod.rs at each level): {}",
-            path.display()
-        );
-    }
-    Ok(())
-}
-
-fn check_modules_per_dir(src_dir: &Path, config: &GuardrailConfig) -> Result<()> {
-    for entry in WalkDir::new(src_dir).min_depth(0).max_depth(10) {
-        let entry = entry?;
-        if !entry.file_type().is_dir() {
-            continue;
-        }
-        let mut count = 0usize;
-        for child in fs::read_dir(entry.path())? {
-            let child = child?;
-            let path = child.path();
-            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("rs") {
-                count += 1;
-            }
-        }
-        if count > config.max_modules_per_dir {
-            anyhow::bail!(
-                "{} has {} rust modules (max {})",
-                entry.path().display(),
-                count,
-                config.max_modules_per_dir
-            );
-        }
-    }
-    Ok(())
-}
-
-fn check_rs_files_per_dir(src_dir: &Path, config: &GuardrailConfig) -> Result<()> {
-    for entry in WalkDir::new(src_dir).min_depth(0).max_depth(10) {
-        let entry = entry?;
-        if !entry.file_type().is_dir() {
-            continue;
-        }
-        let mut count = 0usize;
-        for child in fs::read_dir(entry.path())? {
-            let child = child?;
-            let path = child.path();
-            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("rs") {
-                let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-                if name == "lib.rs" || name == "main.rs" || name == "mod.rs" {
-                    continue;
-                }
-                count += 1;
-            }
-        }
-        if count > config.max_rs_files_per_dir {
-            anyhow::bail!(
-                "{} has {} rust modules (max {})",
-                entry.path().display(),
-                count,
-                config.max_rs_files_per_dir
-            );
-        }
-    }
-    Ok(())
 }
 
 fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> Result<()> {

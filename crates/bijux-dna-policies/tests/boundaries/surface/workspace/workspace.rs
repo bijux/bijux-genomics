@@ -2,7 +2,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use bijux_dna_policies::GuardrailConfig;
 use walkdir::WalkDir;
 
 include!("../workspace_rules/workspace_paths.rs");
