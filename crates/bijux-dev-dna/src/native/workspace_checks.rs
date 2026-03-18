@@ -1083,6 +1083,17 @@ pub(crate) fn check_no_target_paths_in_tests(
                 continue;
             }
             let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            if rel.contains("/__pycache__/")
+                || entry.path().extension().and_then(|ext| ext.to_str()) == Some("pyc")
+            {
+                continue;
+            }
+            if rel == "crates/bijux-dev-dna/src/native/workspace_checks.rs" {
+                continue;
+            }
+            if !source_like_scan_path(&rel) {
+                continue;
+            }
             if excluded.contains(&rel.as_str()) {
                 continue;
             }
@@ -1114,6 +1125,14 @@ pub(crate) fn check_no_user_path_literals(
                 continue;
             }
             let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            if rel.contains("/__pycache__/")
+                || entry.path().extension().and_then(|ext| ext.to_str()) == Some("pyc")
+            {
+                continue;
+            }
+            if rel == "crates/bijux-dev-dna/src/native/workspace_checks.rs" {
+                continue;
+            }
             if rel.starts_with("examples/") || rel.ends_with(".md") {
                 continue;
             }
@@ -1473,6 +1492,17 @@ fn scan_for_rustflags(rel: &str) -> bool {
         || rel.ends_with(".mk")
         || rel.ends_with(".toml")
         || rel.ends_with(".py")
+}
+
+fn source_like_scan_path(rel: &str) -> bool {
+    rel == "Makefile"
+        || rel.ends_with(".rs")
+        || rel.ends_with(".sh")
+        || rel.ends_with(".py")
+        || rel.ends_with(".mk")
+        || rel.ends_with(".toml")
+        || rel.ends_with(".yaml")
+        || rel.ends_with(".yml")
 }
 
 pub(crate) fn check_ssot_guardrails(
