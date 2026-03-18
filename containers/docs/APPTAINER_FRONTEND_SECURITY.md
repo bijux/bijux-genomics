@@ -17,7 +17,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 - License metadata contract:
   - `containers/licenses/<tool>.license.toml` must exist with non-empty SPDX.
 - Base image and pinning checks:
-  - `scripts/containers/check-version-hash-pin.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin`
   - `scripts/containers/check-apptainer-hardening.sh`
 - Secret scanning:
   - `scripts/containers/check-no-secrets.sh`

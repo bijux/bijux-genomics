@@ -18,7 +18,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
   - `LANG=C`
   - `SOURCE_DATE_EPOCH` from repository HEAD commit time (or `0` fallback)
 - Frontend pinned-version requirement:
-  - `scripts/containers/check-version-hash-pin.sh` must pass before rebuild sampling.
+  - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin` must pass before rebuild sampling.
 - Compute-node refusal:
   - hostname policy from `configs/ci/tools/hpc_frontend_build_policy.toml`.
 

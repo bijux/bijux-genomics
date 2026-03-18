@@ -12,9 +12,9 @@ This freeze marks governance checks for container policy Stage 1 on HPC frontend
 - `scripts/checks/check-domain-tool-parity.sh` -> `OK`
 - `scripts/containers/check-tool-container-coverage.sh` -> `OK`
 - `scripts/containers/check-non-bijux-sources.sh` -> `OK`
-- `scripts/containers/check-promotion-policy.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-promotion-policy` -> `OK`
 - `scripts/checks/check-deprecations-enforcement.sh` -> `OK`
-- `scripts/containers/check-version-deprecations.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-version-deprecations` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-lock` -> `OK`
 - `scripts/containers/check-docker-labels.sh` -> `OK`
 - `scripts/containers/check-registry-vs-defs.sh` -> `OK`
