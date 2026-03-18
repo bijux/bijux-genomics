@@ -16,7 +16,7 @@ Purpose: enforce HPC frontend nodes as the only authority for Apptainer SIF buil
   - `scripts/containers/smoke-apptainer.sh`
 - CI policy checks:
   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-post-pins`
-  - `scripts/containers/check-hpc-frontend-policy-enforcement.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-hpc-frontend-policy-enforcement`
 - Cache policy checks:
   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-cache-policy`
   - `configs/ci/tools/apptainer_cache_policy.toml`

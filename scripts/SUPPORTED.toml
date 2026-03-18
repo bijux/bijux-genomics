@@ -89,32 +89,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_image_size_regression"
-path = "scripts/containers/check-image-size-regression.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_hpc_frontend_policy_enforcement"
-path = "scripts/containers/check-hpc-frontend-policy-enforcement.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "run_apptainer_frontend_smoke"
 path = "scripts/containers/run-apptainer-frontend-smoke.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_release_checklist"
-path = "scripts/containers/check-release-checklist.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -529,22 +505,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "check_lock_matches_built_output"
-path = "scripts/containers/check-lock-matches-built-output.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_apptainer_bijux_header"
-path = "scripts/containers/check-apptainer-bijux-header.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "examples_generate_index"
 path = "scripts/examples/generate-index.sh"
 purpose = "examples script"
@@ -807,22 +767,6 @@ path = "scripts/containers/docker-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/registry/tool_registry.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
-ci_allowed = true
-
-[[script]]
-id = "check_toolkit_bundle_buildable"
-path = "scripts/containers/check-toolkit-bundle-buildable.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/toolkit_bundles.toml", "configs/ci/tools/images.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vcf_downstream_bundle_coverage"
-path = "scripts/containers/check-vcf-downstream-bundle-coverage.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/toolkit_bundles.toml", "domain/vcf/stages/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]

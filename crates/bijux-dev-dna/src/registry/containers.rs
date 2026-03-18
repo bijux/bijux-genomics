@@ -473,6 +473,41 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckApptainerRebuildRepro,
         ),
         native(
+            "check-apptainer-bijux-header",
+            "Validate the governed Bijux header on every Apptainer definition.",
+            NativeContainerCommandKey::CheckApptainerBijuxHeader,
+        ),
+        native(
+            "check-hpc-frontend-policy-enforcement",
+            "Validate compute-node refusal and pin enforcement across HPC frontend scripts.",
+            NativeContainerCommandKey::CheckHpcFrontendPolicyEnforcement,
+        ),
+        native(
+            "check-image-size-regression",
+            "Validate promoted image-size growth against the governed acknowledgement policy.",
+            NativeContainerCommandKey::CheckImageSizeRegression,
+        ),
+        native(
+            "check-lock-matches-built-output",
+            "Validate built container outputs against the governed lock contract.",
+            NativeContainerCommandKey::CheckLockMatchesBuiltOutput,
+        ),
+        native(
+            "check-release-checklist",
+            "Validate the release checklist mappings against the release gate entrypoint.",
+            NativeContainerCommandKey::CheckReleaseChecklist,
+        ),
+        native(
+            "check-toolkit-bundle-buildable",
+            "Validate toolkit bundles include at least one governed buildable tool.",
+            NativeContainerCommandKey::CheckToolkitBundleBuildable,
+        ),
+        native(
+            "check-vcf-downstream-bundle-coverage",
+            "Validate the VCF downstream toolkit bundle covers phasing and imputation stages.",
+            NativeContainerCommandKey::CheckVcfDownstreamBundleCoverage,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,

@@ -26,7 +26,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-tool-container-coverage
 cargo run -q -p bijux-dev-dna -- containers run check-version-lock
 cargo run -q -p bijux-dev-dna -- containers run check-version-authority
 cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
-"$SCRIPT_DIR/check-lock-matches-built-output.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-lock-matches-built-output
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract
 cargo run -q -p bijux-dev-dna -- containers run check-vcf-imputation-toolchain
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
@@ -53,12 +53,12 @@ cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constra
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
 cargo run -q -p bijux-dev-dna -- containers run check-runtime-tool-digest-recording
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
-"$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-frontend-policy-enforcement
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-security
-"$SCRIPT_DIR/check-release-checklist.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-release-checklist
 "$SCRIPT_DIR/container-doctor.sh" --strict
 
 echo "container-release-gate: OK"
