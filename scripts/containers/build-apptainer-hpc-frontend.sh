@@ -75,12 +75,12 @@ print(out)
 PY
 
 if [[ "$UPDATE_VERSION_LOCK" == "1" ]]; then
-  "$SCRIPT_DIR/generate-version-lock.sh" "$ROOT_DIR/containers/versions/lock.json"
+  cargo run -q -p bijux-dev-dna -- containers run generate-version-lock -- "$ROOT_DIR/containers/versions/lock.json"
 fi
 
 if [[ "$COMPARE_WITH_LOCAL" == "1" ]]; then
-  "$SCRIPT_DIR/generate-local-apptainer-digests.sh" "$OUT_DIR/local-sif-digests.json"
-  "$SCRIPT_DIR/compare-frontend-local-sif-hash.sh" \
+  cargo run -q -p bijux-dev-dna -- containers run generate-local-apptainer-digests -- "$OUT_DIR/local-sif-digests.json"
+  cargo run -q -p bijux-dev-dna -- containers run compare-frontend-local-sif-hash -- \
     "$OUT_DIR/frontend-sif-digests.json" \
     "$OUT_DIR/local-sif-digests.json" \
     "$OUT_DIR/frontend-local-diff.md"

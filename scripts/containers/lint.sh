@@ -166,38 +166,38 @@ if [ -s "$tmp" ]; then
 fi
 
 "$SCRIPT_DIR/check-missing-images.sh"
-"$SCRIPT_DIR/check-index.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-index
 "$SCRIPT_DIR/check-non-bijux-sources.sh"
 "$SCRIPT_DIR/check-owners.sh"
-"$SCRIPT_DIR/check-promotion-policy.sh"
-"$SCRIPT_DIR/check-version-completeness.sh"
-"$SCRIPT_DIR/check-version-authority.sh"
-"$SCRIPT_DIR/check-lock-schema.sh"
-"$SCRIPT_DIR/check-version-hash-pin.sh"
-"$SCRIPT_DIR/check-version-lock.sh"
-"$SCRIPT_DIR/check-lock-drift.sh"
-"$SCRIPT_DIR/check-lock-change-discipline.sh"
-"$SCRIPT_DIR/check-versions-index-sha.sh"
-"$SCRIPT_DIR/check-version-immutability.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-promotion-policy
+cargo run -q -p bijux-dev-dna -- containers run check-version-completeness
+cargo run -q -p bijux-dev-dna -- containers run check-version-authority
+cargo run -q -p bijux-dev-dna -- containers run check-lock-schema
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
+cargo run -q -p bijux-dev-dna -- containers run check-version-lock
+cargo run -q -p bijux-dev-dna -- containers run check-lock-drift
+cargo run -q -p bijux-dev-dna -- containers run check-lock-change-discipline
+cargo run -q -p bijux-dev-dna -- containers run check-versions-index-sha
+cargo run -q -p bijux-dev-dna -- containers run check-version-immutability
 "$SCRIPT_DIR/check-image-size-regression.sh"
-"$SCRIPT_DIR/check-version-deprecations.sh"
-"$SCRIPT_DIR/check-promotion-lock-integrity.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations
+cargo run -q -p bijux-dev-dna -- containers run check-promotion-lock-integrity
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
-"$SCRIPT_DIR/check-tool-id-manifest.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-tool-id-manifest
 "$SCRIPT_DIR/check-tool-id-contract.sh"
 "$SCRIPT_DIR/check-registry-vs-defs.sh"
 "$SCRIPT_DIR/check-tool-name-collision.sh"
 "$SCRIPT_DIR/check-toolkit-bundles.sh"
 "$SCRIPT_DIR/check-hpc-image-naming.sh"
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
-"$SCRIPT_DIR/check-apptainer-cache-policy.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
 "$SCRIPT_DIR/check-apptainer-bijux-header.sh"
-"$SCRIPT_DIR/check-apptainer-hardening.sh"
-"$SCRIPT_DIR/check-apptainer-version-label-sync.sh"
-"$SCRIPT_DIR/check-apptainer-post-pins.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-version-output-lock.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-smoke-proof.sh"
-"$SCRIPT_DIR/check-bijux-apptainer-built.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-hardening
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-version-label-sync
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-post-pins
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof
+cargo run -q -p bijux-dev-dna -- containers run check-bijux-apptainer-built
 "$SCRIPT_DIR/check-docker-labels.sh"
 "$SCRIPT_DIR/check-docker-hardening.sh"
 "$SCRIPT_DIR/check-docker-version-sync.sh"
@@ -210,7 +210,7 @@ fi
 "$SCRIPT_DIR/check-smoke-inputs-policy.sh"
 "$SCRIPT_DIR/check-tool-invocation-normalization.sh"
 "$SCRIPT_DIR/check-smoke-contract-lock.sh"
-"$SCRIPT_DIR/check-qa-matrix-generated.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-cross-runtime-smoke.sh"
 "$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
 "$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
@@ -222,15 +222,15 @@ fi
 "$SCRIPT_DIR/check-cross-runtime-representative.sh"
 "$SCRIPT_DIR/check-no-secrets.sh"
 "$SCRIPT_DIR/check-vuln-allowlist.sh"
-"$SCRIPT_DIR/check-network-disclosure.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 "$SCRIPT_DIR/check-runtime-downloads.sh"
 "$SCRIPT_DIR/check-vuln-hook.sh"
 "$SCRIPT_DIR/check-sbom-artifacts.sh"
 "$SCRIPT_DIR/check-build-provenance.sh"
-"$SCRIPT_DIR/check-tool-docs-generated.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 "$SCRIPT_DIR/check-bijux-template-markers.sh"
-"$SCRIPT_DIR/check-license-index-generated.sh"
-"$SCRIPT_DIR/check-license-metadata.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
+cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 "$SCRIPT_DIR/check-docker-arch-policy.sh"
 "$SCRIPT_DIR/check-docker-arm64-completeness.sh"
 "$SCRIPT_DIR/check-time-locale-determinism.sh"

@@ -39,9 +39,8 @@ SMOKE_DISABLE_NETWORK=1 \
 SMOKE_LEVEL=contract \
 "$SCRIPT_DIR/smoke-apptainer.sh"
 
-MANIFEST_DIR="$ARTIFACT_DIR" "$SCRIPT_DIR/summary.sh" --json "$ARTIFACT_DIR/summary.json" >/dev/null
-"$SCRIPT_DIR/generate-version-lock.sh"
+MANIFEST_DIR="$ARTIFACT_DIR" cargo run -q -p bijux-dev-dna -- containers run summary -- --json "$ARTIFACT_DIR/summary.json" >/dev/null
+cargo run -q -p bijux-dev-dna -- containers run generate-version-lock >/dev/null
 "$SCRIPT_DIR/check-smoke-contract-lock.sh"
 
 echo "apptainer-build-all: OK"
-

@@ -6,7 +6,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 - Run:
   - `./scripts/containers/run-apptainer-frontend-security.sh`
 - Validate gate:
-  - `./scripts/containers/check-apptainer-frontend-security.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-security`
 
 ## Controls
 - SBOM generation for every Apptainer runtime tool SIF.
@@ -18,7 +18,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
   - `containers/licenses/<tool>.license.toml` must exist with non-empty SPDX.
 - Base image and pinning checks:
   - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin`
-  - `scripts/containers/check-apptainer-hardening.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-hardening`
 - Secret scanning:
   - `scripts/containers/check-no-secrets.sh`
 - Network disclosure enforcement:

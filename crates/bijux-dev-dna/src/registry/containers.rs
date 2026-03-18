@@ -198,6 +198,61 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ToolLifecycle,
         ),
         native(
+            "check-apptainer-cache-policy",
+            "Validate the governed Apptainer cache policy wiring.",
+            NativeContainerCommandKey::CheckApptainerCachePolicy,
+        ),
+        native(
+            "check-apptainer-frontend-reproducibility",
+            "Validate frontend Apptainer reproducibility results against policy.",
+            NativeContainerCommandKey::CheckApptainerFrontendReproducibility,
+        ),
+        native(
+            "check-apptainer-frontend-security",
+            "Validate frontend Apptainer security summary results against policy.",
+            NativeContainerCommandKey::CheckApptainerFrontendSecurity,
+        ),
+        native(
+            "check-apptainer-frontend-smoke-proof",
+            "Validate frontend Apptainer smoke proof outputs and policy flags.",
+            NativeContainerCommandKey::CheckApptainerFrontendSmokeProof,
+        ),
+        native(
+            "check-apptainer-frontend-version-output-lock",
+            "Validate frontend smoke version output hashes against the governed lock.",
+            NativeContainerCommandKey::CheckApptainerFrontendVersionOutputLock,
+        ),
+        native(
+            "check-apptainer-hardening",
+            "Validate Apptainer definition hardening and label contracts.",
+            NativeContainerCommandKey::CheckApptainerHardening,
+        ),
+        native(
+            "check-apptainer-post-pins",
+            "Validate Apptainer %post download pinning and compute-node policy.",
+            NativeContainerCommandKey::CheckApptainerPostPins,
+        ),
+        native(
+            "check-apptainer-version-label-sync",
+            "Validate Apptainer version labels against versions.toml.",
+            NativeContainerCommandKey::CheckApptainerVersionLabelSync,
+        ),
+        native(
+            "check-bijux-apptainer-built",
+            "Validate that governed Bijux Apptainer images were built and recorded.",
+            NativeContainerCommandKey::CheckBijuxApptainerBuilt,
+        ),
+        native(
+            "generate-local-apptainer-digests",
+            "Generate local Apptainer SIF digests for frontend parity checks.",
+            NativeContainerCommandKey::GenerateLocalApptainerDigests,
+        ),
+        native(
+            "compare-frontend-local-sif-hash",
+            "Compare frontend and local Apptainer SIF digests and write a diff report.",
+            NativeContainerCommandKey::CompareFrontendLocalSifHash,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,
