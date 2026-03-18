@@ -3,7 +3,6 @@
 Purpose: strict index of supported script areas and allowed usage.
 
 Allowed subdirectories:
-- `scripts/checks`: CI/make policy and safety checks.
 - `scripts/containers`: Docker/Apptainer build, lint, and smoke operations.
 - `scripts/docs`: docs validation/generation entrypoints.
 - `scripts/domain`: domain validation and drift checks.
@@ -19,7 +18,9 @@ Internal-only:
 - `scripts/experimental`: quarantined non-supported scripts.
 - `scripts/assets`: asset refresh helpers.
 
-The source of truth for supported scripts is `scripts/checks/supported_scripts.txt`.
+The checks control plane is `cargo run -p bijux-dev-dna -- checks ...`.
+The compatibility entrypoint remains `./scripts/run.sh checks <check-id>`.
+
 Use `./scripts/run.sh --list` to print the supported command surface from `scripts/SUPPORTED.toml`.
 
 Requires: bash, rg, coreutils (plus script-specific tools documented inline).

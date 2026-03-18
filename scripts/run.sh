@@ -89,19 +89,26 @@ case "$group" in
     ;;
 esac
 
-target="${SCRIPT_DIR}/${group}/make.sh"
-if [[ ! -x "$target" ]]; then
-  if [[ -f "$target" ]]; then
-    chmod +x "$target"
-  else
-    echo "group dispatcher missing: ${target#"$ROOT_DIR/"}" >&2
-    exit 1
-  fi
-fi
-
 start_epoch="$(date +%s)"
 start_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-"$target" "$command" "$@" || rc=$?
+if [[ "$group" == "checks" ]]; then
+  if [[ "$command" == "--all" || "$command" == "all" ]]; then
+    cargo run -p bijux-dev-dna -- checks run --all "$@" || rc=$?
+  else
+    cargo run -p bijux-dev-dna -- checks run "$command" "$@" || rc=$?
+  fi
+else
+  target="${SCRIPT_DIR}/${group}/make.sh"
+  if [[ ! -x "$target" ]]; then
+    if [[ -f "$target" ]]; then
+      chmod +x "$target"
+    else
+      echo "group dispatcher missing: ${target#"$ROOT_DIR/"}" >&2
+      exit 1
+    fi
+  fi
+  "$target" "$command" "$@" || rc=$?
+fi
 rc="${rc:-0}"
 status="ok"
 if [[ "$rc" -ne 0 ]]; then
