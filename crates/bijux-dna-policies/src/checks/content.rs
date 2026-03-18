@@ -6,9 +6,8 @@ use std::path::PathBuf;
 use crate::GuardrailConfig;
 
 pub(crate) fn check_pub_items(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
-    let pub_re = Regex::new(
-        r"^\s*pub(\s*\(crate\))?\s+(struct|enum|fn|type|trait|const|static|use|mod)\b",
-    )?;
+    let pub_re =
+        Regex::new(r"^\s*pub(\s*\(crate\))?\s+(struct|enum|fn|type|trait|const|static|use|mod)\b")?;
     for path in files {
         let content = fs::read_to_string(path)?;
         let count = content.lines().filter(|line| pub_re.is_match(line)).count();
