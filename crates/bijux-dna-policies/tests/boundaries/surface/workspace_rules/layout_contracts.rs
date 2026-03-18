@@ -242,15 +242,16 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
         bijux_dna_policies::policy_panic!("missing crate bijux-dna-engine");
     };
     let src = engine.join("src");
-    let allowed = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs"]);
+    let allowed_files = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs"]);
+    let allowed_dirs = BTreeSet::from(["executor"]);
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&src).expect("read bijux-dna-engine/src") {
         let entry = entry.expect("engine src entry");
         let name = entry.file_name().to_string_lossy().to_string();
-        if entry.path().is_file() && !allowed.contains(name.as_str()) {
+        if entry.path().is_file() && !allowed_files.contains(name.as_str()) {
             offenders.push(name.clone());
         }
-        if entry.path().is_dir() {
+        if entry.path().is_dir() && !allowed_dirs.contains(name.as_str()) {
             offenders.push(name);
         }
     }
@@ -258,6 +259,13 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
         offenders.is_empty(),
         "bijux-dna-engine/src must stay small; unexpected entries: {offenders:?}"
     );
+    for helper in ["contract_enforcer.rs", "recording.rs", "topology.rs"] {
+        let helper_path = src.join("executor").join(helper);
+        bijux_dna_policies::policy_assert!(
+            helper_path.exists(),
+            "bijux-dna-engine/src/executor missing {helper}"
+        );
+    }
 }
 
 #[test]
