@@ -40,6 +40,9 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-dna-planner-bam/") {
         return true;
     }
+    if path_str.ends_with("/crates/bijux-dna-stage-contract/src/executor_registry.rs") {
+        return true;
+    }
     if path_str.ends_with("/crates/bijux-dna-core/src/metrics/registry.rs") {
         return true;
     }

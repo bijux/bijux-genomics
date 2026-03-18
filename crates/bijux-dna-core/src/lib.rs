@@ -14,5 +14,3 @@ pub mod ids;
 pub mod metrics;
 /// Public prelude for stable imports.
 pub mod prelude;
-/// Code-backed stage executor/readiness registry.
-pub mod stage_executor_registry;
