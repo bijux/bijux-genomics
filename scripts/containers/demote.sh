@@ -88,5 +88,5 @@ dep.write_text(text, encoding="utf-8")
 PY
 
 "$SCRIPT_DIR/generate-version-lock.sh"
-"$ROOT_DIR/scripts/domain/lock-registry.sh"
+cargo run -p bijux-dev-dna -- domain run lock-registry
 echo "demoted $tool -> experimental and appended deprecation entry"
