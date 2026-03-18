@@ -96,7 +96,8 @@ pub(crate) fn check_script_help(
     let mut violations = Vec::new();
     for path in runnable_script_paths(workspace)? {
         let rel = workspace.rel(&path).to_string_lossy().to_string();
-        let output = run_command(workspace, path.to_string_lossy().as_ref(), &["--help"])?;
+        let script = path.to_string_lossy().to_string();
+        let output = run_command(workspace, "timeout", &["8s", &script, "--help"])?;
         let combined = format!(
             "{}{}",
             String::from_utf8_lossy(&output.stdout),
@@ -130,7 +131,8 @@ pub(crate) fn check_script_interface(
 
     for path in runnable_script_paths(workspace)? {
         let rel = workspace.rel(&path).to_string_lossy().to_string();
-        let help_output = run_command(workspace, path.to_string_lossy().as_ref(), &["--help"])?;
+        let script = path.to_string_lossy().to_string();
+        let help_output = run_command(workspace, "timeout", &["8s", &script, "--help"])?;
         let help_text = format!(
             "{}{}",
             String::from_utf8_lossy(&help_output.stdout),
@@ -143,26 +145,23 @@ pub(crate) fn check_script_interface(
             violations.push(format!("{rel}: help output missing Usage:"));
         }
         if help_text.contains("--verbose") {
-            let verbose = run_command(
-                workspace,
-                path.to_string_lossy().as_ref(),
-                &["--verbose", "--help"],
-            )?;
+            let verbose =
+                run_command(workspace, "timeout", &["8s", &script, "--verbose", "--help"])?;
             if !verbose.status.success() {
                 violations.push(format!("{rel}: --verbose --help failed"));
             }
         }
         if help_text.contains("--dry-run") {
             let dry_run =
-                run_command(workspace, path.to_string_lossy().as_ref(), &["--dry-run", "--help"])?;
+                run_command(workspace, "timeout", &["8s", &script, "--dry-run", "--help"])?;
             if !dry_run.status.success() {
                 violations.push(format!("{rel}: --dry-run --help failed"));
             }
         }
         let probe = run_command(
             workspace,
-            path.to_string_lossy().as_ref(),
-            &["--__bijux_invalid_flag__"],
+            "timeout",
+            &["1s", &script, "--__bijux_invalid_flag__"],
         )?;
         if pollution.exists() {
             violations.push(format!(
@@ -398,7 +397,7 @@ pub(crate) fn check_no_raw_cargo_in_makes(
                 violations.push(format!("{rel}: direct cargo usage `{trimmed}`"));
             }
             if let Some(script) = direct_script_path(trimmed) {
-                if !allowed.contains(&script) && !script.starts_with("scripts/checks/") {
+                if !allowed.contains(&script) {
                     violations.push(format!(
                         "{rel}: non-ci script referenced from make `{script}`"
                     ));
@@ -429,8 +428,7 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
     let mut violations = Vec::new();
     for path in shell_script_paths(workspace)? {
         let rel = workspace.rel(&path).to_string_lossy().to_string();
-        if rel == "scripts/checks/check-no-raw-cargo-in-scripts.sh" || allowlist.contains(&rel.as_str())
-        {
+        if allowlist.contains(&rel.as_str()) {
             continue;
         }
         let raw = read(&path)?;

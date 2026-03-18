@@ -64,7 +64,6 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
     let root = workspace_root();
     let allowed_prefixes = [
         "scripts/assets/",
-        "scripts/checks/",
         "scripts/containers/",
         "scripts/docs/",
         "scripts/domain/",
@@ -166,7 +165,6 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
             || rel.starts_with("scripts/_lib/")
             || rel == "scripts/run.sh"
             || rel.starts_with("scripts/assets/")
-            || rel.starts_with("scripts/checks/")
             || rel.starts_with("scripts/containers/")
             || rel.starts_with("scripts/docs/")
             || rel.starts_with("scripts/domain/")
@@ -273,8 +271,7 @@ fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or
     let mut offenders = Vec::new();
     let bad_write = Regex::new(r#"(?m)^\s*(mkdir\s+-p|>\s*|>>\s*|cp\s+|mv\s+).*$"#).expect("regex");
     for rel in ci_scripts {
-        if rel.starts_with("scripts/checks/")
-            || rel.starts_with("scripts/containers/")
+        if rel.starts_with("scripts/containers/")
             || rel.starts_with("scripts/domain/")
             || rel.starts_with("scripts/tooling/")
         {

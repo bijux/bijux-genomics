@@ -42,8 +42,8 @@ else
 fi
 
 require_artifact_env
-./scripts/checks/check-artifact-env-contract.sh
-./scripts/checks/check-ssot-guardrails.sh
+./scripts/run.sh checks check-artifact-env-contract
+./scripts/run.sh checks check-ssot-guardrails
 command -v cargo-nextest >/dev/null 2>&1 || { echo 'missing required tool: cargo-nextest'; echo 'install once: cargo install cargo-nextest --locked'; exit 1; }
 chmod -R a-w assets
 trap 'chmod -R u+w assets; chmod -R go-w assets' EXIT
@@ -60,4 +60,4 @@ if [[ -n "${nextest_expr}" ]]; then
   expr_args=(-E "${nextest_expr}")
 fi
 cargo nextest run ${nextest_config} --workspace ${test_features} --profile ${nextest_profile} --test-threads ${nextest_threads} --no-tests ${nextest_no_tests} ${run_ignored} "${expr_args[@]}"
-./scripts/checks/check-artifact-env-contract.sh
+./scripts/run.sh checks check-artifact-env-contract

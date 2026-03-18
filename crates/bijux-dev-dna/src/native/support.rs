@@ -76,10 +76,10 @@ pub(crate) fn runnable_script_paths(workspace: &Workspace) -> Result<Vec<PathBuf
     let mut files = Vec::new();
     for path in shell_script_paths(workspace)? {
         let rel = workspace.rel(&path).to_string_lossy();
-        if rel.starts_with("scripts/_lib/") || rel.starts_with("scripts/experimental/") {
-            continue;
-        }
-        if rel.starts_with("scripts/checks/") {
+        if rel.starts_with("scripts/_lib/")
+            || rel.starts_with("scripts/experimental/")
+            || rel.starts_with("scripts/tooling/python/")
+        {
             continue;
         }
         let meta = std::fs::metadata(&path)
