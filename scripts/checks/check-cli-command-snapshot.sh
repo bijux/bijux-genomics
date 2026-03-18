@@ -20,11 +20,8 @@ mkdir -p "$tmp_root"
 actual_root="$tmp_root/command_snapshot.actual.txt"
 actual_dna="$tmp_root/release_help_snapshot.actual.txt"
 
-"$ROOT_DIR/bin/isolate" sh -ceu "
-  export CARGO_TARGET_DIR=\"\$ISO_ROOT/target-cli-snapshot\"
-  cargo run --quiet --bin bijux-dna -- --help > \"$actual_root\"
-  cargo run --quiet --bin bijux-dna -- --help > \"$actual_dna\"
-"
+run_with_artifact_env cargo run --quiet --bin bijux-dna -- --help > "$actual_root"
+run_with_artifact_env cargo run --quiet --bin bijux-dna -- --help > "$actual_dna"
 
 if ! diff -u "$root_snap" "$actual_root" >/dev/null; then
   echo "cli snapshot drift: docs/cli/command_snapshot.txt differs from controlled bijux --help output" >&2

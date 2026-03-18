@@ -28,7 +28,7 @@ while IFS= read -r rel; do
   while IFS= read -r p; do
     [[ -n "$p" ]] || continue
     case "$p" in
-      artifacts/isolates/*|artifacts/tmp/*|artifacts/inventory/*|artifacts/test-logs/*|artifacts/coverage/*|artifacts/docs/*|artifacts/policies/*|artifacts/assets-refresh/*|${ISO_ROOT:-}/*)
+      artifacts/tmp/*|artifacts/inventory/*|artifacts/test-logs/*|artifacts/coverage/*|artifacts/docs/*|artifacts/policies/*|artifacts/assets-refresh/*|${ISO_ROOT:-}/*)
         continue
         ;;
     esac

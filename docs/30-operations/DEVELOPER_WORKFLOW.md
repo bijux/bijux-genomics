@@ -11,21 +11,21 @@ Ensures local checks match pipeline enforcement.
 
 ## Contracts
 CI enforces these commands via `make` and policy tests.
-- Any command that touches Cargo must run under `./bin/isolate`.
+- Any command that touches Cargo must use the shared `artifacts/` environment.
 
 ## Examples
 ```bash
-./bin/isolate make fmt
-./bin/isolate make lint
-./bin/isolate make audit
-./bin/isolate make test
-./bin/isolate make coverage
-./bin/isolate make ci
+make fmt
+make lint
+make audit
+make test
+make coverage
+make ci
 ```
 
 Outputs:
-- isolate-scoped test/build artifacts under `artifacts/isolates/<ISO_TAG>/`
-- docs build under `artifacts/isolates/<ISO_TAG>/docs/site/`
+- shared build cache under `artifacts/target/`
+- docs build under `artifacts/docs/site/`
 
 ## Failure modes
 Any failure must be resolved locally before merging.

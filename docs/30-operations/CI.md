@@ -4,10 +4,10 @@
 CI enforces the minimal deterministic gate for the workspace.
 
 ## Purpose
-Define the canonical CI gate contract and isolate invocation for the repository.
+Define the canonical CI gate contract and shared artifact invocation for the repository.
 
 ## Command
-- `./bin/isolate make ci`
+- `make ci`
 
 ## Current `make ci` Gates
 - `fmt`
@@ -23,7 +23,7 @@ Define the canonical CI gate contract and isolate invocation for the repository.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
 - Test/coverage runner defaults are pinned in `configs/rust/nextest.toml` and `configs/coverage/runner.toml`.
 
-## Isolation Contract
+## Artifact Contract
 - See `docs/30-operations/ISOLATION.md`.
 
 ## HPC Forward-compat
@@ -41,11 +41,11 @@ Applies only to the files and workflows referenced in this document.
 - Content here is normative where explicitly stated.
 
 ## Examples
-- Local: `./bin/isolate make ci`
-- HPC profile enabled: `./bin/isolate --tag ci-hpc make ci` (same gates, different storage roots)
+- Local: `make ci`
+- HPC profile enabled: `ARTIFACT_ROOT=artifacts make ci`
 - Fast profile: `./scripts/run.sh tooling ci-fast`
 - Slow profile: `./scripts/run.sh tooling ci-slow`
 
 ## Failure modes
-- Running CI-related scripts without isolation fails by contract.
+- Running CI-related scripts outside the shared artifact contract fails by policy.
 - HPC path assumptions in docs/scripts can cause false failures when profile roots differ.

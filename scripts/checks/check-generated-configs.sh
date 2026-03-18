@@ -10,10 +10,7 @@ export LC_ALL
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir "$ROOT_DIR/domain" --configs-dir "$ROOT_DIR/configs" >/dev/null
 

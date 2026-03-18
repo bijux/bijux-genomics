@@ -4,7 +4,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 
 ## Workflow
 - Run:
-  - `./bin/isolate ./scripts/containers/run-apptainer-frontend-security.sh`
+  - `./scripts/containers/run-apptainer-frontend-security.sh`
 - Validate gate:
   - `./scripts/containers/check-apptainer-frontend-security.sh`
 

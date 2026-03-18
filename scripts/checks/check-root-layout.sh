@@ -10,7 +10,7 @@ export LC_ALL
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${ROOT}"
 
-allowed=(assets bin configs containers crates docs domain examples makes scripts artifacts)
+allowed=(assets configs containers crates docs domain examples makes scripts artifacts)
 offenders=()
 
 for entry in */ ; do

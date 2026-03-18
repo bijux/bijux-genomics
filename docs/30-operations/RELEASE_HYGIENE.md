@@ -17,7 +17,7 @@ Breaking contract change requires:
 - pass `make release-gate`
 
 Minimal publishable gate:
-- `./bin/isolate make release-gate`
+- `make release-gate`
 - includes docs contract checks, root layout guardrail, tool registry lock verification, and container version lock/authority checks.
 
 ## Examples

@@ -177,16 +177,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_isolation_contract"
-path = "scripts/checks/check-isolation-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_isolate_contract_strong"
-path = "scripts/checks/check-isolate-contract-strong.sh"
+id = "check_artifact_env_contract"
+path = "scripts/checks/check-artifact-env-contract.sh"
 purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -1752,14 +1744,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "require_isolate_smoke"
-path = "scripts/test/require-isolate-smoke.sh"
-purpose = "test script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_doc_major_depth"
 path = "scripts/docs/check-doc-major-depth.sh"
 purpose = "docs script"
@@ -1784,16 +1768,16 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_make_isolation_contract"
-path = "scripts/checks/check-make-isolation-contract.sh"
-purpose = "checks script"
+id = "tooling_bijux"
+path = "scripts/tooling/bijux.sh"
+purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "tooling_bijux"
-path = "scripts/tooling/bijux.sh"
+id = "tooling_image_qa"
+path = "scripts/tooling/image-qa.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -2247,14 +2231,6 @@ id = "make_help"
 path = "scripts/tooling/make-help.sh"
 purpose = "tooling script"
 inputs = ["makes/README.md", "makes/cargo.mk"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_make_cargo_isolate_target"
-path = "scripts/checks/check-make-cargo-isolate-target.sh"
-purpose = "checks script"
-inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 

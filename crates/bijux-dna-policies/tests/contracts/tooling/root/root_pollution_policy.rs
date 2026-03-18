@@ -35,7 +35,7 @@ fn policy__contracts__root_pollution_policy__tracked_root_outputs_are_forbidden(
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "tracked root pollution paths are forbidden (use artifacts/isolates or target/):\n{}",
+        "tracked root pollution paths are forbidden (use artifacts/ or target/):\n{}",
         offenders.join("\n")
     );
 }

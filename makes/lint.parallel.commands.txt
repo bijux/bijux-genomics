@@ -76,8 +76,7 @@ make _examples-validate
 ./scripts/run.sh checks check-script-deps
 ./scripts/run.sh checks check-script-help
 ./scripts/run.sh checks check-script-interface
-./scripts/run.sh checks check-isolation-contract
-./scripts/run.sh checks check-isolate-contract-strong
+./scripts/run.sh checks check-artifact-env-contract
 ./scripts/run.sh checks check-shell-portability
 ./scripts/run.sh checks check-network-usage
 ./scripts/run.sh checks check-no-temp-leaks
@@ -93,16 +92,13 @@ make _examples-validate
 ./scripts/run.sh checks check-artifacts-layout
 ./scripts/run.sh checks check-script-arg-style
 ./scripts/run.sh checks check-script-entrypoint
-./scripts/run.sh checks check-make-isolation-contract
 ./scripts/run.sh checks check-make-help-sync
 ./scripts/run.sh checks check-gitignore-contract
 ./scripts/run.sh checks check-cargo-config-policy
 ./scripts/run.sh checks check-audit-allowlist
 ./scripts/run.sh checks check-no-orphan-scripts
 ./scripts/run.sh checks check-no-raw-cargo-in-makes
-./scripts/run.sh checks check-make-cargo-isolate-target
 ./scripts/run.sh checks check-no-raw-cargo-in-scripts
 ./scripts/run.sh checks check-domain-realization
 ./scripts/run.sh containers lint
 ./scripts/run.sh test test-scripts-smoke
-./scripts/run.sh test require-isolate-smoke

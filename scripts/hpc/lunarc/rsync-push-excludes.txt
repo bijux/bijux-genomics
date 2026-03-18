@@ -1,6 +1,7 @@
 .git/
 target/
-artifacts/isolates/
+artifacts/target/
+artifacts/tmp/
 **/.cache/
 **/.pytest_cache/
 **/__pycache__/

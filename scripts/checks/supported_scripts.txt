@@ -29,8 +29,7 @@ scripts/checks/check-exit-codes.sh
 scripts/checks/check-generated-config-headers.sh
 scripts/checks/check-generated-configs.sh
 scripts/checks/check-hpc-safety.sh
-scripts/checks/check-isolate-contract-strong.sh
-scripts/checks/check-isolation-contract.sh
+scripts/checks/check-artifact-env-contract.sh
 scripts/checks/check-lib-api.sh
 scripts/checks/check-network-usage.sh
 scripts/checks/check-no-orphan-scripts.sh
@@ -157,7 +156,7 @@ scripts/tooling/make-help.sh
 scripts/checks/check-docs-build-contract.sh
 scripts/checks/check-docs-requirements-lock.sh
 scripts/checks/check-examples-policy.sh
-scripts/checks/check-make-cargo-isolate-target.sh
+scripts/tooling/image-qa.sh
 scripts/checks/check-nextest-profile-contract.sh
 scripts/checks/check-runtime-profiles-contract.sh
 scripts/checks/check-logging-contract.sh

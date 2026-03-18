@@ -46,7 +46,7 @@ with open(path, 'r', encoding='utf-8') as f:
 
 for (binary, test_name) in failures.keys():
     if binary:
-        print(f"./bin/isolate sh -ceu 'export CARGO_TARGET_DIR=\"$ISO_ROOT/target-test\"; cargo nextest run --test-threads 1 {binary} {test_name}'")
+        print(f"ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {binary} {test_name}")
     else:
-        print(f"./bin/isolate sh -ceu 'export CARGO_TARGET_DIR=\"$ISO_ROOT/target-test\"; cargo nextest run --test-threads 1 {test_name}'")
+        print(f"ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {test_name}")
 PY

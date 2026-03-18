@@ -15,7 +15,7 @@ Exit code contract:
 - minimal/missing-input path: tool-specific expected exit code from registry.
 
 Isolation contract:
-- Smoke scripts must run inside isolate (`bin/require-isolate`).
+- Smoke scripts must run under the shared artifacts contract.
 - Smoke writes are allowed only under isolate/artifact roots.
 
 Cross-runtime parity:

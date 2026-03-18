@@ -21,7 +21,7 @@ while IFS= read -r rel; do
     case "$path" in
       artifacts/[a-z0-9_-]*/[a-zA-Z0-9._-]*|artifacts/[a-z0-9_-]*/[a-zA-Z0-9._-]*/[A-Za-z0-9._/-]*)
         ;;
-      artifacts/isolates|artifacts/isolates/*|artifacts/tmp|artifacts/tmp/*|artifacts/docs|artifacts/docs/*|artifacts/coverage|artifacts/coverage/*|artifacts/inventory|artifacts/inventory/*|artifacts/test-logs|artifacts/test-logs/*|artifacts/assets-refresh|artifacts/assets-refresh/*|artifacts/policies|artifacts/policies/*|${ISO_ROOT:-}/*)
+      artifacts/tmp|artifacts/tmp/*|artifacts/docs|artifacts/docs/*|artifacts/coverage|artifacts/coverage/*|artifacts/inventory|artifacts/inventory/*|artifacts/test-logs|artifacts/test-logs/*|artifacts/assets-refresh|artifacts/assets-refresh/*|artifacts/policies|artifacts/policies/*|${ISO_ROOT:-}/*)
         ;;
       *)
         viol+=("$rel -> non-standard artifact path literal: $path")

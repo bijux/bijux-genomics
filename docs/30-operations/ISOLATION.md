@@ -1,52 +1,18 @@
-# ISOLATION
+# Artifact Environment
 
 ## Purpose
-Define the runtime contract for `bin/isolate` and `bin/require-isolate`.
+Define the shared artifact environment contract for local development, CI, and operational scripts.
 
-## `bin/isolate` Contract
-- Computes `ISO_TAG` if unset: `<utc-timestamp>-<git-short-sha>-<pid>`.
-- Computes `ISO_ROOT` if unset: `artifacts/isolates/<ISO_TAG>`.
-- Creates isolate directories under `ISO_ROOT`:
-  - `target/`
-  - `cargo-home/`
-  - `tmp/`
-  - `logs/`
-  - `out/`
-- Exports:
-  - `ISO_TAG`
-  - `ISO_ROOT`
-  - `CARGO_TARGET_DIR=$ISO_ROOT/target`
-  - `CARGO_HOME=$ISO_ROOT/cargo-home`
-  - `TMPDIR=$ISO_ROOT/tmp` (and `TMP`, `TEMP`)
+## Contract
+- `ARTIFACT_ROOT` defaults to `artifacts/`.
+- `ISO_ROOT` remains a compatibility alias for `ARTIFACT_ROOT`.
+- Cargo build output lives under `artifacts/target/`.
+- Cargo home lives under `artifacts/cargo/home/`.
+- Temporary files live under `artifacts/tmp/`.
+- Deterministic defaults remain `TZ=UTC` and `LC_ALL=C`.
 
-## Flags
-- `--print-root`: prints computed `ISO_ROOT` and exits.
-- `--print-env`: prints key isolate env vars as stable `KEY=VALUE` lines and exits.
-- `--print-tag`: prints computed `ISO_TAG` and exits.
-- `--tag <name>`: sets explicit isolate tag used in `ISO_ROOT`.
-- `--require-clean`: refuses to run when `ISO_ROOT` already exists unless `--reuse` is passed.
-- `--require-empty-target-dir`: refuses to run when `ISO_ROOT` has any `target-*` entries unless `--reuse` is passed.
-- `--reuse`: explicitly allows reuse of an existing isolate root.
-
-## Tag Behavior
-- If caller passes `--tag`, that value is authoritative.
-- Otherwise if caller sets `ISO_TAG`, `bin/isolate` uses it.
-- If caller sets `ISO_ROOT`, it must include `ISO_TAG` for predictable naming.
-- Otherwise defaults are derived as above.
-
-## Allowed Outputs
-- Scripts and tooling must write only via `ISO_ROOT`-scoped env vars or under `artifacts/`.
-- Scripts must not hardcode `artifacts/isolates/<...>` paths.
-
-## `bin/require-isolate`
-- Verifies required isolate env vars are present and path-scoped under `ISO_ROOT`.
-- `--explain` prints a user-facing diagnostic and invocation guidance.
-
-## Scope
-Applies only to the files and workflows referenced in this document.
-
-## Non-goals
-- Not a replacement for lower-level implementation or crate-specific contracts.
-
-## Contracts
-- Content here is normative where explicitly stated.
+## Usage Rules
+- Make targets must prepare the environment through `makes/_macro.mk`.
+- Shell scripts must use `require_artifact_env` or `run_with_artifact_env` from `scripts/_lib/common.sh`.
+- Scripts and tooling must write only under `artifacts/`.
+- Scripts must not hardcode retired `artifacts/isolates/` paths.
