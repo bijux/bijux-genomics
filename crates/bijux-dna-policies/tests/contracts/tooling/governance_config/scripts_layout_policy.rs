@@ -32,6 +32,33 @@ fn script_files(root: &Path) -> Vec<PathBuf> {
     out
 }
 
+fn make_files(root: &Path) -> Vec<PathBuf> {
+    let mut files = vec![root.join("Makefile")];
+    for entry in WalkDir::new(root.join("makes"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        if path.extension().and_then(|s| s.to_str()) != Some("mk") {
+            continue;
+        }
+        files.push(path.to_path_buf());
+    }
+    files.sort();
+    files
+}
+
+fn make_text(root: &Path) -> String {
+    let mut out = String::new();
+    for path in make_files(root) {
+        out.push_str(&std::fs::read_to_string(path).unwrap_or_default());
+    }
+    out
+}
+
 #[test]
 fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
     let root = workspace_root();
@@ -120,14 +147,7 @@ fn policy__contracts__scripts_layout_policy__scripts_have_strict_mode_and_c_loca
 fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenced_or_experimental()
 {
     let root = workspace_root();
-    let make_text = std::fs::read_to_string(root.join("Makefile")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/cargo.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/containers.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/docs.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/lab.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/lunarc.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/benchmarks-fastq.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/benchmarks-bam.mk")).unwrap_or_default();
+    let make_text = make_text(&root);
 
     let re = Regex::new(r"scripts/[A-Za-z0-9_./-]+\\.(sh|py)").expect("regex");
     let mut supported = std::collections::BTreeSet::new();
@@ -239,10 +259,7 @@ fn policy__contracts__scripts_layout_policy__arg_parsing_reuses_shared_lib() {
 #[test]
 fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or_iso_root() {
     let root = workspace_root();
-    let make_text = std::fs::read_to_string(root.join("Makefile")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/cargo.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/containers.mk")).unwrap_or_default()
-        + &std::fs::read_to_string(root.join("makefiles/docs.mk")).unwrap_or_default();
+    let make_text = make_text(&root);
     let re = Regex::new(r"scripts/[A-Za-z0-9_./-]+\.sh").expect("regex");
     let mut ci_scripts = std::collections::BTreeSet::new();
     for m in re.find_iter(&make_text) {

@@ -28,7 +28,7 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 127
 fi
 
-matches=$(rg -n "^\t@?.*\\bcargo([[:space:]]|$)" Makefile makefiles/*.mk || true)
+matches=$(rg -n "^\t@?.*\\bcargo([[:space:]]|$)" Makefile makes || true)
 if [[ -n "$matches" ]]; then
   violations=$(printf '%s\n' "$matches" | rg -v "(install once: cargo install|policy-no-raw-cargo)" || true)
   if [[ -n "$violations" ]]; then
@@ -37,9 +37,9 @@ if [[ -n "$matches" ]]; then
     exit 1
   fi
 fi
-echo "raw-cargo-policy(makefiles): OK (no raw cargo in makefiles)"
+echo "raw-cargo-policy(makes): OK (no raw cargo in makes)"
 
-tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\\b" Makefile makefiles/*.mk || true)
+tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*[[:space:]]+-m[[:space:]]+venv\\b" Makefile makes || true)
 if [[ -n "$tool_matches" ]]; then
   tool_violations=$(printf '%s\n' "$tool_matches" | rg -v "scripts/tooling/" || true)
   if [[ -n "$tool_violations" ]]; then
@@ -48,13 +48,13 @@ if [[ -n "$tool_matches" ]]; then
     exit 1
   fi
 fi
-echo "raw-tooling-policy(makefiles): OK"
+echo "raw-tooling-policy(makes): OK"
 
-direct_script_calls=$(rg -n "^\t@?.*scripts/[A-Za-z0-9_./-]+\\.sh" Makefile makefiles/*.mk || true)
+direct_script_calls=$(rg -n "^\t@?.*scripts/[A-Za-z0-9_./-]+\\.sh" Makefile makes || true)
 if [[ -n "$direct_script_calls" ]]; then
   bad_direct=$(printf '%s\n' "$direct_script_calls" | rg -v "scripts/run\\.sh" || true)
   if [[ -n "$bad_direct" ]]; then
-    echo "makefile-script-surface: makefiles must invoke scripts through scripts/run.sh (or approved thin wrappers)" >&2
+    echo "make-script-surface: makes must invoke scripts through scripts/run.sh (or approved thin wrappers)" >&2
     printf '%s\n' "$bad_direct" >&2
     exit 1
   fi
@@ -81,12 +81,12 @@ while IFS= read -r line; do
     fi
     line="${line#*${path}}"
   done
-done < <(cat Makefile makefiles/*.mk)
+done < <(cat Makefile makes/*.mk)
 
 if [[ ${#viol[@]} -gt 0 ]]; then
-  echo "ci-allowed-policy(makefiles): make/CI may call only scripts with ci_allowed=true" >&2
+  echo "ci-allowed-policy(makes): make/CI may call only scripts with ci_allowed=true" >&2
   printf '%s\n' "${viol[@]}" >&2
   exit 1
 fi
 
-echo "ci-allowed-policy(makefiles): OK"
+echo "ci-allowed-policy(makes): OK"

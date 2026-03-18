@@ -27,7 +27,7 @@ import sys
 
 root = Path(sys.argv[1])
 show_internal = sys.argv[2] == "1"
-readme = (root / "makefiles/README.md").read_text(encoding="utf-8").splitlines()
+readme = (root / "makes/README.md").read_text(encoding="utf-8").splitlines()
 
 public = []
 in_public = False
@@ -44,10 +44,10 @@ for line in readme:
 
 print("Public make targets:\n")
 for target in public:
-    print(f"  {target:<22} from makefiles/README.md")
+    print(f"  {target:<22} from makes/README.md")
 
 if show_internal:
-    mk = (root / "makefiles/cargo.mk").read_text(encoding="utf-8").splitlines()
+    mk = (root / "makes/cargo.mk").read_text(encoding="utf-8").splitlines()
     internal = []
     for row in mk:
         m = re.match(r"^([_a-zA-Z0-9-]+):\s*##\s*(.+)$", row)
@@ -61,5 +61,5 @@ if show_internal:
         for name, desc in internal:
             print(f"  {name:<22} {desc}")
 
-print("\nSee makefiles/README.md for the public surface contract.")
+print("\nSee makes/README.md for the public surface contract.")
 PY

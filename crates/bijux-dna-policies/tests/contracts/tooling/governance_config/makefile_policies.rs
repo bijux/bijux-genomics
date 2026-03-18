@@ -40,9 +40,10 @@ fn policy__contracts__makefile_policies__root_makefile_is_single_source() {
     let root = workspace_root();
     let makefile = root.join("Makefile");
     let content = std::fs::read_to_string(&makefile).expect("read Makefile");
+    let normalized = content.trim();
     bijux_dna_policies::policy_assert!(
-        content.contains("include makefiles/cargo.mk"),
-        "Makefile must include makefiles/cargo.mk"
+        normalized == "include makes/root.mk",
+        "Makefile must delegate only to makes/root.mk"
     );
     let forbidden_targets = [
         "lint:",
@@ -59,7 +60,7 @@ fn policy__contracts__makefile_policies__root_makefile_is_single_source() {
         .collect();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "root Makefile must not duplicate cargo-make tasks: {:?}",
+        "root Makefile must not define command targets directly: {:?}",
         offenders
     );
 }
