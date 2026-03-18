@@ -2,6 +2,7 @@
 
 Public modules exported from src/lib.rs:
 - execution_plan
+- executor_registry
 - plan_run
 - stage_plan
 - stage_plugin

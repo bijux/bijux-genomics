@@ -1505,6 +1505,18 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.damage_aware_pretrim"
+required_tool_roles = ["transform"]
+primary_tools = ["cutadapt"]
+optional_alternatives = ["seqkit"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Damage-aware pretrim defaults preserve a reproducible terminal trimming baseline for ancient DNA libraries."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.overrepresented_sequences"
 required_tool_roles = ["transform"]
 primary_tools = ["fastqc"]

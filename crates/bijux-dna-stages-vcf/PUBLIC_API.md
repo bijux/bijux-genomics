@@ -4,6 +4,7 @@ Public modules exported from src/lib.rs:
 - engine
 - invariants
 - metrics
+- path_contract
 - pipeline
 - stage_specs
 - vcf_io

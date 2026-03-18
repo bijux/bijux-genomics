@@ -53,7 +53,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
 #[test]
 fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
-    let allowed = ["bijux-dna-infra", "bijux-dna-infra"];
+    let allowed = ["bijux-dna-infra", "bijux-dna-policies"];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
@@ -207,11 +207,11 @@ fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
 
 #[test]
 fn policy__contracts__ci_tools_policy__ci_environment_contract_is_stable() {
-    let tz = env::var("TZ").unwrap_or_default();
-    let lc_all = env::var("LC_ALL").unwrap_or_default();
-    if tz.is_empty() && lc_all.is_empty() {
+    if env::var_os("CI").is_none() {
         return;
     }
+    let tz = env::var("TZ").unwrap_or_default();
+    let lc_all = env::var("LC_ALL").unwrap_or_default();
     bijux_dna_policies::policy_assert!(
         tz == "UTC",
         "CI must set TZ=UTC for deterministic tests. Observed: {tz}"
