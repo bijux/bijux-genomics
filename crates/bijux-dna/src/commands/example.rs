@@ -11,6 +11,12 @@ use crate::commands::cli;
 use crate::commands::corpus;
 use crate::commands::ena;
 use crate::commands::hpc;
+use self::registry::{
+    load_example, normalize_species_id_for_path, primary_tool_for_stage, resolve_species_alias,
+    stage_exists_in_registry,
+};
+
+mod registry;
 
 const FASTQ_1XX_STAGE_CATALOG: &[&str] = &[
     "fastq.validate_pre",
@@ -642,7 +648,6 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) ->
         },
     })
 }
-include!("example/registry_resolution.rs");
 
 fn ensure_required_banks(cwd: &Path, spec: &ExampleSpec, hpc_root: &Path) -> Result<()> {
     let required = spec.required_banks.clone().unwrap_or_default();

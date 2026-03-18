@@ -1,1 +1,3 @@
-include!("bam_commands.rs");
+mod entrypoint;
+
+pub(crate) use entrypoint::*;

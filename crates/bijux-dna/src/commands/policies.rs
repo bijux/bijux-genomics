@@ -33,10 +33,7 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
 
     let mut dot = String::from("digraph workspace {\n");
     for (from, to) in edges {
-        let _ = std::fmt::Write::write_fmt(
-            &mut dot,
-            format_args!("  \"{from}\" -> \"{to}\";\n"),
-        );
+        let _ = std::fmt::Write::write_fmt(&mut dot, format_args!("  \"{from}\" -> \"{to}\";\n"));
     }
     dot.push_str("}\n");
     let dot_path = bijux_dna_api::v1::api::write_workspace_audit(out_dir, &dot)?;

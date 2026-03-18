@@ -8,12 +8,11 @@ use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 use sha2::Digest as _;
 
-use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
 use crate::commands::root_command_handlers::{
-    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
-    handle_ena_root, handle_environment_root, handle_lab_root, handle_registry_root,
-    handle_tool_root,
+    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root, handle_ena_root,
+    handle_environment_root, handle_lab_root, handle_registry_root, handle_tool_root,
 };
+use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
 
 struct CwdGuard(PathBuf);
 
@@ -33,8 +32,7 @@ fn global_option_value_arity(flag: &str) -> Option<usize> {
 fn is_global_switch(flag: &str) -> bool {
     matches!(
         flag,
-        "-v"
-            | "--verbose"
+        "-v" | "--verbose"
             | "-q"
             | "--quiet"
             | "--print-effective-config"
@@ -112,8 +110,7 @@ mod argv_normalization_contracts {
     #[test]
     fn direct_runtime_and_host_runtime_routes_normalize_to_the_same_surface() {
         let direct = normalize_cli_argv(&argv(&["bijux-dna", "registry", "list-stages"]));
-        let host_route =
-            normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
+        let host_route = normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
         let legacy_direct =
             normalize_cli_argv(&argv(&["bijux-dna", "dna", "registry", "list-stages"]));
 
@@ -123,8 +120,15 @@ mod argv_normalization_contracts {
 
     #[test]
     fn host_runtime_route_preserves_global_options_before_the_namespace() {
-        let host_route =
-            normalize_cli_argv(&argv(&["bijux", "--json", "--platform", "test", "dna", "env", "info"]));
+        let host_route = normalize_cli_argv(&argv(&[
+            "bijux",
+            "--json",
+            "--platform",
+            "test",
+            "dna",
+            "env",
+            "info",
+        ]));
 
         assert_eq!(
             host_route,
@@ -136,7 +140,10 @@ mod argv_normalization_contracts {
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let argv = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
+    let argv = args
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect::<Vec<_>>();
     let cli = parse_cli_from_argv(&argv)?;
     run_with_cli(&cli, cwd)
 }
@@ -198,7 +205,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let profile_path = bijux_dna_infra::configs_file(cwd, &format!("runtime/profiles/{}.toml", cli.profile));
+    let profile_path =
+        bijux_dna_infra::configs_file(cwd, &format!("runtime/profiles/{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path).map_err(|err| {
         anyhow!(CategorizedError::new(
             ErrorCategory::PlanError,
@@ -237,21 +245,19 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
-    if matches!(dna_command, cli::DnaCommand::Fastq { .. })
-        || {
-            #[cfg(debug_assertions)]
-            {
-                matches!(
-                    dna_command,
-                    cli::DnaCommand::Bam { .. } | cli::DnaCommand::Vcf { .. }
-                )
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                false
-            }
+    if matches!(dna_command, cli::DnaCommand::Fastq { .. }) || {
+        #[cfg(debug_assertions)]
+        {
+            matches!(
+                dna_command,
+                cli::DnaCommand::Bam { .. } | cli::DnaCommand::Vcf { .. }
+            )
         }
-    {
+        #[cfg(not(debug_assertions))]
+        {
+            false
+        }
+    } {
         let (stage, _, _) = cli::resolve_stage_tool(dna_command);
         enforce_offline_runtime_policy()?;
         ensure_stage_bank_requirements(cwd, stage.as_str())?;
@@ -498,7 +504,10 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
 }
 
 fn print_contract_status(cwd: &Path) -> Result<()> {
-    let domains = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/registry/domains.toml"))?;
+    let domains = parse_toml_path(&bijux_dna_infra::configs_file(
+        cwd,
+        "ci/registry/domains.toml",
+    ))?;
     let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
     let image_ids = images
         .as_table()

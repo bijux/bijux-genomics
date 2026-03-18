@@ -1,4 +1,4 @@
-fn resolve_profile_alias(id: &str) -> &str {
+pub(super) fn resolve_profile_alias(id: &str) -> &str {
     match id {
         "fastq-adna" => "fastq-to-fastq__adna__v1",
         "fastq-reference-adna" => "fastq-to-fastq__reference_adna__v1",
@@ -10,7 +10,7 @@ fn resolve_profile_alias(id: &str) -> &str {
     }
 }
 
-fn bench_bam_stage_args_to_api(
+pub(super) fn bench_bam_stage_args_to_api(
     args: &crate::commands::cli::parse::BenchBamStageArgs,
 ) -> bijux_dna_api::v1::api::bench::BenchBamStageArgs {
     bijux_dna_api::v1::api::bench::BenchBamStageArgs {
@@ -29,7 +29,7 @@ fn bench_bam_stage_args_to_api(
     }
 }
 
-fn bench_bam_pipeline_args_to_api(
+pub(super) fn bench_bam_pipeline_args_to_api(
     args: &crate::commands::cli::parse::BenchBamPipelineArgs,
 ) -> bijux_dna_api::v1::api::bench::BenchBamPipelineArgs {
     bijux_dna_api::v1::api::bench::BenchBamPipelineArgs {
