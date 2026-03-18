@@ -128,12 +128,12 @@ items=()
 failed=0
 
 for spec in \
-  "missing_images $SCRIPT_DIR/check-missing-images.sh" \
+  "missing_images cargo run -q -p bijux-dev-dna -- containers run check-missing-images" \
   "lock_file_drift cargo run -q -p bijux-dev-dna -- containers run check-version-lock" \
   "lock_vs_built $SCRIPT_DIR/check-lock-matches-built-output.sh" \
   "outdated_versions cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations" \
-  "domain_parity $SCRIPT_DIR/check-tool-container-coverage.sh" \
-  "registry_orphans $SCRIPT_DIR/check-registry-vs-defs.sh"; do
+  "domain_parity cargo run -q -p bijux-dev-dna -- containers run check-tool-container-coverage" \
+  "registry_orphans cargo run -q -p bijux-dev-dna -- containers run check-registry-vs-defs"; do
   id="${spec%% *}"
   cmd="${spec#* }"
   if line="$(run_check "$id" "$cmd")"; then

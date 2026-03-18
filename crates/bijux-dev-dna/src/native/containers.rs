@@ -158,6 +158,49 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::CompareFrontendLocalSifHash => {
             compare_frontend_local_sif_hash(workspace, args)
         }
+        NativeContainerCommandKey::CheckMissingImages => {
+            ensure_no_args("check-missing-images", args)?;
+            check_missing_images(workspace)
+        }
+        NativeContainerCommandKey::CheckNonBijuxSources => {
+            ensure_no_args("check-non-bijux-sources", args)?;
+            check_non_bijux_sources(workspace)
+        }
+        NativeContainerCommandKey::CheckOwners => {
+            ensure_no_args("check-owners", args)?;
+            check_owners(workspace)
+        }
+        NativeContainerCommandKey::CheckRegistryVsDefs => {
+            ensure_no_args("check-registry-vs-defs", args)?;
+            check_registry_vs_defs(workspace)
+        }
+        NativeContainerCommandKey::CheckToolNameCollision => {
+            ensure_no_args("check-tool-name-collision", args)?;
+            check_tool_name_collision(workspace)
+        }
+        NativeContainerCommandKey::CheckToolContainerCoverage => {
+            ensure_no_args("check-tool-container-coverage", args)?;
+            check_tool_container_coverage(workspace)
+        }
+        NativeContainerCommandKey::CheckToolkitBundles => {
+            ensure_no_args("check-toolkit-bundles", args)?;
+            check_toolkit_bundles(workspace)
+        }
+        NativeContainerCommandKey::CheckHpcImageNaming => {
+            check_hpc_image_naming(workspace, args)
+        }
+        NativeContainerCommandKey::CheckPlannedActionability => {
+            ensure_no_args("check-planned-actionability", args)?;
+            check_planned_actionability(workspace)
+        }
+        NativeContainerCommandKey::CheckBijuxTemplateMarkers => {
+            ensure_no_args("check-bijux-template-markers", args)?;
+            check_bijux_template_markers(workspace)
+        }
+        NativeContainerCommandKey::CheckToolIdContract => {
+            ensure_no_args("check-tool-id-contract", args)?;
+            check_tool_id_contract(workspace)
+        }
         NativeContainerCommandKey::Summary => summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => run_env_smoke(workspace, args),
@@ -715,6 +758,50 @@ fn tool_status_manifest(workspace: &Workspace) -> Result<BTreeMap<String, String
         }
     }
     Ok(statuses)
+}
+
+fn images_metadata(workspace: &Workspace) -> Result<toml::map::Map<String, toml::Value>> {
+    load_toml(&workspace.path("configs/ci/tools/images.toml"))?
+        .as_table()
+        .cloned()
+        .ok_or_else(|| anyhow!("images.toml must be a TOML table"))
+}
+
+fn toolkit_bundles(workspace: &Workspace) -> Result<BTreeMap<String, toml::map::Map<String, toml::Value>>> {
+    let value = load_toml(&workspace.path("configs/ci/tools/toolkit_bundles.toml"))?;
+    let mut rows = BTreeMap::new();
+    if let Some(table) = value.get("bundles").and_then(toml::Value::as_table) {
+        for (bundle, row) in table {
+            if let Some(row) = row.as_table() {
+                rows.insert(bundle.clone(), row.clone());
+            }
+        }
+    }
+    Ok(rows)
+}
+
+fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
+    let mut ids = BTreeSet::new();
+    for entry in fs::read_dir(workspace.path("containers/docker/arm64"))
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .filter_map(std::result::Result::ok)
+    {
+        if let Some(tool) = entry
+            .file_name()
+            .to_str()
+            .and_then(|name| name.strip_prefix("Dockerfile."))
+        {
+            ids.insert(tool.to_string());
+        }
+    }
+    Ok(ids)
+}
+
+fn apptainer_tool_ids(workspace: &Workspace) -> BTreeSet<String> {
+    apptainer_def_paths(workspace)
+        .into_iter()
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .collect()
 }
 
 fn command_hostname() -> String {
@@ -4037,6 +4124,856 @@ fn compare_frontend_local_sif_hash(
         stdout: format!("{}\n", out_md.display()),
         stderr: String::new(),
     })
+}
+
+fn check_missing_images(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let coverage = check_tool_container_coverage(workspace)?;
+    if !coverage.is_success() {
+        return Ok(coverage);
+    }
+    let bundles = check_toolkit_bundles(workspace)?;
+    if !bundles.is_success() {
+        return Ok(bundles);
+    }
+    success_line("missing images gate: OK")
+}
+
+fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let sources_doc = workspace.path("containers/apptainer/lunarc/NON_BIJUX_SOURCES.md");
+    if !sources_doc.exists() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing required provenance index: {}\n",
+            sources_doc.display()
+        )));
+    }
+    let defs = apptainer_tool_ids(workspace);
+    let text = read_utf8(&sources_doc)?;
+    let row_re = Regex::new(
+        r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*(\S+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|",
+    )
+    .expect("regex");
+    let mut rows = BTreeMap::new();
+    for line in text.lines() {
+        let Some(captures) = row_re.captures(line) else {
+            continue;
+        };
+        rows.insert(
+            captures.get(1).map(|value| value.as_str().to_string()).unwrap_or_default(),
+            (
+                captures.get(2).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(3).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(4).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(5).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(6).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(7).map(|value| value.as_str().to_string()).unwrap_or_default(),
+            ),
+        );
+    }
+    let checksum_re = Regex::new(r"^[0-9a-f]{64}$").expect("regex");
+    let mut errors = Vec::new();
+    for tool_id in &defs {
+        let Some((def_path, why_non_bijux, upstream, license_field, checksum, patching_rules)) =
+            rows.get(tool_id)
+        else {
+            errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
+            continue;
+        };
+        let expected_path = format!("containers/apptainer/lunarc/{tool_id}.def");
+        if def_path != &expected_path {
+            errors.push(format!(
+                "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"
+            ));
+        }
+        if !upstream.starts_with("http://") && !upstream.starts_with("https://") {
+            errors.push(format!("{tool_id}: upstream_source must be URL"));
+        }
+        if why_non_bijux.trim().is_empty() {
+            errors.push(format!("{tool_id}: why_non_bijux must be non-empty"));
+        }
+        if license_field.trim().is_empty() {
+            errors.push(format!("{tool_id}: upstream_license must be non-empty"));
+        }
+        if patching_rules.trim().is_empty() {
+            errors.push(format!("{tool_id}: patching_rules must be non-empty"));
+        }
+        if !checksum.starts_with("sha256:") {
+            errors.push(format!("{tool_id}: upstream_checksum must start with sha256:"));
+        } else {
+            let digest = checksum.trim_start_matches("sha256:");
+            if digest != "pending" && !checksum_re.is_match(digest) {
+                errors.push(format!(
+                    "{tool_id}: upstream_checksum must be sha256:<64hex> or sha256:pending"
+                ));
+            }
+        }
+    }
+    for tool_id in rows.keys() {
+        if !defs.contains(tool_id) {
+            errors.push(format!(
+                "{tool_id}: listed in NON_BIJUX_SOURCES.md but no .def exists"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("non-bijux source coverage: OK");
+    }
+    failure_lines("non-bijux source coverage check failed:", &errors)
+}
+
+fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let owners_path = workspace.path("containers/OWNERS.toml");
+    if !owners_path.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "missing containers/OWNERS.toml\n",
+        ));
+    }
+    let owners_data = load_toml(&owners_path)?;
+    let owner_rows = owners_data
+        .get("owner")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if owner_rows.is_empty() {
+        return Ok(ContainerCommandOutcome::failure(
+            "containers/OWNERS.toml has no [[owner]] rows\n",
+        ));
+    }
+    let mut rows = Vec::new();
+    for row in owner_rows {
+        let Some(row) = row.as_table() else {
+            continue;
+        };
+        let tool_id = table_string(row, "tool_id");
+        let team = table_string(row, "team");
+        let contact = table_string(row, "contact");
+        if tool_id.is_empty() || team.is_empty() || contact.is_empty() {
+            return Ok(ContainerCommandOutcome::failure(
+                "each [[owner]] row must include tool_id, team, contact\n",
+            ));
+        }
+        if tool_id == "*" {
+            return Ok(ContainerCommandOutcome::failure(
+                "containers/OWNERS.toml: wildcard tool_id='*' is not allowed; map each tool explicitly\n",
+            ));
+        }
+        rows.push((tool_id, team));
+    }
+    let tool_ids = tool_status_manifest(workspace)?
+        .into_keys()
+        .collect::<Vec<_>>();
+    let mut errors = Vec::new();
+    for tool_id in tool_ids {
+        let matches = rows.iter().filter(|(pattern, _)| pattern == &tool_id).count();
+        if matches != 1 {
+            errors.push(format!("{tool_id}: expected exactly one owner match, got {matches}"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("container owners: OK");
+    }
+    failure_lines("container owners check failed:", &errors)
+}
+
+fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut registry_ids = BTreeSet::new();
+    let mut registry_container_ids = BTreeSet::new();
+    for row in registry_tool_rows(workspace)? {
+        let tool_id = table_string(&row, "id");
+        let tool_id = if tool_id.is_empty() {
+            table_string(&row, "tool_id")
+        } else {
+            tool_id
+        };
+        if tool_id.is_empty() {
+            continue;
+        }
+        registry_ids.insert(tool_id.clone());
+        let status = table_string(&row, "status");
+        if table_bool(&row, "container") && matches!(status.as_str(), "production" | "experimental")
+        {
+            registry_container_ids.insert(tool_id);
+        }
+    }
+    let mut retired = BTreeSet::new();
+    let retired_doc = workspace.path("containers/docs/RETIRED_DEFS.md");
+    if retired_doc.exists() {
+        for line in read_utf8(&retired_doc)?.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("| `") {
+                let cols = trimmed.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
+                if let Some(tool) = cols.first() {
+                    let tool = tool.trim_matches('`').trim().to_string();
+                    if !tool.is_empty() {
+                        retired.insert(tool);
+                    }
+                }
+            }
+        }
+    }
+    let def_ids = docker_tool_ids(workspace)?
+        .into_iter()
+        .chain(apptainer_tool_ids(workspace))
+        .collect::<BTreeSet<_>>();
+    let orphans = def_ids
+        .difference(&registry_ids)
+        .filter(|tool| !retired.contains(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    let missing = registry_container_ids
+        .difference(&def_ids)
+        .cloned()
+        .collect::<Vec<_>>();
+    let mut errors = Vec::new();
+    if !orphans.is_empty() {
+        errors.push("registry-vs-defs: defs without registry entry (and not retired):".to_string());
+        errors.extend(orphans.into_iter().map(|tool| format!("- {tool}")));
+    }
+    if !missing.is_empty() {
+        errors.push("registry-vs-defs: registry container tools missing defs:".to_string());
+        errors.extend(missing.into_iter().map(|tool| format!("- {tool}")));
+    }
+    if errors.is_empty() {
+        return success_line(format!(
+            "registry-vs-defs: OK ({} defs, {} registry container tools)",
+            def_ids.len(),
+            registry_container_ids.len()
+        ));
+    }
+    failure_lines("registry-vs-defs: failed", &errors)
+}
+
+fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let images = images_metadata(workspace)?;
+    let versions = tool_versions(workspace)?;
+    let tool_ids = tool_status_manifest(workspace)?
+        .into_keys()
+        .collect::<BTreeSet<_>>();
+    let docker_ids = docker_tool_ids(workspace)?;
+    let apptainer_ids = apptainer_tool_ids(workspace);
+    let domain_ids = walkdir::WalkDir::new(workspace.path("domain"))
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter_map(|entry| {
+            let path = entry.path();
+            let parent = path.parent()?.file_name()?.to_str()?;
+            if parent != "tools" || path.extension()?.to_str()? != "yaml" {
+                return None;
+            }
+            let stem = path.file_stem()?.to_str()?;
+            (stem != "_schema").then(|| stem.to_string())
+        })
+        .collect::<BTreeSet<_>>();
+    let mut tools = BTreeMap::new();
+    let mut bin_to_tool = BTreeMap::new();
+    let mut errors = Vec::new();
+    for row in registry_tool_rows(workspace)? {
+        let tool_id = table_string(&row, "id");
+        let tool_id = if tool_id.is_empty() {
+            table_string(&row, "tool_id")
+        } else {
+            tool_id
+        };
+        if tool_id.is_empty() {
+            continue;
+        }
+        let expected_bin = table_string(&row, "expected_bin");
+        tools.insert(
+            tool_id.clone(),
+            (
+                expected_bin.clone(),
+                table_string(&row, "status"),
+            ),
+        );
+        if !expected_bin.is_empty() {
+            if let Some(previous) = bin_to_tool.insert(expected_bin.clone(), tool_id.clone()) {
+                if previous != tool_id {
+                    errors.push(format!(
+                        "expected_bin collision: '{expected_bin}' used by both '{previous}' and '{tool_id}'"
+                    ));
+                }
+            }
+        }
+    }
+    let numeric_suffix_re = Regex::new(r"^([a-z_]+?)(\d+)$").expect("regex");
+    for tool_id in tools.keys() {
+        let Some(captures) = numeric_suffix_re.captures(tool_id) else {
+            continue;
+        };
+        let base = captures.get(1).map(|value| value.as_str()).unwrap_or_default();
+        if !tools.contains_key(base) {
+            continue;
+        }
+        for candidate in [base.to_string(), tool_id.clone()] {
+            if !images.contains_key(&candidate) {
+                errors.push(format!("name-collision: missing images entry for '{candidate}'"));
+            }
+            if !versions.contains_key(&candidate) {
+                errors.push(format!("name-collision: missing versions entry for '{candidate}'"));
+            }
+        }
+        let base_bin = tools.get(base).map(|(bin, _)| bin.clone()).unwrap_or_default();
+        let suffixed_bin = tools
+            .get(tool_id)
+            .map(|(bin, _)| bin.clone())
+            .unwrap_or_default();
+        if !base_bin.is_empty() && base_bin == suffixed_bin {
+            errors.push(format!(
+                "name-collision: expected_bin must differ for '{base}' and '{tool_id}' (both '{base_bin}')"
+            ));
+        }
+    }
+    let surfaces = [
+        ("registry", tools.keys().cloned().collect::<BTreeSet<_>>()),
+        (
+            "images",
+            images
+                .iter()
+                .filter_map(|(key, value)| value.is_table().then(|| key.clone()))
+                .collect::<BTreeSet<_>>(),
+        ),
+        ("versions", versions.keys().cloned().collect::<BTreeSet<_>>()),
+        ("tool_ids", tool_ids),
+        ("docker", docker_ids),
+        ("apptainer", apptainer_ids),
+        ("domain_tools", domain_ids),
+    ];
+    let all_ids = surfaces
+        .iter()
+        .flat_map(|(_, ids)| ids.iter().cloned())
+        .collect::<BTreeSet<_>>();
+    let norm_re = Regex::new(r"^[a-z][a-z0-9_]*$").expect("regex");
+    for tool_id in &all_ids {
+        if !norm_re.is_match(tool_id) {
+            errors.push(format!("id normalization: '{tool_id}' is not snake_case"));
+        }
+    }
+    for tool_id in &all_ids {
+        let present = surfaces
+            .iter()
+            .filter_map(|(name, ids)| ids.contains(tool_id).then_some(*name))
+            .collect::<Vec<_>>();
+        if !present.contains(&"registry")
+            && present
+                .iter()
+                .any(|name| matches!(*name, "images" | "versions" | "tool_ids" | "docker" | "apptainer"))
+        {
+            errors.push(format!(
+                "id parity: '{tool_id}' present in {:?} but missing from registry",
+                present
+            ));
+        }
+    }
+    let name_map = workspace.path("containers/docs/TOOL_NAME_MAP.md");
+    if !name_map.exists() {
+        errors.push("missing containers/docs/TOOL_NAME_MAP.md".to_string());
+    } else {
+        let text = read_utf8(&name_map)?;
+        for tool_id in tools.keys() {
+            if !text.contains(&format!("`{tool_id}`")) {
+                errors.push(format!("tool-name-map missing tool id '{tool_id}'"));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("tool-name-collision: OK");
+    }
+    failure_lines("tool-name-collision: failed", &errors)
+}
+
+fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let images = images_metadata(workspace)?;
+    let docker_ids = docker_tool_ids(workspace)?;
+    let apptainer_ids = apptainer_tool_ids(workspace);
+    let parity_exemptions = images
+        .get("parity_exemptions")
+        .and_then(toml::Value::as_table)
+        .into_iter()
+        .flat_map(|table| {
+            table
+                .iter()
+                .filter_map(|(tool_id, enabled)| enabled.as_bool().filter(|enabled| *enabled).map(|_| tool_id.clone()))
+        })
+        .chain(
+            images
+                .get("apptainer_parity_exemptions")
+                .and_then(toml::Value::as_table)
+                .into_iter()
+                .flat_map(|table| {
+                    table.iter().filter_map(|(tool_id, enabled)| {
+                        enabled.as_bool().filter(|enabled| *enabled).map(|_| tool_id.clone())
+                    })
+                }),
+        )
+        .collect::<BTreeSet<_>>();
+    let mut errors = Vec::new();
+    for row in registry_tool_rows(workspace)? {
+        let status = table_string(&row, "status");
+        if status != "production" || !table_bool(&row, "container") {
+            continue;
+        }
+        let tool_id = {
+            let id = table_string(&row, "id");
+            if id.is_empty() {
+                table_string(&row, "tool_id")
+            } else {
+                id
+            }
+        };
+        let runtimes = table_array_strings(&row, "runtimes")
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+        let dockerfile = table_string(&row, "dockerfile");
+        let apptainer_def = table_string(&row, "apptainer_def");
+        if runtimes.contains("docker") && dockerfile.is_empty() {
+            errors.push(format!(
+                "{tool_id}: runtime includes docker but dockerfile is unset"
+            ));
+        }
+        if runtimes.contains("apptainer") && apptainer_def.is_empty() {
+            errors.push(format!(
+                "{tool_id}: runtime includes apptainer but apptainer_def is unset"
+            ));
+        }
+        if dockerfile.is_empty() && apptainer_def.is_empty() {
+            errors.push(format!(
+                "{tool_id}: supported container tool has no container paths"
+            ));
+        }
+        if !dockerfile.is_empty() {
+            let docker_path = workspace.path(&dockerfile);
+            if !docker_path.exists() {
+                errors.push(format!("{tool_id} dockerfile missing: {dockerfile}"));
+            }
+            let expected = format!("Dockerfile.{tool_id}");
+            if docker_path.file_name().and_then(|name| name.to_str()) != Some(expected.as_str()) {
+                errors.push(format!(
+                    "{tool_id} dockerfile naming mismatch: expected {expected}"
+                ));
+            }
+        }
+        if !apptainer_def.is_empty() {
+            let apptainer_path = workspace.path(&apptainer_def);
+            if !apptainer_path.exists() {
+                errors.push(format!("{tool_id} apptainer def missing: {apptainer_def}"));
+            }
+            let expected = format!("{tool_id}.def");
+            if apptainer_path.file_name().and_then(|name| name.to_str()) != Some(expected.as_str()) {
+                errors.push(format!(
+                    "{tool_id} apptainer naming mismatch: expected {expected}"
+                ));
+            }
+        }
+        if !dockerfile.is_empty() && apptainer_def.is_empty() && !parity_exemptions.contains(&tool_id) {
+            errors.push(format!(
+                "{tool_id} has dockerfile but no apptainer_def and is not exempt (set configs/ci/tools/images.toml [parity_exemptions].{tool_id} = true)"
+            ));
+        }
+        if !dockerfile.is_empty() && !docker_ids.contains(&tool_id) {
+            errors.push(format!("{tool_id}: docker coverage missing concrete Dockerfile"));
+        }
+        if !apptainer_def.is_empty() && !apptainer_ids.contains(&tool_id) {
+            errors.push(format!("{tool_id}: apptainer coverage missing concrete definition"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("tool/container coverage: OK");
+    }
+    failure_lines("tool/container coverage check failed:", &errors)
+}
+
+fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let bundles = toolkit_bundles(workspace)?;
+    if bundles.is_empty() {
+        return Ok(ContainerCommandOutcome::failure(
+            "toolkit bundles: no [bundles.*] entries found\n",
+        ));
+    }
+    let images = images_metadata(workspace)?;
+    let docker_ids = docker_tool_ids(workspace)?;
+    let apptainer_ids = apptainer_tool_ids(workspace);
+    let mut registry = BTreeMap::new();
+    for row in registry_tool_rows(workspace)? {
+        let tool = {
+            let id = table_string(&row, "id");
+            if id.is_empty() {
+                table_string(&row, "tool_id")
+            } else {
+                id
+            }
+        };
+        if !tool.is_empty() {
+            registry.insert(tool, row);
+        }
+    }
+    let mut errors = Vec::new();
+    for (bundle_id, spec) in bundles {
+        let tools = table_array_strings(&spec, "tools");
+        if tools.is_empty() {
+            errors.push(format!("{bundle_id}: tools must be a non-empty array"));
+            continue;
+        }
+        for tool in tools {
+            let Some(registry_row) = registry.get(&tool) else {
+                errors.push(format!("{bundle_id}: tool '{tool}' missing from registry"));
+                continue;
+            };
+            let Some(image_meta) = images.get(&tool).and_then(toml::Value::as_table) else {
+                errors.push(format!("{bundle_id}: tool '{tool}' missing images.toml metadata"));
+                continue;
+            };
+            if table_string(image_meta, "version").is_empty() {
+                errors.push(format!("{bundle_id}: tool '{tool}' images.toml entry missing version"));
+            }
+            let status = table_string(registry_row, "status");
+            if !matches!(status.as_str(), "production" | "experimental" | "planned") {
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' has unsupported status '{status}'"
+                ));
+                continue;
+            }
+            if status == "planned" {
+                if image_meta.get("enabled").and_then(toml::Value::as_bool) != Some(false) {
+                    errors.push(format!(
+                        "{bundle_id}: planned tool '{tool}' must be enabled=false in images.toml"
+                    ));
+                }
+                continue;
+            }
+            let mut policy = table_string(image_meta, "shipping_policy");
+            let has_apptainer = apptainer_ids.contains(&tool);
+            let has_docker = docker_ids.contains(&tool);
+            if policy.is_empty() {
+                policy = if has_apptainer && has_docker {
+                    "docker_apptainer".to_string()
+                } else if has_apptainer {
+                    "apptainer_only".to_string()
+                } else if has_docker {
+                    "docker_only".to_string()
+                } else {
+                    "none".to_string()
+                };
+            }
+            match policy.as_str() {
+                "apptainer_only" if !has_apptainer => {
+                    errors.push(format!(
+                        "{bundle_id}: production tool '{tool}' requires apptainer container"
+                    ))
+                }
+                "docker_only" if !has_docker => {
+                    errors.push(format!(
+                        "{bundle_id}: production tool '{tool}' requires docker container"
+                    ))
+                }
+                "docker_apptainer" if !(has_apptainer && has_docker) => {
+                    errors.push(format!(
+                        "{bundle_id}: production tool '{tool}' requires both docker and apptainer containers"
+                    ))
+                }
+                "none" if !(has_apptainer || has_docker) => {
+                    errors.push(format!(
+                        "{bundle_id}: production tool '{tool}' has no container definition"
+                    ))
+                }
+                _ => {}
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("toolkit bundle completeness: OK");
+    }
+    failure_lines("toolkit bundle completeness check failed:", &errors)
+}
+
+fn check_hpc_image_naming(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run check-hpc-image-naming";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    if !args.is_empty() {
+        return Err(anyhow!(usage.to_string()));
+    }
+    let plan = run_program_with_env(
+        workspace,
+        "./scripts/containers/ensure-images.sh",
+        &["--plan".to_string()],
+        &artifact_env(workspace)?,
+    )?;
+    if !plan.is_success() {
+        return Ok(plan);
+    }
+    let cfg = workspace.path("configs/ci/tools/hpc_image_naming.toml");
+    let report = workspace.path("artifacts/containers/ensure-images/report.json");
+    if !cfg.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "hpc image naming: missing config\n",
+        ));
+    }
+    if !report.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "hpc image naming: missing ensure-images report\n",
+        ));
+    }
+    let conf = load_toml(&cfg)?;
+    let rep = read_json(&report)?;
+    let prefix = conf
+        .get("registry_prefix")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default()
+        .trim_end_matches('/')
+        .to_string();
+    let tool_re = Regex::new(
+        conf.get("tool_regex")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default(),
+    )
+    .context("invalid tool_regex in hpc_image_naming.toml")?;
+    let version_re = Regex::new(
+        conf.get("version_regex")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default(),
+    )
+    .context("invalid version_regex in hpc_image_naming.toml")?;
+    let tag_format = conf
+        .get("tag_format")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default()
+        .to_string();
+    let rows = rep
+        .get("hpc_image_refs")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut errors = Vec::new();
+    for row in rows.iter() {
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let version = row
+            .get("version")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let image_ref = row
+            .get("hpc_image_ref")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if !tool_re.is_match(&tool) {
+            errors.push(format!("{tool}: tool id does not match tool_regex"));
+        }
+        if !version_re.is_match(&version) {
+            errors.push(format!(
+                "{tool}: version '{version}' does not match version_regex"
+            ));
+        }
+        let expected_tag = tag_format
+            .replace("{tool}", &tool)
+            .replace("{version}", &version);
+        let expected_ref = format!("{prefix}/{tool}:{expected_tag}");
+        if image_ref != expected_ref {
+            errors.push(format!(
+                "{tool}: hpc_image_ref mismatch, expected {expected_ref}, got {image_ref}"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!("hpc image naming: OK ({})", rows.len()));
+    }
+    failure_lines("hpc image naming: FAILED", &errors)
+}
+
+fn check_planned_actionability(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let planned = workspace.path("containers/docs/PLANNED.md");
+    if !planned.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "planned actionability: missing containers/docs/PLANNED.md\n",
+        ));
+    }
+    let text = read_utf8(&planned)?;
+    let mut errors = Vec::new();
+    for header in ["| Tool |", "Owner"] {
+        if !text.contains(header) {
+            errors.push(format!(
+                "PLANNED.md missing required column/header marker: {header}"
+            ));
+        }
+    }
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("| Tool ") && trimmed.contains("Owner") {
+            in_table = true;
+            continue;
+        }
+        if in_table && trimmed.starts_with("|---") {
+            continue;
+        }
+        if in_table && trimmed.starts_with('|') {
+            rows.push(trimmed.to_string());
+        } else if in_table && trimmed.is_empty() {
+            break;
+        }
+    }
+    if rows.is_empty() {
+        errors.push("PLANNED.md has no actionable planned tool rows".to_string());
+    }
+    for row in rows {
+        let cols = row
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect::<Vec<_>>();
+        if cols.len() < 5 {
+            errors.push(format!("PLANNED.md malformed row: {row}"));
+            continue;
+        }
+        let tool = cols[0];
+        let owner = cols[4];
+        if matches!(owner, "" | "-" | "`-`" | "`\"") {
+            errors.push(format!("{tool}: missing owner"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!(
+            "planned actionability: OK ({})",
+            text.lines().filter(|line| line.trim().starts_with('|')).count().saturating_sub(2)
+        ));
+    }
+    failure_lines("planned actionability: FAILED", &errors)
+}
+
+fn check_bijux_template_markers(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let template = workspace.path("containers/apptainer/lunarc/TEMPLATE.def.inc");
+    let mut errors = Vec::new();
+    if !template.exists() {
+        errors.push("missing template file containers/apptainer/lunarc/TEMPLATE.def.inc".to_string());
+    }
+    for path in fs::read_dir(workspace.path("containers/apptainer/lunarc"))
+        .with_context(|| format!("read {}", workspace.path("containers/apptainer/lunarc").display()))?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("def"))
+    {
+        let head = read_utf8(&path)?
+            .lines()
+            .take(20)
+            .collect::<Vec<_>>()
+            .join("\n");
+        if !head.contains("BIJUX_TEMPLATE: v1") {
+            errors.push(format!(
+                "{}: missing BIJUX_TEMPLATE: v1 marker",
+                workspace.rel(&path).display()
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("bijux-template-markers: OK");
+    }
+    failure_lines("bijux-template-markers: failed", &errors)
+}
+
+fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let manifest = workspace.path("containers/TOOL_IDS.txt");
+    if !manifest.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing {}\n",
+            manifest.display()
+        )));
+    }
+    let lines = read_utf8(&manifest)?
+        .lines()
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    let required_headers = [
+        "# GENERATED FILE - DO NOT EDIT",
+        "# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids",
+        "# format: <tool_id><TAB><status>",
+    ];
+    let allowed_status = ["production", "experimental", "planned"]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$").expect("regex");
+    let docker_ids = docker_tool_ids(workspace)?;
+    let apptainer_ids = apptainer_tool_ids(workspace);
+    let mut seen = BTreeSet::new();
+    let mut status_by_id = BTreeMap::new();
+    let mut errors = Vec::new();
+    for (index, header) in required_headers.iter().enumerate() {
+        if lines.get(index).map(|line| line.as_str()) != Some(*header) {
+            errors.push(format!(
+                "header line {} mismatch: expected '{}'",
+                index + 1,
+                header
+            ));
+        }
+    }
+    for (index, raw) in lines.iter().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let parts = raw.split('\t').collect::<Vec<_>>();
+        if parts.len() != 2 {
+            errors.push(format!(
+                "line {}: expected exactly 2 TAB-separated fields",
+                index + 1
+            ));
+            continue;
+        }
+        let tool_id = parts[0].trim().to_string();
+        let status = parts[1].trim().to_string();
+        if !tool_re.is_match(&tool_id) {
+            errors.push(format!("line {}: invalid tool_id '{tool_id}'", index + 1));
+        }
+        if !allowed_status.contains(status.as_str()) {
+            errors.push(format!("line {}: invalid status '{status}'", index + 1));
+        }
+        if !seen.insert(tool_id.clone()) {
+            errors.push(format!("line {}: duplicate tool_id '{tool_id}'", index + 1));
+        }
+        status_by_id.insert(tool_id, status);
+    }
+    for (tool_id, status) in status_by_id {
+        let ap_count = usize::from(apptainer_ids.contains(&tool_id));
+        let docker_count = usize::from(docker_ids.contains(&tool_id));
+        if matches!(status.as_str(), "production" | "experimental") {
+            if ap_count != 1 {
+                errors.push(format!(
+                    "tool '{tool_id}' ({status}) must map to exactly one apptainer def (found {ap_count})"
+                ));
+            }
+            if docker_count != 1 {
+                errors.push(format!(
+                    "tool '{tool_id}' ({status}) must map to exactly one dockerfile (found {docker_count})"
+                ));
+            }
+        } else {
+            if ap_count > 1 {
+                errors.push(format!(
+                    "tool '{tool_id}' ({status}) has ambiguous apptainer defs (found {ap_count})"
+                ));
+            }
+            if docker_count > 1 {
+                errors.push(format!(
+                    "tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})"
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("tool id contract: OK");
+    }
+    failure_lines("tool id contract check failed:", &errors)
 }
 
 fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

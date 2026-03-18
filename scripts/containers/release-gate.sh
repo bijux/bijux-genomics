@@ -19,10 +19,10 @@ cat <<'INFO'
 container-release-gate: running required pre-release checks
 INFO
 
-"$SCRIPT_DIR/check-hpc-image-naming.sh"
-"$SCRIPT_DIR/check-toolkit-bundles.sh"
-"$SCRIPT_DIR/check-missing-images.sh"
-"$SCRIPT_DIR/check-tool-container-coverage.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-image-naming
+cargo run -q -p bijux-dev-dna -- containers run check-toolkit-bundles
+cargo run -q -p bijux-dev-dna -- containers run check-missing-images
+cargo run -q -p bijux-dev-dna -- containers run check-tool-container-coverage
 cargo run -q -p bijux-dev-dna -- containers run check-version-lock
 cargo run -q -p bijux-dev-dna -- containers run check-version-authority
 cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
@@ -45,8 +45,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 "$SCRIPT_DIR/check-vuln-allowlist.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
 cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
-"$SCRIPT_DIR/check-owners.sh"
-"$SCRIPT_DIR/check-tool-id-contract.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-owners
+cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 "$SCRIPT_DIR/check-time-locale-determinism.sh"
 "$SCRIPT_DIR/check-imputation-runtime-constraints.sh"

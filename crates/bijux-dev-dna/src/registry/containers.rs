@@ -253,6 +253,61 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CompareFrontendLocalSifHash,
         ),
         native(
+            "check-missing-images",
+            "Validate that governed tools and bundles resolve to concrete image coverage.",
+            NativeContainerCommandKey::CheckMissingImages,
+        ),
+        native(
+            "check-non-bijux-sources",
+            "Validate NON_BIJUX_SOURCES.md coverage for upstream-derived Apptainer definitions.",
+            NativeContainerCommandKey::CheckNonBijuxSources,
+        ),
+        native(
+            "check-owners",
+            "Validate explicit ownership coverage for every governed container tool.",
+            NativeContainerCommandKey::CheckOwners,
+        ),
+        native(
+            "check-registry-vs-defs",
+            "Validate registry container declarations against concrete Dockerfile and Apptainer defs.",
+            NativeContainerCommandKey::CheckRegistryVsDefs,
+        ),
+        native(
+            "check-tool-name-collision",
+            "Validate tool id normalization, name-map parity, and expected binary collisions.",
+            NativeContainerCommandKey::CheckToolNameCollision,
+        ),
+        native(
+            "check-tool-container-coverage",
+            "Validate production registry container tools against Docker and Apptainer coverage policy.",
+            NativeContainerCommandKey::CheckToolContainerCoverage,
+        ),
+        native(
+            "check-toolkit-bundles",
+            "Validate toolkit bundle tool coverage against registry and image metadata.",
+            NativeContainerCommandKey::CheckToolkitBundles,
+        ),
+        native(
+            "check-hpc-image-naming",
+            "Validate HPC image naming against the ensure-images plan report and naming policy.",
+            NativeContainerCommandKey::CheckHpcImageNaming,
+        ),
+        native(
+            "check-planned-actionability",
+            "Validate that PLANNED.md retains actionable rows and explicit ownership.",
+            NativeContainerCommandKey::CheckPlannedActionability,
+        ),
+        native(
+            "check-bijux-template-markers",
+            "Validate template markers across Bijux-owned Apptainer definitions.",
+            NativeContainerCommandKey::CheckBijuxTemplateMarkers,
+        ),
+        native(
+            "check-tool-id-contract",
+            "Validate the generated tool id manifest contract against concrete container mappings.",
+            NativeContainerCommandKey::CheckToolIdContract,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,
