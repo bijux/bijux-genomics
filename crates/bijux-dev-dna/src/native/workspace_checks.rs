@@ -1,0 +1,1377 @@
+use std::collections::BTreeSet;
+
+use anyhow::{Context, Result};
+use regex::Regex;
+use sha2::{Digest, Sha256};
+use walkdir::WalkDir;
+
+use crate::infrastructure::workspace::Workspace;
+use crate::model::check::{CheckDefinition, CheckOutcome};
+use crate::native::support::{fail, load_supported_scripts, pass, read, run_command};
+
+pub(crate) fn check_audit_allowlist(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let path = workspace.path("audit-allowlist.toml");
+    if !path.is_file() {
+        return fail(check, "missing audit-allowlist.toml");
+    }
+    let data: toml::Value = toml::from_str(&read(&path)?)?;
+    let rows = data
+        .get("advisory")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let today = chrono::Utc::now().date_naive();
+    let id_re = Regex::new(r"^RUSTSEC-\d{4}-\d{4}$").expect("regex");
+    let mut errors = Vec::new();
+    for (index, row) in rows.iter().enumerate() {
+        let tag = format!("entry[{index}]");
+        let advisory = row.get("id").and_then(toml::Value::as_str).unwrap_or("");
+        let why = row.get("why").and_then(toml::Value::as_str).unwrap_or("");
+        let expiry = row.get("expiry").and_then(toml::Value::as_str).unwrap_or("");
+        let owner = row.get("owner").and_then(toml::Value::as_str).unwrap_or("");
+        let link = row.get("link").and_then(toml::Value::as_str).unwrap_or("");
+        if !id_re.is_match(advisory) {
+            errors.push(format!("{tag}: id must match RUSTSEC-YYYY-NNNN"));
+        }
+        if why.trim().is_empty() {
+            errors.push(format!("{tag}: missing why"));
+        }
+        if owner.trim().is_empty() {
+            errors.push(format!("{tag}: missing owner"));
+        }
+        if !(link.starts_with("http://") || link.starts_with("https://")) {
+            errors.push(format!("{tag}: link must be http(s)"));
+        }
+        match chrono::NaiveDate::parse_from_str(expiry, "%Y-%m-%d") {
+            Ok(date) if date >= today => {}
+            Ok(_) => errors.push(format!("{tag}: expiry has passed ({expiry})")),
+            Err(_) => errors.push(format!("{tag}: expiry must be YYYY-MM-DD")),
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "audit allowlist entries are well-formed and non-expired");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_bench_knob_discipline_downstream(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let knobs_path = workspace.path("configs/bench/knobs.toml");
+    if !knobs_path.is_file() {
+        return fail(check, "missing configs/bench/knobs.toml");
+    }
+    let suites = [
+        "examples/vcf/downstream-vcf-full-mini/bench-suite.toml",
+        "examples/vcf/downstream-demography-mini/bench-suite.toml",
+        "examples/vcf/imputation-mini/bench-suite.toml",
+    ];
+    let mut errors = Vec::new();
+    for rel in suites {
+        let path = workspace.path(rel);
+        if !path.is_file() {
+            errors.push(format!("missing bench suite: {rel}"));
+            continue;
+        }
+        let data: toml::Value = toml::from_str(&read(&path)?)?;
+        if data
+            .get("suite_id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim()
+            .is_empty()
+        {
+            errors.push(format!("{rel}: missing suite_id"));
+        }
+        let Some(stages) = data.get("stages").and_then(toml::Value::as_array) else {
+            errors.push(format!("{rel}: stages must be non-empty list"));
+            continue;
+        };
+        if stages.is_empty()
+            || !stages
+                .iter()
+                .all(|value| value.as_str().unwrap_or("").starts_with("vcf."))
+        {
+            errors.push(format!("{rel}: all stages must be vcf.*"));
+        }
+    }
+    let knobs: toml::Value = toml::from_str(&read(&knobs_path)?)?;
+    let defaults = knobs
+        .get("defaults")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    for key in [
+        "warmup_policy",
+        "repetitions",
+        "capture_cpu",
+        "capture_memory",
+        "capture_io",
+    ] {
+        if !defaults.contains_key(key) {
+            errors.push(format!("configs/bench/knobs.toml defaults missing {key}"));
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "downstream benchmark suites stay bound to governed knobs");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_bench_knobs(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let cfg: toml::Value = toml::from_str(&read(&workspace.path("configs/bench/knobs.toml"))?)?;
+    let defaults = cfg
+        .get("defaults")
+        .and_then(toml::Value::as_table)
+        .context("configs/bench/knobs.toml missing [defaults]")?;
+    let warmup = defaults
+        .get("warmup_policy")
+        .and_then(toml::Value::as_str)
+        .unwrap_or("");
+    if !["none", "once", "per-benchmark"].contains(&warmup) {
+        return fail(check, "warmup_policy must be one of none|once|per-benchmark");
+    }
+    let repetitions = defaults
+        .get("repetitions")
+        .and_then(toml::Value::as_integer)
+        .unwrap_or_default();
+    if !(1..=100).contains(&repetitions) {
+        return fail(check, "repetitions must be within [1, 100]");
+    }
+    for key in ["capture_cpu", "capture_memory", "capture_io"] {
+        if defaults.get(key).and_then(toml::Value::as_bool).is_none() {
+            return fail(check, format!("{key} must be a boolean"));
+        }
+    }
+    pass(check, "bench knobs keep the expected default contract")
+}
+
+pub(crate) fn check_benchmark_integrity_policy(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let script = read(&workspace.path("scripts/tooling/benchmarks.sh"))?;
+    let mut errors = Vec::new();
+    if !script.contains("require_artifact_env") {
+        errors.push("scripts/tooling/benchmarks.sh must enforce require_artifact_env".to_string());
+    }
+    if !script.contains("/benchmarks/") {
+        errors.push("scripts/tooling/benchmarks.sh must default outputs under benchmarks/".to_string());
+    }
+    if !script.contains("containers/smoke") {
+        errors.push(
+            "scripts/tooling/benchmarks.sh must guard against smoke/benchmark log mixing"
+                .to_string(),
+        );
+    }
+    let knobs: toml::Value = toml::from_str(&read(&workspace.path("configs/bench/knobs.toml"))?)?;
+    let variance = knobs
+        .get("variance")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    for key in [
+        "runtime_relative_max",
+        "memory_relative_max",
+        "report_structure_match",
+    ] {
+        if !variance.contains_key(key) {
+            errors.push(format!("configs/bench/knobs.toml [variance] missing `{key}`"));
+        }
+    }
+    let doc = read(&workspace.path("docs/30-operations/BENCHMARK_VARIANCE.md"))?;
+    for phrase in [
+        "runtime relative variance",
+        "memory relative variance",
+        "report.html",
+    ] {
+        if !doc.to_lowercase().contains(&phrase.to_lowercase()) {
+            errors.push(format!(
+                "docs/30-operations/BENCHMARK_VARIANCE.md missing phrase `{phrase}`"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "benchmark integrity rules stay documented and enforced");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_certification_schema_docs(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let doc = read(&workspace.path("docs/50-reference/MANIFEST_MIGRATION.md"))?;
+    let required = [
+        "bijux.certification_bundle.v2",
+        "bijux.certification_run_stamp.v1",
+        "bijux.frontend.mini_domain_validation.v1",
+    ];
+    let missing = required
+        .into_iter()
+        .filter(|needle| !doc.contains(needle))
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return pass(check, "certification schema versions stay documented");
+    }
+    fail(
+        check,
+        format!("missing schema versions in MANIFEST_MIGRATION.md: {}", missing.join(", ")),
+    )
+}
+
+pub(crate) fn check_clippy_allowlist_expiry(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/ci/lints/clippy_allowlist.toml"))?)?;
+    let entries = cfg
+        .get("allow")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let today = chrono::Utc::now().date_naive();
+    let mut errors = Vec::new();
+    for (index, entry) in entries.iter().enumerate() {
+        let path = entry.get("path").and_then(toml::Value::as_str).unwrap_or("");
+        let lint = entry.get("lint").and_then(toml::Value::as_str).unwrap_or("");
+        let expiry = entry
+            .get("expires_on")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("");
+        let reason = entry
+            .get("reason")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("");
+        if [path, lint, expiry, reason]
+            .iter()
+            .any(|value| value.trim().is_empty())
+        {
+            errors.push(format!(
+                "entry #{}: path/lint/expires_on/reason are required",
+                index + 1
+            ));
+            continue;
+        }
+        let Ok(expiry_date) = chrono::NaiveDate::parse_from_str(expiry, "%Y-%m-%d") else {
+            errors.push(format!("entry #{}: invalid expires_on {}", index + 1, expiry));
+            continue;
+        };
+        if expiry_date < today {
+            errors.push(format!(
+                "entry #{}: expired allow entry for {} ({})",
+                index + 1,
+                path,
+                lint
+            ));
+            continue;
+        }
+        let file = workspace.path(path);
+        if !file.is_file() {
+            errors.push(format!("entry #{}: missing {}", index + 1, path));
+            continue;
+        }
+        let content = read(&file)?;
+        if !content.contains(&format!("#[allow(clippy::{lint})]")) {
+            errors.push(format!(
+                "entry #{}: allow(clippy::{lint}) not found in {}",
+                index + 1,
+                path
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "clippy allowlist expiry contract is satisfied");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_clippy_allowlist_growth(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/ci/lints/clippy_allowlist.toml"))?)?;
+    let baseline: toml::Value = toml::from_str(&read(
+        &workspace.path("configs/ci/lints/clippy_allowlist_baseline.toml"),
+    )?)?;
+    let allow = cfg
+        .get("allow")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let base_entries = baseline
+        .get("entry")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let max_entries = baseline
+        .get("max_entries")
+        .and_then(toml::Value::as_integer)
+        .unwrap_or(base_entries.len() as i64);
+    let allow_keys = allow
+        .iter()
+        .filter_map(|entry| {
+            Some((
+                entry.get("path")?.as_str()?.to_string(),
+                entry.get("lint")?.as_str()?.to_string(),
+            ))
+        })
+        .collect::<BTreeSet<_>>();
+    let base_keys = base_entries
+        .iter()
+        .filter_map(|entry| {
+            Some((
+                entry.get("path")?.as_str()?.to_string(),
+                entry.get("lint")?.as_str()?.to_string(),
+            ))
+        })
+        .collect::<BTreeSet<_>>();
+    let mut errors = Vec::new();
+    if allow.len() as i64 > max_entries {
+        errors.push(format!(
+            "allowlist grew: {} > max_entries={max_entries}",
+            allow.len()
+        ));
+    }
+    for (path, lint) in allow_keys.difference(&base_keys) {
+        errors.push(format!("new allowlist entries are forbidden: {path} :: {lint}"));
+    }
+    if errors.is_empty() {
+        return pass(check, "clippy allowlist did not grow");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_artifact_env_contract(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let expected_artifact_root = workspace.path("artifacts");
+    let expected_target_dir = expected_artifact_root.join("target");
+    let expected_cargo_home = expected_artifact_root.join("cargo/home");
+    let expected_tmp_dir = expected_artifact_root.join("tmp");
+    let snapshots = workspace.path("crates");
+    let path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
+    let mut leaks = Vec::new();
+    for entry in WalkDir::new(&snapshots).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let rel = workspace.rel(entry.path()).to_string_lossy();
+        if !rel.contains("/tests/snapshots/") {
+            continue;
+        }
+        let raw = read(entry.path())?;
+        if path_re.is_match(&raw) {
+            leaks.push(rel.to_string());
+        }
+    }
+    if leaks.is_empty() {
+        return pass(
+            check,
+            format!(
+                "artifact environment resolves under {}, {}, {}, {} and snapshots are clean",
+                expected_artifact_root.display(),
+                expected_target_dir.display(),
+                expected_cargo_home.display(),
+                expected_tmp_dir.display()
+            ),
+        );
+    }
+    fail(
+        check,
+        format!("absolute host paths leaked into snapshots: {}", leaks.join(", ")),
+    )
+}
+
+pub(crate) fn check_artifacts_layout(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let write_re = Regex::new(r"artifacts/[A-Za-z0-9._/-]+").expect("regex");
+    let mut violations = Vec::new();
+    for entry in load_supported_scripts(workspace)? {
+        let raw = read(&workspace.path(&entry.path))?;
+        for capture in write_re.find_iter(&raw) {
+            let value = capture.as_str();
+            if value.starts_with("artifacts/tmp/")
+                || value.starts_with("artifacts/docs/")
+                || value.starts_with("artifacts/examples/")
+                || value.starts_with("artifacts/configs/")
+                || value.starts_with("artifacts/containers/")
+                || value.starts_with("artifacts/reports/")
+                || value.starts_with("artifacts/domain/")
+                || value == "artifacts/"
+            {
+                continue;
+            }
+            violations.push(format!("{}: unsupported artifact path {}", entry.path, value));
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, "artifact paths stay under approved roots");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_artifacts_tracked(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let output = run_command(workspace, "git", &["ls-files", "artifacts"])?;
+    let tracked = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    if tracked.is_empty() {
+        return pass(check, "artifacts/ remains untracked");
+    }
+    fail(
+        check,
+        format!("tracked files under artifacts/: {}", tracked.join(", ")),
+    )
+}
+
+pub(crate) fn check_assets_reference_schema(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let output = run_command(workspace, "./scripts/run.sh", &["assets", "validate-reference"])?;
+    if output.status.success() {
+        return pass(check, "asset reference validation completed");
+    }
+    fail(
+        check,
+        format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ),
+    )
+}
+
+pub(crate) fn check_cargo_config_policy(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let config = read(&workspace.path(".cargo/config.toml"))?;
+    let mut violations = Vec::new();
+    if !config.contains("[alias]") {
+        violations.push(".cargo/config.toml must define alias table".to_string());
+    }
+    if !config.contains("xtask") && !config.contains("bijux-dna") {
+        violations.push(".cargo/config.toml must keep workspace aliases".to_string());
+    }
+    if violations.is_empty() {
+        return pass(check, "cargo config keeps workspace alias contract");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_config_schema(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let output = run_command(
+        workspace,
+        "python3",
+        &["configs/schema/validate.py", "--root", "."],
+    )?;
+    if output.status.success() {
+        return pass(check, "config schema validation succeeded");
+    }
+    fail(
+        check,
+        format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ),
+    )
+}
+
+pub(crate) fn check_docs_requirements_lock(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let req = workspace.path("docs/requirements.txt");
+    let raw = read(&req)?;
+    let exact_pin = Regex::new(r"^[A-Za-z0-9_.-]+==[0-9][A-Za-z0-9_.-]*$").expect("regex");
+    let mut violations = Vec::new();
+    for line in raw.lines().map(str::trim) {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if line.contains(">=") || line.contains("<=") || line.contains('~') {
+            violations.push(format!("floating version not allowed: {line}"));
+            continue;
+        }
+        if !exact_pin.is_match(line) {
+            violations.push(format!("requirements must use exact package==version pins: {line}"));
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, "docs requirements are pinned exactly");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_examples_runner_contract(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let example_toml = read(&workspace.path("examples/fastq/qc-pre-bench/example.toml"))?;
+    let id = example_toml
+        .lines()
+        .find_map(|line| {
+            let trimmed = line.trim();
+            trimmed
+                .strip_prefix("id = ")
+                .map(|value| value.trim_matches('"').to_string())
+        })
+        .context("resolve baseline example id")?;
+
+    for label in ["examples-runner-a", "examples-runner-b"] {
+        let output_dir = workspace.path(&format!("artifacts/examples/{id}"));
+        if output_dir.exists() {
+            std::fs::remove_dir_all(&output_dir)
+                .with_context(|| format!("remove {}", output_dir.display()))?;
+        }
+        let output = run_command(workspace, "./scripts/examples/run.sh", &[&id])?;
+        if !output.status.success() {
+            return fail(
+                check,
+                format!(
+                    "examples runner failed:\n{}{}",
+                    String::from_utf8_lossy(&output.stdout),
+                    String::from_utf8_lossy(&output.stderr)
+                ),
+            );
+        }
+        let snapshot = workspace.path(&format!("artifacts/examples/{id}.{label}"));
+        if snapshot.exists() {
+            std::fs::remove_dir_all(&snapshot)
+                .with_context(|| format!("remove {}", snapshot.display()))?;
+        }
+        std::fs::rename(&output_dir, &snapshot)
+            .with_context(|| format!("move {} -> {}", output_dir.display(), snapshot.display()))?;
+    }
+
+    let a_dir = workspace.path(&format!("artifacts/examples/{id}.examples-runner-a"));
+    let b_dir = workspace.path(&format!("artifacts/examples/{id}.examples-runner-b"));
+    let mut drift = Vec::new();
+    for file in ["plan.json", "explain.json", "report.json"] {
+        let a = read(&a_dir.join(file))?;
+        let b = read(&b_dir.join(file))?;
+        if a != b {
+            drift.push(file.to_string());
+        }
+    }
+    if drift.is_empty() {
+        return pass(check, format!("example runner is deterministic for `{id}`"));
+    }
+    fail(
+        check,
+        format!("non-deterministic example outputs for `{id}`: {}", drift.join(", ")),
+    )
+}
+
+pub(crate) fn check_generated_configs(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let compile = run_command(
+        workspace,
+        "cargo",
+        &[
+            "run",
+            "-p",
+            "bijux-dna-domain-compiler",
+            "--bin",
+            "compile_domain_configs",
+            "--",
+            "--domain-dir",
+            "domain",
+            "--configs-dir",
+            "configs",
+        ],
+    )?;
+    if !compile.status.success() {
+        return fail(
+            check,
+            format!(
+                "domain config generation failed:\n{}{}",
+                String::from_utf8_lossy(&compile.stdout),
+                String::from_utf8_lossy(&compile.stderr)
+            ),
+        );
+    }
+    let diff = run_command(
+        workspace,
+        "git",
+        &[
+            "diff",
+            "--exit-code",
+            "--",
+            "configs/ci/registry/tool_registry.toml",
+            "configs/ci/registry/tool_registry_experimental.toml",
+            "configs/ci/tools/required_tools.toml",
+            "configs/ci/stages/stages.toml",
+            "configs/ci/tools/images.toml",
+        ],
+    )?;
+    if diff.status.success() {
+        return pass(check, "generated configs match committed outputs");
+    }
+    fail(
+        check,
+        format!(
+            "generated configs drift detected:\n{}{}",
+            String::from_utf8_lossy(&diff.stdout),
+            String::from_utf8_lossy(&diff.stderr)
+        ),
+    )
+}
+
+pub(crate) fn check_gitignore_contract(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let raw = read(&workspace.path(".gitignore"))?;
+    let required = ["/target/", "**/target/", "/artifacts/", "/artifacts/**", "*.tmp"];
+    let mut violations = required
+        .iter()
+        .filter(|pattern| !raw.lines().any(|line| line.trim() == **pattern))
+        .map(|pattern| format!("missing required pattern: {pattern}"))
+        .collect::<Vec<_>>();
+    for line in raw.lines().map(str::trim) {
+        if line.starts_with('!') && line.contains("target") {
+            if line != "!/artifacts/isolate/**" && line != "!/artifacts/isolate/" {
+                violations.push(format!("forbidden target unignore pattern: {line}"));
+            }
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, ".gitignore keeps target and artifacts boundaries intact");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_hidden_tmp_usage(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let forbidden = ["/tmp/", "${TMPDIR:-/tmp}", "std::env::temp_dir()"];
+    let roots = [
+        workspace.path("crates/bijux-dna-api/src"),
+        workspace.path("crates/bijux-dna-runner/src"),
+    ];
+    let mut violations = Vec::new();
+    for root in roots {
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            if entry.path().extension().and_then(|ext| ext.to_str()) != Some("rs") {
+                continue;
+            }
+            let raw = read(entry.path())?;
+            for needle in forbidden {
+                if raw.contains(needle) {
+                    violations.push(format!(
+                        "{}: forbidden tmp usage `{needle}`",
+                        workspace.rel(entry.path()).display()
+                    ));
+                }
+            }
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, "runtime code avoids hidden tmp roots");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_hpc_safety(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let root = workspace.path("scripts/hpc");
+    let mut violations = Vec::new();
+    for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        if entry.path().extension().and_then(|ext| ext.to_str()) != Some("sh") {
+            continue;
+        }
+        let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+        let raw = read(entry.path())?;
+        if !raw.contains("--dry-run") {
+            violations.push(format!("{rel}: missing --dry-run flag handling"));
+        }
+        if !raw.contains("--confirm") {
+            violations.push(format!("{rel}: missing --confirm flag handling"));
+        }
+        if !raw.contains("dry_run=1") {
+            violations.push(format!("{rel}: must default to dry_run=1"));
+        }
+        if !raw.contains("confirm=0") {
+            violations.push(format!("{rel}: must default to confirm=0"));
+        }
+        if !raw.contains("pass --confirm to execute") {
+            violations.push(format!(
+                "{rel}: must document confirm requirement in dry-run output"
+            ));
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, "HPC scripts preserve safe dry-run defaults");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_make_help_sync(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let readme = read(&workspace.path("makes/README.md"))?;
+    let readme_targets = Regex::new(r"`([A-Za-z0-9._-]+)`")
+        .expect("regex")
+        .captures_iter(&readme)
+        .map(|caps| caps[1].to_string())
+        .collect::<BTreeSet<_>>();
+    let help = run_command(workspace, "make", &["help"])?;
+    if !help.status.success() {
+        return fail(
+            check,
+            format!(
+                "make help failed:\n{}{}",
+                String::from_utf8_lossy(&help.stdout),
+                String::from_utf8_lossy(&help.stderr)
+            ),
+        );
+    }
+    let help_text = String::from_utf8_lossy(&help.stdout);
+    let help_targets = help_text
+        .lines()
+        .filter_map(|line| {
+            let trimmed = line.trim_start();
+            if !trimmed.starts_with(char::is_alphanumeric) {
+                return None;
+            }
+            trimmed.split_whitespace().next().map(ToOwned::to_owned)
+        })
+        .collect::<BTreeSet<_>>();
+    if readme_targets == help_targets {
+        return pass(check, "make help output matches documented public targets");
+    }
+    fail(
+        check,
+        format!(
+            "README targets and make help drifted\nreadme={:?}\nhelp={:?}",
+            readme_targets, help_targets
+        ),
+    )
+}
+
+pub(crate) fn check_logging_contract(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let index = read(&workspace.path("configs/logging/index.md"))?;
+    let runtime = read(&workspace.path("configs/logging/runtime.toml"))?;
+    let mut errors = Vec::new();
+    for needle in ["RUST_LOG", "BIJUX_LOG_FORMAT", "trace_id", "run_id"] {
+        if !index.contains(needle) {
+            errors.push(format!("configs/logging/index.md must document `{needle}`"));
+        }
+    }
+    if !index.contains("runtime.toml") {
+        errors.push("configs/logging/index.md must reference runtime.toml".to_string());
+    }
+    for key in ["default_level", "default_format", "json_fields"] {
+        if !Regex::new(&format!(r"(?m)^{}\s*=", regex::escape(key)))
+            .expect("regex")
+            .is_match(&runtime)
+        {
+            errors.push(format!("configs/logging/runtime.toml missing key `{key}`"));
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "logging config and docs stay aligned");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_no_fake_artifacts(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let source_roots = [
+        workspace.path("crates/bijux-dna-stages-fastq/src"),
+        workspace.path("crates/bijux-dna-stages-bam/src"),
+        workspace.path("crates/bijux-dna-stages-vcf/src"),
+        workspace.path("crates/bijux-dna-api/src/internal/handlers"),
+    ];
+    let source_re = Regex::new(
+        r"placeholder|fake_artifact|dummy_artifact|stub_artifact",
+    )
+    .expect("regex");
+    let mut hits = Vec::new();
+    for root in source_roots {
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let raw = read(entry.path())?;
+            if source_re.is_match(&raw) {
+                hits.push(workspace.rel(entry.path()).display().to_string());
+            }
+        }
+    }
+    for root in [
+        workspace.path("artifacts/domain"),
+        workspace.path("artifacts/containers/smoke"),
+        workspace.path("artifacts/reports"),
+    ] {
+        if !root.is_dir() {
+            continue;
+        }
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let raw = read(entry.path()).unwrap_or_default();
+            if source_re.is_match(&raw) {
+                hits.push(workspace.rel(entry.path()).display().to_string());
+            }
+        }
+    }
+    if hits.is_empty() {
+        return pass(check, "stage code and produced artifacts avoid placeholder markers");
+    }
+    fail(check, format!("placeholder artifact markers found: {}", hits.join(", ")))
+}
+
+pub(crate) fn check_no_target_paths_in_tests(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let target_re = Regex::new(r"(^|[^A-Za-z0-9_./-])target/").expect("regex");
+    let excluded = ["scripts/checks/check-no-target-paths-in-tests.sh", "scripts/checks/check-gitignore-contract.sh"];
+    let mut offenders = Vec::new();
+    for root in [
+        workspace.path("crates"),
+        workspace.path("scripts"),
+        workspace.path("makes"),
+    ] {
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            if excluded.contains(&rel.as_str()) {
+                continue;
+            }
+            let raw = read(entry.path())?;
+            if target_re.is_match(&raw) {
+                offenders.push(rel);
+            }
+        }
+    }
+    if offenders.is_empty() {
+        return pass(check, "tests and automation do not hardcode target/ paths");
+    }
+    fail(check, offenders.join("\n"))
+}
+
+pub(crate) fn check_no_user_path_literals(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let user_path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
+    let mut offenders = Vec::new();
+    for root in [workspace.path("crates"), workspace.path("scripts"), workspace.path("makes")] {
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            if rel.starts_with("examples/") || rel.ends_with(".md") {
+                continue;
+            }
+            let raw = read(entry.path())?;
+            if user_path_re.is_match(&raw) {
+                offenders.push(rel);
+            }
+        }
+    }
+    if offenders.is_empty() {
+        return pass(check, "source files avoid host-specific user paths");
+    }
+    fail(check, offenders.join("\n"))
+}
+
+pub(crate) fn check_output_roots(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let absolute_write_re =
+        Regex::new(r"(>|>>|cp |mv |mkdir -p|rm -rf)\s*/(tmp|var|opt|usr|etc|home|Users)\b")
+            .expect("regex");
+    let mut offenders = Vec::new();
+    for entry in load_supported_scripts(workspace)? {
+        let raw = read(&workspace.path(&entry.path))?;
+        if absolute_write_re.is_match(&raw) {
+            offenders.push(entry.path);
+        }
+    }
+    let sentinel = workspace.path(".sentinel-readonly");
+    if sentinel.exists() {
+        std::fs::remove_dir_all(&sentinel)
+            .with_context(|| format!("remove {}", sentinel.display()))?;
+    }
+    std::fs::create_dir_all(&sentinel)
+        .with_context(|| format!("create {}", sentinel.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        let mut perms = std::fs::metadata(&sentinel)?.permissions();
+        perms.set_mode(0o555);
+        std::fs::set_permissions(&sentinel, perms)?;
+    }
+    let touch_result = std::fs::write(sentinel.join("forbidden"), b"blocked");
+    std::fs::remove_dir_all(&sentinel)
+        .with_context(|| format!("remove {}", sentinel.display()))?;
+    if touch_result.is_ok() {
+        offenders.push(".sentinel-readonly unexpectedly writable".to_string());
+    }
+    if offenders.is_empty() {
+        return pass(check, "outputs stay within controlled roots");
+    }
+    fail(check, offenders.join("\n"))
+}
+
+pub(crate) fn check_readme_links(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let code_link_re =
+        Regex::new(r"`((scripts|configs|artifacts|containers|docs|domain|makes|crates)/[^` ]+)`")
+            .expect("regex");
+    let mut missing = Vec::new();
+    for entry in WalkDir::new(&workspace.root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        if entry.file_name() != "README.md" {
+            continue;
+        }
+        let raw = read(entry.path())?;
+        for capture in code_link_re.captures_iter(&raw) {
+            let path = workspace.path(&capture[1]);
+            if !path.exists() {
+                missing.push(format!(
+                    "{} -> {}",
+                    workspace.rel(entry.path()).display(),
+                    capture[1].to_string()
+                ));
+            }
+        }
+    }
+    if missing.is_empty() {
+        return pass(check, "README references resolve");
+    }
+    fail(check, missing.join("\n"))
+}
+
+pub(crate) fn check_root_layout(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let allowlist = [
+        "artifacts",
+        "assets",
+        "configs",
+        "containers",
+        "crates",
+        "docs",
+        "domain",
+        "examples",
+        "makes",
+        "scripts",
+    ];
+    let mut offenders = Vec::new();
+    for entry in std::fs::read_dir(&workspace.root)
+        .with_context(|| format!("read {}", workspace.root.display()))?
+    {
+        let entry = entry?;
+        if !entry.file_type()?.is_dir() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') || allowlist.contains(&name.as_str()) {
+            continue;
+        }
+        offenders.push(name);
+    }
+    if offenders.is_empty() {
+        return pass(check, "top-level workspace layout stays allowlisted");
+    }
+    fail(check, offenders.join(", "))
+}
+
+pub(crate) fn check_runtime_execution_kernel_config(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/runtime/execution_kernel.toml"))?)?;
+    let mut errors = Vec::new();
+    for key in [
+        "default_threads",
+        "default_memory_mb",
+        "default_compression_threads",
+        "default_timeout_s",
+        "max_local_heavy_parallel",
+        "bgzip_tabix_max_parallel",
+    ] {
+        if cfg
+            .get(key)
+            .and_then(toml::Value::as_integer)
+            .is_some_and(|value| value > 0)
+        {
+            continue;
+        }
+        errors.push(format!("{key} must be a positive integer"));
+    }
+    for key in ["default_temp_root", "cache_root"] {
+        if let Some(value) = cfg.get(key).and_then(toml::Value::as_str) {
+            if value.starts_with("/tmp") || value.starts_with("/var/tmp") {
+                errors.push(format!("{key} cannot point to system tmp ({value})"));
+            }
+        }
+    }
+    if let Some(patterns) = cfg.get("heavy_stage_patterns").and_then(toml::Value::as_array) {
+        if patterns.iter().any(|value| {
+            value
+                .as_str()
+                .map_or(true, |pattern| pattern.trim().is_empty())
+        }) {
+            errors.push("heavy_stage_patterns must contain non-empty strings".to_string());
+        }
+    }
+    if let Some(per_stage) = cfg.get("per_stage").and_then(toml::Value::as_table) {
+        for (pattern, knobs) in per_stage {
+            let Some(table) = knobs.as_table() else {
+                errors.push(format!("per_stage.{pattern} must be a table"));
+                continue;
+            };
+            for key in ["threads", "memory_mb", "compression_threads", "timeout_s"] {
+                if let Some(value) = table.get(key).and_then(toml::Value::as_integer) {
+                    if value <= 0 {
+                        errors.push(format!("per_stage.{pattern}.{key} must be > 0"));
+                    }
+                }
+            }
+            if let Some(temp_root) = table.get("temp_root").and_then(toml::Value::as_str) {
+                if temp_root.starts_with("/tmp") || temp_root.starts_with("/var/tmp") {
+                    errors.push(format!(
+                        "per_stage.{pattern}.temp_root cannot point to system tmp ({temp_root})"
+                    ));
+                }
+            }
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "runtime execution kernel config stays valid");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_rustflags_consistency(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let mut violations = Vec::new();
+    for entry in WalkDir::new(workspace.path("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        if workspace.rel(entry.path()) != std::path::Path::new("crates") && entry.file_name() == "config.toml"
+        {
+            let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            if rel.contains("/.cargo/") && read(entry.path())?.contains("RUSTFLAGS") {
+                violations.push(format!("{rel}: crate-local RUSTFLAGS not allowed"));
+            }
+        }
+    }
+    for path in [workspace.path("scripts"), workspace.path("makes"), workspace.path("Makefile")] {
+        if path.is_file() {
+            let raw = read(&path)?;
+            if raw.contains("RUSTFLAGS=")
+                && !workspace
+                    .rel(&path)
+                    .to_string_lossy()
+                    .contains("scripts/tooling/ci-coverage.sh")
+            {
+                violations.push(workspace.rel(&path).display().to_string());
+            }
+            continue;
+        }
+        for entry in WalkDir::new(&path).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+            let raw = read(entry.path())?;
+            if raw.contains("RUSTFLAGS=") && rel != "scripts/tooling/ci-coverage.sh" {
+                violations.push(rel);
+            }
+        }
+    }
+    if violations.is_empty() {
+        return pass(check, "RUSTFLAGS usage stays in the documented coverage path");
+    }
+    fail(check, violations.join("\n"))
+}
+
+pub(crate) fn check_ssot_guardrails(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let output = run_command(workspace, "git", &["show", "--name-only", "--pretty=", "HEAD"])?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let changed = stdout
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .collect::<Vec<_>>();
+    let registry_changed = changed
+        .iter()
+        .any(|path| *path == "configs/ci/registry/tool_registry.toml");
+    let lock_changed = changed
+        .iter()
+        .any(|path| *path == "configs/ci/registry/tool_registry_lock.sha256");
+    if registry_changed && !lock_changed {
+        return fail(
+            check,
+            "partial registry edit detected without tool_registry_lock.sha256",
+        );
+    }
+    let stages_changed = changed
+        .iter()
+        .any(|path| path.starts_with("configs/ci/stages/") && path.ends_with(".toml"));
+    let params_changed = changed.iter().any(|path| {
+        path.starts_with("configs/ci/params/param_registry") && path.ends_with(".toml")
+    });
+    if stages_changed && !params_changed {
+        return fail(
+            check,
+            "partial stage edit detected without param registry update",
+        );
+    }
+    pass(check, "last commit preserves SSOT guardrails")
+}
+
+pub(crate) fn check_species_aliases(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let aliases_cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/runtime/species_aliases.toml"))?)?;
+    let species_cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/runtime/species.toml"))?)?;
+    let aliases = aliases_cfg
+        .get("aliases")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    let default_builds = aliases_cfg
+        .get("default_builds")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    let species_rows = species_cfg
+        .get("species")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let canonical = Regex::new(r"^[A-Z][a-z]+ [a-z]+$").expect("regex");
+    let mut authority_default_build = std::collections::BTreeMap::new();
+    let mut authority_species = BTreeSet::new();
+    let mut errors = Vec::new();
+    for row in species_rows {
+        let species_id = row.get("species_id").and_then(toml::Value::as_str).unwrap_or("");
+        let build_id = row
+            .get("default_build_id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("");
+        if species_id.is_empty() || build_id.is_empty() {
+            errors.push("species.toml row missing species_id/default_build_id".to_string());
+            continue;
+        }
+        authority_default_build.insert(species_id.to_string(), build_id.to_string());
+        authority_species.insert(species_id.to_string());
+    }
+    for (alias, species) in aliases {
+        let alias = alias.to_string();
+        let species = species.as_str().unwrap_or("").to_string();
+        if alias != alias.to_lowercase() {
+            errors.push(format!("alias `{alias}` must be lowercase"));
+        }
+        if !canonical.is_match(&species) {
+            errors.push(format!(
+                "alias `{alias}` has non-canonical species id `{species}`"
+            ));
+        }
+        if !authority_species.contains(&species) {
+            errors.push(format!(
+                "alias `{alias}` points to undeclared species `{species}`"
+            ));
+        }
+    }
+    for (species, build) in default_builds {
+        let species = species.to_string();
+        let build = build.as_str().unwrap_or("");
+        match authority_default_build.get(&species) {
+            Some(expected) if expected == build => {}
+            Some(expected) => errors.push(format!(
+                "default_builds mismatch for `{species}`: aliases=`{build}`, species.toml=`{expected}`"
+            )),
+            None => errors.push(format!(
+                "default_builds species `{species}` missing in species.toml authority"
+            )),
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "species aliases stay canonical and authority-backed");
+    }
+    fail(check, errors.join("\n"))
+}
+
+pub(crate) fn check_tool_registry_lock(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let inputs = [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+        "configs/ci/registry/domains.toml",
+        "configs/ci/registry/deprecations.toml",
+    ];
+    let mut payload = String::new();
+    for rel in inputs {
+        let bytes = std::fs::read(workspace.path(rel))
+            .with_context(|| format!("read {}", workspace.path(rel).display()))?;
+        let file_sha = format!("{:x}", Sha256::digest(&bytes));
+        payload.push_str(rel);
+        payload.push(' ');
+        payload.push_str(&file_sha);
+        payload.push('\n');
+    }
+    let expected = format!("{:x}", Sha256::digest(payload.as_bytes()));
+    let actual = read(&workspace.path("configs/ci/registry/tool_registry_lock.sha256"))?
+        .trim()
+        .to_string();
+    if expected != actual {
+        return fail(check, "tool registry lock hash does not match registry inputs");
+    }
+    let marker = workspace.path("artifacts/configs/tool_registry_lock.marker");
+    if !marker.is_file() {
+        return fail(check, format!("missing {}", workspace.rel(&marker).display()));
+    }
+    let marker_text = read(&marker)?;
+    if !marker_text.contains("generated_by=scripts/domain/lock-registry.sh")
+        || !marker_text.contains(&format!("lock_sha256={actual}"))
+    {
+        return fail(check, "tool registry lock marker is stale or invalid");
+    }
+    pass(check, "tool registry lock and marker stay synchronized")
+}
+
+pub(crate) fn check_vcf_compatibility_matrix(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let panels: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/vcf/panels/panels.toml"))?)?;
+    let registry: toml::Value = toml::from_str(&read(
+        &workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
+    )?)?;
+    let panel_rows = panels
+        .get("panel")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let tool_rows = registry
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+
+    let mut rows = Vec::new();
+    for panel in panel_rows {
+        let species = panel.get("species_id").and_then(toml::Value::as_str).unwrap_or("");
+        let build = panel.get("build_id").and_then(toml::Value::as_str).unwrap_or("");
+        let panel_id = panel.get("id").and_then(toml::Value::as_str).unwrap_or("");
+        let tags = panel
+            .get("compatibility")
+            .and_then(toml::Value::as_table)
+            .and_then(|table| table.get("tool_tags"))
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+            .collect::<BTreeSet<_>>();
+        for tool in &tool_rows {
+            let tool_id = tool.get("id").and_then(toml::Value::as_str).unwrap_or("");
+            if !tags.contains(tool_id) {
+                continue;
+            }
+            let stages = tool
+                .get("stage_ids")
+                .and_then(toml::Value::as_array)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                .collect::<Vec<_>>()
+                .join(", ");
+            rows.push(format!(
+                "| {species} | {build} | {panel_id} | {tool_id} | {stages} |"
+            ));
+        }
+    }
+    rows.sort();
+
+    let doc = read(&workspace.path("docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md"))?;
+    let present_rows = doc
+        .lines()
+        .filter(|line| line.starts_with("| ") && !line.starts_with("|---"))
+        .skip(1)
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    if present_rows == rows {
+        return pass(check, "VCF downstream compatibility matrix matches SSOT inputs");
+    }
+    fail(check, "VCF downstream compatibility matrix is stale")
+}
