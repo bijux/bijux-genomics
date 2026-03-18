@@ -1,3 +1,4 @@
+mod containers;
 mod script_surface;
 mod support;
 mod workspace_checks;
@@ -6,6 +7,7 @@ use anyhow::Result;
 
 use crate::infrastructure::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, NativeCheckKey};
+use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
 
 /// # Errors
 /// Returns an error if the native check cannot run.
@@ -136,4 +138,14 @@ pub fn run_native_check(
             workspace_checks::check_vcf_compatibility_matrix(workspace, check)
         }
     }
+}
+
+/// # Errors
+/// Returns an error if the native container command cannot run.
+pub fn run_native_container_command(
+    key: &NativeContainerCommandKey,
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    containers::run_native_container_command(key, workspace, args)
 }

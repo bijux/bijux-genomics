@@ -31,8 +31,23 @@ impl<'a> ProcessRunner<'a> {
     /// # Errors
     /// Returns an error if the command cannot be launched.
     pub fn run_owned(&self, program: &str, args: &[String]) -> Result<Output> {
+        self.run_owned_with_env(program, args, &[])
+    }
+
+    /// # Errors
+    /// Returns an error if the command cannot be launched.
+    pub fn run_owned_with_env(
+        &self,
+        program: &str,
+        args: &[String],
+        envs: &[(String, String)],
+    ) -> Result<Output> {
         std::process::Command::new(program)
             .args(args)
+            .envs(
+                envs.iter()
+                    .map(|(key, value)| (key.as_str(), value.as_str())),
+            )
             .current_dir(&self.workspace.root)
             .output()
             .with_context(|| {
