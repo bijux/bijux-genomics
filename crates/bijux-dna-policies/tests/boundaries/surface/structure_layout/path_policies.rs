@@ -16,9 +16,9 @@ fn is_allowed_writer_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runtime/")
         || path_str.contains("/crates/bijux-dna-engine/")
-        || path_str.contains("/crates/bijux-dna-cli/src/commands/policies.rs")
-        || path_str.contains("/crates/bijux-dna-cli/src/commands/hpc/hpc_impl.rs")
-        || path_str.contains("/crates/bijux-dna-cli/src/commands/vcf/vcf_impl.rs")
+        || path_str.contains("/crates/bijux-dna/src/commands/policies.rs")
+        || path_str.contains("/crates/bijux-dna/src/commands/hpc/hpc_impl.rs")
+        || path_str.contains("/crates/bijux-dna/src/commands/vcf/vcf_impl.rs")
         || path_str
             .contains("/crates/bijux-dna-api/src/internal/fastq/preprocess/stage_backend_policy.rs")
         || path_str
@@ -107,7 +107,7 @@ fn policy__boundaries__path_policies__run_artifacts_paths_use_runtime_helpers() 
     let mut offenders = Vec::new();
     let targets = [
         root.join("../../../../bijux-dna-api/src"),
-        root.join("../../../../bijux-dna-cli/src"),
+        root.join("../../../../bijux-dna/src"),
         root.join("../../../../bijux-dna-stages-fastq/src"),
         root.join("../../../../bijux-dna-stages-bam/src"),
     ];

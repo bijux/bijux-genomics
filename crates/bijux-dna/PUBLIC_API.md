@@ -1,4 +1,4 @@
-# bijux-dna-cli Public API
+# bijux-dna Public API
 
 Public modules exported from src/lib.rs:
 - commands

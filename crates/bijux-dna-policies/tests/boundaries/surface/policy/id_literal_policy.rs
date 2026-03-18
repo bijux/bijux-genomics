@@ -28,7 +28,7 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-dna-bench/") {
         return true;
     }
-    if path_str.contains("/crates/bijux-dna-cli/") {
+    if path_str.contains("/crates/bijux-dna/") {
         return true;
     }
     if path_str.contains("/crates/bijux-dna-api/") {

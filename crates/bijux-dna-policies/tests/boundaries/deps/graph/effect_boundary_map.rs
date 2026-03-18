@@ -7,7 +7,7 @@ use walkdir::WalkDir;
 const ALLOWLIST: &[(&str, &str)] = &[
     ("/crates/bijux-dna-runner/", "execution backends"),
     ("/crates/bijux-dna-environment-qa/", "qa harness"),
-    ("/crates/bijux-dna-cli/", "cli entrypoints"),
+    ("/crates/bijux-dna/", "cli entrypoints"),
     (
         "/crates/bijux-dna-environment/",
         "runtime resolution probes",

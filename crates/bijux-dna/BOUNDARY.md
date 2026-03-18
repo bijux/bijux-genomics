@@ -1,4 +1,4 @@
-# bijux-dna-cli Boundary Contract
+# bijux-dna Boundary Contract
 
 ## Why this crate exists
 Defines a focused layer in the bijux-dna architecture with explicit boundaries.

@@ -28,7 +28,7 @@ fn policy__contracts__defaults_policy__params_defaults_live_in_pipelines_only() 
     let root = workspace_root();
     let targets = [
         root.join("../../../../bijux-dna-api/src"),
-        root.join("../../../../bijux-dna-cli/src"),
+        root.join("../../../../bijux-dna/src"),
         root.join("../../../../bijux-dna-stages-fastq/src"),
         root.join("../../../../bijux-dna-stages-bam/src"),
     ];

@@ -7,9 +7,9 @@ fn policy__contracts__cli_runtime_dependency_policy__cli_has_no_sql_or_process_d
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
-    let manifest_path = root.join("crates/bijux-dna-cli/Cargo.toml");
+    let manifest_path = root.join("crates/bijux-dna/Cargo.toml");
     let manifest =
-        std::fs::read_to_string(&manifest_path).expect("read crates/bijux-dna-cli/Cargo.toml");
+        std::fs::read_to_string(&manifest_path).expect("read crates/bijux-dna/Cargo.toml");
 
     for forbidden in ["rusqlite", "tokio-process", "tokio ="] {
         bijux_dna_policies::policy_assert!(
@@ -26,7 +26,7 @@ fn policy__contracts__cli_runtime_dependency_policy__cli_source_does_not_spawn_p
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
-    let src = root.join("crates/bijux-dna-cli/src");
+    let src = root.join("crates/bijux-dna/src");
     let mut offenders = Vec::new();
 
     for entry in walkdir::WalkDir::new(&src)

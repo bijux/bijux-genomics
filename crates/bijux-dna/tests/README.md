@@ -1,4 +1,4 @@
-# bijux-dna-cli Test Taxonomy
+# bijux-dna Test Taxonomy
 
 Intent buckets in this crate:
 

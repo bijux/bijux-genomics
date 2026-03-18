@@ -36,7 +36,7 @@ fn assert_no_imports(dir: &str, forbidden: &[&str]) {
 #[test]
 fn cli_does_not_import_engine_internals() {
     assert_no_imports(
-        "crates/bijux-dna-cli/src",
+        "crates/bijux-dna/src",
         &[
             "bijux_dna_engine::internal",
             "bijux_dna_engine::core::",

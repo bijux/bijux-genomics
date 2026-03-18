@@ -8,7 +8,7 @@ fn policy__contracts__cli_app_prefix_policy__root_cli_requires_app_prefix() {
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
-    let parse_file = root.join("crates/bijux-dna-cli/src/commands/cli/parse/common.rs");
+    let parse_file = root.join("crates/bijux-dna/src/commands/cli/parse/common.rs");
     let src = std::fs::read_to_string(&parse_file).expect("read parse common");
 
     let root_enum = src

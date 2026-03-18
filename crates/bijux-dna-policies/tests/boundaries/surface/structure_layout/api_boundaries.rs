@@ -59,7 +59,7 @@ fn policy__boundaries__api_boundaries__cli_does_not_depend_on_planner_or_engine(
         .parent()
         .unwrap()
         .to_path_buf();
-    let cli_src = root.join("crates").join("bijux-dna-cli").join("src");
+    let cli_src = root.join("crates").join("bijux-dna").join("src");
     let mut files = Vec::new();
     collect_rs_files(&cli_src, &mut files)?;
     let mut violations = Vec::new();

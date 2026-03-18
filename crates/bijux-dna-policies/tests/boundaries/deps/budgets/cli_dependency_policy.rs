@@ -35,7 +35,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 #[test]
 fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_support() {
     let root = repo_root();
-    let manifest = root.join("crates/bijux-dna-cli/Cargo.toml");
+    let manifest = root.join("crates/bijux-dna/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
     let allowlist = [
         "bijux-dna-api",
