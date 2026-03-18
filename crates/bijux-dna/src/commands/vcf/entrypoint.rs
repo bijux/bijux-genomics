@@ -91,13 +91,13 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
             invariants: InvariantConfig::default(),
         })?;
 
-        std::fs::write(
+        bijux_dna_api::v1::api::run::write_bytes(
             out_dir.join("vcf_pipeline_result.json"),
             serde_json::to_vec_pretty(&pipeline_result)?,
         )?;
         let checksums_path = out_dir.join("artifact_checksums.json");
         if !checksums_path.exists() {
-            std::fs::write(&checksums_path, b"{\n}\n")?;
+            bijux_dna_api::v1::api::run::write_bytes(&checksums_path, b"{\n}\n")?;
         }
     }
     render::json::print_pretty(&serde_json::json!({
