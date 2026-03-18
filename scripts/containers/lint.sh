@@ -201,7 +201,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-bijux-apptainer-built
 cargo run -q -p bijux-dev-dna -- containers run check-docker-labels
 cargo run -q -p bijux-dev-dna -- containers run check-docker-hardening
 cargo run -q -p bijux-dev-dna -- containers run check-docker-version-sync
-"$SCRIPT_DIR/check-digest-changes-on-version-change.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-digest-changes-on-version-change
 cargo run -q -p bijux-dev-dna -- containers run check-dockerfiles-built
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-failure-classification
 cargo run -q -p bijux-dev-dna -- containers run check-docker-unpinned-apt
@@ -216,7 +216,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-vcf-imputation-toolchain
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constraints
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-network-policy
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
-"$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-tool-digest-recording
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-release-smoke
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-cross-runtime-parity
 cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-representative
@@ -226,7 +226,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
 cargo run -q -p bijux-dev-dna -- containers run check-vuln-hook
 cargo run -q -p bijux-dev-dna -- containers run check-sbom-artifacts
-"$SCRIPT_DIR/check-build-provenance.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-build-provenance
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 cargo run -q -p bijux-dev-dna -- containers run check-bijux-template-markers
 cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
@@ -234,7 +234,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 cargo run -q -p bijux-dev-dna -- containers run check-docker-arch-policy
 cargo run -q -p bijux-dev-dna -- containers run check-docker-arm64-completeness
 cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
-"$SCRIPT_DIR/check-digest-output-policy.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-digest-output-policy
 "$SCRIPT_DIR/check-release-checklist.sh"
 
 echo "containers lint: ok"
