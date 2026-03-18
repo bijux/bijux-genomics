@@ -12,7 +12,7 @@ fn normalized_json(input: &str) -> String {
 fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
     std::env::var_os("CARGO_TARGET_DIR")
         .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("target"))
+        .unwrap_or_else(|| root.join("artifacts/rust/target"))
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_mat
         .arg("-p")
         .arg("bijux-dna")
         .arg("--bin")
-        .arg("bijux")
+        .arg("bijux-dna")
         .current_dir(&root)
         .status()
         .unwrap_or_else(|err| panic!("build release bijux binary: {err}"));
@@ -39,7 +39,6 @@ fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_mat
 
     let bijux_bin = cargo_target_dir(&root).join("release/bijux-dna");
     let output = Command::new(&bijux_bin)
-        .arg("dna")
         .arg("registry")
         .arg("export-containers")
         .arg("--json")
