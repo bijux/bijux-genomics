@@ -34,7 +34,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
 };
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
-use bijux_dna_runner::execute::execute_observer_command;
+use bijux_dna_runner::stage_execution::execute_observer_command;
 use bijux_dna_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,

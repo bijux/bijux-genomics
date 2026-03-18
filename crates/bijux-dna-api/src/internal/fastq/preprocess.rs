@@ -22,7 +22,7 @@ use bijux_dna_planner_fastq::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
-use bijux_dna_runner::execute::StageResultV1;
+use bijux_dna_runner::stage_execution::StageResultV1;
 use bijux_dna_runtime::recording::run_artifacts_dir_for_out;
 use bijux_dna_runtime::recording::write_telemetry_event;
 
@@ -115,7 +115,7 @@ fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
         return Ok(false);
     }
     let args = vec!["-t".to_string(), path.to_string_lossy().into_owned()];
-    let output = bijux_dna_runner::runner_core::run_command("gzip", &args);
+    let output = bijux_dna_runner::command_runtime::run_command("gzip", &args);
     Ok(output.map(|result| result.exit_code == 0).unwrap_or(false))
 }
 
@@ -136,7 +136,7 @@ fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = St
         .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
     {
         let args = vec!["-cd".to_string(), path.to_string_lossy().into_owned()];
-        let output = bijux_dna_runner::runner_core::run_command("gzip", &args)
+        let output = bijux_dna_runner::command_runtime::run_command("gzip", &args)
             .with_context(|| format!("gzip -cd {}", path.display()))?;
         if output.exit_code != 0 {
             return Err(anyhow!(
@@ -479,7 +479,7 @@ fn write_stage_path_contract(
 
 fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
     let args = vec!["--version".to_string()];
-    let output = bijux_dna_runner::runner_core::run_command(tool_bin, &args);
+    let output = bijux_dna_runner::command_runtime::run_command(tool_bin, &args);
     let (ok, raw) = match output {
         Ok(out) => {
             let raw = if out.stdout.is_empty() {

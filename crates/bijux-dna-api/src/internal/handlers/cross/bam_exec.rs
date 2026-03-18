@@ -21,7 +21,7 @@ include!("bam_exec_metrics_helpers.rs");
 fn write_stage_accounting(
     stage_dir: &Path,
     stage_id: &str,
-    result: &bijux_dna_runner::execute::StageResultV1,
+    result: &bijux_dna_runner::stage_execution::StageResultV1,
 ) -> Result<()> {
     let checksums = result
         .outputs
@@ -52,7 +52,7 @@ fn write_stage_accounting(
 
 fn classify_bam_failure_hint(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
-    result: &bijux_dna_runner::execute::StageResultV1,
+    result: &bijux_dna_runner::stage_execution::StageResultV1,
 ) -> serde_json::Value {
     let stderr = result.stderr.to_ascii_lowercase();
     let command = result.command.to_ascii_lowercase();
@@ -101,7 +101,7 @@ fn classify_bam_failure_hint(
 fn write_stage_failure_hint(
     stage_dir: &Path,
     stage: bijux_dna_planner_bam::stage_api::BamStage,
-    result: &bijux_dna_runner::execute::StageResultV1,
+    result: &bijux_dna_runner::stage_execution::StageResultV1,
 ) -> Result<()> {
     let payload = classify_bam_failure_hint(stage, result);
     let path = stage_dir.join("failure_hint.json");
