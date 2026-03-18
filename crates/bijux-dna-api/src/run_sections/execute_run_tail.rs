@@ -59,56 +59,56 @@ fn maybe_emit_reference_manifest(
         }));
     }
 
-    let authority =
-        if let (Some(species_id), Some(build_id)) = (species.as_deref(), build.as_deref()) {
-            if !observed_contigs.is_empty() {
-                bijux_dna_db_ref::enforce_declared_build_and_contigs(
-                    species_id,
-                    build_id,
-                    &observed_contigs,
-                )?;
-            }
-            let bundle = bijux_dna_db_ref::resolve_reference_bundle(species_id, build_id)?;
-            let bank = bijux_dna_db_ref::resolve_reference_bank(species_id, build_id)?;
-            let sex_rule = bijux_dna_db_ref::resolve_sex_chromosome_rule(species_id, build_id).ok();
-            let organellar = bijux_dna_db_ref::resolve_organellar_policy(species_id, build_id).ok();
-            let default_set = usecase.as_deref().and_then(|kind| {
-                bijux_dna_db_ref::resolve_default_reference_set(species_id, kind).ok()
-            });
-            let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .and_then(std::path::Path::parent)
-                .map_or_else(|| std::path::PathBuf::from("."), std::path::Path::to_path_buf);
-            let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
-            let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
-            let lock_json_sha256 = if lock_json.exists() {
-                Some(bijux_dna_infra::hash_file_sha256(&lock_json)?)
-            } else {
-                None
-            };
-            let lock_sig_sha256 = if lock_sig.exists() {
-                Some(bijux_dna_infra::hash_file_sha256(&lock_sig)?)
-            } else {
-                None
-            };
-            Some(serde_json::json!({
-                "species_id": species_id,
-                "build_id": build_id,
-                "bundle": bundle,
-                "bank": bank,
-                "sex_chromosome_rule": sex_rule,
-                "organellar_policy": organellar,
-                "default_reference_set": default_set,
-                "reference_lock": {
-                    "lock_json": lock_json,
-                    "lock_json_sha256": lock_json_sha256,
-                    "lock_signature": lock_sig,
-                    "lock_signature_sha256": lock_sig_sha256,
-                },
-            }))
-        } else {
-            None
-        };
+    let reference_provenance = request.plan.params.get("reference_provenance").cloned();
+    let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .map_or_else(|| std::path::PathBuf::from("."), std::path::Path::to_path_buf);
+    let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
+    let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
+    let lock_json_sha256 = if lock_json.exists() {
+        Some(bijux_dna_infra::hash_file_sha256(&lock_json)?)
+    } else {
+        None
+    };
+    let lock_sig_sha256 = if lock_sig.exists() {
+        Some(bijux_dna_infra::hash_file_sha256(&lock_sig)?)
+    } else {
+        None
+    };
+    let authority = if species.is_none() && build.is_none() && reference_provenance.is_none() {
+        None
+    } else {
+        let mut authority = serde_json::Map::new();
+        if let Some(species_id) = species {
+            authority.insert("species_id".to_string(), serde_json::json!(species_id));
+        }
+        if let Some(build_id) = build {
+            authority.insert("build_id".to_string(), serde_json::json!(build_id));
+        }
+        if let Some(kind) = usecase {
+            authority.insert("usecase".to_string(), serde_json::json!(kind));
+        }
+        if !observed_contigs.is_empty() {
+            authority.insert(
+                "observed_contigs".to_string(),
+                serde_json::json!(observed_contigs),
+            );
+        }
+        if let Some(provenance) = reference_provenance {
+            authority.insert("reference_provenance".to_string(), provenance);
+        }
+        authority.insert(
+            "reference_lock".to_string(),
+            serde_json::json!({
+                "lock_json": lock_json,
+                "lock_json_sha256": lock_json_sha256,
+                "lock_signature": lock_sig,
+                "lock_signature_sha256": lock_sig_sha256,
+            }),
+        );
+        Some(serde_json::Value::Object(authority))
+    };
 
     let payload = serde_json::json!({
         "schema_version": "bijux.reference_manifest.v1",

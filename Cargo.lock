@@ -318,7 +318,6 @@ dependencies = [
  "bijux-dna-analyze",
  "bijux-dna-bench",
  "bijux-dna-core",
- "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
  "bijux-dna-engine",
