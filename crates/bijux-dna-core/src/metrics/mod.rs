@@ -9,5 +9,10 @@ mod types;
 pub use registry::{
     metrics_schema_for_stage, MetricsSchemaId, BAM_METRICS_SCHEMAS, FASTQ_METRICS_SCHEMAS,
 };
-pub use semantics::*;
-pub use types::*;
+pub use semantics::{BankRefV1, MetricContextV1};
+pub use types::{
+    parse_derived_metric_id, parse_metric_id, validate_derived_metric_id_str,
+    validate_metric_id_str, AdapterBankProvenanceV1, BankEntryV1, DerivedMetricId,
+    MetricEnvelope, MetricId, MetricsEnvelope, MetricSet, StageMetricsV1, ToolInvocationSpecV1,
+    ToolInvocationV1,
+};

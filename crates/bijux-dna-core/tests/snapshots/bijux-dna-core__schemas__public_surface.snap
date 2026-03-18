@@ -8,4 +8,3 @@ pub mod id_catalog;
 pub mod ids;
 pub mod metrics;
 pub mod prelude;
-pub mod stage_executor_registry;

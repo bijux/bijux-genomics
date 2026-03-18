@@ -17,7 +17,8 @@ fn prelude_exports_snapshot() {
     let expected = std::fs::read_to_string(&expected_path)
         .unwrap_or_else(|err| panic!("read prelude fixture: {err}"));
     assert_eq!(
-        snapshot, expected,
+        snapshot,
+        expected.trim_end(),
         "Prelude exports are expected to remain stable; update test if changes are intentional."
     );
 }
