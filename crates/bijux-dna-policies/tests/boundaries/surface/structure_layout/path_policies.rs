@@ -16,6 +16,7 @@ fn is_allowed_writer_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runtime/")
         || path_str.contains("/crates/bijux-dna-engine/")
+        || path_str.contains("/crates/bijux-dna-infra/")
         || path_str.contains("/crates/bijux-dna/src/commands/policies.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/hpc/hpc_impl.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/vcf/vcf_impl.rs")
@@ -166,7 +167,7 @@ fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_an
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "direct filesystem writes must be confined to bijux-dna-runtime or bijux-dna-engine:\n{}",
+        "direct filesystem writes must be confined to bijux-dna-runtime, bijux-dna-engine, or bijux-dna-infra:\n{}",
         offenders.join("\n")
     );
 }
