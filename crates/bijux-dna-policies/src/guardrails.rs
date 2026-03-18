@@ -2,11 +2,11 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use crate::content_rules::{
+use crate::checks::{
     check_panic_expect, check_pub_items, check_pub_use_spam, check_stage_id_strings,
 };
-use crate::file_scan::collect_rs_files;
-use crate::tree_rules::{check_empty_modules, check_mod_only_dirs, check_mod_reexports_only};
+use crate::checks::{check_empty_modules, check_mod_only_dirs, check_mod_reexports_only};
+use crate::source_scan::collect_rs_files;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuardrailConfig {

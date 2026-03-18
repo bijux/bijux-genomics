@@ -14,7 +14,11 @@ pub(crate) fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> R
         if entry.path() == src_dir {
             continue;
         }
-        if entry.path().components().any(|component| component.as_os_str() == "tests") {
+        if entry
+            .path()
+            .components()
+            .any(|component| component.as_os_str() == "tests")
+        {
             continue;
         }
         let dir = entry.path().to_string_lossy();
@@ -29,8 +33,7 @@ pub(crate) fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> R
         for child in fs::read_dir(entry.path())? {
             let child = child?;
             let path = child.path();
-            if path.is_file() && path.extension().and_then(|suffix| suffix.to_str()) == Some("rs")
-            {
+            if path.is_file() && path.extension().and_then(|suffix| suffix.to_str()) == Some("rs") {
                 if let Some(name) = path.file_name().and_then(|name| name.to_str()) {
                     rs_files.push(name.to_string());
                 }
@@ -70,7 +73,10 @@ pub(crate) fn check_empty_modules(files: &[PathBuf]) -> Result<()> {
             meaningful += 1;
         }
         if meaningful == 0 {
-            anyhow::bail!("empty module file (only mod re-exports): {}", path.display());
+            anyhow::bail!(
+                "empty module file (only mod re-exports): {}",
+                path.display()
+            );
         }
     }
     Ok(())
