@@ -68,7 +68,7 @@ fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
 }
 
 fn command_stdout(bin: &str, args: &[&str]) -> Option<String> {
-    let out = std::process::Command::new(bin).args(args).output().ok()?;
+    let out = bijux_dna_infra::command_output(bin, args).ok()?;
     if !out.status.success() {
         return None;
     }
@@ -111,10 +111,9 @@ fn bam_read_group_presence_samtools(bam_path: &Path) -> Option<bool> {
 }
 
 fn bam_quickcheck_ok(bam_path: &Path) -> Option<bool> {
-    let status = std::process::Command::new("samtools")
-        .args(["quickcheck", bam_path.to_string_lossy().as_ref()])
-        .status()
-        .ok()?;
+    let bam_arg = bam_path.to_string_lossy().into_owned();
+    let args = ["quickcheck", bam_arg.as_str()];
+    let status = bijux_dna_infra::command_status("samtools", &args).ok()?;
     Some(status.success())
 }
 

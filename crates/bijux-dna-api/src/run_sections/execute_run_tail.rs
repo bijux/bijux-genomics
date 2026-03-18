@@ -404,9 +404,9 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
         {
-            std::process::Command::new("gzip")
-                .args(["-cd", p.to_string_lossy().as_ref()])
-                .output()
+            let path_arg = p.to_string_lossy().into_owned();
+            let args = ["-cd", path_arg.as_str()];
+            bijux_dna_infra::command_output("gzip", &args)
                 .ok()
                 .filter(|o| o.status.success())
                 .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())

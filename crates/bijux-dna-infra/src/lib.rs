@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::process::{Command, ExitStatus, Output};
 use std::time::{Duration, Instant};
 
 use thiserror::Error;
@@ -233,6 +234,30 @@ pub fn read_to_end_bounded(path: &Path, max_bytes: usize) -> Result<Vec<u8>, IoE
         ));
     }
     Ok(buffer)
+}
+
+/// Run a command and capture its output.
+///
+/// # Errors
+/// Returns an IO error if the command cannot be spawned or collected.
+pub fn command_output<S: AsRef<str>>(bin: &str, args: &[S]) -> Result<Output, IoError> {
+    let mut command = Command::new(bin);
+    for arg in args {
+        command.arg(arg.as_ref());
+    }
+    command.output().map_err(IoError::from_io)
+}
+
+/// Run a command and capture its exit status.
+///
+/// # Errors
+/// Returns an IO error if the command cannot be spawned or waited on.
+pub fn command_status<S: AsRef<str>>(bin: &str, args: &[S]) -> Result<ExitStatus, IoError> {
+    let mut command = Command::new(bin);
+    for arg in args {
+        command.arg(arg.as_ref());
+    }
+    command.status().map_err(IoError::from_io)
 }
 
 /// Rename a filesystem path.
