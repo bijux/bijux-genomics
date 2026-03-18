@@ -309,7 +309,7 @@ pub fn run_chunked_regions(
 
         atomic_write_bytes(&chunk_plain, chunk_payload.as_bytes())?;
         let _ = crate::vcf_io::vcf_index_bgzip_tabix(&chunk_plain, &chunk_out)?;
-        let _ = std::fs::remove_file(&chunk_plain);
+        bijux_dna_infra::remove_file_if_exists(&chunk_plain)?;
         atomic_write_bytes(&checksum_out, format!("{output_checksum}\n").as_bytes())?;
         let prov = ChunkProvenance {
             chunk_id: chunk.chunk_id.clone(),
@@ -353,7 +353,7 @@ pub fn run_chunked_regions(
     let merged_payload = format!("{}\n{}\n", normalized_header.join("\n"), ordered.join("\n"));
     atomic_write_bytes(&merged_plain, merged_payload.as_bytes())?;
     let _ = crate::vcf_io::vcf_index_bgzip_tabix(&merged_plain, &merged_vcf)?;
-    let _ = std::fs::remove_file(&merged_plain);
+    bijux_dna_infra::remove_file_if_exists(&merged_plain)?;
 
     // Boundary correctness: no dropped/duplicated keys compared to deterministic de-overlapped union.
     let merged_keys = ordered

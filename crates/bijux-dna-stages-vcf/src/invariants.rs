@@ -482,7 +482,7 @@ pub fn run_vcf_preflight(
 
     summary.checked.push("ensure_bgzip_tabix".to_string());
     let index_path = crate::vcf_io::vcf_index_bgzip_tabix(&normalized_plain, &normalized_input)?;
-    let _ = std::fs::remove_file(&normalized_plain);
+    bijux_dna_infra::remove_file_if_exists(&normalized_plain)?;
 
     let regime = detect_regime(&records);
     summary.checked.push("input_regime_detection".to_string());
