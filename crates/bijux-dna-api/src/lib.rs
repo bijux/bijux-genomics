@@ -7,14 +7,14 @@
 
 #![allow(hidden_glob_reexports)]
 
-pub(crate) mod api_internal;
 pub(crate) mod explain;
-pub(crate) mod internal;
 pub(crate) mod input_validation;
+pub(crate) mod internal;
 pub(crate) mod request_args;
 pub(crate) mod runtime;
 pub(crate) mod support;
 pub(crate) mod writers;
+pub(crate) use internal::public_bridge;
 pub(crate) use runtime::{cross_runtime, execution_kernel, run};
 pub(crate) use support::qa;
 pub(crate) use support::reference_resolution;

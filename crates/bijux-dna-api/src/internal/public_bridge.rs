@@ -1,4 +1,4 @@
-//! Power-user/internal exports behind the `api_internal` feature.
+//! Power-user exports behind the `api_internal` feature flag.
 
 #![allow(unused_imports)]
 
