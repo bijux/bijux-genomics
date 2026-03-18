@@ -27,9 +27,9 @@ pub(crate) mod corpus;
 pub(crate) mod ena;
 pub(crate) mod fastq;
 pub mod hpc;
+pub(crate) mod profile_runtime;
 pub(crate) mod report_inputs;
 pub(crate) mod run_plan;
-pub(crate) mod validation;
 pub(crate) mod vcf;
 
 include!("policies.rs");

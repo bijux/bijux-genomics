@@ -1,1 +1,1 @@
-include!("bam_impl.rs");
+include!("bam_commands.rs");

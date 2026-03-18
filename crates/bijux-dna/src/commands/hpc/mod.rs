@@ -1,1 +1,1 @@
-include!("hpc_impl.rs");
+include!("hpc_support.rs");
