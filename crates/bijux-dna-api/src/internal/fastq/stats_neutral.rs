@@ -283,7 +283,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
-    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
+    let _plan_path =
+        write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
     let tool_context = execution_kernel::ToolContext {
         run_id: run_id.clone(),

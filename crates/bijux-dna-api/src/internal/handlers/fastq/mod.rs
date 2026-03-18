@@ -11,7 +11,7 @@ pub use bijux_dna_planner_fastq::stage_api::{
     STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 
-pub use crate::fastq_stats_neutral::bench_fastq_stats_neutral;
+pub use crate::internal::fastq::stats_neutral::bench_fastq_stats_neutral;
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use stages::correct::bench_fastq_correct;
 pub use stages::filter::bench_fastq_filter;
