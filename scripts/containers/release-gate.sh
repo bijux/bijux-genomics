@@ -23,9 +23,9 @@ INFO
 "$SCRIPT_DIR/check-toolkit-bundles.sh"
 "$SCRIPT_DIR/check-missing-images.sh"
 "$SCRIPT_DIR/check-tool-container-coverage.sh"
-"$SCRIPT_DIR/check-version-lock.sh"
-"$SCRIPT_DIR/check-version-authority.sh"
-"$SCRIPT_DIR/check-version-hash-pin.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-version-lock
+cargo run -q -p bijux-dev-dna -- containers run check-version-authority
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"
 "$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
@@ -34,30 +34,30 @@ INFO
 "$SCRIPT_DIR/check-smoke-contract-lock.sh"
 "$SCRIPT_DIR/check-imputation-release-smoke.sh"
 "$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
-"$SCRIPT_DIR/check-qa-matrix-generated.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-build-provenance.sh"
 "$SCRIPT_DIR/check-digest-output-policy.sh"
-"$SCRIPT_DIR/check-network-disclosure.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 "$SCRIPT_DIR/check-imputation-network-policy.sh"
 "$SCRIPT_DIR/check-runtime-downloads.sh"
 "$SCRIPT_DIR/check-sbom-artifacts.sh"
 "$SCRIPT_DIR/check-vuln-hook.sh"
 "$SCRIPT_DIR/check-vuln-allowlist.sh"
-"$SCRIPT_DIR/check-license-index-generated.sh"
-"$SCRIPT_DIR/check-license-metadata.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
+cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 "$SCRIPT_DIR/check-owners.sh"
 "$SCRIPT_DIR/check-tool-id-contract.sh"
-"$SCRIPT_DIR/check-tool-docs-generated.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 "$SCRIPT_DIR/check-time-locale-determinism.sh"
 "$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
 "$SCRIPT_DIR/check-imputation-hardening.sh"
 "$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
-"$SCRIPT_DIR/check-apptainer-cache-policy.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-version-output-lock.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-smoke-proof.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-reproducibility.sh"
-"$SCRIPT_DIR/check-apptainer-frontend-security.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-security
 "$SCRIPT_DIR/check-release-checklist.sh"
 "$SCRIPT_DIR/container-doctor.sh" --strict
 

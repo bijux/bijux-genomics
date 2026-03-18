@@ -39,10 +39,10 @@ if pat and re.search(pat, hn):
 PY
 
 # Enforce pinning and existing security contracts first.
-"$SCRIPT_DIR/check-version-hash-pin.sh"
-"$SCRIPT_DIR/check-apptainer-hardening.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-hardening
 "$SCRIPT_DIR/check-no-secrets.sh"
-"$SCRIPT_DIR/check-network-disclosure.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 
 mkdir -p "$OUT_DIR"
 

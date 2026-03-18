@@ -129,9 +129,9 @@ failed=0
 
 for spec in \
   "missing_images $SCRIPT_DIR/check-missing-images.sh" \
-  "lock_file_drift $SCRIPT_DIR/check-version-lock.sh" \
+  "lock_file_drift cargo run -q -p bijux-dev-dna -- containers run check-version-lock" \
   "lock_vs_built $SCRIPT_DIR/check-lock-matches-built-output.sh" \
-  "outdated_versions $SCRIPT_DIR/check-version-deprecations.sh" \
+  "outdated_versions cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations" \
   "domain_parity $SCRIPT_DIR/check-tool-container-coverage.sh" \
   "registry_orphans $SCRIPT_DIR/check-registry-vs-defs.sh"; do
   id="${spec%% *}"

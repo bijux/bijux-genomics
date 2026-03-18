@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
+use regex::Regex;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -118,6 +119,45 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::Demote => demote_tool(workspace, args),
         NativeContainerCommandKey::DeprecateVersion => deprecate_version(workspace, args),
         NativeContainerCommandKey::ToolLifecycle => tool_lifecycle(workspace, args),
+        NativeContainerCommandKey::CheckApptainerCachePolicy => {
+            ensure_no_args("check-apptainer-cache-policy", args)?;
+            check_apptainer_cache_policy(workspace)
+        }
+        NativeContainerCommandKey::CheckApptainerFrontendReproducibility => {
+            check_apptainer_frontend_reproducibility(workspace, args)
+        }
+        NativeContainerCommandKey::CheckApptainerFrontendSecurity => {
+            check_apptainer_frontend_security(workspace, args)
+        }
+        NativeContainerCommandKey::CheckApptainerFrontendSmokeProof => {
+            check_apptainer_frontend_smoke_proof(workspace, args)
+        }
+        NativeContainerCommandKey::CheckApptainerFrontendVersionOutputLock => {
+            ensure_no_args("check-apptainer-frontend-version-output-lock", args)?;
+            check_apptainer_frontend_version_output_lock(workspace)
+        }
+        NativeContainerCommandKey::CheckApptainerHardening => {
+            ensure_no_args("check-apptainer-hardening", args)?;
+            check_apptainer_hardening(workspace)
+        }
+        NativeContainerCommandKey::CheckApptainerPostPins => {
+            ensure_no_args("check-apptainer-post-pins", args)?;
+            check_apptainer_post_pins(workspace)
+        }
+        NativeContainerCommandKey::CheckApptainerVersionLabelSync => {
+            ensure_no_args("check-apptainer-version-label-sync", args)?;
+            check_apptainer_version_label_sync(workspace)
+        }
+        NativeContainerCommandKey::CheckBijuxApptainerBuilt => {
+            ensure_no_args("check-bijux-apptainer-built", args)?;
+            check_bijux_apptainer_built(workspace)
+        }
+        NativeContainerCommandKey::GenerateLocalApptainerDigests => {
+            generate_local_apptainer_digests(workspace, args)
+        }
+        NativeContainerCommandKey::CompareFrontendLocalSifHash => {
+            compare_frontend_local_sif_hash(workspace, args)
+        }
         NativeContainerCommandKey::Summary => summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => run_env_smoke(workspace, args),
@@ -633,6 +673,65 @@ fn append_toml_table(path: &std::path::Path, content: &str, new_file_header: &st
         format!("{}{}", new_file_header, content.trim_end())
     };
     write_utf8(path, &format!("{body}\n"))
+}
+
+fn iso_root_path(workspace: &Workspace) -> PathBuf {
+    PathBuf::from(
+        std::env::var("ISO_ROOT").unwrap_or_else(|_| workspace.path("artifacts").display().to_string()),
+    )
+}
+
+fn iso_run_id() -> String {
+    env_or_default("ISO_RUN_ID", "run")
+}
+
+fn policy_path(workspace: &Workspace, env_key: &str, default_rel: &str) -> PathBuf {
+    std::env::var(env_key)
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| workspace.path(default_rel))
+}
+
+fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
+    let mut paths = walkdir::WalkDir::new(workspace.path("containers/apptainer"))
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| entry.into_path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("def"))
+        .collect::<Vec<_>>();
+    paths.sort();
+    paths
+}
+
+fn tool_status_manifest(workspace: &Workspace) -> Result<BTreeMap<String, String>> {
+    let mut statuses = BTreeMap::new();
+    for raw in read_utf8(&workspace.path("containers/TOOL_IDS.txt"))?.lines() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some((tool_id, status)) = line.split_once('\t') {
+            statuses.insert(tool_id.to_string(), status.to_string());
+        }
+    }
+    Ok(statuses)
+}
+
+fn command_hostname() -> String {
+    for args in [["-f"].as_slice(), [].as_slice()] {
+        let mut command = std::process::Command::new("hostname");
+        command.args(args);
+        let Ok(output) = command.output() else {
+            continue;
+        };
+        if output.status.success() {
+            let value = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !value.is_empty() {
+                return value;
+            }
+        }
+    }
+    String::new()
 }
 
 fn table_string(table: &toml::map::Map<String, toml::Value>, key: &str) -> String {
@@ -3067,6 +3166,877 @@ fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
             resolved.to_string(),
         ],
     )
+}
+
+fn check_apptainer_cache_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let policy = workspace.path("configs/ci/tools/apptainer_cache_policy.toml");
+    if !policy.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "apptainer cache policy: missing {}\n",
+            policy.display()
+        )));
+    }
+    for rel in [
+        "scripts/containers/build-apptainer-all.sh",
+        "scripts/containers/smoke-apptainer.sh",
+    ] {
+        let text = read_utf8(&workspace.path(rel))?;
+        if !text.contains("apptainer_cache_policy.toml") && !text.contains("CACHE_POLICY_TOML") {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "apptainer cache policy: {} does not consume cache policy config\n",
+                workspace.path(rel).display()
+            )));
+        }
+    }
+    success_line("apptainer cache policy: OK")
+}
+
+fn check_apptainer_frontend_reproducibility(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility -- [<summary-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let summary_path = match args {
+        [] => iso_root_path(workspace)
+            .join("containers/hpc/frontend-reproducibility")
+            .join(iso_run_id())
+            .join("summary.json"),
+        [path] => path_from_arg(workspace, path),
+        _ => return Err(anyhow!(usage.to_string())),
+    };
+    if !summary_path.is_file() {
+        if env_or_default("CI", "0") == "1" {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "frontend reproducibility check: missing summary in CI: {}\n",
+                summary_path.display()
+            )));
+        }
+        return success_line(format!(
+            "frontend reproducibility check: SKIP (no summary at {})",
+            summary_path.display()
+        ));
+    }
+    let summary = read_json(&summary_path)?;
+    let policy = load_toml(&policy_path(
+        workspace,
+        "POLICY_TOML",
+        "configs/ci/tools/apptainer_reproducibility_policy.toml",
+    ))?;
+    let threshold = policy
+        .get("confidence_min")
+        .and_then(toml::Value::as_float)
+        .unwrap_or(1.0);
+    let require_all = policy
+        .get("require_all_tools_deterministic")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    let mut errors = Vec::new();
+    let confidence = summary
+        .get("confidence")
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(-1.0);
+    if confidence < threshold {
+        errors.push(format!(
+            "confidence below threshold: got {confidence:.4}, need {threshold:.4}"
+        ));
+    }
+    if require_all {
+        let bad = summary
+            .get("items")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|row| !row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false))
+            .filter_map(|row| row.get("tool").and_then(serde_json::Value::as_str).map(ToOwned::to_owned))
+            .collect::<Vec<_>>();
+        if !bad.is_empty() {
+            errors.push(format!("non-deterministic tools: {}", bad.join(", ")));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("frontend reproducibility check: OK");
+    }
+    failure_lines("frontend reproducibility check: FAILED", &errors)
+}
+
+fn check_apptainer_frontend_security(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-security -- [<summary-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let summary_path = match args {
+        [] => iso_root_path(workspace)
+            .join("containers/hpc/frontend-security")
+            .join(iso_run_id())
+            .join("security_summary.json"),
+        [path] => path_from_arg(workspace, path),
+        _ => return Err(anyhow!(usage.to_string())),
+    };
+    if !summary_path.is_file() {
+        if env_or_default("CI", "0") == "1" {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "frontend security check: missing summary in CI: {}\n",
+                summary_path.display()
+            )));
+        }
+        return success_line(format!(
+            "frontend security check: SKIP (no summary at {})",
+            summary_path.display()
+        ));
+    }
+    let summary = read_json(&summary_path)?;
+    let policy = load_toml(&policy_path(
+        workspace,
+        "POLICY_TOML",
+        "configs/ci/tools/apptainer_security_policy.toml",
+    ))?;
+    let fail_on_critical = policy
+        .get("fail_on_unallowlisted_critical")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    let mut errors = Vec::new();
+    if summary
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .is_none_or(|items| items.is_empty())
+    {
+        errors.push("no SBOM/SIF items recorded".to_string());
+    }
+    if summary
+        .get("license_mismatches")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|items| !items.is_empty())
+    {
+        errors.push("license mismatches present".to_string());
+    }
+    if fail_on_critical
+        && summary
+            .get("critical_unallowlisted")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|items| !items.is_empty())
+    {
+        errors.push("unallowlisted critical CVEs present".to_string());
+    }
+    if !summary
+        .get("ok")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false)
+    {
+        errors.push("summary status is fail".to_string());
+    }
+    if errors.is_empty() {
+        return success_line("frontend security check: OK");
+    }
+    failure_lines("frontend security check: FAILED", &errors)
+}
+
+fn check_apptainer_frontend_smoke_proof(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof -- [<proof-root>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let proof_root = match args {
+        [] => workspace.path("artifacts/containers/hpc/frontend-smoke"),
+        [path] => path_from_arg(workspace, path),
+        _ => return Err(anyhow!(usage.to_string())),
+    };
+    let summary_path = proof_root.join("summary.json");
+    if !summary_path.exists() {
+        if env_or_empty("CI").is_empty() {
+            return success_line("frontend smoke proof: SKIP (no summary)");
+        }
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "frontend smoke proof: missing {}\n",
+            summary_path.display()
+        )));
+    }
+    let summary = read_json(&summary_path)?;
+    let versions = tool_versions(workspace)?;
+    let apptainer_tools = apptainer_def_paths(workspace)
+        .into_iter()
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .collect::<BTreeSet<_>>();
+    let items = summary
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|row| {
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .map(|tool| tool.trim().to_string())?;
+            Some((tool, row))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let mut errors = Vec::new();
+    for tool in apptainer_tools {
+        let Some(row) = items.get(&tool) else {
+            errors.push(format!("{tool}: missing smoke proof row"));
+            continue;
+        };
+        if row.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
+            errors.push(format!("{tool}: smoke status not ok"));
+            continue;
+        }
+        let output = row
+            .get("normalized_version_output")
+            .and_then(serde_json::Value::as_str)
+            .filter(|value| !value.trim().is_empty())
+            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
+        let expected = versions
+            .get(&tool)
+            .map(|row| table_string(row, "version").to_ascii_lowercase())
+            .unwrap_or_default();
+        if !expected.is_empty() && !output.contains(&expected) {
+            errors.push(format!(
+                "{tool}: version output does not include expected version {expected}"
+            ));
+        }
+        for key in [
+            "help_actual_exit_code",
+            "minimal_actual_exit_code",
+            "negative_actual_exit_code",
+        ] {
+            if row.get(key).is_none() {
+                errors.push(format!("{tool}: missing {key}"));
+            }
+        }
+        if row
+            .get("network_runtime_detected")
+            .and_then(serde_json::Value::as_bool)
+            == Some(true)
+        {
+            errors.push(format!("{tool}: runtime network access detected"));
+        }
+        if row
+            .get("home_write_detected")
+            .and_then(serde_json::Value::as_bool)
+            == Some(true)
+        {
+            errors.push(format!("{tool}: write to HOME detected"));
+        }
+        for key in ["home_policy_ok", "filesystem_policy_ok", "write_policy_ok"] {
+            if row.get(key).and_then(serde_json::Value::as_bool) != Some(true) {
+                errors.push(format!("{tool}: {key} is false"));
+            }
+        }
+        let log_dir = row
+            .get("smoke_log_dir")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if log_dir.is_empty() {
+            errors.push(format!("{tool}: missing smoke_log_dir"));
+        } else if !PathBuf::from(&log_dir)
+            .display()
+            .to_string()
+            .replace('\\', "/")
+            .contains(&format!("/smoke/{tool}/"))
+        {
+            errors.push(format!("{tool}: smoke_log_dir path layout mismatch"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!("frontend smoke proof: OK ({})", items.len()));
+    }
+    failure_lines("frontend smoke proof: failed", &errors)
+}
+
+fn check_apptainer_frontend_version_output_lock(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let summary_path = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
+    let lock_path = lock_json_path(workspace);
+    if !lock_path.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "frontend version-output lock check: missing lock.json\n",
+        ));
+    }
+    if !summary_path.exists() {
+        if !env_or_empty("CI").is_empty() {
+            return Ok(ContainerCommandOutcome::failure(
+                "frontend version-output lock check: missing frontend smoke summary in CI\n",
+            ));
+        }
+        return success_line("frontend version-output lock check: SKIP (no frontend smoke summary)");
+    }
+    let summary = read_json(&summary_path)?;
+    let lock_rows = lock_items_by_tool(workspace)?;
+    let mut errors = Vec::new();
+    for row in summary
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+    {
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if tool.is_empty() {
+            continue;
+        }
+        if row.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
+            errors.push(format!("{tool}: smoke status is not ok"));
+            continue;
+        }
+        let output = row
+            .get("normalized_version_output")
+            .and_then(serde_json::Value::as_str)
+            .filter(|value| !value.trim().is_empty())
+            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
+        if output.is_empty() {
+            errors.push(format!("{tool}: empty version output in frontend smoke summary"));
+            continue;
+        }
+        let current = sha256_hex(output.as_bytes());
+        let locked = lock_rows
+            .get(&tool)
+            .and_then(|row| row.get("frontend_smoke_version_output_sha256"))
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if locked.is_empty() {
+            errors.push(format!(
+                "{tool}: missing frontend_smoke_version_output_sha256 in lock"
+            ));
+        } else if current != locked {
+            errors.push(format!(
+                "{tool}: frontend version output drift detected; regenerate lock"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("frontend version-output lock check: OK");
+    }
+    failure_lines("frontend version-output lock check: failed", &errors)
+}
+
+fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let tool_status = tool_status_manifest(workspace)?;
+    let required_labels = [
+        "org.opencontainers.image.source",
+        "org.opencontainers.image.revision",
+        "org.opencontainers.image.created",
+        "org.opencontainers.image.licenses",
+        "org.opencontainers.image.version",
+        "org.opencontainers.image.tool",
+        "org.opencontainers.image.title",
+    ];
+    let mut errors = Vec::new();
+    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)").expect("regex");
+    let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$").expect("regex");
+    let interactive_re = Regex::new(r"\b(read -p|select |dialog|whiptail)\b").expect("regex");
+    let umask_re = Regex::new(r"(?m)^\s*umask\s+0?22\s*$").expect("regex");
+    let allowed_from_re = Regex::new(r"^(ubuntu|debian|python|quay\.io/)").expect("regex");
+    for path in apptainer_def_paths(workspace) {
+        let rel = workspace.rel(&path).display().to_string();
+        let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
+        let status = tool_status.get(tool_id).cloned().unwrap_or_else(|| "unknown".to_string());
+        let text = read_utf8(&path)?;
+        let head = text.lines().take(24).collect::<Vec<_>>().join("\n");
+        for marker in [
+            format!("# Tool ID: {tool_id}"),
+            "# Version policy:".to_string(),
+            "# Upstream source:".to_string(),
+            "# Build date policy:".to_string(),
+        ] {
+            if !head.contains(&marker) {
+                errors.push(format!("{rel}: missing standard header marker '{marker}'"));
+            }
+        }
+        for label in required_labels {
+            if !text.contains(label) {
+                errors.push(format!("{rel}: missing label {label}"));
+            }
+        }
+        for (alias, keys) in [
+            ("tool", vec!["org.opencontainers.image.tool", "tool"]),
+            ("version", vec!["org.opencontainers.image.version", "version"]),
+            ("source", vec!["org.opencontainers.image.source", "source"]),
+            ("license_ref", vec!["org.opencontainers.image.licenses", "license_ref"]),
+            ("build_date", vec!["org.opencontainers.image.created", "build_date"]),
+            ("git_sha", vec!["org.opencontainers.image.revision", "git_sha"]),
+        ] {
+            if !keys.iter().any(|key| text.contains(key)) {
+                errors.push(format!("{rel}: missing label contract key '{alias}'"));
+            }
+        }
+        if !text.contains("%environment") {
+            errors.push(format!("{rel}: missing %environment section"));
+        } else {
+            let env = text
+                .split("%environment")
+                .nth(1)
+                .and_then(|body| body.split("\n%").next())
+                .unwrap_or_default();
+            for env_line in ["PATH=", "LC_ALL=", "TZ="] {
+                if !env.contains(env_line) {
+                    errors.push(format!("{rel}: %environment missing {env_line}"));
+                }
+            }
+            if env.contains("/Users/") || env.contains("/home/") {
+                errors.push(format!("{rel}: %environment contains user-specific path"));
+            }
+        }
+        if !text.contains("%post") {
+            errors.push(format!("{rel}: missing %post section"));
+        } else {
+            let post = text
+                .split("%post")
+                .nth(1)
+                .and_then(|body| body.split("\n%").next())
+                .unwrap_or_default();
+            let first_non_empty = post
+                .lines()
+                .map(str::trim)
+                .find(|line| !line.is_empty())
+                .unwrap_or_default();
+            if !first_non_empty.contains("set -eux") {
+                errors.push(format!("{rel}: %post must start with set -eux"));
+            }
+            if !umask_re.is_match(post) {
+                errors.push(format!("{rel}: %post must set deterministic umask 022"));
+            }
+            if interactive_re.is_match(post) {
+                errors.push(format!("{rel}: %post contains interactive prompt constructs"));
+            }
+            if (post.contains("wget ") || post.contains("curl "))
+                && !text.contains("NETWORK_SOURCE_VERIFIED_BY_LOCK")
+                && !post.contains("sha256sum")
+            {
+                errors.push(format!("{rel}: network download without checksum policy marker"));
+            }
+            if post.contains("apt-get") && !post.contains("rm -rf /var/lib/apt/lists/*") {
+                errors.push(format!(
+                    "{rel}: apt usage requires cleanup of /var/lib/apt/lists/*"
+                ));
+            }
+            if post.contains("latest")
+                || post.contains("main")
+                || post.contains("master")
+                || post.contains("HEAD")
+            {
+                // This script was originally handled by a separate post-pin check, so keep the
+                // hardening surface focused on hardening-only findings.
+            }
+        }
+        if let Some(captures) = version_re.captures(&text) {
+            let value = captures
+                .get(1)
+                .map(|value| value.as_str().trim().trim_matches('"').to_ascii_lowercase())
+                .unwrap_or_default();
+            if status == "production"
+                && matches!(
+                    value.as_str(),
+                    "latest" | "latest-pinned" | "main" | "master" | "head" | "unknown" | ""
+                )
+            {
+                errors.push(format!(
+                    "{rel}: floating/unknown image.version '{value}' is forbidden for production tool"
+                ));
+            }
+        }
+        if let Some(captures) = from_re.captures(&text) {
+            let from_line = captures.get(1).map(|value| value.as_str().trim()).unwrap_or_default();
+            if !from_line.contains("@sha256:") {
+                errors.push(format!("{rel}: base image must be digest pinned"));
+            }
+            if !allowed_from_re.is_match(from_line) {
+                errors.push(format!(
+                    "{rel}: base image repo must follow policy (ubuntu/debian/python/quay.io/*)"
+                ));
+            }
+        }
+        if text.contains("chmod 777") {
+            errors.push(format!("{rel}: chmod 777 forbidden for runtime UID safety"));
+        }
+        let has_help_doc = text
+            .split("%help")
+            .nth(1)
+            .is_some_and(|help| !help.trim().is_empty());
+        if text.contains("%runscript") {
+            let run = text
+                .split("%runscript")
+                .nth(1)
+                .and_then(|body| body.split("\n%").next())
+                .unwrap_or_default();
+            if !run.contains("--help") && !has_help_doc {
+                errors.push(format!(
+                    "{rel}: runscript/help must provide predictable --help behavior"
+                ));
+            }
+        } else {
+            errors.push(format!("{rel}: missing %runscript section"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("apptainer hardening: OK");
+    }
+    failure_lines("apptainer hardening: failed", &errors)
+}
+
+fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("apptainer post pin policy: SKIP (CI-only gate)");
+    }
+    let versions = tool_versions(workspace)?;
+    let policy = load_toml(&workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml"))?;
+    let host = command_hostname();
+    let mut errors = Vec::new();
+    if let Some(pattern) = policy.get("compute_hostname_regex").and_then(toml::Value::as_str) {
+        let pattern = pattern.trim();
+        if !pattern.is_empty()
+            && !host.is_empty()
+            && Regex::new(pattern).is_ok_and(|regex| regex.is_match(&host))
+        {
+            errors.push(format!(
+                "CI runner host '{host}' matches compute node policy; %post checks refused outside frontend/login node"
+            ));
+        }
+    }
+    let floating_re = Regex::new(r"\b(latest|main|master|HEAD)\b").expect("regex");
+    let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
+    for path in apptainer_def_paths(workspace) {
+        let rel = workspace.rel(&path).display().to_string();
+        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let text = read_utf8(&path)?;
+        let post = text
+            .split("%post")
+            .nth(1)
+            .and_then(|body| body.split("\n%").next())
+            .unwrap_or_default()
+            .to_string();
+        if post.trim().is_empty() {
+            errors.push(format!("{rel}: missing %post section"));
+            continue;
+        }
+        if floating_re.is_match(&post) {
+            errors.push(format!(
+                "{rel}: %post contains floating ref (latest/main/master/HEAD)"
+            ));
+        }
+        if download_re.is_match(&post) {
+            let has_sha = post.contains("sha256sum") || post.contains("shasum -a 256");
+            let row = versions.get(&tool);
+            let source_sha = row.map(|row| table_string(row, "source_sha256")).unwrap_or_default();
+            let pin = row.map(|row| table_string(row, "pinned_commit")).unwrap_or_default();
+            if !has_sha {
+                errors.push(format!(
+                    "{rel}: %post downloads without checksum verification command"
+                ));
+            }
+            if source_sha.is_empty() && pin.is_empty() {
+                errors.push(format!(
+                    "{rel}: tool downloads in %post but versions.toml has neither source_sha256 nor pinned_commit"
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("apptainer post pin policy: OK");
+    }
+    failure_lines("apptainer post pin policy: failed", &errors)
+}
+
+fn check_apptainer_version_label_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("apptainer version label sync: SKIP (CI-only gate)");
+    }
+    let versions = tool_versions(workspace)?;
+    let mut errors = Vec::new();
+    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)").expect("regex");
+    for path in apptainer_def_paths(workspace) {
+        let rel = workspace.rel(&path).display().to_string();
+        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let text = read_utf8(&path)?;
+        let Some(row) = versions.get(&tool) else {
+            errors.push(format!("{rel}: missing versions.toml entry"));
+            continue;
+        };
+        let expected = table_string(row, "version");
+        let Some(captures) = version_re.captures(&text) else {
+            errors.push(format!("{rel}: missing org.opencontainers.image.version label"));
+            continue;
+        };
+        let label_value = captures
+            .get(1)
+            .map(|value| value.as_str().trim().trim_matches('"').trim_matches('\'').to_string())
+            .unwrap_or_default();
+        let placeholder = matches!(
+            label_value.as_str(),
+            "${TOOL_VERSION}" | "$TOOL_VERSION" | "unknown" | "planned" | "latest-pinned"
+        ) || label_value.ends_with("-planned");
+        if !placeholder && label_value != expected {
+            errors.push(format!(
+                "{rel}: label version '{label_value}' != versions.toml '{expected}'"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("apptainer version label sync: OK");
+    }
+    failure_lines("apptainer version label sync: failed", &errors)
+}
+
+fn check_bijux_apptainer_built(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("bijux apptainer built: SKIP (CI-only gate)");
+    }
+    let summary_path = workspace.path("artifacts/containers/summary.json");
+    if !summary_path.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "bijux apptainer built: missing artifacts/containers/summary.json\n",
+        ));
+    }
+    let summary = read_json(&summary_path)?;
+    let rows = summary
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|row| row.get("runtime").and_then(serde_json::Value::as_str) == Some("apptainer"))
+        .filter_map(|row| {
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .map(|tool| tool.trim().to_string())?;
+            Some((tool, row))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let bijux_defs = apptainer_def_paths(workspace)
+        .into_iter()
+        .filter(|path| path.starts_with(workspace.path("containers/apptainer/lunarc")))
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .collect::<Vec<_>>();
+    let mut errors = Vec::new();
+    for tool in bijux_defs {
+        let Some(row) = rows.get(&tool) else {
+            errors.push(format!("{tool}: missing apptainer summary row"));
+            continue;
+        };
+        if row.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
+            errors.push(format!("{tool}: apptainer status is not ok"));
+            continue;
+        }
+        let manifest_path = PathBuf::from(
+            row.get("manifest")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
+        if !manifest_path.exists() {
+            errors.push(format!("{tool}: missing manifest at {}", manifest_path.display()));
+            continue;
+        }
+        let manifest = read_json(&manifest_path)?;
+        let sif_sha = manifest
+            .get("resolved_image_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if sif_sha.is_empty() {
+            errors.push(format!(
+                "{tool}: missing resolved_image_digest (sif sha256) in manifest"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("bijux apptainer built: OK");
+    }
+    failure_lines("bijux apptainer built: failed", &errors)
+}
+
+fn generate_local_apptainer_digests(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run generate-local-apptainer-digests -- [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let out = out_path_arg(
+        workspace,
+        args,
+        "artifacts/containers/hpc/local-sif-digests.json",
+        usage,
+    )?;
+    let sif_dir = std::env::var("SIF_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| workspace.path("artifacts/containers/apptainer/sif"));
+    let mut rows = Vec::new();
+    if sif_dir.exists() {
+        let mut paths = fs::read_dir(&sif_dir)
+            .with_context(|| format!("read {}", sif_dir.display()))?
+            .filter_map(std::result::Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("sif"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        for path in paths {
+            let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
+            rows.push(serde_json::json!({
+                "tool": tool,
+                "sif_path": path.display().to_string(),
+                "sha256": sha256_hex(&fs::read(&path).with_context(|| format!("read {}", path.display()))?),
+            }));
+        }
+    }
+    write_utf8(
+        &out,
+        &json_string_pretty(&serde_json::json!({
+            "schema_version": "bijux.local.sif_digests.v1",
+            "items": rows,
+        }))?,
+    )?;
+    success_line(out.display().to_string())
+}
+
+fn compare_frontend_local_sif_hash(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run compare-frontend-local-sif-hash -- [<frontend-json>] [<local-json>] [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let (frontend_json, local_json, out_md) = match args {
+        [] => (
+            workspace.path("artifacts/containers/hpc/frontend-sif-digests.json"),
+            workspace.path("artifacts/containers/hpc/local-sif-digests.json"),
+            workspace.path("artifacts/containers/hpc/frontend-local-diff.md"),
+        ),
+        [frontend, local, out] => (
+            path_from_arg(workspace, frontend),
+            path_from_arg(workspace, local),
+            path_from_arg(workspace, out),
+        ),
+        _ => return Err(anyhow!(usage.to_string())),
+    };
+    let frontend = if frontend_json.exists() {
+        read_json(&frontend_json)?
+    } else {
+        serde_json::json!({ "items": [] })
+    };
+    let local = if local_json.exists() {
+        read_json(&local_json)?
+    } else {
+        serde_json::json!({ "items": [] })
+    };
+    let frontend_map = frontend
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|row| {
+            Some((
+                row.get("tool")?.as_str()?.trim().to_string(),
+                row.get("sha256")?.as_str()?.trim().to_string(),
+            ))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let local_map = local
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|row| {
+            Some((
+                row.get("tool")?.as_str()?.trim().to_string(),
+                row.get("sha256")?.as_str()?.trim().to_string(),
+            ))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let shared = frontend_map
+        .keys()
+        .filter(|tool| local_map.contains_key(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    let mut lines = vec![
+        "# Frontend vs Local SIF Hash Diff".to_string(),
+        String::new(),
+        "| tool | frontend_sha256 | local_sha256 | match |".to_string(),
+        "|---|---|---|---|".to_string(),
+    ];
+    for tool in &shared {
+        let frontend = frontend_map.get(tool).cloned().unwrap_or_default();
+        let local = local_map.get(tool).cloned().unwrap_or_default();
+        lines.push(format!(
+            "| `{tool}` | `{frontend}` | `{local}` | `{}` |",
+            if frontend == local { "yes" } else { "no" }
+        ));
+    }
+    let missing_frontend = local_map
+        .keys()
+        .filter(|tool| !frontend_map.contains_key(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    let missing_local = frontend_map
+        .keys()
+        .filter(|tool| !local_map.contains_key(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing_frontend.is_empty() {
+        lines.extend(["".to_string(), "## Missing On Frontend".to_string(), "".to_string()]);
+        lines.extend(missing_frontend.iter().map(|tool| format!("- `{tool}`")));
+    }
+    if !missing_local.is_empty() {
+        lines.extend(["".to_string(), "## Missing Locally".to_string(), "".to_string()]);
+        lines.extend(missing_local.iter().map(|tool| format!("- `{tool}`")));
+    }
+    let mismatch = shared
+        .iter()
+        .filter(|tool| frontend_map.get(*tool) != local_map.get(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !mismatch.is_empty() {
+        lines.extend([
+            "".to_string(),
+            "## Deterministic Causes To Document".to_string(),
+            "".to_string(),
+            "- base image digest drift".to_string(),
+            "- build timestamp embedded in image".to_string(),
+            "- tool download source changed".to_string(),
+            "- Apptainer/host version differences".to_string(),
+        ]);
+    }
+    write_utf8(&out_md, &format!("{}\n", lines.join("\n")))?;
+    if mismatch.is_empty() {
+        return success_line(out_md.display().to_string());
+    }
+    Ok(ContainerCommandOutcome {
+        exit_code: 1,
+        stdout: format!("{}\n", out_md.display()),
+        stderr: String::new(),
+    })
 }
 
 fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

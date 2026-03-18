@@ -39,12 +39,12 @@ SMOKE_DISABLE_NETWORK=1 \
 FRONTEND_PROOF_MODE=1 \
 "$SCRIPT_DIR/smoke-apptainer.sh"
 
-MANIFEST_DIR="$PROOF_ROOT" "$SCRIPT_DIR/summary.sh" --json "$PROOF_ROOT/summary.json" >/dev/null
+MANIFEST_DIR="$PROOF_ROOT" cargo run -q -p bijux-dev-dna -- containers run summary -- --json "$PROOF_ROOT/summary.json" >/dev/null
 cp -f "$PROOF_ROOT/summary.json" "$PROOF_ROOT/smoke-summary.json"
-"$SCRIPT_DIR/check-apptainer-frontend-smoke-proof.sh" "$PROOF_ROOT"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof -- "$PROOF_ROOT"
 
 if [[ "$UPDATE_VERSION_LOCK" == "1" ]]; then
-  "$SCRIPT_DIR/generate-version-lock.sh"
+  cargo run -q -p bijux-dev-dna -- containers run generate-version-lock >/dev/null
 fi
 
 echo "frontend apptainer smoke: OK"

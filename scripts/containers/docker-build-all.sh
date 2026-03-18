@@ -15,7 +15,7 @@ SMOKE_LEVEL=contract \
 SAVE_TAR=0 \
 ARTIFACT_DIR="$ARTIFACT_DIR" \
 "$SCRIPT_DIR/smoke-docker-arm64.sh"
-"$SCRIPT_DIR/summary.sh" --json "$ROOT_DIR/artifacts/containers/summary.json" >/dev/null
-"$SCRIPT_DIR/generate-version-lock.sh" "$ROOT_DIR/containers/versions/lock.json" >/dev/null
+cargo run -q -p bijux-dev-dna -- containers run summary -- --json "$ROOT_DIR/artifacts/containers/summary.json" >/dev/null
+cargo run -q -p bijux-dev-dna -- containers run generate-version-lock -- "$ROOT_DIR/containers/versions/lock.json" >/dev/null
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 echo "docker-build-all: OK"
