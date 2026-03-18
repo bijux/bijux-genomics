@@ -16,4 +16,4 @@ Build policy:
 
 Enforcement:
 - `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
-- `scripts/containers/check-imputation-network-policy.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-imputation-network-policy`

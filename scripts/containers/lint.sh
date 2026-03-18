@@ -212,13 +212,13 @@ cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalizat
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-smoke
-"$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
-"$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
-"$SCRIPT_DIR/check-imputation-network-policy.sh"
-"$SCRIPT_DIR/check-imputation-hardening.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-vcf-imputation-toolchain
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constraints
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-network-policy
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
 "$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
-"$SCRIPT_DIR/check-imputation-release-smoke.sh"
-"$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-release-smoke
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-cross-runtime-parity
 cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-representative
 cargo run -q -p bijux-dev-dna -- containers run check-no-secrets
 cargo run -q -p bijux-dev-dna -- containers run check-vuln-allowlist
