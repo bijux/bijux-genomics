@@ -15,6 +15,5 @@ Build policy:
 - Upstream source, version, and checksums must be recorded in registry/license metadata.
 
 Enforcement:
-- `scripts/containers/check-network-disclosure.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
 - `scripts/containers/check-imputation-network-policy.sh`
-

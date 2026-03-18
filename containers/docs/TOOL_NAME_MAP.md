@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/containers/generate-tool-name-map.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-name-map -->
 
 # Tool Name Mapping
 
@@ -25,7 +25,7 @@
 | `centrifuge` | `centrifuge` | `experimental` |
 | `clumpify` | `clumpify` | `experimental` |
 | `contammix` | `contammix` | `production` |
-| `cutadapt` | `cutadapt` | `experimental` |
+| `cutadapt` | `cutadapt` | `production` |
 | `dada2` | `dada2` | `experimental` |
 | `damageprofiler` | `damageprofiler` | `experimental` |
 | `diamond` | `diamond` | `experimental` |

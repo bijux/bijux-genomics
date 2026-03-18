@@ -154,30 +154,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "generate_tool_docs"
-path = "scripts/containers/generate-tool-docs.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_docs_generated"
-path = "scripts/containers/check-tool-docs-generated.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_qa_matrix_generated"
-path = "scripts/containers/check-qa-matrix-generated.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_release_checklist"
 path = "scripts/containers/check-release-checklist.sh"
 purpose = "containers script"
@@ -188,14 +164,6 @@ ci_allowed = true
 [[script]]
 id = "smoke_docker_arm64"
 path = "scripts/containers/smoke-docker-arm64.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "summary"
-path = "scripts/containers/summary.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -522,14 +490,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "generate_apptainer_qa_matrix"
-path = "scripts/tooling/generate-apptainer-qa-matrix.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "generate_compatibility_matrix"
 path = "scripts/tooling/generate-compatibility-matrix.sh"
 purpose = "tooling script"
@@ -699,14 +659,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_versions_index_sha"
-path = "scripts/containers/check-versions-index-sha.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "compare_frontend_local_sif_hash"
 path = "scripts/containers/compare-frontend-local-sif-hash.sh"
 purpose = "containers script"
@@ -717,14 +669,6 @@ ci_allowed = true
 [[script]]
 id = "generate_local_apptainer_digests"
 path = "scripts/containers/generate-local-apptainer-digests.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_versions_index_sha"
-path = "scripts/containers/generate-versions-index-sha.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -769,30 +713,6 @@ purpose = "shared shell runtime library"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
-
-[[script]]
-id = "generate_tool_ids"
-path = "scripts/containers/generate-tool-ids.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_id_manifest"
-path = "scripts/containers/check-tool-id-manifest.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_qa_matrix"
-path = "scripts/containers/generate-qa-matrix.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
 
 [[script]]
 id = "check_smoke_contract"
@@ -853,22 +773,6 @@ ci_allowed = true
 [[script]]
 id = "check_version_hash_pin"
 path = "scripts/containers/check-version-hash-pin.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_version_lock"
-path = "scripts/containers/generate-version-lock.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_version_lock"
-path = "scripts/containers/check-version-lock.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -1083,22 +987,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "containers_generate_index"
-path = "scripts/containers/generate-index.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_index"
-path = "scripts/containers/check-index.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_check_tool_id_contract"
 path = "scripts/containers/check-tool-id-contract.sh"
 purpose = "containers script"
@@ -1109,14 +997,6 @@ ci_allowed = true
 [[script]]
 id = "containers_check_owners"
 path = "scripts/containers/check-owners.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_version_authority"
-path = "scripts/containers/check-version-authority.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -1137,22 +1017,6 @@ purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "containers_generate_license_metadata"
-path = "scripts/containers/generate-license-metadata.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_license_metadata"
-path = "scripts/containers/check-license-metadata.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
@@ -1229,14 +1093,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "containers_extract_version_map"
-path = "scripts/containers/extract-version-map.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_deprecate_version"
 path = "scripts/containers/deprecate-version.sh"
 purpose = "containers script"
@@ -1255,23 +1111,6 @@ ci_allowed = true
 [[script]]
 id = "containers_check_cross_runtime_smoke"
 path = "scripts/containers/check-cross-runtime-smoke.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_generate_network_usage"
-path = "scripts/containers/generate-network-usage.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "containers_check_network_disclosure"
-path = "scripts/containers/check-network-disclosure.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -1519,22 +1358,6 @@ outputs = ["artifacts/", "$ISO_ROOT/", "configs/ci/registry/"]
 ci_allowed = false
 
 [[script]]
-id = "generate_tool_name_map"
-path = "scripts/containers/generate-tool-name-map.sh"
-purpose = "containers script"
-inputs = ["configs/ci/registry/tool_registry.toml"]
-outputs = ["containers/docs/", "artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_name_map_generated"
-path = "scripts/containers/check-tool-name-map-generated.sh"
-purpose = "containers script"
-inputs = ["containers/docs/TOOL_NAME_MAP.md"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_toolkit_bundle_buildable"
 path = "scripts/containers/check-toolkit-bundle-buildable.sh"
 purpose = "containers script"
@@ -1547,14 +1370,6 @@ id = "check_vcf_downstream_bundle_coverage"
 path = "scripts/containers/check-vcf-downstream-bundle-coverage.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/toolkit_bundles.toml", "domain/vcf/stages/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_license_index_generated"
-path = "scripts/containers/check-license-index-generated.sh"
-purpose = "containers script"
-inputs = ["docs/30-operations/CONTAINER_LICENSE_INDEX.md"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 

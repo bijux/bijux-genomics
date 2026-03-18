@@ -14,5 +14,5 @@ Purpose: clarify build-time vs runtime trust boundaries.
 
 ## Enforcement
 - `scripts/containers/check-runtime-downloads.sh`
-- `scripts/containers/check-network-disclosure.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
 - `scripts/containers/check-no-secrets.sh`

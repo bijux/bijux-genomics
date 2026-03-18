@@ -122,7 +122,7 @@ if [[ "$cache_abs" == "$WORKSPACE_ROOT"* || "$tmp_abs" == "$WORKSPACE_ROOT"* ]];
 fi
 
 if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
-  "$WORKSPACE_ROOT/scripts/containers/check-network-disclosure.sh" --offline
+  "$WORKSPACE_ROOT/scripts/run.sh" containers check-network-disclosure --offline
 fi
 
 if [[ ! -d "$DEFS_DIR" ]]; then

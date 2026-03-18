@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/containers/generate-license-metadata.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-license-metadata -->
 
 # Container License Index
 

@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-apptainer-qa-matrix.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-qa-matrix -->
 
 # APPTAINER_QA_MATRIX
 
@@ -25,7 +25,6 @@ Derived from tool registries and container metadata fields.
 | `atropos` | `containers/apptainer/lunarc/atropos.def` | `atropos --version` | `atropos --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `authenticct` | `containers/apptainer/lunarc/authenticct.def` | `authenticct --version` | `authenticct --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bamtools` | `containers/apptainer/lunarc/bamtools.def` | `bamtools --version` | `bamtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `bamutil` | `containers/apptainer/lunarc/bamutil.def` | `bamutil --version` | `bamutil --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `bayeshammer` | `containers/apptainer/lunarc/bayeshammer.def` | `bayeshammer --version` | `bayeshammer --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `bbduk` | `containers/apptainer/lunarc/bbduk.def` | `bbduk --version` | `bbduk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bbmerge` | `containers/apptainer/lunarc/bbmerge.def` | `bbmerge --version` | `bbmerge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -36,26 +35,18 @@ Derived from tool registries and container metadata fields.
 | `bracken` | `containers/apptainer/lunarc/bracken.def` | `bracken --version` | `bracken -h` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bwa` | `containers/apptainer/lunarc/bwa.def` | `bwa --version` | `bwa --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `centrifuge` | `containers/apptainer/lunarc/centrifuge.def` | `centrifuge --version` | `centrifuge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `clumpify` | `containers/apptainer/lunarc/clumpify.def` | `clumpify --version` | `clumpify --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `contammix` | `containers/apptainer/lunarc/contammix.def` | `contammix --version` | `contammix --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `cutadapt` | `containers/apptainer/lunarc/cutadapt.def` | `cutadapt --version` | `cutadapt --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `dada2` | `containers/apptainer/lunarc/dada2.def` | `dada2 --version` | `dada2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `cutadapt` | `containers/apptainer/lunarc/cutadapt.def` | `cutadapt --version` | `cutadapt --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `damageprofiler` | `containers/apptainer/lunarc/damageprofiler.def` | `damageprofiler --version` | `damageprofiler --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `diamond` | `containers/apptainer/lunarc/diamond.def` | `diamond --version` | `diamond --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `dustmasker` | `containers/apptainer/lunarc/dustmasker.def` | `dustmasker --version` | `dustmasker --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `eagle` | `containers/apptainer/lunarc/eagle.def` | `eagle --version` | `eagle --help` | `eagle --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `experimental` |
-| `eigensoft` | `containers/apptainer/lunarc/eigensoft.def` | `smartpca -h` | `smartpca -h` | `smartpca -h` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `eigensoft` | `containers/apptainer/lunarc/eigensoft.def` | `smartpca --version` | `smartpca --help` | `smartpca --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastp` | `containers/apptainer/lunarc/fastp.def` | `fastp --version` | `fastp --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `fastq.validate_pre` | `containers/apptainer/lunarc/vsearch.def` | `vsearch --version` | `vsearch --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `fastq_scan` | `containers/apptainer/lunarc/fastq_scan.def` | `fastq_scan --version` | `fastq_scan --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastq_screen` | `containers/apptainer/lunarc/fastq_screen.def` | `fastq_screen --version` | `fastq_screen --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastqc` | `containers/apptainer/lunarc/fastqc.def` | `fastqc --version` | `fastqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `fastqvalidator` | `containers/apptainer/lunarc/fastqvalidator.def` | `fastqvalidator --version` | `fastqvalidator --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `fastuniq` | `containers/apptainer/lunarc/fastuniq.def` | `fastuniq --version` | `fastuniq --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fastx_clipper` | `containers/apptainer/lunarc/fastx_clipper.def` | `fastx_clipper --version` | `fastx_clipper --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `flash2` | `containers/apptainer/lunarc/flash2.def` | `flash2 --version` | `flash2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `fqtools` | `containers/apptainer/lunarc/fqtools.def` | `fqtools --version` | `fqtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `gatk` | `containers/apptainer/lunarc/gatk.def` | `gatk --version` | `gatk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `germline` | `containers/apptainer/lunarc/germline.def` | `germline --version` | `germline --help` | `germline --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `glimpse` | `containers/apptainer/lunarc/glimpse.def` | `glimpse --version` | `glimpse --help` | `glimpse --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `planned` |
 | `ibdhap` | `containers/apptainer/lunarc/ibdhap.def` | `ibdhap --version` | `ibdhap --help` | `ibdhap --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `planned` |
@@ -74,13 +65,10 @@ Derived from tool registries and container metadata fields.
 | `mosdepth` | `containers/apptainer/lunarc/mosdepth.def` | `mosdepth --version` | `mosdepth --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `multiqc` | `containers/apptainer/lunarc/multiqc.def` | `multiqc --version` | `multiqc --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `musket` | `containers/apptainer/lunarc/musket.def` | `musket --version` | `musket --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `ngsbriggs` | `containers/apptainer/lunarc/ngsbriggs.def` | `ngsbriggs --version` | `ngsbriggs --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pear` | `containers/apptainer/lunarc/pear.def` | `pear --version` | `pear --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `picard` | `containers/apptainer/lunarc/picard.def` | `picard --version` | `picard --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `plink` | `containers/apptainer/lunarc/plink.def` | `plink --version` | `plink --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink --file \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.frq\` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `plink2` | `containers/apptainer/lunarc/plink2.def` | `plink2 --version` | `plink2 --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink2 --pedmap \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.afreq\` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `plink` | `containers/apptainer/lunarc/plink.def` | `plink --version` | `plink --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink --file \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.frq\"` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `plink2` | `containers/apptainer/lunarc/plink2.def` | `plink2 --version` | `plink2 --help` | `tmp=$(mktemp -d); printf 'FAM1 S1 0 0 1 1\\n' > \"$tmp/tiny.ped\"; printf '1 rs1 0 1000 A G\\n' > \"$tmp/tiny.map\"; plink2 --pedmap \"$tmp/tiny\" --freq --allow-no-sex --out \"$tmp/out\" >/dev/null 2>&1; test -s \"$tmp/out.afreq\"` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pmdtools` | `containers/apptainer/lunarc/pmdtools.def` | `pmdtools --version` | `pmdtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `preseq` | `containers/apptainer/lunarc/preseq.def` | `preseq --version` | `preseq --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `prinseq` | `containers/apptainer/lunarc/prinseq.def` | `prinseq++ --version` | `prinseq++ --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `pydamage` | `containers/apptainer/lunarc/pydamage.def` | `pydamage --version` | `pydamage --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `qualimap` | `containers/apptainer/lunarc/qualimap.def` | `qualimap --version` | `qualimap --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -88,11 +76,8 @@ Derived from tool registries and container metadata fields.
 | `rxy` | `containers/apptainer/lunarc/rxy.def` | `rxy --version` | `rxy --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `samtools` | `containers/apptainer/lunarc/samtools.def` | `samtools --version` | `samtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `schmutzi` | `containers/apptainer/lunarc/schmutzi.def` | `schmutzi --version` | `schmutzi --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `seqfu` | `containers/apptainer/lunarc/seqfu.def` | `seqfu --version` | `seqfu --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `seqkit` | `containers/apptainer/lunarc/seqkit.def` | `seqkit --version` | `seqkit --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `seqkit_stats` | `containers/apptainer/lunarc/seqkit_stats.def` | `seqkit_stats --version` | `seqkit_stats --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `seqprep` | `containers/apptainer/lunarc/seqprep.def` | `seqprep --version` | `seqprep --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
-| `seqpurge` | `containers/apptainer/lunarc/seqpurge.def` | `seqpurge --version` | `seqpurge --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `seqtk` | `containers/apptainer/lunarc/seqtk.def` | `seqtk --version` | `seqtk --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `shapeit` | `-` | `shapeit --version` | `shapeit --help` | `shapeit --help` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `planned` |
 | `shapeit5` | `containers/apptainer/lunarc/shapeit5.def` | `shapeit5 --version` | `shapeit5 --help` | `shapeit5 --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `experimental` |
@@ -104,4 +89,5 @@ Derived from tool registries and container metadata fields.
 | `trimmomatic` | `containers/apptainer/lunarc/trimmomatic.def` | `trimmomatic --version` | `trimmomatic --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `umi_tools` | `containers/apptainer/lunarc/umi_tools.def` | `umi_tools --version` | `umi_tools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `verifybamid2` | `containers/apptainer/lunarc/verifybamid2.def` | `verifybamid2 --version` | `verifybamid2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `vsearch` | `containers/apptainer/lunarc/vsearch.def` | `vsearch --version` | `vsearch --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `yleaf` | `containers/apptainer/lunarc/yleaf.def` | `yleaf --version` | `yleaf --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |

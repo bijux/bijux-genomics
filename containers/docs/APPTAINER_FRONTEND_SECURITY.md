@@ -22,7 +22,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 - Secret scanning:
   - `scripts/containers/check-no-secrets.sh`
 - Network disclosure enforcement:
-  - `scripts/containers/check-network-disclosure.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
 
 ## Outputs
 - `artifacts/containers/hpc/frontend-security/<run_id>/security_summary.json`
