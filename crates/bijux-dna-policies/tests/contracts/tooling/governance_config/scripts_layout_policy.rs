@@ -332,7 +332,7 @@ fn policy__contracts__scripts_layout_policy__scripts_do_not_hardcode_isolates_la
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "scripts must not hardcode artifacts/isolates layout; use ISO_ROOT env vars or `bin/isolate --print-root`:\n{}",
+        "scripts must not hardcode retired artifacts/isolates paths; use the shared artifacts contract:\n{}",
         offenders.join("\n")
     );
 }

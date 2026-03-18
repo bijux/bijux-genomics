@@ -35,7 +35,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 
 ## Commands
 - Run workflow:
-  - `./bin/isolate ./scripts/containers/run-apptainer-frontend-reproducibility.sh`
+  - `./scripts/containers/run-apptainer-frontend-reproducibility.sh`
 - Gate check:
   - `./scripts/containers/check-apptainer-frontend-reproducibility.sh`
 

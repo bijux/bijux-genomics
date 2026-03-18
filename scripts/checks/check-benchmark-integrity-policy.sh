@@ -31,8 +31,8 @@ root = Path(sys.argv[1])
 errs = []
 
 bench_script = (root / "scripts/tooling/benchmarks.sh").read_text(encoding="utf-8")
-if "./bin/require-isolate" not in bench_script:
-    errs.append("scripts/tooling/benchmarks.sh must enforce require-isolate")
+if "require_artifact_env" not in bench_script:
+    errs.append("scripts/tooling/benchmarks.sh must enforce require_artifact_env")
 if "/benchmarks/" not in bench_script:
     errs.append("scripts/tooling/benchmarks.sh must default outputs under benchmarks/")
 if "containers/smoke" not in bench_script:

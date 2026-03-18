@@ -5,4 +5,4 @@
 No run has been recorded in this workspace yet.
 
 Generate with:
-- `./bin/isolate ./scripts/containers/run-apptainer-frontend-reproducibility.sh`
+- `./scripts/containers/run-apptainer-frontend-reproducibility.sh`

@@ -38,16 +38,13 @@ while IFS= read -r rel; do
     [[ -n "$row" ]] || continue
     line=$(printf '%s' "$row" | cut -d: -f3-)
 
-    if [[ "$line" == *"./bin/isolate cargo "* ]]; then
-      continue
-    fi
     if [[ "$line" == *"require_artifact_env"* ]]; then
       continue
     fi
     if [[ "$line" == *"Regenerate with: cargo run"* ]]; then
       continue
     fi
-    if [[ "$line" == *"./bin/isolate sh -ceu"* && "$line" == *"cargo nextest run"* ]]; then
+    if [[ "$line" == *"ARTIFACT_ROOT=artifacts cargo nextest run"* ]]; then
       continue
     fi
     if [[ "$line" == *"cargo nextest must use"* ]]; then
@@ -60,9 +57,6 @@ while IFS= read -r rel; do
       continue
     fi
 
-    if rg -n 'exec ./bin/isolate "\$0" "\$@"' "$file" >/dev/null 2>&1; then
-      continue
-    fi
     violations+="$row\n"
   done <<ROWS
 $matches

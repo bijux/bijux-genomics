@@ -12,20 +12,19 @@ example_id="$(awk -F'=' '/^id[[:space:]]*=/{gsub(/"/,"",$2); gsub(/[[:space:]]/,
 [[ -n "$example_id" ]] || { echo "examples runner contract: cannot resolve baseline example id" >&2; exit 1; }
 
 run_once() {
-  local tag="$1"
-  env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME \
-    ISO_TAG="$tag" "$ROOT_DIR/bin/isolate" sh -ceu "
-    ./scripts/examples/run.sh ${example_id} >/dev/null
-  "
+  local run_label="$1"
+  local output_dir="$ROOT_DIR/artifacts/examples/${example_id}"
+  rm -rf "$output_dir"
+  ARTIFACT_ROOT="$ROOT_DIR/artifacts" run_with_artifact_env ./scripts/examples/run.sh "${example_id}" >/dev/null
+  rm -rf "$ROOT_DIR/artifacts/examples/${example_id}.${run_label}"
+  cp -R "$output_dir" "$ROOT_DIR/artifacts/examples/${example_id}.${run_label}"
 }
 
 run_once "examples-runner-a"
 run_once "examples-runner-b"
 
-a_root="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME ISO_TAG=examples-runner-a "$ROOT_DIR/bin/isolate" --print-root)"
-b_root="$(env -u ISO_ROOT -u ISO_RUN_ID -u CARGO_TARGET_DIR -u CARGO_HOME ISO_TAG=examples-runner-b "$ROOT_DIR/bin/isolate" --print-root)"
-a_dir="$a_root/examples/${example_id}"
-b_dir="$b_root/examples/${example_id}"
+a_dir="$ROOT_DIR/artifacts/examples/${example_id}.examples-runner-a"
+b_dir="$ROOT_DIR/artifacts/examples/${example_id}.examples-runner-b"
 
 for jf in plan.json explain.json report.json; do
   if ! diff -u "$a_dir/$jf" "$b_dir/$jf" >/dev/null; then

@@ -5,4 +5,4 @@
 No frontend security run recorded in this workspace yet.
 
 Generate with:
-- `./bin/isolate ./scripts/containers/run-apptainer-frontend-security.sh`
+- `./scripts/containers/run-apptainer-frontend-security.sh`

@@ -11,20 +11,20 @@ Applies to failures from `scripts/examples/run.sh` and related example policy ch
 - Covering non-example integration test failures.
 
 ## Contracts
-- Example runs must write artifacts under `ISO_ROOT/examples/<example-id>/`.
+- Example runs must write artifacts under `artifacts/examples/<example-id>/`.
 - Triage decisions should be based on generated `plan.json`, `explain.json`, `report.json`, `run_report.json`, `manifest.json`, and `logs.txt`.
 
 ## Common Failure Modes
 - Missing corpus metadata (`MANIFEST.toml` / `CHECKSUMS.sha256`).
 - Golden drift between expected and produced `plan.json` / `explain.json`.
 - Snapshot gate mismatch for CLI command surface.
-- Non-isolated invocation causing policy-gated abort.
+- Running outside the shared artifact contract causing policy-gated abort.
 
 ## Triage Steps
-1. Re-run the example in isolate:
-   - `./bin/isolate sh -ceu './scripts/examples/run.sh <example-id>'`
+1. Re-run the example:
+   - `./scripts/examples/run.sh <example-id>`
 2. Inspect generated bundle and logs:
-   - `artifacts/isolates/<tag>/examples/<example-id>/bundle.tar.gz`
+   - `artifacts/examples/<example-id>/bundle.tar.gz`
    - `.../run_report.json`
    - `.../logs.txt`
 3. Diff produced vs golden:
@@ -42,4 +42,4 @@ Applies to failures from `scripts/examples/run.sh` and related example policy ch
 
 ## Failure modes
 - Updating goldens without diagnosing root cause can hide regressions.
-- Running outside isolate can produce misleading paths/artifacts and invalidate triage output.
+- Running outside the shared artifact contract can produce misleading paths/artifacts and invalidate triage output.

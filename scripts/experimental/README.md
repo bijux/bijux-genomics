@@ -6,7 +6,7 @@ Back to index: `scripts/README.md`.
 
 
 Requires:
-- `./bin/isolate`
+- shared `artifacts/` environment via `scripts/_lib/common.sh`
 - `cargo-nextest`
 
 Exit codes:

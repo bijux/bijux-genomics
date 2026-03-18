@@ -11,7 +11,7 @@ Rules:
 Recommended local setup:
 1. Install `sccache`.
 2. Export `RUSTC_WRAPPER=$(command -v sccache)` in your shell profile.
-3. Keep cargo target under isolate (`./bin/isolate --reuse ...`) for deterministic reuse.
+3. Keep Cargo builds on the shared `artifacts/target` cache for deterministic reuse.
 
 Diagnostics:
 - `sccache --show-stats`
