@@ -1,4 +1,6 @@
-fn maybe_emit_reference_manifest(
+use super::*;
+
+pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,
     run_artifacts_dir: &std::path::Path,
 ) -> Result<()> {
@@ -124,7 +126,7 @@ fn maybe_emit_reference_manifest(
     Ok(())
 }
 
-fn resolve_and_write_regime_stamp(
+pub(super) fn resolve_and_write_regime_stamp(
     request: &ExecuteRunRequest,
     run_artifacts_dir: &std::path::Path,
 ) -> Result<serde_json::Value> {

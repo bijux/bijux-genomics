@@ -1,3 +1,5 @@
+use super::*;
+
 /// # Errors
 /// Returns an error if execution or report rendering fails.
 pub fn execute_and_report(

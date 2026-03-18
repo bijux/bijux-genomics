@@ -1,3 +1,11 @@
+use super::execution_support::{
+    maybe_emit_reference_manifest, resolve_and_write_regime_stamp,
+};
+use super::{
+    enforce_hpc_results_layout, file_len_i64, hpc_context_enabled, maybe_write_site_lock,
+    millis_u64, *,
+};
+
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
@@ -508,5 +516,3 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let _ = bijux_dna_infra::remove_dir_all(&tmp_root);
     Ok(ExecuteRunResult)
 }
-
-include!("execute_run_tail.rs");

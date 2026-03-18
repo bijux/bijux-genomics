@@ -1,3 +1,5 @@
+use super::*;
+
 /// Run execution mode for API pipeline execution.
 ///
 /// Stability: v1 (stable).
@@ -67,21 +69,21 @@ pub fn plan_only(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Pla
     plan_run(request, registry)
 }
 
-fn millis_u64(elapsed: std::time::Duration) -> u64 {
+pub(super) fn millis_u64(elapsed: std::time::Duration) -> u64 {
     u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX)
 }
 
-fn file_len_i64(len: u64) -> i64 {
+pub(super) fn file_len_i64(len: u64) -> i64 {
     i64::try_from(len).unwrap_or(i64::MAX)
 }
 
-fn hpc_context_enabled() -> bool {
+pub(super) fn hpc_context_enabled() -> bool {
     std::env::var("BIJUX_RUN_CONTEXT")
         .map(|v| v.eq_ignore_ascii_case("hpc"))
         .unwrap_or(false)
 }
 
-fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
+pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
     let comps = out_dir
         .components()
         .map(|c| c.as_os_str().to_string_lossy().to_string())
@@ -112,7 +114,7 @@ fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
+pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
     if !hpc_context_enabled() {
         return Ok(());
     }
