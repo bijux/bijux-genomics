@@ -40,7 +40,9 @@ impl CheckApplication {
             CheckSelection::Single(id) => {
                 let check = registry
                     .iter()
-                    .find(|candidate| candidate.id == id || candidate.aliases.contains(&id.as_str()))
+                    .find(|candidate| {
+                        candidate.id == id || candidate.aliases.contains(&id.as_str())
+                    })
                     .ok_or_else(|| anyhow!("unknown check id `{id}`"))?;
                 Ok(vec![self.run_check(&registry, check)?])
             }
@@ -52,7 +54,7 @@ impl CheckApplication {
         registry: &[CheckDefinition],
         check: &CheckDefinition,
     ) -> Result<CheckOutcome> {
-        match &check.command {
+        let outcome = match &check.command {
             CommandSpec::CargoTest {
                 package,
                 test_bin,
@@ -69,13 +71,24 @@ impl CheckApplication {
                         .ok_or_else(|| anyhow!("missing composite member `{member}`"))?;
                     children.push(self.run_check(registry, nested)?);
                 }
-                let status = if children.iter().all(|child| child.status == CheckStatus::Passed) {
+                let status = if children
+                    .iter()
+                    .all(|child| child.status == CheckStatus::Passed)
+                {
                     CheckStatus::Passed
                 } else {
                     CheckStatus::Failed
                 };
                 Ok(CheckOutcome::composite(check.id, status, children))
             }
+        };
+        match outcome {
+            Ok(result) => Ok(result),
+            Err(error) => Ok(CheckOutcome::leaf(
+                check.id,
+                CheckStatus::Failed,
+                error.to_string(),
+            )),
         }
     }
 
@@ -88,14 +101,7 @@ impl CheckApplication {
     ) -> Result<CheckOutcome> {
         let runner = ProcessRunner::new(&self.workspace);
         let output = runner.run(&[
-            "cargo",
-            "test",
-            "-p",
-            package,
-            "--test",
-            test_bin,
-            filter,
-            "--quiet",
+            "cargo", "test", "-p", package, "--test", test_bin, filter, "--quiet",
         ])?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -123,7 +129,10 @@ impl CheckApplication {
         let runner = ProcessRunner::new(&self.workspace);
         let output = runner.run_owned(
             program,
-            &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>(),
+            &args
+                .iter()
+                .map(|arg| (*arg).to_string())
+                .collect::<Vec<_>>(),
         )?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);

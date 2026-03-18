@@ -22,6 +22,8 @@ pub(crate) struct SupportedScript {
     #[serde(default)]
     pub outputs: Vec<String>,
     #[serde(default)]
+    pub network_allowed: bool,
+    #[serde(default)]
     pub ci_allowed: bool,
 }
 
