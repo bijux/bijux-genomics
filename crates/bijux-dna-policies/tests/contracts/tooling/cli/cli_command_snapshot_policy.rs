@@ -10,6 +10,24 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
         .unwrap_or_else(|| root.join("target"))
 }
 
+fn run_workspace_bijux(root: &std::path::Path, args: &[&str], context: &str) -> std::process::Output {
+    let debug_binary = cargo_target_dir(root).join("debug/bijux");
+    let mut command = if debug_binary.exists() {
+        let mut command = Command::new(debug_binary);
+        command.current_dir(root);
+        command
+    } else {
+        let mut command = Command::new("cargo");
+        command
+            .current_dir(root)
+            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux", "--"]);
+        command
+    };
+    command.args(args).output().unwrap_or_else(|err| {
+        panic!("{context}: {err}");
+    })
+}
+
 fn normalize_whitespace(text: &str) -> String {
     text.lines()
         .map(|line| line.split_whitespace().collect::<Vec<_>>().join(" "))
@@ -26,11 +44,7 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let output = Command::new(cargo_target_dir(&root).join("debug/bijux"))
-        .arg("--help")
-        .current_dir(&root)
-        .output()
-        .unwrap_or_else(|err| panic!("run 'bijux --help' via workspace binary: {err}"));
+    let output = run_workspace_bijux(&root, &["--help"], "run 'bijux --help' via workspace binary");
 
     assert!(
         output.status.success(),
