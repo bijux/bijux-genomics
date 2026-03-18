@@ -203,15 +203,15 @@ cargo run -q -p bijux-dev-dna -- containers run check-docker-hardening
 cargo run -q -p bijux-dev-dna -- containers run check-docker-version-sync
 "$SCRIPT_DIR/check-digest-changes-on-version-change.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-dockerfiles-built
-"$SCRIPT_DIR/check-smoke-failure-classification.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-failure-classification
 cargo run -q -p bijux-dev-dna -- containers run check-docker-unpinned-apt
 cargo run -q -p bijux-dev-dna -- containers run check-docker-context
-"$SCRIPT_DIR/check-smoke-contract.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract
 cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
 cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
-"$SCRIPT_DIR/check-smoke-contract-lock.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
-"$SCRIPT_DIR/check-cross-runtime-smoke.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-smoke
 "$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
 "$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
 "$SCRIPT_DIR/check-imputation-network-policy.sh"
@@ -219,7 +219,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
 "$SCRIPT_DIR/check-imputation-release-smoke.sh"
 "$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
-"$SCRIPT_DIR/check-cross-runtime-representative.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-representative
 cargo run -q -p bijux-dev-dna -- containers run check-no-secrets
 cargo run -q -p bijux-dev-dna -- containers run check-vuln-allowlist
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure

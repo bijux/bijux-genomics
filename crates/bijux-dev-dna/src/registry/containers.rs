@@ -388,6 +388,31 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckSmokeInputsPolicy,
         ),
         native(
+            "check-cross-runtime-representative",
+            "Validate representative version parity across Docker and Apptainer smoke outputs.",
+            NativeContainerCommandKey::CheckCrossRuntimeRepresentative,
+        ),
+        native(
+            "check-cross-runtime-smoke",
+            "Validate cross-runtime smoke parity for shared Docker and Apptainer tools.",
+            NativeContainerCommandKey::CheckCrossRuntimeSmoke,
+        ),
+        native(
+            "check-smoke-failure-classification",
+            "Validate smoke manifests record governed failure classes for failed runs.",
+            NativeContainerCommandKey::CheckSmokeFailureClassification,
+        ),
+        native(
+            "check-smoke-contract",
+            "Validate registry smoke command contracts for every governed container tool.",
+            NativeContainerCommandKey::CheckSmokeContract,
+        ),
+        native(
+            "check-smoke-contract-lock",
+            "Validate frontend smoke summaries against the governed container lock.",
+            NativeContainerCommandKey::CheckSmokeContractLock,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,

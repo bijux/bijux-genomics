@@ -497,24 +497,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_cross_runtime_representative"
-path = "scripts/containers/check-cross-runtime-representative.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_digest_changes_on_version_change"
 path = "scripts/containers/check-digest-changes-on-version-change.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_smoke_failure_classification"
-path = "scripts/containers/check-smoke-failure-classification.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -559,14 +543,6 @@ purpose = "shared shell runtime library"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
-
-[[script]]
-id = "check_smoke_contract"
-path = "scripts/containers/check-smoke-contract.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
 
 [[script]]
 id = "check_digest_output_policy"
@@ -793,14 +769,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "containers_check_cross_runtime_smoke"
-path = "scripts/containers/check-cross-runtime-smoke.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_vuln_scan_hook"
 path = "scripts/containers/vuln-scan-hook.sh"
 purpose = "containers script"
@@ -935,14 +903,6 @@ path = "scripts/containers/docker-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/registry/tool_registry.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
-ci_allowed = true
-
-[[script]]
-id = "check_smoke_contract_lock"
-path = "scripts/containers/check-smoke-contract-lock.sh"
-purpose = "containers script"
-inputs = ["containers/versions/lock.json", "artifacts/containers/hpc/frontend-smoke/summary.json"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
