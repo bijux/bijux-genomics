@@ -594,11 +594,8 @@
             },
         )
         .unwrap_or_else(|err| panic!("run pseudohaploid from GL fixture: {err}"));
-        let output = std::process::Command::new("bcftools")
-            .args(["view", &out.called_vcf.display().to_string()])
-            .output()
-            .unwrap_or_else(|err| panic!("run bcftools view: {err}"));
-        let raw = String::from_utf8_lossy(&output.stdout).to_string();
+        let raw = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&out.called_vcf)
+            .unwrap_or_else(|err| panic!("read called VCF: {err}"));
         assert!(raw.contains("\t1\n"), "expected haploid allele 1 from GP argmax");
     }
 

@@ -52,7 +52,11 @@ fn parse_key(line: &str) -> Option<(String, u64)> {
     Some((fields.first()?.to_string(), pos))
 }
 
-fn read_vcf_text(path: &Path) -> Result<String> {
+/// Read a VCF/BCF payload into plain text for validation or assertions.
+///
+/// # Errors
+/// Returns an error if the file cannot be read or decoded via `bcftools view`.
+pub fn read_vcf_text(path: &Path) -> Result<String> {
     let ext = path
         .extension()
         .and_then(|x| x.to_str())
