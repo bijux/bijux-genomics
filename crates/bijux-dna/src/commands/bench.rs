@@ -1,12 +1,11 @@
 use crate::commands::command_prelude::{
     anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
-    bench_fastq_trim, bench_fastq_validate_pre, cli, compare_runs,
-    compare_runs_with_baseline, env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim,
-    is_bench_requested_validate, load_image_catalog, load_platform, normalize_fastq_stage_id,
-    objective_spec, preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
-    resolve_effective_adapters, write_trim_report, write_validate_report,
-    AdapterPresetsV1, AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, PathBuf,
-    Result, StageId,
+    bench_fastq_trim, bench_fastq_validate_pre, cli, compare_runs, compare_runs_with_baseline,
+    env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
+    load_image_catalog, load_platform, normalize_fastq_stage_id, objective_spec,
+    preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
+    resolve_effective_adapters, write_trim_report, write_validate_report, AdapterPresetsV1,
+    AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, PathBuf, Result, StageId,
 };
 
 pub(crate) fn handle_fastq_bench(
@@ -521,7 +520,10 @@ fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     roots.sort();
     roots.dedup();
     for root in roots {
-        for rel in ["ci/params/param_registry.toml", "ci/params/param_registry_vcf.toml"] {
+        for rel in [
+            "ci/params/param_registry.toml",
+            "ci/params/param_registry_vcf.toml",
+        ] {
             let path = bijux_dna_infra::configs_file(&root, rel);
             if !path.exists() {
                 continue;

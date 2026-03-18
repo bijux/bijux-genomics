@@ -15,15 +15,18 @@ pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> 
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
         cli::EnvCommand::List => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             print_env_registry_list(&registry_path)?;
         }
         cli::EnvCommand::ExportJson => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             print_env_export_json(&registry_path)?;
         }
         cli::EnvCommand::ExportContainers { .. } => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             crate::commands::cli::env::print_registry_export_containers_json(&registry_path)?;
         }
         cli::EnvCommand::ExportHpc { json, hpc_root } => {
@@ -91,7 +94,8 @@ pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> 
             println!("qa_matrix={}", out.display());
         }
         cli::EnvCommand::EnsureImages(args) => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             let hpc_root = args.hpc_root.clone().map_or_else(
                 || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
@@ -128,7 +132,8 @@ pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> 
             lint_apptainer_defs(cwd)?;
         }
         cli::EnvCommand::Smoke(args) => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             if let Some(stage) = args.stage.as_deref() {
                 run_env_smoke_for_stage(&registry_path, &args.runtime, stage)?;
             } else if let Some(tool) = args.tool.as_deref() {
@@ -140,7 +145,8 @@ pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> 
             }
         }
         cli::EnvCommand::Prep(args) => {
-            let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             run_env_prep(
                 &registry_path,
                 &args.runtime,
@@ -220,8 +226,9 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
 pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_binding_violations,
-        print_registry_coverage_matrix, print_registry_doctor, print_registry_export_json,
-        print_registry_export_containers_json, print_registry_list_stages, print_registry_show, print_registry_show_stage,
+        print_registry_coverage_matrix, print_registry_doctor,
+        print_registry_export_containers_json, print_registry_export_json,
+        print_registry_list_stages, print_registry_show, print_registry_show_stage,
         print_registry_show_tool, print_registry_tools, promote_registry_tool,
         verify_registry_tool,
     };

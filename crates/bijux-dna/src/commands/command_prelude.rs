@@ -27,13 +27,13 @@ pub(crate) use crate::commands::workspace_audit;
 pub(crate) use bijux_dna_api::v1::api::bench::fastq_banks::{
     resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
 };
+pub(crate) use bijux_dna_api::v1::api::bench::AdapterPresetsV1;
 pub(crate) use bijux_dna_api::v1::api::bench::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
     bench_fastq_umi, bench_fastq_validate_pre, compare_runs, compare_runs_with_baseline,
     print_bench_schema, RankInput,
 };
-pub(crate) use bijux_dna_api::v1::api::bench::AdapterPresetsV1;
 pub(crate) use bijux_dna_api::v1::api::report::render_report_bundle_html;
 pub(crate) use bijux_dna_api::v1::api::report::{
     load_facts_auto, load_run_summary, write_correct_report, write_filter_report,

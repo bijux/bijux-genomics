@@ -1,5 +1,15 @@
+use crate::commands::command_prelude::{
+    anyhow, atomic_write_bytes, compare_runs, compare_runs_with_baseline, load_manifests,
+    load_platform, objective_spec, render, run_image_qa, workspace_audit, Cli, DnaCommand,
+    Objective, Path, PoliciesCommand, Result,
+};
+
 #[cfg(debug_assertions)]
-fn handle_debug_command(cli: &Cli, dna_command: &DnaCommand, registry_path: &Path) -> Result<Option<bool>> {
+pub(super) fn handle_debug_command(
+    cli: &Cli,
+    dna_command: &DnaCommand,
+    registry_path: &Path,
+) -> Result<Option<bool>> {
     match dna_command {
         #[cfg(debug_assertions)]
         DnaCommand::ValidateManifests => {
@@ -74,6 +84,10 @@ fn handle_debug_command(cli: &Cli, dna_command: &DnaCommand, registry_path: &Pat
 }
 
 #[cfg(not(debug_assertions))]
-fn handle_debug_command(_cli: &Cli, _dna_command: &DnaCommand, _registry_path: &Path) -> Result<Option<bool>> {
+pub(super) fn handle_debug_command(
+    _cli: &Cli,
+    _dna_command: &DnaCommand,
+    _registry_path: &Path,
+) -> Result<Option<bool>> {
     Ok(None)
 }

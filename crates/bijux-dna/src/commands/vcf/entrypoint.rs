@@ -76,7 +76,10 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 VcfDomainStage::Stats,
             ],
             production_profile: args.production_profile,
-            reference_fasta: args.reference_fasta.as_ref().map(|p| p.display().to_string()),
+            reference_fasta: args
+                .reference_fasta
+                .as_ref()
+                .map(|p| p.display().to_string()),
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
