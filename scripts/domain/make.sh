@@ -26,20 +26,8 @@ fi
 
 cmd="$1"
 shift
-
-target="${SCRIPT_DIR}/${cmd}.sh"
-if [[ ! -f "$target" ]]; then
-  # allow nested commands for hpc (e.g. lunarc/push)
-  target="${SCRIPT_DIR}/${cmd}.sh"
+if [[ $# -eq 0 ]]; then
+  exec cargo run -p bijux-dev-dna -- domain run "$cmd"
 fi
 
-if [[ ! -f "$target" ]]; then
-  echo "unsupported command for $(basename "$SCRIPT_DIR"): $cmd" >&2
-  exit 2
-fi
-
-if [[ ! -x "$target" ]]; then
-  chmod +x "$target"
-fi
-
-exec "$target" "$@"
+exec cargo run -p bijux-dev-dna -- domain run "$cmd" -- "$@"

@@ -54,7 +54,7 @@ for e in sorted(entries, key=lambda x: (x.get("path", ""), x.get("id", ""))):
     grp, name = rel.split("/", 1)
     if grp in ("_lib", "experimental"):
         continue
-    if grp == "containers":
+    if grp in ("containers", "domain"):
         continue
     if not name.endswith(".sh") or name == "make.sh":
         continue
@@ -62,6 +62,10 @@ for e in sorted(entries, key=lambda x: (x.get("path", ""), x.get("id", ""))):
     ci = e.get("ci_allowed", "false")
     print(f"{grp}\t{cmd}\tci_allowed={ci}")
 PY
+  cargo run -q -p bijux-dev-dna -- domain list | while IFS= read -r command_id; do
+    [[ -n "$command_id" ]] || continue
+    printf 'domain\t%s\tci_allowed=true\n' "$command_id"
+  done
   cargo run -q -p bijux-dev-dna -- containers list | while IFS= read -r command_id; do
     [[ -n "$command_id" ]] || continue
     printf 'containers\t%s\tci_allowed=true\n' "$command_id"
@@ -107,6 +111,8 @@ if [[ "$group" == "checks" ]]; then
   else
     cargo run -p bijux-dev-dna -- checks run "$command" "$@" || rc=$?
   fi
+elif [[ "$group" == "domain" ]]; then
+  cargo run -p bijux-dev-dna -- domain run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "containers" ]]; then
   cargo run -p bijux-dev-dna -- containers run "$command" -- "$@" || rc=$?
 else
