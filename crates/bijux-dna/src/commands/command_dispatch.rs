@@ -1,4 +1,3 @@
-
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -6,9 +5,15 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
-use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
 use clap::Parser;
 use sha2::Digest as _;
+
+use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
+use crate::commands::root_command_handlers::{
+    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
+    handle_ena_root, handle_environment_root, handle_lab_root, handle_registry_root,
+    handle_tool_root,
+};
 
 struct CwdGuard(PathBuf);
 
@@ -17,22 +22,6 @@ impl Drop for CwdGuard {
         let _ = std::env::set_current_dir(&self.0);
     }
 }
-
-pub(crate) mod bam;
-pub(crate) mod bench;
-pub(crate) mod bench_suite;
-pub mod cli;
-pub(crate) mod command_prelude;
-pub(crate) mod corpus;
-pub(crate) mod ena;
-pub(crate) mod fastq;
-pub mod hpc;
-pub(crate) mod profile_runtime;
-pub(crate) mod report_inputs;
-pub(crate) mod run_plan;
-pub(crate) mod vcf;
-
-include!("policies.rs");
 
 fn global_option_value_arity(flag: &str) -> Option<usize> {
     match flag {
