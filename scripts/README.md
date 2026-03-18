@@ -20,6 +20,8 @@ Internal-only:
 
 The checks control plane is `cargo run -p bijux-dev-dna -- checks ...`.
 The compatibility entrypoint remains `./scripts/run.sh checks <check-id>`.
+The containers control plane is `cargo run -p bijux-dev-dna -- containers ...`.
+The compatibility entrypoints remain `./scripts/run.sh containers <command>` and `./scripts/containers/make.sh <command>`.
 
 Use `./scripts/run.sh --list` to print the supported command surface from `scripts/SUPPORTED.toml`.
 
