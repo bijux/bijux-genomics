@@ -15,7 +15,7 @@ import sys
 
 root = Path(sys.argv[1])
 cfg = root / "configs/nextest/nextest.toml"
-mk = root / "makefiles/cargo.mk"
+mk = root / "makes/cargo.mk"
 ci_test = root / "scripts/tooling/ci-test.sh"
 ci_cov = root / "scripts/tooling/ci-coverage.sh"
 
@@ -26,7 +26,7 @@ if not profiles:
 errors = []
 mk_text = mk.read_text(encoding="utf-8")
 if 'NEXTEST_PROFILE ?= ci' not in mk_text:
-    errors.append("makefiles/cargo.mk: must set default `NEXTEST_PROFILE ?= ci`")
+    errors.append("makes/cargo.mk: must set default `NEXTEST_PROFILE ?= ci`")
 if '--profile ${nextest_profile}' not in ci_test.read_text(encoding="utf-8"):
     errors.append("scripts/tooling/ci-test.sh: cargo nextest must use --profile ${nextest_profile}")
 if '--profile ${nextest_profile}' not in ci_cov.read_text(encoding="utf-8"):

@@ -52,7 +52,7 @@ while IFS= read -r file; do
       ;;
   esac
   case "$file" in
-    scripts/*|makefiles/*|Makefile)
+    scripts/*|makes/*|Makefile)
       need_scripts=1
       ;;
   esac

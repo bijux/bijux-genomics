@@ -16,10 +16,10 @@ while IFS= read -r line; do
   # shell recipe line in cargo.mk that invokes cargo directly
   if [[ "$line" =~ ^[[:space:]]*@?.*\bcargo([[:space:]]|$) ]]; then
     if [[ "$line" != *"CARGO_TARGET_DIR"* ]] || [[ "$line" != *"ISO_ROOT"* ]]; then
-      viol+=("makefiles/cargo.mk:${line}")
+      viol+=("makes/cargo.mk:${line}")
     fi
   fi
-done < "$ROOT_DIR/makefiles/cargo.mk"
+done < "$ROOT_DIR/makes/cargo.mk"
 
 if [[ ${#viol[@]} -gt 0 ]]; then
   echo "make-cargo-isolate-target: direct cargo in cargo.mk must set CARGO_TARGET_DIR under ISO_ROOT" >&2

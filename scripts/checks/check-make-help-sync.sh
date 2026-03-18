@@ -25,7 +25,7 @@ trap 'rm -f "$readme_targets" "$help_targets"' EXIT
 python3 - "$ROOT_DIR" > "$readme_targets" <<'PY'
 from pathlib import Path
 import sys
-lines = (Path(sys.argv[1]) / "makefiles/README.md").read_text(encoding="utf-8").splitlines()
+lines = (Path(sys.argv[1]) / "makes/README.md").read_text(encoding="utf-8").splitlines()
 in_public = False
 for line in lines:
     if line.strip() == "Public targets (stable contract):":

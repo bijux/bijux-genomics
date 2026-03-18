@@ -8,7 +8,7 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-mk="$ROOT_DIR/makefiles/cargo.mk"
+mk="$ROOT_DIR/makes/cargo.mk"
 
 viol=()
 
@@ -27,7 +27,7 @@ done
 # ARTIFACTS_DIR must be per invocation and isolate-aware under artifacts/isolate/<target>/<runid>.
 art_line="$(rg -n '^ARTIFACTS_DIR \?=' "$mk" || true)"
 if [[ -z "$art_line" ]]; then
-  viol+=("makefiles/cargo.mk must define ARTIFACTS_DIR ?=")
+  viol+=("makes/cargo.mk must define ARTIFACTS_DIR ?=")
 else
   if ! grep -q 'MAKECMDGOALS' <<<"$art_line"; then
     viol+=("ARTIFACTS_DIR must include MAKECMDGOALS for per-target uniqueness")

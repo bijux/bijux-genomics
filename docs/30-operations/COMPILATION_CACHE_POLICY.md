@@ -15,7 +15,7 @@ Recommended local setup:
 
 Diagnostics:
 - `sccache --show-stats`
-- `make -f makefiles/cargo-dev.mk dev-test`
+- `make -f makes/cargo-dev.mk dev-test`
 
 Non-goals:
 - No remote cache integration in CI.
