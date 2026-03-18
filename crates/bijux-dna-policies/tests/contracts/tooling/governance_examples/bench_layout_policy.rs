@@ -79,7 +79,7 @@ fn policy__contracts__bench_layout_policy__cli_and_bench_use_shared_bench_path_h
 fn policy__contracts__bench_layout_policy__legacy_root_bench_paths_not_hardcoded() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for dir in ["crates", "scripts", "makefiles", "docs"] {
+    for dir in ["crates", "scripts", "makes", "docs"] {
         for entry in WalkDir::new(root.join(dir))
             .into_iter()
             .filter_map(Result::ok)

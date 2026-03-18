@@ -32,7 +32,7 @@ matches=$(rg -n "^\t@?.*\\bcargo([[:space:]]|$)" Makefile makes || true)
 if [[ -n "$matches" ]]; then
   violations=$(printf '%s\n' "$matches" | rg -v "(install once: cargo install|policy-no-raw-cargo)" || true)
   if [[ -n "$violations" ]]; then
-    echo "raw-cargo-policy(makefiles): raw cargo mentions are forbidden; route through scripts/tooling/ci-*.sh or scripts/run.sh tooling ..." >&2
+    echo "raw-cargo-policy(makes): raw cargo mentions are forbidden; route through scripts/tooling/ci-*.sh or scripts/run.sh tooling ..." >&2
     printf '%s\n' "$violations" >&2
     exit 1
   fi
@@ -43,7 +43,7 @@ tool_matches=$(rg -n "(^|[^[:alnum:]_])(rustup|pip)([[:space:]]|$)|python[0-9.]*
 if [[ -n "$tool_matches" ]]; then
   tool_violations=$(printf '%s\n' "$tool_matches" | rg -v "scripts/tooling/" || true)
   if [[ -n "$tool_violations" ]]; then
-    echo "raw-tooling-policy(makefiles): direct rustup/pip/python -m venv found; route via scripts/tooling/*.sh" >&2
+    echo "raw-tooling-policy(makes): direct rustup/pip/python -m venv found; route via scripts/tooling/*.sh" >&2
     printf '%s\n' "$tool_violations" >&2
     exit 1
   fi

@@ -19,10 +19,10 @@ while IFS= read -r line; do
       fi
     fi
   fi
-done < <(grep -RhoE '^\s*[^#].*scripts/[A-Za-z0-9_./-]+\.sh([^A-Za-z0-9_./-]|$).*' "$ROOT_DIR/Makefile" "$ROOT_DIR/makefiles" | sort -u)
+done < <(grep -RhoE '^\s*[^#].*scripts/[A-Za-z0-9_./-]+\.sh([^A-Za-z0-9_./-]|$).*' "$ROOT_DIR/Makefile" "$ROOT_DIR/makes" | sort -u)
 
 if [[ ${#viol[@]} -gt 0 ]]; then
-  echo "check-script-entrypoint: makefiles must call scripts via scripts/run.sh only" >&2
+  echo "check-script-entrypoint: makes must call scripts via scripts/run.sh only" >&2
   printf '%s\n' "${viol[@]}" >&2
   exit 1
 fi

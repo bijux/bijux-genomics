@@ -19,7 +19,7 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
         "bin",
         "domain",
         "assets",
-        "makefiles",
+        "makes",
     ]
     .into_iter()
     .collect();

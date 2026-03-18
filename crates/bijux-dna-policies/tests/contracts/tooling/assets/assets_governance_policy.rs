@@ -198,7 +198,7 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
         "rename(",
         "copy(",
     ];
-    for dir in ["crates", "scripts", "makefiles"] {
+    for dir in ["crates", "scripts", "makes"] {
         for entry in WalkDir::new(root.join(dir))
             .into_iter()
             .filter_map(Result::ok)

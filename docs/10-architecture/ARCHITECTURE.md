@@ -11,7 +11,7 @@ Prevents drift between authored domain data, generated configs, and runtime/plan
 - Duplicating policy text that already lives under `docs/40-policies/`.
 
 ## Contracts:
-Domain is the authored SSOT; configs are generated; code consumes generated configs; makefiles call CLI only.
+Domain is the authored SSOT; configs are generated; code consumes generated configs; makes call CLI only.
 
 Domain-owned canonical vocabularies are part of SSOT:
 - `domain/fastq/artifacts.yaml` and `domain/bam/artifacts.yaml` define allowed artifact IDs.
@@ -42,4 +42,3 @@ Applies only to the files and workflows referenced in this document.
 
 ## Contracts
 - Content here is normative where explicitly stated.
-

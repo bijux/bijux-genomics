@@ -21,7 +21,7 @@ fn policy__contracts__root_migration_guard_policy__new_top_level_dirs_are_blocke
         "docs",
         "domain",
         "examples",
-        "makefiles",
+        "makes",
         "scripts",
         "artifacts",
         "target",

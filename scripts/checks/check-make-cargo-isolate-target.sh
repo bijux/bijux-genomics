@@ -10,7 +10,7 @@ require_stable_env
 
 viol=()
 
-# Cargo is generally forbidden in makefiles, but if it appears it must be isolate-scoped.
+# Cargo is generally forbidden in make include files, but if it appears it must be isolate-scoped.
 while IFS= read -r line; do
   [[ -n "$line" ]] || continue
   # shell recipe line in cargo.mk that invokes cargo directly

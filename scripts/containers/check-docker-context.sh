@@ -14,7 +14,7 @@ import re
 import sys
 
 root = Path(sys.argv[1])
-scan_files = list((root / "scripts").rglob("*.sh")) + list((root / "makefiles").glob("*.mk"))
+scan_files = list((root / "scripts").rglob("*.sh")) + list((root / "makes").glob("*.mk"))
 dockerfiles = sorted((root / "containers/docker/arm64").glob("Dockerfile.*"))
 errors = []
 for path in scan_files:

@@ -122,7 +122,7 @@ watch:
   - scripts
   - configs
   - containers
-  - makefiles
+  - makes
 
 nav:
   - Home: index.md

@@ -217,7 +217,7 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_no_raw_cargo_in_makefiles"
+id = "check_no_raw_cargo_in_makes"
 path = "scripts/checks/check-no-raw-cargo-in-makes.sh"
 purpose = "checks script"
 inputs = []
