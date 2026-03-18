@@ -245,8 +245,8 @@ fn writable_dir(path: &Path) -> bool {
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_nanos());
     let probe = path.join(format!(".bijux_write_probe_{nonce}"));
-    std::fs::write(&probe, b"ok")
-        .and_then(|()| std::fs::remove_file(&probe))
+    bijux_dna_infra::write_bytes(&probe, b"ok")
+        .and_then(|()| bijux_dna_infra::remove_file(&probe))
         .is_ok()
 }
 

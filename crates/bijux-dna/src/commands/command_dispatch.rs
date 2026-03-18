@@ -428,7 +428,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, _cwd: &Path) -> 
                 .clone()
                 .unwrap_or_else(|| run_dir.join(format!("{}-log-pack.tar", args.run)));
             let file =
-                std::fs::File::create(&out).with_context(|| format!("create {}", out.display()))?;
+                bijux_dna_infra::create_file(&out).with_context(|| format!("create {}", out.display()))?;
             let mut archive = tar::Builder::new(file);
             for rel in [
                 "run_manifest.json",

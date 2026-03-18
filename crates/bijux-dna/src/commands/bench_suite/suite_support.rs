@@ -71,10 +71,7 @@ fn stage_checks(stage: &str) -> Vec<String> {
 }
 
 fn write_repro_bundle(bundle_path: &Path, run_dir: &Path) -> Result<()> {
-    if let Some(parent) = bundle_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)?;
-    }
-    let tar_gz = fs::File::create(bundle_path)
+    let tar_gz = bijux_dna_infra::create_file(bundle_path)
         .with_context(|| format!("create {}", bundle_path.display()))?;
     let encoder = GzEncoder::new(tar_gz, Compression::default());
     let mut archive = tar::Builder::new(encoder);
