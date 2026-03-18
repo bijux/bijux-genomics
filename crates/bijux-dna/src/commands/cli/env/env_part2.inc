@@ -432,7 +432,7 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src =
-        std::fs::read_to_string(cwd.join("crates/bijux-dna-cli/src/commands/cli/env/env_part3.inc"))
+        std::fs::read_to_string(cwd.join("crates/bijux-dna/src/commands/cli/env/env_part3.inc"))
             .context("read env_part3.inc for apptainer runtime policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
         if !env_src.contains(required) {

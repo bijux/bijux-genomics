@@ -17,7 +17,7 @@ Provides a single place to locate enforced schema references.
 See `crates/bijux-dna-api/tests/snapshots/*`.
 
 ## CLI help
-See `crates/bijux-dna-cli/tests/snapshots/*`.
+See `crates/bijux-dna/tests/snapshots/*`.
 
 ## Contract schemas
 See `crates/bijux-dna-core/tests/*` and `crates/bijux-dna-stage-contract/tests/*`.

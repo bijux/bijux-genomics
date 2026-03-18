@@ -1,3 +1,3 @@
-# bijux-dna-cli determinism
+# bijux-dna determinism
 
 This directory is reserved for determinism tests by intent taxonomy.

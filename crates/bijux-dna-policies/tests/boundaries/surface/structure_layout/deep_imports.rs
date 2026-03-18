@@ -28,7 +28,7 @@ fn policy__boundaries__deep_imports__api_and_cli_avoid_internal_imports() {
     let mut offenders = Vec::new();
     let crates = [
         root.join("crates").join("bijux-dna-api").join("src"),
-        root.join("crates").join("bijux-dna-cli").join("src"),
+        root.join("crates").join("bijux-dna").join("src"),
     ];
     for krate in crates {
         for file in collect_rs_files(&krate) {

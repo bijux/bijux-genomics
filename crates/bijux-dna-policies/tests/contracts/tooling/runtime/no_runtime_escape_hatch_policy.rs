@@ -15,8 +15,8 @@ fn policy__contracts__no_runtime_escape_hatch_policy__forbidden_terms_blocked_in
     let mut offenders = Vec::new();
 
     let source_roots = [
-        root.join("crates/bijux-dna-cli/src"),
-        root.join("crates/bijux-dna-cli/src/bin"),
+        root.join("crates/bijux-dna/src"),
+        root.join("crates/bijux-dna/src/bin"),
     ];
     for source_root in source_roots {
         if !source_root.exists() {

@@ -5,7 +5,7 @@ members = [
   "crates/bijux-dna-api",
   "crates/bijux-dna-bench",
   "crates/bijux-dna-bench-model",
-  "crates/bijux-dna-cli",
+  "crates/bijux-dna",
   "crates/bijux-dna-core", "crates/bijux-dna-db-ena", "crates/bijux-dna-db-ref",
   "crates/bijux-dna-domain-bam",
   "crates/bijux-dna-domain-compiler",

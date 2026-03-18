@@ -3,12 +3,12 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let legacy_allowlist: BTreeSet<&str> = BTreeSet::from([
-        "crates/bijux-dna-cli/src/commands/bench_suite/bench_suite_part1.rs",
-        "crates/bijux-dna-cli/src/commands/corpus.rs",
-        "crates/bijux-dna-cli/src/commands/ena/ena_impl.rs",
-        "crates/bijux-dna-cli/src/commands/example.rs",
-        "crates/bijux-dna-cli/src/commands/hpc/hpc_impl.rs",
-        "crates/bijux-dna-cli/src/commands/vcf/vcf_impl.rs",
+        "crates/bijux-dna/src/commands/bench_suite/bench_suite_part1.rs",
+        "crates/bijux-dna/src/commands/corpus.rs",
+        "crates/bijux-dna/src/commands/ena/ena_impl.rs",
+        "crates/bijux-dna/src/commands/example.rs",
+        "crates/bijux-dna/src/commands/hpc/hpc_impl.rs",
+        "crates/bijux-dna/src/commands/vcf/vcf_impl.rs",
         "crates/bijux-dna-db-ena/src/download.rs",
         "crates/bijux-dna-db-ena/src/main.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline.rs",

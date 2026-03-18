@@ -2,7 +2,7 @@
 
 ## Text (terminal)
 - Help output is deterministic and snapshotted.
-- Snapshots live under `crates/bijux-dna-cli/tests/snapshots/*.txt`.
+- Snapshots live under `crates/bijux-dna/tests/snapshots/*.txt`.
 
 ## JSON artifacts (dry-run / run)
 - `run_manifest.json` follows the runtime schema snapshot in
