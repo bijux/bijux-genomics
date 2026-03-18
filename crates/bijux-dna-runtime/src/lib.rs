@@ -10,7 +10,15 @@ pub mod run_layout;
 pub mod runner;
 pub mod telemetry;
 
-pub use observability::*;
+pub use observability::{
+    attrs_from_json, redact_key, redacted_attrs, validate_stage_telemetry, AssetsProvenanceV1,
+    AttrMap, AttrValue, EffectiveConfigV1, FailureCode, FactsRowV1, FilterReportV1,
+    MergeReportV1, MetricSemanticsV1, PipelineVerdictV1, QcPostReportV1, ReportCompletenessV1,
+    ReportContractV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
+    RetentionContextV1, RetentionDefinitionV1, RetentionReportV1, RunContextV1, RunProvenanceV1,
+    StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1, TelemetryEventName,
+    TelemetryEventV1, TrimReportV1, ValidateReportV1,
+};
 pub use recording::{prepare_tool_run_dirs, write_canonical_json, write_run_manifest};
 pub use run_layout::{create_run_layout, write_manifest, RunManifest, RunStageEntry};
 pub use runner::{
