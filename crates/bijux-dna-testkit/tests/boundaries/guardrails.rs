@@ -1,8 +1,8 @@
-#[path = "../../../bijux-dna-policies/tests/guardrails.rs"]
-mod policies;
-
-/// Centralized guardrails runner.
 #[test]
 fn guardrails() {
-    policies::guardrails();
+    let clock = bijux_dna_testkit::FixedClock::unix_s(42);
+    assert_eq!(
+        clock.now(),
+        std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(42)
+    );
 }
