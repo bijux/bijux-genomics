@@ -1,3 +1,8 @@
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
+
+use anyhow::{anyhow, Context, Result};
+
 /// # Errors
 /// Returns an error if the workspace audit fails.
 pub fn workspace_audit(out_dir: &Path) -> Result<()> {

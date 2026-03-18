@@ -1,4 +1,11 @@
-fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, Context, Result};
+use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
+
+use crate::commands::{cli, corpus, ena, hpc};
+
+pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         ensure_apptainer_images, env_doctor, generate_apptainer_qa_matrix_markdown,
         lint_apptainer_defs, parse_stage_domain, print_env_export_json, print_env_images,
@@ -167,7 +174,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
     Ok(())
 }
 
-fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::ConfigCommand::InitHpc { root } => {
             let cfg = root.clone().map_or_else(
@@ -210,7 +217,7 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
         lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_binding_violations,
         print_registry_coverage_matrix, print_registry_doctor, print_registry_export_json,
@@ -271,7 +278,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
     Ok(())
 }
 
-fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::EnaCommand::Select(args) => ena::select_snapshot(cwd, args)?,
         cli::EnaCommand::Fetch(args) => ena::fetch_from_snapshot(cwd, args)?,
@@ -279,7 +286,7 @@ fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::CorpusCommand::Normalize { corpus } => corpus::normalize_corpus(cwd, corpus)?,
         cli::CorpusCommand::Validate { corpus } => corpus::validate_corpus(cwd, corpus)?,
@@ -301,7 +308,7 @@ fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
     #[derive(serde::Serialize)]
     struct Check {
         name: &'static str,
@@ -363,7 +370,7 @@ fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::verify_registry_tool;
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
     match command {
@@ -372,7 +379,7 @@ fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::LabCommand::Corpus { command } => match command {
             cli::LabCorpusCommand::ListFastq { corpus, paired } => {
@@ -426,7 +433,7 @@ fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
     Ok(())
 }
 
-fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::DomainCommand::Validate { domain_dir } => {
             let path = if domain_dir.is_absolute() {
