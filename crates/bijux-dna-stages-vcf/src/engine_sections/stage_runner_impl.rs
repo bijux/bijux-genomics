@@ -13,7 +13,7 @@ fn pca_params_for_species(species_id: &str) -> PcaStageParams {
 
 fn sample_population_manifest_for_run(run_root: &Path) -> Option<PathBuf> {
     let candidates = [
-        run_root.join("configs").join("population_labels.json"),
+        run_root.join("population_labels.json"),
         run_root.join("config").join("population_labels.json"),
         run_root
             .join("artifacts")
