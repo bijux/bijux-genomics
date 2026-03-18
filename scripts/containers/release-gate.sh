@@ -29,8 +29,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 "$SCRIPT_DIR/check-lock-matches-built-output.sh"
 "$SCRIPT_DIR/check-smoke-contract.sh"
 "$SCRIPT_DIR/check-vcf-imputation-toolchain.sh"
-"$SCRIPT_DIR/check-smoke-inputs-policy.sh"
-"$SCRIPT_DIR/check-tool-invocation-normalization.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
+cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
 "$SCRIPT_DIR/check-smoke-contract-lock.sh"
 "$SCRIPT_DIR/check-imputation-release-smoke.sh"
 "$SCRIPT_DIR/check-imputation-cross-runtime-parity.sh"
@@ -39,16 +39,16 @@ cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
 "$SCRIPT_DIR/check-digest-output-policy.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 "$SCRIPT_DIR/check-imputation-network-policy.sh"
-"$SCRIPT_DIR/check-runtime-downloads.sh"
-"$SCRIPT_DIR/check-sbom-artifacts.sh"
-"$SCRIPT_DIR/check-vuln-hook.sh"
-"$SCRIPT_DIR/check-vuln-allowlist.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
+cargo run -q -p bijux-dev-dna -- containers run check-sbom-artifacts
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-hook
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-allowlist
 cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
 cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
 cargo run -q -p bijux-dev-dna -- containers run check-owners
 cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
 cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
-"$SCRIPT_DIR/check-time-locale-determinism.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
 "$SCRIPT_DIR/check-imputation-runtime-constraints.sh"
 "$SCRIPT_DIR/check-imputation-hardening.sh"
 "$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"

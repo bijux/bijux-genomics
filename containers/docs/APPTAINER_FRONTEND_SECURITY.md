@@ -20,7 +20,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
   - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin`
   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-hardening`
 - Secret scanning:
-  - `scripts/containers/check-no-secrets.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-no-secrets`
 - Network disclosure enforcement:
   - `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
 

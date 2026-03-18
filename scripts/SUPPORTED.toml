@@ -113,23 +113,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_runtime_downloads"
-path = "scripts/containers/check-runtime-downloads.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "check_time_locale_determinism"
-path = "scripts/containers/check-time-locale-determinism.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_release_checklist"
 path = "scripts/containers/check-release-checklist.sh"
 purpose = "containers script"
@@ -818,32 +801,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "containers_check_no_secrets"
-path = "scripts/containers/check-no-secrets.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_vuln_scan_hook"
 path = "scripts/containers/vuln-scan-hook.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_vuln_hook"
-path = "scripts/containers/check-vuln-hook.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_sbom_artifacts"
-path = "scripts/containers/check-sbom-artifacts.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -983,30 +942,6 @@ id = "check_smoke_contract_lock"
 path = "scripts/containers/check-smoke-contract-lock.sh"
 purpose = "containers script"
 inputs = ["containers/versions/lock.json", "artifacts/containers/hpc/frontend-smoke/summary.json"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_smoke_inputs_policy"
-path = "scripts/containers/check-smoke-inputs-policy.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/smoke_inputs_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_invocation_normalization"
-path = "scripts/containers/check-tool-invocation-normalization.sh"
-purpose = "containers script"
-inputs = ["configs/ci/registry/tool_registry.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vuln_allowlist"
-path = "scripts/containers/check-vuln-allowlist.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/vuln_allowlist.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 

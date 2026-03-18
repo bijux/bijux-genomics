@@ -41,7 +41,7 @@ PY
 # Enforce pinning and existing security contracts first.
 cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-hardening
-"$SCRIPT_DIR/check-no-secrets.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-no-secrets
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 
 mkdir -p "$OUT_DIR"

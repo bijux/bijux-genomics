@@ -233,6 +233,38 @@ pub fn run_native_container_command(
             ensure_no_args("check-dockerfiles-built", args)?;
             check_dockerfiles_built(workspace)
         }
+        NativeContainerCommandKey::CheckNoSecrets => {
+            ensure_no_args("check-no-secrets", args)?;
+            check_no_secrets(workspace)
+        }
+        NativeContainerCommandKey::CheckRuntimeDownloads => {
+            ensure_no_args("check-runtime-downloads", args)?;
+            check_runtime_downloads(workspace)
+        }
+        NativeContainerCommandKey::CheckVulnAllowlist => {
+            ensure_no_args("check-vuln-allowlist", args)?;
+            check_vuln_allowlist(workspace)
+        }
+        NativeContainerCommandKey::CheckVulnHook => {
+            ensure_no_args("check-vuln-hook", args)?;
+            check_vuln_hook(workspace)
+        }
+        NativeContainerCommandKey::CheckSbomArtifacts => {
+            ensure_no_args("check-sbom-artifacts", args)?;
+            check_sbom_artifacts(workspace)
+        }
+        NativeContainerCommandKey::CheckTimeLocaleDeterminism => {
+            ensure_no_args("check-time-locale-determinism", args)?;
+            check_time_locale_determinism(workspace)
+        }
+        NativeContainerCommandKey::CheckToolInvocationNormalization => {
+            ensure_no_args("check-tool-invocation-normalization", args)?;
+            check_tool_invocation_normalization(workspace)
+        }
+        NativeContainerCommandKey::CheckSmokeInputsPolicy => {
+            ensure_no_args("check-smoke-inputs-policy", args)?;
+            check_smoke_inputs_policy(workspace)
+        }
         NativeContainerCommandKey::Summary => summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => run_env_smoke(workspace, args),
@@ -5599,6 +5631,534 @@ fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutc
         return success_line("dockerfiles built check: OK");
     }
     failure_lines("dockerfiles built check: failed", &errors)
+}
+
+fn check_no_secrets(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut scan = Vec::new();
+    scan.extend(apptainer_def_paths(workspace));
+    scan.extend(dockerfile_paths(workspace)?);
+    let patterns = [
+        Regex::new(r"AKIA[0-9A-Z]{16}").expect("regex"),
+        Regex::new(r#"(?i)(secret|token|password)\s*[:=]\s*['"]?[A-Za-z0-9_\-]{8,}"#)
+            .expect("regex"),
+        Regex::new(r"ghp_[A-Za-z0-9]{20,}").expect("regex"),
+        Regex::new(r"github_pat_[A-Za-z0-9_]{20,}").expect("regex"),
+        Regex::new(r"xox[baprs]-[A-Za-z0-9-]{10,}").expect("regex"),
+        Regex::new(r"AIza[0-9A-Za-z\-_]{35}").expect("regex"),
+        Regex::new(r#"(?i)aws_secret_access_key\s*[:=]\s*['"]?[A-Za-z0-9/+=]{30,}"#)
+            .expect("regex"),
+        Regex::new(r"(?i)-----BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY-----").expect("regex"),
+    ];
+    let mut errors = Vec::new();
+    for path in scan {
+        for (index, line) in read_utf8(&path)?.lines().enumerate() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                continue;
+            }
+            if patterns.iter().any(|pattern| pattern.is_match(line)) {
+                errors.push(format!(
+                    "{}:{}: potential secret pattern matched",
+                    workspace.rel(&path).display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("container secret scan: OK");
+    }
+    failure_lines("container secret scan: FAILED", &errors)
+}
+
+fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut runtime_allowed = BTreeMap::new();
+    let network_dir = workspace.path("containers/network");
+    if network_dir.exists() {
+        for entry in fs::read_dir(&network_dir)
+            .with_context(|| format!("read {}", network_dir.display()))?
+            .filter_map(std::result::Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("toml"))
+        {
+            let value = load_toml(&entry)?;
+            let tool_id = value
+                .get("tool_id")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_else(|| entry.file_stem().and_then(|name| name.to_str()).unwrap_or_default())
+                .trim()
+                .to_string();
+            runtime_allowed.insert(
+                tool_id,
+                value.get("runtime_network").and_then(toml::Value::as_bool).unwrap_or(false),
+            );
+        }
+    }
+    let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
+    let mut errors = Vec::new();
+    for path in apptainer_def_paths(workspace) {
+        let text = read_utf8(&path)?;
+        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let mut chunks = Vec::new();
+        if let Some(runscript) = text
+            .split("%runscript")
+            .nth(1)
+            .and_then(|body| body.split("\n%").next())
+        {
+            chunks.push(runscript.to_string());
+        }
+        if let Some(environment) = text
+            .split("%environment")
+            .nth(1)
+            .and_then(|body| body.split("\n%").next())
+        {
+            chunks.push(environment.to_string());
+        }
+        for chunk in chunks {
+            if download_re.is_match(&chunk) && !runtime_allowed.get(&tool).copied().unwrap_or(false) {
+                errors.push(format!(
+                    "{}: runtime curl/wget forbidden unless runtime_network=true",
+                    workspace.rel(&path).display()
+                ));
+            }
+        }
+    }
+    for path in dockerfile_paths(workspace)? {
+        let tool = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .unwrap_or_default()
+            .to_string();
+        for (index, line) in read_utf8(&path)?.lines().enumerate() {
+            let trimmed = line.trim();
+            if (trimmed.starts_with("ENTRYPOINT") || trimmed.starts_with("CMD"))
+                && download_re.is_match(trimmed)
+                && !runtime_allowed.get(&tool).copied().unwrap_or(false)
+            {
+                errors.push(format!(
+                    "{}:{}: runtime curl/wget in CMD/ENTRYPOINT forbidden unless runtime_network=true",
+                    workspace.rel(&path).display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("runtime download policy: OK");
+    }
+    failure_lines("runtime download policy: FAILED", &errors)
+}
+
+fn check_vuln_allowlist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let path = std::env::var("ALLOWLIST")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| workspace.path("configs/ci/tools/vuln_allowlist.toml"));
+    if !path.exists() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "vuln allowlist: missing {}\n",
+            path.display()
+        )));
+    }
+    let data = load_toml(&path)?;
+    let cve_re = Regex::new(r"^CVE-\d{4}-\d{4,}$").expect("regex");
+    let now = Utc::now();
+    let mut seen = BTreeSet::new();
+    let mut errors = Vec::new();
+    for (index, row) in data
+        .get("allowlist")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .enumerate()
+    {
+        let Some(row) = row.as_table() else {
+            continue;
+        };
+        let cve = table_string(row, "cve").to_ascii_uppercase();
+        let reason = table_string(row, "reason");
+        let expires = table_string(row, "expires_utc");
+        if cve.is_empty() || !cve_re.is_match(&cve) {
+            errors.push(format!("allowlist[{index}] invalid cve: {cve:?}"));
+            continue;
+        }
+        if !seen.insert(cve.clone()) {
+            errors.push(format!("duplicate allowlisted cve: {cve}"));
+        }
+        if reason.len() < 12 {
+            errors.push(format!("{cve}: reason/justification too short"));
+        }
+        if expires.is_empty() {
+            errors.push(format!("{cve}: missing expires_utc"));
+            continue;
+        }
+        let parsed = chrono::DateTime::parse_from_rfc3339(&expires.replace('Z', "+00:00"));
+        let Ok(parsed) = parsed else {
+            errors.push(format!("{cve}: invalid expires_utc format: {expires}"));
+            continue;
+        };
+        if parsed <= now.fixed_offset() {
+            errors.push(format!("{cve}: allowlist entry expired at {expires}"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!("vuln allowlist: OK ({})", seen.len()));
+    }
+    failure_lines("vuln allowlist: FAILED", &errors)
+}
+
+fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let out = iso_root_path(workspace).join("containers/vuln_scan_report.json");
+    let allowlist = check_vuln_allowlist(workspace)?;
+    if !allowlist.is_success() {
+        return Ok(allowlist);
+    }
+    let hook = run_program_with_env(
+        workspace,
+        "./scripts/containers/vuln-scan-hook.sh",
+        &[
+            workspace.path("artifacts/containers/sbom").display().to_string(),
+            out.display().to_string(),
+        ],
+        &[
+            (
+                "TOOLKIT".to_string(),
+                env_or_default("TOOLKIT", "fastq_core"),
+            ),
+            (
+                "PROMOTED_ONLY".to_string(),
+                env_or_default("PROMOTED_ONLY", "1"),
+            ),
+        ],
+    )?;
+    if !hook.is_success() {
+        return Ok(hook);
+    }
+    if !out.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "vuln hook: missing report {}\n",
+            out.display()
+        )));
+    }
+    let payload = read_json(&out)?;
+    let items = payload
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let rows = items
+        .into_iter()
+        .filter_map(|row| {
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .map(|tool| tool.trim().to_string())?;
+            Some((tool, row))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let promoted = lock_items_by_tool(workspace)?
+        .into_iter()
+        .filter_map(|(tool, row)| {
+            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
+                .then_some(tool)
+        })
+        .collect::<Vec<_>>();
+    if rows.is_empty() && env_or_empty("CI").is_empty() {
+        return success_line("vuln hook: SKIP (no local vuln scan items)");
+    }
+    let promoted_only = matches!(
+        env_or_default("PROMOTED_ONLY", "1")
+            .trim()
+            .to_ascii_lowercase()
+            .as_str(),
+        "1" | "true" | "yes"
+    );
+    let mut errors = Vec::new();
+    if promoted_only && !promoted.is_empty() {
+        for tool in promoted {
+            let Some(row) = rows.get(&tool) else {
+                errors.push(format!("{tool}: missing vuln scan item for promoted tool"));
+                continue;
+            };
+            let status = row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
+            if !matches!(status, "ok" | "not_scanned") {
+                errors.push(format!("{tool}: vuln scan status is {status}"));
+            }
+            let per_tool = workspace.path(&format!("artifacts/containers/vuln/{tool}.json"));
+            if !per_tool.exists() {
+                errors.push(format!(
+                    "{tool}: missing per-tool vuln summary {}",
+                    per_tool.display()
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("vuln hook: OK");
+    }
+    failure_lines("vuln hook: FAILED", &errors)
+}
+
+fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let manifest_root = workspace.path("artifacts/containers");
+    if !manifest_root.exists() {
+        if !env_or_empty("CI").is_empty() {
+            return Ok(ContainerCommandOutcome::failure(
+                "sbom artifacts: missing artifacts/containers\n",
+            ));
+        }
+        return success_line("sbom artifacts: SKIP (no artifacts/containers)");
+    }
+    let strict_promoted =
+        !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_PROMOTED_SBOM", "0") == "1";
+    let promoted = lock_items_by_tool(workspace)?
+        .into_iter()
+        .filter_map(|(tool, row)| {
+            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
+                .then_some(tool)
+        })
+        .collect::<BTreeSet<_>>();
+    let mut manifests = BTreeMap::<String, Vec<(PathBuf, serde_json::Value)>>::new();
+    for path in fs::read_dir(&manifest_root)
+        .with_context(|| format!("read {}", manifest_root.display()))?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("json"))
+    {
+        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+        if matches!(name, "summary.json" | "report.json") {
+            continue;
+        }
+        let Ok(data) = read_json(&path) else {
+            continue;
+        };
+        let tool = data
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if !tool.is_empty() {
+            manifests.entry(tool).or_default().push((path, data));
+        }
+    }
+    let tools_to_check = if strict_promoted {
+        promoted.iter().cloned().collect::<Vec<_>>()
+    } else {
+        let shared = manifests
+            .keys()
+            .filter(|tool| promoted.contains(*tool))
+            .cloned()
+            .collect::<Vec<_>>();
+        if shared.is_empty() {
+            manifests.keys().cloned().collect::<Vec<_>>()
+        } else {
+            shared
+        }
+    };
+    let mut seen = 0;
+    let mut errors = Vec::new();
+    for tool in tools_to_check {
+        let rows = manifests.get(&tool).cloned().unwrap_or_default();
+        if rows.is_empty() {
+            errors.push(format!(
+                "{tool}: missing smoke/build manifest under artifacts/containers/"
+            ));
+            continue;
+        }
+        let ok_rows = rows
+            .into_iter()
+            .filter(|(_, data)| data.get("status").and_then(serde_json::Value::as_str) == Some("ok"))
+            .collect::<Vec<_>>();
+        if ok_rows.is_empty() {
+            errors.push(format!("{tool}: has manifests but no successful status=ok result"));
+            continue;
+        }
+        for (manifest_path, data) in ok_rows {
+            seen += 1;
+            let sbom = data
+                .get("sbom_path")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let smoke_log = data
+                .get("smoke_log_path")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let smoke_log_sha = data
+                .get("smoke_log_checksum_path")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            if sbom.is_empty() {
+                errors.push(format!("{}: missing sbom_path", manifest_path.display()));
+                continue;
+            }
+            let sbom_path = PathBuf::from(&sbom);
+            if !sbom_path.exists() {
+                errors.push(format!(
+                    "{}: sbom_path does not exist: {sbom}",
+                    manifest_path.display()
+                ));
+            } else if sbom_path.metadata().map(|meta| meta.len()).unwrap_or(0) == 0 {
+                errors.push(format!("{}: sbom_path is empty: {sbom}", manifest_path.display()));
+            } else if !sbom_path
+                .display()
+                .to_string()
+                .replace('\\', "/")
+                .contains(&format!("/sbom/{tool}/"))
+            {
+                errors.push(format!(
+                    "{}: sbom_path not in required layout /sbom/{tool}/: {sbom}",
+                    manifest_path.display()
+                ));
+            }
+            if smoke_log.is_empty() || !PathBuf::from(&smoke_log).exists() {
+                errors.push(format!(
+                    "{}: missing smoke_log_path or file not found: {smoke_log}",
+                    manifest_path.display()
+                ));
+            }
+            if smoke_log_sha.is_empty() || !PathBuf::from(&smoke_log_sha).exists() {
+                errors.push(format!(
+                    "{}: missing smoke_log_checksum_path or file not found: {smoke_log_sha}",
+                    manifest_path.display()
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!("sbom artifacts: OK ({seen} manifests)"));
+    }
+    failure_lines("sbom artifacts: FAILED", &errors)
+}
+
+fn check_time_locale_determinism(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut errors = Vec::new();
+    for path in apptainer_def_paths(workspace) {
+        let text = read_utf8(&path)?;
+        let env = text
+            .split("%environment")
+            .nth(1)
+            .and_then(|body| body.split("\n%").next())
+            .unwrap_or_default();
+        if !env.contains("TZ=UTC") {
+            errors.push(format!(
+                "{}: %environment must set TZ=UTC",
+                workspace.rel(&path).display()
+            ));
+        }
+        if !env.contains("LC_ALL=C") {
+            errors.push(format!(
+                "{}: %environment must set LC_ALL=C",
+                workspace.rel(&path).display()
+            ));
+        }
+    }
+    let smoke_docker = read_utf8(&workspace.path("scripts/containers/smoke-docker-arm64.sh"))?;
+    for marker in ["-e TZ=UTC", "-e LC_ALL=C"] {
+        if !smoke_docker.contains(marker) {
+            errors.push(format!(
+                "scripts/containers/smoke-docker-arm64.sh must pass '{marker}' to docker run"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("time/locale determinism: OK");
+    }
+    failure_lines("time/locale determinism: FAILED", &errors)
+}
+
+fn check_tool_invocation_normalization(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut errors = Vec::new();
+    for row in registry_tool_rows(workspace)? {
+        let runtimes = table_array_strings(&row, "runtimes");
+        if !runtimes.iter().any(|runtime| runtime == "apptainer" || runtime == "docker") {
+            continue;
+        }
+        let tool = {
+            let id = table_string(&row, "id");
+            if id.is_empty() {
+                table_string(&row, "tool_id")
+            } else {
+                id
+            }
+        };
+        let expected_bin = table_string(&row, "expected_bin");
+        if tool.is_empty() {
+            continue;
+        }
+        if expected_bin.is_empty() {
+            errors.push(format!("{tool}: missing expected_bin"));
+            continue;
+        }
+        for field in ["smoke_version_cmd", "smoke_help_cmd"] {
+            let command = table_string(&row, field);
+            if command.is_empty() {
+                errors.push(format!("{tool}: missing {field}"));
+                continue;
+            }
+            let token = command.split_whitespace().next().unwrap_or_default();
+            if token != expected_bin {
+                errors.push(format!(
+                    "{tool}: {field} must start with expected_bin '{expected_bin}', got '{token}'"
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("tool invocation normalization: OK");
+    }
+    failure_lines("tool invocation normalization: FAILED", &errors)
+}
+
+fn check_smoke_inputs_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let policy = workspace.path("configs/ci/tools/smoke_inputs_policy.toml");
+    if !policy.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "smoke-inputs policy: missing {}\n",
+            policy.display()
+        )));
+    }
+    let data = load_toml(&policy)?;
+    let entries = data
+        .get("tool_inputs")
+        .and_then(toml::Value::as_table)
+        .cloned()
+        .unwrap_or_default();
+    let mut errors = Vec::new();
+    for (tool, row) in entries.clone() {
+        let Some(row) = row.as_table() else {
+            errors.push(format!("{tool}: policy row must be table"));
+            continue;
+        };
+        let rel = table_string(row, "path");
+        if rel.is_empty() {
+            errors.push(format!("{tool}: missing path"));
+            continue;
+        }
+        let path = workspace.path(&rel);
+        if !path.exists() {
+            errors.push(format!("{tool}: missing input file {rel}"));
+            continue;
+        }
+        if !path.is_file() {
+            errors.push(format!("{tool}: input path is not a file {rel}"));
+            continue;
+        }
+        if path.metadata().map(|meta| meta.len()).unwrap_or(0) == 0 {
+            errors.push(format!("{tool}: input file is empty {rel}"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line(format!("smoke-inputs policy: OK ({})", entries.len()));
+    }
+    failure_lines("smoke-inputs policy: FAILED", &errors)
 }
 
 fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
