@@ -40,7 +40,7 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 ## Examples
 - Re-run with the same manifest and lock on an offline worker.
 - Verify `manifest_signature_sha256` equality before comparing metrics.
-- Verify benchmark suite/config locations with `bijux dna bench status`.
+- Verify benchmark suite/config locations with `bijux-dna bench status`.
 - Benchmark suites are owned under `crates/bijux-dna-bench/bench/suites/`.
 - Refresh toy inputs deterministically with `make refresh-toy` (writes `assets/toy/core-v1/`).
 - Refresh toy-run golden outputs deterministically with `make refresh-golden` (writes `assets/golden/toy-runs-v1/`).

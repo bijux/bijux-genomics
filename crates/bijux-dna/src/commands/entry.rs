@@ -1,8 +1,5 @@
 use anyhow::{Context, Result};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
-use clap::Parser;
-
-use crate::commands::cli::Cli;
 
 fn main() {
     if let Err(err) = run() {
@@ -82,7 +79,8 @@ fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
 }
 
 fn run() -> Result<()> {
-    let cli = Cli::parse();
+    let argv = std::env::args().collect::<Vec<_>>();
+    let cli = crate::commands::parse_process_cli(&argv);
     let cwd = std::env::current_dir().context("resolve current directory")?;
     crate::commands::run_with_cli(&cli, &cwd)
 }

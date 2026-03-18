@@ -356,7 +356,7 @@ fn scaffold_one_example(
     );
     bijux_dna_infra::atomic_write_bytes(&root.join("bench-suite.toml"), local_suite.as_bytes())?;
 
-    let run_hpc = format!("#!/usr/bin/env bash\nset -euo pipefail\nbijux dna example run {example_id} --hpc\n");
+    let run_hpc = format!("#!/usr/bin/env bash\nset -euo pipefail\nbijux-dna example run {example_id} --hpc\n");
     bijux_dna_infra::atomic_write_bytes(&root.join("helpers/run_hpc.sh"), run_hpc.as_bytes())?;
     #[cfg(unix)]
     {
@@ -535,7 +535,7 @@ fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<
         .with_context(|| format!("parse {}", golden_path.display()))?;
     if actual != expected {
         return Err(anyhow!(
-            "golden plan mismatch in {} (run `bijux dna example plan {}` and update intentionally)",
+            "golden plan mismatch in {} (run `bijux-dna example plan {}` and update intentionally)",
             golden_path.display(),
             spec.id
         ));

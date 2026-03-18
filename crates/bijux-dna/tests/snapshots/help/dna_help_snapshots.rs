@@ -3,7 +3,7 @@ use clap::CommandFactory;
 
 fn help_for(args: &[&str]) -> String {
     let cmd = Cli::command();
-    let full_args = std::iter::once("bijux").chain(args.iter().copied());
+    let full_args = std::iter::once("bijux-dna").chain(args.iter().copied());
     let err = cmd
         .try_get_matches_from(full_args)
         .expect_err("help invocation should return clap help error");
@@ -13,27 +13,27 @@ fn help_for(args: &[&str]) -> String {
 
 #[test]
 fn cli_dna_help_snapshot() {
-    let help = help_for(&["dna", "--help"]);
-    assert!(help.contains("Usage: bijux dna [OPTIONS] <COMMAND>"));
+    let help = help_for(&["--help"]);
+    assert!(help.contains("Usage: bijux-dna [OPTIONS] <COMMAND>"));
 }
 
 #[test]
 fn cli_dna_fastq_help_snapshot() {
     let cmd = Cli::command();
     let err = cmd
-        .try_get_matches_from(["bijux", "dna", "fastq", "--help"])
+        .try_get_matches_from(["bijux-dna", "fastq", "--help"])
         .expect_err("fastq should be removed");
     assert_eq!(err.kind(), clap::error::ErrorKind::InvalidSubcommand);
 }
 
 #[test]
 fn cli_dna_bam_help_snapshot() {
-    let help = help_for(&["dna", "bam", "--help"]);
-    assert!(help.contains("Usage: bijux dna bam [OPTIONS] <COMMAND>"));
+    let help = help_for(&["bam", "--help"]);
+    assert!(help.contains("Usage: bijux-dna bam [OPTIONS] <COMMAND>"));
 }
 
 #[test]
 fn cli_dna_vcf_help_snapshot() {
-    let help = help_for(&["dna", "vcf", "--help"]);
-    assert!(help.contains("Usage: bijux dna vcf [OPTIONS] <COMMAND>"));
+    let help = help_for(&["vcf", "--help"]);
+    assert!(help.contains("Usage: bijux-dna vcf [OPTIONS] <COMMAND>"));
 }

@@ -1,19 +1,19 @@
 # BIJUX CLI
 
-Canonical user-facing command structure across the ecosystem is:
+Canonical DNA command surfaces are:
 
-`bijux <app> <command> [args...]`
+- `bijux-dna <command> [args...]` for the direct product binary
+- `bijux dna <command> [args...]` when routed through the sibling `bijux-cli` host
 
 ## Rules
 
-- `bijux` is the only root binary entrypoint.
-- Application commands must be namespaced under `<app>` (for this workspace: `bijux dna ...`).
-- Legacy aliases (for example `bijux-dna`) are temporary compatibility shims only and must emit deprecation warnings.
-- Make/CI/docs should invoke `bijux dna ...` and not app commands at root level.
+- `bijux-dna` is the canonical direct binary owned by this workspace.
+- `bijux dna ...` must remain behaviorally equivalent when DNA is installed through `bijux-cli`.
+- Local workspace docs, Cargo examples, and repo scripts should use `bijux-dna ...`.
 - Global output flags (for example `--json`) are accepted at the root and apply to app subcommands.
 
 ## Command Snapshot
 
-The normalized command tree snapshot for `bijux dna --help` is stored in:
+The normalized command tree snapshot for `bijux-dna --help` is stored in:
 
 - `docs/cli/command_snapshot.txt`

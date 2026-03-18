@@ -10,8 +10,12 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
         .unwrap_or_else(|| root.join("target"))
 }
 
-fn run_workspace_bijux(root: &std::path::Path, args: &[&str], context: &str) -> std::process::Output {
-    let debug_binary = cargo_target_dir(root).join("debug/bijux");
+fn run_workspace_bijux_dna(
+    root: &std::path::Path,
+    args: &[&str],
+    context: &str,
+) -> std::process::Output {
+    let debug_binary = cargo_target_dir(root).join("debug/bijux-dna");
     let mut command = if debug_binary.exists() {
         let mut command = Command::new(debug_binary);
         command.current_dir(root);
@@ -20,7 +24,7 @@ fn run_workspace_bijux(root: &std::path::Path, args: &[&str], context: &str) -> 
         let mut command = Command::new("cargo");
         command
             .current_dir(root)
-            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux", "--"]);
+            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux-dna", "--"]);
         command
     };
     command.args(args).output().unwrap_or_else(|err| {
@@ -44,7 +48,11 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let output = run_workspace_bijux(&root, &["--help"], "run 'bijux --help' via workspace binary");
+    let output = run_workspace_bijux_dna(
+        &root,
+        &["--help"],
+        "run 'bijux-dna --help' via workspace binary",
+    );
 
     assert!(
         output.status.success(),
@@ -57,6 +65,6 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     assert_eq!(
         normalize_whitespace(&actual),
         normalize_whitespace(&expected),
-        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
+        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux-dna --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
     );
 }

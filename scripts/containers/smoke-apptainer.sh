@@ -264,7 +264,7 @@ get_registry_field() {
   field="$1"
   tool="$2"
   if [ -z "${REGISTRY_EXPORT_JSON:-}" ]; then
-    REGISTRY_EXPORT_JSON=$(cargo run --bin bijux -- dna registry export-json 2>/dev/null || true)
+    REGISTRY_EXPORT_JSON=$(cargo run --bin bijux-dna -- registry export-json 2>/dev/null || true)
   fi
   value=$(printf '%s\n' "${REGISTRY_EXPORT_JSON:-}" | python3 - "$tool" "$field" <<'PY'
 import json, sys
