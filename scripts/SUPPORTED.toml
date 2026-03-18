@@ -274,30 +274,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "inventory_drift"
-path = "scripts/domain/inventory-drift.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "lock_registry"
-path = "scripts/domain/lock-registry.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "validate"
-path = "scripts/domain/validate.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "pull"
 path = "scripts/hpc/lunarc/pull.sh"
 purpose = "hpc script"
@@ -979,158 +955,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "domain_check_layout"
-path = "scripts/domain/check-domain-layout.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_schema"
-path = "scripts/domain/check-domain-schema.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_index"
-path = "scripts/domain/check-domain-index.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_ssot_authority"
-path = "scripts/domain/check-ssot-authority.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_rust_stage_catalog_parity"
-path = "scripts/domain/check-rust-stage-catalog-parity.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_tool_metadata"
-path = "scripts/domain/check-domain-tool-metadata.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_planner_stage_coverage"
-path = "scripts/domain/check-planner-stage-coverage.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_planner_fixture_coverage"
-path = "scripts/domain/check-planner-fixture-coverage.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_generate_index"
-path = "scripts/domain/generate-index.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_shared_tools"
-path = "scripts/domain/check-shared-tools.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_tool_container_parity"
-path = "scripts/domain/check-tool-container-parity.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_default_settings_docs"
-path = "scripts/domain/check-default-settings-docs.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_fixture_contracts"
-path = "scripts/domain/check-fixture-contracts.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_orphan_files"
-path = "scripts/domain/check-orphan-files.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_doc_links"
-path = "scripts/domain/check-doc-links.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_external_tool_policy"
-path = "scripts/domain/check-external-tool-policy.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_reference_bundle_lock"
-path = "scripts/domain/check-reference-bundle-lock.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_generate_inventory"
-path = "scripts/domain/generate-inventory.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_check_inventory"
-path = "scripts/domain/check-inventory.sh"
-purpose = "domain script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "examples_generate_index"
 path = "scripts/examples/generate-index.sh"
 purpose = "examples script"
@@ -1182,14 +1006,6 @@ ci_allowed = true
 id = "docs_make"
 path = "scripts/docs/make.sh"
 purpose = "docs group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "domain_make"
-path = "scripts/domain/make.sh"
-purpose = "domain group dispatcher"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true

@@ -5,7 +5,6 @@ Purpose: strict index of supported script areas and allowed usage.
 Allowed subdirectories:
 - `scripts/containers`: Docker/Apptainer build, lint, and smoke operations.
 - `scripts/docs`: docs validation/generation entrypoints.
-- `scripts/domain`: domain validation and drift checks.
 - `scripts/examples`: examples index, checks, and runner entrypoints.
 - `scripts/hpc`: cluster-specific operational helpers.
 - `scripts/lab`: manual lab workflow entrypoints.
@@ -23,7 +22,7 @@ The compatibility entrypoint remains `./scripts/run.sh checks <check-id>`.
 The containers control plane is `cargo run -p bijux-dev-dna -- containers ...`.
 The compatibility entrypoints remain `./scripts/run.sh containers <command>` and `./scripts/containers/make.sh <command>`.
 The domain control plane is `cargo run -p bijux-dev-dna -- domain ...`.
-The compatibility entrypoints remain `./scripts/run.sh domain <command>` and `./scripts/domain/make.sh <command>`.
+The compatibility entrypoint remains `./scripts/run.sh domain <command>`.
 
 Use `./scripts/run.sh --list` to print the supported command surface from `scripts/SUPPORTED.toml`.
 

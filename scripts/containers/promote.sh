@@ -128,7 +128,7 @@ vp.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 PY
 
 "$SCRIPT_DIR/generate-version-lock.sh"
-"$ROOT_DIR/scripts/domain/lock-registry.sh"
+cargo run -p bijux-dev-dna -- domain run lock-registry
 if [[ "$to_status" == "production" ]]; then
   REQUIRE_PROMOTED_SBOM=1 "$SCRIPT_DIR/check-sbom-artifacts.sh"
 fi
