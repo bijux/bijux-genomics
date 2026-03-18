@@ -14,14 +14,14 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 - Production badge eligibility requires lock validity and acceptance criteria success.
 
 ## Required Green Checks
-- `scripts/checks/check-vcf-reference-governance.sh`
-- `scripts/checks/check-vcf-compatibility-matrix.sh`
-- `scripts/checks/check-vcf-deprecation-lifecycle.sh`
-- `scripts/checks/check-registry-required-tools-parity.sh`
-- `scripts/checks/check-param-registry-completeness.sh`
-- `scripts/checks/check-frontend-mini-artifacts.sh`
-- `scripts/checks/check-frontend-observability-proof.sh`
-- `scripts/checks/check-frontend-telemetry-sanity.sh`
+- `./scripts/run.sh checks check-vcf-reference-governance`
+- `./scripts/run.sh checks check-vcf-compatibility-matrix`
+- `./scripts/run.sh checks check-vcf-deprecation-lifecycle`
+- `./scripts/run.sh checks check-registry-required-tools-parity`
+- `./scripts/run.sh checks check-param-registry-completeness`
+- `./scripts/run.sh checks check-frontend-mini-artifacts`
+- `./scripts/run.sh checks check-frontend-observability-proof`
+- `./scripts/run.sh checks check-frontend-telemetry-sanity`
 
 ## Stage Acceptance Criteria Source
 - `configs/vcf/downstream_acceptance.toml`

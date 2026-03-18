@@ -25,374 +25,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_artifacts_tracked"
-path = "scripts/checks/check-artifacts-tracked.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_assets_drift"
-path = "scripts/checks/check-assets-drift.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_assets_reference_schema"
-path = "scripts/checks/check-assets-reference-schema.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_asset_manifests"
-path = "scripts/checks/check-asset-manifests.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_asset_checksums"
-path = "scripts/checks/check-asset-checksums.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_assets_contracts"
-path = "scripts/checks/check-assets-contracts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_golden_artifact_schema"
-path = "scripts/checks/check-golden-artifact-schema.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_bench_knobs"
-path = "scripts/checks/check-bench-knobs.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_ci_shell_scripts"
-path = "scripts/checks/check-ci-shell-scripts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_exit_codes"
-path = "scripts/checks/check-exit-codes.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_contract_headers"
-path = "scripts/checks/check-config-contract-headers.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_headers"
-path = "scripts/checks/check-config-headers.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_schema"
-path = "scripts/checks/check-config-schema.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_filenames"
-path = "scripts/checks/check-config-filenames.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_layout"
-path = "scripts/checks/check-config-layout.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_config_owners"
-path = "scripts/checks/check-config-owners.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_generated_config_headers"
-path = "scripts/checks/check-generated-config-headers.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_generated_configs"
-path = "scripts/checks/check-generated-configs.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_runtime_execution_kernel_config"
-path = "scripts/checks/check-runtime-execution-kernel-config.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_artifact_env_contract"
-path = "scripts/checks/check-artifact-env-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_lib_api"
-path = "scripts/checks/check-lib-api.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_orphan_scripts"
-path = "scripts/checks/check-no-orphan-scripts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_temp_leaks"
-path = "scripts/checks/check-no-temp-leaks.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_raw_cargo_in_makes"
-path = "scripts/checks/check-no-raw-cargo-in-makes.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_raw_cargo_in_scripts"
-path = "scripts/checks/check-no-raw-cargo-in-scripts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_target_paths_in_tests"
-path = "scripts/checks/check-no-target-paths-in-tests.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_user_path_literals"
-path = "scripts/checks/check-no-user-path-literals.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_output_roots"
-path = "scripts/checks/check-output-roots.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_readme_links"
-path = "scripts/checks/check-readme-links.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_registry_split"
-path = "scripts/checks/check-registry-split.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_root_layout"
-path = "scripts/checks/check-root-layout.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_arg_style"
-path = "scripts/checks/check-script-arg-style.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_deps"
-path = "scripts/checks/check-script-deps.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_help"
-path = "scripts/checks/check-script-help.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_writes"
-path = "scripts/checks/check-script-writes.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_shell_portability"
-path = "scripts/checks/check-shell-portability.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_hpc_safety"
-path = "scripts/checks/check-hpc-safety.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_network_usage"
-path = "scripts/checks/check-network-usage.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_artifacts_layout"
-path = "scripts/checks/check-artifacts-layout.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_ssot_guardrails"
-path = "scripts/checks/check-ssot-guardrails.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_supported_scripts"
-path = "scripts/checks/check-supported-scripts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_species_aliases"
-path = "scripts/checks/check-species-aliases.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_tool_registry_lock"
-path = "scripts/checks/check-tool-registry-lock.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "tree_intent"
-path = "scripts/checks/tree-intent.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_fake_artifacts"
-path = "scripts/checks/check-no-fake-artifacts.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_domain_realization"
-path = "scripts/checks/check-domain-realization.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "test_fastq_gold_repro"
 path = "scripts/test/fastq-gold-repro.sh"
 purpose = "test script"
@@ -1523,73 +1155,9 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_examples_structure"
-path = "scripts/checks/check-examples-structure.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_corpus_manifests"
-path = "scripts/checks/check-examples-corpus-manifests.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_corpus_layout"
-path = "scripts/checks/check-examples-corpus-layout.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_golden"
-path = "scripts/checks/check-examples-golden.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_cli_snapshot"
-path = "scripts/checks/check-examples-cli-snapshot.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_notebook_policy"
-path = "scripts/checks/check-examples-notebook-policy.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "examples_check_drift"
 path = "scripts/examples/check-drift.sh"
 purpose = "examples script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_corpus_checksums"
-path = "scripts/checks/check-examples-corpus-checksums.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "checks_make"
-path = "scripts/checks/make.sh"
-purpose = "checks group dispatcher"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -1667,14 +1235,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_no_parallel_accidental"
-path = "scripts/checks/check-no-parallel-accidental.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "generate_domain_coverage_doc"
 path = "scripts/tooling/generate-domain-coverage-doc.sh"
 purpose = "tooling script"
@@ -1683,86 +1243,9 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_config_index_discipline"
-path = "scripts/checks/check-config-index-discipline.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_registry_required_tools_parity"
-path = "scripts/checks/check-registry-required-tools-parity.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_stage_domain_parity"
-path = "scripts/checks/check-stage-domain-parity.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_stage_registry_governance"
-path = "scripts/checks/check-stage-registry-governance.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_enabled_vcf_panel_metadata"
-path = "scripts/checks/check-enabled-vcf-panel-metadata.sh"
-purpose = "checks script"
-inputs = [
-  "configs/runtime/profiles/vcf_downstream_local.toml",
-  "configs/vcf/panels/panels.toml",
-  "configs/vcf/panels/locks/panel_locks.toml",
-  "configs/vcf/panels/locks/lock.json",
-]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_param_registry_completeness"
-path = "scripts/checks/check-param-registry-completeness.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_deprecations_enforcement"
-path = "scripts/checks/check-deprecations-enforcement.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_doc_major_depth"
 path = "scripts/docs/check-doc-major-depth.sh"
 purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_interface"
-path = "scripts/checks/check-script-interface.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_script_entrypoint"
-path = "scripts/checks/check-script-entrypoint.sh"
-purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -1779,30 +1262,6 @@ ci_allowed = true
 id = "tooling_image_qa"
 path = "scripts/tooling/image-qa.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_index_ssot"
-path = "scripts/checks/check-examples-index-ssot.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_runner_contract"
-path = "scripts/checks/check-examples-runner-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_cli_command_snapshot"
-path = "scripts/checks/check-cli-command-snapshot.sh"
-purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -1978,14 +1437,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_domain_tool_parity"
-path = "scripts/checks/check-domain-tool-parity.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "containers_check_cross_runtime_smoke"
 path = "scripts/containers/check-cross-runtime-smoke.sh"
 purpose = "containers script"
@@ -2075,55 +1526,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_panel_locks"
-path = "scripts/checks/check-panel-locks.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_map_locks"
-path = "scripts/checks/check-map-locks.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_reference_fetch_paths"
-path = "scripts/checks/check-reference-fetch-paths.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "check_reference_service_boundary"
-path = "scripts/checks/check-reference-service-boundary.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_reference_path_governance"
-path = "scripts/checks/check-reference-path-governance.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_coverage_regimes_schema"
-path = "scripts/checks/check-coverage-regimes-schema.sh"
-purpose = "checks script"
-inputs = ["configs/runtime/coverage_regimes.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "simulate_coverage_regime"
 path = "scripts/tooling/simulate-coverage-regime.sh"
 purpose = "tooling script"
@@ -2165,144 +1567,10 @@ outputs = ["docs/50-reference/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_panel_license_policy"
-path = "scripts/checks/check-panel-license-policy.sh"
-purpose = "checks script"
-inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/panels/locks/lock.json"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vcf_reference_governance"
-path = "scripts/checks/check-vcf-reference-governance.sh"
-purpose = "checks script"
-inputs = [
-  "configs/runtime/profiles/vcf_downstream_local.toml",
-  "configs/vcf/panels/panels.toml",
-  "configs/vcf/panels/locks/panel_locks.toml",
-  "configs/vcf/maps/maps.toml",
-  "configs/vcf/maps/locks/map_locks.toml",
-]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_audit_allowlist"
-path = "scripts/checks/check-audit-allowlist.sh"
-purpose = "checks script"
-inputs = ["audit-allowlist.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_cargo_config_policy"
-path = "scripts/checks/check-cargo-config-policy.sh"
-purpose = "checks script"
-inputs = [".cargo/config.toml", "configs/runtime/cargo_build.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_gitignore_contract"
-path = "scripts/checks/check-gitignore-contract.sh"
-purpose = "checks script"
-inputs = [".gitignore"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_make_help_sync"
-path = "scripts/checks/check-make-help-sync.sh"
-purpose = "checks script"
-inputs = ["Makefile", "makes/README.md", "makes/cargo.mk"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_assets_large_file_allowlist"
-path = "scripts/checks/check-assets-large-file-allowlist.sh"
-purpose = "checks script"
-inputs = ["assets/LARGE_FILE_ALLOWLIST.txt"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "make_help"
 path = "scripts/tooling/make-help.sh"
 purpose = "tooling script"
 inputs = ["makes/README.md", "makes/cargo.mk"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_docs_requirements_lock"
-path = "scripts/checks/check-docs-requirements-lock.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_docs_build_contract"
-path = "scripts/checks/check-docs-build-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_policy"
-path = "scripts/checks/check-examples-policy.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_examples_golden"
-path = "scripts/checks/check-examples-golden.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_nextest_profile_contract"
-path = "scripts/checks/check-nextest-profile-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_runtime_profiles_contract"
-path = "scripts/checks/check-runtime-profiles-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_logging_contract"
-path = "scripts/checks/check-logging-contract.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_frontend_mini_domain_validation"
-path = "scripts/checks/check-frontend-mini-domain-validation.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_hpc_rsync_docs_parity"
-path = "scripts/checks/check-hpc-rsync-docs-parity.sh"
-purpose = "checks script"
-inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
@@ -2334,22 +1602,6 @@ ci_allowed = true
 id = "validate_frontend_mini_domain_stacks"
 path = "scripts/tooling/validate-frontend-mini-domain-stacks.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_benchmark_integrity_policy"
-path = "scripts/checks/check-benchmark-integrity-policy.sh"
-purpose = "checks script"
-inputs = ["scripts/tooling/benchmarks.sh", "configs/bench/knobs.toml", "docs/30-operations/BENCHMARK_VARIANCE.md"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_container_ssot_parity"
-path = "scripts/checks/check-container-ssot-parity.sh"
-purpose = "checks script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -2507,78 +1759,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "check_hpc_frontend_constraints"
-path = "scripts/checks/check-hpc-frontend-constraints.sh"
-purpose = "checks script"
-inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
-id = "check_frontend_mini_artifacts"
-path = "scripts/checks/check-frontend-mini-artifacts.sh"
-purpose = "checks script"
-inputs = ["artifacts/hpc/frontend-mini-e2e/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_frontend_observability_proof"
-path = "scripts/checks/check-frontend-observability-proof.sh"
-purpose = "checks script"
-inputs = ["artifacts/hpc/frontend-mini-e2e/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_frontend_telemetry_sanity"
-path = "scripts/checks/check-frontend-telemetry-sanity.sh"
-purpose = "checks script"
-inputs = ["artifacts/hpc/frontend-mini-e2e/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_bench_knob_discipline_downstream"
-path = "scripts/checks/check-bench-knob-discipline-downstream.sh"
-purpose = "checks script"
-inputs = ["configs/bench/knobs.toml", "examples/vcf/downstream-vcf-full-mini/bench-suite.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vcf_deprecation_lifecycle"
-path = "scripts/checks/check-vcf-deprecation-lifecycle.sh"
-purpose = "checks script"
-inputs = ["configs/vcf/deprecations/knobs.toml", "configs/vcf/deprecations/panels.toml", "configs/ci/params/param_registry_downstream.toml", "configs/vcf/panels/panels.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_vcf_compatibility_matrix"
-path = "scripts/checks/generate-vcf-compatibility-matrix.sh"
-purpose = "checks script"
-inputs = ["configs/vcf/panels/panels.toml", "configs/ci/registry/tool_registry_vcf_downstream.toml"]
-outputs = ["docs/50-reference/", "artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vcf_compatibility_matrix"
-path = "scripts/checks/check-vcf-compatibility-matrix.sh"
-purpose = "checks script"
-inputs = ["docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md", "configs/vcf/panels/panels.toml", "configs/ci/registry/tool_registry_vcf_downstream.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_vcf_downstream_readiness"
-path = "scripts/checks/check-vcf-downstream-readiness.sh"
-purpose = "checks script"
-inputs = ["configs/vcf/downstream_acceptance.toml", "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "vcf_deprecate_knob"
 path = "scripts/tooling/deprecate-vcf-knob.sh"
 purpose = "vcf governance script"
@@ -2595,36 +1775,12 @@ outputs = ["configs/vcf/deprecations/", "artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "check_run_directory_layout"
-path = "scripts/checks/check-run-directory-layout.sh"
-purpose = "checks script"
-inputs = ["artifacts/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "certification_gate"
 path = "scripts/tooling/certification-gate.sh"
 purpose = "tooling script"
 inputs = ["examples/", "assets/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
-
-[[script]]
-id = "check_hidden_tmp_usage"
-path = "scripts/checks/check-hidden-tmp-usage.sh"
-purpose = "checks script"
-inputs = ["crates/bijux-dna-api/src/runtime/", "crates/bijux-dna-api/src/internal/handlers/cross/", "crates/bijux-dna-runner/src/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_certification_schema_docs"
-path = "scripts/checks/check-certification-schema-docs.sh"
-purpose = "checks script"
-inputs = ["docs/50-reference/MANIFEST_MIGRATION.md"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
 
 [[script]]
 id = "crash_triage"
@@ -2683,52 +1839,12 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_executor_no_unwrap"
-path = "scripts/checks/check-executor-no-unwrap.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_clippy_allowlist_expiry"
-path = "scripts/checks/check-clippy-allowlist-expiry.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_executor_features_docs"
-path = "scripts/checks/check-executor-features-docs.sh"
-purpose = "checks script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "lint_fast"
 path = "scripts/tooling/lint-fast.sh"
 purpose = "tooling script"
 inputs = ["crates/", "scripts/", "docs/", "configs/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
-
-[[script]]
-id = "check_clippy_allowlist_growth"
-path = "scripts/checks/check-clippy-allowlist-growth.sh"
-purpose = "checks script"
-inputs = ["configs/ci/lints/clippy_allowlist.toml", "configs/ci/lints/clippy_allowlist_baseline.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_rustflags_consistency"
-path = "scripts/checks/check-rustflags-consistency.sh"
-purpose = "checks script"
-inputs = ["scripts/", "makes/", "crates/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
 
 [[script]]
 id = "flake_hunt"

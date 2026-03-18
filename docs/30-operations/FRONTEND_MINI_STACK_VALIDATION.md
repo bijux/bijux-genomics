@@ -14,7 +14,7 @@ The mini validator must enforce all checks listed below.
 
 ## Runner
 - Script: `scripts/tooling/validate-frontend-mini-domain-stacks.sh`
-- Check wrapper: `scripts/checks/check-frontend-mini-domain-validation.sh`
+- Check wrapper: `./scripts/run.sh checks check-frontend-mini-domain-validation`
 - Output summary: `artifacts/domain/frontend-mini-validation/summary.json`
 
 ## What Is Validated

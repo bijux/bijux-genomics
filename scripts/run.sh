@@ -60,6 +60,10 @@ for e in sorted(entries, key=lambda x: (x.get("path", ""), x.get("id", ""))):
     ci = e.get("ci_allowed", "false")
     print(f"{grp}\t{cmd}\tci_allowed={ci}")
 PY
+  cargo run -q -p bijux-dev-dna -- checks list | while IFS= read -r check_id; do
+    [[ -n "$check_id" ]] || continue
+    printf 'checks\t%s\tci_allowed=true\n' "$check_id"
+  done
 }
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then

@@ -35,9 +35,9 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 1. `./scripts/hpc/validate-frontend-constraints.sh --confirm`
 2. `./scripts/containers/apptainer-build-all.sh`
 3. `./scripts/hpc/run-frontend-mini-e2e.sh --confirm`
-4. `./scripts/checks/check-frontend-mini-artifacts.sh`
-5. `./scripts/checks/check-frontend-observability-proof.sh`
-6. `./scripts/checks/check-frontend-telemetry-sanity.sh`
+4. `./scripts/run.sh checks check-frontend-mini-artifacts`
+5. `./scripts/run.sh checks check-frontend-observability-proof`
+6. `./scripts/run.sh checks check-frontend-telemetry-sanity`
 
 ## Artifacts
 - Frontend smoke: `artifacts/containers/hpc/frontend-smoke/`

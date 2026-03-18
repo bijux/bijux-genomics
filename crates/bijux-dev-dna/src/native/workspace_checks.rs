@@ -870,7 +870,7 @@ pub(crate) fn check_no_target_paths_in_tests(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let target_re = Regex::new(r"(^|[^A-Za-z0-9_./-])target/").expect("regex");
-    let excluded = ["scripts/checks/check-no-target-paths-in-tests.sh", "scripts/checks/check-gitignore-contract.sh"];
+    let excluded: [&str; 0] = [];
     let mut offenders = Vec::new();
     for root in [
         workspace.path("crates"),

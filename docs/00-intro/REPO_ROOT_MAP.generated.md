@@ -14,7 +14,7 @@ Top-level workspace paths only.
 
 ## Contracts
 - Ownership for config paths is sourced from `configs/OWNERS.toml`.
-- Script subtree intent is sourced from README `Purpose:` lines validated by `scripts/checks/tree-intent.sh`.
+- Script subtree intent is sourced from README `Purpose:` lines validated by `./scripts/run.sh checks tree-intent`.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
