@@ -27,19 +27,16 @@ Top-level workspace paths only.
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `bin` | `dir` | `-` | runtime boundary helpers for strict isolated execution. |
-| `clippy.toml` | `file` | `-` | - |
 | `configs` | `dir` | `-` | - |
 | `containers` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |
-| `deny.toml` | `file` | `-` | - |
 | `docs` | `dir` | `-` | - |
 | `domain` | `dir` | `-` | - |
 | `examples` | `dir` | `-` | - |
-| `makefiles` | `dir` | `-` | - |
+| `makes` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `scripts` | `dir` | `-` | strict index of supported script areas and allowed usage. |
-| `target` | `dir` | `-` | - |
 
 ## Script Intent
 | Script Path | Purpose |

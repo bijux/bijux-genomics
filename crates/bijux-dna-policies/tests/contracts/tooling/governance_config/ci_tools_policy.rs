@@ -88,12 +88,12 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
 #[ignore = "TODO: refresh coverage command policy to current make/cargo flags"]
 fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
     let root = workspace_root();
-    let cargo_mk = root.join("makefiles").join("cargo.mk");
+    let cargo_mk = root.join("makes").join("cargo.mk");
     let content = std::fs::read_to_string(&cargo_mk).expect("read cargo.mk");
 
     let required = [
         "cargo nextest run",
-        "--config-file configs/nextest/nextest.toml",
+        "--config-file configs/rust/nextest.toml",
         "--workspace",
         "--all-features",
         "--profile $(NEXTEST_PROFILE)",
@@ -113,7 +113,7 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
         }
     }
     missing.retain(|needle| {
-        if *needle == "--config-file configs/nextest/nextest.toml" {
+        if *needle == "--config-file configs/rust/nextest.toml" {
             !(content.contains("$(NEXTEST_CONFIG)") || content.contains("NEXTEST_CONFIG ?="))
         } else {
             true

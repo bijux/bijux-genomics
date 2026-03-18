@@ -1,5 +1,8 @@
-[alias]
-bijux = "run -p bijux --bin bijux"
-
 [build]
-incremental = true
+target-dir = "artifacts/rust/target"
+rustflags = ["-Dwarnings"]
+
+[alias]
+fmt-check = "fmt --all -- --check"
+lint = "clippy --workspace --all-targets -- -D warnings"
+check-workspace = "check --workspace --all-targets"

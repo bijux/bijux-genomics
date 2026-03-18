@@ -21,7 +21,7 @@ Define the canonical CI gate contract and isolate invocation for the repository.
 - Slow CI profile: `./scripts/run.sh tooling ci-slow`
 - Fast profile intent: static/policy/contract gates with deterministic runner settings.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
-- Test/coverage runner defaults are pinned in `configs/nextest/nextest.toml` and `configs/coverage/runner.toml`.
+- Test/coverage runner defaults are pinned in `configs/rust/nextest.toml` and `configs/coverage/runner.toml`.
 
 ## Isolation Contract
 - See `docs/30-operations/ISOLATION.md`.

@@ -8,7 +8,7 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
+nextest_config="${NEXTEST_CONFIG:---config-file configs/rust/nextest.toml}"
 test_features="${TEST_FEATURES:---all-features}"
 runner_cfg="${ROOT_DIR}/configs/coverage/runner.toml"
 read_cfg="$(python3 - "$runner_cfg" <<'PY'

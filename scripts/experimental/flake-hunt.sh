@@ -43,8 +43,8 @@ runs="$2"
 pass=0
 fail=0
 for i in $(seq 1 "$runs"); do
-  echo "[$i/$runs] nextest run --config-file configs/nextest/nextest.toml --profile flake -E $expr"
-  if "$ROOT_DIR"/scripts/run.sh tooling cargo-targets nextest-run --config-file configs/nextest/nextest.toml --profile flake -E "$expr" >"$log_dir/last.log" 2>&1; then
+  echo "[$i/$runs] nextest run --config-file configs/rust/nextest.toml --profile flake -E $expr"
+  if "$ROOT_DIR"/scripts/run.sh tooling cargo-targets nextest-run --config-file configs/rust/nextest.toml --profile flake -E "$expr" >"$log_dir/last.log" 2>&1; then
     pass=$((pass + 1))
     echo "  PASS"
   else

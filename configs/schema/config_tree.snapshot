@@ -62,8 +62,6 @@ configs/lab/config_example.toml
 configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
-configs/nextest/index.md
-configs/nextest/nextest.toml
 configs/runtime/cargo_build.toml
 configs/runtime/coverage_regimes.toml
 configs/runtime/execution_kernel.toml
@@ -85,6 +83,9 @@ configs/runtime/references/locks/lock.json
 configs/runtime/references/locks/lock.json.sha256
 configs/runtime/species.toml
 configs/runtime/species_aliases.toml
+configs/rust/clippy.toml
+configs/rust/deny.toml
+configs/rust/nextest.toml
 configs/schema/CONFIG_SCHEMA_RULES.md
 configs/schema/config_tree.snapshot
 configs/schema/index.md

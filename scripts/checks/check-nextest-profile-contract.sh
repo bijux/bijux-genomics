@@ -14,7 +14,7 @@ import re
 import sys
 
 root = Path(sys.argv[1])
-cfg = root / "configs/nextest/nextest.toml"
+cfg = root / "configs/rust/nextest.toml"
 mk = root / "makes/cargo.mk"
 ci_test = root / "scripts/tooling/ci-test.sh"
 ci_cov = root / "scripts/tooling/ci-coverage.sh"

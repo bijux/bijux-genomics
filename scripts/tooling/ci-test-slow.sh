@@ -8,7 +8,7 @@ require_stable_env
 LC_ALL=C
 export LC_ALL
 
-nextest_config="${NEXTEST_CONFIG:---config-file configs/nextest/nextest.toml}"
+nextest_config="${NEXTEST_CONFIG:---config-file configs/rust/nextest.toml}"
 test_features="${TEST_FEATURES:---all-features}"
 nextest_profile="${NEXTEST_PROFILE:-slow-integration}"
 nextest_threads="${NEXTEST_TEST_THREADS:-8}"
