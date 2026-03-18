@@ -4,7 +4,7 @@ use std::time::Duration;
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_environment::api::RuntimeKind;
-use bijux_dna_runner::execute::{execute_step, StageResultV1};
+use bijux_dna_runner::stage_execution::{execute_step, StageResultV1};
 use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};
 

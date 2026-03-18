@@ -407,7 +407,7 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
             .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
         {
             let args = vec!["-cd".to_string(), p.to_string_lossy().into_owned()];
-            bijux_dna_runner::runner_core::run_command("gzip", &args)
+            bijux_dna_runner::command_runtime::run_command("gzip", &args)
                 .ok()
                 .filter(|o| o.exit_code == 0)
                 .map(|o| o.stdout)
