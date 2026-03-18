@@ -443,6 +443,36 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckImputationCrossRuntimeParity,
         ),
         native(
+            "check-build-provenance",
+            "Validate provenance metadata across governed downstream container definitions and manifests.",
+            NativeContainerCommandKey::CheckBuildProvenance,
+        ),
+        native(
+            "check-digest-changes-on-version-change",
+            "Validate that lock digests change when governed versions change across commits.",
+            NativeContainerCommandKey::CheckDigestChangesOnVersionChange,
+        ),
+        native(
+            "check-digest-output-policy",
+            "Validate digest artifact placement and forbid floating latest references in governed docs.",
+            NativeContainerCommandKey::CheckDigestOutputPolicy,
+        ),
+        native(
+            "check-runtime-tool-digest-recording",
+            "Validate runtime contracts that record resolved tool digests.",
+            NativeContainerCommandKey::CheckRuntimeToolDigestRecording,
+        ),
+        native(
+            "check-rebuild-repro",
+            "Rebuild a Docker tool twice and validate reproducible version and provenance output.",
+            NativeContainerCommandKey::CheckRebuildRepro,
+        ),
+        native(
+            "check-apptainer-rebuild-repro",
+            "Rebuild an Apptainer tool twice and validate reproducible SIF output.",
+            NativeContainerCommandKey::CheckApptainerRebuildRepro,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,

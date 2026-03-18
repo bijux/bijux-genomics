@@ -489,22 +489,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_apptainer_rebuild_repro"
-path = "scripts/containers/check-apptainer-rebuild-repro.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_digest_changes_on_version_change"
-path = "scripts/containers/check-digest-changes-on-version-change.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "inventory"
 path = "scripts/tooling/inventory.sh"
 purpose = "tooling script"
@@ -545,14 +529,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "check_digest_output_policy"
-path = "scripts/containers/check-digest-output-policy.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "check_lock_matches_built_output"
 path = "scripts/containers/check-lock-matches-built-output.sh"
 purpose = "containers script"
@@ -563,22 +539,6 @@ ci_allowed = true
 [[script]]
 id = "check_apptainer_bijux_header"
 path = "scripts/containers/check-apptainer-bijux-header.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_rebuild_repro"
-path = "scripts/containers/check-rebuild-repro.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
-id = "check_build_provenance"
-path = "scripts/containers/check-build-provenance.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -708,14 +668,6 @@ ci_allowed = true
 id = "tooling_image_qa"
 path = "scripts/tooling/image-qa.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_check_runtime_tool_digest_recording"
-path = "scripts/containers/check-runtime-tool-digest-recording.sh"
-purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true

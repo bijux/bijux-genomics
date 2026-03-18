@@ -35,8 +35,8 @@ cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-release-smoke
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-cross-runtime-parity
 cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
-"$SCRIPT_DIR/check-build-provenance.sh"
-"$SCRIPT_DIR/check-digest-output-policy.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-build-provenance
+cargo run -q -p bijux-dev-dna -- containers run check-digest-output-policy
 cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-network-policy
 cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
@@ -51,7 +51,7 @@ cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
 cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constraints
 cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
-"$SCRIPT_DIR/check-runtime-tool-digest-recording.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-tool-digest-recording
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
 "$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
