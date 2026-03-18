@@ -13,7 +13,7 @@ Purpose: define how `containers/versions/lock.json` is produced and validated.
 - `generator_script` and `generator_sha256` in lock must match generator script.
 
 ## Integrity Checks
-- `scripts/containers/check-lock-schema.sh`
-- `scripts/containers/check-lock-drift.sh`
-- `scripts/containers/check-lock-change-discipline.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-lock-schema`
+- `cargo run -p bijux-dev-dna -- containers run check-lock-drift`
+- `cargo run -p bijux-dev-dna -- containers run check-lock-change-discipline`
 - `cargo run -p bijux-dev-dna -- containers run check-version-lock`

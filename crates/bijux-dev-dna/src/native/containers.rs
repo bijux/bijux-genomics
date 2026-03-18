@@ -3,6 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
+use chrono::{Local, NaiveDate, Utc};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -77,6 +78,46 @@ pub fn run_native_container_command(
             ensure_no_args("check-versions-index-sha", args)?;
             check_versions_index_sha(workspace)
         }
+        NativeContainerCommandKey::CheckLockChangeDiscipline => {
+            ensure_no_args("check-lock-change-discipline", args)?;
+            check_lock_change_discipline(workspace)
+        }
+        NativeContainerCommandKey::CheckLockDrift => {
+            ensure_no_args("check-lock-drift", args)?;
+            check_version_lock(workspace)
+        }
+        NativeContainerCommandKey::CheckLockSchema => {
+            ensure_no_args("check-lock-schema", args)?;
+            check_lock_schema(workspace)
+        }
+        NativeContainerCommandKey::CheckVersionCompleteness => {
+            ensure_no_args("check-version-completeness", args)?;
+            check_version_completeness(workspace)
+        }
+        NativeContainerCommandKey::CheckVersionHashPin => {
+            ensure_no_args("check-version-hash-pin", args)?;
+            check_version_hash_pin(workspace)
+        }
+        NativeContainerCommandKey::CheckVersionImmutability => {
+            ensure_no_args("check-version-immutability", args)?;
+            check_version_immutability(workspace)
+        }
+        NativeContainerCommandKey::CheckVersionDeprecations => {
+            ensure_no_args("check-version-deprecations", args)?;
+            check_version_deprecations(workspace)
+        }
+        NativeContainerCommandKey::CheckPromotionPolicy => {
+            ensure_no_args("check-promotion-policy", args)?;
+            check_promotion_policy(workspace)
+        }
+        NativeContainerCommandKey::CheckPromotionLockIntegrity => {
+            ensure_no_args("check-promotion-lock-integrity", args)?;
+            check_promotion_lock_integrity(workspace)
+        }
+        NativeContainerCommandKey::Promote => promote_tool(workspace, args),
+        NativeContainerCommandKey::Demote => demote_tool(workspace, args),
+        NativeContainerCommandKey::DeprecateVersion => deprecate_version(workspace, args),
+        NativeContainerCommandKey::ToolLifecycle => tool_lifecycle(workspace, args),
         NativeContainerCommandKey::Summary => summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => run_env_smoke(workspace, args),
@@ -443,6 +484,155 @@ fn tool_versions(
         }
     }
     Ok(rows)
+}
+
+fn versions_toml_path(workspace: &Workspace) -> PathBuf {
+    workspace.path("containers/versions/versions.toml")
+}
+
+fn container_version_deprecations_path(workspace: &Workspace) -> PathBuf {
+    workspace.path("containers/versions/deprecations.toml")
+}
+
+fn registry_deprecations_path(workspace: &Workspace) -> PathBuf {
+    workspace.path("configs/ci/registry/deprecations.toml")
+}
+
+fn lock_json_path(workspace: &Workspace) -> PathBuf {
+    workspace.path("containers/versions/lock.json")
+}
+
+fn production_registry_paths(workspace: &Workspace) -> Vec<PathBuf> {
+    vec![
+        workspace.path("configs/ci/registry/tool_registry.toml"),
+        workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
+        workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
+    ]
+}
+
+fn all_registry_paths(workspace: &Workspace) -> Vec<PathBuf> {
+    vec![
+        workspace.path("configs/ci/registry/tool_registry.toml"),
+        workspace.path("configs/ci/registry/tool_registry_experimental.toml"),
+        workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
+        workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
+    ]
+}
+
+fn read_lock_json(workspace: &Workspace) -> Result<serde_json::Value> {
+    serde_json::from_str(&read_utf8(&lock_json_path(workspace))?)
+        .with_context(|| "parse lock.json".to_string())
+}
+
+fn lock_items_by_tool(workspace: &Workspace) -> Result<BTreeMap<String, serde_json::Value>> {
+    let mut rows = BTreeMap::new();
+    if let Some(items) = read_lock_json(workspace)?
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+    {
+        for row in items {
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            if !tool.is_empty() {
+                rows.insert(tool, row.clone());
+            }
+        }
+    }
+    Ok(rows)
+}
+
+fn parse_date(value: &str, field_name: &str) -> Result<NaiveDate> {
+    NaiveDate::parse_from_str(value, "%Y-%m-%d")
+        .with_context(|| format!("invalid {field_name}: {value}"))
+}
+
+fn update_status_in_table_file(path: &std::path::Path, tool: &str, to_status: &str) -> Result<bool> {
+    let text = read_utf8(path)?;
+    let mut updated = false;
+    let mut out = Vec::new();
+    let chunks = text.split("[[tools]]").collect::<Vec<_>>();
+    if let Some(head) = chunks.first() {
+        out.push((*head).to_string());
+    }
+    for chunk in chunks.iter().skip(1) {
+        let mut block = format!("[[tools]]{chunk}");
+        if block.contains(&format!("id = \"{tool}\"")) || block.contains(&format!("tool_id = \"{tool}\"")) {
+            let mut lines = block.lines().map(ToOwned::to_owned).collect::<Vec<_>>();
+            if let Some(index) = lines
+                .iter()
+                .position(|line| line.trim_start().starts_with("status = "))
+            {
+                lines[index] = format!("status = \"{to_status}\"");
+                updated = true;
+            }
+            block = format!("{}\n", lines.join("\n"));
+        }
+        out.push(block);
+    }
+    write_utf8(path, &out.concat())?;
+    Ok(updated)
+}
+
+fn set_registry_status(paths: &[PathBuf], tool: &str, to_status: &str) -> Result<()> {
+    let mut updated_any = false;
+    for path in paths {
+        updated_any |= update_status_in_table_file(path, tool, to_status)?;
+    }
+    if !updated_any {
+        return Err(anyhow!("tool not found: {tool}"));
+    }
+    Ok(())
+}
+
+fn set_versions_status(workspace: &Workspace, tool: &str, to_status: &str) -> Result<()> {
+    let path = versions_toml_path(workspace);
+    let text = read_utf8(&path)?;
+    let mut updated = false;
+    let mut out = Vec::new();
+    let chunks = text.split('[').collect::<Vec<_>>();
+    if let Some(head) = chunks.first() {
+        out.push((*head).to_string());
+    }
+    for chunk in chunks.iter().skip(1) {
+        let block = format!("[{chunk}");
+        let Some(table_end) = block.find(']') else {
+            out.push(block);
+            continue;
+        };
+        let table_name = block[1..table_end].trim();
+        if table_name != tool {
+            out.push(block);
+            continue;
+        }
+        let mut lines = block.lines().map(ToOwned::to_owned).collect::<Vec<_>>();
+        if let Some(index) = lines
+            .iter()
+            .position(|line| line.trim_start().starts_with("status = "))
+        {
+            lines[index] = format!("status = \"{to_status}\"");
+        } else {
+            lines.insert(1, format!("status = \"{to_status}\""));
+        }
+        updated = true;
+        out.push(format!("{}\n", lines.join("\n")));
+    }
+    if !updated {
+        return Err(anyhow!("missing versions entry for {tool}"));
+    }
+    write_utf8(&path, &out.concat())
+}
+
+fn append_toml_table(path: &std::path::Path, content: &str, new_file_header: &str) -> Result<()> {
+    let body = if path.exists() {
+        format!("{}\n\n{}", read_utf8(path)?.trim_end(), content.trim_end())
+    } else {
+        format!("{}{}", new_file_header, content.trim_end())
+    };
+    write_utf8(path, &format!("{body}\n"))
 }
 
 fn table_string(table: &toml::map::Map<String, toml::Value>, key: &str) -> String {
@@ -1838,6 +2028,458 @@ fn check_versions_index_sha(workspace: &Workspace) -> Result<ContainerCommandOut
     success_line("versions index sha: OK")
 }
 
+fn check_lock_change_discipline(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("lock change discipline: SKIP (CI-only gate)");
+    }
+    let previous = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&workspace.root)
+        .args(["rev-parse", "--verify", "HEAD^"])
+        .output()
+        .with_context(|| "resolve previous commit".to_string())?;
+    if !previous.status.success() {
+        return success_line("lock change discipline: SKIP (no previous commit)");
+    }
+    let diff = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&workspace.root)
+        .args([
+            "diff",
+            "--name-only",
+            "HEAD^..HEAD",
+            "--",
+            "containers/versions/versions.toml",
+            "containers/versions/lock.json",
+        ])
+        .output()
+        .with_context(|| "inspect lock discipline diff".to_string())?;
+    let changed = String::from_utf8_lossy(&diff.stdout);
+    let has_versions = changed
+        .lines()
+        .any(|line| line.trim() == "containers/versions/versions.toml");
+    let has_lock = changed
+        .lines()
+        .any(|line| line.trim() == "containers/versions/lock.json");
+    if has_versions && !has_lock {
+        return Ok(ContainerCommandOutcome::failure(
+            "lock change discipline: versions.toml changed but lock.json did not\n",
+        ));
+    }
+    if !has_versions && has_lock {
+        return Ok(ContainerCommandOutcome::failure(
+            "lock change discipline: lock.json changed without versions.toml change\n",
+        ));
+    }
+    success_line("lock change discipline: OK")
+}
+
+fn check_lock_schema(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let lock = read_lock_json(workspace)?;
+    let mut errors = Vec::new();
+    for key in [
+        "schema_version",
+        "source",
+        "source_sha256",
+        "build_date_utc",
+        "builder_platform",
+        "generator_script",
+        "generator_sha256",
+        "items",
+    ] {
+        if lock.get(key).is_none() {
+            errors.push(format!("missing top-level key: {key}"));
+        }
+    }
+    if lock.get("schema_version").and_then(serde_json::Value::as_str)
+        != Some("bijux.container.version_lock.v3")
+    {
+        errors.push("schema_version must be bijux.container.version_lock.v3".to_string());
+    }
+    match lock.get("items").and_then(serde_json::Value::as_array) {
+        Some(items) if !items.is_empty() => {
+            let mut seen = BTreeSet::new();
+            for (index, row) in items.iter().enumerate() {
+                let Some(row_obj) = row.as_object() else {
+                    errors.push(format!("items[{index}] must be object"));
+                    continue;
+                };
+                for key in [
+                    "tool",
+                    "version",
+                    "status",
+                    "source",
+                    "entry_sha256",
+                    "resolved_image_digest",
+                    "resolved_sif_sha256",
+                    "sif_digest_sha256",
+                    "frontend_resolved_sif_sha256",
+                    "frontend_sif_digest_sha256",
+                    "frontend_smoke_version_output_sha256",
+                ] {
+                    if !row_obj.contains_key(key) {
+                        errors.push(format!("items[{index}] missing key: {key}"));
+                    }
+                }
+                let tool = row
+                    .get("tool")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default()
+                    .trim();
+                if tool.is_empty() {
+                    errors.push(format!("items[{index}] has empty tool"));
+                } else if !seen.insert(tool.to_string()) {
+                    errors.push(format!("duplicate tool in lock items: {tool}"));
+                }
+            }
+        }
+        _ => errors.push("items must be non-empty list".to_string()),
+    }
+    if errors.is_empty() {
+        return success_line("lock schema: OK");
+    }
+    failure_lines("lock schema: failed", &errors)
+}
+
+fn check_version_completeness(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let known = tool_versions(workspace)?
+        .into_keys()
+        .collect::<BTreeSet<_>>();
+    let missing = governed_container_file_ids(workspace)?
+        .difference(&known)
+        .cloned()
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return success_line("container versions completeness: OK");
+    }
+    let mut errors = Vec::new();
+    for tool in missing {
+        errors.push(format!(
+            "missing {tool} in containers/versions/versions.toml"
+        ));
+    }
+    failure_lines("container versions completeness check failed:", &errors)
+}
+
+fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut errors = Vec::new();
+    for (tool, row) in tool_versions(workspace)? {
+        let source = table_string(&row, "source");
+        if source.is_empty() {
+            errors.push(format!("{tool}: missing source URL"));
+            continue;
+        }
+        if !source.starts_with("http://") && !source.starts_with("https://") {
+            errors.push(format!("{tool}: source must be explicit http(s) URL"));
+        }
+        let version = table_string(&row, "version");
+        if version.is_empty() || matches!(version.as_str(), "0.0.0" | "planned" | "unknown") {
+            errors.push(format!(
+                "{tool}: version must be concrete and must not be placeholder ({version})"
+            ));
+        }
+        let source_sha = table_string(&row, "source_sha256");
+        let pin = table_string(&row, "pinned_commit");
+        if source_sha.is_empty() && pin.is_empty() {
+            errors.push(format!("{tool}: missing source_sha256 or pinned_commit"));
+        }
+        if !source_sha.is_empty()
+            && (source_sha.len() != 64 || !source_sha.chars().all(|ch| ch.is_ascii_hexdigit()))
+        {
+            errors.push(format!("{tool}: source_sha256 must be 64 hex chars"));
+        }
+        if !pin.is_empty() {
+            if matches!(pin.to_ascii_lowercase().as_str(), "pending" | "unknown") {
+                errors.push(format!("{tool}: pinned_commit must not be pending/unknown"));
+            } else if !matches!(pin.len(), 7 | 40) {
+                errors.push(format!(
+                    "{tool}: pinned_commit must be short(7) or full(40) git hash"
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("version hash pin: OK");
+    }
+    failure_lines("version hash pin check failed:", &errors)
+}
+
+fn check_version_immutability(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("version immutability: SKIP (CI-only gate)");
+    }
+    let previous = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&workspace.root)
+        .args(["rev-parse", "--verify", "HEAD^"])
+        .output()
+        .with_context(|| "resolve previous commit".to_string())?;
+    if !previous.status.success() {
+        return success_line("version immutability: SKIP (no previous commit)");
+    }
+    let previous_ref = String::from_utf8_lossy(&previous.stdout).trim().to_string();
+    let show = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&workspace.root)
+        .args([
+            "show",
+            &format!("{previous_ref}:containers/versions/versions.toml"),
+        ])
+        .output()
+        .with_context(|| "read previous versions.toml".to_string())?;
+    if !show.status.success() {
+        return success_line("version immutability: SKIP (no previous versions.toml)");
+    }
+    let previous_value: toml::Value =
+        toml::from_str(String::from_utf8_lossy(&show.stdout).as_ref()).with_context(|| {
+            "parse previous containers/versions/versions.toml".to_string()
+        })?;
+    let mut previous_rows = BTreeMap::new();
+    if let Some(table) = previous_value.as_table() {
+        for (tool, row) in table {
+            if let Some(row) = row.as_table() {
+                previous_rows.insert(tool.to_string(), row.clone());
+            }
+        }
+    }
+    let current_rows = tool_versions(workspace)?;
+    let mut errors = Vec::new();
+    for (tool, previous_row) in previous_rows {
+        let Some(current_row) = current_rows.get(&tool) else {
+            continue;
+        };
+        let previous_status = table_string(&previous_row, "status");
+        let current_status = {
+            let value = table_string(current_row, "status");
+            if value.is_empty() {
+                previous_status.clone()
+            } else {
+                value
+            }
+        };
+        let previous_version = table_string(&previous_row, "version");
+        let current_version = table_string(current_row, "version");
+        if previous_status == "production"
+            && current_status == "production"
+            && !previous_version.is_empty()
+            && !current_version.is_empty()
+            && previous_version != current_version
+        {
+            errors.push(format!(
+                "{tool}: production version is immutable ({previous_version} -> {current_version})"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("version immutability: OK");
+    }
+    failure_lines("version immutability: failed", &errors)
+}
+
+fn check_version_deprecations(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let versions = tool_versions(workspace)?;
+    let deps_path = container_version_deprecations_path(workspace);
+    let lock_tools = lock_items_by_tool(workspace)?
+        .into_keys()
+        .collect::<BTreeSet<_>>();
+    let today = Local::now().date_naive();
+    let mut errors = Vec::new();
+    if deps_path.exists() {
+        let value = load_toml(&deps_path)?;
+        for row in value
+            .get("deprecation")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+        {
+            let Some(row) = row.as_table() else {
+                continue;
+            };
+            let tool = table_string(row, "tool_id");
+            let version = table_string(row, "version");
+            let deprecated_since = table_string(row, "deprecated_since");
+            let sunset_date = table_string(row, "sunset_date");
+            let replacement_tool = table_string(row, "replacement_tool");
+            let replacement_version = table_string(row, "replacement_version");
+            let mode = table_string(row, "compatibility_mode");
+            if tool.is_empty() || version.is_empty() {
+                errors.push("deprecation row missing tool_id/version".to_string());
+                continue;
+            }
+            if sunset_date.is_empty() {
+                errors.push(format!("{tool}: missing required sunset_date"));
+            }
+            if replacement_tool.is_empty() || replacement_version.is_empty() {
+                errors.push(format!(
+                    "{tool}: missing required replacement_tool/replacement_version"
+                ));
+            }
+            match versions.get(&tool) {
+                None => errors.push(format!("{tool}: deprecation refers to unknown tool")),
+                Some(current) => {
+                    let current_version = table_string(current, "version");
+                    if current_version != version {
+                        errors.push(format!(
+                            "{tool}: deprecation version '{version}' does not match versions.toml '{current_version}'"
+                        ));
+                    }
+                }
+            }
+            if !replacement_tool.is_empty() {
+                match versions.get(&replacement_tool) {
+                    None => errors.push(format!(
+                        "{tool}: replacement_tool '{replacement_tool}' is unknown in versions.toml"
+                    )),
+                    Some(current) => {
+                        let current_version = table_string(current, "version");
+                        if !replacement_version.is_empty()
+                            && !current_version.is_empty()
+                            && current_version != replacement_version
+                        {
+                            errors.push(format!(
+                                "{tool}: replacement_version '{replacement_version}' does not match versions.toml[{replacement_tool}]='{current_version}'"
+                            ));
+                        }
+                    }
+                }
+            }
+            if !lock_tools.contains(&tool) {
+                errors.push(format!("{tool}: missing from lock.json, breaks reproducibility"));
+            }
+            match (
+                parse_date(&deprecated_since, "deprecated_since"),
+                parse_date(&sunset_date, "sunset_date"),
+            ) {
+                (Ok(deprecated_since), Ok(sunset_date)) => {
+                    if sunset_date <= deprecated_since {
+                        errors.push(format!("{tool}: sunset_date must be after deprecated_since"));
+                    }
+                    if mode == "allowed" && today > sunset_date {
+                        errors.push(format!(
+                            "{tool}: compatibility_mode=allowed expired after {sunset_date}"
+                        ));
+                    }
+                }
+                _ => errors.push(format!("{tool}: invalid dates in deprecations.toml")),
+            }
+            if mode != "allowed" && mode != "blocked" {
+                errors.push(format!("{tool}: compatibility_mode must be allowed|blocked"));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("version deprecations: OK");
+    }
+    failure_lines("version deprecations: failed", &errors)
+}
+
+fn check_promotion_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let policy = workspace.path("containers/docs/PROMOTION_POLICY.md");
+    if !policy.is_file() {
+        return Ok(ContainerCommandOutcome::failure(
+            "missing containers/docs/PROMOTION_POLICY.md\n",
+        ));
+    }
+    let text = read_utf8(&policy)?;
+    let mut errors = Vec::new();
+    for marker in [
+        "License clarity",
+        "Provenance",
+        "Reproducibility",
+        "Smoke quality",
+        "cargo run -p bijux-dev-dna -- containers run tool-lifecycle",
+        "cargo run -p bijux-dev-dna -- containers run demote",
+    ] {
+        if !text.contains(marker) {
+            errors.push(format!("promotion policy missing marker: {marker}"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("promotion policy: OK");
+    }
+    failure_lines("promotion policy: failed", &errors)
+}
+
+fn check_promotion_lock_integrity(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("promotion lock integrity: SKIP (CI-only gate)");
+    }
+    let lock_rows = lock_items_by_tool(workspace)?;
+    let versions = tool_versions(workspace)?;
+    let mut production_tools = BTreeSet::new();
+    for path in production_registry_paths(workspace) {
+        if !path.exists() {
+            continue;
+        }
+        let value = load_toml(&path)?;
+        for row in value
+            .get("tools")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+        {
+            let Some(row) = row.as_table() else {
+                continue;
+            };
+            if table_string(row, "status") != "production" {
+                continue;
+            }
+            let tool = table_string(row, "id");
+            let tool = if tool.is_empty() {
+                table_string(row, "tool_id")
+            } else {
+                tool
+            };
+            if !tool.is_empty() {
+                production_tools.insert(tool);
+            }
+        }
+    }
+    let mut errors = Vec::new();
+    for tool in production_tools {
+        let Some(lock_row) = lock_rows.get(&tool) else {
+            errors.push(format!("{tool}: production tool missing from lock.json"));
+            continue;
+        };
+        let lock_version = lock_row
+            .get("version")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let version = versions
+            .get(&tool)
+            .map(|row| table_string(row, "version"))
+            .unwrap_or_default();
+        if lock_version != version {
+            errors.push(format!(
+                "{tool}: lock version '{lock_version}' != versions.toml '{version}'"
+            ));
+        }
+        let docker_digest = lock_row
+            .get("resolved_image_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let sif_digest = lock_row
+            .get("resolved_sif_sha256")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if docker_digest.is_empty() && sif_digest.is_empty() {
+            errors.push(format!(
+                "{tool}: promotion requires at least one locked artifact digest (docker/apptainer)"
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("promotion lock integrity: OK");
+    }
+    failure_lines("promotion lock integrity: failed", &errors)
+}
+
 fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
@@ -2094,6 +2736,337 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
         return success_line("version authority: OK");
     }
     failure_lines("version authority check failed:", &errors)
+}
+
+fn parse_required_option(
+    command: &str,
+    options: &BTreeMap<String, String>,
+    key: &str,
+) -> Result<String> {
+    options
+        .get(key)
+        .cloned()
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow!("{command}: missing required option --{key}"))
+}
+
+fn parse_named_options(command: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
+    let mut options = BTreeMap::new();
+    let mut index = 0;
+    while index < args.len() {
+        let arg = &args[index];
+        if arg == "--help" || arg == "-h" {
+            return Err(anyhow!("help"));
+        }
+        let Some(name) = arg.strip_prefix("--") else {
+            return Err(anyhow!("{command}: unknown arg: {arg}"));
+        };
+        let Some(value) = args.get(index + 1) else {
+            return Err(anyhow!("{command}: missing value for --{name}"));
+        };
+        if value.starts_with("--") {
+            return Err(anyhow!("{command}: missing value for --{name}"));
+        }
+        options.insert(name.to_string(), value.clone());
+        index += 2;
+    }
+    Ok(options)
+}
+
+fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
+    let commands = [
+        ["containers", "run", "generate-version-lock"].as_slice(),
+        ["containers", "run", "generate-index"].as_slice(),
+        ["containers", "run", "generate-license-metadata"].as_slice(),
+    ];
+    for command in commands {
+        let argv = [
+            vec!["cargo".to_string(), "run".to_string(), "-q".to_string(), "-p".to_string(), "bijux-dev-dna".to_string(), "--".to_string()],
+            command.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
+        ]
+        .concat();
+        let outcome = run_argv(workspace, &argv)?;
+        if !outcome.is_success() {
+            return Err(anyhow!(
+                "failed to regenerate lifecycle output with `{}`: {}",
+                argv.join(" "),
+                outcome.stderr.trim()
+            ));
+        }
+    }
+    let domain_lock = run_argv(
+        workspace,
+        &[
+            "cargo".to_string(),
+            "run".to_string(),
+            "-q".to_string(),
+            "-p".to_string(),
+            "bijux-dev-dna".to_string(),
+            "--".to_string(),
+            "domain".to_string(),
+            "run".to_string(),
+            "lock-registry".to_string(),
+        ],
+    )?;
+    if !domain_lock.is_success() {
+        return Err(anyhow!(
+            "failed to regenerate domain registry lock: {}",
+            domain_lock.stderr.trim()
+        ));
+    }
+    Ok(())
+}
+
+fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run promote -- --tool <id> --to <experimental|production>";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let options = match parse_named_options("promote", args) {
+        Ok(options) => options,
+        Err(error) if error.to_string() == "help" => return success_line(usage),
+        Err(error) => {
+            return Ok(ContainerCommandOutcome::failure(format!("{}\n", error)));
+        }
+    };
+    let tool = parse_required_option("promote", &options, "tool")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let to_status = parse_required_option("promote", &options, "to")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    if to_status != "experimental" && to_status != "production" {
+        return Ok(ContainerCommandOutcome::failure(
+            "--to must be experimental|production\n".to_string(),
+        ));
+    }
+    let lock_rows = lock_items_by_tool(workspace)?;
+    let Some(lock_row) = lock_rows.get(&tool) else {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "tool '{tool}' not present in containers/versions/lock.json; ad-hoc promotion is forbidden\n"
+        )));
+    };
+    let versions = tool_versions(workspace)?;
+    let Some(version_row) = versions.get(&tool) else {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "tool '{tool}' missing in containers/versions/versions.toml\n"
+        )));
+    };
+    let lock_version = lock_row
+        .get("version")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    let version = table_string(version_row, "version");
+    if lock_version != version {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "tool '{tool}' version mismatch lock='{lock_version}' versions.toml='{version}'\n"
+        )));
+    }
+    if to_status == "production" {
+        let docker_digest = lock_row
+            .get("resolved_image_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let sif_digest = lock_row
+            .get("resolved_sif_sha256")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if docker_digest.is_empty() && sif_digest.is_empty() {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "tool '{tool}' cannot be promoted to production without locked artifact digest\n"
+            )));
+        }
+        let sbom_path = workspace.path(&format!("artifacts/containers/sbom/{tool}"));
+        if !sbom_path.exists() {
+            return Ok(ContainerCommandOutcome::failure(format!(
+                "tool '{tool}' cannot be promoted to production without sbom artifacts at {}\n",
+                sbom_path.display()
+            )));
+        }
+    }
+    set_registry_status(&all_registry_paths(workspace), &tool, &to_status)?;
+    set_versions_status(workspace, &tool, &to_status)?;
+    regenerate_lifecycle_outputs(workspace)?;
+    if to_status == "production" {
+        let sbom_check = run_argv_with_env(
+            workspace,
+            &[
+                "cargo".to_string(),
+                "run".to_string(),
+                "-q".to_string(),
+                "-p".to_string(),
+                "bijux-dev-dna".to_string(),
+                "--".to_string(),
+                "containers".to_string(),
+                "run".to_string(),
+                "check-sbom-artifacts".to_string(),
+            ],
+            &[("REQUIRE_PROMOTED_SBOM".to_string(), "1".to_string())],
+        )?;
+        if !sbom_check.is_success() {
+            return Ok(sbom_check);
+        }
+    }
+    success_line(format!("promoted {tool} -> {to_status}"))
+}
+
+fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let options = match parse_named_options("demote", args) {
+        Ok(options) => options,
+        Err(error) if error.to_string() == "help" => return success_line(usage),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+    };
+    let tool = parse_required_option("demote", &options, "tool")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let stage = parse_required_option("demote", &options, "stage")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let reason = parse_required_option("demote", &options, "reason")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let removal_after = parse_required_option("demote", &options, "removal-after")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    parse_date(&removal_after, "removal-after")?;
+    if !lock_items_by_tool(workspace)?.contains_key(&tool) {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "tool '{tool}' not present in containers/versions/lock.json; ad-hoc demotion is forbidden\n"
+        )));
+    }
+    set_registry_status(&production_registry_paths(workspace), &tool, "experimental")?;
+    set_versions_status(workspace, &tool, "experimental")?;
+    append_toml_table(
+        &registry_deprecations_path(workspace),
+        &format!(
+            "[[deprecations]]\ntool_id = \"{tool}\"\nstage = \"{stage}\"\ndeprecated_since = \"{}\"\nremoval_after = \"{removal_after}\"\nrationale = \"{}\"\n",
+            Utc::now().date_naive().format("%Y-%m-%d"),
+            reason.replace('"', "\\\""),
+        ),
+        "# schema_version = 1\n# owner = bijux-dna-policies\n# purpose = Contract config for configs/ci/registry/deprecations.toml\n# authority = bijux-dna-policies\n# stability = stable\n\n",
+    )?;
+    regenerate_lifecycle_outputs(workspace)?;
+    success_line(format!(
+        "demoted {tool} -> experimental and appended deprecation entry"
+    ))
+}
+
+fn deprecate_version(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run deprecate-version -- --tool <id> --version <semver> --rationale <text> --sunset-date <YYYY-MM-DD> --replacement-tool <id> --replacement-version <semver> [--compatibility-mode allowed|blocked]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let options = match parse_named_options("deprecate-version", args) {
+        Ok(options) => options,
+        Err(error) if error.to_string() == "help" => return success_line(usage),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+    };
+    let tool = parse_required_option("deprecate-version", &options, "tool")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let version = parse_required_option("deprecate-version", &options, "version")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let rationale = parse_required_option("deprecate-version", &options, "rationale")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let sunset_date = parse_required_option("deprecate-version", &options, "sunset-date")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let replacement_tool = parse_required_option("deprecate-version", &options, "replacement-tool")
+        .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let replacement_version =
+        parse_required_option("deprecate-version", &options, "replacement-version")
+            .map_err(|error| anyhow!("{usage}\n{error}"))?;
+    let compatibility_mode = options
+        .get("compatibility-mode")
+        .cloned()
+        .unwrap_or_else(|| "allowed".to_string());
+    if compatibility_mode != "allowed" && compatibility_mode != "blocked" {
+        return Ok(ContainerCommandOutcome::failure(
+            "--compatibility-mode must be allowed|blocked\n".to_string(),
+        ));
+    }
+    parse_date(&sunset_date, "sunset-date")?;
+    let versions = tool_versions(workspace)?;
+    if !versions.contains_key(&tool) {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "unknown tool in versions.toml: {tool}\n"
+        )));
+    }
+    if !versions.contains_key(&replacement_tool) {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "unknown replacement_tool in versions.toml: {replacement_tool}\n"
+        )));
+    }
+    let path = container_version_deprecations_path(workspace);
+    if path.exists() {
+        let value = load_toml(&path)?;
+        for row in value
+            .get("deprecation")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+        {
+            let Some(row) = row.as_table() else {
+                continue;
+            };
+            if table_string(row, "tool_id") == tool && table_string(row, "version") == version {
+                return Ok(ContainerCommandOutcome::failure(format!(
+                    "deprecation already exists for {tool}@{version}\n"
+                )));
+            }
+        }
+    }
+    append_toml_table(
+        &path,
+        &format!(
+            "[[deprecation]]\ntool_id = \"{tool}\"\nversion = \"{version}\"\ndeprecated_since = \"{}\"\nsunset_date = \"{sunset_date}\"\nreplacement_tool = \"{replacement_tool}\"\nreplacement_version = \"{replacement_version}\"\nrationale = \"{}\"\ncompatibility_mode = \"{compatibility_mode}\"\n",
+            Utc::now().date_naive().format("%Y-%m-%d"),
+            rationale.replace('"', "\\\""),
+        ),
+        "# schema_version = 1\n# owner = bijux-dna-platform\n\n",
+    )?;
+    regenerate_lifecycle_outputs(workspace)?;
+    success_line(format!(
+        "deprecated {tool}@{version} (compatibility_mode={compatibility_mode})"
+    ))
+}
+
+fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage:\n  cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to experimental\n  cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to stable\n\nNotes:\n- `stable` is the lifecycle alias for production container status.\n- Status changes must be done through this command (no manual edits).\n";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let options = match parse_named_options("tool-lifecycle", args) {
+        Ok(options) => options,
+        Err(error) if error.to_string() == "help" => return success_line(usage),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+    };
+    let tool = parse_required_option("tool-lifecycle", &options, "tool")
+        .map_err(|error| anyhow!("{usage}{error}"))?;
+    let to = parse_required_option("tool-lifecycle", &options, "to")
+        .map_err(|error| anyhow!("{usage}{error}"))?;
+    let resolved = match to.as_str() {
+        "experimental" => "experimental",
+        "stable" => "production",
+        _ => {
+            return Ok(ContainerCommandOutcome::failure(
+                "--to must be experimental|stable\n".to_string(),
+            ))
+        }
+    };
+    promote_tool(
+        workspace,
+        &[
+            "--tool".to_string(),
+            tool,
+            "--to".to_string(),
+            resolved.to_string(),
+        ],
+    )
 }
 
 fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

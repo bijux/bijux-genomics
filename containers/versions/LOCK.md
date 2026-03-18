@@ -35,7 +35,7 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 ## Deprecation Workflow
 - Version deprecations are tracked in `containers/versions/deprecations.toml`.
 - Add a deprecation entry via:
-  - `./scripts/containers/deprecate-version.sh --tool <id> --version <v> --rationale <text> --removal-after YYYY-MM-DD`
+  - `cargo run -p bijux-dev-dna -- containers run deprecate-version -- --tool <id> --version <v> --rationale <text> --sunset-date YYYY-MM-DD --replacement-tool <id> --replacement-version <v>`
 - Validation gate:
-  - `./scripts/containers/check-version-deprecations.sh`
+  - `cargo run -p bijux-dev-dna -- containers run check-version-deprecations`
 - Reproducibility rule: deprecated versions must remain represented in lock metadata until compatibility window closes.

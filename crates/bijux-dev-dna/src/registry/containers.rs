@@ -133,6 +133,71 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckVersionsIndexSha,
         ),
         native(
+            "check-lock-change-discipline",
+            "Validate that versions.toml and lock.json change together in CI history.",
+            NativeContainerCommandKey::CheckLockChangeDiscipline,
+        ),
+        native(
+            "check-lock-drift",
+            "Validate the generated container version lock file.",
+            NativeContainerCommandKey::CheckLockDrift,
+        ),
+        native(
+            "check-lock-schema",
+            "Validate the schema contract for containers/versions/lock.json.",
+            NativeContainerCommandKey::CheckLockSchema,
+        ),
+        native(
+            "check-version-completeness",
+            "Validate that every governed container has a versions.toml entry.",
+            NativeContainerCommandKey::CheckVersionCompleteness,
+        ),
+        native(
+            "check-version-hash-pin",
+            "Validate that version entries record concrete provenance pins.",
+            NativeContainerCommandKey::CheckVersionHashPin,
+        ),
+        native(
+            "check-version-immutability",
+            "Validate that production version pins are immutable across CI commits.",
+            NativeContainerCommandKey::CheckVersionImmutability,
+        ),
+        native(
+            "check-version-deprecations",
+            "Validate container version deprecation metadata against the lock and version map.",
+            NativeContainerCommandKey::CheckVersionDeprecations,
+        ),
+        native(
+            "check-promotion-policy",
+            "Validate promotion policy documentation markers and native command references.",
+            NativeContainerCommandKey::CheckPromotionPolicy,
+        ),
+        native(
+            "check-promotion-lock-integrity",
+            "Validate that production tools remain represented by canonical lock metadata.",
+            NativeContainerCommandKey::CheckPromotionLockIntegrity,
+        ),
+        native(
+            "promote",
+            "Change a tool lifecycle status and regenerate governed container metadata.",
+            NativeContainerCommandKey::Promote,
+        ),
+        native(
+            "demote",
+            "Demote a production tool and append registry deprecation metadata.",
+            NativeContainerCommandKey::Demote,
+        ),
+        native(
+            "deprecate-version",
+            "Append a container version deprecation entry and regenerate governed metadata.",
+            NativeContainerCommandKey::DeprecateVersion,
+        ),
+        native(
+            "tool-lifecycle",
+            "Apply lifecycle aliases for experimental and stable container states.",
+            NativeContainerCommandKey::ToolLifecycle,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,
