@@ -13,7 +13,7 @@ use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::ArtifactId;
 use bijux_dna_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_dna_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
-use bijux_dna_runner::stage_execution::StageResultV1;
+use bijux_dna_runner::step_runner::StageResultV1;
 
 pub(crate) struct StageExecutionSummary {
     pub plan: ExecutionStep,

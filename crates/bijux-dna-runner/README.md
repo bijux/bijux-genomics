@@ -35,8 +35,8 @@ Runner is the only allowed spawn boundary (plus allowlisted QA/CLI). See
 See `docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.
 
 ## Where to start in code
-- `src/runner_core.rs` for command execution primitives.
-- `src/execute.rs` for step execution orchestration.
+- `src/command_runner.rs` for command execution primitives.
+- `src/step_runner.rs` for step execution orchestration.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.

@@ -5,8 +5,8 @@ pub use bijux_dna_runtime::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
 
 pub mod backend;
-pub mod command_runtime;
-pub mod stage_execution;
+pub mod command_runner;
+pub mod step_runner;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DockerRunner {
@@ -22,7 +22,7 @@ impl DockerRunner {
 
 impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let result = stage_execution::execute_step(
+        let result = step_runner::execute_step(
             &invocation.step,
             bijux_dna_environment::api::RuntimeKind::Docker,
             self.timeout,

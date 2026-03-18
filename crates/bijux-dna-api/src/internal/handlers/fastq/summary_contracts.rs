@@ -6,7 +6,7 @@ mod tests {
         ArtifactId, CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId,
     };
     use bijux_dna_planner_fastq::stage_api::STAGE_TRIM;
-    use bijux_dna_runner::stage_execution::StageResultV1;
+    use bijux_dna_runner::step_runner::StageResultV1;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
     use insta::Settings;
     use std::path::PathBuf;

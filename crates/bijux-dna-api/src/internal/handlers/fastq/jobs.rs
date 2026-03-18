@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex};
 use anyhow::{anyhow, Result};
 
 use bijux_dna_environment::api::RuntimeKind;
-use bijux_dna_runner::stage_execution::execute_step as execute_plan;
-use bijux_dna_runner::stage_execution::StageResultV1;
+use bijux_dna_runner::step_runner::execute_step as execute_plan;
+use bijux_dna_runner::step_runner::StageResultV1;
 
 pub(crate) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)
