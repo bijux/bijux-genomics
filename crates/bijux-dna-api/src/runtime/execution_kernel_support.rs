@@ -304,13 +304,39 @@ pub(super) fn canonicalize_existing(path: &Path) -> Result<PathBuf> {
             .canonicalize()
             .with_context(|| format!("canonicalize {}", path.display()));
     }
-    if path.is_absolute() {
-        Ok(path.to_path_buf())
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
     } else {
-        Ok(std::env::current_dir()
+        std::env::current_dir()
             .context("resolve cwd for relative path contracts")?
-            .join(path))
+            .join(path)
+    };
+
+    let mut missing_components = Vec::new();
+    let mut ancestor = absolute.as_path();
+    while !ancestor.exists() {
+        let name = ancestor.file_name().ok_or_else(|| {
+            anyhow!(
+                "cannot resolve non-existent path without existing ancestor: {}",
+                absolute.display()
+            )
+        })?;
+        missing_components.push(name.to_os_string());
+        ancestor = ancestor.parent().ok_or_else(|| {
+            anyhow!(
+                "cannot resolve parent for non-existent path: {}",
+                absolute.display()
+            )
+        })?;
     }
+
+    let mut resolved = ancestor
+        .canonicalize()
+        .with_context(|| format!("canonicalize ancestor {}", ancestor.display()))?;
+    for component in missing_components.iter().rev() {
+        resolved.push(component);
+    }
+    Ok(resolved)
 }
 
 pub(super) fn ensure_subpath(path: &Path, root: &Path, label: &str) -> Result<()> {
@@ -730,5 +756,15 @@ mod tests {
             per_stage: Some(per_stage),
         };
         validate_runtime_execution_config(&cfg)
+    }
+
+    #[test]
+    fn ensure_subpath_accepts_missing_child_under_canonicalized_root() -> Result<()> {
+        let tmp = tempfile::TempDir::new()?;
+        let output_root = tmp.path().join("out");
+        bijux_dna_infra::ensure_dir(&output_root)?;
+        let tmp_root = output_root.join("stage").join("tmp");
+
+        ensure_subpath(&tmp_root, &output_root, "tmp_root")
     }
 }
