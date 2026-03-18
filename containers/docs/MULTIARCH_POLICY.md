@@ -12,5 +12,5 @@ Purpose: define architecture support contract.
 
 ## References
 - `containers/docker/multiarch-policy.md`
-- `scripts/containers/check-docker-arch-policy.sh`
-- `scripts/containers/check-docker-arm64-completeness.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-docker-arch-policy`
+- `cargo run -p bijux-dev-dna -- containers run check-docker-arm64-completeness`

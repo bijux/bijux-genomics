@@ -201,6 +201,38 @@ pub fn run_native_container_command(
             ensure_no_args("check-tool-id-contract", args)?;
             check_tool_id_contract(workspace)
         }
+        NativeContainerCommandKey::CheckDockerArchPolicy => {
+            ensure_no_args("check-docker-arch-policy", args)?;
+            check_docker_arch_policy(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerArm64Completeness => {
+            ensure_no_args("check-docker-arm64-completeness", args)?;
+            check_docker_arm64_completeness(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerContext => {
+            ensure_no_args("check-docker-context", args)?;
+            check_docker_context(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerHardening => {
+            ensure_no_args("check-docker-hardening", args)?;
+            check_docker_hardening(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerLabels => {
+            ensure_no_args("check-docker-labels", args)?;
+            check_docker_labels(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerUnpinnedApt => {
+            ensure_no_args("check-docker-unpinned-apt", args)?;
+            check_docker_unpinned_apt(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerVersionSync => {
+            ensure_no_args("check-docker-version-sync", args)?;
+            check_docker_version_sync(workspace)
+        }
+        NativeContainerCommandKey::CheckDockerfilesBuilt => {
+            ensure_no_args("check-dockerfiles-built", args)?;
+            check_dockerfiles_built(workspace)
+        }
         NativeContainerCommandKey::Summary => summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => run_env_smoke(workspace, args),
@@ -795,6 +827,21 @@ fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
         }
     }
     Ok(ids)
+}
+
+fn dockerfile_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
+    let mut paths = fs::read_dir(workspace.path("containers/docker/arm64"))
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("Dockerfile."))
+        })
+        .collect::<Vec<_>>();
+    paths.sort();
+    Ok(paths)
 }
 
 fn apptainer_tool_ids(workspace: &Workspace) -> BTreeSet<String> {
@@ -4974,6 +5021,584 @@ fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutco
         return success_line("tool id contract: OK");
     }
     failure_lines("tool id contract check failed:", &errors)
+}
+
+fn check_docker_arch_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let amd64_dir = workspace.path("containers/docker/amd64");
+    let policy_doc = workspace.path("containers/docker/multiarch-policy.md");
+    if !policy_doc.is_file() {
+        return Ok(ContainerCommandOutcome::failure(
+            "docker arch policy: missing containers/docker/multiarch-policy.md\n",
+        ));
+    }
+    let text = read_utf8(&policy_doc)?;
+    let mut errors = Vec::new();
+    if !text.contains("arm64") {
+        errors.push("policy doc must mention arm64 support contract".to_string());
+    }
+    for marker in ["build strategy", "publish strategy", "promotion criteria"] {
+        if !text.to_ascii_lowercase().contains(marker) {
+            errors.push(format!("policy doc missing required multiarch marker: {marker}"));
+        }
+    }
+    for marker in ["cross-build", "buildx", "naming convention", "amd64"] {
+        if !text.to_ascii_lowercase().contains(marker) {
+            errors.push(format!("policy doc missing required amd64-plan marker: {marker}"));
+        }
+    }
+    if amd64_dir.is_dir()
+        && fs::read_dir(&amd64_dir)
+            .with_context(|| format!("read {}", amd64_dir.display()))?
+            .filter_map(std::result::Result::ok)
+            .any(|entry| {
+                entry
+                    .path()
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with("Dockerfile."))
+            })
+    {
+        errors.push(
+            "amd64 Dockerfiles detected under containers/docker/amd64\nThis repo currently ships docker/arm64 definitions only by contract."
+                .to_string(),
+        );
+    }
+    if errors.is_empty() {
+        return success_line("docker arch policy: OK (arm64-only)");
+    }
+    failure_lines("docker arch policy: failed", &errors)
+}
+
+fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let docker = docker_tool_ids(workspace)?;
+    let mut required = BTreeSet::new();
+    for row in registry_tool_rows(workspace)? {
+        let tool = {
+            let id = table_string(&row, "id");
+            if id.is_empty() {
+                table_string(&row, "tool_id")
+            } else {
+                id
+            }
+        };
+        let runtimes = table_array_strings(&row, "runtimes");
+        if !tool.is_empty() && runtimes.iter().any(|runtime| runtime == "docker") {
+            required.insert(tool);
+        }
+    }
+    let waiver_path = workspace.path("containers/docker/arm64/WAIVERS.toml");
+    let mut waived = BTreeSet::new();
+    if waiver_path.exists() {
+        let data = load_toml(&waiver_path)?;
+        for row in data
+            .get("waiver")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+        {
+            let Some(row) = row.as_table() else {
+                continue;
+            };
+            let tool = table_string(row, "tool_id");
+            let reason = table_string(row, "reason");
+            let owner = table_string(row, "owner");
+            let expires = table_string(row, "expires_on");
+            if tool.is_empty() {
+                return Ok(ContainerCommandOutcome::failure(
+                    "docker arm64 completeness: waiver missing tool_id\n",
+                ));
+            }
+            if reason.is_empty() || owner.is_empty() || expires.is_empty() {
+                return Ok(ContainerCommandOutcome::failure(format!(
+                    "docker arm64 completeness: waiver for {tool} missing reason/owner/expires_on\n"
+                )));
+            }
+            waived.insert(tool);
+        }
+    }
+    let missing = required
+        .difference(&docker)
+        .filter(|tool| !waived.contains(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return success_line("docker arm64 completeness: OK");
+    }
+    failure_lines(
+        "docker arm64 completeness: missing dockerfile for docker runtime registry tools:",
+        &missing,
+    )
+}
+
+fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let mut errors = Vec::new();
+    let scan_roots = [workspace.path("scripts"), workspace.path("makes")];
+    let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$").expect("regex");
+    let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)").expect("regex");
+    for root in scan_roots {
+        if !root.exists() {
+            continue;
+        }
+        for entry in walkdir::WalkDir::new(&root)
+            .into_iter()
+            .filter_map(std::result::Result::ok)
+            .filter(|entry| entry.file_type().is_file())
+        {
+            let path = entry.path();
+            let ext = path.extension().and_then(|ext| ext.to_str()).unwrap_or_default();
+            if ext != "sh" && ext != "mk" {
+                continue;
+            }
+            for (index, line) in read_utf8(path)?.lines().enumerate() {
+                let trimmed = line.trim();
+                if !trimmed.contains("docker build") {
+                    continue;
+                }
+                if broad_build_re.is_match(trimmed)
+                    || trimmed.ends_with("docker build")
+                    || trimmed.ends_with("docker build .")
+                {
+                    errors.push(format!(
+                        "{}:{}: docker build must not use repo-root context '.'",
+                        workspace.rel(path).display(),
+                        index + 1
+                    ));
+                }
+                if trimmed.contains("-f containers/docker/") && !trimmed.contains(" containers/docker/") {
+                    errors.push(format!(
+                        "{}:{}: docker build should use containers/docker/<arch> as context",
+                        workspace.rel(path).display(),
+                        index + 1
+                    ));
+                }
+            }
+        }
+    }
+    let dockerignore = workspace.path("containers/docker/arm64/.dockerignore");
+    if !dockerignore.exists() {
+        errors.push(
+            "containers/docker/arm64/.dockerignore: missing (required for context minimization)"
+                .to_string(),
+        );
+    } else {
+        let dockerignore_text = read_utf8(&dockerignore)?;
+        for pattern in [".git", "artifacts", "assets", "**/*.pem", "**/*.key", ".env"] {
+            if !dockerignore_text.contains(pattern) {
+                errors.push(format!(
+                    "containers/docker/arm64/.dockerignore: missing pattern '{pattern}'"
+                ));
+            }
+        }
+    }
+    for path in dockerfile_paths(workspace)? {
+        for (index, line) in read_utf8(&path)?.lines().enumerate() {
+            let trimmed = line.trim();
+            if Regex::new(r"^(COPY|ADD)\s+\.\s").expect("regex").is_match(trimmed) {
+                errors.push(format!(
+                    "{}:{}: forbidden broad context copy ('COPY . ...' or 'ADD . ...')",
+                    workspace.rel(&path).display(),
+                    index + 1
+                ));
+            }
+            if host_copy_re.is_match(trimmed) {
+                errors.push(format!(
+                    "{}:{}: forbidden host/workspace path copy in Dockerfile",
+                    workspace.rel(&path).display(),
+                    index + 1
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docker context policy: OK");
+    }
+    failure_lines("docker context check failed:", &errors)
+}
+
+fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let exceptions_doc = workspace.path("containers/docker/NONROOT_EXCEPTIONS.md");
+    let entrypoint_doc = workspace.path("containers/docker/ENTRYPOINT_EXCEPTIONS.md");
+    if !exceptions_doc.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "missing containers/docker/NONROOT_EXCEPTIONS.md\n",
+        ));
+    }
+    if !entrypoint_doc.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "missing containers/docker/ENTRYPOINT_EXCEPTIONS.md\n",
+        ));
+    }
+    let row_re = Regex::new(r"\|\s*`([^`]+)`\s*\|").expect("regex");
+    let allowed = row_re
+        .captures_iter(&read_utf8(&exceptions_doc)?)
+        .filter_map(|captures| captures.get(1).map(|value| value.as_str().to_string()))
+        .collect::<BTreeSet<_>>();
+    let entrypoint_allowed = row_re
+        .captures_iter(&read_utf8(&entrypoint_doc)?)
+        .filter_map(|captures| captures.get(1).map(|value| value.as_str().to_string()))
+        .collect::<BTreeSet<_>>();
+    let required_labels = [
+        "org.opencontainers.image.source",
+        "org.opencontainers.image.revision",
+        "org.opencontainers.image.created",
+        "org.opencontainers.image.licenses",
+        "org.opencontainers.image.version",
+        "org.opencontainers.image.tool",
+        "org.opencontainers.image.title",
+    ];
+    let entrypoint_re = Regex::new(r"^ENTRYPOINT\s+\[").expect("regex");
+    let cmd_re = Regex::new(r"^CMD\s+\[").expect("regex");
+    let cmd_line_re = Regex::new(r"^CMD\s+\[(.+)\]\s*$").expect("regex");
+    let user_re = Regex::new(r"^USER\s+(.+)$").expect("regex");
+    let healthcheck_re = Regex::new(r"^HEALTHCHECK\s+(.+)$").expect("regex");
+    let sh_entrypoint_re = Regex::new(r#"^ENTRYPOINT\s+\["/bin/sh",\s*"-c""#).expect("regex");
+    let mut errors = Vec::new();
+    for path in dockerfile_paths(workspace)? {
+        let tool_id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .unwrap_or_default()
+            .to_string();
+        let text = read_utf8(&path)?;
+        let rel = workspace.rel(&path).display().to_string();
+        for label in required_labels {
+            if !text.contains(label) {
+                errors.push(format!("{rel}: missing label {label}"));
+            }
+        }
+        let pipe_shell_re = Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")
+            .expect("regex");
+        if pipe_shell_re.is_match(&text) {
+            errors.push(format!("{rel}: forbidden curl|bash or wget|sh pattern"));
+        }
+        let first_from = text
+            .lines()
+            .find(|line| line.trim().starts_with("FROM "))
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if !first_from.contains("@sha256:") {
+            errors.push(format!("{rel}: FROM must be digest-pinned"));
+        }
+        let has_entrypoint = text.lines().any(|line| entrypoint_re.is_match(line.trim()));
+        let has_cmd = text.lines().any(|line| cmd_re.is_match(line.trim()));
+        let entrypoint_exempt = entrypoint_allowed.contains(&tool_id) || entrypoint_allowed.contains("*");
+        if !has_cmd && !entrypoint_exempt {
+            errors.push(format!("{rel}: missing JSON-form CMD"));
+        } else if has_cmd {
+            let cmd_text = text
+                .lines()
+                .find_map(|line| cmd_line_re.captures(line.trim()))
+                .and_then(|captures| captures.get(1).map(|value| value.as_str().to_ascii_lowercase()))
+                .unwrap_or_default();
+            if !entrypoint_exempt
+                && !["--help", "-h", "--version"]
+                    .iter()
+                    .any(|needle| cmd_text.contains(needle))
+            {
+                errors.push(format!("{rel}: CMD should default to --help/-h/--version"));
+            }
+        }
+        if has_entrypoint && !entrypoint_exempt {
+            errors.push(format!(
+                "{rel}: ENTRYPOINT is forbidden unless listed in ENTRYPOINT_EXCEPTIONS.md"
+            ));
+        }
+        if sh_entrypoint_re
+            .is_match(text.lines().find(|line| line.trim().starts_with("ENTRYPOINT")).unwrap_or_default())
+            && !entrypoint_exempt
+        {
+            errors.push(format!("{rel}: ENTRYPOINT must not use /bin/sh -c wrapper"));
+        }
+        let nonroot = text
+            .lines()
+            .filter_map(|line| user_re.captures(line.trim()))
+            .filter_map(|captures| captures.get(1).map(|value| value.as_str().trim().to_string()))
+            .any(|user| user != "root" && user != "0");
+        if !nonroot && !allowed.contains(&tool_id) && !allowed.contains("*") {
+            errors.push(format!(
+                "{rel}: no non-root USER and not listed in NONROOT_EXCEPTIONS.md"
+            ));
+        }
+        if text.contains("HEALTHCHECK") {
+            let line = text
+                .lines()
+                .find_map(|line| healthcheck_re.captures(line.trim()))
+                .and_then(|captures| captures.get(1).map(|value| value.as_str().to_string()))
+                .unwrap_or_default();
+            if !line.contains("--interval=") || !line.contains("--timeout=") {
+                errors.push(format!(
+                    "{rel}: HEALTHCHECK must define --interval and --timeout"
+                ));
+            }
+            if !text.contains("--version") && !text.to_ascii_lowercase().contains("healthcheck") {
+                errors.push(format!(
+                    "{rel}: HEALTHCHECK should verify tool --version or explicit health check"
+                ));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docker hardening: OK");
+    }
+    failure_lines("docker hardening: failed", &errors)
+}
+
+fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let required = [
+        "org.opencontainers.image.title",
+        "org.opencontainers.image.version",
+        "org.opencontainers.image.source",
+        "org.opencontainers.image.licenses",
+    ];
+    let tool_re =
+        Regex::new(r#"org\.opencontainers\.image\.tool="?([A-Za-z0-9_.-]+)"?"#).expect("regex");
+    let version_re =
+        Regex::new(r#"org\.opencontainers\.image\.version="?([A-Za-z0-9_.:-]+)"?"#).expect("regex");
+    let apptainer_version_re =
+        Regex::new(r#"org\.opencontainers\.image\.version\s+([^\s]+)"#).expect("regex");
+    let mut docker_versions = BTreeMap::new();
+    let mut errors = Vec::new();
+    for path in dockerfile_paths(workspace)? {
+        let text = read_utf8(&path)?;
+        let rel = workspace.rel(&path).display().to_string();
+        let missing = required
+            .iter()
+            .filter(|label| !text.contains(**label))
+            .cloned()
+            .collect::<Vec<_>>();
+        if !missing.is_empty() {
+            errors.push(format!("{rel} missing labels: {}", missing.join(", ")));
+        }
+        let tool_id = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .unwrap_or_default()
+            .to_string();
+        if let Some(captures) = tool_re.captures(&text) {
+            let label = captures.get(1).map(|value| value.as_str()).unwrap_or_default();
+            if label != tool_id {
+                errors.push(format!("{rel} tool label mismatch: {label} != {tool_id}"));
+            }
+        }
+        if let Some(captures) = version_re.captures(&text) {
+            docker_versions.insert(
+                tool_id,
+                captures
+                    .get(1)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+            );
+        }
+    }
+    for path in apptainer_def_paths(workspace) {
+        let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let Some(docker_version) = docker_versions.get(&tool_id) else {
+            continue;
+        };
+        let text = read_utf8(&path)?;
+        let Some(captures) = apptainer_version_re.captures(&text) else {
+            continue;
+        };
+        let apptainer_version = captures
+            .get(1)
+            .map(|value| value.as_str().trim().trim_matches('"').to_string())
+            .unwrap_or_default();
+        if docker_version != &apptainer_version {
+            errors.push(format!(
+                "version parity mismatch for {tool_id}: docker={} apptainer={apptainer_version}",
+                docker_version
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docker label policy: OK");
+    }
+    failure_lines("docker label policy check failed:", &errors)
+}
+
+fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let ci_mode = matches!(
+        env_or_empty("CI").trim().to_ascii_lowercase().as_str(),
+        "1" | "true" | "yes"
+    );
+    let mut errors = Vec::new();
+    for dockerfile in dockerfile_paths(workspace)? {
+        let rel = workspace.rel(&dockerfile).display().to_string();
+        for line in read_utf8(&dockerfile)?.lines() {
+            if !line.contains("apt-get install") && !line.contains("apt install") {
+                continue;
+            }
+            let mut segment = if let Some((_, tail)) = line.split_once("apt-get install") {
+                tail.to_string()
+            } else if let Some((_, tail)) = line.split_once("apt install") {
+                tail.to_string()
+            } else {
+                continue;
+            };
+            let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?").expect("regex");
+            segment = option_re.replace_all(&segment, " ").into_owned();
+            segment = segment.replace("&&", " ").replace('\\', " ");
+            for token in segment
+                .split_whitespace()
+                .filter(|token| !token.is_empty())
+            {
+                if matches!(
+                    token,
+                    "install" | "apt-get" | "apt" | "update" | "rm" | "-rf" | "/var/lib/apt/lists/*" | ";" | "|"
+                ) {
+                    continue;
+                }
+                if token.starts_with('$') || token.starts_with('"') || token.starts_with('/') {
+                    continue;
+                }
+                if !token.contains('=') {
+                    errors.push(format!("{rel}: unpinned apt package '{token}'"));
+                }
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docker apt pin check: OK");
+    }
+    if ci_mode {
+        return failure_lines("docker apt pin check: failed", &errors);
+    }
+    Ok(ContainerCommandOutcome::success(format!(
+        "docker apt pin check: WARN (non-CI mode)\n{}\n",
+        errors
+            .into_iter()
+            .map(|error| format!("- {error}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    )))
+}
+
+fn check_docker_version_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let versions = tool_versions(workspace)?;
+    let arg_re = Regex::new(r#"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$"#).expect("regex");
+    let mut errors = Vec::new();
+    for dockerfile in dockerfile_paths(workspace)? {
+        let tool = dockerfile
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .unwrap_or_default()
+            .to_string();
+        let text = read_utf8(&dockerfile)?;
+        let Some(docker_version) = text
+            .lines()
+            .find_map(|line| arg_re.captures(line.trim()))
+            .and_then(|captures| captures.get(1).map(|value| value.as_str().trim().trim_matches('"').trim_matches('\'').to_string()))
+        else {
+            errors.push(format!(
+                "{}: missing ARG TOOL_VERSION=<version>",
+                workspace.rel(&dockerfile).display()
+            ));
+            continue;
+        };
+        let Some(registry_row) = versions.get(&tool) else {
+            errors.push(format!(
+                "{}: tool '{tool}' missing in versions.toml",
+                workspace.rel(&dockerfile).display()
+            ));
+            continue;
+        };
+        let registry_version = table_string(registry_row, "version");
+        let placeholder = matches!(
+            docker_version.as_str(),
+            "unknown" | "planned" | "latest-pinned"
+        ) || docker_version.ends_with("-planned");
+        if !placeholder && docker_version != registry_version {
+            errors.push(format!(
+                "{}: TOOL_VERSION '{docker_version}' != versions.toml '{registry_version}'",
+                workspace.rel(&dockerfile).display()
+            ));
+        }
+        if !text.contains(r#"org.opencontainers.image.version="${TOOL_VERSION}""#) {
+            errors.push(format!(
+                "{}: image version label must reference TOOL_VERSION build arg",
+                workspace.rel(&dockerfile).display()
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docker version sync: OK");
+    }
+    failure_lines("docker version sync: failed", &errors)
+}
+
+fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    if env_or_empty("CI").is_empty() {
+        return success_line("dockerfiles built check: SKIP (CI-only gate)");
+    }
+    let summary_path = workspace.path("artifacts/containers/summary.json");
+    if !summary_path.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "dockerfiles built check: missing artifacts/containers/summary.json\n",
+        ));
+    }
+    let summary = read_json(&summary_path)?;
+    let expected_tools = dockerfile_paths(workspace)?
+        .into_iter()
+        .filter_map(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .and_then(|name| name.strip_prefix("Dockerfile."))
+                .map(ToOwned::to_owned)
+        })
+        .collect::<Vec<_>>();
+    let rows = summary
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|row| row.get("runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64"))
+        .filter_map(|row| {
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .map(|tool| tool.trim().to_string())?;
+            Some((tool, row))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let mut errors = Vec::new();
+    for tool in expected_tools {
+        let Some(row) = rows.get(&tool) else {
+            errors.push(format!("{tool}: missing docker-arm64 summary row"));
+            continue;
+        };
+        if row.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
+            errors.push(format!("{tool}: build/smoke status is not ok"));
+            continue;
+        }
+        let manifest_path = PathBuf::from(
+            row.get("manifest")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
+        if !manifest_path.exists() {
+            errors.push(format!("{tool}: manifest missing at {}", manifest_path.display()));
+            continue;
+        }
+        let manifest = read_json(&manifest_path)?;
+        let digest = manifest
+            .get("resolved_image_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if digest.is_empty() {
+            errors.push(format!("{tool}: missing resolved_image_digest in manifest"));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("dockerfiles built check: OK");
+    }
+    failure_lines("dockerfiles built check: failed", &errors)
 }
 
 fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

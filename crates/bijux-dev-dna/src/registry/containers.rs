@@ -308,6 +308,46 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckToolIdContract,
         ),
         native(
+            "check-docker-arch-policy",
+            "Validate the arm64-only Docker policy and multiarch planning documentation.",
+            NativeContainerCommandKey::CheckDockerArchPolicy,
+        ),
+        native(
+            "check-docker-arm64-completeness",
+            "Validate docker-arm64 coverage for every registry tool that declares Docker runtime support.",
+            NativeContainerCommandKey::CheckDockerArm64Completeness,
+        ),
+        native(
+            "check-docker-context",
+            "Validate Docker build context minimization and forbidden broad copies.",
+            NativeContainerCommandKey::CheckDockerContext,
+        ),
+        native(
+            "check-docker-hardening",
+            "Validate Dockerfile hardening, non-root, and entrypoint contracts.",
+            NativeContainerCommandKey::CheckDockerHardening,
+        ),
+        native(
+            "check-docker-labels",
+            "Validate Docker label coverage and version parity with Apptainer definitions.",
+            NativeContainerCommandKey::CheckDockerLabels,
+        ),
+        native(
+            "check-docker-unpinned-apt",
+            "Validate apt package pinning across Dockerfiles.",
+            NativeContainerCommandKey::CheckDockerUnpinnedApt,
+        ),
+        native(
+            "check-docker-version-sync",
+            "Validate Docker TOOL_VERSION args and image version labels against versions.toml.",
+            NativeContainerCommandKey::CheckDockerVersionSync,
+        ),
+        native(
+            "check-dockerfiles-built",
+            "Validate docker-arm64 build manifests for every governed Dockerfile in CI.",
+            NativeContainerCommandKey::CheckDockerfilesBuilt,
+        ),
+        native(
             "summary",
             "Summarize container manifests and optionally write JSON output.",
             NativeContainerCommandKey::Summary,

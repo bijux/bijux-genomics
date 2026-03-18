@@ -16,12 +16,12 @@ This freeze marks governance checks for container policy Stage 1 on HPC frontend
 - `scripts/checks/check-deprecations-enforcement.sh` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-deprecations` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-lock` -> `OK`
-- `scripts/containers/check-docker-labels.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-docker-labels` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-registry-vs-defs` -> `OK`
 - `scripts/checks/check-container-ssot-parity.sh` -> `OK`
 - `scripts/checks/check-registry-required-tools-parity.sh` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-qa-matrix-generated` -> `OK`
-- `scripts/containers/check-dockerfiles-built.sh` -> `SKIP (CI-only gate)`
+- `cargo run -p bijux-dev-dna -- containers run check-dockerfiles-built` -> `SKIP (CI-only gate)`
 
 ## QA Matrix
 - Generated/validated by:
