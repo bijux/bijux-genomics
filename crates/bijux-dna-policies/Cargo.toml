@@ -1,7 +1,7 @@
 [package]
 name = "bijux-dna-policies"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
 
 license.workspace = true
 rust-version.workspace = true
@@ -15,8 +15,8 @@ cargo_metadata = "0.18"
 toml = { workspace = true }
 
 [dev-dependencies]
-insta = { version = "1.38", features = ["glob"] }
-sha2 = "0.10"
+insta = { workspace = true, features = ["glob"] }
+sha2.workspace = true
 serde_yaml = "0.9"
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }

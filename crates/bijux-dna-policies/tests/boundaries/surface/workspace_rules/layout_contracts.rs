@@ -242,7 +242,7 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
         bijux_dna_policies::policy_panic!("missing crate bijux-dna-engine");
     };
     let src = engine.join("src");
-    let allowed = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs", "runtime_facade.rs"]);
+    let allowed = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs"]);
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&src).expect("read bijux-dna-engine/src") {
         let entry = entry.expect("engine src entry");
