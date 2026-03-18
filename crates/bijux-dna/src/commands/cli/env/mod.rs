@@ -1,3 +1,3 @@
 include!("env_command_handlers.rs");
-include!("env_part2.inc");
-include!("env_part3.inc");
+include!("env_registry_commands.rs");
+include!("env_runtime_support.rs");

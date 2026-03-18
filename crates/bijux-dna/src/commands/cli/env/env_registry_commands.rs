@@ -432,12 +432,14 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src =
-        std::fs::read_to_string(cwd.join("crates/bijux-dna/src/commands/cli/env/env_part3.inc"))
-            .context("read env_part3.inc for apptainer runtime policy")?;
+        std::fs::read_to_string(
+            cwd.join("crates/bijux-dna/src/commands/cli/env/env_runtime_support.rs"),
+        )
+        .context("read env_runtime_support.rs for apptainer runtime policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
         if !env_src.contains(required) {
             offenders.push(format!(
-                "runtime policy missing required apptainer flag marker `{required}` in env_part3.inc"
+                "runtime policy missing required apptainer flag marker `{required}` in env_runtime_support.rs"
             ));
         }
     }
