@@ -3,6 +3,8 @@
 Purpose: domain schema validation and drift detection.
 
 Back to index: `scripts/README.md`.
+Control plane: `cargo run -p bijux-dev-dna -- domain ...`.
+Compatibility entrypoints: `./scripts/run.sh domain <command>` and `./scripts/domain/make.sh <command>`.
 
 Requires: bash, rg, coreutils (plus script-specific tools documented inline).
 Exit codes: 0 success; 1 policy/validation failure; 2 usage/config error; 127 missing dependency.
