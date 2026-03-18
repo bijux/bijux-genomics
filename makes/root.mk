@@ -6,6 +6,7 @@ ROOT_MK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 8)
 NEXTEST_JOBS ?= $(JOBS)
 
+include $(ROOT_MK_DIR)/_macro.mk
 include $(ROOT_MK_DIR)/cargo.mk
 include $(ROOT_MK_DIR)/cargo-dev.mk
 include $(ROOT_MK_DIR)/containers.mk
