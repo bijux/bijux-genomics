@@ -40,7 +40,7 @@ execution_contract:
 upstream: "unknown"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "latest-pinned"
+default_version: "4.9"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
@@ -49,8 +49,8 @@ stage_ids:
   - "fastq.primer_normalization"
   - "fastq.damage_aware_pretrim"
 expected_artifacts: ["report_json"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.trim.v1"
+metrics_schema: "bijux.fastq.trim.v1"
 version_cmd: "cutadapt --version"
 help_cmd: "cutadapt --help"
 comparability:

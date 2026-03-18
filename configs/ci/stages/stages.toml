@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 351b4c91f141a95572bc29537de5b4329b1ee76d
+# source_commit: 1f61e3c735dd2ed5b43758187ab59aa44f8d225d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -312,6 +312,25 @@ duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
+
+[[stages]]
+id = "fastq.damage_aware_pretrim"
+status = "supported"
+output_kinds = ["fastq"]
+ordering_after = ["fastq.validate_pre"]
+prerequisites = ["fastq.validate_pre"]
+resource_memory_gb = 4
+resource_time_minutes = 20
+resource_threads = 4
+sanity_metrics = ["reads_in", "reads_out"]
+output_size_estimates_mb = ["pretrim_report:4", "trimmed_fastq:1800"]
+qc_thresholds = ["reads_out|warn=<100|fail=<=0"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["cutadapt", "seqkit"]
 
 [[stages]]
 id = "fastq.detect_adapters"
@@ -630,23 +649,3 @@ stage_id = "fastq.trim"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
 
-
-[[stages]]
-id = "fastq.damage_aware_pretrim"
-status = "supported"
-output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.validate_pre"]
-prerequisites = ["fastq.validate_pre"]
-resource_memory_gb = 8
-resource_time_minutes = 30
-resource_threads = 4
-sanity_metrics = ["ct_ga_asymmetry_pre", "ct_ga_asymmetry_post"]
-output_size_estimates_mb = ["trimmed_fastq:1200", "damage_pretrim_metrics:3"]
-qc_thresholds = ["ct_ga_asymmetry_post|warn=>0.4|fail=>0.6"]
-contamination_thresholds = ["not_applicable"]
-authenticity_thresholds = ["not_applicable"]
-duplication_thresholds = ["not_applicable"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["cutadapt", "seqkit"]
-metrics_schema = "bijux.fastq.metrics.damage_aware_pretrim.v1"
