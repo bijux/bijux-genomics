@@ -576,7 +576,7 @@ mod tests {
     #[test]
     fn bam_stage_contract_suite_emits_normalized_metrics_for_all_stages() -> Result<()> {
         let temp = tempfile::tempdir()?;
-        let result = bijux_dna_runner::stage_execution::StageResultV1 {
+        let result = bijux_dna_runner::step_runner::StageResultV1 {
             run_id: "test".to_string(),
             exit_code: 0,
             runtime_s: 1.0,
@@ -687,7 +687,7 @@ mod tests {
             None,
         )?;
         let plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
-        let result = bijux_dna_runner::stage_execution::StageResultV1 {
+        let result = bijux_dna_runner::step_runner::StageResultV1 {
             run_id: "test".to_string(),
             exit_code: 0,
             runtime_s: 0.5,

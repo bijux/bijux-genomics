@@ -4,7 +4,7 @@ mod locking;
 mod logging;
 mod paths;
 mod retry;
-mod run_layout;
+mod run_directories;
 mod temp;
 #[cfg(test)]
 mod tests;
@@ -24,7 +24,7 @@ pub use paths::{
     bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir, configs_dir, configs_file,
 };
 pub use retry::{backoff_delay, retry_with, Clock, RetryPolicy, SystemClock};
-pub use run_layout::{
+pub use run_directories::{
     lock_run, normalize_run_base_dir, pipeline_run_dir, publish_run, run_layout_paths,
     run_stage_dir, RunLayoutContract, RunLayoutPaths, PIPELINE_RUN_DIR_TEMPLATE,
     RUN_LAYOUT_CONTRACT,

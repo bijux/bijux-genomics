@@ -65,7 +65,10 @@ pub(super) fn maybe_emit_reference_manifest(
     let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(std::path::Path::parent)
-        .map_or_else(|| std::path::PathBuf::from("."), std::path::Path::to_path_buf);
+        .map_or_else(
+            || std::path::PathBuf::from("."),
+            std::path::Path::to_path_buf,
+        );
     let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
     let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
     let lock_json_sha256 = if lock_json.exists() {
@@ -379,7 +382,10 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
 }
 
 fn is_fastq_like_path(path: &Path) -> bool {
-    let file_name = path.file_name().and_then(|x| x.to_str()).unwrap_or_default();
+    let file_name = path
+        .file_name()
+        .and_then(|x| x.to_str())
+        .unwrap_or_default();
     let lower = file_name.to_ascii_lowercase();
     let ext_fastq = path
         .extension()
@@ -407,7 +413,7 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
             .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
         {
             let args = vec!["-cd".to_string(), p.to_string_lossy().into_owned()];
-            bijux_dna_runner::command_runtime::run_command("gzip", &args)
+            bijux_dna_runner::command_runner::run_command("gzip", &args)
                 .ok()
                 .filter(|o| o.exit_code == 0)
                 .map(|o| o.stdout)

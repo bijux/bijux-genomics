@@ -69,7 +69,7 @@ fn parse_sort_order_from_header_hint(bam_path: &Path) -> Option<String> {
 
 fn command_stdout(bin: &str, args: &[&str]) -> Option<String> {
     let args = args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>();
-    let out = bijux_dna_runner::command_runtime::run_command(bin, &args).ok()?;
+    let out = bijux_dna_runner::command_runner::run_command(bin, &args).ok()?;
     if out.exit_code != 0 {
         return None;
     }
@@ -113,7 +113,7 @@ fn bam_read_group_presence_samtools(bam_path: &Path) -> Option<bool> {
 
 fn bam_quickcheck_ok(bam_path: &Path) -> Option<bool> {
     let args = vec!["quickcheck".to_string(), bam_path.to_string_lossy().into_owned()];
-    let output = bijux_dna_runner::command_runtime::run_command("samtools", &args).ok()?;
+    let output = bijux_dna_runner::command_runner::run_command("samtools", &args).ok()?;
     Some(output.exit_code == 0)
 }
 
@@ -365,8 +365,8 @@ fn stage_resume_summary_path(stage_dir: &Path) -> PathBuf {
     stage_dir.join("stage_resume.json")
 }
 
-fn build_resumed_stage_result(outputs: Vec<PathBuf>) -> bijux_dna_runner::stage_execution::StageResultV1 {
-    bijux_dna_runner::stage_execution::StageResultV1 {
+fn build_resumed_stage_result(outputs: Vec<PathBuf>) -> bijux_dna_runner::step_runner::StageResultV1 {
+    bijux_dna_runner::step_runner::StageResultV1 {
         run_id: "resume-skip".to_string(),
         exit_code: 0,
         runtime_s: 0.0,
@@ -471,7 +471,7 @@ fn write_normalized_bam_metrics(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
-    result: &bijux_dna_runner::stage_execution::StageResultV1,
+    result: &bijux_dna_runner::step_runner::StageResultV1,
 ) -> Result<()> {
     let mut artifact_status = serde_json::Map::new();
     let mut missing = Vec::new();

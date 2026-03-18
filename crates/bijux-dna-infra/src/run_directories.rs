@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use crate::{ensure_dir, atomic_write_json, FileLock, IoError};
+use crate::{atomic_write_json, ensure_dir, FileLock, IoError};
 
 #[must_use]
 pub fn normalize_run_base_dir(cwd: &Path, run_base: &Path) -> PathBuf {

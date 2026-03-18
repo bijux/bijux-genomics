@@ -7,4 +7,4 @@ Public modules exported from src/lib.rs:
 - snapshots
 - clocks
 - random
-- policy_support
+- policy_files

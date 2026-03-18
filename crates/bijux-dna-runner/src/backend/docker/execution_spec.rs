@@ -5,7 +5,7 @@ use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionS
 use bijux_dna_environment::api::{PlatformSpec, ToolImageSpec};
 
 use crate::backend::docker::executor::resolve_image_for_run;
-use crate::command_runtime::invocation_hash;
+use crate::command_runner::invocation_hash;
 
 /// Build a runtime execution specification from registry and image catalog.
 ///

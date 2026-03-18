@@ -14,7 +14,7 @@ use uuid::Uuid;
 use crate::backend::docker::executor::{
     docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb,
 };
-use crate::command_runtime::{run_command, CommandOutputV1};
+use crate::command_runner::{run_command, CommandOutputV1};
 
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
