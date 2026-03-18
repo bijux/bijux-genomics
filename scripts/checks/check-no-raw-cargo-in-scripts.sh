@@ -28,7 +28,7 @@ while IFS= read -r rel; do
     continue
   fi
   case "$rel" in
-    scripts/checks/check-generated-configs.sh|scripts/containers/registry-tools.sh|scripts/containers/smoke-apptainer.sh|scripts/domain/validate.sh|scripts/lab/run_bench.sh|scripts/lab/run_pipelines.sh|scripts/tooling/generate-configs.sh|scripts/tooling/bijux.sh)
+    scripts/checks/check-generated-configs.sh|scripts/containers/registry-tools.sh|scripts/containers/smoke-apptainer.sh|scripts/domain/validate.sh|scripts/lab/run_bench.sh|scripts/lab/run_pipelines.sh|scripts/tooling/generate-configs.sh|scripts/tooling/bijux.sh|scripts/tooling/image-qa.sh)
       continue
       ;;
   esac

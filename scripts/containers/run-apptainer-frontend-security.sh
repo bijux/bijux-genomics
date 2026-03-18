@@ -8,10 +8,7 @@ ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 source "${ROOT_DIR}/scripts/_lib/common.sh"
 require_stable_env
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 POLICY_TOML="${POLICY_TOML:-$ROOT_DIR/configs/ci/tools/apptainer_security_policy.toml}"
 HPC_POLICY_TOML="${HPC_POLICY_TOML:-$ROOT_DIR/configs/ci/tools/hpc_frontend_build_policy.toml}"

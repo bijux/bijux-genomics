@@ -36,12 +36,13 @@ stage="${STAGE:-}"
 workers="${BIJUX_WORKERS:-1}"
 container_artifact_dir="${CONTAINER_ARTIFACT_DIR:-artifacts/containers}"
 toolkit="${TOOLKIT:-}"
-bijux_bin="${BIJUX_BIN:-./bin/isolate cargo run --bin bijux-dna --}"
+bijux_bin="${BIJUX_BIN:-./scripts/run.sh tooling bijux}"
 bijux_hpc_root="${BIJUX_HPC_ROOT:-$HOME/bijux}"
 domain="${DOMAIN:-}"
 stages="${STAGES:-}"
 
 read -r -a bijux_cmd <<< "${bijux_bin}"
+require_artifact_env
 
 resolve_toolkit_tools() {
   local bundle="$1"
@@ -84,15 +85,15 @@ require_tools_or_stage() {
 smoke_apptainer_mode() {
   local mode="$1"
   local out="$2"
-  ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_RUN_MODE="${mode}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${out}" sh scripts/containers/smoke-apptainer.sh
+  run_with_artifact_env env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_RUN_MODE="${mode}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${out}" sh scripts/containers/smoke-apptainer.sh
 }
 
 run_build_contract() {
   local tools_csv="$1"
   if [[ "${container_type}" == "apptainer" ]]; then
-    ./bin/isolate env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
+    run_with_artifact_env env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
   else
-    ./bin/isolate env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
+    run_with_artifact_env env TOOLS="${tools_csv}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
   fi
 }
 
@@ -138,13 +139,13 @@ case "${cmd}" in
     done < <("${bijux_cmd[@]}" registry list-stages)
     ;;
   smoke-containers-docker-arm64)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
+    run_with_artifact_env env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
     ;;
   smoke-containers-docker-amd64)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-amd64" sh scripts/containers/smoke-docker-amd64.sh
+    run_with_artifact_env env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/docker-amd64" sh scripts/containers/smoke-docker-amd64.sh
     ;;
   smoke-containers-apptainer)
-    ./bin/isolate env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
+    run_with_artifact_env env TOOLS="${tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
     ;;
   smoke-cntainers-apptainer-bijux-run)
     smoke_apptainer_mode "bijux-run" "${container_artifact_dir}/apptainer-bijux-run"
@@ -161,12 +162,12 @@ case "${cmd}" in
   smoke-toolkit-docker-arm64)
     [[ -n "${toolkit}" ]] || { echo "ERROR: set TOOLKIT=<bundle-id>" >&2; exit 2; }
     toolkit_tools="$(resolve_toolkit_tools "$toolkit")"
-    ./bin/isolate env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
+    run_with_artifact_env env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}/docker-arm64" sh scripts/containers/smoke-docker-arm64.sh
     ;;
   smoke-toolkit-apptainer)
     [[ -n "${toolkit}" ]] || { echo "ERROR: set TOOLKIT=<bundle-id>" >&2; exit 2; }
     toolkit_tools="$(resolve_toolkit_tools "$toolkit")"
-    ./bin/isolate env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
+    run_with_artifact_env env TOOLS="${toolkit_tools}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" ARTIFACT_DIR="${container_artifact_dir}/apptainer" sh scripts/containers/smoke-apptainer.sh
     ;;
   build-images)
     tools_val="${tools}"
@@ -198,7 +199,7 @@ case "${cmd}" in
           tools_val="$("${bijux_cmd[@]}" registry list-tools --kind primary | paste -sd, -)"
         fi
       fi
-      ./bin/isolate env TOOLS="${tools_val}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
+      run_with_artifact_env env TOOLS="${tools_val}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
     elif [[ -n "${stage}" ]]; then
       STAGE="${stage}" TOOLS="" "$0" env-smoke
     elif [[ -n "${tools}" ]]; then
@@ -238,9 +239,9 @@ case "${cmd}" in
       exit 2
     fi
     if [[ "${container_type}" == "apptainer" ]]; then
-      ./bin/isolate env TOOLS="${tools_vcf}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-apptainer.sh
+      run_with_artifact_env env TOOLS="${tools_vcf}" BIJUX_WORKERS="${workers}" JOBS="${workers}" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-apptainer.sh
     else
-      ./bin/isolate env TOOLS="${tools_vcf}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
+      run_with_artifact_env env TOOLS="${tools_vcf}" BIJUX_WORKERS="${workers}" JOBS="${workers}" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="${container_artifact_dir}" sh scripts/containers/smoke-docker-arm64.sh
     fi
     ;;
   image-qa)
@@ -248,7 +249,7 @@ case "${cmd}" in
       echo "skip: image-qa is docker-only (CONTAINER_TYPE=${container_type})"
       exit 0
     fi
-    ./bin/isolate cargo run --bin image_qa -- --platform "${platform}"
+    run_with_artifact_env ./scripts/run.sh tooling image-qa --platform "${platform}"
     ;;
   apptainer-ensure)
     if [[ -z "${domain}" || -z "${stages}" ]]; then

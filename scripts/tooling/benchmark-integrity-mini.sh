@@ -19,10 +19,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 sample_id="mini_bench"
 r1="$ROOT_DIR/assets/toy/core-v1/fastq/reads_1.fastq"

@@ -11,7 +11,7 @@ require_stable_env
 usage() {
   cat <<'EOF'
 Usage: scripts/examples/run.sh <example-id>
-       scripts/examples/run.sh --allow-non-isolate <example-id>
+       scripts/examples/run.sh --allow-non-artifacts <example-id>
 EOF
 }
 
@@ -20,9 +20,9 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-allow_non_isolate=0
-if [[ "${1:-}" == "--allow-non-isolate" ]]; then
-  allow_non_isolate=1
+allow_non_artifacts=0
+if [[ "${1:-}" == "--allow-non-artifacts" ]]; then
+  allow_non_artifacts=1
   shift
 fi
 
@@ -44,11 +44,8 @@ done)"
   exit 1
 }
 
-if ! "$ROOT_DIR/bin/require-isolate" >/dev/null 2>&1; then
-  if [[ "$allow_non_isolate" -ne 1 ]]; then
-    echo "examples run must execute inside isolate; use --allow-non-isolate to override" >&2
-    exit 2
-  fi
+if [[ "$allow_non_artifacts" -ne 1 ]]; then
+  require_artifact_env
 fi
 
 corpus_id="$(python3 - "$example_dir/example.toml" <<'PY'
@@ -97,7 +94,7 @@ if [[ -f "$example_dir/bench-suite.toml" ]]; then
 fi
 
 # Step 3: collect artifacts
-art_dir="${ISO_ROOT:-$ROOT_DIR/artifacts}/examples/${example_id}"
+art_dir="${ARTIFACT_ROOT:-$ROOT_DIR/artifacts}/examples/${example_id}"
 ensure_artifacts_dir "$art_dir"
 mkdir -p "$art_dir"
 cp -f "$example_dir/golden/plan.json" "$art_dir/plan.json"

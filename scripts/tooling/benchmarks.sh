@@ -19,10 +19,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 if [[ $# -lt 1 ]]; then
   usage >&2

@@ -11,10 +11,7 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$ROOT_DIR"
 source "$ROOT_DIR/scripts/_lib/common.sh"
 
-./bin/require-isolate >/dev/null || {
-  ./bin/require-isolate --explain >&2
-  exit 1
-}
+require_artifact_env
 
 cmd="${1:-}"
 case "$cmd" in
