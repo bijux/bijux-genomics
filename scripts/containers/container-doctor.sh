@@ -130,7 +130,7 @@ failed=0
 for spec in \
   "missing_images cargo run -q -p bijux-dev-dna -- containers run check-missing-images" \
   "lock_file_drift cargo run -q -p bijux-dev-dna -- containers run check-version-lock" \
-  "lock_vs_built $SCRIPT_DIR/check-lock-matches-built-output.sh" \
+  "lock_vs_built cargo run -q -p bijux-dev-dna -- containers run check-lock-matches-built-output" \
   "outdated_versions cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations" \
   "domain_parity cargo run -q -p bijux-dev-dna -- containers run check-tool-container-coverage" \
   "registry_orphans cargo run -q -p bijux-dev-dna -- containers run check-registry-vs-defs"; do

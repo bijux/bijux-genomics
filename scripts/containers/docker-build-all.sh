@@ -17,5 +17,5 @@ ARTIFACT_DIR="$ARTIFACT_DIR" \
 "$SCRIPT_DIR/smoke-docker-arm64.sh"
 cargo run -q -p bijux-dev-dna -- containers run summary -- --json "$ROOT_DIR/artifacts/containers/summary.json" >/dev/null
 cargo run -q -p bijux-dev-dna -- containers run generate-version-lock -- "$ROOT_DIR/containers/versions/lock.json" >/dev/null
-"$SCRIPT_DIR/check-lock-matches-built-output.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-lock-matches-built-output
 echo "docker-build-all: OK"

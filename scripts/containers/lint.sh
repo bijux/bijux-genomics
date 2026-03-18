@@ -179,19 +179,19 @@ cargo run -q -p bijux-dev-dna -- containers run check-lock-drift
 cargo run -q -p bijux-dev-dna -- containers run check-lock-change-discipline
 cargo run -q -p bijux-dev-dna -- containers run check-versions-index-sha
 cargo run -q -p bijux-dev-dna -- containers run check-version-immutability
-"$SCRIPT_DIR/check-image-size-regression.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-image-size-regression
 cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations
 cargo run -q -p bijux-dev-dna -- containers run check-promotion-lock-integrity
-"$SCRIPT_DIR/check-lock-matches-built-output.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-lock-matches-built-output
 cargo run -q -p bijux-dev-dna -- containers run check-tool-id-manifest
 cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
 cargo run -q -p bijux-dev-dna -- containers run check-registry-vs-defs
 cargo run -q -p bijux-dev-dna -- containers run check-tool-name-collision
 cargo run -q -p bijux-dev-dna -- containers run check-toolkit-bundles
 cargo run -q -p bijux-dev-dna -- containers run check-hpc-image-naming
-"$SCRIPT_DIR/check-hpc-frontend-policy-enforcement.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-frontend-policy-enforcement
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
-"$SCRIPT_DIR/check-apptainer-bijux-header.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-bijux-header
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-hardening
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-version-label-sync
 cargo run -q -p bijux-dev-dna -- containers run check-apptainer-post-pins
@@ -235,6 +235,6 @@ cargo run -q -p bijux-dev-dna -- containers run check-docker-arch-policy
 cargo run -q -p bijux-dev-dna -- containers run check-docker-arm64-completeness
 cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
 cargo run -q -p bijux-dev-dna -- containers run check-digest-output-policy
-"$SCRIPT_DIR/check-release-checklist.sh"
+cargo run -q -p bijux-dev-dna -- containers run check-release-checklist
 
 echo "containers lint: ok"
