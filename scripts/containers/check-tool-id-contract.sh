@@ -23,7 +23,7 @@ errors = []
 
 required_headers = [
     "# GENERATED FILE - DO NOT EDIT",
-    "# Regenerate with: scripts/containers/generate-tool-ids.sh",
+    "# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids",
     "# format: <tool_id><TAB><status>",
 ]
 for i, header in enumerate(required_headers):
@@ -56,8 +56,7 @@ for i, raw in enumerate(lines, start=1):
 # - planned tools may be absent but cannot have duplicate mappings.
 for tool_id, status in status_by_id.items():
     ap_defs = [
-        containers_root / "apptainer" / "bijux" / f"{tool_id}.def",
-        containers_root / "apptainer" / "non-bijux" / f"{tool_id}.def",
+        containers_root / "apptainer" / "lunarc" / f"{tool_id}.def",
     ]
     docker_defs = [
         containers_root / "docker" / "arm64" / f"Dockerfile.{tool_id}",

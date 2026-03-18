@@ -1,11 +1,11 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-tool-docs.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
 # impute5
 
 Purpose: generated per-tool container contract summary.
 
 - Version: `1.2.0`
-- License: `unknown`
+- License: `research-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

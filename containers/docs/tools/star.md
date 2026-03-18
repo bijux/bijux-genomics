@@ -1,11 +1,11 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-tool-docs.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
 # star
 
 Purpose: generated per-tool container contract summary.
 
 - Version: `2.7.11b`
-- License: `unknown`
+- License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

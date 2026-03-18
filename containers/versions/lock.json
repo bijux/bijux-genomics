@@ -2,8 +2,8 @@
   "build_date_utc": "2026-02-16T01:12:42+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
-  "generator_script": "scripts/containers/generate-version-lock.sh",
-  "generator_sha256": "8149728d2e32d9beddb8d384496a2b21c6f691fa76ff9cdfec4e70e5ad12b9bf",
+  "generator_script": "cargo run -p bijux-dev-dna -- containers run generate-version-lock",
+  "generator_sha256": "24dc753603a0243b27a509d511de2e76d2a0a3feff79ba1a37e0ea9d197ab0b0",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",

@@ -1,11 +1,11 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-tool-docs.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
 # ibdseq
 
 Purpose: generated per-tool container contract summary.
 
 - Version: `3.0`
-- License: `unknown`
+- License: `GPL-3.0`
 - Runtime support: `none`
 - Smoke status: `unknown`
 

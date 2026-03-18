@@ -28,6 +28,116 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ContainerRuntimeCheck,
         ),
         native(
+            "generate-tool-ids",
+            "Generate the authoritative container tool id manifest.",
+            NativeContainerCommandKey::GenerateToolIds,
+        ),
+        native(
+            "check-tool-id-manifest",
+            "Validate the generated container tool id manifest.",
+            NativeContainerCommandKey::CheckToolIdManifest,
+        ),
+        native(
+            "generate-tool-name-map",
+            "Generate the tool id to expected binary mapping document.",
+            NativeContainerCommandKey::GenerateToolNameMap,
+        ),
+        native(
+            "check-tool-name-map-generated",
+            "Validate the generated tool name mapping document.",
+            NativeContainerCommandKey::CheckToolNameMapGenerated,
+        ),
+        native(
+            "generate-index",
+            "Generate the container docs index from registry and file coverage.",
+            NativeContainerCommandKey::GenerateContainerIndex,
+        ),
+        native(
+            "check-index",
+            "Validate the generated container docs index.",
+            NativeContainerCommandKey::CheckContainerIndex,
+        ),
+        native(
+            "generate-license-metadata",
+            "Generate container license metadata and the license index document.",
+            NativeContainerCommandKey::GenerateLicenseMetadata,
+        ),
+        native(
+            "check-license-metadata",
+            "Validate generated container license metadata files.",
+            NativeContainerCommandKey::CheckLicenseMetadata,
+        ),
+        native(
+            "check-license-index-generated",
+            "Validate the generated container license index document.",
+            NativeContainerCommandKey::CheckLicenseIndexGenerated,
+        ),
+        native(
+            "generate-qa-matrix",
+            "Generate the apptainer QA matrix from registry and artifact metadata.",
+            NativeContainerCommandKey::GenerateQaMatrix,
+        ),
+        native(
+            "check-qa-matrix-generated",
+            "Validate the generated apptainer QA matrix.",
+            NativeContainerCommandKey::CheckQaMatrixGenerated,
+        ),
+        native(
+            "generate-tool-docs",
+            "Generate per-tool container contract documents.",
+            NativeContainerCommandKey::GenerateToolDocs,
+        ),
+        native(
+            "check-tool-docs-generated",
+            "Validate the generated per-tool container contract documents.",
+            NativeContainerCommandKey::CheckToolDocsGenerated,
+        ),
+        native(
+            "generate-network-usage",
+            "Generate the container network usage inventory.",
+            NativeContainerCommandKey::GenerateNetworkUsage,
+        ),
+        native(
+            "check-network-disclosure",
+            "Validate container network disclosure metadata and offline policy.",
+            NativeContainerCommandKey::CheckNetworkDisclosure,
+        ),
+        native(
+            "extract-version-map",
+            "Generate the normalized version map from versions.toml.",
+            NativeContainerCommandKey::ExtractVersionMap,
+        ),
+        native(
+            "generate-version-lock",
+            "Generate the governed container version lock file.",
+            NativeContainerCommandKey::GenerateVersionLock,
+        ),
+        native(
+            "check-version-lock",
+            "Validate the generated container version lock file.",
+            NativeContainerCommandKey::CheckVersionLock,
+        ),
+        native(
+            "check-version-authority",
+            "Validate the canonical version and lock authority contracts.",
+            NativeContainerCommandKey::CheckVersionAuthority,
+        ),
+        native(
+            "generate-versions-index-sha",
+            "Generate the checksum index for files under containers/versions.",
+            NativeContainerCommandKey::GenerateVersionsIndexSha,
+        ),
+        native(
+            "check-versions-index-sha",
+            "Validate the checksum index for files under containers/versions.",
+            NativeContainerCommandKey::CheckVersionsIndexSha,
+        ),
+        native(
+            "summary",
+            "Summarize container manifests and optionally write JSON output.",
+            NativeContainerCommandKey::Summary,
+        ),
+        native(
             "env-prep",
             "Prepare tool or stage environments for the selected container runtime.",
             NativeContainerCommandKey::EnvPrep,
@@ -152,6 +262,10 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
 
 fn script_container_commands(workspace: &Workspace) -> Result<Vec<ContainerCommandDefinition>> {
     let mut commands = Vec::new();
+    let native_ids = native_container_commands()
+        .into_iter()
+        .map(|command| command.id)
+        .collect::<std::collections::BTreeSet<_>>();
     for entry in load_supported_scripts(workspace)? {
         if !entry.path.starts_with("scripts/containers/") || !entry.path.ends_with(".sh") {
             continue;
@@ -165,6 +279,9 @@ fn script_container_commands(workspace: &Workspace) -> Result<Vec<ContainerComma
             .next()
             .and_then(|name| name.strip_suffix(".sh"))
             .ok_or_else(|| anyhow!("unsupported container script path `{}`", entry.path))?;
+        if native_ids.contains(id) {
+            continue;
+        }
         commands.push(ContainerCommandDefinition {
             id: id.to_string(),
             summary: format!("Run `{}`.", entry.path),

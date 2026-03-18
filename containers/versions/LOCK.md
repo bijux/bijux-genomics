@@ -5,7 +5,7 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 ## Authority
 - Canonical version source: `containers/versions/versions.toml`.
 - Canonical lock artifact: `containers/versions/lock.json`.
-- Lock generator: `scripts/containers/generate-version-lock.sh`.
+- Lock generator: `cargo run -p bijux-dev-dna -- containers run generate-version-lock`.
 
 ## What `lock.json` Pins
 - `schema_version`: lock schema contract version (`bijux.container.version_lock.v3`).
@@ -26,10 +26,10 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 ## Update Workflow
 1. Update container definition(s) and registry records.
 2. Update `containers/versions/versions.toml`.
-3. Regenerate lock: `./scripts/containers/generate-version-lock.sh`.
+3. Regenerate lock: `cargo run -p bijux-dev-dna -- containers run generate-version-lock`.
 4. Validate authority and drift:
-   - `./scripts/containers/check-version-authority.sh`
-   - `./scripts/containers/check-version-lock.sh`
+   - `cargo run -p bijux-dev-dna -- containers run check-version-authority`
+   - `cargo run -p bijux-dev-dna -- containers run check-version-lock`
 5. Commit changes together with rationale.
 
 ## Deprecation Workflow

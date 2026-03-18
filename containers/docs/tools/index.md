@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-tool-docs.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
 # Tool Docs Index
 
 - `adapterremoval`: `containers/docs/tools/adapterremoval.md`

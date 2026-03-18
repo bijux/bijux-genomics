@@ -15,5 +15,5 @@ Each tool entry must include:
 
 ## Enforcement
 - `scripts/containers/check-version-hash-pin.sh`
-- `scripts/containers/check-version-authority.sh`
+- `cargo run -p bijux-dev-dna -- containers run check-version-authority`
 - `scripts/containers/check-version-completeness.sh`

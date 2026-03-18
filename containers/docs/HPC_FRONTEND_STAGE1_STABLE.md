@@ -7,7 +7,7 @@ Repository head at freeze: `2303f4f7`
 This freeze marks governance checks for container policy Stage 1 on HPC frontend workflows.
 
 ## Evidence
-- `scripts/containers/check-tool-id-manifest.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-tool-id-manifest` -> `OK`
 - `scripts/containers/check-tool-id-contract.sh` -> `OK`
 - `scripts/checks/check-domain-tool-parity.sh` -> `OK`
 - `scripts/containers/check-tool-container-coverage.sh` -> `OK`
@@ -15,18 +15,18 @@ This freeze marks governance checks for container policy Stage 1 on HPC frontend
 - `scripts/containers/check-promotion-policy.sh` -> `OK`
 - `scripts/checks/check-deprecations-enforcement.sh` -> `OK`
 - `scripts/containers/check-version-deprecations.sh` -> `OK`
-- `scripts/containers/check-version-lock.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-version-lock` -> `OK`
 - `scripts/containers/check-docker-labels.sh` -> `OK`
 - `scripts/containers/check-registry-vs-defs.sh` -> `OK`
 - `scripts/checks/check-container-ssot-parity.sh` -> `OK`
 - `scripts/checks/check-registry-required-tools-parity.sh` -> `OK`
-- `scripts/containers/check-qa-matrix-generated.sh` -> `OK`
+- `cargo run -p bijux-dev-dna -- containers run check-qa-matrix-generated` -> `OK`
 - `scripts/containers/check-dockerfiles-built.sh` -> `SKIP (CI-only gate)`
 
 ## QA Matrix
 - Generated/validated by:
-  - `scripts/containers/generate-qa-matrix.sh`
-  - `scripts/containers/check-qa-matrix-generated.sh`
+  - `cargo run -p bijux-dev-dna -- containers run generate-qa-matrix`
+  - `cargo run -p bijux-dev-dna -- containers run check-qa-matrix-generated`
 - Reference:
   - `docs/30-operations/APPTAINER_QA_MATRIX.md`
 

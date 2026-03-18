@@ -14,6 +14,28 @@ pub enum ContainerCommandSpec {
 #[derive(Debug, Clone, Copy)]
 pub enum NativeContainerCommandKey {
     ContainerRuntimeCheck,
+    GenerateToolIds,
+    CheckToolIdManifest,
+    GenerateToolNameMap,
+    CheckToolNameMapGenerated,
+    GenerateContainerIndex,
+    CheckContainerIndex,
+    GenerateLicenseMetadata,
+    CheckLicenseMetadata,
+    CheckLicenseIndexGenerated,
+    GenerateQaMatrix,
+    CheckQaMatrixGenerated,
+    GenerateToolDocs,
+    CheckToolDocsGenerated,
+    GenerateNetworkUsage,
+    CheckNetworkDisclosure,
+    ExtractVersionMap,
+    GenerateVersionLock,
+    CheckVersionLock,
+    CheckVersionAuthority,
+    GenerateVersionsIndexSha,
+    CheckVersionsIndexSha,
+    Summary,
     EnvPrep,
     EnvSmoke,
     ContainerSmoke,
@@ -54,6 +76,15 @@ impl ContainerCommandOutcome {
             exit_code: 0,
             stdout: stdout.into(),
             stderr: String::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn failure(stderr: impl Into<String>) -> Self {
+        Self {
+            exit_code: 1,
+            stdout: String::new(),
+            stderr: stderr.into(),
         }
     }
 

@@ -1,7 +1,7 @@
 # Containers Docs Index
 
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-index.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-index -->
 
 Purpose: Authoritative tool/container index for container governance and CI checks.
 
@@ -20,7 +20,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
 - Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`
 - Licenses: `containers/licenses/`
-- SBOM + vulnerability hooks: `scripts/containers/check-sbom-artifacts.sh`, `scripts/containers/check-vuln-hook.sh`
+- SBOM + vulnerability hooks: `cargo run -p bijux-dev-dna -- containers run check-sbom-artifacts`, `cargo run -p bijux-dev-dna -- containers run check-vuln-hook`
 - Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
 - Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`
 
@@ -54,7 +54,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `centrifuge` | `experimental` | `bijux` | `arm64` |
 | `clumpify` | `experimental` | `bijux` | `arm64` |
 | `contammix` | `production` | `bijux` | `arm64` |
-| `cutadapt` | `experimental` | `bijux` | `arm64` |
+| `cutadapt` | `production` | `bijux` | `arm64` |
 | `dada2` | `experimental` | `bijux` | `arm64` |
 | `damageprofiler` | `experimental` | `bijux` | `arm64` |
 | `diamond` | `experimental` | `bijux` | `arm64` |
@@ -121,4 +121,3 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `verifybamid2` | `production` | `bijux` | `arm64` |
 | `vsearch` | `production` | `bijux` | `arm64` |
 | `yleaf` | `experimental` | `bijux` | `arm64` |
-

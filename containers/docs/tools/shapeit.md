@@ -1,11 +1,11 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: scripts/containers/generate-tool-docs.sh -->
+<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
 # shapeit
 
 Purpose: generated per-tool container contract summary.
 
 - Version: `4.2.2`
-- License: `unknown`
+- License: `MIT`
 - Runtime support: `none`
 - Smoke status: `unknown`
 

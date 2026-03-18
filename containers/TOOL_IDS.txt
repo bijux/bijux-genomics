@@ -1,5 +1,5 @@
 # GENERATED FILE - DO NOT EDIT
-# Regenerate with: scripts/containers/generate-tool-ids.sh
+# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids
 # format: <tool_id><TAB><status>
 adapterremoval	experimental
 addeam	experimental
@@ -21,7 +21,7 @@ bwa	production
 centrifuge	experimental
 clumpify	experimental
 contammix	production
-cutadapt	experimental
+cutadapt	production
 dada2	experimental
 damageprofiler	experimental
 diamond	experimental

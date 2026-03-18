@@ -155,7 +155,7 @@ if [[ "$cache_abs" == "$ROOT_DIR"* || "$tmp_abs" == "$ROOT_DIR"* ]]; then
 fi
 
 if [[ "${BIJUX_OFFLINE:-0}" == "1" ]]; then
-  "$ROOT_DIR/scripts/containers/check-network-disclosure.sh" --offline
+  "$ROOT_DIR/scripts/run.sh" containers check-network-disclosure --offline
 fi
 
 if [ ! -d "$DEFS_DIR" ]; then
