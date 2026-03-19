@@ -514,7 +514,7 @@
     "qc_delta": {
       "mean_q_delta": null,
       "qc_post_mean_q": null,
-      "validate_pre_mean_q": null
+      "validate_reads_mean_q": null
     },
     "reproducibility": {
       "command": "unknown",
@@ -563,7 +563,7 @@
       ]
     },
     "run_provenance": {
-      "domain_snapshot_hash": "351b4c91f141a95572bc29537de5b4329b1ee76d",
+      "domain_snapshot_hash": "1f61e3c735dd2ed5b43758187ab59aa44f8d225d",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

@@ -47,7 +47,6 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - seqkit_stats
   - seqfu
   - prinseq
   - fastp

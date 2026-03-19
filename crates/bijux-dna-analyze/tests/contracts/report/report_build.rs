@@ -129,7 +129,7 @@ fn ranking_explanation_generation_has_modes() -> Result<()> {
             exit_code: 0,
         },
         metrics: MetricSet {
-            metrics_schema: "fastq_trim_v2".to_string(),
+            metrics_schema: "fastq_trim_reads_v2".to_string(),
             version: 2,
             metrics,
         },
