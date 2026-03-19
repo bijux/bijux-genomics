@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 295cab84ffed1361d219c4fb19c716cf53135a64
+# source_commit: 5dea525ce2e11773ae290e5690f0f69dcec51953
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -483,6 +483,40 @@ metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.musket"
 apptainer_def = "containers/apptainer/lunarc/musket.def"
+require_labels = true
+
+[[tools]]
+id = "prinseq"
+tool_id = "prinseq"
+domain = "fastq"
+domains = ["fastq"]
+status = "experimental"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_read_lengths"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.remove_duplicates", "fastq.trim_reads"]
+tool_role = "filter"
+version = "1.2.4"
+default_version = "1.2.4"
+upstream = "https://github.com/uwb-linux/prinseq"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/uwb-linux/prinseq"
+pinned_commit = "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "prinseq++ --version"
+help_cmd = "prinseq++ --help"
+smoke_version_cmd = "prinseq++ --version"
+smoke_help_cmd = "prinseq++ --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "prinseq++ --help"
+expected_bin = "prinseq++"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
+apptainer_def = "containers/apptainer/lunarc/prinseq.def"
 require_labels = true
 
 [[tools]]
