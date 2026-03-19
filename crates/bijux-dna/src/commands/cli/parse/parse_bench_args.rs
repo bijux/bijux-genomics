@@ -447,7 +447,7 @@ pub struct BenchFastqCorrectArgs {
     #[arg(long)]
     pub r1: PathBuf,
     #[arg(long)]
-    pub r2: Option<PathBuf>,
+    pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
@@ -495,7 +495,7 @@ pub struct BenchFastqUmiArgs {
     #[arg(long)]
     pub r1: PathBuf,
     #[arg(long)]
-    pub r2: Option<PathBuf>,
+    pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
