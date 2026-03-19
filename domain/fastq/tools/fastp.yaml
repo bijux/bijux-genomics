@@ -45,6 +45,7 @@ stage_ids:
   - "fastq.detect_adapters"
   - "fastq.trim_reads"
   - "fastq.filter_reads"
+  - "fastq.filter_low_complexity"
   - "fastq.profile_read_lengths"
   - "fastq.trim_polyg_tails"
 expected_artifacts: ["report_json"]
