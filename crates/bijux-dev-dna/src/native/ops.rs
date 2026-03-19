@@ -9,6 +9,7 @@ use serde_json::{json, Value};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
+use crate::application::containers::ContainerApplication;
 use crate::infrastructure::process::ProcessRunner;
 use crate::infrastructure::workspace::Workspace;
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
@@ -56,6 +57,16 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::TestReproduceFailure => test_reproduce_failure(workspace, args),
         NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
         NativeOpsCommandKey::TestToyRuns => test_toy_runs(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix => {
+            tooling_generate_compatibility_matrix(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGenerateDocs => tooling_generate_docs(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateDocsGraph => tooling_generate_docs_graph(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateDomainCoverageDoc => {
+            tooling_generate_domain_coverage_doc(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGenerateRepoRootMap => tooling_generate_repo_root_map(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateToolIndex => tooling_generate_tool_index(workspace, args),
     }
 }
 
@@ -376,6 +387,113 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
         return success_line("assets-reference-schema: OK");
     }
     failure_lines("assets-reference-schema: FAILED", &errors)
+}
+
+fn tooling_generate_tool_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(
+        workspace,
+        "generate-tool-index",
+        args,
+        "docs/20-science/TOOL_INDEX.md",
+    )?;
+    generate_tool_index(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_domain_coverage_doc(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let out = match args {
+        [] => workspace.path("docs/20-science/DOMAIN_COVERAGE.generated.md"),
+        [flag, value] if flag == "--out" => resolve_workspace_path(workspace, value),
+        [flag] if flag == "--help" || flag == "-h" => {
+            return success_line(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -- --out <path>",
+            )
+        }
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -- --out <path>\n",
+            ))
+        }
+    };
+    generate_domain_coverage_doc(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_repo_root_map(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(
+        workspace,
+        "generate-repo-root-map",
+        args,
+        "docs/00-intro/REPO_ROOT_MAP.generated.md",
+    )?;
+    generate_repo_root_map(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_compatibility_matrix(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(
+        workspace,
+        "generate-compatibility-matrix",
+        args,
+        "docs/50-reference/COMPATIBILITY_MATRIX.md",
+    )?;
+    generate_compatibility_matrix(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(workspace, "generate-docs-graph", args, "docs/DOCS_GRAPH.toml")?;
+    generate_docs_graph(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let out_root = match args {
+        [] => workspace.path("docs"),
+        [flag] if flag == "--help" || flag == "-h" => {
+            return success_line(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]",
+            )
+        }
+        [out] => resolve_workspace_path(workspace, out),
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]\n",
+            ))
+        }
+    };
+    fs::create_dir_all(out_root.join("00-intro"))
+        .with_context(|| format!("create {}", out_root.join("00-intro").display()))?;
+    fs::create_dir_all(out_root.join("20-science"))
+        .with_context(|| format!("create {}", out_root.join("20-science").display()))?;
+    fs::create_dir_all(out_root.join("30-operations"))
+        .with_context(|| format!("create {}", out_root.join("30-operations").display()))?;
+    fs::create_dir_all(out_root.join("50-reference"))
+        .with_context(|| format!("create {}", out_root.join("50-reference").display()))?;
+
+    generate_tool_index(workspace, &out_root.join("20-science/TOOL_INDEX.md"))?;
+    generate_domain_coverage_doc(workspace, &out_root.join("20-science/DOMAIN_COVERAGE.generated.md"))?;
+    let container_outcome = ContainerApplication::new()?.run(
+        "generate-qa-matrix",
+        &[out_root.join("30-operations/APPTAINER_QA_MATRIX.md").display().to_string()],
+    )?;
+    if !container_outcome.is_success() {
+        return Ok(OpsCommandOutcome {
+            exit_code: container_outcome.exit_code,
+            stdout: container_outcome.stdout,
+            stderr: container_outcome.stderr,
+        });
+    }
+    generate_repo_root_map(workspace, &out_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
+    generate_compatibility_matrix(workspace, &out_root.join("50-reference/COMPATIBILITY_MATRIX.md"))?;
+    generate_docs_graph(workspace, &out_root.join("DOCS_GRAPH.toml"))?;
+    success_line(format!("generated docs into {}", out_root.display()))
 }
 
 fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -2535,7 +2653,7 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
     }
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-tool-index -->".to_string(),
         "".to_string(),
         "# TOOL_INDEX".to_string(),
         "".to_string(),
@@ -2612,7 +2730,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
     let domain_root = workspace.path("domain");
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -->".to_string(),
         "".to_string(),
         "# DOMAIN_COVERAGE".to_string(),
         "".to_string(),
@@ -2656,7 +2774,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         .unwrap_or_default();
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-repo-root-map -->".to_string(),
         "".to_string(),
         "# REPO_ROOT_MAP".to_string(),
         "".to_string(),
@@ -2738,7 +2856,7 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
     }
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-compatibility-matrix -->".to_string(),
         "".to_string(),
         "# COMPATIBILITY_MATRIX".to_string(),
         "".to_string(),
@@ -2785,7 +2903,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
     let docs_root = workspace.path("docs");
     let mut lines = vec![
         "# GENERATED FILE - DO NOT EDIT".to_string(),
-        "# Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs".to_string(),
+        "# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph".to_string(),
         "".to_string(),
     ];
     let mut dirs = vec![docs_root.clone()];
@@ -3026,6 +3144,33 @@ fn env_or_override(key: &str, config: &TomlValue, field: &str) -> Result<String>
         .map(ToOwned::to_owned)
         .filter(|value| !value.is_empty())
         .ok_or_else(|| anyhow!("{key} is required"))
+}
+
+fn resolve_optional_output_arg(
+    workspace: &Workspace,
+    command: &str,
+    args: &[String],
+    default_rel: &str,
+) -> Result<PathBuf> {
+    match args {
+        [] => Ok(workspace.path(default_rel)),
+        [flag] if flag == "--help" || flag == "-h" => Err(anyhow!(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run {command} -- [out]"
+        )),
+        [out] => Ok(resolve_workspace_path(workspace, out)),
+        _ => Err(anyhow!(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run {command} -- [out]"
+        )),
+    }
+}
+
+fn resolve_workspace_path(workspace: &Workspace, raw: &str) -> PathBuf {
+    let path = PathBuf::from(raw);
+    if path.is_absolute() {
+        path
+    } else {
+        workspace.path(raw)
+    }
 }
 
 fn free_space_gb(path: &Path) -> Result<u64> {

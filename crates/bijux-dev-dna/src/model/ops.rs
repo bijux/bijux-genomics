@@ -43,6 +43,12 @@ pub enum NativeOpsCommandKey {
     TestReproduceFailure,
     TestFastqGoldRepro,
     TestToyRuns,
+    ToolingGenerateCompatibilityMatrix,
+    ToolingGenerateDocs,
+    ToolingGenerateDocsGraph,
+    ToolingGenerateDomainCoverageDoc,
+    ToolingGenerateRepoRootMap,
+    ToolingGenerateToolIndex,
 }
 
 #[derive(Debug, Clone)]

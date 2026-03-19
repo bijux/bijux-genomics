@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-repo-root-map.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-repo-root-map -->
 
 # REPO_ROOT_MAP
 
@@ -14,42 +14,32 @@ Top-level workspace paths only.
 
 ## Contracts
 - Ownership for config paths is sourced from `configs/OWNERS.toml`.
-- Script subtree intent is sourced from README `Purpose:` lines validated by `./scripts/run.sh checks tree-intent`.
+- Script subtree intent is sourced from README `Purpose:` lines.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
-| `Cargo.lock` | `file` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
+| `artifacts` | `dir` | `-` | - |
+| `crates` | `dir` | `-` | - |
+| `mkdocs.yml` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
-| `README.md` | `file` | `-` | - |
-| `artifacts` | `dir` | `-` | - |
-| `assets` | `dir` | `-` | - |
-| `audit-allowlist.toml` | `file` | `-` | - |
-| `bin` | `dir` | `-` | runtime boundary helpers for strict isolated execution. |
-| `configs` | `dir` | `-` | - |
-| `containers` | `dir` | `-` | - |
-| `crates` | `dir` | `-` | - |
+| `Cargo.lock` | `file` | `-` | - |
 | `docs` | `dir` | `-` | - |
-| `domain` | `dir` | `-` | - |
+| `README.md` | `file` | `-` | - |
+| `audit-allowlist.toml` | `file` | `-` | - |
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
-| `mkdocs.yml` | `file` | `-` | - |
-| `rust-toolchain.toml` | `file` | `-` | - |
+| `configs` | `dir` | `-` | - |
 | `scripts` | `dir` | `-` | strict index of supported script areas and allowed usage. |
+| `containers` | `dir` | `-` | - |
+| `rust-toolchain.toml` | `file` | `-` | - |
+| `assets` | `dir` | `-` | - |
+| `domain` | `dir` | `-` | - |
 
 ## Script Intent
 | Script Path | Purpose |
 |---|---|
-| `scripts/_lib` | shared shell helper library for supported scripts. |
-| `scripts/checks` | enforce CI and repository script policies. |
-| `scripts/docs` | docs checks and documentation tooling entrypoints. |
-| `bijux-dev-dna/containers` | canonical container runtime build/lint/smoke entrypoints. |
-| `scripts/run.sh domain <command>` | compatibility entrypoint for the Rust-owned domain control plane in `crates/bijux-dev-dna`. |
-| `scripts/examples` | generate, validate, and run curated repository examples. |
 | `scripts/experimental` | quarantined non-supported scripts not called from make/CI. |
-| `scripts/hpc` | HPC-specific operational scripts. |
-| `scripts/lab` | manual lab runs and benchmark orchestration. |
-| `scripts/smoke` | unified local smoke entrypoint and domain-specific smoke commands. |
-| `scripts/test` | test triage and deterministic toy-run wrappers. |
 | `scripts/tooling` | repository tooling wrappers and inventories. |
+| `scripts/_lib` | shared shell helper library for supported scripts. |

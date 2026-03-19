@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-compatibility-matrix.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-compatibility-matrix -->
 
 # COMPATIBILITY_MATRIX
 

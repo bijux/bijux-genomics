@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-domain-coverage-doc.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -->
 
 # DOMAIN_COVERAGE
 
@@ -19,5 +19,5 @@ Derived from `domain/*/{stages,tools,fixtures}`.
 | Domain | Stage Count | Tool Count | Fixture Count |
 |---|---:|---:|---:|
 | `bam` | 24 | 24 | 49 |
-| `fastq` | 25 | 50 | 84 |
 | `vcf` | 20 | 14 | 30 |
+| `fastq` | 25 | 50 | 84 |

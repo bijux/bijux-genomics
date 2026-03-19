@@ -197,6 +197,42 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
     ]
 }
 
+#[must_use]
+pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
+    vec![
+        native(
+            "generate-compatibility-matrix",
+            "Generate docs/50-reference/COMPATIBILITY_MATRIX.md from governed registries.",
+            NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix,
+        ),
+        native(
+            "generate-docs",
+            "Generate the governed documentation outputs backed by native generators.",
+            NativeOpsCommandKey::ToolingGenerateDocs,
+        ),
+        native(
+            "generate-docs-graph",
+            "Generate docs/DOCS_GRAPH.toml from the governed docs tree.",
+            NativeOpsCommandKey::ToolingGenerateDocsGraph,
+        ),
+        native(
+            "generate-domain-coverage-doc",
+            "Generate docs/20-science/DOMAIN_COVERAGE.generated.md from domain contracts.",
+            NativeOpsCommandKey::ToolingGenerateDomainCoverageDoc,
+        ),
+        native(
+            "generate-repo-root-map",
+            "Generate docs/00-intro/REPO_ROOT_MAP.generated.md from root intent metadata.",
+            NativeOpsCommandKey::ToolingGenerateRepoRootMap,
+        ),
+        native(
+            "generate-tool-index",
+            "Generate docs/20-science/TOOL_INDEX.md from governed tool registries.",
+            NativeOpsCommandKey::ToolingGenerateToolIndex,
+        ),
+    ]
+}
+
 fn native(id: &str, summary: &str, key: NativeOpsCommandKey) -> OpsCommandDefinition {
     OpsCommandDefinition {
         id: id.to_string(),
