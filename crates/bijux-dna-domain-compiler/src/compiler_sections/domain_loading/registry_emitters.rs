@@ -176,7 +176,11 @@ fn build_tool_registries_toml(
                 "fastp".to_string()
             });
         }
-        let optional = all.iter().skip(1).cloned().collect::<Vec<_>>();
+        let optional = all
+            .iter()
+            .filter(|tool_id| !primary.iter().any(|selected| selected == *tool_id))
+            .cloned()
+            .collect::<Vec<_>>();
         let reporting = if stage_id.contains("qc") {
             vec!["multiqc".to_string()]
         } else {
