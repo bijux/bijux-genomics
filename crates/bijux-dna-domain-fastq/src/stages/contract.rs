@@ -39,7 +39,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "seqtk",
             "fastqc",
             "fastqvalidator",
-            "fastqvalidator",
             "fastq_scan",
             "fqtools",
         ],

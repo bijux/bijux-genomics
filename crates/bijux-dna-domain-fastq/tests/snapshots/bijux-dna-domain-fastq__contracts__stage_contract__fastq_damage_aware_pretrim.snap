@@ -12,7 +12,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "inputs": {
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Retention"
+    ],
+    "invariants": [
+      "reads_out <= reads_in",
+      "bases_out <= bases_in",
+      "counts are non-negative"
+    ],
+    "notes": "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order."
+  },
   "outputs": {
     "emits_fastq": true,
     "kind": "SingleEnd"

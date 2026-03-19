@@ -28,7 +28,8 @@ image_requirements:
     - gzip
   forbids:
     - network
-required_inputs: []
+required_inputs:
+  - reads
 required_outputs:
   - trimmed_reads
   - filtered_reads
