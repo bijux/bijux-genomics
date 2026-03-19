@@ -31,7 +31,7 @@ use bijux_dna_planner_fastq::stage_api::observer::{
 };
 use bijux_dna_planner_fastq::stage_api::StagePlanJson;
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
 };
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::execute_observer_command;
@@ -57,9 +57,13 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_PROFILE_READS.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_PROFILE_READS.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_PROFILE_READS.as_str(), &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -110,7 +114,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_dir = bench_inputs.tools_root.join(&tool);
-        let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
+        let plan =
+            plan_stats_neutral(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &tool_dir)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -165,9 +170,12 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 struct StatsBenchInputs {
     runner: RuntimeKind,
     r1: PathBuf,
+    r2: Option<PathBuf>,
     input_hash: String,
     input_stats: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
     length_hist: Vec<LengthHistogramBin>,
+    length_hist_r2: Option<Vec<LengthHistogramBin>>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
 }
@@ -203,7 +211,11 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("{tool_id} missing from images.toml"))?;
     let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
-    let input_hash = hash_file_sha256(&r1)?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", hash_file_sha256(&r1)?, hash_file_sha256(r2)?)
+    } else {
+        hash_file_sha256(&r1)?
+    };
     let stats_spec = input_fastq_stats(&r1_dir, &r1)?;
     let stats_output = execute_observer_command(
         &tool_image.full_name,
@@ -215,6 +227,48 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         return Err(anyhow!("seqkit stats failed: {}", stats_output.stderr));
     }
     let input_stats = parse_seqkit_stats(&stats_output.stdout)?;
+    let (r2, input_stats_r2, length_hist_r2) = if let Some(r2) = args.r2.as_deref() {
+        let r2 = r2.canonicalize().context("resolve r2 path")?;
+        let r2_dir = r2
+            .parent()
+            .ok_or_else(|| anyhow!("r2 has no parent"))?
+            .to_path_buf();
+        let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
+        let stats_output = execute_observer_command(
+            &tool_image.full_name,
+            stats_spec.mount_dir.as_path(),
+            &stats_spec.args,
+            runner,
+        )?;
+        if stats_output.exit_code != 0 {
+            return Err(anyhow!("seqkit stats failed for r2: {}", stats_output.stderr));
+        }
+        let hist_spec = length_histogram_command(&r2_dir, &r2)?;
+        let hist_output = execute_observer_command(
+            &tool_image.full_name,
+            hist_spec.mount_dir.as_path(),
+            &hist_spec.args,
+            runner,
+        )?;
+        if hist_output.exit_code != 0 {
+            return Err(anyhow!(
+                "seqkit length histogram failed for r2: {}",
+                hist_output.stderr
+            ));
+        }
+        (
+            Some(r2),
+            Some(parse_seqkit_stats(&stats_output.stdout)?),
+            Some(
+                parse_length_histogram(&hist_output.stdout)?
+                    .into_iter()
+                    .map(|(length, count)| LengthHistogramBin { length, count })
+                    .collect(),
+            ),
+        )
+    } else {
+        (None, None, None)
+    };
 
     let hist_spec = length_histogram_command(&r1_dir, &r1)?;
     let hist_output = execute_observer_command(
@@ -237,9 +291,12 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     Ok(StatsBenchInputs {
         runner,
         r1,
+        r2,
         input_hash,
         input_stats,
+        input_stats_r2,
         length_hist,
+        length_hist_r2,
         bench_dir,
         tools_root,
     })
@@ -264,7 +321,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
 
     println!("→ stats {tool}");
     let tool_dir = bench_inputs.tools_root.join(tool);
-    let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
+    let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &tool_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -312,12 +369,16 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     })?
     .stage_result;
 
+    let combined_stats = combine_seqkit_metrics(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref());
     let metrics = FastqStatsMetrics {
-        reads_total: bench_inputs.input_stats.reads,
-        bases_total: bench_inputs.input_stats.bases,
-        mean_q: bench_inputs.input_stats.mean_q,
-        gc_percent: bench_inputs.input_stats.gc_percent,
-        length_histogram: bench_inputs.length_hist.clone(),
+        reads_total: combined_stats.reads,
+        bases_total: combined_stats.bases,
+        mean_q: combined_stats.mean_q,
+        gc_percent: combined_stats.gc_percent,
+        length_histogram: combine_length_histograms(
+            &bench_inputs.length_hist,
+            bench_inputs.length_hist_r2.as_deref(),
+        ),
     };
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -427,4 +488,48 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> SeqkitMetrics {
+    let secondary_reads = secondary.map_or(0, |stats| stats.reads);
+    let secondary_bases = secondary.map_or(0, |stats| stats.bases);
+    let total_bases = primary.bases + secondary_bases;
+    let weighted_mean_q = if total_bases == 0 {
+        0.0
+    } else {
+        ((primary.mean_q * primary.bases as f64)
+            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
+            / total_bases as f64
+    };
+    let weighted_gc = if total_bases == 0 {
+        0.0
+    } else {
+        ((primary.gc_percent * primary.bases as f64)
+            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
+            / total_bases as f64
+    };
+    SeqkitMetrics {
+        reads: primary.reads + secondary_reads,
+        bases: total_bases,
+        mean_q: weighted_mean_q,
+        gc_percent: weighted_gc,
+    }
+}
+
+fn combine_length_histograms(
+    primary: &[LengthHistogramBin],
+    secondary: Option<&[LengthHistogramBin]>,
+) -> Vec<LengthHistogramBin> {
+    let mut bins = std::collections::BTreeMap::<u64, u64>::new();
+    for bin in primary {
+        *bins.entry(bin.length).or_insert(0) += bin.count;
+    }
+    if let Some(secondary) = secondary {
+        for bin in secondary {
+            *bins.entry(bin.length).or_insert(0) += bin.count;
+        }
+    }
+    bins.into_iter()
+        .map(|(length, count)| LengthHistogramBin { length, count })
+        .collect()
 }

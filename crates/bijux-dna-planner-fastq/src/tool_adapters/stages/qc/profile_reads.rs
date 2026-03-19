@@ -18,13 +18,30 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub fn plan_stats_neutral(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let effective_params = ValidateEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
         threads: tool.resources.threads,
         q_cutoff: None,
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -36,11 +53,7 @@ pub fn plan_stats_neutral(
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
+            inputs,
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("qc_json"),
@@ -62,7 +75,8 @@ pub fn plan_stats_neutral(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
-            "input": r1,
+            "input_r1": r1,
+            "input_r2": r2,
             "out_dir": out_dir
         }),
         effective_params: serde_json::to_value(&effective_params)
