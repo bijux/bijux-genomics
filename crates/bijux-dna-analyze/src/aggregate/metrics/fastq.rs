@@ -663,6 +663,46 @@ impl StageMetricSchema for FastqDepleteReferenceContaminantsMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqDepleteRrnaMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub pairs_in: u64,
+    pub pairs_out: u64,
+    pub rrna_fraction_removed: f64,
+    #[serde(default)]
+    pub depletion_summary: JsonBlob,
+}
+
+impl StageMetricSchema for FastqDepleteRrnaMetrics {
+    const STAGE: &'static str = "fastq.deplete_rrna";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
+        }
+        if !self.rrna_fraction_removed.is_finite()
+            || !(0.0..=1.0).contains(&self.rrna_fraction_removed)
+        {
+            return Err(BenchError::Validation(
+                "rrna_fraction_removed must be within [0, 1]".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LengthHistogramBin {
     pub length: u64,
     pub count: u64,
