@@ -20,7 +20,7 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen;
 use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
@@ -37,9 +37,13 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteReferenceContaminantsArgs,
 ) -> Result<BenchOutcome<FastqDepleteReferenceContaminantsMetrics>> {
     let tools = select_deplete_reference_contaminants_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -59,6 +63,20 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         &args.r1,
         &STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            bench_inputs.input_hash,
+            bijux_dna_infra::hash_file_sha256(r2)?
+        )
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
 
     if args.explain {
         write_explain_md(
@@ -109,7 +127,8 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_contaminant_screen(&tool_spec, &bench_inputs.r1, &out_dir)?;
+        let plan =
+            plan_contaminant_screen(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -124,7 +143,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             &image_digest,
             &runner.to_string(),
             &platform.name,
-            &bench_inputs.input_hash,
+            &input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -149,28 +168,74 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let output_fastq = plan.io.outputs[0].path.clone();
-        let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
-        let contaminant_fraction_removed = if bench_inputs.input_stats.reads == 0 {
+        let (
+            reads_in,
+            reads_out,
+            bases_in,
+            bases_out,
+            pairs_in,
+            pairs_out,
+            depletion_summary,
+        ) = if let Some(input_stats_r2) = &input_stats_r2 {
+            let output_r1 = plan.io.outputs[0].path.clone();
+            let output_r2 = plan.io.outputs[1].path.clone();
+            let report_json = plan.io.outputs[2].path.clone();
+            let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+            let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
+            let reads_in = bench_inputs.input_stats.reads + input_stats_r2.reads;
+            let reads_out = output_stats_r1.reads + output_stats_r2.reads;
+            let bases_in = bench_inputs.input_stats.bases + input_stats_r2.bases;
+            let bases_out = output_stats_r1.bases + output_stats_r2.bases;
+            let pairs_in = bench_inputs.input_stats.reads.min(input_stats_r2.reads);
+            let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
+            (
+                reads_in,
+                reads_out,
+                bases_in,
+                bases_out,
+                pairs_in,
+                pairs_out,
+                serde_json::json!({
+                    "reads_removed": reads_in.saturating_sub(reads_out),
+                    "bases_removed": bases_in.saturating_sub(bases_out),
+                    "output_r1": output_r1,
+                    "output_r2": output_r2,
+                    "report_json": report_json,
+                }),
+            )
+        } else {
+            let output_fastq = plan.io.outputs[0].path.clone();
+            let report_json = plan.io.outputs[1].path.clone();
+            let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
+            (
+                bench_inputs.input_stats.reads,
+                output_stats.reads,
+                bench_inputs.input_stats.bases,
+                output_stats.bases,
+                0,
+                0,
+                serde_json::json!({
+                    "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
+                    "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
+                    "output_fastq": output_fastq,
+                    "report_json": report_json,
+                }),
+            )
+        };
+        let contaminant_fraction_removed = if reads_in == 0 {
             0.0
         } else {
-            1.0 - (output_stats.reads as f64 / bench_inputs.input_stats.reads as f64)
+            1.0 - (reads_out as f64 / reads_in as f64)
         };
         let metrics = FastqDepleteReferenceContaminantsMetrics {
-            reads_in: bench_inputs.input_stats.reads,
-            reads_out: output_stats.reads,
-            bases_in: bench_inputs.input_stats.bases,
-            bases_out: output_stats.bases,
-            pairs_in: 0,
-            pairs_out: 0,
+            reads_in,
+            reads_out,
+            bases_in,
+            bases_out,
+            pairs_in,
+            pairs_out,
             contaminant_fraction_removed: contaminant_fraction_removed.clamp(0.0, 1.0),
-            depletion_summary: serde_json::json!({
-                "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
-                "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
-                "output_fastq": output_fastq,
-                "report_json": plan.io.outputs[1].path,
-            })
-            .into(),
+            depletion_summary: depletion_summary.into(),
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -203,7 +268,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             image_digest,
             runner,
             platform,
-            bench_inputs.input_hash.clone(),
+            input_hash.clone(),
             plan.params.clone(),
         );
         let record = BenchmarkRecord {
