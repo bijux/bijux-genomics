@@ -4,12 +4,32 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd",
+      "Merged"
+    ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Composition"
+    ],
+    "invariants": [
+      "read_count >= 0",
+      "mean_read_length >= 0",
+      "max_read_length >= mean_read_length (warn)",
+      "distinct_lengths >= 0"
+    ],
+    "notes": "Read-length profiling emits deterministic histogram artifacts and summary statistics without mutating reads."
+  },
   "outputs": {
     "emits_fastq": false,
-    "kind": "StatsOnly"
+    "kind": "StatsOnly",
+    "possible_kinds": [
+      "StatsOnly"
+    ]
   },
   "retention": {
     "definition": "reads_out == reads_in; bases_out == bases_in",

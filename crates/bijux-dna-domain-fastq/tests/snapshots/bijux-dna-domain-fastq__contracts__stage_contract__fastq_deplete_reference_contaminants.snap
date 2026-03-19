@@ -1,16 +1,23 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
-assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd"
+    ],
     "kind": "SingleEnd"
   },
   "metrics": {},
   "outputs": {
     "emits_fastq": true,
-    "kind": "SingleEnd"
+    "kind": "SingleEnd",
+    "possible_kinds": [
+      "SingleEnd",
+      "PairedEnd"
+    ]
   },
   "retention": {
     "definition": "reads_out / reads_in; bases_out / bases_in",

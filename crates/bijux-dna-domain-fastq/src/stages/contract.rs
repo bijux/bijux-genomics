@@ -72,14 +72,26 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
     });
     let input_kind = format!("{:?}", contract.input_kind);
     let output_kind = format!("{:?}", contract.output_kind);
+    let accepted_input_kinds = contract
+        .accepted_input_kinds
+        .iter()
+        .map(|kind| format!("{kind:?}"))
+        .collect::<Vec<_>>();
+    let possible_output_kinds = contract
+        .possible_output_kinds
+        .iter()
+        .map(|kind| format!("{kind:?}"))
+        .collect::<Vec<_>>();
     let mut payload = serde_json::json!({
         "schema_version": "bijux.stage_contract.v1",
         "stage_id": stage_id,
         "inputs": {
             "kind": input_kind,
+            "accepted_kinds": accepted_input_kinds,
         },
         "outputs": {
             "kind": output_kind,
+            "possible_kinds": possible_output_kinds,
             "emits_fastq": contract.emits_fastq,
         },
         "retention": {
@@ -142,6 +154,26 @@ pub struct NormalizedOutputs {
 
 #[must_use]
 pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
+    const PE: &[FastqArtifactKind] = &[FastqArtifactKind::PairedEnd];
+    const SE_OR_PE: &[FastqArtifactKind] =
+        &[FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd];
+    const SE_PE_OR_MERGED: &[FastqArtifactKind] = &[
+        FastqArtifactKind::SingleEnd,
+        FastqArtifactKind::PairedEnd,
+        FastqArtifactKind::Merged,
+    ];
+    const STATS_ONLY: &[FastqArtifactKind] = &[FastqArtifactKind::StatsOnly];
+    const SE_OR_PE_OUT: &[FastqArtifactKind] =
+        &[FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd];
+    const MERGED_OR_PE_OUT: &[FastqArtifactKind] =
+        &[FastqArtifactKind::Merged, FastqArtifactKind::PairedEnd];
+    const REF_FASTA: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceFasta];
+    const REF_INDEX: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceIndex];
+    const AMPLICON_TABLE: &[FastqArtifactKind] = &[FastqArtifactKind::AmpliconTable];
+    const AMPLICON_TABLE_OR_REPRESENTATIVES: &[FastqArtifactKind] = &[
+        FastqArtifactKind::AmpliconTable,
+        FastqArtifactKind::RepresentativeFasta,
+    ];
     match stage_id {
         "fastq.trim_reads"
         | "fastq.trim_terminal_damage"
@@ -156,6 +188,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.deplete_rrna" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::SingleEnd,
+            accepted_input_kinds: SE_OR_PE,
+            possible_output_kinds: SE_OR_PE_OUT,
             may_drop_reads: true,
             must_preserve_pairing: true,
             emits_fastq: true,
@@ -167,6 +201,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.merge_pairs" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::Merged,
+            accepted_input_kinds: PE,
+            possible_output_kinds: MERGED_OR_PE_OUT,
             may_drop_reads: true,
             must_preserve_pairing: false,
             emits_fastq: true,
@@ -178,6 +214,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.correct_errors" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::PairedEnd,
+            accepted_input_kinds: PE,
+            possible_output_kinds: PE,
             may_drop_reads: false,
             must_preserve_pairing: true,
             emits_fastq: true,
@@ -189,6 +227,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.extract_umis" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::PairedEnd,
+            accepted_input_kinds: PE,
+            possible_output_kinds: PE,
             may_drop_reads: true,
             must_preserve_pairing: true,
             emits_fastq: true,
@@ -206,6 +246,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.screen_taxonomy" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
+            accepted_input_kinds: SE_PE_OR_MERGED,
+            possible_output_kinds: STATS_ONLY,
             may_drop_reads: false,
             must_preserve_pairing: true,
             emits_fastq: false,
@@ -217,6 +259,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.index_reference" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::ReferenceFasta,
             output_kind: FastqArtifactKind::ReferenceIndex,
+            accepted_input_kinds: REF_FASTA,
+            possible_output_kinds: REF_INDEX,
             may_drop_reads: false,
             must_preserve_pairing: false,
             emits_fastq: false,
@@ -228,7 +272,17 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.infer_asvs" | "fastq.cluster_otus" | "fastq.normalize_abundance" => {
             Some(FastqStageContract {
                 input_kind: FastqArtifactKind::SingleEnd,
-                output_kind: FastqArtifactKind::StatsOnly,
+                output_kind: FastqArtifactKind::AmpliconTable,
+                accepted_input_kinds: if stage_id == "fastq.normalize_abundance" {
+                    AMPLICON_TABLE
+                } else {
+                    SE_PE_OR_MERGED
+                },
+                possible_output_kinds: if stage_id == "fastq.cluster_otus" {
+                    AMPLICON_TABLE_OR_REPRESENTATIVES
+                } else {
+                    AMPLICON_TABLE
+                },
                 may_drop_reads: false,
                 must_preserve_pairing: false,
                 emits_fastq: false,

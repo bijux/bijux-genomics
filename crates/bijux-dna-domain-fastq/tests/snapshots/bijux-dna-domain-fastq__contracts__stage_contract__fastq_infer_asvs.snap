@@ -7,12 +7,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
   },
   "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd",
+      "Merged"
+    ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Composition"
+    ],
+    "invariants": [
+      "asv_count >= 0",
+      "sample_count >= 0",
+      "counts are non-negative"
+    ],
+    "notes": "ASV inference converts denoised amplicon reads into a deterministic feature table and representative sequences."
+  },
   "outputs": {
     "emits_fastq": false,
-    "kind": "StatsOnly"
+    "kind": "AmpliconTable",
+    "possible_kinds": [
+      "AmpliconTable"
+    ]
   },
   "retention": {
     "definition": "non-empty table rows and stable sample identifiers",

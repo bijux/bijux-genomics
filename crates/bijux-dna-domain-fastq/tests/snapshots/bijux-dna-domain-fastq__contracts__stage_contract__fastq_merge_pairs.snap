@@ -1,10 +1,12 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
-assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
+    "accepted_kinds": [
+      "PairedEnd"
+    ],
     "kind": "PairedEnd"
   },
   "metrics": {
@@ -21,7 +23,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": {
     "emits_fastq": true,
-    "kind": "Merged"
+    "kind": "Merged",
+    "possible_kinds": [
+      "Merged",
+      "PairedEnd"
+    ]
   },
   "retention": {
     "definition": "reads_merged + reads_unmerged <= min(reads_r1, reads_r2)",

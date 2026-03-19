@@ -4,12 +4,28 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
+    "accepted_kinds": [
+      "AmpliconTable"
+    ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Composition"
+    ],
+    "invariants": [
+      "table_rows >= 0",
+      "sample_count >= 0",
+      "zero_fraction in [0, 1]"
+    ],
+    "notes": "Abundance normalization operates on a feature table and emits a normalized compositional table."
+  },
   "outputs": {
     "emits_fastq": false,
-    "kind": "StatsOnly"
+    "kind": "AmpliconTable",
+    "possible_kinds": [
+      "AmpliconTable"
+    ]
   },
   "retention": {
     "definition": "non-empty table rows and stable sample identifiers",
