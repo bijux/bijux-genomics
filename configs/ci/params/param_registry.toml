@@ -101,7 +101,7 @@ schema_version = "bijux.fastq.params.detect_adapters.v1"
 [[entries]]
 stage_id = "fastq.filter_reads"
 param_type_id = "fastq.filter_reads"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.filter_reads.v1"
 
 [[entries]]
 stage_id = "fastq.deplete_host"
@@ -126,7 +126,7 @@ schema_version = "none"
 [[entries]]
 stage_id = "fastq.trim_polyg_tails"
 param_type_id = "fastq.trim_polyg_tails"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.trim_polyg_tails.v1"
 
 [[entries]]
 stage_id = "fastq.index_reference"
@@ -156,7 +156,7 @@ schema_version = "bijux.fastq.params.stats.v1"
 [[entries]]
 stage_id = "fastq.trim_reads"
 param_type_id = "fastq.trim_reads"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.trim_reads.v1"
 
 [[entries]]
 stage_id = "fastq.extract_umis"
