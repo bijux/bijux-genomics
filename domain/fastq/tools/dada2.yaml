@@ -12,7 +12,10 @@ stage_ids:
 status: out_of_scope
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-  - asv_table
+  - asv_table_tsv
+  - asv_sequences_fasta
+  - taxonomy_ready_fasta
+  - taxonomy_ready_fastq
 metrics_schema_id: bijux.fastq.asv.v1
 metrics_schema: bijux.fastq.asv.v1
 version_cmd: Rscript -e "packageVersion('dada2')"

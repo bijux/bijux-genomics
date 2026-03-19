@@ -40,7 +40,12 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.profile_reads"
   - "fastq.profile_read_lengths"
-expected_artifacts: ["report_json"]
+expected_artifacts:
+  - "qc_json"
+  - "qc_tsv"
+  - "qc_plots_dir"
+  - "length_distribution_tsv"
+  - "length_distribution_json"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "seqkit_stats --version"

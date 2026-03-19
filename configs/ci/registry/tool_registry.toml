@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 167a7148751fe784f33f4d4678c8f73572448323
+# source_commit: 403ce95077d978b0c874154086f07bd6724305a8
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1090,7 +1090,7 @@ smoke_help_cmd = "seqkit_stats --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "seqkit_stats --help"
 expected_bin = "seqkit_stats"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["qc_json", "qc_tsv", "qc_plots_dir", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
