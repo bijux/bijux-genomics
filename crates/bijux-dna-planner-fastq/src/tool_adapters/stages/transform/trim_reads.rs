@@ -145,7 +145,7 @@ pub fn plan(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("trim_report"),
-        out_dir.join("trim.report.json"),
+        out_dir.join("trim_report.json"),
         ArtifactRole::ReportJson,
     ));
     outputs.push(ArtifactRef::required(
