@@ -13,4 +13,3 @@ Authority for stage catalog lives in `src/tool_adapters/stages/catalog.rs`.
 | fastq.stats_neutral | seqkit | stats report | read_count, base_count |
 | fastq.correct | bayeshammer | corrected FASTQ | correction_rate |
 | fastq.umi | umi_tools | umi FASTQ | umi_stats |
-| fastq.preprocess | pipeline composition | staged FASTQ + summary | summary |
