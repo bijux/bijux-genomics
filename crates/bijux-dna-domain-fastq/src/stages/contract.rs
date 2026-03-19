@@ -37,7 +37,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.normalize_abundance" => vec!["seqfu", "seqkit"],
         "fastq.validate_reads" => vec![
             "seqtk",
-            "fastqc",
             "fastqvalidator",
             "fastq_scan",
             "fqtools",

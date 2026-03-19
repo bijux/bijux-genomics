@@ -12,14 +12,14 @@ pub const STAGE_ID: StageId = STAGE_VALIDATE_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone)]
-pub struct ValidatePreUserConfig {
+pub struct ValidateReadsUserConfig {
     pub tool: String,
     pub r1: std::path::PathBuf,
     pub out_dir: std::path::PathBuf,
 }
 
 #[derive(Debug, Clone)]
-pub struct ValidatePreEffectiveConfig {
+pub struct ValidateReadsEffectiveConfig {
     pub tool: String,
     pub r1: std::path::PathBuf,
     pub out_dir: std::path::PathBuf,
@@ -43,7 +43,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
+                ArtifactId::from_static("reads"),
                 r1.to_path_buf(),
                 ArtifactRole::Reads,
             )],
@@ -71,8 +71,8 @@ pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
     normalize_tools_with_allowlist(tools, &allowlist)
 }
 
-pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig {
-    ValidatePreEffectiveConfig {
+pub fn resolve_config(user: ValidateReadsUserConfig) -> ValidateReadsEffectiveConfig {
+    ValidateReadsEffectiveConfig {
         tool: user.tool,
         r1: user.r1,
         out_dir: user.out_dir,
@@ -81,7 +81,7 @@ pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig
 
 pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
-    config: &ValidatePreEffectiveConfig,
+    config: &ValidateReadsEffectiveConfig,
 ) -> Result<StagePlanV1> {
     plan(tool, &config.r1, &config.out_dir)
 }

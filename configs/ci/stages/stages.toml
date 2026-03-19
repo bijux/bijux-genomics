@@ -615,7 +615,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqc", "fastqvalidator", "fqtools", "seqtk"]
+tools = ["fastqvalidator", "fqtools", "seqtk"]
 
 [[pipelines]]
 id = "bam.pre_hpc_best"
@@ -638,6 +638,12 @@ description = "Compare damage tools on identical BAM inputs and identical prepro
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
 
 [[benchmark_scenarios]]
+id = "fastq.validate_reads_fairness"
+stage_id = "fastq.validate_reads"
+description = "Compare validators on identical raw FASTQ inputs and the same strict-mode policy."
+fairness_rules = ["same_input_hash", "same_stage_defaults", "same_validator_policy"]
+
+[[benchmark_scenarios]]
 id = "fastq.screen_taxonomy_fairness"
 stage_id = "fastq.screen_taxonomy"
 description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
@@ -648,4 +654,3 @@ id = "fastq.trim_reads_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
-

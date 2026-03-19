@@ -8,23 +8,17 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "report_json"
+  - name: "validation_report"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
-  - name: "reads_out"
-    meaning: "Number of output reads"
   - name: "bases_in"
     meaning: "Number of input bases"
-  - name: "bases_out"
-    meaning: "Number of output bases"
   - name: "pairs_in"
     meaning: "Number of input read pairs"
-  - name: "pairs_out"
-    meaning: "Number of output read pairs"
   - name: "reads_total"
     meaning: "Total number of reads observed"
   - name: "reads_valid"
@@ -33,7 +27,9 @@ metrics:
     meaning: "Number of reads that failed validation"
   - name: "mean_q"
     meaning: "Mean Phred quality score"
-description: "FASTQ stage for validation and basic statistics."
+  - name: "strict_pass"
+    meaning: "Whether the validator backend exited successfully under strict validation policy"
+description: "FASTQ stage for structural validation and format-integrity accounting before downstream planning."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
@@ -45,7 +41,7 @@ image_requirements:
 required_inputs:
   - reads
 required_outputs:
-  - report_json
+  - validation_report
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
@@ -57,10 +53,10 @@ compatible_tools:
   - fastq_scan
   - seqtk
   - fqtools
-  - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "validation is report-only and may not modify FASTQ payloads"
+  - "benchmark comparisons require identical input hashes and strict-mode policy"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

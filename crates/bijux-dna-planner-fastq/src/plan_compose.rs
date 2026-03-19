@@ -184,9 +184,13 @@ where
                 (plan, next_r1, None)
             }
             stage if stage == STAGE_VALIDATE_READS.as_str() => {
-                if !matches!(tool.tool_id.as_str(), "fastqvalidator" | "seqkit") {
+                if crate::tool_adapters::fastq::validate_reads::normalize_validate_tool_list(&[
+                    tool.tool_id.as_str().to_string(),
+                ])
+                .is_err()
+                {
                     return Err(anyhow!(
-                        "{} requires a canonical validator tool (fastqvalidator/seqkit); got {}",
+                        "{} requires a supported validator backend; got {}",
                         STAGE_VALIDATE_READS.as_str(),
                         tool.tool_id
                     ));

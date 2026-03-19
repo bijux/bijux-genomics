@@ -4,7 +4,7 @@ Authority for stage catalog lives in `src/tool_adapters/stages/catalog.rs`.
 
 | Stage ID | Tool Adapter(s) | Artifacts Emitted | Metrics Emitted |
 | --- | --- | --- | --- |
-| fastq.validate_reads | fastqvalidator | report.json | read_count, base_count |
+| fastq.validate_reads | fastqvalidator, fqtools, seqtk | validation.json | reads_total, reads_invalid, mean_q |
 | fastq.trim_reads | fastp | trimmed FASTQ | retention, bases_kept |
 | fastq.merge_pairs | bbmerge | merged FASTQ | merge_rate |
 | fastq.filter_reads | fastp | filtered FASTQ | filter_counts |
