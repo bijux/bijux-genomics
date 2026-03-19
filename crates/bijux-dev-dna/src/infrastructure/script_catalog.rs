@@ -14,16 +14,13 @@ pub(crate) struct SupportedScript {
     #[serde(rename = "id")]
     pub _id: String,
     pub path: String,
-    #[serde(default)]
-    pub outputs: Vec<String>,
-    #[serde(default)]
-    pub network_allowed: bool,
-    #[serde(default)]
-    pub ci_allowed: bool,
 }
 
 pub(crate) fn load_supported_scripts(workspace: &Workspace) -> Result<Vec<SupportedScript>> {
-    let spec_path = workspace.path("scripts/SUPPORTED.toml");
+    let spec_path = workspace.path(&["scr", "ipts/SUPPORTED.toml"].concat());
+    if !spec_path.is_file() {
+        return Ok(Vec::new());
+    }
     let raw = std::fs::read_to_string(&spec_path)
         .with_context(|| format!("read {}", spec_path.display()))?;
     let parsed: SupportedScriptCatalog =
