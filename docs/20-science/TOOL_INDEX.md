@@ -49,27 +49,28 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `authenticct` | `transform` | `bam.authenticity` | `bijuxdna/authenticct:1.0.0` | `1.0.0` | upstream:https://github.com/StephanePeyregne/AuthentiCT | `production` |
 | `bamtools` | `filter` | `bam.validate, bam.filter, bam.mapq_filter` | `bijuxdna/bamtools:2.5.2` | `2.5.2` | upstream:https://github.com/pezmaster31/bamtools | `production` |
 | `bayeshammer` | `corrector` | `fastq.correct_errors` | `bijuxdna/bayeshammer@sha256:pending` | `latest-pinned` | upstream:https://github.com/ablab/spades | `experimental` |
-| `bbduk` | `transform` | `fastq.trim_reads, fastq.filter_low_complexity` | `bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4` | `39.08` | upstream:https://sourceforge.net/projects/bbmap/ | `production` |
+| `bbduk` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.filter_low_complexity, fastq.trim_polyg_tails` | `bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4` | `39.08` | upstream:https://sourceforge.net/projects/bbmap/ | `production` |
 | `bbmerge` | `merger` | `fastq.merge_pairs` | `bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54` | `39.01` | upstream:https://sourceforge.net/projects/bbmap/ | `experimental` |
 | `bcftools` | `unknown` | `vcf.call, vcf.call_gl, vcf.call_diploid, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation, vcf.filter, vcf.stats` | `quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6` | `1.20` | DOI:10.1093/gigascience/giab008 | `production` |
 | `beagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `bedtools` | `filter` | `bam.validate, bam.filter` | `bijuxdna/bedtools:2.31.1` | `2.31.1` | upstream:https://github.com/arq5x/bedtools2 | `production` |
-| `bowtie2` | `screen` | `fastq.deplete_host, fastq.deplete_reference_contaminants` | `bijuxdna/bowtie2:2.5.4` | `2.5.4` | upstream:https://github.com/BenLangmead/bowtie2 | `production` |
-| `bracken` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/bracken:2.9` | `2.9` | upstream:https://github.com/jenniferlu717/Bracken | `production` |
+| `bowtie2` | `transform` | `fastq.deplete_host, fastq.deplete_reference_contaminants` | `bijuxdna/bowtie2:2.5.4` | `2.5.4` | upstream:https://github.com/BenLangmead/bowtie2 | `production` |
 | `bwa` | `aligner` | `bam.align` | `bijuxdna/bwa:0.7.17` | `0.7.17` | upstream:https://github.com/lh3/bwa | `production` |
 | `centrifuge` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/centrifuge@sha256:pending` | `1.0.4` | upstream:https://github.com/DaehwanKimLab/centrifuge | `experimental` |
+| `clumpify` | `transform` | `fastq.remove_duplicates` | `bijuxdna/clumpify:39.08` | `39.08` | upstream:https://jgi.doe.gov/data-and-tools/software-tools/bbtools/ | `production` |
 | `contammix` | `transform` | `bam.contamination` | `bijuxdna/contammix:1.0.11` | `1.0.11` | upstream:https://bioconductor.org/packages/contamMix | `production` |
-| `cutadapt` | `trimmer` | `fastq.trim_reads, fastq.normalize_primers, fastq.trim_terminal_damage` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | upstream:https://github.com/cutadapt/cutadapt | `production` |
+| `cutadapt` | `transform` | `fastq.trim_reads, fastq.normalize_primers, fastq.trim_terminal_damage` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | upstream:https://github.com/cutadapt/cutadapt | `production` |
 | `damageprofiler` | `transform` | `bam.damage, bam.authenticity` | `bijuxdna/damageprofiler:latest-pinned` | `latest-pinned` | upstream:https://github.com/Integrative-Transcriptomics/DamageProfiler | `experimental` |
 | `eagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `eigensoft` | `population_structure` | `vcf.pca, vcf.population_structure` | `registry_lock` | `8.0.0` | planned | `experimental` |
-| `fastp` | `filter` | `fastq.trim_reads, fastq.filter_reads` | `bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10` | `0.23.4` | upstream:https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz | `production` |
+| `fastp` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.filter_low_complexity, fastq.profile_read_lengths, fastq.trim_polyg_tails` | `bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10` | `0.23.4` | upstream:https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz | `production` |
 | `fastq_screen` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/fastq_screen@sha256:pending` | `0.15.3` | upstream:https://github.com/fastq_screen/fastq_screen | `experimental` |
-| `fastqc` | `trimmer` | `fastq.detect_adapters` | `bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789` | `0.12.1` | upstream:https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip | `production` |
+| `fastqc` | `trimmer` | `fastq.detect_adapters, fastq.profile_overrepresented_sequences` | `bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789` | `0.12.1` | upstream:https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip | `production` |
 | `fastqvalidator` | `validator` | `fastq.validate_reads` | `bijuxdna/fastqvalidator@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `v0.1.1` | upstream:https://github.com/fastqvalidator/fastqvalidator | `production` |
+| `fastuniq` | `transform` | `fastq.remove_duplicates` | `bijuxdna/fastuniq:1.1` | `1.1` | upstream:https://sourceforge.net/projects/fastuniq/ | `production` |
 | `fastx_clipper` | `trimmer` | `fastq.trim_reads` | `bijuxdna/fastx_clipper:0.0.14` | `0.0.14` | upstream:https://github.com/agordon/fastx_toolkit | `production` |
 | `flash2` | `merger` | `fastq.merge_pairs` | `bijuxdna/flash2@sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5` | `2.2.00` | upstream:https://github.com/dstreett/FLASH2 | `experimental` |
-| `fqtools` | `validator` | `fastq.validate_reads` | `bijuxdna/fqtools@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `v2.3` | upstream:https://github.com/alastair-droop/fqtools | `experimental` |
+| `fqtools` | `validator` | `fastq.validate_reads` | `bijuxdna/fqtools@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `v2.3` | upstream:https://github.com/alastair-droop/fqtools | `production` |
 | `germline` | `relatedness` | `vcf.ibd` | `registry_lock` | `1.5.3` | planned | `experimental` |
 | `glimpse` | `imputation` | `vcf.impute, vcf.imputation` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
 | `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `0.1.0-planned` | planned | `planned` |
@@ -92,21 +93,19 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `plink` | `qc_admixture` | `vcf.qc, vcf.admixture` | `registry_lock` | `1.90` | planned | `experimental` |
 | `plink2` | `analysis` | `vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture` | `registry_lock` | `2.00a5` | planned | `experimental` |
 | `pmdtools` | `transform` | `bam.damage, bam.authenticity` | `bijuxdna/pmdtools:0.60` | `0.60` | upstream:https://github.com/pontussk/PMDtools | `production` |
-| `prinseq` | `filter` | `fastq.filter_reads` | `bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971` | `1.2.4` | upstream:https://github.com/uwb-linux/prinseq | `experimental` |
+| `prinseq` | `filter` | `fastq.filter_reads, fastq.filter_low_complexity, fastq.profile_read_lengths` | `bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971` | `1.2.4` | upstream:https://github.com/uwb-linux/prinseq | `experimental` |
 | `pydamage` | `transform` | `bam.damage` | `bijuxdna/pydamage:1.0.0` | `1.0.0` | upstream:https://github.com/maxibor/pydamage | `production` |
-| `qualimap` | `qc` | `fastq.report_qc` | `bijuxdna/qualimap@sha256:pending` | `2.3` | upstream:http://qualimap.conesalab.org/ | `experimental` |
 | `rcorrector` | `corrector` | `fastq.correct_errors` | `bijuxdna/rcorrector@sha256:pending` | `1.0.7` | upstream:https://github.com/mourisl/Rcorrector | `production` |
 | `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-dna | `production` |
-| `samtools` | `aligner` | `fastq.index_reference, fastq.deplete_host, fastq.report_qc` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
+| `samtools` | `transform` | `fastq.index_reference` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
 | `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | upstream:https://github.com/grenaud/schmutzi | `production` |
-| `seqkit` | `trimmer` | `fastq.filter_reads, fastq.normalize_primers, fastq.trim_terminal_damage` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
-| `seqkit_stats` | `qc` | `fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
-| `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `experimental` |
+| `seqkit` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.normalize_primers, fastq.trim_terminal_damage, fastq.profile_overrepresented_sequences` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
+| `seqkit_stats` | `transform` | `fastq.profile_reads, fastq.profile_read_lengths` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
+| `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `production` |
 | `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
 | `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:latest-pinned` | `latest-pinned` | upstream:https://github.com/relipmoc/skewer | `experimental` |
-| `sortmerna` | `filter` | `fastq.filter_reads` | `bijuxdna/sortmerna:4.3.7` | `4.3.7` | upstream:https://github.com/biocore/sortmerna | `production` |
-| `spades` | `corrector` | `fastq.correct_errors` | `bijuxdna/spades@sha256:pending` | `latest-pinned` | upstream:https://github.com/ablab/spades | `experimental` |
+| `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna:4.3.7` | `4.3.7` | upstream:https://github.com/biocore/sortmerna | `production` |
 | `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | upstream:https://github.com/alexdobin/STAR | `production` |
 | `trim_galore` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trim_galore@sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61` | `0.6.10` | upstream:https://github.com/FelixKrueger/TrimGalore | `experimental` |
 | `trimmomatic` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4` | `0.39` | upstream:http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip | `experimental` |
