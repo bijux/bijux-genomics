@@ -420,6 +420,7 @@ pub fn bench_args_qc_post(
     Ok(engine_args::BenchFastqQcPostArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.report_qc", &args.tools)?,
         explain: args.explain,

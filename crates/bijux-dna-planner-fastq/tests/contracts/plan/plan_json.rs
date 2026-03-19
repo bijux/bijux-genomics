@@ -138,8 +138,10 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post(
         &dummy_tool("multiqc"),
         r1,
+        Some(r2),
         out_dir,
         std::collections::BTreeMap::new(),
+        None,
         None,
     )?;
     assert_snapshot("stage__fastq__fastq.report_qc", &plan)?;
