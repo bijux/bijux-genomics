@@ -619,6 +619,33 @@ impl StageMetricSchema for FastqStatsMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqOverrepresentedMetrics {
+    pub sequence_count: u64,
+    pub flagged_sequences: u64,
+    pub top_fraction: f64,
+}
+
+impl StageMetricSchema for FastqOverrepresentedMetrics {
+    const STAGE: &'static str = "fastq.profile_overrepresented_sequences";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.flagged_sequences > self.sequence_count {
+            return Err(BenchError::Validation(
+                "flagged_sequences must be <= sequence_count".to_string(),
+            ));
+        }
+        if !self.top_fraction.is_finite() || !(0.0..=1.0).contains(&self.top_fraction) {
+            return Err(BenchError::Validation(
+                "top_fraction must be within [0, 1]".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqIndexReferenceMetrics {
     pub reference_bytes: u64,
     pub index_bytes: u64,
@@ -654,4 +681,5 @@ pub const FASTQ_QC_POST_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_UMI_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_SCREEN_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_STATS_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_OVERREPRESENTED_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_INDEX_REFERENCE_SCHEMA_VERSION: i32 = 1;

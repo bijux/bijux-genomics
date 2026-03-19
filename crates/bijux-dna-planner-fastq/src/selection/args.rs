@@ -199,6 +199,18 @@ pub struct BenchFastqStatsArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqProfileOverrepresentedArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct BenchFastqPreprocessArgs {
     pub sample_id: String,

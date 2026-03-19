@@ -80,6 +80,13 @@ pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_profile_overrepresented_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    );
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 fn select_tools_with_allowlist(
     tools: &[String],
     allowlist: &[bijux_dna_core::ids::ToolId],

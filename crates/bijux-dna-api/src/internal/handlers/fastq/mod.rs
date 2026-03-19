@@ -22,6 +22,7 @@ pub use stages::filter_low_complexity::bench_fastq_filter_low_complexity;
 pub use stages::index_reference::bench_fastq_index_reference;
 pub use stages::merge_pairs::bench_fastq_merge;
 pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
+pub use stages::profile_overrepresented_sequences::bench_fastq_profile_overrepresented;
 pub use stages::profile_reads::bench_fastq_stats_neutral;
 pub use stages::report_qc::bench_fastq_qc_post;
 pub use stages::screen_taxonomy::bench_fastq_screen;

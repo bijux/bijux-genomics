@@ -6,9 +6,10 @@ use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
     BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqMergeArgs,
-    BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
-    BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
-    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand, FastqCommand,
+    BenchFastqPreprocessArgs, BenchFastqProfileOverrepresentedArgs, BenchFastqQcPostArgs,
+    BenchFastqScreenArgs, BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+    BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs,
+    DnaCommand, FastqCommand,
     FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
@@ -334,6 +335,23 @@ pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> Result<engine_args::Bench
         r1: args.r1.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.profile_reads", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_profile_overrepresented(
+    args: &BenchFastqProfileOverrepresentedArgs,
+) -> Result<engine_args::BenchFastqProfileOverrepresentedArgs> {
+    Ok(engine_args::BenchFastqProfileOverrepresentedArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.profile_overrepresented_sequences", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
