@@ -535,7 +535,16 @@
                     BenchFastqCommand::Screen(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_screen(args)?;
-                        bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
+                        let outcome = bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
+                        write_screen_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Preprocess(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
