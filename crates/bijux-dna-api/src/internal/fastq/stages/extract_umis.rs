@@ -86,7 +86,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec(STAGE_EXTRACT_UMIS.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir)?;
+        let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir, Some(&args.umi_pattern))?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -168,8 +168,8 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
-    let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
+    let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
     let output_stats_r1 = if execution.exit_code == 0 && output_r1.exists() {
         observe_fastq_stats(catalog, platform, platform.runner, &output_r1)?
     } else {
@@ -186,11 +186,6 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let bases_out = output_stats_r1.bases + output_stats_r2.bases;
     let pairs_in = input_stats.reads.min(input_stats_r2.reads);
     let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
-    let dedup_rate = if reads_in == 0 {
-        0.0
-    } else {
-        1.0 - (reads_out as f64 / reads_in as f64)
-    };
     let metrics = FastqUmiMetrics {
         reads_in,
         reads_out,
@@ -198,7 +193,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         bases_out,
         pairs_in: Some(pairs_in),
         pairs_out: Some(pairs_out),
-        dedup_rate,
+        dedup_rate: 0.0,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -217,6 +212,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         "bases_out": metrics.bases_out,
         "pairs_in": metrics.pairs_in,
         "pairs_out": metrics.pairs_out,
+        "reads_with_umi": metrics.reads_out,
         "dedup_rate": metrics.dedup_rate,
         "runtime_s": execution.runtime_s,
         "memory_mb": execution.memory_mb,

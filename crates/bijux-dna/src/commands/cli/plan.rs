@@ -443,6 +443,7 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> Result<engine_args::BenchFast
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
+        umi_pattern: args.umi_pattern.clone(),
         tools: resolve_bench_tools("fastq.extract_umis", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,

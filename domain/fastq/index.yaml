@@ -221,7 +221,7 @@ active_default_rationale:
   fastq.deplete_host: Default host depletion uses deterministic mapping and unmapped
     extraction.
   fastq.correct_errors: Default corrector chosen for robust error-correction baseline.
-  fastq.extract_umis: Default UMI handler preserves compatibility with stage contract.
+  fastq.extract_umis: Default UMI handler extracts barcodes without dropping reads.
   fastq.profile_read_lengths: Default length histogram baseline provides deterministic
     pre-trim size distribution.
   fastq.trim_polyg_tails: Default polyG trimmer uses fastp polyG-tail handling for common
@@ -953,8 +953,8 @@ stage_output_size_estimates_mb:
     corrected_reads_r1: 900.0
     corrected_reads_r2: 900.0
   fastq.extract_umis:
-    dedup_reads_r1: 700.0
-    dedup_reads_r2: 700.0
+    umi_reads_r1: 700.0
+    umi_reads_r2: 700.0
   fastq.profile_read_lengths:
     stats_json: 2.0
     stats_report: 1.0

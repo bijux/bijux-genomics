@@ -19,7 +19,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "dedup_rate in [0, 1]",
       "counts are non-negative"
     ],
-    "notes": "UMI processing may drop reads during deduplication."
+    "notes": "UMI extraction should preserve read counts while enriching read identifiers."
   },
   "outputs": {
     "emits_fastq": true,
@@ -29,15 +29,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ]
   },
   "retention": {
-    "definition": "reads_out / reads_in; bases_out / bases_in",
-    "may_drop": [
-      "reads",
-      "pairs",
-      "bases"
-    ],
-    "may_drop_reads": true,
+    "definition": "reads_out == reads_in; bases_out == bases_in",
+    "may_drop": [],
+    "may_drop_reads": false,
     "must_preserve_pairing": true,
     "preserves": [
+      "reads",
+      "pairs",
+      "bases",
       "pairing_metadata"
     ],
     "units": "reads,bases"

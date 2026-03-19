@@ -504,6 +504,8 @@ pub struct BenchFastqUmiArgs {
     pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long, help = "UMI barcode pattern passed to umi_tools extract")]
+    pub umi_pattern: String,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
