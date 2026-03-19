@@ -64,12 +64,6 @@ fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
     let root = workspace_root();
     let allowed_prefixes = [
         "scripts/assets/",
-        "scripts/docs/",
-        "scripts/examples/",
-        "scripts/hpc/",
-        "scripts/lab/",
-        "scripts/smoke/",
-        "scripts/test/",
         "scripts/tooling/",
         "scripts/_lib/",
         "scripts/experimental/",
@@ -163,12 +157,6 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
             || rel.starts_with("scripts/_lib/")
             || rel == "scripts/run.sh"
             || rel.starts_with("scripts/assets/")
-            || rel.starts_with("scripts/docs/")
-            || rel.starts_with("scripts/examples/")
-            || rel.starts_with("scripts/hpc/")
-            || rel.starts_with("scripts/lab/")
-            || rel.starts_with("scripts/smoke/")
-            || rel.starts_with("scripts/test/")
             || rel.starts_with("scripts/tooling/")
         {
             continue;
@@ -186,7 +174,7 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_scripts() {
+fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join(".github/workflows"))
@@ -200,13 +188,14 @@ fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_scripts() {
             continue;
         }
         let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if raw.contains("scripts/lab/") {
+        if raw.contains("scripts/run.sh lab ") || raw.contains("cargo run -p bijux-dev-dna -- lab ")
+        {
             offenders.push(entry.path().display().to_string());
         }
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "CI workflows must not invoke scripts/lab/* directly: {}",
+        "CI workflows must not invoke lab workflows directly: {}",
         offenders.join(", ")
     );
 }
@@ -257,9 +246,6 @@ fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or
     let mut ci_scripts = std::collections::BTreeSet::new();
     for m in re.find_iter(&make_text) {
         let rel = m.as_str().to_string();
-        if rel.starts_with("scripts/lab/") || rel.starts_with("scripts/hpc/") {
-            continue;
-        }
         ci_scripts.insert(rel);
     }
 

@@ -13,30 +13,46 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
         );
         return;
     }
-    let status = std::process::Command::new("python3")
-        .arg(root.join("scripts/test/toy_runs.py"))
+    let status = std::process::Command::new("cargo")
+        .arg("run")
+        .arg("-q")
+        .arg("-p")
+        .arg("bijux-dev-dna")
+        .arg("--")
+        .arg("test")
+        .arg("run")
+        .arg("toy-runs")
+        .arg("--")
         .arg("check")
         .arg("--profile")
         .arg("all")
         .arg("--out")
         .arg(root.join("artifacts/toy_policy_check"))
         .status()
-        .unwrap_or_else(|err| panic!("run toy_runs.py check: {err}"));
+        .unwrap_or_else(|err| panic!("run bijux-dev-dna test run toy-runs check: {err}"));
     assert!(status.success(), "toy golden check failed");
 }
 
 #[test]
 fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
-    let status = std::process::Command::new("python3")
-        .arg(root.join("scripts/test/toy_runs.py"))
+    let status = std::process::Command::new("cargo")
+        .arg("run")
+        .arg("-q")
+        .arg("-p")
+        .arg("bijux-dev-dna")
+        .arg("--")
+        .arg("test")
+        .arg("run")
+        .arg("toy-runs")
+        .arg("--")
         .arg("refresh")
         .arg("--profile")
         .arg("all")
         .arg("--out")
         .arg(root.join("artifacts/toy_policy_check_refresh"))
         .status()
-        .unwrap_or_else(|err| panic!("run toy_runs.py refresh without accept: {err}"));
+        .unwrap_or_else(|err| panic!("run bijux-dev-dna test run toy-runs refresh without accept: {err}"));
     assert!(
         !status.success(),
         "toy golden refresh must fail without --accept"

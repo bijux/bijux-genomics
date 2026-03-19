@@ -35,9 +35,6 @@ fn policy__contracts__scripts_registry_wrapper_policy__scripts_do_not_parse_tool
 {
     let root = repo_root();
     let scripts_dir = root.join("scripts");
-    let allowlist = [
-        root.join("scripts/docs/check-domain-doc-references.sh"),
-    ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&scripts_dir)
         .into_iter()
@@ -49,7 +46,7 @@ fn policy__contracts__scripts_registry_wrapper_policy__scripts_do_not_parse_tool
         }
         let content = std::fs::read_to_string(entry.path()).expect("read script");
         let parses_registry = content.contains("tool_registry.toml") && content.contains("awk ");
-        if parses_registry && !allowlist.iter().any(|allowed| entry.path() == allowed) {
+        if parses_registry {
             offenders.push(entry.path().display().to_string());
         }
     }

@@ -106,7 +106,7 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "crate tests must not spawn external commands (use scripts/lab/ harness instead):\n{}",
+        "crate tests must not spawn external commands (use fixtures or an explicit corpus-root contract instead):\n{}",
         offenders.join("\n")
     );
 }
