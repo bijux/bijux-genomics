@@ -13,7 +13,9 @@ stage_ids:
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- scan_report
+- validation_report
+- overrepresented_sequences_json
+- overrepresented_sequences_tsv
 metrics_schema_id: bijux.fastq.qc.v1
 metrics_schema: bijux.fastq.qc.v1
 version_cmd: fastq_scan --version
