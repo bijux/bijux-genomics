@@ -8,7 +8,6 @@ install_kind: container
 license: MIT
 citation: pending:tool-publication
 stage_ids:
-- bam.align
 - bam.validate
 - bam.qc_pre
 - bam.mapping_summary
@@ -19,9 +18,6 @@ stage_ids:
 - bam.duplication_metrics
 - bam.coverage
 - bam.endogenous_content
-- bam.overlap_correction
-- fastq.index_reference
-- fastq.report_qc
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:

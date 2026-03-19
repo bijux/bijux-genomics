@@ -54,30 +54,76 @@ tool_ids:
   - verifybamid2
   - yleaf
 stage_tool_compatibility:
-  bam.align: [bwa, bowtie2]
-  bam.validate: [samtools, bedtools, bamtools]
-  bam.qc_pre: [samtools]
-  bam.mapping_summary: [samtools]
-  bam.filter: [samtools, bedtools, bamtools]
-  bam.mapq_filter: [samtools, bamtools]
-  bam.length_filter: [samtools, picard]
-  bam.markdup: [picard, samtools]
-  bam.duplication_metrics: [samtools, picard]
-  bam.complexity: [preseq]
-  bam.coverage: [mosdepth, samtools]
-  bam.insert_size: [picard]
-  bam.gc_bias: [picard]
-  bam.endogenous_content: [samtools]
-  bam.overlap_correction: [bamutil]
-  bam.damage: [mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools]
-  bam.authenticity: [authenticct, pmdtools, damageprofiler]
-  bam.contamination: [schmutzi, verifybamid2, contammix]
-  bam.sex: [rxy, yleaf, angsd]
-  bam.bias_mitigation: [samtools]
-  bam.recalibration: [gatk]
-  bam.haplogroups: [yleaf]
-  bam.genotyping: [gatk, angsd]
-  bam.kinship: [king, angsd]
+  bam.align:
+  - bwa
+  - bowtie2
+  bam.authenticity:
+  - authenticct
+  - pmdtools
+  - damageprofiler
+  bam.bias_mitigation:
+  - samtools
+  bam.complexity:
+  - samtools
+  bam.contamination:
+  - schmutzi
+  - verifybamid2
+  - contammix
+  bam.coverage:
+  - mosdepth
+  - samtools
+  bam.damage:
+  - mapdamage2
+  - pydamage
+  - damageprofiler
+  - ngsbriggs
+  - addeam
+  - pmdtools
+  bam.duplication_metrics:
+  - samtools
+  - picard
+  bam.endogenous_content:
+  - samtools
+  bam.filter:
+  - samtools
+  - bedtools
+  - bamtools
+  bam.gc_bias:
+  - picard
+  bam.genotyping:
+  - samtools
+  bam.haplogroups:
+  - samtools
+  bam.insert_size:
+  - picard
+  bam.kinship:
+  - king
+  - angsd
+  bam.length_filter:
+  - samtools
+  - picard
+  bam.mapping_summary:
+  - samtools
+  bam.mapq_filter:
+  - samtools
+  - bamtools
+  bam.markdup:
+  - picard
+  - samtools
+  bam.overlap_correction:
+  - bamutil
+  bam.qc_pre:
+  - samtools
+  bam.recalibration:
+  - samtools
+  bam.sex:
+  - rxy
+  - yleaf
+  - angsd
+  bam.validate:
+  - samtools
+  - bedtools
+  - bamtools
 active_defaults:
   bam.align: bwa
   bam.validate: samtools
