@@ -24,6 +24,9 @@ pub fn plan_trim_terminal_damage(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
     out_dir: &Path,
+    damage_mode: &str,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
 ) -> Result<StagePlanV1> {
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
@@ -66,9 +69,9 @@ pub fn plan_trim_terminal_damage(
             "report_json": report,
         }),
         effective_params: serde_json::json!({
-            "damage_mode": "ancient",
-            "trim_5p_bases": 2,
-            "trim_3p_bases": 2,
+            "damage_mode": damage_mode,
+            "trim_5p_bases": trim_5p_bases,
+            "trim_3p_bases": trim_3p_bases,
             "transition_masking": "CT_GA_terminal_windows",
             "udg_classification_source": "config_or_inferred",
             "threads": tool.resources.threads,

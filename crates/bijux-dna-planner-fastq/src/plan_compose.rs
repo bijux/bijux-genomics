@@ -94,6 +94,9 @@ where
                     tool,
                     &current_r1,
                     &out_dir,
+                    "ancient",
+                    2,
+                    2,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)

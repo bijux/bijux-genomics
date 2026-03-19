@@ -6,7 +6,8 @@ use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
-    BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand,
+    BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
+    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand,
     FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
@@ -112,6 +113,44 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFa
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_trim_polyg(
+    args: &BenchFastqTrimPolygArgs,
+) -> Result<engine_args::BenchFastqTrimPolygArgs> {
+    Ok(engine_args::BenchFastqTrimPolygArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.trim_polyg_tails", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+        polyx_preset: args.polyx_preset.clone(),
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_trim_terminal_damage(
+    args: &BenchFastqTrimTerminalDamageArgs,
+) -> Result<engine_args::BenchFastqTrimTerminalDamageArgs> {
+    Ok(engine_args::BenchFastqTrimTerminalDamageArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.trim_terminal_damage", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+        damage_mode: args.damage_mode.clone(),
+        trim_5p_bases: args.trim_5p_bases,
+        trim_3p_bases: args.trim_3p_bases,
     })
 }
 

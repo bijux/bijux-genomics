@@ -8,6 +8,8 @@ pub use bijux_dna_core::metrics::{DerivedMetricId, MetricId};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StageMetricKind {
     FastqTrim,
+    FastqTrimPolyg,
+    FastqTrimTerminalDamage,
     FastqValidate,
     FastqFilter,
     FastqMerge,

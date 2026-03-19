@@ -6,9 +6,11 @@ use super::debug_commands::handle_debug_command;
 use crate::commands::command_prelude::{
     anyhow, atomic_write_bytes, bench_args_correct, bench_args_filter, bench_args_merge,
     bench_args_preprocess, bench_args_qc_post, bench_args_screen, bench_args_stats,
-    bench_args_trim, bench_args_umi, bench_args_validate, bench_fastq_correct, bench_fastq_filter,
-    bench_fastq_merge, bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen,
-    bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_umi, bench_fastq_validate_reads, cli,
+    bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
+    bench_args_validate, bench_fastq_correct, bench_fastq_filter, bench_fastq_merge,
+    bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen,
+    bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_trim_polyg_tails,
+    bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
     load_manifests, load_platform, load_run_summary, objective_spec, print_bench_schema,
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
@@ -16,7 +18,8 @@ use crate::commands::command_prelude::{
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
     write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
     write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
-    write_stats_report, write_trim_report, write_umi_report, write_validate_report, AnalyzeCommand,
+    write_stats_report, write_trim_polyg_report, write_trim_report,
+    write_trim_terminal_damage_report, write_umi_report, write_validate_report, AnalyzeCommand,
     BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand,
     Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
@@ -703,6 +706,40 @@ pub(crate) fn handle_meta_commands(
                         let bench_args = bench_args_trim(args)?;
                         let outcome = bench_fastq_trim(&catalog, &platform, None, &bench_args)?;
                         write_trim_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::TrimPolygTails(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_trim_polyg(args)?;
+                        let outcome =
+                            bench_fastq_trim_polyg_tails(&catalog, &platform, None, &bench_args)?;
+                        write_trim_polyg_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::TrimTerminalDamage(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_trim_terminal_damage(args)?;
+                        let outcome = bench_fastq_trim_terminal_damage(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_trim_terminal_damage_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,
