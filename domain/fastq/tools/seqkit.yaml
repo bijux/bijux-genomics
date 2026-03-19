@@ -49,7 +49,17 @@ stage_ids:
   - "fastq.normalize_primers"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
-expected_artifacts: ["report_json"]
+expected_artifacts:
+  - "trimmed_reads"
+  - "report_json"
+  - "filtered_reads"
+  - "normalized_abundance_tsv"
+  - "normalized_reads_r1"
+  - "normalized_reads_r2"
+  - "primer_orientation_report"
+  - "primer_stats_json"
+  - "overrepresented_sequences_tsv"
+  - "overrepresented_sequences_json"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "seqkit --version"

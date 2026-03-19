@@ -2,45 +2,53 @@ schema_version: "bijux.domain.artifacts.v1"
 domain: "fastq"
 artifact_ids:
   - adapter_report
+  - asv_sequences_fasta
+  - asv_table_tsv
+  - chimera_filtered_reads_r1
+  - chimera_filtered_reads_r2
+  - chimera_metrics_json
+  - chimeras_fasta
+  - classification_report_json
+  - contaminant_screen_report_json
+  - contaminant_screened_reads
   - corrected_reads_r1
   - corrected_reads_r2
   - dedup_reads_r1
   - dedup_reads_r2
   - filter_report_json
   - filtered_reads
-  - final_reads_r1
-  - final_reads_r2
+  - filtered_fastq
+  - host_depleted_reads_r1
+  - host_depleted_reads_r2
+  - host_depletion_report_json
+  - length_distribution_json
+  - length_distribution_tsv
   - manifest_json
   - merged_reads
-  - qc_report_html
-  - qc_report_json
+  - multiqc_data
+  - multiqc_report
+  - normalized_abundance_tsv
+  - normalized_reads_r1
+  - normalized_reads_r2
+  - otu_representatives
+  - otu_table
+  - overrepresented_sequences_json
+  - overrepresented_sequences_tsv
+  - primer_orientation_report
+  - primer_stats_json
+  - qc_json
+  - qc_plots_dir
+  - qc_tsv
   - reference_index
   - report_json
-  - rrna_filtered_reads
+  - rrna_filtered_reads_r1
+  - rrna_filtered_reads_r2
+  - rrna_report_json
+  - rrna_report_tsv
   - screen_report_tsv
-  - stats_json
+  - taxonomy_ready_fasta
+  - taxonomy_ready_fastq
   - trimmed_reads
-  - unmerged_reads_r1
-  - unmerged_reads_r2
-  - abundance_report
-  - filtered_fastq
-  - merge_report
-  - merged_fastq
-  - metrics.json
-  - normalized_abundance_table
-  - asv_table
-  - asv_sequences
-  - chimera_filtered_reads
-  - otu_table
-  - otu_representatives
-  - primer_normalized_reads
-  - scan_report
-  - screen_report
-  - screen_summary
-  - stats_report
-  - trim_report
-  - trimmed_fastq
-  - trimmed_fastq_r1
-  - trimmed_fastq_r2
   - umi_reads_r1
   - umi_reads_r2
+  - validation_report
