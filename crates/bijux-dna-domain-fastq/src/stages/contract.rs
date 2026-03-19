@@ -22,13 +22,13 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.trim_terminal_damage" | "fastq.normalize_primers" => {
             vec!["cutadapt", "seqkit"]
         }
-        "fastq.filter_reads" => vec!["bbduk", "fastp", "seqkit"],
+        "fastq.filter_reads" => vec!["bbduk", "fastp", "prinseq", "seqkit"],
         "fastq.remove_duplicates" => vec!["clumpify", "fastuniq"],
-        "fastq.filter_low_complexity" => vec!["bbduk"],
+        "fastq.filter_low_complexity" => vec!["bbduk", "dustmasker", "prinseq"],
         "fastq.trim_polyg_tails" => vec!["fastp", "bbduk"],
-        "fastq.deplete_host" => vec!["bowtie2", "samtools"],
+        "fastq.deplete_host" => vec!["bowtie2"],
         "fastq.deplete_reference_contaminants" => vec!["bbduk", "bowtie2"],
-        "fastq.profile_read_lengths" => vec!["fastp", "seqkit_stats"],
+        "fastq.profile_read_lengths" => vec!["fastp", "prinseq", "seqfu", "seqkit_stats"],
         "fastq.profile_overrepresented_sequences" => vec!["fastqc", "seqkit"],
         "fastq.remove_chimeras" | "fastq.cluster_otus" => vec!["vsearch"],
         "fastq.infer_asvs" => vec!["dada2"],

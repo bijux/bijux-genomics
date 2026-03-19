@@ -117,7 +117,7 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
 
 fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
     let allowed: &[&str] = match stage_id {
-        "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk", "fastq_scan"],
+        "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk"],
         "fastq.detect_adapters" => &["fastp", "fastqc"],
         "fastq.trim_reads" => &[
             "alientrimmer",
@@ -129,7 +129,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         ],
         "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
         "fastq.merge_pairs" => &["bbmerge", "flash2", "leehom", "pear"],
-        "fastq.remove_duplicates" => &["clumpify", "fastuniq", "prinseq"],
+        "fastq.remove_duplicates" => &["clumpify", "fastuniq"],
         "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
         "fastq.filter_reads" => &["bbduk", "fastp", "prinseq", "seqkit"],
         "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker"],
@@ -137,7 +137,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.screen_taxonomy" => &["kraken2", "bracken", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
         "fastq.deplete_reference_contaminants" => &["bbduk", "bowtie2"],
         "fastq.deplete_rrna" => &["sortmerna"],
-        "fastq.deplete_host" => &["bowtie2", "samtools"],
+        "fastq.deplete_host" => &["bowtie2"],
         "fastq.normalize_primers" => &["cutadapt"],
         "fastq.remove_chimeras" | "fastq.cluster_otus" => &["vsearch"],
         "fastq.infer_asvs" => &["dada2"],
