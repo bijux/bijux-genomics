@@ -154,7 +154,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.low_complexity"
         | "fastq.polyg_tailing"
         | "fastq.host_depletion"
-        | "fastq.contaminant_screen" => Some(FastqStageContract {
+        | "fastq.contaminant_screen"
+        | "fastq.rrna" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::SingleEnd,
             may_drop_reads: true,
@@ -205,8 +206,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.stats_neutral"
         | "fastq.qc_post"
         | "fastq.screen"
-        | "fastq.prepare_reference"
-        | "fastq.rrna" => Some(FastqStageContract {
+        | "fastq.prepare_reference" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
             may_drop_reads: false,

@@ -67,6 +67,11 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "fastq.rrna",
+        schema: "fastq_filter_v2",
+        version: 2,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.stats_neutral",
         schema: "fastq_stats_neutral_v1",
         version: 1,
