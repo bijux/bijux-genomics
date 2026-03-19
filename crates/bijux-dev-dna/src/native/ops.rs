@@ -9,9 +9,12 @@ use serde_json::{json, Value};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
+use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
+use crate::application::domain::DomainApplication;
 use crate::infrastructure::process::ProcessRunner;
 use crate::infrastructure::workspace::Workspace;
+use crate::model::check::{CheckSelection, CheckStatus};
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
 
 pub fn run_native_ops_command(
@@ -60,11 +63,22 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingCheckConfigSnapshot => {
             tooling_check_config_snapshot(workspace, args)
         }
+        NativeOpsCommandKey::ToolingCheckConfigPaths => tooling_check_config_paths(workspace, args),
+        NativeOpsCommandKey::ToolingCleanDocs => tooling_clean_docs(workspace, args),
+        NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
+        NativeOpsCommandKey::ToolingDocsBuild => tooling_docs_build(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateConfigs => tooling_generate_configs(workspace, args),
         NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix => {
             tooling_generate_compatibility_matrix(workspace, args)
         }
         NativeOpsCommandKey::ToolingGenerateConfigTreeSnapshot => {
             tooling_generate_config_tree_snapshot(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGeneratePanelCompatibilityMatrix => {
+            tooling_generate_panel_compatibility_matrix(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGeneratePolicyIndex => {
+            tooling_generate_policy_index(workspace, args)
         }
         NativeOpsCommandKey::ToolingGenerateDocs => tooling_generate_docs(workspace, args),
         NativeOpsCommandKey::ToolingGenerateDocsGraph => tooling_generate_docs_graph(workspace, args),
@@ -73,6 +87,15 @@ pub fn run_native_ops_command(
         }
         NativeOpsCommandKey::ToolingGenerateRepoRootMap => tooling_generate_repo_root_map(workspace, args),
         NativeOpsCommandKey::ToolingGenerateToolIndex => tooling_generate_tool_index(workspace, args),
+        NativeOpsCommandKey::ToolingImageQa => tooling_image_qa(workspace, args),
+        NativeOpsCommandKey::ToolingInventory => tooling_inventory(workspace, args),
+        NativeOpsCommandKey::ToolingMakeHelp => tooling_make_help(workspace, args),
+        NativeOpsCommandKey::ToolingRepoDoctor => tooling_repo_doctor(workspace, args),
+        NativeOpsCommandKey::ToolingRunBijux => tooling_run_bijux(workspace, args),
+        NativeOpsCommandKey::ToolingSetupDocsVenv => tooling_setup_docs_venv(workspace, args),
+        NativeOpsCommandKey::ToolingSimulateCoverageRegime => {
+            tooling_simulate_coverage_regime(workspace, args)
+        }
     }
 }
 
@@ -495,6 +518,717 @@ fn tooling_generate_config_tree_snapshot(
         ),
     )?;
     success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-config-paths", args)?;
+    let pattern = Regex::new(r"configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
+    let mut refs = BTreeSet::new();
+    let mut scan_roots = vec![workspace.path("Makefile")];
+    scan_roots.extend([
+        workspace.path("makes"),
+        workspace.path("crates"),
+        workspace.path("scripts"),
+        workspace.path("docs"),
+        workspace.path(".github"),
+    ]);
+    for root in scan_roots {
+        if root.is_file() {
+            let raw = read_utf8(&root).unwrap_or_default();
+            for capture in pattern.find_iter(&raw) {
+                refs.insert(
+                    capture
+                        .as_str()
+                        .trim_end_matches(|ch: char| "`\"',;:)".contains(ch))
+                        .to_string(),
+                );
+            }
+            continue;
+        }
+        if !root.is_dir() {
+            continue;
+        }
+        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let raw = read_utf8(entry.path()).unwrap_or_default();
+            for capture in pattern.find_iter(&raw) {
+                refs.insert(
+                    capture
+                        .as_str()
+                        .trim_end_matches(|ch: char| "`\"',;:)".contains(ch))
+                        .to_string(),
+                );
+            }
+        }
+    }
+    let allow_missing = BTreeSet::from([
+        "configs/runtime/profiles/hpc.toml",
+        "configs/tools.toml",
+        "configs/lab/config.toml",
+    ]);
+    let missing = refs
+        .into_iter()
+        .filter(|rel| !allow_missing.contains(rel.as_str()) && !workspace.path(rel).exists())
+        .map(|rel| format!("missing config reference: {rel}"))
+        .collect::<Vec<_>>();
+    if missing.is_empty() {
+        return success_line("config path references: OK");
+    }
+    failure_lines("config path references: FAILED", &missing)
+}
+
+fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let docs_root = match args {
+        [] => workspace.path("artifacts/docs"),
+        [flag] if flag == "--help" || flag == "-h" => {
+            return success_line(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run clean-docs -- [artifacts/docs-root]",
+            )
+        }
+        [path] => resolve_workspace_path(workspace, path),
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run clean-docs -- [artifacts/docs-root]\n",
+            ))
+        }
+    };
+    let docs_root_rel = workspace.rel(&docs_root).to_string_lossy().to_string();
+    if !docs_root_rel.starts_with("artifacts/") {
+        return Ok(OpsCommandOutcome::failure(
+            "clean-docs refuses to remove paths outside artifacts/\n",
+        ));
+    }
+    if docs_root.exists() {
+        fs::remove_dir_all(&docs_root).with_context(|| format!("remove {}", docs_root.display()))?;
+    }
+    success_line(format!("removed {}", docs_root.display()))
+}
+
+fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("config-inventory", args)?;
+    let out_txt = workspace.path("artifacts/configs_inventory.txt");
+    let out_md = workspace.path("artifacts/inventory/configs.md");
+    let mut config_files = WalkDir::new(workspace.path("configs"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
+        .collect::<Vec<_>>();
+    config_files.sort();
+    let mut text_lines = vec![
+        "# schema_version = 1".to_string(),
+        "# owner = bijux-dna-infra".to_string(),
+    ];
+    text_lines.extend(config_files.iter().cloned());
+    write_utf8(&out_txt, &format!("{}\n", text_lines.join("\n")))?;
+
+    let mut md_lines = vec![
+        "# Config Inventory".to_string(),
+        "".to_string(),
+        "| Path | Schema Version | Owner |".to_string(),
+        "|---|---:|---|".to_string(),
+    ];
+    for rel in config_files {
+        let path = workspace.path(&rel);
+        let mut schema = "-".to_string();
+        let mut owner = "-".to_string();
+        for line in read_utf8(&path).unwrap_or_default().lines().take(8) {
+            let trimmed = line.trim();
+            if let Some(value) = trimmed.strip_prefix("# schema_version = ") {
+                schema = value.trim().to_string();
+            }
+            if let Some(value) = trimmed.strip_prefix("# owner = ") {
+                owner = value.trim().to_string();
+            }
+        }
+        md_lines.push(format!("| `{rel}` | `{schema}` | `{owner}` |"));
+    }
+    write_utf8(&out_md, &format!("{}\n", md_lines.join("\n")))?;
+    success_line(format!(
+        "wrote {}\nwrote {}",
+        out_txt.display(),
+        out_md.display()
+    ))
+}
+
+fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mode = args.first().map(String::as_str).unwrap_or_default();
+    if matches!(mode, "--help" | "-h") || mode.is_empty() {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run docs-build -- <build|lint|serve>",
+        );
+    }
+    let cfg_path = PathBuf::from(env_or_default("DOCS_CFG", "configs/docs/mkdocs.toml"));
+    let cfg_path = if cfg_path.is_absolute() { cfg_path } else { workspace.path(cfg_path.to_string_lossy().as_ref()) };
+    let docs_venv = PathBuf::from(env_or_default("DOCS_VENV", "artifacts/docs/.venv"));
+    let docs_venv = if docs_venv.is_absolute() { docs_venv } else { workspace.path(docs_venv.to_string_lossy().as_ref()) };
+    let mkdocs_bin = docs_venv.join("bin/mkdocs");
+    if !cfg_path.is_file() || !mkdocs_bin.is_file() {
+        return Ok(OpsCommandOutcome::failure(
+            "docs-build requires DOCS_CFG and DOCS_VENV/bin/mkdocs to exist\n",
+        ));
+    }
+    let cfg: TomlValue = toml::from_str(&read_utf8(&cfg_path)?)?;
+    let mkdocs_config = cfg
+        .get("mkdocs_config")
+        .and_then(TomlValue::as_str)
+        .unwrap_or("mkdocs.yml");
+    let site_dir = cfg
+        .get("site_dir")
+        .and_then(TomlValue::as_str)
+        .unwrap_or("artifacts/docs/site");
+    let strict = cfg
+        .get("strict")
+        .and_then(TomlValue::as_bool)
+        .unwrap_or(true);
+    let dev_addr = cfg
+        .get("dev_addr")
+        .and_then(TomlValue::as_str)
+        .unwrap_or("127.0.0.1:8000");
+    if site_dir != "artifacts/docs/site" {
+        return Ok(OpsCommandOutcome::failure(
+            format!("docs-build: site_dir must be artifacts/docs/site (got: {site_dir})\n"),
+        ));
+    }
+    let cache_dir = workspace.path("artifacts/docs/.cache");
+    fs::create_dir_all(&cache_dir).with_context(|| format!("create {}", cache_dir.display()))?;
+    let cmd_args = match mode {
+        "build" => vec![
+            "build".to_string(),
+            "--config-file".to_string(),
+            workspace.path(mkdocs_config).display().to_string(),
+            "--site-dir".to_string(),
+            workspace.path(site_dir).display().to_string(),
+        ],
+        "lint" => {
+            let mut args = vec!["build".to_string()];
+            if strict {
+                args.push("--strict".to_string());
+            }
+            args.extend([
+                "--config-file".to_string(),
+                workspace.path(mkdocs_config).display().to_string(),
+                "--site-dir".to_string(),
+                workspace.path(site_dir).display().to_string(),
+            ]);
+            args
+        }
+        "serve" => vec![
+            "serve".to_string(),
+            "--config-file".to_string(),
+            workspace.path(mkdocs_config).display().to_string(),
+            "--dev-addr".to_string(),
+            dev_addr.to_string(),
+        ],
+        other => {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "unsupported docs-build mode: {other}\n"
+            )))
+        }
+    };
+    let program = mkdocs_bin.display().to_string();
+    run_program_with_env(
+        workspace,
+        &program,
+        &cmd_args,
+        &[("XDG_CACHE_HOME".to_string(), cache_dir.display().to_string())],
+    )
+}
+
+fn tooling_generate_configs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("generate-configs", args)?;
+    run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "-p".to_string(),
+            "bijux-dna-domain-compiler".to_string(),
+            "--bin".to_string(),
+            "compile_domain_configs".to_string(),
+            "--".to_string(),
+            "--domain-dir".to_string(),
+            "domain".to_string(),
+            "--configs-dir".to_string(),
+            "configs".to_string(),
+        ],
+    )
+}
+
+fn tooling_generate_panel_compatibility_matrix(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(
+        workspace,
+        "generate-panel-compatibility-matrix",
+        args,
+        "docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md",
+    )?;
+    let panels = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/panels/panels.toml"))?)?;
+    let maps = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
+    let panel_rows = panels
+        .get("panel")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let map_rows = maps
+        .get("map")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut maps_by_sb = BTreeMap::<(String, String), Vec<TomlValue>>::new();
+    for row in map_rows {
+        let key = (
+            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+        );
+        maps_by_sb.entry(key).or_default().push(row);
+    }
+    let mut panels_sorted = panel_rows;
+    panels_sorted.sort_by_key(|row| {
+        (
+            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+        )
+    });
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-panel-compatibility-matrix -->".to_string(),
+        "".to_string(),
+        "# PANEL_COMPATIBILITY_MATRIX".to_string(),
+        "".to_string(),
+        "## Purpose".to_string(),
+        "Defines generated compatibility coverage for species/build, panel/map pairs, and downstream tool backends.".to_string(),
+        "".to_string(),
+        "## Scope".to_string(),
+        "Derived from panel and map catalogs to document declared tool-tag compatibility.".to_string(),
+        "".to_string(),
+        "## Non-goals".to_string(),
+        "- Replacing stage-level validation or runtime compatibility checks.".to_string(),
+        "".to_string(),
+        "## Contracts".to_string(),
+        "- Matrix rows are generated from catalog authority and must not be hand-edited.".to_string(),
+        "- Missing species/build map entries must be represented explicitly as unsupported rows.".to_string(),
+        "".to_string(),
+        "| Species | Build | Panel ID | Map ID | Tool Backend | Supported | Notes |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
+    ];
+    for panel in panels_sorted {
+        let species = panel.get("species_id").and_then(TomlValue::as_str).unwrap_or_default();
+        let build = panel.get("build_id").and_then(TomlValue::as_str).unwrap_or_default();
+        let panel_id = panel.get("id").and_then(TomlValue::as_str).unwrap_or_default();
+        let compat = panel.get("compatibility").and_then(TomlValue::as_table);
+        let tool_tags = compat
+            .and_then(|table| table.get("tool_tags"))
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+            .collect::<BTreeSet<_>>();
+        let maps_for = maps_by_sb.get(&(species.to_string(), build.to_string()));
+        if maps_for.is_none() {
+            lines.push(format!(
+                "| `{species}` | `{build}` | `{panel_id}` | `-` | `-` | `no` | no map catalog for species/build |"
+            ));
+            continue;
+        }
+        for map in maps_for.unwrap_or(&Vec::new()) {
+            let map_id = map.get("id").and_then(TomlValue::as_str).unwrap_or_default();
+            let map_tool_tags = map
+                .get("compatibility")
+                .and_then(TomlValue::as_table)
+                .and_then(|table| table.get("tool_tags"))
+                .and_then(TomlValue::as_array)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                .collect::<BTreeSet<_>>();
+            let union = tool_tags.union(&map_tool_tags).cloned().collect::<BTreeSet<_>>();
+            for tool in union {
+                let ok = tool_tags.contains(&tool) && map_tool_tags.contains(&tool);
+                let mut notes = Vec::new();
+                if tool == "minimac4" {
+                    notes.push("requires panel m3vcf".to_string());
+                }
+                if tool == "glimpse" {
+                    let format = compat
+                        .and_then(|table| table.get("glimpse_reference_format"))
+                        .and_then(TomlValue::as_str)
+                        .unwrap_or_default();
+                    notes.push(format!("GLIMPSE format={format}"));
+                }
+                let note = if notes.is_empty() { "-".to_string() } else { notes.join("; ") };
+                lines.push(format!(
+                    "| `{species}` | `{build}` | `{panel_id}` | `{map_id}` | `{tool}` | `{}` | {note} |",
+                    if ok { "yes" } else { "no" }
+                ));
+            }
+        }
+    }
+    write_utf8(&out, &format!("{}\n", lines.join("\n")))?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_generate_policy_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("generate-policy-index", args)?;
+    let out_file = workspace.path("artifacts/policies/index.md");
+    let mut lines = vec![
+        "# Policy Test Index".to_string(),
+        "".to_string(),
+        "Generated from crates/bijux-dna-policies/tests.".to_string(),
+        "".to_string(),
+    ];
+    let mut files = WalkDir::new(workspace.path("crates/bijux-dna-policies/tests"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+        .map(|entry| entry.path().to_path_buf())
+        .collect::<Vec<_>>();
+    files.sort();
+    let policy_re = Regex::new(r"(?m)^fn (policy__.+)$")?;
+    for path in files {
+        let rel = workspace.rel(&path).to_string_lossy().to_string();
+        lines.push(format!("## {rel}"));
+        for capture in policy_re.captures_iter(&read_utf8(&path)?) {
+            if let Some(name) = capture.get(1).map(|value| value.as_str()) {
+                lines.push(format!("- {name}"));
+            }
+        }
+        lines.push(String::new());
+    }
+    write_utf8(&out_file, &format!("{}\n", lines.join("\n")))?;
+    success_line(format!("wrote {}", out_file.display()))
+}
+
+fn tooling_image_qa(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "--bin".to_string(),
+            "image_qa".to_string(),
+            "--".to_string(),
+        ]
+        .into_iter()
+        .chain(args.iter().cloned())
+        .collect::<Vec<_>>(),
+    )
+}
+
+fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("inventory", args)?;
+    let out_dir = workspace.path("artifacts/inventory");
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let scripts_out = out_dir.join("scripts_inventory.txt");
+    let configs_out = out_dir.join("configs_inventory.txt");
+    let docs_out = out_dir.join("docs_index_coverage.txt");
+    let assets_out = out_dir.join("assets_inventory.txt");
+    write_utf8(&scripts_out, &walk_file_list(workspace, "scripts", Some("sh"))?)?;
+    write_utf8(&configs_out, &walk_file_list(workspace, "configs", None)?)?;
+    write_utf8(&assets_out, &walk_file_list(workspace, "assets", None)?)?;
+    let mut lines = vec!["docs_index_coverage".to_string()];
+    let mut dirs = WalkDir::new(workspace.path("docs"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_dir())
+        .map(|entry| entry.path().to_path_buf())
+        .collect::<Vec<_>>();
+    dirs.sort();
+    for dir in dirs {
+        let rel = workspace.rel(&dir).to_string_lossy().to_string();
+        let present = if dir.join("index.md").is_file() { "present" } else { "missing" };
+        lines.push(format!("{rel}/index.md:{present}"));
+    }
+    write_utf8(&docs_out, &format!("{}\n", lines.join("\n")))?;
+    success_line(format!(
+        "wrote {}\nwrote {}\nwrote {}\nwrote {}",
+        scripts_out.display(),
+        configs_out.display(),
+        docs_out.display(),
+        assets_out.display()
+    ))
+}
+
+fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let show_internal = match args {
+        [] => false,
+        [flag] if flag == "--internal" => true,
+        [flag] if matches!(flag.as_str(), "--help" | "-h" | "--dry-run" | "--verbose") => {
+            return success_line(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run make-help -- [--internal]",
+            )
+        }
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run make-help -- [--internal]\n",
+            ))
+        }
+    };
+    let readme = read_utf8(&workspace.path("makes/README.md"))?;
+    let mut public = Vec::new();
+    let mut in_public = false;
+    for line in readme.lines() {
+        if line.trim() == "Public targets (stable contract):" {
+            in_public = true;
+            continue;
+        }
+        if in_public && line.starts_with("- `") {
+            if let Some(target) = line.split('`').nth(1) {
+                public.push(target.to_string());
+            }
+            continue;
+        }
+        if in_public && !line.trim().is_empty() && !line.starts_with("- ") {
+            break;
+        }
+    }
+    let mut out = String::from("Public make targets:\n\n");
+    for target in public {
+        out.push_str(&format!("  {target:<22} from makes/README.md\n"));
+    }
+    if show_internal {
+        let re = Regex::new(r"^([_a-zA-Z0-9-]+):\s*##\s*(.+)$")?;
+        let mut internal = Vec::new();
+        for line in read_utf8(&workspace.path("makes/cargo.mk"))?.lines() {
+            let Some(capture) = re.captures(line) else {
+                continue;
+            };
+            let name = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            let desc = capture.get(2).map(|value| value.as_str()).unwrap_or_default();
+            if name.starts_with('_') || matches!(name, "domain-validate" | "examples-validate") {
+                internal.push((name.to_string(), desc.to_string()));
+            }
+        }
+        if !internal.is_empty() {
+            out.push_str("\nInternal make targets:\n\n");
+            for (name, desc) in internal {
+                out.push_str(&format!("  {name:<22} {desc}\n"));
+            }
+        }
+    }
+    out.push_str("\nSee makes/README.md for the public surface contract.\n");
+    Ok(OpsCommandOutcome::success(out))
+}
+
+fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mode = args.first().map(String::as_str).unwrap_or("--fast");
+    if matches!(mode, "--help" | "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run repo-doctor -- [--fast|--full]",
+        );
+    }
+    let mut aggregate = String::new();
+    let check_ids: Vec<&str> = match mode {
+        "--fast" => vec![
+            "check-root-layout",
+            "check-supported-scripts",
+            "check-no-orphan-scripts",
+        ],
+        "--full" => vec![
+            "check-root-layout",
+            "check-config-layout",
+            "check-supported-scripts",
+            "check-no-orphan-scripts",
+        ],
+        other => {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "unsupported repo-doctor mode: {other}\n"
+            )))
+        }
+    };
+    run_check_ids(
+        &mut aggregate,
+        &check_ids,
+    )?;
+    let docs_graph = run_native_ops_command(
+        &NativeOpsCommandKey::DocsCheckDocsGraph,
+        workspace,
+        &[],
+    )?;
+    if !docs_graph.is_success() {
+        return Ok(docs_graph);
+    }
+    aggregate.push_str(&docs_graph.stdout);
+    if mode == "--full" {
+        let generate_configs = tooling_generate_configs(workspace, &[])?;
+        if !generate_configs.is_success() {
+            return Ok(generate_configs);
+        }
+        aggregate.push_str(&generate_configs.stdout);
+        let check_snapshot = tooling_check_config_snapshot(workspace, &[])?;
+        if !check_snapshot.is_success() {
+            return Ok(check_snapshot);
+        }
+        aggregate.push_str(&check_snapshot.stdout);
+        let domain = DomainApplication::new()?.run("check-inventory", &[])?;
+        if !domain.is_success() {
+            return Ok(OpsCommandOutcome {
+                exit_code: domain.exit_code,
+                stdout: domain.stdout,
+                stderr: domain.stderr,
+            });
+        }
+        aggregate.push_str(&domain.stdout);
+    }
+    aggregate.push_str(&format!("repo-doctor: OK ({mode})\n"));
+    Ok(OpsCommandOutcome::success(aggregate))
+}
+
+fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
+        return success_line("Usage: cargo run -p bijux-dev-dna -- tooling run bijux -- <args...>");
+    }
+    run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "--bin".to_string(),
+            "bijux-dna".to_string(),
+            "--".to_string(),
+        ]
+        .into_iter()
+        .chain(args.iter().cloned())
+        .collect::<Vec<_>>(),
+    )
+}
+
+fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("setup-docs-venv", args)?;
+    let docs_py = env_or_default("DOCS_PY", "python3");
+    let docs_venv = resolve_workspace_path(workspace, &env_or_default("DOCS_VENV", "artifacts/docs/.venv"));
+    let docs_req = resolve_workspace_path(workspace, &env_or_default("DOCS_REQ", "configs/docs/requirements.txt"));
+    let docs_cache = workspace.path("artifacts/docs/.cache/pip");
+    fs::create_dir_all(&docs_cache).with_context(|| format!("create {}", docs_cache.display()))?;
+    let venv = run_program(
+        workspace,
+        &docs_py,
+        &["-m".to_string(), "venv".to_string(), docs_venv.display().to_string()],
+    )?;
+    if !venv.is_success() {
+        return Ok(venv);
+    }
+    let pip = docs_venv.join("bin/pip").display().to_string();
+    let upgrade = run_program_with_env(
+        workspace,
+        &pip,
+        &["install".to_string(), "--upgrade".to_string(), "pip".to_string()],
+        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
+    )?;
+    if !upgrade.is_success() {
+        return Ok(upgrade);
+    }
+    run_program_with_env(
+        workspace,
+        &pip,
+        &[
+            "install".to_string(),
+            "-r".to_string(),
+            docs_req.display().to_string(),
+        ],
+        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
+    )
+}
+
+fn tooling_simulate_coverage_regime(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    if matches!(args.first().map(String::as_str), Some("--help" | "-h")) || args.is_empty() {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run simulate-coverage-regime -- <mean_depth_x> [--profile <name>]",
+        );
+    }
+    let mean_depth = args[0]
+        .parse::<f64>()
+        .context("parse mean_depth_x as float")?;
+    let mut profile = "default".to_string();
+    let mut index = 1;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--profile" => {
+                profile = args.get(index + 1).context("missing value for --profile")?.clone();
+                index += 2;
+            }
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&workspace.path("configs/runtime/coverage_regimes.toml"))?)?;
+    let decision = cfg
+        .get("decision")
+        .and_then(TomlValue::as_table)
+        .and_then(|table| table.get("coverage_regime"))
+        .and_then(TomlValue::as_table)
+        .context("missing decision.coverage_regime")?;
+    let base = decision
+        .get("thresholds")
+        .and_then(TomlValue::as_table)
+        .context("missing thresholds")?;
+    let profiles = decision
+        .get("profiles")
+        .and_then(TomlValue::as_table)
+        .cloned()
+        .unwrap_or_default();
+    let selected_profile = if profile == "default" {
+        base.clone()
+    } else {
+        profiles
+            .get(&profile)
+            .and_then(TomlValue::as_table)
+            .cloned()
+            .ok_or_else(|| anyhow!("unknown profile: {profile}"))?
+    };
+    let gl_max = selected_profile
+        .get("gl_max_depth")
+        .and_then(TomlValue::as_float)
+        .or_else(|| selected_profile.get("gl_max_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .context("missing gl_max_depth")?;
+    let pseudo_max = selected_profile
+        .get("pseudohaploid_max_depth")
+        .and_then(TomlValue::as_float)
+        .or_else(|| selected_profile.get("pseudohaploid_max_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .context("missing pseudohaploid_max_depth")?;
+    let dip_min = selected_profile
+        .get("diploid_min_depth")
+        .and_then(TomlValue::as_float)
+        .or_else(|| selected_profile.get("diploid_min_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .context("missing diploid_min_depth")?;
+    let (selected, pipeline_path) = if mean_depth <= gl_max {
+        ("gl", vec!["vcf.call_gl", "vcf.damage_filter", "vcf.gl_propagation", "vcf.impute", "vcf.postprocess"])
+    } else if mean_depth <= pseudo_max {
+        ("pseudohaploid", vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+    } else if mean_depth >= dip_min {
+        ("diploid", vec!["vcf.call_diploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+    } else {
+        ("pseudohaploid", vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+    };
+    write_json_pretty(
+        &workspace.path("artifacts/tmp/simulate_coverage_regime.last.json"),
+        &json!({
+            "decision": "decision.coverage_regime",
+            "profile": profile,
+            "coverage": { "mean_depth_x": mean_depth },
+            "thresholds_used": {
+                "gl_max_depth": gl_max,
+                "pseudohaploid_max_depth": pseudo_max,
+                "diploid_min_depth": dip_min,
+            },
+            "selected_regime": selected,
+            "pipeline_path": pipeline_path,
+        }),
+    )?;
+    Ok(OpsCommandOutcome::success(read_utf8(
+        &workspace.path("artifacts/tmp/simulate_coverage_regime.last.json"),
+    )?))
 }
 
 fn tooling_generate_domain_coverage_doc(
@@ -2472,6 +3206,39 @@ fn merge_outcomes(mut left: OpsCommandOutcome, right: OpsCommandOutcome) -> OpsC
     left.stdout.push_str(&right.stdout);
     left.stderr.push_str(&right.stderr);
     left
+}
+
+fn run_check_ids(stdout: &mut String, check_ids: &[&str]) -> Result<()> {
+    let app = CheckApplication::new()?;
+    for check_id in check_ids {
+        let outcomes = app.run_selection(CheckSelection::Single((*check_id).to_string()))?;
+        for outcome in outcomes {
+            if outcome.status == CheckStatus::Failed {
+                return Err(anyhow!("check `{check_id}` failed: {}", outcome.detail.trim()));
+            }
+            stdout.push_str(&format!("{}: passed\n", outcome.id));
+            if !outcome.detail.trim().is_empty() {
+                stdout.push_str(outcome.detail.trim());
+                stdout.push('\n');
+            }
+        }
+    }
+    Ok(())
+}
+
+fn walk_file_list(workspace: &Workspace, root: &str, extension: Option<&str>) -> Result<String> {
+    let mut files = WalkDir::new(workspace.path(root))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| {
+            extension.is_none()
+                || entry.path().extension().and_then(|ext| ext.to_str()) == extension
+        })
+        .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
+        .collect::<Vec<_>>();
+    files.sort();
+    Ok(format!("{}\n", files.join("\n")))
 }
 
 fn run_program(
