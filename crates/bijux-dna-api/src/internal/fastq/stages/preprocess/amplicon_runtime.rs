@@ -97,10 +97,30 @@ fn materialize_amplicon_stage_outputs(
         }
         "fastq.normalize_primers" => {
             let primary = outputs
-                .first()
-                .map(|x| x.path.clone())
+                .iter()
+                .find(|artifact| {
+                    matches!(
+                        artifact.name.as_str(),
+                        "normalized_reads" | "normalized_reads_r1"
+                    )
+                })
+                .map(|artifact| artifact.path.clone())
                 .ok_or_else(|| anyhow!("missing primary output for {stage_id}"))?;
-            let primer_stats = out_dir.join("primer_stats.json");
+            let input_r2 = planned
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let output_r2 = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "normalized_reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let primer_stats = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "primer_stats_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("primer_stats.json"));
             let adapter = std::env::var("BIJUX_PRIMER_SEQ").unwrap_or_else(|_| "ACGT".to_string());
             let cutadapt_ok = command_exists("cutadapt")
                 && run_stage_command(
@@ -124,10 +144,14 @@ fn materialize_amplicon_stage_outputs(
             if !cutadapt_ok || !primary.exists() {
                 copy_if_missing(&input, &primary)?;
             }
-            if let Some(primary) = outputs.first() {
-                copy_if_missing(&input, &primary.path)?;
+            if let (Some(input_r2), Some(output_r2)) = (input_r2.as_deref(), output_r2.as_deref()) {
+                copy_if_missing(input_r2, output_r2)?;
             }
-            let orientation = out_dir.join("primer_orientation.tsv");
+            let orientation = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "primer_orientation_report")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("primer_orientation.tsv"));
             if !orientation.exists() {
                 let rows = "orientation\tcount\tmismatch_rate\nforward\t95\t0.02\nreverse_complement\t5\t0.07\n";
                 bijux_dna_infra::atomic_write_bytes(&orientation, rows.as_bytes())?;
