@@ -60,7 +60,6 @@ compatible_tools:
   - bbmerge
   - flash2
   - leehom
-  - seqprep
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "merge suitability depends on paired-end overlap and library model."

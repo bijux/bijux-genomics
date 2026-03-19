@@ -68,7 +68,6 @@ tool_ids:
   - seqfu
   - seqkit
   - seqkit_stats
-  - seqprep
   - seqpurge
   - seqtk
   - skewer
@@ -121,7 +120,6 @@ stage_tool_compatibility:
   - bbmerge
   - flash2
   - leehom
-  - seqprep
   fastq.normalize_abundance:
   - seqfu
   - seqkit
