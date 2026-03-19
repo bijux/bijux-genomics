@@ -533,6 +533,29 @@ pub struct BenchFastqClusterOtusArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchFastqScreenArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+#[derive(Debug, Args)]
 pub struct BenchFastqIndexReferenceArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
@@ -554,27 +577,6 @@ pub struct BenchFastqIndexReferenceArgs {
     pub ci_bootstrap: Option<u32>,
 }
 
-#[derive(Debug, Args)]
-pub struct BenchFastqScreenArgs {
-    #[arg(long, alias = "sample")]
-    pub sample_id: String,
-    #[arg(long)]
-    pub r1: PathBuf,
-    #[arg(long)]
-    pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
-    pub tools: Vec<String>,
-    #[arg(long)]
-    pub explain: bool,
-    #[arg(long, help = "Allow experimental and silver-tier tools")]
-    pub allow_experimental: bool,
-    #[arg(long, default_value_t = 1)]
-    pub replicates: u32,
-    #[arg(long, default_value_t = 1)]
-    pub jobs: u32,
-    #[arg(long)]
-    pub ci_bootstrap: Option<u32>,
-}
 
 #[derive(Debug, Args)]
 pub struct BenchFastqDepleteHostArgs {
