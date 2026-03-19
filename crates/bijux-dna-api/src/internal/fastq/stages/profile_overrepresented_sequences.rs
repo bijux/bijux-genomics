@@ -18,7 +18,9 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::profile_overrepresented_sequences::plan;
-use bijux_dna_planner_fastq::stage_api::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RawFailure};
+use bijux_dna_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -36,9 +38,13 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
 ) -> Result<BenchOutcome<FastqOverrepresentedMetrics>> {
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_ID, artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -62,7 +68,15 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_ID, &tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, &tools, platform, catalog)?;
 
-    let input_hash = hash_file_sha256(&args.r1).context("hash overrepresented input")?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash overrepresented input r1")?,
+            hash_file_sha256(r2).context("hash overrepresented input r2")?
+        )
+    } else {
+        hash_file_sha256(&args.r1).context("hash overrepresented input")?
+    };
     let sqlite_path = bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let bench_path = bench_dir.join("bench.jsonl");
@@ -74,7 +88,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = plan(&tool_spec, &args.r1, &out_dir)?;
+        let plan = plan(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -115,7 +129,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         let output_tsv = &plan.io.outputs[0].path;
         let output_json = &plan.io.outputs[1].path;
         if !output_tsv.exists() || !output_json.exists() {
-            materialize_overrepresented_outputs(&args.r1, output_tsv, output_json)?;
+            materialize_overrepresented_outputs(&args.r1, args.r2.as_deref(), output_tsv, output_json)?;
         }
         let metrics = read_metrics(output_json)?;
         let metric_set = metric_set(metrics);
@@ -124,6 +138,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             "stage_id": STAGE_ID,
             "tool_id": tool,
             "input_fastq": args.r1,
+            "input_fastq_r2": args.r2,
             "output_tsv": output_tsv,
             "output_json": output_json,
             "runtime_s": execution.runtime_s,
@@ -168,14 +183,17 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
 
 fn materialize_overrepresented_outputs(
     input_fastq: &Path,
+    input_fastq_r2: Option<&Path>,
     output_tsv: &Path,
     output_json: &Path,
 ) -> Result<()> {
     let mut counts = BTreeMap::<String, u64>::new();
-    let lines = open_fastq_lines(input_fastq)?;
-    for (idx, line) in lines.into_iter().enumerate() {
-        if idx % 4 == 1 {
-            *counts.entry(line.trim().to_string()).or_insert(0) += 1;
+    for path in std::iter::once(input_fastq).chain(input_fastq_r2.into_iter()) {
+        let lines = open_fastq_lines(path)?;
+        for (idx, line) in lines.into_iter().enumerate() {
+            if idx % 4 == 1 {
+                *counts.entry(line.trim().to_string()).or_insert(0) += 1;
+            }
         }
     }
     let total: u64 = counts.values().sum();
