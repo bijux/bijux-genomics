@@ -104,6 +104,7 @@ stage_tool_compatibility:
   - dustmasker
   - prinseq
   - bbduk
+  - fastp
   fastq.filter_reads:
   - fastp
   - seqkit

@@ -34,6 +34,7 @@ fn low_complexity_output_name(tool: &str) -> Option<&'static str> {
         "dustmasker" => Some("dustmasker.fastq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "bbduk" => Some("bbduk.fastq.gz"),
+        "fastp" => Some("fastp.fastq.gz"),
         _ => None,
     }
 }

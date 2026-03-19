@@ -132,7 +132,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.remove_duplicates" => &["clumpify", "fastuniq"],
         "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
         "fastq.filter_reads" => &["bbduk", "fastp", "prinseq", "seqkit"],
-        "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker"],
+        "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker", "fastp"],
         "fastq.trim_polyg_tails" => &["fastp", "bbduk"],
         "fastq.screen_taxonomy" => &["kraken2", "bracken", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
         "fastq.deplete_reference_contaminants" => &["bbduk", "bowtie2"],
