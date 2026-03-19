@@ -1,6 +1,9 @@
 # scripts/containers
 
-Purpose: container runtime build/lint/smoke entrypoints.
+Compatibility layer for legacy callers.
+
+This directory keeps thin entrypoints that delegate to the canonical implementations in `bijux-dev-dna/containers/`.
+The compatibility entrypoints preserve historical paths while making migration to the canonical directory safe for CI, users, and external tooling.
 
 Back to index: `scripts/README.md`.
 
