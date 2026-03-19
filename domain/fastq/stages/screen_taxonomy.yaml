@@ -7,6 +7,9 @@ inputs:
   - name: "reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
 outputs:
   - name: "screen_report_tsv"
     data_type: "tsv"

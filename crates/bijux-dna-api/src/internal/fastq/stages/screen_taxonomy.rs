@@ -15,9 +15,8 @@ use bijux_dna_planner_fastq::select_screen_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::screen_taxonomy::plan_screen;
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
-use bijux_dna_planner_fastq::stage_api::FastqArtifact;
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -42,9 +41,13 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqScreenArgs,
 ) -> Result<BenchOutcome<FastqScreenMetrics>> {
     let tools = select_screen_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_SCREEN_TAXONOMY.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_SCREEN_TAXONOMY.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_SCREEN_TAXONOMY.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -100,7 +103,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_screen(&tool_spec, &bench_inputs.r1, &out_dir)?;
+        let plan = plan_screen(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &out_dir)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -164,8 +167,10 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
 struct ScreenBenchInputs {
     runner: RuntimeKind,
     r1: std::path::PathBuf,
+    r2: Option<std::path::PathBuf>,
     input_hash: String,
     input_stats: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: std::path::PathBuf,
     tools_root: std::path::PathBuf,
 }
@@ -205,11 +210,44 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
         return Err(anyhow!("seqkit screen observer failed: {}", stats_output.stderr));
     }
 
+    let (r2, input_stats_r2) = if let Some(r2) = args.r2.as_deref() {
+        let r2 = r2.canonicalize().context("resolve r2 path")?;
+        let r2_dir = r2
+            .parent()
+            .ok_or_else(|| anyhow!("r2 has no parent"))?
+            .to_path_buf();
+        let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
+        let stats_output = execute_observer_command(
+            &seqkit_image.full_name,
+            stats_spec.mount_dir.as_path(),
+            &stats_spec.args,
+            runner,
+        )?;
+        if stats_output.exit_code != 0 {
+            return Err(anyhow!("seqkit screen observer failed for r2: {}", stats_output.stderr));
+        }
+        (Some(r2), Some(parse_seqkit_stats(&stats_output.stdout)?))
+    } else {
+        (None, None)
+    };
+
+    let input_hash = if let Some(r2) = r2.as_ref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash screen input r1")?,
+            hash_file_sha256(r2).context("hash screen input r2")?
+        )
+    } else {
+        hash_file_sha256(&args.r1).context("hash screen input")?
+    };
+
     Ok(ScreenBenchInputs {
         runner,
         r1,
-        input_hash: hash_file_sha256(&args.r1).context("hash screen input")?,
+        r2,
+        input_hash,
         input_stats: parse_seqkit_stats(&stats_output.stdout)?,
+        input_stats_r2,
         bench_dir,
         tools_root,
     })
@@ -226,13 +264,27 @@ fn build_screen_record(
 ) -> Result<BenchmarkRecord<FastqScreenMetrics>> {
     let (contamination_rate, contamination_summary) =
         parse_screen_report(&out_dir.join("screen_report.tsv"))?;
+    let reads_in = bench_inputs.input_stats.reads
+        + bench_inputs
+            .input_stats_r2
+            .as_ref()
+            .map_or(0, |stats| stats.reads);
+    let bases_in = bench_inputs.input_stats.bases
+        + bench_inputs
+            .input_stats_r2
+            .as_ref()
+            .map_or(0, |stats| stats.bases);
+    let pairs = bench_inputs
+        .input_stats_r2
+        .as_ref()
+        .map_or(0, |stats| bench_inputs.input_stats.reads.min(stats.reads));
     let metrics = FastqScreenMetrics {
-        reads_in: bench_inputs.input_stats.reads,
-        reads_out: bench_inputs.input_stats.reads,
-        bases_in: bench_inputs.input_stats.bases,
-        bases_out: bench_inputs.input_stats.bases,
-        pairs_in: 0,
-        pairs_out: 0,
+        reads_in,
+        reads_out: reads_in,
+        bases_in,
+        bases_out: bases_in,
+        pairs_in: pairs,
+        pairs_out: pairs,
         contamination_rate,
         contamination_summary: contamination_summary.into(),
     };
@@ -243,6 +295,8 @@ fn build_screen_record(
         "schema_version": "bijux.fastq.screen_taxonomy.report.v1",
         "stage_id": STAGE_SCREEN_TAXONOMY.as_str(),
         "tool_id": tool,
+        "input_fastq_r1": bench_inputs.r1,
+        "input_fastq_r2": bench_inputs.r2,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "bases_in": metrics.bases_in,
