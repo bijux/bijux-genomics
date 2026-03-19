@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 use tracing::warn;
 
-use super::FastqStageContract;
+use super::{canonical_contract_for_stage, FastqStage, FastqStageContract};
 use crate::metrics::spec::metric_spec_for_stage;
 use crate::types::FastqArtifactKind;
 use bijux_dna_core::contract::canonical::canonicalize_json_value;
@@ -242,38 +242,62 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     }
 }
 
+fn stage_for_id(stage_id: &str) -> Option<FastqStage> {
+    match stage_id {
+        "fastq.index_reference" => Some(FastqStage::PrepareReference),
+        "fastq.validate_reads" => Some(FastqStage::ValidateReads),
+        "fastq.profile_read_lengths" => Some(FastqStage::ProfileReadLengths),
+        "fastq.detect_adapters" => Some(FastqStage::DetectAdapters),
+        "fastq.trim_terminal_damage" => Some(FastqStage::DamageAwarePretrim),
+        "fastq.normalize_primers" => Some(FastqStage::PrimerNormalization),
+        "fastq.trim_polyg_tails" => Some(FastqStage::PolygTailing),
+        "fastq.trim_reads" => Some(FastqStage::Trim),
+        "fastq.filter_reads" => Some(FastqStage::Filter),
+        "fastq.profile_reads" => Some(FastqStage::ProfileReads),
+        "fastq.deplete_rrna" => Some(FastqStage::Rrna),
+        "fastq.merge_pairs" => Some(FastqStage::Merge),
+        "fastq.remove_duplicates" => Some(FastqStage::Deduplicate),
+        "fastq.filter_low_complexity" => Some(FastqStage::LowComplexity),
+        "fastq.deplete_host" => Some(FastqStage::HostDepletion),
+        "fastq.deplete_reference_contaminants" => Some(FastqStage::ContaminantScreen),
+        "fastq.correct_errors" => Some(FastqStage::Correct),
+        "fastq.extract_umis" => Some(FastqStage::Umi),
+        "fastq.profile_overrepresented_sequences" => {
+            Some(FastqStage::ProfileOverrepresentedSequences)
+        }
+        "fastq.report_qc" => Some(FastqStage::ReportQc),
+        "fastq.screen_taxonomy" => Some(FastqStage::Screen),
+        "fastq.remove_chimeras" => Some(FastqStage::ChimeraDetection),
+        "fastq.infer_asvs" => Some(FastqStage::AsvInference),
+        "fastq.cluster_otus" => Some(FastqStage::OtuClustering),
+        "fastq.normalize_abundance" => Some(FastqStage::AbundanceNormalization),
+        _ => None,
+    }
+}
+
 /// Validate that a stage can accept the provided input kind.
 ///
 /// # Errors
 /// Returns an error if the stage contract is violated.
 pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<()> {
-    let Some(contract) = contract_for_stage(stage_id) else {
+    let Some(stage) = stage_for_id(stage_id) else {
         return Ok(());
     };
-    match contract.input_kind {
-        FastqArtifactKind::SingleEnd => {
-            if input_kind == FastqArtifactKind::PairedEnd && stage_id != "fastq.profile_reads" {
-                return Err(anyhow!("stage {stage_id} does not accept paired-end input"));
-            }
-        }
-        FastqArtifactKind::PairedEnd => {
-            if input_kind != FastqArtifactKind::PairedEnd {
-                return Err(anyhow!("stage {stage_id} requires paired-end input"));
-            }
-        }
-        FastqArtifactKind::Merged => {
-            if input_kind != FastqArtifactKind::Merged {
-                return Err(anyhow!("stage {stage_id} requires merged input"));
-            }
-        }
-        FastqArtifactKind::StatsOnly
-        | FastqArtifactKind::ReferenceFasta
-        | FastqArtifactKind::ReferenceIndex
-        | FastqArtifactKind::AmpliconTable
-        | FastqArtifactKind::RepresentativeFasta
-        | FastqArtifactKind::TaxonomyMapping => {}
+    let canonical = canonical_contract_for_stage(stage);
+    if canonical.io.inputs.contains(&input_kind) {
+        return Ok(());
     }
-    Ok(())
+    let accepted = canonical
+        .io
+        .inputs
+        .iter()
+        .map(|kind| format!("{kind:?}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    Err(anyhow!(
+        "stage {stage_id} does not accept {:?} input; accepted kinds: {accepted}",
+        input_kind
+    ))
 }
 
 /// Inspect FASTQ headers for pairing and style drift.
