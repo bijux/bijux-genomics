@@ -123,6 +123,17 @@ pub fn run() -> Result<()> {
     }
 }
 
+fn maybe_emit_native_help(group: &str, id: &str, err: &anyhow::Error) -> bool {
+    let message = err.to_string();
+    if !message.starts_with("__help__:") {
+        return false;
+    }
+    println!(
+        "Usage: cargo run -p bijux-dev-dna -- {group} run {id} -- [args...]"
+    );
+    true
+}
+
 fn run_checks(command: ChecksCommand) -> Result<()> {
     let app = CheckApplication::new()?;
     match command.command {
@@ -243,7 +254,11 @@ fn run_ops(
             Ok(())
         }
         OpsSubcommand::Run { id, args } => with_timing(group, &id, || {
-            let outcome = app.run(&id, &args)?;
+            let outcome = match app.run(&id, &args) {
+                Ok(outcome) => outcome,
+                Err(err) if maybe_emit_native_help(group, &id, &err) => return Ok(()),
+                Err(err) => return Err(err),
+            };
             if !outcome.stdout.is_empty() {
                 print!("{}", outcome.stdout);
             }
