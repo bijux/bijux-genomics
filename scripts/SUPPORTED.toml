@@ -25,14 +25,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "test_fastq_gold_repro"
-path = "scripts/test/fastq-gold-repro.sh"
-purpose = "test script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "build_apptainer_all"
 path = "bijux-dev-dna/containers/build-apptainer-all.sh"
 purpose = "containers script"
@@ -105,169 +97,9 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_doc_assets"
-path = "scripts/docs/check-doc-assets.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_doc_depth"
-path = "scripts/docs/check-doc-depth.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_doc_links"
-path = "scripts/docs/check-doc-links.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_doc_root_layout"
-path = "scripts/docs/check-doc-root-layout.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_docs_graph"
-path = "scripts/docs/check-docs-graph.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_domain_doc_references"
-path = "scripts/docs/check-domain-doc-references.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_generated_docs"
-path = "scripts/docs/check-generated-docs.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_no_placeholder_language"
-path = "scripts/docs/check-no-placeholder-language.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_root_pollution"
-path = "scripts/docs/check-root-pollution.sh"
-purpose = "docs script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "pull"
-path = "scripts/hpc/lunarc/pull.sh"
-purpose = "hpc script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "push"
-path = "scripts/hpc/lunarc/push.sh"
-purpose = "hpc script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "run_bench"
-path = "scripts/lab/run_bench.sh"
-purpose = "lab script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "run_pipelines"
-path = "scripts/lab/run_pipelines.sh"
-purpose = "lab script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "run"
 path = "scripts/run.sh"
 purpose = "run.sh script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "run"
-path = "scripts/smoke/run.sh"
-purpose = "smoke script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_bam"
-path = "scripts/smoke/smoke_bam.sh"
-purpose = "smoke script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_fastq"
-path = "scripts/smoke/smoke_fastq.sh"
-purpose = "smoke script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "reproduce_failure"
-path = "scripts/test/reproduce-failure.sh"
-purpose = "test script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "test_triage"
-path = "scripts/test/test-triage.sh"
-purpose = "test script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "test_scripts_smoke"
-path = "scripts/test/test-scripts-smoke.sh"
-purpose = "test script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "toy_runs"
-path = "scripts/test/toy_runs.sh"
-purpose = "test script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -505,38 +337,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
 [[script]]
-id = "examples_generate_index"
-path = "scripts/examples/generate-index.sh"
-purpose = "examples script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "examples_check_index"
-path = "scripts/examples/check-index.sh"
-purpose = "examples script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "examples_run"
-path = "scripts/examples/run.sh"
-purpose = "examples script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "examples_check_drift"
-path = "scripts/examples/check-drift.sh"
-purpose = "examples script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "tooling_make"
 path = "scripts/tooling/make.sh"
 purpose = "tooling group dispatcher"
@@ -553,65 +353,9 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "docs_make"
-path = "scripts/docs/make.sh"
-purpose = "docs group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "examples_make"
-path = "scripts/examples/make.sh"
-purpose = "examples group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "hpc_make"
-path = "scripts/hpc/make.sh"
-purpose = "hpc group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "lab_make"
-path = "scripts/lab/make.sh"
-purpose = "lab group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_make"
-path = "scripts/smoke/make.sh"
-purpose = "smoke group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "test_make"
-path = "scripts/test/make.sh"
-purpose = "test group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "generate_domain_coverage_doc"
 path = "scripts/tooling/generate-domain-coverage-doc.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "check_doc_major_depth"
-path = "scripts/docs/check-doc-major-depth.sh"
-purpose = "docs script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -770,22 +514,6 @@ outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
 ci_allowed = true
 
 [[script]]
-id = "validate_frontend_constraints"
-path = "scripts/hpc/validate-frontend-constraints.sh"
-purpose = "hpc script"
-inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
-id = "run_frontend_mini_e2e"
-path = "scripts/hpc/run-frontend-mini-e2e.sh"
-purpose = "hpc script"
-inputs = ["examples/fastq/edna-mini/example.toml", "examples/vcf/downstream-vcf-full-mini/example.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
 id = "vcf_deprecate_knob"
 path = "scripts/tooling/deprecate-vcf-knob.sh"
 purpose = "vcf governance script"
@@ -881,7 +609,6 @@ inputs = ["configs/rust/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
 
-
 [[script]]
 id = "flake_hunt_tooling"
 path = "scripts/tooling/flake-hunt.sh"
@@ -889,3 +616,4 @@ purpose = "tooling script"
 inputs = ["configs/rust/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
+
