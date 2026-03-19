@@ -13,6 +13,8 @@ status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - rrna_filtered_reads
+- rrna_report_tsv
+- rrna_report_json
 metrics_schema_id: bijux.stage.metrics.v1
 metrics_schema: bijux.stage.metrics.v1
 version_cmd: sortmerna --version
