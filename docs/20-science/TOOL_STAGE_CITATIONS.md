@@ -16,7 +16,7 @@ Keeps citation guidance visible while preserving `domain/*/tools/*.yaml` as the 
 
 ## FASTQ
 - Trimming/merge: `fastp`, `cutadapt`, `adapterremoval`, `leehom`, `skewer`, `alientrimmer`, `fastx_clipper`.
-- Screening/classification: `kraken2`, `krakenuniq`, `bracken`, `centrifuge`, `metaphlan`, `kaiju`.
+- Screening/classification: `kraken2`, `krakenuniq`, `diamond`, `centrifuge`, `metaphlan`, `kaiju`, `fastq_screen`.
 - QC/validation: `fastqvalidator*`, `fastq-scan`, `seqfu`, `seqkit_stats`, `multiqc`, `fastqc`.
 
 ## BAM
