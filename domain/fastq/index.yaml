@@ -37,6 +37,7 @@ tool_ids:
   - bbduk
   - bbmerge
   - bowtie2
+  - bowtie2_build
   - centrifuge
   - clumpify
   - cutadapt
@@ -64,7 +65,6 @@ tool_ids:
   - prinseq
   - qualimap
   - rcorrector
-  - samtools
   - seqfu
   - seqkit
   - seqkit_stats
@@ -105,8 +105,8 @@ stage_tool_compatibility:
   - prinseq
   - bbduk
   fastq.index_reference:
+  - bowtie2_build
   - star
-  - samtools
   fastq.infer_asvs:
   fastq.merge_pairs:
   - pear
@@ -167,7 +167,7 @@ stage_tool_compatibility:
   - seqtk
   - fqtools
 active_defaults:
-  fastq.index_reference: star
+  fastq.index_reference: bowtie2_build
   fastq.detect_adapters: fastqc
   fastq.trim_reads: fastp
   fastq.filter_reads: fastp
@@ -188,7 +188,8 @@ active_defaults:
   fastq.trim_terminal_damage: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
 active_default_rationale:
-  fastq.index_reference: Stable index generation baseline for pre-HPC runs.
+  fastq.index_reference: Default FASTQ reference preparation must emit the mapper
+    index consumed by governed host and reference-contaminant depletion.
   fastq.detect_adapters: Default adapter detector remains report-only and avoids mutating reads.
   fastq.trim_reads: Baseline trimmer for deterministic quality/throughput tradeoff.
   fastq.filter_reads: Default filter preserves compatibility with downstream metrics.
@@ -407,13 +408,10 @@ stage_default_settings:
     star:
       profile: adna_sane_default
       notes: splice-aware reference indexing preset
-    samtools:
-      profile: adna_sane_default
-      notes: FASTA index helper preset
     bwa-mem2:
       profile: adna_sane_default
       notes: BWA-MEM2 reference indexing preset
-    bowtie2-build:
+    bowtie2_build:
       profile: adna_sane_default
       notes: Bowtie2 host-screen index preset
     minimap2:

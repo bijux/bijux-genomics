@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c1758d9d151d3e6bc34fe44d1ac54098cace86b8
+# source_commit: c155272ba87a312092f856fea9cc8854516eb52c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -51,6 +51,9 @@ enabled = false
 version = "2.31.1"
 
 [bowtie2]
+version = "2.5.4"
+
+[bowtie2_build]
 version = "2.5.4"
 
 [bwa]

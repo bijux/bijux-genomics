@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c1758d9d151d3e6bc34fe44d1ac54098cace86b8
+# source_commit: c155272ba87a312092f856fea9cc8854516eb52c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -83,7 +83,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["mean_coverage>=0.5", "breadth_1x>=0.6"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["mosdepth"]
+tools = ["mosdepth", "samtools"]
 
 [[stages]]
 id = "bam.damage"
@@ -121,7 +121,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_after_dedup>=10000"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = []
+tools = ["samtools"]
 
 [[stages]]
 id = "bam.endogenous_content"
@@ -140,7 +140,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["host_contig_set_declared=true", "mapped_reads>=1000"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = []
+tools = ["samtools"]
 
 [[stages]]
 id = "bam.filter"
@@ -159,7 +159,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bamtools", "bedtools"]
+tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "bam.kinship"
@@ -197,7 +197,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = []
+tools = ["samtools"]
 
 [[stages]]
 id = "bam.mapping_summary"
@@ -216,7 +216,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["indexed_bam=true"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = []
+tools = ["samtools"]
 
 [[stages]]
 id = "bam.mapq_filter"
@@ -235,7 +235,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["reads_retained_fraction>=0.1"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bamtools"]
+tools = ["bamtools", "samtools"]
 
 [[stages]]
 id = "bam.sex"
@@ -273,7 +273,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["indexed_bam=true"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bamtools", "bedtools"]
+tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "fastq.cluster_otus"
@@ -453,7 +453,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["samtools", "star"]
+tools = ["bowtie2_build", "star"]
 
 [[stages]]
 id = "fastq.merge_pairs"

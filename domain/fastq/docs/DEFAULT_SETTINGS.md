@@ -17,7 +17,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - stage/tool combinations must remain in index compatibility map
 
 ## Stage Coverage
-- `fastq.index_reference`: default `star`.
+- `fastq.index_reference`: default `bowtie2_build`. rationale: default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion.
 - `fastq.validate_reads`: default `fastqvalidator`.
 - `fastq.profile_read_lengths`: default `seqkit_stats`.
 - `fastq.detect_adapters`: default `fastqc`.

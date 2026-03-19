@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c1758d9d151d3e6bc34fe44d1ac54098cace86b8
+# source_commit: c155272ba87a312092f856fea9cc8854516eb52c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -245,6 +245,40 @@ metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
 apptainer_def = "containers/apptainer/lunarc/bowtie2.def"
+require_labels = true
+
+[[tools]]
+id = "bowtie2_build"
+tool_id = "bowtie2_build"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.index_reference"]
+bindings = ["fastq.index_reference"]
+tool_role = "transform"
+version = "2.5.4"
+default_version = "2.5.4"
+upstream = "https://github.com/BenLangmead/bowtie2"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/BenLangmead/bowtie2"
+pinned_commit = "release:2.5.4"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/bowtie2_build:2.5.4"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bowtie2-build --version"
+help_cmd = "bowtie2-build --help"
+smoke_version_cmd = "bowtie2-build --version"
+smoke_help_cmd = "bowtie2-build --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "bowtie2-build --help"
+expected_bin = "bowtie2-build"
+expected_artifacts = ["reference_index"]
+metrics_schema = "bijux.fastq.index.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.bowtie2_build"
+apptainer_def = "containers/apptainer/lunarc/bowtie2_build.def"
 require_labels = true
 
 [[tools]]
@@ -964,12 +998,12 @@ require_labels = true
 [[tools]]
 id = "samtools"
 tool_id = "samtools"
-domain = "fastq"
-domains = ["fastq"]
+domain = "bam"
+domains = ["bam", "fastq"]
 status = "production"
-stage_ids = ["fastq.index_reference"]
-bindings = ["fastq.index_reference"]
-tool_role = "transform"
+stage_ids = ["bam.align", "bam.validate", "bam.qc_pre", "bam.mapping_summary", "bam.filter", "bam.mapq_filter", "bam.length_filter", "bam.markdup", "bam.duplication_metrics", "bam.coverage", "bam.endogenous_content", "bam.overlap_correction", "fastq.index_reference", "fastq.report_qc"]
+bindings = ["bam.align", "bam.coverage", "bam.duplication_metrics", "bam.endogenous_content", "bam.filter", "bam.length_filter", "bam.mapping_summary", "bam.mapq_filter", "bam.markdup", "bam.overlap_correction", "bam.qc_pre", "bam.validate", "fastq.index_reference", "fastq.report_qc"]
+tool_role = "aligner"
 version = "1.21"
 default_version = "1.21"
 upstream = "https://github.com/samtools/samtools"
@@ -988,8 +1022,8 @@ smoke_help_cmd = "samtools --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "samtools --help"
 expected_bin = "samtools"
-expected_artifacts = ["reference_index"]
-metrics_schema = "bijux.tool.metrics.v1"
+expected_artifacts = ["bam_index", "bam_stats"]
+metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.samtools"
 apptainer_def = "containers/apptainer/lunarc/samtools.def"
@@ -1341,7 +1375,7 @@ requires_reporting = false
 id = "bam.coverage"
 required_tool_roles = ["transform"]
 primary_tools = ["mosdepth"]
-optional_alternatives = []
+optional_alternatives = ["samtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1388,8 +1422,8 @@ requires_reporting = false
 [[stages]]
 id = "bam.filter"
 required_tool_roles = ["filter"]
-primary_tools = ["bamtools"]
-optional_alternatives = ["bedtools"]
+primary_tools = ["samtools"]
+optional_alternatives = ["bamtools", "bedtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1448,8 +1482,8 @@ requires_reporting = false
 [[stages]]
 id = "bam.mapq_filter"
 required_tool_roles = ["filter"]
-primary_tools = ["bamtools"]
-optional_alternatives = []
+primary_tools = ["samtools"]
+optional_alternatives = ["bamtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1508,8 +1542,8 @@ requires_reporting = false
 [[stages]]
 id = "bam.validate"
 required_tool_roles = ["validator"]
-primary_tools = ["bamtools"]
-optional_alternatives = ["bedtools"]
+primary_tools = ["samtools"]
+optional_alternatives = ["bamtools", "bedtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1628,12 +1662,12 @@ requires_reporting = false
 [[stages]]
 id = "fastq.index_reference"
 required_tool_roles = ["transform"]
-primary_tools = ["star"]
-optional_alternatives = ["samtools"]
+primary_tools = ["bowtie2_build"]
+optional_alternatives = ["star"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Stable index generation baseline for pre-HPC runs."
+default_rationale = "Default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion."
 requires_validation = false
 requires_reporting = false
 
