@@ -646,6 +646,81 @@ impl StageMetricSchema for FastqOverrepresentedMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqNormalizePrimersMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub primer_trimmed_fraction: f64,
+    pub orientation_forward_fraction: f64,
+}
+
+impl StageMetricSchema for FastqNormalizePrimersMetrics {
+    const STAGE: &'static str = "fastq.normalize_primers";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        for (name, value) in [
+            ("primer_trimmed_fraction", self.primer_trimmed_fraction),
+            ("orientation_forward_fraction", self.orientation_forward_fraction),
+        ] {
+            if !value.is_finite() || !(0.0..=1.0).contains(&value) {
+                return Err(BenchError::Validation(format!("{name} must be within [0, 1]")));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqInferAsvsMetrics {
+    pub asv_count: u64,
+    pub sample_count: u64,
+}
+
+impl StageMetricSchema for FastqInferAsvsMetrics {
+    const STAGE: &'static str = "fastq.infer_asvs";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqNormalizeAbundanceMetrics {
+    pub table_rows: u64,
+    pub sample_count: u64,
+    pub zero_fraction: f64,
+    pub normalization_method: String,
+}
+
+impl StageMetricSchema for FastqNormalizeAbundanceMetrics {
+    const STAGE: &'static str = "fastq.normalize_abundance";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if !self.zero_fraction.is_finite() || !(0.0..=1.0).contains(&self.zero_fraction) {
+            return Err(BenchError::Validation(
+                "zero_fraction must be within [0, 1]".to_string(),
+            ));
+        }
+        if self.normalization_method.trim().is_empty() {
+            return Err(BenchError::Validation(
+                "normalization_method must not be empty".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqIndexReferenceMetrics {
     pub reference_bytes: u64,
     pub index_bytes: u64,
@@ -682,4 +757,7 @@ pub const FASTQ_UMI_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_SCREEN_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_STATS_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_OVERREPRESENTED_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_NORMALIZE_PRIMERS_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_INFER_ASVS_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_NORMALIZE_ABUNDANCE_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_INDEX_REFERENCE_SCHEMA_VERSION: i32 = 1;

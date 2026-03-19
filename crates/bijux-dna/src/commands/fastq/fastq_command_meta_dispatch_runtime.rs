@@ -335,6 +335,55 @@
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::NormalizePrimers(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_normalize_primers(args)?;
+                        let outcome =
+                            bench_fastq_normalize_primers(&catalog, &platform, None, &bench_args)?;
+                        write_normalize_primers_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::InferAsvs(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_infer_asvs(args)?;
+                        let outcome =
+                            bench_fastq_infer_asvs(&catalog, &platform, None, &bench_args)?;
+                        write_infer_asvs_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::NormalizeAbundance(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_normalize_abundance(args)?;
+                        let outcome = bench_fastq_normalize_abundance(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_normalize_abundance_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::Stats(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_stats(args)?;

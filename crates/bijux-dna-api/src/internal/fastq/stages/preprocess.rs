@@ -527,6 +527,21 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
 include!("preprocess/runtime_tail.rs");
 use std::io::Read;
 
+pub(crate) fn materialize_amplicon_stage_outputs_for_bench(
+    stage_root: &std::path::Path,
+    planned: &ExecutionStep,
+) -> Result<serde_json::Value> {
+    materialize_amplicon_stage_outputs(stage_root, planned)
+}
+
+pub(crate) fn enforce_amplicon_qc_thresholds_for_bench(
+    stage_root: &std::path::Path,
+    stage_id: &str,
+    metrics: &serde_json::Value,
+) -> Result<()> {
+    enforce_amplicon_qc_thresholds(stage_root, stage_id, metrics)
+}
+
 fn u64_to_f64(v: u64) -> f64 {
     v.to_string().parse::<f64>().unwrap_or(0.0)
 }
