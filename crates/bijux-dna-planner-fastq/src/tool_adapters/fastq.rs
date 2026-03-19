@@ -33,6 +33,10 @@ pub mod normalize_abundance {
     pub use crate::tool_adapters::stages::amplicon::normalize_abundance::*;
 }
 
+pub mod remove_chimeras {
+    pub use crate::tool_adapters::stages::amplicon::remove_chimeras::*;
+}
+
 pub mod trim_reads {
     pub use crate::tool_adapters::stages::transform::trim_reads::*;
 }

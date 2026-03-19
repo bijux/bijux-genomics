@@ -1,7 +1,8 @@
 use crate::{
-    FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqLowComplexityMetrics,
-    FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
-    FastqOverrepresentedMetrics,
+    FastqChimeraMetrics, FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
+    FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
+    FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics,
+    FastqReadLengthMetrics,
 };
 
 /// Write the validate benchmark report.
@@ -332,6 +333,69 @@ pub fn write_overrepresented_report(
             "fastq.profile_overrepresented_sequences",
             &BTreeMap::new(),
         );
+    }
+    Ok(())
+}
+
+/// Write the read-length benchmark report.
+pub fn write_read_lengths_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqReadLengthMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.profile_read_lengths", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the duplicate-removal benchmark report.
+pub fn write_duplicates_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqDuplicateMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.remove_duplicates", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the chimera-removal benchmark report.
+pub fn write_chimeras_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqChimeraMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.remove_chimeras", &BTreeMap::new());
     }
     Ok(())
 }

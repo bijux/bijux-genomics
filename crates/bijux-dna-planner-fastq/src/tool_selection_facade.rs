@@ -23,6 +23,13 @@ pub fn select_detect_adapters_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_profile_read_lengths_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
+    );
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER_READS);
@@ -38,6 +45,19 @@ pub fn select_filter_low_complexity_tools(tools: &[String]) -> Result<Vec<String
 
 pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE_PAIRS);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
+pub fn select_remove_duplicates_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_REMOVE_DUPLICATES);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
+pub fn select_remove_chimeras_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS,
+    );
     select_tools_with_allowlist(tools, &allowlist)
 }
 
