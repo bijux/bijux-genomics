@@ -14,7 +14,9 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
-use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::plan_low_complexity;
+use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::{
+    plan_low_complexity, LowComplexityPlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::FastqArtifact;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, RawFailure,
@@ -82,6 +84,10 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
+    let options = LowComplexityPlanOptions {
+        entropy_threshold: args.entropy_threshold,
+        polyx_threshold: args.polyx_threshold,
+    };
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqLowComplexityMetrics>>::new();
     for tool in &tools {
@@ -95,7 +101,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_low_complexity(&tool_spec, &bench_inputs.r1, &out_dir)?;
+        let plan = plan_low_complexity(&tool_spec, &bench_inputs.r1, &out_dir, &options)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image

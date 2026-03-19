@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{umi::FastqUmiParams, umi::UMI_SCHEMA_VERSION, PairedMode};
 use bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -30,10 +30,11 @@ pub fn plan_umi(
     normalize_umi_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
-    let effective_params = ValidateEffectiveParams {
+    let effective_params = FastqUmiParams {
+        schema_version: UMI_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
-        q_cutoff: None,
+        umi_pattern: None,
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),

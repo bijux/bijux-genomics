@@ -151,10 +151,13 @@ where
                 (plan, next_r1, None)
             }
             stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => {
+                let low_complexity_options =
+                    crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions::default();
                 let plan = crate::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
                     tool,
                     &current_r1,
                     &out_dir,
+                    &low_complexity_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
