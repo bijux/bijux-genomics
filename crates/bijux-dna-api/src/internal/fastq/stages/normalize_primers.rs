@@ -15,7 +15,9 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::RawFailure;
+use bijux_dna_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -41,8 +43,29 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_normalize_primers_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_stats = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let input_hash = hash_file_sha256(&args.r1).context("hash normalize primers input")?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
+    } else {
+        None
+    };
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash normalize primers input r1")?,
+            hash_file_sha256(r2).context("hash normalize primers input r2")?
+        )
+    } else {
+        hash_file_sha256(&args.r1).context("hash normalize primers input")?
+    };
 
     let bench_dir_name = bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS)
         .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
@@ -73,6 +96,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan(
             &tool_spec,
             &args.r1,
+            args.r2.as_deref(),
             &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -111,10 +135,27 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         }
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
-        let output_stats = observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
+        let output_r2 = args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone());
+        let orientation_report = if output_r2.is_some() {
+            plan.io.outputs[2].path.clone()
+        } else {
+            plan.io.outputs[1].path.clone()
+        };
+        let primer_stats_json = if output_r2.is_some() {
+            plan.io.outputs[3].path.clone()
+        } else {
+            plan.io.outputs[2].path.clone()
+        };
+        let output_stats_r1 =
+            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
+        let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
+            Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
+        } else {
+            None
+        };
         let metrics = FastqNormalizePrimersMetrics {
-            reads_in: input_stats.reads,
-            reads_out: output_stats.reads,
+            reads_in: input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads),
+            reads_out: output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads),
             primer_trimmed_fraction: payload
                 .get("primer_trimmed_fraction")
                 .and_then(serde_json::Value::as_f64)
@@ -129,10 +170,12 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             "schema_version": "bijux.fastq.normalize_primers.report.v1",
             "stage_id": STAGE_ID,
             "tool_id": tool,
-            "input_fastq": args.r1,
-            "normalized_reads": plan.io.outputs[0].path,
-            "primer_orientation_report": plan.io.outputs[1].path,
-            "primer_stats_json": plan.io.outputs[2].path,
+            "input_fastq_r1": args.r1,
+            "input_fastq_r2": args.r2,
+            "normalized_reads_r1": plan.io.outputs[0].path,
+            "normalized_reads_r2": output_r2,
+            "primer_orientation_report": orientation_report,
+            "primer_stats_json": primer_stats_json,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,

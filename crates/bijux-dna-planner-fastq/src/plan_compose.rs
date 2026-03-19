@@ -350,10 +350,16 @@ where
                 let plan = crate::tool_adapters::fastq::normalize_primers::plan(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None, current_feature_table.clone())
+                let next_r2 = if current_r2.is_some() {
+                    Some(plan.io.outputs[1].path.clone())
+                } else {
+                    None
+                };
+                (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_CHIMERAS.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {

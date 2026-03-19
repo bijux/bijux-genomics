@@ -173,6 +173,7 @@ pub struct BenchFastqRemoveChimerasArgs {
 pub struct BenchFastqNormalizePrimersArgs {
     pub sample_id: String,
     pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
