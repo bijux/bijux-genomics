@@ -50,13 +50,13 @@ pub struct StageParamDescriptor {
 pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
     if stage_id == &STAGE_VALIDATE_READS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.validate",
-            schema_version: "legacy.unversioned",
+            param_type_id: "fastq.validate_reads",
+            schema_version: "bijux.fastq.params.validate_reads.v1",
         });
     }
     if stage_id == &STAGE_PROFILE_READS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.stats",
+            param_type_id: "fastq.profile_reads",
             schema_version: stats::STATS_SCHEMA_VERSION,
         });
     }
@@ -75,55 +75,61 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_DETECT_ADAPTERS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.detect_adapters",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.detect_adapters.v1",
         });
     }
     if stage_id == &STAGE_TRIM_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim_reads",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.trim_reads.v1",
         });
     }
     if stage_id == &STAGE_TRIM_TERMINAL_DAMAGE {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim_terminal_damage",
-            schema_version: "bijux.fastq.params.v1",
+            schema_version: "bijux.fastq.params.trim_terminal_damage.v1",
         });
     }
     if stage_id == &STAGE_TRIM_POLYG_TAILS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim_polyg_tails",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.trim_polyg_tails.v1",
         });
     }
     if stage_id == &STAGE_FILTER_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.filter_reads",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.filter_reads.v1",
+        });
+    }
+    if stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.filter_low_complexity",
+            schema_version: "bijux.fastq.params.filter_low_complexity.v1",
         });
     }
     if stage_id == &STAGE_MERGE_PAIRS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.merge_pairs",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.merge_pairs.v1",
         });
     }
     if stage_id == &STAGE_DEPLETE_RRNA {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.deplete_rrna",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.deplete_rrna.v1",
         });
     }
     if stage_id == &STAGE_SCREEN_TAXONOMY {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.screen_taxonomy",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.screen_taxonomy.v1",
         });
     }
     if stage_id == &STAGE_REPORT_QC {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.report_qc",
-            schema_version: "legacy.unversioned",
+            schema_version: "bijux.fastq.params.report_qc.v1",
         });
     }
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
