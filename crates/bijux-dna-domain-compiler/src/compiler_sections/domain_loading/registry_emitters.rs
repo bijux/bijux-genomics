@@ -2,6 +2,7 @@ struct ToolRegistryOutputs {
     production_registry: String,
     experimental_registry: String,
     required_tools: String,
+    production_tool_ids: BTreeSet<String>,
 }
 
 #[allow(clippy::uninlined_format_args)]
@@ -231,6 +232,7 @@ fn build_tool_registries_toml(
         production_registry: production_toml,
         experimental_registry: experimental_toml,
         required_tools: required_tools_toml,
+        production_tool_ids,
     }
 }
 
@@ -291,6 +293,7 @@ fn build_stages_toml(
     stage_to_tools: &StageToolMap,
     stage_statuses: &StageStatusMap,
     stage_output_kinds: &StageOutputKindsMap,
+    production_tool_ids: &BTreeSet<String>,
     domain_dir: &Path,
     source_commit: &str,
 ) -> String {
@@ -368,6 +371,7 @@ fn build_stages_toml(
         let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
         let _ = writeln!(stages_toml, "status = \"{status}\"");
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
+        v.retain(|tool_id| production_tool_ids.contains(tool_id));
         v.sort();
         let output_kinds = stage_output_kinds
             .get(stage_id)

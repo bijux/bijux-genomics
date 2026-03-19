@@ -83,6 +83,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_to_tools,
         &stage_statuses,
         &stage_output_kinds,
+        &registries.production_tool_ids,
         &options.domain_dir,
         &source_commit,
     );

@@ -45,7 +45,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["pmd_enriched_reads>=500"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["authenticct", "damageprofiler", "pmdtools"]
+tools = ["authenticct", "pmdtools"]
 
 [[stages]]
 id = "bam.contamination"
@@ -102,7 +102,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+tools = ["mapdamage2", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.duplication_metrics"
@@ -254,7 +254,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
 sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
-tools = ["angsd", "rxy", "yleaf"]
+tools = ["angsd", "rxy"]
 
 [[stages]]
 id = "bam.validate"
@@ -301,7 +301,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bayeshammer", "lighter", "musket", "rcorrector"]
+tools = ["rcorrector"]
 
 [[stages]]
 id = "fastq.deplete_host"
@@ -415,7 +415,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp", "prinseq"]
+tools = ["bbduk", "fastp"]
 
 [[stages]]
 id = "fastq.filter_reads"
@@ -434,7 +434,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp", "prinseq", "seqkit"]
+tools = ["bbduk", "fastp", "seqkit"]
 
 [[stages]]
 id = "fastq.index_reference"
@@ -472,7 +472,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
+tools = ["pear", "vsearch"]
 
 [[stages]]
 id = "fastq.normalize_abundance"
@@ -528,7 +528,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "prinseq", "seqkit_stats"]
+tools = ["fastp", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -613,7 +613,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+tools = ["kraken2", "krakenuniq"]
 
 [[stages]]
 id = "fastq.trim_polyg_tails"
@@ -651,7 +651,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
+tools = ["alientrimmer", "bbduk", "cutadapt", "fastp", "fastx_clipper", "seqkit"]
 
 [[stages]]
 id = "fastq.trim_terminal_damage"
