@@ -40,23 +40,64 @@ tool_ids:
   - plink2
   - shapeit5
 stage_tool_compatibility:
-  vcf.call: ["bcftools"]
-  vcf.call_diploid: ["bcftools"]
-  vcf.call_gl: ["angsd", "bcftools"]
-  vcf.call_pseudohaploid: ["angsd", "bcftools"]
-  vcf.damage_filter: ["bcftools", "angsd"]
-  vcf.demography: ["ibdne"]
-  vcf.filter: ["bcftools"]
-  vcf.gl_propagation: ["bcftools", "angsd"]
-  vcf.ibd: ["germline", "ibdhap"]
-  vcf.imputation: ["beagle", "glimpse", "impute5", "minimac4"]
-  vcf.impute: ["beagle", "glimpse", "impute5", "minimac4"]
-  vcf.population_structure: ["plink2", "eigensoft"]
-  vcf.phasing: ["beagle", "shapeit5", "eagle"]
-  vcf.postprocess: ["bcftools"]
-  vcf.prepare_reference_panel: ["bcftools"]
-  vcf.roh: ["plink2"]
-  vcf.stats: ["bcftools"]
+  vcf.admixture:
+  - plink
+  - plink2
+  vcf.call:
+  - bcftools
+  vcf.call_diploid:
+  - bcftools
+  vcf.call_gl:
+  - angsd
+  - bcftools
+  vcf.call_pseudohaploid:
+  - angsd
+  - bcftools
+  vcf.damage_filter:
+  - bcftools
+  - angsd
+  vcf.demography:
+  - ibdne
+  vcf.filter:
+  - bcftools
+  vcf.gl_propagation:
+  - bcftools
+  - angsd
+  vcf.ibd:
+  - germline
+  - ibdhap
+  vcf.imputation:
+  - beagle
+  - glimpse
+  - impute5
+  - minimac4
+  vcf.impute:
+  - beagle
+  - glimpse
+  - impute5
+  - minimac4
+  vcf.pca:
+  - plink2
+  - eigensoft
+  vcf.phasing:
+  - beagle
+  - shapeit5
+  - eagle
+  vcf.population_structure:
+  - plink
+  - plink2
+  - eigensoft
+  vcf.postprocess:
+  - bcftools
+  vcf.prepare_reference_panel:
+  - bcftools
+  vcf.qc:
+  - plink
+  - plink2
+  vcf.roh:
+  - plink2
+  vcf.stats:
+  - bcftools
 stage_intent:
   vcf.call_gl: "Emit genotype-likelihood-first outputs for low-coverage and aDNA-aware workflows."
   vcf.call_diploid: "Emit diploid genotype calls for modern high-coverage cohorts."
