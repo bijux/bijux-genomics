@@ -38,22 +38,50 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_detect_adapters_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_READS {
         Some("bench_fastq_trim_v2")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_POLYG_TAILS {
+        Some("bench_fastq_trim_polyg_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_TERMINAL_DAMAGE {
+        Some("bench_fastq_trim_terminal_damage_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_FILTER_READS {
         Some("bench_fastq_filter_v2")
     } else if stage == &bijux_dna_domain_fastq::STAGE_FILTER_LOW_COMPLEXITY {
         Some("bench_fastq_filter_low_complexity_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_PROFILE_READS {
         Some("bench_fastq_stats_v1")
+    } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS {
+        Some("bench_fastq_read_lengths_v1")
+    } else if stage
+        == &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES
+    {
+        Some("bench_fastq_overrepresented_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_MERGE_PAIRS {
         Some("bench_fastq_merge_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS {
         Some("bench_fastq_correct_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_REMOVE_DUPLICATES {
+        Some("bench_fastq_duplicates_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_REMOVE_CHIMERAS {
+        Some("bench_fastq_chimeras_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_NORMALIZE_PRIMERS {
+        Some("bench_fastq_normalize_primers_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_INFER_ASVS {
+        Some("bench_fastq_infer_asvs_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_CLUSTER_OTUS {
+        Some("bench_fastq_cluster_otus_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_NORMALIZE_ABUNDANCE {
+        Some("bench_fastq_normalize_abundance_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_REPORT_QC {
         Some("bench_fastq_qc_post_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS {
         Some("bench_fastq_umi_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY {
         Some("bench_fastq_screen_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_HOST {
+        Some("bench_fastq_deplete_host_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_REFERENCE_CONTAMINANTS {
+        Some("bench_fastq_deplete_reference_contaminants_v1")
+    } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA {
+        Some("bench_fastq_deplete_rrna_v1")
     } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE {
         Some("bench_fastq_index_reference_v1")
     } else {
