@@ -8,7 +8,7 @@ Scope:
 
 Contracts:
 - Each example is listed in `examples/index.yaml`.
-- Each example is runnable via `./scripts/run.sh examples run <example-id>`.
+- Each example is runnable via `cargo run -q -p bijux-dev-dna -- examples run run <example-id>`.
 - Golden outputs (`plan.json`, `explain.json`, `report.json`) are required and validated.
 
 ## Notebook Optional Path Rule

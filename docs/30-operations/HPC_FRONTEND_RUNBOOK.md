@@ -32,12 +32,12 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 - Enforce host policy via `configs/ci/tools/hpc_frontend_build_policy.toml`.
 
 ## Validation Commands
-1. `./scripts/run.sh hpc validate-frontend-constraints --confirm`
+1. `cargo run -q -p bijux-dev-dna -- hpc run validate-frontend-constraints --confirm`
 2. `cargo run -p bijux-dev-dna -- containers run apptainer-build-all`
-3. `./scripts/run.sh hpc run-frontend-mini-e2e --confirm`
-4. `./scripts/run.sh checks check-frontend-mini-artifacts`
-5. `./scripts/run.sh checks check-frontend-observability-proof`
-6. `./scripts/run.sh checks check-frontend-telemetry-sanity`
+3. `cargo run -q -p bijux-dev-dna -- hpc run run-frontend-mini-e2e --confirm`
+4. `cargo run -q -p bijux-dev-dna -- checks run check-frontend-mini-artifacts`
+5. `cargo run -q -p bijux-dev-dna -- checks run check-frontend-observability-proof`
+6. `cargo run -q -p bijux-dev-dna -- checks run check-frontend-telemetry-sanity`
 
 ## Artifacts
 - Frontend smoke: `artifacts/containers/hpc/frontend-smoke/`

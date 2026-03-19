@@ -1,7 +1,7 @@
 # Artifact Environment
 
 ## Purpose
-Define the shared artifact environment contract for local development, CI, and operational scripts.
+Define the shared artifact environment contract for local development, CI, and operational automation.
 
 ## Contract
 - `ARTIFACT_ROOT` defaults to `artifacts/`.
@@ -13,6 +13,6 @@ Define the shared artifact environment contract for local development, CI, and o
 
 ## Usage Rules
 - Make targets must prepare the environment through `makes/_macro.mk`.
-- Shell scripts must use `require_artifact_env` or `run_with_artifact_env` from `scripts/_lib/common.sh`.
-- Scripts and tooling must write only under `artifacts/`.
-- Scripts must not hardcode retired `artifacts/isolates/` paths.
+- Make targets and helper entrypoints must export the shared artifact environment before invoking `bijux-dev-dna`.
+- Automation must write only under `artifacts/`.
+- Automation must not hardcode retired `artifacts/isolates/` paths.

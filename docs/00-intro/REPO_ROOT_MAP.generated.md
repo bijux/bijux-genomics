@@ -37,9 +37,8 @@ Top-level workspace paths only.
 | `assets` | `dir` | `-` | - |
 | `domain` | `dir` | `-` | - |
 
-## Script Intent
-| Script Path | Purpose |
+## Automation Intent
+| Control Plane Path | Purpose |
 |---|---|
-| `scripts/experimental` | quarantined non-supported scripts not called from make/CI. |
-| `scripts/tooling` | repository tooling wrappers and inventories. |
-| `scripts/_lib` | shared shell helper library for supported scripts. |
+| `bijux-dev-dna` | native control-plane automation entrypoint for repository workflows. |
+| `makes` | user-facing orchestration surface delegating to `bijux-dev-dna`. |

@@ -18,18 +18,18 @@ Internal targets can be listed with:
 - `SHOW_INTERNAL=1 make help`
 
 Target -> script mapping (no hidden magic):
-- `fmt` -> `./scripts/run.sh tooling ci-fmt`
-- `lint` -> `./scripts/run.sh tooling repo-doctor --fast` + policy checks via `./scripts/run.sh checks ...`
-- `audit` -> `./scripts/run.sh tooling ci-audit`
-- `test` -> `./scripts/run.sh tooling ci-test`
-- `coverage` -> `./scripts/run.sh tooling ci-coverage`
-- `doctor` -> `./scripts/run.sh tooling repo-doctor --fast` + fast parity checks
+- `fmt` -> `cargo run -q -p bijux-dev-dna -- tooling run ci-fmt`
+- `lint` -> `cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast` + policy checks via `cargo run -q -p bijux-dev-dna -- checks run ...`
+- `audit` -> `cargo run -q -p bijux-dev-dna -- tooling run ci-audit`
+- `test` -> `cargo run -q -p bijux-dev-dna -- tooling run ci-test`
+- `coverage` -> `cargo run -q -p bijux-dev-dna -- tooling run ci-coverage`
+- `doctor` -> `cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 CI profile scripts:
-- Fast: `./scripts/run.sh tooling ci-fast`
-- Slow: `./scripts/run.sh tooling ci-slow`
+- Fast: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
+- Slow: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
 
 Current internal targets surfaced by help:
 - `domain-validate`

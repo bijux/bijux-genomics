@@ -28,6 +28,6 @@ Covers repository config contracts under `configs/**` and their owner mapping.
 | `configs/rust/` | Rust fmt, lint, audit, and nextest config | `configs/OWNERS.toml` |
 
 ## Validation Path
-1. Run `./scripts/run.sh checks check-config-owners`.
-2. Run `./scripts/run.sh checks check-config-schema`.
-3. Run `./scripts/run.sh tooling check-config-snapshot`.
+1. Run `cargo run -q -p bijux-dev-dna -- checks run check-config-owners`.
+2. Run `cargo run -q -p bijux-dev-dna -- checks run check-config-schema`.
+3. Run `cargo run -q -p bijux-dev-dna -- tooling run check-config-snapshot`.

@@ -4,7 +4,7 @@
 Define acceptable run-to-run variance for frontend mini benchmark integrity checks.
 
 ## Scope
-Mini benchmark integrity runs executed via `scripts/run.sh tooling benchmark-integrity-mini`.
+Mini benchmark integrity runs executed via `cargo run -q -p bijux-dev-dna -- tooling run benchmark-integrity-mini`.
 
 ## Non-goals
 This policy does not define domain-science correctness thresholds.
