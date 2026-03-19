@@ -35,7 +35,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 
 ## Commands
 - Run workflow:
-  - `./bijux-dev-dna/containers/run-apptainer-frontend-reproducibility.sh`
+  - `cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-reproducibility`
 - Gate check:
   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility`
 

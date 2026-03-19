@@ -2,7 +2,7 @@
 
 Purpose: canonical container runtime build/lint/smoke entrypoints.
 
-Scripts in this directory are the first-class implementation owned by the Rust-native container control plane in `crates/bijux-dev-dna`.
+This directory documents the Rust-native container control plane implemented in `crates/bijux-dev-dna`.
 
 Back to index: `scripts/README.md`.
 
