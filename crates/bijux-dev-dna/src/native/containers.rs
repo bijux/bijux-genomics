@@ -19,6 +19,26 @@ pub fn run_native_container_command(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     match key {
+        NativeContainerCommandKey::Lint => run_container_lint(workspace, args),
+        NativeContainerCommandKey::RegistryTools => run_registry_tools(workspace, args),
+        NativeContainerCommandKey::EnsureImages => run_ensure_images(workspace, args),
+        NativeContainerCommandKey::ContainerDoctor => run_container_doctor(workspace, args),
+        NativeContainerCommandKey::ReleaseGate => run_release_gate(workspace, args),
+        NativeContainerCommandKey::VulnScanHook => run_vuln_scan_hook(workspace, args),
+        NativeContainerCommandKey::ApptainerBuildAll => run_apptainer_build_all(workspace, args),
+        NativeContainerCommandKey::DockerBuildAll => run_docker_build_all(workspace, args),
+        NativeContainerCommandKey::SmokeApptainer => {
+            ensure_no_args("smoke-apptainer", args)?;
+            run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)
+        }
+        NativeContainerCommandKey::SmokeDockerAmd64 => {
+            ensure_no_args("smoke-docker-amd64", args)?;
+            run_runtime_smoke_contract(workspace, "docker-amd64", resolved_smoke_tools(workspace)?)
+        }
+        NativeContainerCommandKey::SmokeDockerArm64 => {
+            ensure_no_args("smoke-docker-arm64", args)?;
+            run_runtime_smoke_contract(workspace, "docker-arm64", resolved_smoke_tools(workspace)?)
+        }
         NativeContainerCommandKey::ContainerRuntimeCheck => {
             ensure_no_args("container-runtime-check", args)?;
             run_container_runtime_check()
@@ -489,6 +509,15 @@ fn write_utf8(path: &std::path::Path, content: &str) -> Result<()> {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     fs::write(path, content).with_context(|| format!("write {}", path.display()))
+}
+
+fn append_named_outcome(
+    aggregate: &mut ContainerCommandOutcome,
+    name: &str,
+    outcome: ContainerCommandOutcome,
+) {
+    aggregate.stdout.push_str(&format!("== {name}\n"));
+    *aggregate = merge_outcomes(aggregate.clone(), outcome);
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -8674,6 +8703,355 @@ fn run_apptainer_ensure_stage(
             env_or_default("BIJUX_HPC_ROOT", "$HOME/bijux"),
         )],
     )
+}
+
+fn run_registry_tools(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- containers run registry-tools -- <registry-subcommand> [args...]",
+        );
+    }
+    if args.is_empty() {
+        return Ok(ContainerCommandOutcome::failure(
+            "registry-tools: missing registry subcommand\n",
+        ));
+    }
+    let mut argv = vec!["registry".to_string()];
+    argv.extend(args.iter().cloned());
+    run_bijux_with_env(workspace, &argv, &[])
+}
+
+fn run_container_lint(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("lint", args)?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+
+    append_named_outcome(&mut aggregate, "check-tool-id-manifest", check_tool_id_manifest(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-name-map-generated",
+        check_tool_name_map_generated(workspace)?,
+    );
+    append_named_outcome(&mut aggregate, "check-index", check_container_index(workspace)?);
+    append_named_outcome(&mut aggregate, "check-license-metadata", check_license_metadata(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-license-index-generated",
+        check_license_index_generated(workspace)?,
+    );
+    append_named_outcome(&mut aggregate, "check-qa-matrix-generated", check_qa_matrix_generated(workspace)?);
+    append_named_outcome(&mut aggregate, "check-tool-docs-generated", check_tool_docs_generated(workspace)?);
+    append_named_outcome(&mut aggregate, "check-network-disclosure", check_network_disclosure(workspace, &[])?);
+    append_named_outcome(&mut aggregate, "check-version-lock", check_version_lock(workspace)?);
+    append_named_outcome(&mut aggregate, "check-version-authority", check_version_authority(workspace)?);
+    append_named_outcome(&mut aggregate, "check-lock-schema", check_lock_schema(workspace)?);
+    append_named_outcome(&mut aggregate, "check-version-completeness", check_version_completeness(workspace)?);
+    append_named_outcome(&mut aggregate, "check-version-hash-pin", check_version_hash_pin(workspace)?);
+    append_named_outcome(&mut aggregate, "check-owners", check_owners(workspace)?);
+    append_named_outcome(&mut aggregate, "check-tool-name-collision", check_tool_name_collision(workspace)?);
+    append_named_outcome(&mut aggregate, "check-tool-id-contract", check_tool_id_contract(workspace)?);
+    append_named_outcome(&mut aggregate, "check-docker-context", check_docker_context(workspace)?);
+    append_named_outcome(&mut aggregate, "check-docker-hardening", check_docker_hardening(workspace)?);
+    append_named_outcome(&mut aggregate, "check-docker-labels", check_docker_labels(workspace)?);
+    append_named_outcome(&mut aggregate, "check-docker-unpinned-apt", check_docker_unpinned_apt(workspace)?);
+    append_named_outcome(&mut aggregate, "check-docker-version-sync", check_docker_version_sync(workspace)?);
+    append_named_outcome(&mut aggregate, "check-apptainer-hardening", check_apptainer_hardening(workspace)?);
+    append_named_outcome(&mut aggregate, "check-apptainer-post-pins", check_apptainer_post_pins(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-version-label-sync",
+        check_apptainer_version_label_sync(workspace)?,
+    );
+    append_named_outcome(&mut aggregate, "check-no-secrets", check_no_secrets(workspace)?);
+    append_named_outcome(&mut aggregate, "check-runtime-downloads", check_runtime_downloads(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-time-locale-determinism",
+        check_time_locale_determinism(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-invocation-normalization",
+        check_tool_invocation_normalization(workspace)?,
+    );
+    append_named_outcome(&mut aggregate, "check-hpc-image-naming", check_hpc_image_naming(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-hpc-frontend-policy-enforcement",
+        check_hpc_frontend_policy_enforcement(workspace)?,
+    );
+
+    Ok(aggregate)
+}
+
+fn run_ensure_images(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run ensure-images -- [--plan] [--only <tool-id>] [--changed]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let mut plan_only = false;
+    let mut changed_only = false;
+    let mut only_tool = None::<String>;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--plan" => {
+                plan_only = true;
+                index += 1;
+            }
+            "--changed" => {
+                changed_only = true;
+                index += 1;
+            }
+            "--only" => {
+                let value = args
+                    .get(index + 1)
+                    .ok_or_else(|| anyhow!("--only requires <tool-id>"))?;
+                only_tool = Some(value.clone());
+                index += 2;
+            }
+            other => return Err(anyhow!("unknown arg for ensure-images: {other}\n{usage}")),
+        }
+    }
+    if only_tool.is_some() && changed_only {
+        return Ok(ContainerCommandOutcome::failure(
+            "ensure-images: --only and --changed are mutually exclusive\n",
+        ));
+    }
+
+    write_ensure_images_plan_report(workspace)?;
+    let report = workspace.path("artifacts/containers/ensure-images/report.json");
+    if plan_only {
+        return success_line(format!("ensure-images: wrote {}", report.display()));
+    }
+
+    let tools = if let Some(tool) = only_tool {
+        tool
+    } else {
+        primary_tools_csv(workspace)?
+    };
+    let smoke = run_runtime_smoke_contract(workspace, "apptainer", tools)?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(&mut aggregate, "smoke-containers-apptainer", smoke);
+    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    append_named_outcome(&mut aggregate, "check-hpc-image-naming", check_hpc_image_naming(workspace, &[])?);
+
+    let lock_sha_path = workspace.path("configs/ci/registry/tool_registry_lock.sha256");
+    let snapshot = workspace.path("artifacts/containers/ensure-images/last_lock.sha256");
+    if lock_sha_path.is_file() {
+        let sha = read_utf8(&lock_sha_path)?;
+        write_utf8(&snapshot, sha.trim())?;
+    }
+    if changed_only && aggregate.is_success() {
+        aggregate
+            .stdout
+            .push_str("ensure-images: changed selection resolved through the governed primary tool set\n");
+    }
+    Ok(aggregate)
+}
+
+fn run_container_doctor(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run container-doctor -- [--strict] [--tool <tool-id>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let mut strict = false;
+    let mut tool = None::<String>;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--strict" => {
+                strict = true;
+                index += 1;
+            }
+            "--tool" => {
+                let value = args
+                    .get(index + 1)
+                    .ok_or_else(|| anyhow!("--tool requires <tool-id>"))?;
+                tool = Some(value.clone());
+                index += 2;
+            }
+            other => return Err(anyhow!("unknown arg for container-doctor: {other}\n{usage}")),
+        }
+    }
+
+    if let Some(tool_id) = tool {
+        let registry_entry = registry_tool_rows(workspace)?
+            .into_iter()
+            .find(|row| row.get("id").and_then(toml::Value::as_str) == Some(tool_id.as_str()))
+            .map(toml::Value::Table)
+            .unwrap_or_else(|| toml::Value::Table(Default::default()));
+        let version_lock = lock_items_by_tool(workspace)?
+            .remove(&tool_id)
+            .unwrap_or_else(|| serde_json::json!({}));
+        let smoke_summary_path = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
+        let smoke = if smoke_summary_path.is_file() {
+            read_json(&smoke_summary_path)?
+                .get("items")
+                .and_then(serde_json::Value::as_array)
+                .and_then(|items| {
+                    items.iter().find(|row| {
+                        row.get("tool").and_then(serde_json::Value::as_str) == Some(tool_id.as_str())
+                    })
+                })
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}))
+        } else {
+            serde_json::json!({})
+        };
+        return Ok(ContainerCommandOutcome::success(format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.container.doctor.tool.v2",
+                "tool": tool_id,
+                "registry": registry_entry,
+                "version_lock": version_lock,
+                "smoke": smoke,
+            }))?
+        )));
+    }
+
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    let mut items = Vec::new();
+    for (name, outcome) in [
+        ("missing_images", check_missing_images(workspace)?),
+        ("lock_file_drift", check_version_lock(workspace)?),
+        ("lock_vs_built", check_lock_matches_built_output(workspace)?),
+        ("outdated_versions", check_version_deprecations(workspace)?),
+        ("domain_parity", check_tool_container_coverage(workspace)?),
+        ("registry_orphans", check_registry_vs_defs(workspace)?),
+    ] {
+        items.push(serde_json::json!({
+            "id": name,
+            "status": if outcome.is_success() { "ok" } else { "fail" },
+            "detail": if outcome.is_success() {
+                outcome.stdout.trim()
+            } else {
+                outcome.stderr.trim()
+            },
+        }));
+        append_named_outcome(&mut aggregate, name, outcome);
+    }
+    let report = workspace.path("artifacts/containers/doctor/report.json");
+    write_utf8(
+        &report,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.container.doctor.v2",
+                "strict": strict,
+                "items": items,
+            }))?
+        ),
+    )?;
+    if strict && !aggregate.is_success() {
+        return Ok(aggregate);
+    }
+    aggregate
+        .stdout
+        .push_str(&format!("container-doctor: wrote {}\n", report.display()));
+    Ok(aggregate)
+}
+
+fn run_release_gate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("release-gate", args)?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(&mut aggregate, "lint", run_container_lint(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "ensure-images",
+        run_ensure_images(workspace, &[String::from("--plan")])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "container-doctor",
+        run_container_doctor(workspace, &[String::from("--strict")])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-release-checklist",
+        check_release_checklist(workspace)?,
+    );
+    Ok(aggregate)
+}
+
+fn run_vuln_scan_hook(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run vuln-scan-hook -- [<sbom-root> [<output-path>]]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let sbom_root = args
+        .first()
+        .map(|value| path_from_arg(workspace, value))
+        .unwrap_or_else(|| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("containers/sbom"));
+    let out = args
+        .get(1)
+        .map(|value| path_from_arg(workspace, value))
+        .unwrap_or_else(|| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("containers/vuln_scan_report.json"));
+    let toolkit = env_or_empty("TOOLKIT");
+    let promoted_only = env_or_default("PROMOTED_ONLY", "1") != "0";
+    write_vuln_hook_report(workspace, &sbom_root, &out, &toolkit, promoted_only)?;
+    success_line(format!("vuln-scan-hook: wrote {}", out.display()))
+}
+
+fn run_apptainer_build_all(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("apptainer-build-all", args)?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(
+        &mut aggregate,
+        "smoke-apptainer",
+        run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)?,
+    );
+    let summary_rel = format!("{}/hpc/frontend-smoke/summary.json", container_artifact_dir());
+    let summary_path = workspace.path(&summary_rel);
+    append_named_outcome(
+        &mut aggregate,
+        "summary",
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+    );
+    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-smoke-contract-lock",
+        check_smoke_contract_lock(workspace)?,
+    );
+    Ok(aggregate)
+}
+
+fn run_docker_build_all(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("docker-build-all", args)?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(
+        &mut aggregate,
+        "smoke-docker-arm64",
+        run_runtime_smoke_contract(workspace, "docker-arm64", resolved_smoke_tools(workspace)?)?,
+    );
+    let summary_rel = format!("{}/summary.json", container_artifact_dir());
+    let summary_path = workspace.path(&summary_rel);
+    append_named_outcome(
+        &mut aggregate,
+        "summary",
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "generate-version-lock",
+        generate_version_lock(
+            workspace,
+            &[workspace
+                .path("containers/versions/lock.json")
+                .display()
+                .to_string()],
+        )?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-lock-matches-built-output",
+        check_lock_matches_built_output(workspace)?,
+    );
+    Ok(aggregate)
 }
 
 fn run_bijux_with_env(

@@ -23,6 +23,61 @@ pub fn container_registry(workspace: &Workspace) -> Result<Vec<ContainerCommandD
 fn native_container_commands() -> Vec<ContainerCommandDefinition> {
     vec![
         native(
+            "lint",
+            "Run the governed container lint surface.",
+            NativeContainerCommandKey::Lint,
+        ),
+        native(
+            "registry-tools",
+            "Delegate container registry queries through the governed CLI.",
+            NativeContainerCommandKey::RegistryTools,
+        ),
+        native(
+            "ensure-images",
+            "Plan or ensure governed container image coverage.",
+            NativeContainerCommandKey::EnsureImages,
+        ),
+        native(
+            "container-doctor",
+            "Summarize governed container health and drift status.",
+            NativeContainerCommandKey::ContainerDoctor,
+        ),
+        native(
+            "release-gate",
+            "Run the governed container release gate.",
+            NativeContainerCommandKey::ReleaseGate,
+        ),
+        native(
+            "vuln-scan-hook",
+            "Generate the governed vulnerability scan hook report.",
+            NativeContainerCommandKey::VulnScanHook,
+        ),
+        native(
+            "apptainer-build-all",
+            "Run the frontend apptainer build-and-proof workflow.",
+            NativeContainerCommandKey::ApptainerBuildAll,
+        ),
+        native(
+            "docker-build-all",
+            "Run the docker-arm64 build-and-proof workflow.",
+            NativeContainerCommandKey::DockerBuildAll,
+        ),
+        native(
+            "smoke-apptainer",
+            "Run the apptainer smoke surface.",
+            NativeContainerCommandKey::SmokeApptainer,
+        ),
+        native(
+            "smoke-docker-amd64",
+            "Run the docker-amd64 smoke surface.",
+            NativeContainerCommandKey::SmokeDockerAmd64,
+        ),
+        native(
+            "smoke-docker-arm64",
+            "Run the docker-arm64 smoke surface.",
+            NativeContainerCommandKey::SmokeDockerArm64,
+        ),
+        native(
             "container-runtime-check",
             "Print the selected runtime contract inputs.",
             NativeContainerCommandKey::ContainerRuntimeCheck,
