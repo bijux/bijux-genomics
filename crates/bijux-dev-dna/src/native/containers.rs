@@ -420,21 +420,7 @@ pub fn run_native_container_command(
         }
         NativeContainerCommandKey::SmokeCntainersApptainerVerify => {
             ensure_no_args("smoke-cntainers-apptainer-verify", args)?;
-            let mut envs = artifact_env(workspace)?;
-            envs.push((
-                "PYTHONPATH".to_string(),
-                pythonpath_with_tooling("scripts/tooling/python"),
-            ));
-            run_program_with_env(
-                workspace,
-                "python3",
-                &[
-                    "-m".to_string(),
-                    "bijux_dna_tools.compare_apptainer_smoke".to_string(),
-                    container_artifact_dir(),
-                ],
-                &envs,
-            )
+            compare_apptainer_smoke_modes(Path::new(&container_artifact_dir()))
         }
         NativeContainerCommandKey::SmokeCrossRuntimeVerify => {
             ensure_no_args("smoke-cross-runtime-verify", args)?;
@@ -9709,11 +9695,85 @@ fn resolved_smoke_tools(workspace: &Workspace) -> Result<String> {
     primary_tools_csv(workspace)
 }
 
-fn pythonpath_with_tooling(prefix: &str) -> String {
-    match std::env::var("PYTHONPATH") {
-        Ok(existing) if !existing.is_empty() => format!("{prefix}:{existing}"),
-        _ => prefix.to_string(),
+fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerCommandOutcome> {
+    fn load_statuses(base: &Path) -> Result<BTreeMap<String, String>> {
+        let mut statuses = BTreeMap::new();
+        for entry in std::fs::read_dir(base).with_context(|| format!("read {}", base.display()))? {
+            let path = entry?.path();
+            if !path.is_file()
+                || path.extension().and_then(|ext| ext.to_str()) != Some("json")
+                || matches!(
+                    path.file_name().and_then(|name| name.to_str()),
+                    Some("report.json" | "summary.json")
+                )
+            {
+                continue;
+            }
+            let payload: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?)
+                    .with_context(|| format!("parse {}", path.display()))?;
+            let tool = payload.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+            let status = payload
+                .get("status")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default();
+            if !tool.is_empty() {
+                statuses.insert(tool.to_string(), status.to_string());
+            }
+        }
+        Ok(statuses)
     }
+
+    let left_dir = root.join("apptainer-bijux-run");
+    let right_dir = root.join("apptainer-apptainer-run");
+    if !left_dir.exists() || !right_dir.exists() {
+        return Ok(ContainerCommandOutcome::failure(
+            "missing smoke artifact dirs for compare\n".to_string(),
+        ));
+    }
+    let left = load_statuses(&left_dir)?;
+    let right = load_statuses(&right_dir)?;
+    let missing_left = right
+        .keys()
+        .filter(|tool| !left.contains_key(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    let missing_right = left
+        .keys()
+        .filter(|tool| !right.contains_key(*tool))
+        .cloned()
+        .collect::<Vec<_>>();
+    let mismatch = left
+        .keys()
+        .filter(|tool| right.get(*tool).is_some() && right.get(*tool) != left.get(*tool))
+        .map(|tool| {
+            format!(
+                "{tool}:{}!={}",
+                left.get(tool).cloned().unwrap_or_default(),
+                right.get(tool).cloned().unwrap_or_default()
+            )
+        })
+        .collect::<Vec<_>>();
+    if missing_left.is_empty() && missing_right.is_empty() && mismatch.is_empty() {
+        return Ok(ContainerCommandOutcome::success(format!(
+            "smoke mode compare OK for {} tools\n",
+            left.len()
+        )));
+    }
+    let mut stdout = String::from("smoke mode mismatch detected\n");
+    if !missing_left.is_empty() {
+        stdout.push_str(&format!("missing in bijux-run: {}\n", missing_left.join(",")));
+    }
+    if !missing_right.is_empty() {
+        stdout.push_str(&format!(
+            "missing in apptainer-run: {}\n",
+            missing_right.join(",")
+        ));
+    }
+    if !mismatch.is_empty() {
+        stdout.push_str(&format!("status mismatch: {}\n", mismatch.join(",")));
+    }
+    Ok(ContainerCommandOutcome::failure(stdout))
 }
 
 fn sampled_apptainer_defs(workspace: &Workspace, seed: &str, count: usize) -> Vec<PathBuf> {
