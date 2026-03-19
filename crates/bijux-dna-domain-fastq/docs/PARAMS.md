@@ -45,4 +45,3 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.rrna` | `RrnaEffectiveParams` | rRNA screen controls |
 | `fastq.screen` | `ScreenEffectiveParams` | contaminant taxonomy screen controls |
 | `fastq.qc_post` | `QcPostEffectiveParams` | post-processing QC report controls |
-| `fastq.preprocess` | `PreprocessEffectiveParams` | stage orchestration controls |
