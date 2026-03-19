@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
+# source_commit: 295cab84ffed1361d219c4fb19c716cf53135a64
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -483,40 +483,6 @@ metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.musket"
 apptainer_def = "containers/apptainer/lunarc/musket.def"
-require_labels = true
-
-[[tools]]
-id = "qualimap"
-tool_id = "qualimap"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.report_qc"]
-bindings = ["fastq.report_qc"]
-tool_role = "qc"
-version = "2.3"
-default_version = "2.3"
-upstream = "http://qualimap.conesalab.org/"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:http://qualimap.conesalab.org/"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/qualimap@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "qualimap --version"
-help_cmd = "qualimap --help"
-smoke_version_cmd = "qualimap --version"
-smoke_help_cmd = "qualimap --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "qualimap --help"
-expected_bin = "qualimap"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
-apptainer_def = "containers/apptainer/lunarc/qualimap.def"
 require_labels = true
 
 [[tools]]

@@ -121,9 +121,6 @@ stage_tool_compatibility:
   - sortmerna
   fastq.report_qc:
   - multiqc
-  - fastqc
-  - qualimap
-  - samtools
   fastq.screen_taxonomy:
   - kraken2
   - krakenuniq
@@ -455,15 +452,6 @@ stage_default_settings:
     multiqc:
       profile: adna_sane_default
       notes: operator-facing aggregation preset
-    fastqc:
-      profile: adna_sane_default
-      notes: per-sample qc preset
-    qualimap:
-      profile: adna_sane_default
-      notes: alignment-aware qc preset
-    samtools:
-      profile: adna_sane_default
-      notes: basic qc metrics preset
   fastq.screen_taxonomy:
     kraken2:
       profile: adna_sane_default

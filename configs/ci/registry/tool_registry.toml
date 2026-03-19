@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
+# source_commit: 295cab84ffed1361d219c4fb19c716cf53135a64
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -457,8 +457,8 @@ tool_id = "fastqc"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.detect_adapters", "fastq.report_qc", "fastq.profile_overrepresented_sequences"]
-bindings = ["fastq.detect_adapters", "fastq.profile_overrepresented_sequences", "fastq.report_qc"]
+stage_ids = ["fastq.detect_adapters", "fastq.profile_overrepresented_sequences"]
+bindings = ["fastq.detect_adapters", "fastq.profile_overrepresented_sequences"]
 tool_role = "trimmer"
 version = "0.12.1"
 default_version = "0.12.1"
@@ -1035,8 +1035,8 @@ tool_id = "samtools"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.index_reference", "fastq.deplete_host", "fastq.report_qc"]
-bindings = ["fastq.deplete_host", "fastq.index_reference", "fastq.report_qc"]
+stage_ids = ["fastq.index_reference", "fastq.deplete_host"]
+bindings = ["fastq.deplete_host", "fastq.index_reference"]
 tool_role = "transform"
 version = "1.21"
 default_version = "1.21"
@@ -1817,7 +1817,7 @@ requires_reporting = false
 id = "fastq.report_qc"
 required_tool_roles = ["qc"]
 primary_tools = ["multiqc"]
-optional_alternatives = ["fastqc", "samtools"]
+optional_alternatives = ["samtools"]
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []

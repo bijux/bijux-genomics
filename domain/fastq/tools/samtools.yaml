@@ -10,7 +10,6 @@ citation: "upstream:https://github.com/samtools/samtools"
 stage_ids:
   - "fastq.index_reference"
   - "fastq.deplete_host"
-  - "fastq.report_qc"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts:

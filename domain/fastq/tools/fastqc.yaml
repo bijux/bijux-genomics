@@ -34,7 +34,6 @@ license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
   - "fastq.detect_adapters"
-  - "fastq.report_qc"
   - "fastq.profile_overrepresented_sequences"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
