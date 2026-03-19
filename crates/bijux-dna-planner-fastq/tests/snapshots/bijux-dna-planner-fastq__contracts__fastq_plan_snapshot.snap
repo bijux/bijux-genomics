@@ -53,16 +53,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "trimmed_reads"
           },
           {
-            "name": "trim_report",
+            "name": "report_json",
             "optional": false,
             "path": "out/trim_reads/fastp/trim_report.json",
             "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "out/trim_reads/fastp/stage.metrics.json",
-            "role": "metrics_json"
           }
         ]
       },
