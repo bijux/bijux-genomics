@@ -73,7 +73,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::Qc(common) => (
                 StageId::from_static("fastq.report_qc"),
-                ToolId::from_static("fastqc"),
+                ToolId::from_static("multiqc"),
                 common.clone(),
             ),
             FastqCommand::Align(common) => (
@@ -726,6 +726,15 @@ mod tests {
             let (stage, _tool, _common) = resolve_stage_tool(&command);
             assert_eq!(stage.as_str(), expected_stage);
         }
+    }
+
+    #[test]
+    fn fastq_qc_command_uses_multiqc_backend() {
+        let (stage, tool, _common) = resolve_stage_tool(&DnaCommand::Fastq {
+            command: FastqCommand::Qc(CommonArgs::default()),
+        });
+        assert_eq!(stage.as_str(), "fastq.report_qc");
+        assert_eq!(tool.as_str(), "multiqc");
     }
 }
 
