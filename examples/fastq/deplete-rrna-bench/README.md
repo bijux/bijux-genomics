@@ -4,6 +4,7 @@
 Run a deterministic rRNA-depletion benchmark flow for pre-HPC screening.
 
 Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_deplete_rrna_bench`
+Direct benchmark command: `cargo run -q -p bijux-dna -- bench fastq deplete-rrna --sample-id SAMPLE --r1 reads.fastq.gz --out artifacts --tools auto`
 
 ## Stage
 - Stage ID: `fastq.deplete_rrna`
@@ -12,4 +13,5 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_d
 ## HPC Run
 1. `cargo run -q -p bijux-dev-dna -- hpc run validate-frontend-constraints --confirm`
 2. `cargo run -q -p bijux-dev-dna -- examples run run fastq_deplete_rrna_bench`
-3. Collect outputs under `artifacts/examples/fastq_deplete_rrna_bench/`
+3. Or submit the direct stage benchmark command above with your scheduler wrapper.
+4. Collect outputs under `artifacts/examples/fastq_deplete_rrna_bench/`
