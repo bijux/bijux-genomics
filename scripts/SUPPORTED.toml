@@ -145,31 +145,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "acquire_panels"
-path = "scripts/tooling/acquire-panels.sh"
-purpose = "tooling script"
-inputs = ["configs/vcf/panels/panels.toml"]
-outputs = ["configs/vcf/panels/locks/",  "artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "acquire_maps"
-path = "scripts/tooling/acquire-maps.sh"
-purpose = "tooling script"
-inputs = ["configs/vcf/maps/maps.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "acquire_reference"
-path = "scripts/tooling/acquire-reference.sh"
-purpose = "tooling script"
-inputs = ["configs/runtime/reference_bank.toml"]
-outputs = ["configs/runtime/references/locks/", "artifacts/", "$ISO_ROOT/"]
-network_allowed = true
-ci_allowed = true
-
-[[script]]
 id = "ci_fast"
 path = "scripts/tooling/ci-fast.sh"
 purpose = "tooling script"
