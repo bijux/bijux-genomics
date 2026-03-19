@@ -5,17 +5,27 @@ metric_ids:
   - adapter_bank_id
   - adapter_overrides
   - adapter_preset
+  - asv_count
   - base_retention
   - bases_in
   - bases_out
+  - bases_trimmed_polyg
   - bases_total
   - candidate_adapter_count
+  - chimera_fraction
+  - chimeras_removed
+  - contaminant_fraction_removed
+  - ct_ga_asymmetry_post
+  - ct_ga_asymmetry_pre
   - contamination_rate
   - contamination_summary
   - dedup_rate
   - delta_mean_q
   - delta_metrics
   - gc_percent
+  - host_fraction_removed
+  - index_bytes
+  - index_file_count
   - kmer_fix_rate
   - length_histogram
   - mean_q
@@ -26,9 +36,13 @@ metric_ids:
   - merge_rate
   - multiqc_data
   - multiqc_report
+  - orientation_forward_fraction
+  - otu_count
   - pairs_in
   - pairs_out
+  - primer_trimmed_fraction
   - raw_fastqc_dir
+  - read_count
   - read_retention
   - reads_dropped
   - reads_in
@@ -45,9 +59,17 @@ metric_ids:
   - reads_removed_low_complexity
   - reads_rrna
   - reads_total
-  - read_count
+  - reads_with_umi
+  - representative_count
+  - rrna_fraction_removed
   - reads_unmerged
   - reads_valid
   - runtime_s
+  - sample_count
+  - sequence_count
+  - table_rows
+  - top_fraction
   - trimmed_read_fraction
   - trimmed_fastqc_dir
+  - udg_classification
+  - zero_fraction
