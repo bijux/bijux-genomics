@@ -18,9 +18,7 @@ metrics_schema: bijux.fastq.index.v1
 version_cmd: star --version
 help_cmd: star --help
 comparability:
-  comparable_with:
-  - bowtie2
-  - bwa
+  comparable_with: []
   non_comparable_with: []
 comparability_notes: Comparable only within same stage contract and input constraints.
 capabilities:
