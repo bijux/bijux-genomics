@@ -65,17 +65,13 @@ pub fn plan_contaminant_screen(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        if output_r2.is_some() {
-            ArtifactId::from_static("contaminant_screened_reads_r1")
-        } else {
-            ArtifactId::from_static("contaminant_screened_reads")
-        },
+        ArtifactId::from_static("contaminant_screened_reads"),
         output_r1.clone(),
         ArtifactRole::Reads,
     )];
     if let Some(output_r2) = &output_r2 {
         outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("contaminant_screened_reads_r2"),
+            ArtifactId::from_static("contaminant_screened_reads"),
             output_r2.clone(),
             ArtifactRole::Reads,
         ));
