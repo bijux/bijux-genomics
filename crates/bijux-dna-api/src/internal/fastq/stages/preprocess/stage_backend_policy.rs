@@ -128,7 +128,6 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
             "adapterremoval",
             "trimmomatic",
             "trim_galore",
-            "seqpurge",
             "prinseq",
             "seqkit",
             "skewer",
