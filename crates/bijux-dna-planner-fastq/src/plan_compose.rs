@@ -90,29 +90,11 @@ where
                 (plan, next_r1, None)
             }
             stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => {
-                if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
-                    return Err(anyhow!(
-                        "{} requires cutadapt/seqkit; got {}",
-                        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-                        tool.tool_id
-                    ));
-                }
-                let plan = plan_fastq_transform_stage(
-                    stage,
+                let plan = crate::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
                     tool,
                     &current_r1,
                     &out_dir,
-                    "damage_aware_pretrim.fastq.gz",
-                    serde_json::json!({
-                        "mode": "damage_aware",
-                        "policy": {
-                            "trim_5p_bases": 2,
-                            "trim_3p_bases": 2,
-                            "transition_masking": "CT_GA_terminal_windows"
-                        },
-                        "udg_classification_source": "config_or_inferred"
-                    }),
-                );
+                )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
@@ -416,6 +398,7 @@ where
     Ok(plans)
 }
 
+#[allow(dead_code)]
 fn plan_fastq_transform_stage(
     stage_id: &str,
     tool: &ToolExecutionSpecV1,

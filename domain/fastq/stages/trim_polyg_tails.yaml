@@ -26,6 +26,14 @@ metrics:
     meaning: "Number of input reads."
   - name: "reads_out"
     meaning: "Number of output reads after polyG trimming."
+  - name: "bases_in"
+    meaning: "Number of input bases before polyG trimming."
+  - name: "bases_out"
+    meaning: "Number of output bases after polyG trimming."
+  - name: "mean_q_before"
+    meaning: "Mean base quality before polyG trimming."
+  - name: "mean_q_after"
+    meaning: "Mean base quality after polyG trimming."
   - name: "bases_trimmed_polyg"
     meaning: "Number of bases removed from polyG tails."
 description: "FASTQ stage for trimming instrument-derived polyG tails."
@@ -44,6 +52,7 @@ required_outputs:
   - "report_json"
 tool_capability_requirements:
   - "SE"
+  - "polyx_trim"
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
@@ -57,6 +66,6 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "polyG trimming remains a no-op on inputs without terminal G-tail artifacts."
 bank_hooks:
-  - "none"
+  - "polyx_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

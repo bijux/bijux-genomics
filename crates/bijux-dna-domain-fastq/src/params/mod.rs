@@ -8,7 +8,8 @@ use crate::stages::ids::{
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS, STAGE_CORRECT_ERRORS,
     STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY,
     STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC,
-    STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
+    STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_POLYG_TAILS,
+    STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -86,6 +87,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_TRIM_TERMINAL_DAMAGE {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim_terminal_damage",
+            schema_version: "bijux.fastq.params.v1",
+        });
+    }
+    if stage_id == &STAGE_TRIM_POLYG_TAILS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.trim_polyg_tails",
             schema_version: "legacy.unversioned",
         });
     }
@@ -284,6 +291,11 @@ pub fn parse_effective_params(
             .map(EffectiveParams::Trim);
     }
     if stage_id == &STAGE_TRIM_TERMINAL_DAMAGE {
+        return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Trim);
+    }
+    if stage_id == &STAGE_TRIM_POLYG_TAILS {
         return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Trim);

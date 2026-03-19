@@ -49,6 +49,10 @@ pub mod trim_polyg_tails {
     pub use crate::tool_adapters::stages::transform::trim_polyg_tails::*;
 }
 
+pub mod trim_terminal_damage {
+    pub use crate::tool_adapters::stages::transform::trim_terminal_damage::*;
+}
+
 pub mod correct_errors {
     pub use crate::tool_adapters::stages::transform::correct_errors::*;
 }
@@ -148,6 +152,11 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
+            id: crate::tool_adapters::stages::transform::trim_terminal_damage::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::trim_terminal_damage::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
             id: crate::tool_adapters::stages::transform::extract_umis::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::extract_umis::STAGE_VERSION,
             affects_read_counts: true,
@@ -164,11 +173,6 @@ pub fn registry() -> Vec<StageInfo> {
         },
         StageInfo {
             id: fastq_ids::STAGE_NORMALIZE_PRIMERS,
-            version: StageVersion(1),
-            affects_read_counts: true,
-        },
-        StageInfo {
-            id: fastq_ids::STAGE_TRIM_TERMINAL_DAMAGE,
             version: StageVersion(1),
             affects_read_counts: true,
         },
