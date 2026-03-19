@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::stages::ids::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
     STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
-    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST,
+    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST,
     STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_core::ids::StageId;
@@ -119,7 +119,7 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_PREPROCESS {
+    if stage_id.as_str() == "fastq.preprocess" {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.preprocess",
             schema_version: "legacy.unversioned",
@@ -327,7 +327,7 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::QcPost);
     }
-    if stage_id == &STAGE_PREPROCESS {
+    if stage_id.as_str() == "fastq.preprocess" {
         return serde_json::from_value::<preprocess::PreprocessEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Preprocess);
