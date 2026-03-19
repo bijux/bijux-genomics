@@ -33,7 +33,7 @@ _lint:
 	@$(MAKE) _lint-rustfmt
 	@$(MAKE) _lint-configs
 	@$(MAKE) _lint-docs
-	@$(MAKE) _lint-scripts
+	@$(MAKE) _lint-automation
 	@$(MAKE) _lint-clippy
 
 _lint-rustfmt:
@@ -52,13 +52,13 @@ _lint-docs:
 	@cargo run -q -p bijux-dev-dna -- docs run check-doc-links
 	@cargo run -q -p bijux-dev-dna -- checks run check-docs-build-contract
 
-_lint-scripts:
+_lint-automation:
 	@$(ensure_artifact_env)
 	cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
 	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
-	@echo "Running lint script gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
+	@echo "Running automation lint gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
 	| xargs -0 -n1 -P "$(LINT_PARALLEL_JOBS)" sh -c '\
 		cmd="$$2"; \
@@ -73,9 +73,13 @@ _lint-scripts:
 		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 
-lint-scripts: ## Run repo-doctor + script/container lint checks (parallelized), without clippy.
+lint-automation: ## Run repo-doctor + automation/container lint checks (parallelized), without clippy.
 	@$(ensure_artifact_env)
-	@$(MAKE) _lint-scripts
+	@$(MAKE) _lint-automation
+
+lint-scripts: ## Compatibility alias for lint-automation.
+	@$(ensure_artifact_env)
+	@$(MAKE) lint-automation
 
 lint-rustfmt: ## Run rustfmt gate only.
 	@$(ensure_artifact_env)
@@ -105,7 +109,7 @@ _lint-clippy-executors:
 	@$(ensure_artifact_env)
 	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" cargo run -q -p bijux-dev-dna -- tooling run ci-clippy-executors
 
-_clippy: ## Run workspace clippy only (no script gates).
+_clippy: ## Run workspace clippy only (no automation gates).
 	@$(MAKE) _lint-clippy
 
 _clippy-executors: ## Run deny-warnings clippy for runner/executor crates.
@@ -284,7 +288,7 @@ _check-generated-configs:
 _check-generated-config-headers:
 	cargo run -q -p bijux-dev-dna -- checks run check-generated-config-headers
 
-_policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
+_policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/control-plane surfaces.
 	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
 	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-automation
 
@@ -304,7 +308,7 @@ _policy-index: ## Generate policy index under artifacts/.
 _policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
 	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets policy-only-fast-gate
 
-_scripts-inventory: ## Generate scripts inventory under artifacts/
+_control-plane-inventory: ## Generate control-plane inventory under artifacts/
 	@cargo run -q -p bijux-dev-dna -- tooling run inventory
 
 _config-inventory: ## Generate config inventory under artifacts/
@@ -361,16 +365,16 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dev-dna -- assets run refresh-golden
 
-.PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-scripts test test-fast audit coverage ci doctor _check _verify-artifact-env \
+.PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-fast audit coverage ci doctor _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
 		_domain-validate _domain-coverage _domain-inventory-drift _generate-configs _check-generated-configs _check-generated-config-headers \
 		_test-fast \
-		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-scripts _lint-clippy _lint-clippy-executors \
+		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-automation _lint-clippy _lint-clippy-executors \
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
-		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _scripts-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
+		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _control-plane-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate \
 		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden flake-hunt
 

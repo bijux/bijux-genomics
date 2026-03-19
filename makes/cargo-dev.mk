@@ -6,7 +6,7 @@ include $(ROOT_MK_DIR)/_macro.mk
 # Usage examples:
 #   make -f makes/cargo-dev.mk dev-fmt
 #   make -f makes/cargo-dev.mk dev-lint
-#   make -f makes/cargo-dev.mk dev-lint-scripts
+#   make -f makes/cargo-dev.mk dev-lint-automation
 #   make -f makes/cargo-dev.mk dev-lint-clippy
 #   make -f makes/cargo-dev.mk dev-lint-clippy-executors
 #   make -f makes/cargo-dev.mk dev-test
@@ -25,7 +25,7 @@ ifeq ($(notdir $(firstword $(MAKEFILE_LIST))),cargo-dev.mk)
 help:
 	@printf '%s\n' \
 	  'cargo-dev.mk targets:' \
-	  '  dev-fmt dev-lint dev-lint-rustfmt dev-lint-clippy dev-lint-scripts dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
+	  '  dev-fmt dev-lint dev-lint-rustfmt dev-lint-clippy dev-lint-automation dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean' \
 	  '' \
 	  'Behavior:' \
 	  '  - Reuses the shared artifacts contract for fast local iteration.' \
@@ -44,8 +44,11 @@ dev-lint:
 dev-lint-rustfmt:
 	@ARTIFACT_ROOT="$(DEV_ARTIFACT_ROOT)" $(MAKE) -f $(ROOT_MAKE) _lint-rustfmt
 
+dev-lint-automation:
+	@ARTIFACT_ROOT="$(DEV_ARTIFACT_ROOT)" $(MAKE) -f $(ROOT_MAKE) _lint-automation
+
 dev-lint-scripts:
-	@ARTIFACT_ROOT="$(DEV_ARTIFACT_ROOT)" $(MAKE) -f $(ROOT_MAKE) _lint-scripts
+	@ARTIFACT_ROOT="$(DEV_ARTIFACT_ROOT)" $(MAKE) -f $(ROOT_MAKE) dev-lint-automation
 
 dev-lint-clippy:
 	@ARTIFACT_ROOT="$(DEV_ARTIFACT_ROOT)" $(MAKE) -f $(ROOT_MAKE) _clippy
@@ -88,7 +91,7 @@ dev-clean:
 	@echo "reset scratch directories under $(DEV_ARTIFACT_ROOT)"
 
 ifeq ($(notdir $(firstword $(MAKEFILE_LIST))),cargo-dev.mk)
-.PHONY: help dev-fmt dev-lint dev-lint-rustfmt dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: help dev-fmt dev-lint dev-lint-rustfmt dev-lint-automation dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 else
-.PHONY: dev-fmt dev-lint dev-lint-rustfmt dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
+.PHONY: dev-fmt dev-lint dev-lint-rustfmt dev-lint-automation dev-lint-scripts dev-lint-clippy dev-lint-docs dev-lint-configs dev-lint-fast dev-lint-clippy-executors dev-realness-gate dev-audit dev-test dev-test-full dev-vcf-certification dev-coverage dev-all dev-clean
 endif
