@@ -116,7 +116,7 @@ schema_version = "none"
 [[entries]]
 stage_id = "fastq.merge_pairs"
 param_type_id = "fastq.merge_pairs"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.merge_pairs.v1"
 
 [[entries]]
 stage_id = "fastq.profile_overrepresented_sequences"
@@ -166,7 +166,7 @@ schema_version = "bijux.fastq.params.umi.v1"
 [[entries]]
 stage_id = "fastq.validate_reads"
 param_type_id = "fastq.validate"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.validate_reads.v1"
 
 [[entries]]
 stage_id = "fastq.normalize_primers"
