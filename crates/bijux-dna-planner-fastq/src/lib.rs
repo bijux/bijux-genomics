@@ -326,8 +326,8 @@ pub fn preprocess_decisions(
 pub fn plan_preprocess(
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     pipeline: PipelineSpec,
-) -> crate::tool_adapters::fastq::preprocess::PreprocessPlan {
-    crate::tool_adapters::fastq::preprocess::PreprocessPlan {
+) -> crate::tool_adapters::stages::pre::preprocess::PreprocessPlan {
+    crate::tool_adapters::stages::pre::preprocess::PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         stages: pipeline.stages,

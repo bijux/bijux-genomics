@@ -1,10 +1,6 @@
 use bijux_dna_core::prelude::{StageId, StageVersion};
 use bijux_dna_domain_fastq::stages::ids as fastq_ids;
 
-pub mod preprocess {
-    pub use crate::tool_adapters::stages::pre::preprocess::*;
-}
-
 pub mod validate_pre {
     pub use crate::tool_adapters::stages::pre::validate_pre::*;
 }
@@ -197,11 +193,6 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::pre::preprocess::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::pre::preprocess::STAGE_VERSION,
-            affects_read_counts: true,
-        },
-        StageInfo {
             id: crate::tool_adapters::stages::qc::qc_post::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::qc::qc_post::STAGE_VERSION,
             affects_read_counts: false,
@@ -209,7 +200,7 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: crate::tool_adapters::stages::qc::rrna::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::qc::rrna::STAGE_VERSION,
-            affects_read_counts: false,
+            affects_read_counts: true,
         },
     ]
 }

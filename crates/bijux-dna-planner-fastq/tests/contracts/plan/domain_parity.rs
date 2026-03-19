@@ -54,6 +54,10 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
         .into_iter()
         .map(|s| s.id.to_string())
         .collect::<BTreeSet<_>>();
+    assert!(
+        !stages.contains("fastq.preprocess"),
+        "planner registry must not expose pseudo-stage fastq.preprocess"
+    );
     for required in [
         "fastq.damage_aware_pretrim",
         "fastq.primer_normalization",

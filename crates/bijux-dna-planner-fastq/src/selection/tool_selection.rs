@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use bijux_dna_core::ids::{id_catalog, StageId, ToolId};
+use bijux_dna_core::ids::{StageId, ToolId};
 
 fn registry_toml() -> Option<toml::Value> {
     let cwd = std::env::current_dir().ok()?;
@@ -56,9 +56,6 @@ pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<ToolId> {
 
 #[must_use]
 pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
-    if stage_id.as_str() == id_catalog::FASTQ_PREPROCESS {
-        return Some(ToolId::from_static(id_catalog::TOOL_PLANNER));
-    }
     let allowed = allowed_tools_for_stage(stage_id);
     let parsed = registry_toml()?;
     let stages = parsed.get("stages")?.as_array()?;
