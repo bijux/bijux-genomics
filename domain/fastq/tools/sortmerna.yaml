@@ -12,7 +12,8 @@ stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- rrna_filtered_reads
+- rrna_filtered_reads_r1
+- rrna_filtered_reads_r2
 - rrna_report_tsv
 - rrna_report_json
 metrics_schema_id: bijux.stage.metrics.v1

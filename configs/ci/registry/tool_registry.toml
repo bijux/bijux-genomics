@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 87d223f6487931c41a257a8054f4d8c0f307d5fd
+# source_commit: af2125db4d4785f53c80ab4f9e629b976c03a51e
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -240,7 +240,7 @@ smoke_help_cmd = "bowtie2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bowtie2 --help"
 expected_bin = "bowtie2"
-expected_artifacts = ["host_depleted_reads", "contaminant_screened_reads", "report_json"]
+expected_artifacts = ["host_depleted_reads_r1", "host_depleted_reads_r2", "contaminant_screened_reads", "host_depletion_report_json", "contaminant_screen_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
@@ -988,7 +988,7 @@ smoke_help_cmd = "samtools --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "samtools --help"
 expected_bin = "samtools"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["reference_index"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.samtools"
@@ -1158,7 +1158,7 @@ smoke_help_cmd = "sortmerna --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "sortmerna --help"
 expected_bin = "sortmerna"
-expected_artifacts = ["rrna_filtered_reads", "rrna_report_tsv", "rrna_report_json"]
+expected_artifacts = ["rrna_filtered_reads_r1", "rrna_filtered_reads_r2", "rrna_report_tsv", "rrna_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.sortmerna"

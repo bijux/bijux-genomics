@@ -12,7 +12,7 @@ stage_ids:
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts:
-  - "report_json"
+  - "reference_index"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "samtools --version"
