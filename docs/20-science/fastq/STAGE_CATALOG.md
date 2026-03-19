@@ -151,7 +151,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: infer amplicon sequence variants.
 - Inputs/Outputs: reads -> asv_table, asv_sequences.
 - Metrics: inferred variant counts.
-- Tools: dada2.
+- Tools: no admitted backend yet.
 
 ### fastq.normalize_abundance {#fastq-normalize-abundance}
 - Purpose: normalize abundance summaries after amplicon inference.

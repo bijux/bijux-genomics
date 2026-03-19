@@ -39,7 +39,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.profile_read_lengths" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.profile_overrepresented_sequences" => vec!["fastqc", "seqkit"],
         "fastq.remove_chimeras" | "fastq.cluster_otus" => vec!["vsearch"],
-        "fastq.infer_asvs" => vec!["dada2"],
+        "fastq.infer_asvs" => Vec::new(),
         "fastq.normalize_abundance" => vec!["seqfu", "seqkit"],
         "fastq.validate_reads" => vec!["fastqvalidator", "seqtk", "fqtools"],
         "fastq.detect_adapters" => vec!["fastqc"],

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b9c37d5a0cc191c70e03bb9a66cb6f8fba3a743b
+# source_commit: 0333d0a8f7fdd6463896a5b54e7670db8b3e7822
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1634,18 +1634,6 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Stable index generation baseline for pre-HPC runs."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "fastq.infer_asvs"
-required_tool_roles = ["transform"]
-primary_tools = ["fastp"]
-optional_alternatives = []
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = ""
 requires_validation = false
 requires_reporting = false
 

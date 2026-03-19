@@ -38,5 +38,5 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.normalize_primers | cutadapt, seqkit | Primer normalization with explicit sequence handling |
 | fastq.remove_chimeras | vsearch | Chimera removal in amplicon workflows |
 | fastq.cluster_otus | vsearch | OTU clustering |
-| fastq.infer_asvs | dada2 | ASV inference |
+| fastq.infer_asvs | no admitted backend yet | Stage contract is defined, but governed runtime admission for ASV inference is still pending |
 | fastq.normalize_abundance | seqfu, seqkit | Post-inference abundance normalization helpers |
