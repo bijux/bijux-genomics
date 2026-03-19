@@ -66,11 +66,7 @@ pub fn plan_rrna(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        if filtered_reads_r2.is_some() {
-            ArtifactId::from_static("rrna_filtered_reads_r1")
-        } else {
-            ArtifactId::from_static("rrna_filtered_reads")
-        },
+        ArtifactId::from_static("rrna_filtered_reads_r1"),
         filtered_reads_r1.clone(),
         ArtifactRole::Reads,
     )];
