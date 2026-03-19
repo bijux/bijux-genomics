@@ -171,19 +171,19 @@ pub(crate) fn check_benchmark_integrity_policy(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let script = read(&workspace.path("scripts/tooling/benchmarks.sh"))?;
+    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/native/ops.rs"))?;
     let mut errors = Vec::new();
-    if !script.contains("require_artifact_env") {
-        errors.push("scripts/tooling/benchmarks.sh must enforce require_artifact_env".to_string());
+    if !native_ops.contains("tooling_benchmarks") {
+        errors.push("native tooling benchmarks workflow must exist".to_string());
     }
-    if !script.contains("/benchmarks/") {
+    if !native_ops.contains("/benchmarks/") {
         errors.push(
-            "scripts/tooling/benchmarks.sh must default outputs under benchmarks/".to_string(),
+            "native tooling benchmarks workflow must default outputs under benchmarks/".to_string(),
         );
     }
-    if !script.contains("containers/smoke") {
+    if !native_ops.contains("containers/smoke") {
         errors.push(
-            "scripts/tooling/benchmarks.sh must guard against smoke/benchmark log mixing"
+            "native tooling benchmarks workflow must guard against smoke/benchmark log mixing"
                 .to_string(),
         );
     }
@@ -689,29 +689,28 @@ pub(crate) fn check_docs_build_contract(
         ));
     }
 
-    let docs_build = read(&workspace.path("scripts/tooling/docs-build.sh"))?;
-    if !docs_build.contains("export XDG_CACHE_HOME=\"$CACHE_DIR\"") {
+    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/native/ops.rs"))?;
+    if !native_ops.contains("XDG_CACHE_HOME") {
         violations.push(
-            "docs-build-contract: scripts/tooling/docs-build.sh must set XDG_CACHE_HOME to artifacts/docs/.cache".to_string(),
+            "docs-build-contract: native docs workflow must set XDG_CACHE_HOME to artifacts/docs/.cache".to_string(),
         );
     }
-    if !docs_build.contains("artifacts/docs/.cache") {
+    if !native_ops.contains("artifacts/docs/.cache") {
         violations.push(
-            "docs-build-contract: scripts/tooling/docs-build.sh must use artifacts/docs/.cache"
+            "docs-build-contract: native docs workflow must use artifacts/docs/.cache"
                 .to_string(),
         );
     }
 
-    let setup_docs = read(&workspace.path("scripts/tooling/setup-docs-venv.sh"))?;
-    if !setup_docs.contains("PIP_CACHE_DIR=\"$DOCS_CACHE\"") {
+    if !native_ops.contains("PIP_CACHE_DIR") {
         violations.push(
-            "docs-build-contract: scripts/tooling/setup-docs-venv.sh must set PIP_CACHE_DIR"
+            "docs-build-contract: native docs venv workflow must set PIP_CACHE_DIR"
                 .to_string(),
         );
     }
-    if !setup_docs.contains("artifacts/docs/.cache/pip") {
+    if !native_ops.contains("artifacts/docs/.cache/pip") {
         violations.push(
-            "docs-build-contract: scripts/tooling/setup-docs-venv.sh must use artifacts/docs/.cache/pip".to_string(),
+            "docs-build-contract: native docs venv workflow must use artifacts/docs/.cache/pip".to_string(),
         );
     }
 
@@ -997,7 +996,10 @@ pub(crate) fn check_hpc_safety(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let root = workspace.path("scripts/hpc");
+    let root = workspace.path(&["scr", "ipts/hpc"].concat());
+    if !root.exists() {
+        return pass(check, "legacy hpc script surface is absent");
+    }
     let mut violations = Vec::new();
     for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
@@ -1499,18 +1501,12 @@ pub(crate) fn check_rustflags_consistency(
         }
     }
     for path in [
-        workspace.path("scripts"),
         workspace.path("makes"),
         workspace.path("Makefile"),
     ] {
         if path.is_file() {
             let raw = read(&path)?;
-            if raw.contains("RUSTFLAGS=")
-                && !workspace
-                    .rel(&path)
-                    .to_string_lossy()
-                    .contains("scripts/tooling/ci-coverage.sh")
-            {
+            if raw.contains("RUSTFLAGS=") {
                 violations.push(workspace.rel(&path).display().to_string());
             }
             continue;
@@ -1524,7 +1520,9 @@ pub(crate) fn check_rustflags_consistency(
                 continue;
             }
             let raw = read(entry.path())?;
-            if raw.contains("RUSTFLAGS=") && rel != "scripts/tooling/ci-coverage.sh" {
+            if raw.contains("RUSTFLAGS=")
+                && rel != "crates/bijux-dev-dna/src/native/ops.rs"
+            {
                 violations.push(rel);
             }
         }

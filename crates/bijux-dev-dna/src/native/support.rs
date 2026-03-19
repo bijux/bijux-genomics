@@ -24,54 +24,6 @@ pub(crate) fn fail(check: &CheckDefinition, detail: impl Into<String>) -> Result
     ))
 }
 
-pub(crate) fn shell_script_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
-    let mut files = Vec::new();
-    for entry in WalkDir::new(workspace.path("scripts"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        let path = entry.path();
-        if !matches!(
-            path.extension().and_then(|ext| ext.to_str()),
-            Some("sh") | Some("py")
-        ) {
-            continue;
-        }
-        files.push(path.to_path_buf());
-    }
-    files.sort();
-    Ok(files)
-}
-
-pub(crate) fn runnable_script_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
-    let mut files = Vec::new();
-    for path in shell_script_paths(workspace)? {
-        let rel = workspace.rel(&path).to_string_lossy();
-        if rel.starts_with("scripts/_lib/")
-            || rel.starts_with("scripts/experimental/")
-            || rel.starts_with("scripts/tooling/python/")
-        {
-            continue;
-        }
-        let meta = std::fs::metadata(&path)
-            .with_context(|| format!("read metadata {}", path.display()))?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-
-            if meta.permissions().mode() & 0o100 == 0 {
-                continue;
-            }
-        }
-        files.push(path);
-    }
-    files.sort();
-    Ok(files)
-}
-
 pub(crate) fn make_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut files = vec![workspace.path("Makefile")];
     for entry in WalkDir::new(workspace.path("makes"))

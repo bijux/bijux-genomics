@@ -200,7 +200,7 @@ fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
     offenders.dedup();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "Docs/scripts/CI must not reference legacy bijux:: namespace: {:?}",
+        "Docs, automation, and CI must not reference legacy bijux:: namespace: {:?}",
         offenders
     );
 }

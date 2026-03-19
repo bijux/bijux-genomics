@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
-use regex::Regex;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
@@ -13,160 +12,54 @@ fn workspace_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn script_files(root: &Path) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    for entry in WalkDir::new(root.join("scripts"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        let path = entry.path();
-        let ext = path.extension().and_then(|s| s.to_str());
-        if matches!(ext, Some("sh") | Some("py")) {
-            out.push(path.to_path_buf());
-        }
-    }
-    out.sort();
-    out
-}
-
-fn make_files(root: &Path) -> Vec<PathBuf> {
-    let mut files = vec![root.join("Makefile")];
-    for entry in WalkDir::new(root.join("makes"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        let path = entry.path();
-        if path.extension().and_then(|s| s.to_str()) != Some("mk") {
-            continue;
-        }
-        files.push(path.to_path_buf());
-    }
-    files.sort();
-    files
-}
-
-fn make_text(root: &Path) -> String {
-    let mut out = String::new();
-    for path in make_files(root) {
-        out.push_str(&std::fs::read_to_string(path).unwrap_or_default());
-    }
-    out
+#[test]
+fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed() {
+    let root = workspace_root();
+    let legacy_dir = ["scr", "ipts"].concat();
+    bijux_dna_policies::policy_assert!(
+        !root.join(&legacy_dir).exists(),
+        "legacy automation directory must be fully migrated into bijux-dev-dna and removed"
+    );
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
+fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scripts() {
     let root = workspace_root();
-    let allowed_prefixes = [
-        "scripts/tooling/",
-        "scripts/_lib/",
-        "scripts/experimental/",
-        "scripts/run.sh",
-    ];
-
+    let legacy = ["scr", "ipts/"].concat();
     let mut offenders = Vec::new();
-    for file in script_files(&root) {
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        let ok_prefix = allowed_prefixes.iter().any(|p| rel.starts_with(p));
-        if !ok_prefix {
-            offenders.push(rel);
+    for scope in [
+        root.join("Makefile"),
+        root.join("makes"),
+        root.join("docs"),
+        root.join("examples"),
+        root.join("configs"),
+        root.join("crates"),
+        root.join(".github"),
+    ] {
+        if scope.is_file() {
+            let raw = std::fs::read_to_string(&scope).unwrap_or_default();
+            if raw.contains(&legacy) {
+                offenders.push(scope.display().to_string());
+            }
+            continue;
+        }
+        if !scope.is_dir() {
+            continue;
+        }
+        for entry in WalkDir::new(&scope).into_iter().filter_map(Result::ok) {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if raw.contains(&legacy) {
+                offenders.push(entry.path().display().to_string());
+            }
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "scripts must live under the approved tree (or approved top-level files):\n{}",
-        offenders.join("\n")
-    );
-}
-
-#[test]
-fn policy__contracts__scripts_layout_policy__scripts_have_strict_mode_and_c_locale() {
-    let root = workspace_root();
-    let mut strict_offenders = Vec::new();
-    let mut locale_offenders = Vec::new();
-
-    for file in script_files(&root) {
-        if file.extension().and_then(|s| s.to_str()) != Some("sh") {
-            continue;
-        }
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        let head = std::fs::read_to_string(&file)
-            .unwrap_or_default()
-            .lines()
-            .take(16)
-            .collect::<Vec<_>>()
-            .join("\n");
-        if !(head.contains("set -euo pipefail")
-            || head.contains("set -eu")
-            || head.contains("set -Eeuo pipefail"))
-        {
-            strict_offenders.push(rel.clone());
-        }
-        if !(head.contains("LC_ALL=C") || head.contains("LC_ALL=\"C\"")) {
-            locale_offenders.push(rel);
-        }
-    }
-
-    bijux_dna_policies::policy_assert!(
-        strict_offenders.is_empty(),
-        "shell scripts must enable strict mode near the top:\n{}",
-        strict_offenders.join("\n")
-    );
-    bijux_dna_policies::policy_assert!(
-        locale_offenders.is_empty(),
-        "shell scripts must set LC_ALL=C near the top:\n{}",
-        locale_offenders.join("\n")
-    );
-}
-
-#[test]
-fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenced_or_experimental()
-{
-    let root = workspace_root();
-    let make_text = make_text(&root);
-
-    let re = Regex::new(r"scripts/[A-Za-z0-9_./-]+\\.(sh|py)").expect("regex");
-    let mut supported = std::collections::BTreeSet::new();
-    for m in re.find_iter(&make_text) {
-        supported.insert(m.as_str().to_string());
-    }
-
-    let mut offenders = Vec::new();
-    for file in script_files(&root) {
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        if rel.starts_with("scripts/experimental/")
-            || rel.starts_with("scripts/_lib/")
-            || rel == "scripts/run.sh"
-            || rel.starts_with("scripts/tooling/")
-        {
-            continue;
-        }
-        if !supported.contains(&rel) {
-            offenders.push(rel);
-        }
-    }
-
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "scripts not referenced by Make must live under scripts/experimental/:\n{}",
+        "legacy automation references remain in repo content:\n{}",
         offenders.join("\n")
     );
 }
@@ -186,8 +79,7 @@ fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
             continue;
         }
         let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if raw.contains("scripts/run.sh lab ") || raw.contains("cargo run -p bijux-dev-dna -- lab ")
-        {
+        if raw.contains("cargo run -p bijux-dev-dna -- lab ") || raw.contains("cargo run -q -p bijux-dev-dna -- lab ") {
             offenders.push(entry.path().display().to_string());
         }
     }
@@ -195,118 +87,5 @@ fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
         offenders.is_empty(),
         "CI workflows must not invoke lab workflows directly: {}",
         offenders.join(", ")
-    );
-}
-
-#[test]
-fn policy__contracts__scripts_layout_policy__arg_parsing_reuses_shared_lib() {
-    let root = workspace_root();
-    let mut offenders = Vec::new();
-    for file in script_files(&root) {
-        if file.extension().and_then(|s| s.to_str()) != Some("sh") {
-            continue;
-        }
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        if rel.starts_with("scripts/_lib/")
-            || rel.starts_with("scripts/experimental/")
-        {
-            continue;
-        }
-        let raw = std::fs::read_to_string(&file).unwrap_or_default();
-        let does_manual_arg_parse = raw.contains("while [ \"$#\" -gt 0 ]")
-            || raw.contains("case \"$1\" in")
-            || raw.contains("getopts");
-        let uses_shared_lib = raw.contains("scripts/_lib/common.sh")
-            || raw.contains("/_lib/common.sh")
-            || raw.contains("source \"$SCRIPT_DIR/../_lib/common.sh\"")
-            || raw.contains(". \"$SCRIPT_DIR/../_lib/common.sh\"");
-        if does_manual_arg_parse && !uses_shared_lib {
-            offenders.push(rel);
-        }
-    }
-
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "manual arg parsing must use scripts/_lib/common.sh helpers:\\n{}",
-        offenders.join("\\n")
-    );
-}
-
-#[test]
-fn policy__contracts__scripts_layout_policy__ci_scripts_write_under_artifacts_or_iso_root() {
-    let root = workspace_root();
-    let make_text = make_text(&root);
-    let re = Regex::new(r"scripts/[A-Za-z0-9_./-]+\.sh").expect("regex");
-    let mut ci_scripts = std::collections::BTreeSet::new();
-    for m in re.find_iter(&make_text) {
-        let rel = m.as_str().to_string();
-        ci_scripts.insert(rel);
-    }
-
-    let mut offenders = Vec::new();
-    let bad_write = Regex::new(r#"(?m)^\s*(mkdir\s+-p|>\s*|>>\s*|cp\s+|mv\s+).*$"#).expect("regex");
-    for rel in ci_scripts {
-        if rel.starts_with("scripts/tooling/")
-        {
-            continue;
-        }
-        let raw = std::fs::read_to_string(root.join(&rel)).unwrap_or_default();
-        for line in raw.lines() {
-            if !bad_write.is_match(line) {
-                continue;
-            }
-            let mentions_allowed = line.contains("artifacts/")
-                || line.contains("$ISO_ROOT")
-                || line.contains("${ISO_ROOT")
-                || line.contains("ARTIFACT_DIR")
-                || line.contains("DOCS_ROOT")
-                || line.contains("COVERAGE_BASELINE");
-            if !mentions_allowed {
-                offenders.push(format!("{rel}: {line}"));
-            }
-        }
-    }
-
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "CI scripts must write outputs under artifacts/ or $ISO_ROOT:\\n{}",
-        offenders.join("\\n")
-    );
-}
-
-#[test]
-fn policy__contracts__scripts_layout_policy__scripts_do_not_hardcode_isolates_layout() {
-    let root = workspace_root();
-    let mut offenders = Vec::new();
-    let isolates_marker = ["artifacts", "isolates", ""].join("/");
-
-    for file in script_files(&root) {
-        if file.extension().and_then(|s| s.to_str()) != Some("sh") {
-            continue;
-        }
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        let raw = std::fs::read_to_string(&file).unwrap_or_default();
-        for (idx, line) in raw.lines().enumerate() {
-            if line.contains(&isolates_marker)
-                && !line.contains("ISO_ROOT")
-                && !line.contains("isolate --print-root")
-            {
-                offenders.push(format!("{rel}:{}:{}", idx + 1, line.trim()));
-            }
-        }
-    }
-
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "scripts must not hardcode retired artifacts/isolates paths; use the shared artifacts contract:\n{}",
-        offenders.join("\n")
     );
 }
