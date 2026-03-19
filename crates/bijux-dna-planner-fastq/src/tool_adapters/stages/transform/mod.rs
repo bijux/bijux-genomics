@@ -59,12 +59,12 @@ pub mod polyg_tailing {
                 )],
                 outputs: vec![
                     ArtifactRef::required(
-                        ArtifactId::from_static("reads_r1_polyg_trimmed"),
+                        ArtifactId::from_static("trimmed_reads"),
                         output.clone(),
                         ArtifactRole::TrimmedReads,
                     ),
                     ArtifactRef::required(
-                        ArtifactId::from_static("polyg_tailing_report_json"),
+                        ArtifactId::from_static("report_json"),
                         report.clone(),
                         ArtifactRole::MetricsJson,
                     ),
