@@ -1,0 +1,231 @@
+use std::collections::HashMap;
+
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
+};
+use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use anyhow::{anyhow, Context, Result};
+use bijux_dna_analyze::load::sqlite::bench::{
+    fetch_fastq_deplete_reference_contaminants_v1, insert_fastq_deplete_reference_contaminants_v1,
+};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqDepleteReferenceContaminantsMetrics,
+};
+use bijux_dna_core::prelude::errors::ErrorCategory;
+use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
+use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use bijux_dna_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RawFailure,
+};
+use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen;
+use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
+use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+
+use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
+
+/// # Errors
+/// Returns an error if planning or execution fails.
+pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteReferenceContaminantsArgs,
+) -> Result<BenchOutcome<FastqDepleteReferenceContaminantsMetrics>> {
+    let tools = select_deplete_reference_contaminants_tools(&args.tools)?;
+    let artifact = FastqArtifact::single_end(&args.r1);
+    preflight_stage(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), artifact.kind)?;
+    let header = inspect_headers(&args.r1, None, false)?;
+    log_header_warnings(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), &header);
+
+    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(
+        STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+        &tools,
+        &registry,
+        false,
+    )?;
+    let bench_inputs = prepare_trim_bench(
+        catalog,
+        platform,
+        runner_override,
+        &args.sample_id,
+        &args.out,
+        &args.r1,
+        &STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    )?;
+
+    if args.explain {
+        write_explain_md(
+            &bench_inputs.bench_dir,
+            STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+            &tools,
+            &[],
+            None,
+        )?;
+        write_explain_plan_json(
+            &bench_inputs.bench_dir,
+            STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+            &tools,
+            &registry,
+            None,
+        )?;
+    }
+
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    ensure_image_qa_passed(
+        STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+        &tools,
+        platform,
+        catalog,
+    )?;
+    ensure_tool_qa_passed(
+        STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+        &tools,
+        platform,
+        catalog,
+    )?;
+
+    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
+    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let jobs = bench_jobs(args.jobs);
+    let mut failures = Vec::<RawFailure>::new();
+    let mut records = Vec::<BenchmarkRecord<FastqDepleteReferenceContaminantsMetrics>>::new();
+
+    for tool in tools {
+        let out_dir = bench_inputs.tools_root.join(&tool);
+        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+            &tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let plan = plan_contaminant_screen(&tool_spec, &bench_inputs.r1, &out_dir)?;
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+        let image_digest = tool_spec
+            .image
+            .digest
+            .as_ref()
+            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+            .clone();
+        if let Ok(Some(record)) = fetch_fastq_deplete_reference_contaminants_v1(
+            &conn,
+            &tool,
+            &tool_spec.tool_version,
+            &image_digest,
+            &runner.to_string(),
+            &platform.name,
+            &bench_inputs.input_hash,
+            &params_hash,
+        ) {
+            records.push(record);
+            continue;
+        }
+
+        let execution = execute_plans_with_jobs(
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            runner,
+            jobs,
+        )?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        if execution.exit_code != 0 {
+            failures.push(RawFailure {
+                stage: STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str().to_string(),
+                tool: tool.clone(),
+                reason: format!("tool `{tool}` failed with status {}", execution.exit_code),
+                category: ErrorCategory::ToolError,
+            });
+            continue;
+        }
+
+        let output_fastq = plan.io.outputs[0].path.clone();
+        let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
+        let contaminant_fraction_removed = if bench_inputs.input_stats.reads == 0 {
+            0.0
+        } else {
+            1.0 - (output_stats.reads as f64 / bench_inputs.input_stats.reads as f64)
+        };
+        let metrics = FastqDepleteReferenceContaminantsMetrics {
+            reads_in: bench_inputs.input_stats.reads,
+            reads_out: output_stats.reads,
+            bases_in: bench_inputs.input_stats.bases,
+            bases_out: output_stats.bases,
+            pairs_in: 0,
+            pairs_out: 0,
+            contaminant_fraction_removed: contaminant_fraction_removed.clamp(0.0, 1.0),
+            depletion_summary: serde_json::json!({
+                "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
+                "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
+                "output_fastq": output_fastq,
+                "report_json": plan.io.outputs[1].path,
+            })
+            .into(),
+        };
+        let metric_set = metric_set(metrics.clone());
+        bijux_dna_analyze::validate_metric_set(&metric_set)?;
+        let stage_report = serde_json::json!({
+            "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v1",
+            "stage_id": STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+            "tool_id": tool,
+            "contaminant_fraction_removed": metrics.contaminant_fraction_removed,
+            "reads_in": metrics.reads_in,
+            "reads_out": metrics.reads_out,
+            "bases_in": metrics.bases_in,
+            "bases_out": metrics.bases_out,
+            "runtime_s": execution.runtime_s,
+            "memory_mb": execution.memory_mb,
+        });
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("deplete_reference_contaminants_report.json"),
+            &stage_report,
+        )
+        .context("write reference contaminant depletion report")?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )
+        .context("write reference contaminant depletion metrics")?;
+
+        let context = build_benchmark_context(
+            &tool,
+            tool_spec.tool_version.clone(),
+            image_digest,
+            runner,
+            platform,
+            bench_inputs.input_hash.clone(),
+            plan.params.clone(),
+        );
+        let record = BenchmarkRecord {
+            context,
+            execution: ExecutionMetrics {
+                runtime_s: execution.runtime_s,
+                memory_mb: execution.memory_mb,
+                exit_code: execution.exit_code,
+            },
+            metrics: metric_set,
+        };
+        record.validate()?;
+        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        insert_fastq_deplete_reference_contaminants_v1(&conn, &record)
+            .context("insert bench sqlite")?;
+        records.push(record);
+    }
+
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: bench_inputs.bench_dir,
+        explain: args.explain,
+    })
+}

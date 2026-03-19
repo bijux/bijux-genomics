@@ -60,6 +60,10 @@ pub enum BenchFastqCommand {
     IndexReference(BenchFastqIndexReferenceArgs),
     #[command(name = "screen-taxonomy", visible_alias = "screen")]
     Screen(BenchFastqScreenArgs),
+    #[command(name = "deplete-host")]
+    DepleteHost(BenchFastqDepleteHostArgs),
+    #[command(name = "deplete-reference-contaminants")]
+    DepleteReferenceContaminants(BenchFastqDepleteReferenceContaminantsArgs),
     #[command(name = "profile-reads", visible_alias = "stats")]
     Stats(BenchFastqStatsArgs),
     #[command(name = "profile-overrepresented-sequences", visible_alias = "overrepresented")]
@@ -508,6 +512,50 @@ pub struct BenchFastqIndexReferenceArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchFastqScreenArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqDepleteHostArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqDepleteReferenceContaminantsArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
     #[arg(long)]

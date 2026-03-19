@@ -1,5 +1,6 @@
 use crate::{
-    FastqChimeraMetrics, FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
+    FastqChimeraMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
+    FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
     FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
     FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics,
     FastqReadLengthMetrics, FastqScreenMetrics,
@@ -260,6 +261,81 @@ pub fn write_screen_report(
         .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.screen_taxonomy", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the host depletion benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_deplete_host_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqDepleteHostMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| {
+            serde_json::json!({
+                "host_fraction_removed": record.metrics.metrics.host_fraction_removed,
+                "reads_removed": record.metrics.metrics.reads_in.saturating_sub(record.metrics.metrics.reads_out),
+            })
+        })
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.deplete_host", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the reference contaminant depletion benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_deplete_reference_contaminants_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqDepleteReferenceContaminantsMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| {
+            serde_json::json!({
+                "contaminant_fraction_removed": record.metrics.metrics.contaminant_fraction_removed,
+                "reads_removed": record.metrics.metrics.reads_in.saturating_sub(record.metrics.metrics.reads_out),
+            })
+        })
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain(
+            "fastq.deplete_reference_contaminants",
+            &BTreeMap::new(),
+        );
     }
     Ok(())
 }
