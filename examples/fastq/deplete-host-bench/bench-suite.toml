@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-deplete-host-01"
+domain = "fastq"
+stages = ["fastq.deplete_host"]

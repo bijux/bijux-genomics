@@ -52,6 +52,8 @@ pub const FASTQ_QC_POST_CLASSES: [MetricClass; 2] =
     [MetricClass::QualityShift, MetricClass::Contamination];
 pub const FASTQ_STATS_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Composition];
+pub const FASTQ_CLUSTER_OTUS_CLASSES: [MetricClass; 2] =
+    [MetricClass::Integrity, MetricClass::Composition];
 
 pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
@@ -128,6 +130,11 @@ pub const FASTQ_RRNA_INVARIANTS: [&str; 3] = [
 ];
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
+pub const FASTQ_CLUSTER_OTUS_INVARIANTS: [&str; 3] = [
+    "reads_in >= 0",
+    "otu_count >= 0",
+    "representative_count >= 0",
+];
 
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
@@ -215,6 +222,12 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             classes: &FASTQ_RRNA_CLASSES,
             invariants: &FASTQ_RRNA_INVARIANTS,
             notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",
+        }),
+        "fastq.cluster_otus" => Some(StageMetricSpec {
+            stage: "fastq.cluster_otus",
+            classes: &FASTQ_CLUSTER_OTUS_CLASSES,
+            invariants: &FASTQ_CLUSTER_OTUS_INVARIANTS,
+            notes: "OTU clustering emits deterministic centroid and abundance artifacts for amplicon workflows.",
         }),
         "fastq.profile_reads" => Some(StageMetricSpec {
             stage: "fastq.profile_reads",

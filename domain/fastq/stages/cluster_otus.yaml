@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "fastq.cluster_otus"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
@@ -24,10 +24,33 @@ outputs:
     data_type: "fastq"
     cardinality: "Many"
 metrics:
+  - name: "reads_in"
+    meaning: "Number of input reads contributing to OTU clustering."
+  - name: "otu_count"
+    meaning: "Number of OTU clusters emitted."
+  - name: "representative_count"
+    meaning: "Number of representative OTU sequences emitted."
   - name: "runtime_s"
     meaning: "Stage runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
+parameters:
+  - name: "otu_identity"
+    param_type: "float"
+    default: "0.97"
+  - name: "threads"
+    param_type: "int"
+    default: "4"
+description: "FASTQ amplicon stage for deterministic OTU clustering and representative sequence emission."
+mutates_fastq: false
+report_only: false
+may_change_read_count: false
+image_requirements:
+  needs:
+    - gzip
+    - paired_end_support
+  forbids:
+    - network
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
@@ -40,7 +63,10 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
-required_inputs: []
-required_outputs: []
+required_inputs:
+  - "reads"
+required_outputs:
+  - "otu_table"
+  - "otu_representatives"
 allowed_missingness:
   - "none"
