@@ -42,6 +42,7 @@ pub const FASTQ_CORRECT_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::QualityShift];
 pub const FASTQ_UMI_CLASSES: [MetricClass; 2] = [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_SCREEN_CLASSES: [MetricClass; 1] = [MetricClass::Contamination];
+pub const FASTQ_RRNA_CLASSES: [MetricClass; 2] = [MetricClass::Contamination, MetricClass::Retention];
 pub const FASTQ_QC_POST_CLASSES: [MetricClass; 2] =
     [MetricClass::QualityShift, MetricClass::Contamination];
 pub const FASTQ_STATS_CLASSES: [MetricClass; 2] =
@@ -109,6 +110,11 @@ pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
 
 pub const FASTQ_SCREEN_INVARIANTS: [&str; 2] =
     ["contamination_rate in [0, 1]", "counts are non-negative"];
+pub const FASTQ_RRNA_INVARIANTS: [&str; 3] = [
+    "reads_out <= reads_in",
+    "reads_rrna <= reads_in",
+    "counts are non-negative",
+];
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 
@@ -186,6 +192,12 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             classes: &FASTQ_SCREEN_CLASSES,
             invariants: &FASTQ_SCREEN_INVARIANTS,
             notes: "Screening reports contamination only.",
+        }),
+        "fastq.rrna" => Some(StageMetricSpec {
+            stage: "fastq.rrna",
+            classes: &FASTQ_RRNA_CLASSES,
+            invariants: &FASTQ_RRNA_INVARIANTS,
+            notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",
         }),
         "fastq.stats_neutral" => Some(StageMetricSpec {
             stage: "fastq.stats_neutral",

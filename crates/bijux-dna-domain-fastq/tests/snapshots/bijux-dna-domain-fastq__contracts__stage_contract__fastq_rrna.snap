@@ -1,25 +1,39 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Contamination",
+      "Retention"
+    ],
+    "invariants": [
+      "reads_out <= reads_in",
+      "reads_rrna <= reads_in",
+      "counts are non-negative"
+    ],
+    "notes": "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output."
+  },
   "outputs": {
-    "emits_fastq": false,
-    "kind": "StatsOnly"
+    "emits_fastq": true,
+    "kind": "SingleEnd"
   },
   "retention": {
-    "definition": "reads_out == reads_in; bases_out == bases_in",
-    "may_drop": [],
-    "may_drop_reads": false,
+    "definition": "reads_out / reads_in; bases_out / bases_in",
+    "may_drop": [
+      "reads",
+      "bases"
+    ],
+    "may_drop_reads": true,
     "must_preserve_pairing": true,
     "preserves": [
-      "reads",
-      "pairs",
-      "bases"
+      "read_order",
+      "pairing_metadata"
     ],
     "units": "reads,bases"
   },
