@@ -14,19 +14,19 @@ fn repo_root() -> PathBuf {
 fn policy__contracts__scripts_registry_wrapper_policy__registry_script_is_cli_wrapper_only() {
     let root = repo_root();
     let script = root
-        .join("scripts")
+        .join("bijux-dev-dna")
         .join("containers")
         .join("registry-tools.sh");
     let content =
-        std::fs::read_to_string(&script).expect("read scripts/containers/registry-tools.sh");
+        std::fs::read_to_string(&script).expect("read bijux-dev-dna/containers/registry-tools.sh");
 
     bijux_dna_policies::policy_assert!(
         content.contains("cargo run --bin bijux-dna -- registry"),
-        "scripts/containers/registry-tools.sh must delegate to CLI registry commands"
+        "bijux-dev-dna/containers/registry-tools.sh must delegate to CLI registry commands"
     );
     bijux_dna_policies::policy_assert!(
         !content.contains("awk "),
-        "scripts/containers/registry-tools.sh must not parse generated configs directly"
+        "bijux-dev-dna/containers/registry-tools.sh must not parse generated configs directly"
     );
 }
 
@@ -37,7 +37,6 @@ fn policy__contracts__scripts_registry_wrapper_policy__scripts_do_not_parse_tool
     let scripts_dir = root.join("scripts");
     let allowlist = [
         root.join("scripts/docs/check-domain-doc-references.sh"),
-        root.join("scripts/containers/smoke-apptainer.sh"),
     ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&scripts_dir)

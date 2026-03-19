@@ -8222,12 +8222,12 @@ fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutc
     }
     if !gate_path.exists() {
         return Ok(ContainerCommandOutcome::failure(
-            "release checklist check: missing scripts/containers/release-gate.sh\n",
+            "release checklist check: missing bijux-dev-dna/containers/release-gate.sh\n",
         ));
     }
     let checklist = read_utf8(&checklist_path)?;
     let gate = read_utf8(&gate_path)?;
-    let script_regex = Regex::new(r"`(scripts/containers/[^`]+\.sh)`").expect("regex");
+    let script_regex = Regex::new(r"`(bijux-dev-dna/containers/[^`]+\.sh)`").expect("regex");
     let mut scripts = BTreeSet::new();
     for capture in script_regex.captures_iter(&checklist) {
         if let Some(value) = capture.get(1) {
