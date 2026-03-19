@@ -15,8 +15,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 /// # Errors
 /// Returns an error if plan serialization fails.
 pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
-    let report_tsv = out_dir.join("profile_overrepresented_sequences.tsv");
-    let summary_json = out_dir.join("profile_overrepresented_sequences.json");
+    let report_tsv = out_dir.join("overrepresented_sequences.tsv");
+    let summary_json = out_dir.join("overrepresented_sequences.json");
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,

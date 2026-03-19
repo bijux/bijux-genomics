@@ -21,6 +21,18 @@ pub mod profile_overrepresented_sequences {
     pub use crate::tool_adapters::stages::pre::profile_overrepresented_sequences::*;
 }
 
+pub mod normalize_primers {
+    pub use crate::tool_adapters::stages::amplicon::normalize_primers::*;
+}
+
+pub mod infer_asvs {
+    pub use crate::tool_adapters::stages::amplicon::infer_asvs::*;
+}
+
+pub mod normalize_abundance {
+    pub use crate::tool_adapters::stages::amplicon::normalize_abundance::*;
+}
+
 pub mod trim_reads {
     pub use crate::tool_adapters::stages::transform::trim_reads::*;
 }
@@ -181,8 +193,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_NORMALIZE_PRIMERS,
-            version: StageVersion(1),
+            id: crate::tool_adapters::stages::amplicon::normalize_primers::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::amplicon::normalize_primers::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
@@ -191,8 +203,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: fastq_ids::STAGE_INFER_ASVS,
-            version: StageVersion(1),
+            id: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
@@ -201,8 +213,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_NORMALIZE_ABUNDANCE,
-            version: StageVersion(1),
+            id: crate::tool_adapters::stages::amplicon::normalize_abundance::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::amplicon::normalize_abundance::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {

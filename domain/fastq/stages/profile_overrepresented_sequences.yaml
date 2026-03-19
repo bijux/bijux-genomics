@@ -8,10 +8,10 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "screen_report_tsv"
+  - name: "overrepresented_sequences_tsv"
     data_type: "tsv"
     cardinality: "One"
-  - name: "report_json"
+  - name: "overrepresented_sequences_json"
     data_type: "json"
     cardinality: "One"
 parameters:
@@ -19,11 +19,11 @@ parameters:
     param_type: "int"
     default: "50"
 metrics:
-  - name: "reads_total"
-    meaning: "Total reads scanned."
-  - name: "reads_removed_contaminant_kmer"
-    meaning: "Count proxy for overrepresented sequence burden."
-description: "FASTQ stage for overrepresented sequence detection and top-k reporting."
+  - name: "sequence_count"
+    meaning: "Number of profiled overrepresented sequences"
+  - name: "top_fraction"
+    meaning: "Fraction carried by the dominant overrepresented sequence"
+description: "FASTQ report-only stage for profiling overrepresented sequence content."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
@@ -35,13 +35,13 @@ image_requirements:
 required_inputs:
   - "reads"
 required_outputs:
-  - "screen_report_tsv"
-  - "report_json"
-tool_capability_requirements:
-  - "SE"
+  - "overrepresented_sequences_tsv"
+  - "overrepresented_sequences_json"
+tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
-  - "deterministic_output_order"
+  - "report_only_stage"
+  - "deterministic_sequence_ranking"
 allowed_missingness:
   - "none"
 compatible_tools:
@@ -50,8 +50,7 @@ compatible_tools:
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "overrepresented output remains comparable only under same top-k setting."
-bank_hooks:
-  - "adapter_bank"
+  - "overrepresented sequence profiles are diagnostic and do not mutate reads."
+bank_hooks: []
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

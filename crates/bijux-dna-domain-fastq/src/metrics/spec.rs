@@ -54,6 +54,12 @@ pub const FASTQ_STATS_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Composition];
 pub const FASTQ_CLUSTER_OTUS_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Composition];
+pub const FASTQ_NORMALIZE_PRIMERS_CLASSES: [MetricClass; 2] =
+    [MetricClass::Integrity, MetricClass::Retention];
+pub const FASTQ_INFER_ASVS_CLASSES: [MetricClass; 2] =
+    [MetricClass::Integrity, MetricClass::Composition];
+pub const FASTQ_NORMALIZE_ABUNDANCE_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
+pub const FASTQ_OVERREPRESENTED_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
 
 pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
@@ -134,6 +140,26 @@ pub const FASTQ_CLUSTER_OTUS_INVARIANTS: [&str; 3] = [
     "reads_in >= 0",
     "otu_count >= 0",
     "representative_count >= 0",
+];
+pub const FASTQ_NORMALIZE_PRIMERS_INVARIANTS: [&str; 3] = [
+    "reads_out <= reads_in",
+    "primer_trimmed_fraction in [0, 1]",
+    "orientation_forward_fraction in [0, 1]",
+];
+pub const FASTQ_INFER_ASVS_INVARIANTS: [&str; 3] = [
+    "asv_count >= 0",
+    "sample_count >= 0",
+    "counts are non-negative",
+];
+pub const FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS: [&str; 3] = [
+    "table_rows >= 0",
+    "sample_count >= 0",
+    "zero_fraction in [0, 1]",
+];
+pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 3] = [
+    "sequence_count >= 0",
+    "top_fraction in [0, 1]",
+    "counts are non-negative",
 ];
 
 #[must_use]
@@ -229,11 +255,35 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_CLUSTER_OTUS_INVARIANTS,
             notes: "OTU clustering emits deterministic centroid and abundance artifacts for amplicon workflows.",
         }),
+        "fastq.normalize_primers" => Some(StageMetricSpec {
+            stage: "fastq.normalize_primers",
+            classes: &FASTQ_NORMALIZE_PRIMERS_CLASSES,
+            invariants: &FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
+            notes: "Primer normalization re-orients amplicon reads and may trim primer bases while preserving deterministic ordering.",
+        }),
+        "fastq.infer_asvs" => Some(StageMetricSpec {
+            stage: "fastq.infer_asvs",
+            classes: &FASTQ_INFER_ASVS_CLASSES,
+            invariants: &FASTQ_INFER_ASVS_INVARIANTS,
+            notes: "ASV inference converts denoised amplicon reads into a deterministic feature table and representative sequences.",
+        }),
+        "fastq.normalize_abundance" => Some(StageMetricSpec {
+            stage: "fastq.normalize_abundance",
+            classes: &FASTQ_NORMALIZE_ABUNDANCE_CLASSES,
+            invariants: &FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS,
+            notes: "Abundance normalization operates on a feature table and emits a normalized compositional table.",
+        }),
         "fastq.profile_reads" => Some(StageMetricSpec {
             stage: "fastq.profile_reads",
             classes: &FASTQ_STATS_CLASSES,
             invariants: &FASTQ_STATS_INVARIANTS,
             notes: "Stats is report-only and must not mutate reads.",
+        }),
+        "fastq.profile_overrepresented_sequences" => Some(StageMetricSpec {
+            stage: "fastq.profile_overrepresented_sequences",
+            classes: &FASTQ_OVERREPRESENTED_CLASSES,
+            invariants: &FASTQ_OVERREPRESENTED_INVARIANTS,
+            notes: "Overrepresented sequence profiling is report-only and captures dominant repeated sequence content without mutating reads.",
         }),
         _ => None,
     }
