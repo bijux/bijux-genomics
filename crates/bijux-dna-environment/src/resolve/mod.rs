@@ -351,21 +351,28 @@ pub fn validate_images_for_stage(
 /// # Errors
 /// Returns an error when the runtime is unsupported or smoke script exits non-zero.
 pub fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
-    let script = match runtime {
-        "docker-arm64" => "bijux-dev-dna/containers/smoke-docker-arm64.sh",
-        "docker-amd64" => "bijux-dev-dna/containers/smoke-docker-amd64.sh",
-        "apptainer" => "bijux-dev-dna/containers/smoke-apptainer.sh",
+    let command = match runtime {
+        "docker-arm64" => "smoke-containers-docker-arm64",
+        "docker-amd64" => "smoke-containers-docker-amd64",
+        "apptainer" => "smoke-containers-apptainer",
         other => {
             anyhow::bail!(
                 "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
             );
         }
     };
-    let status = std::process::Command::new("sh")
-        .arg(script)
+    let status = std::process::Command::new("cargo")
+        .args([
+            "run",
+            "-q",
+            "-p",
+            "bijux-dev-dna",
+            "--",
+            "containers",
+            "run",
+            command,
+        ])
         .env("TOOLS", tool)
-        .env("JOBS", "1")
-        .env("SMOKE_LEVEL", "contract")
         .status()?;
     if !status.success() {
         anyhow::bail!("smoke failed for runtime={runtime} tool={tool} (exit={status})");
@@ -382,10 +389,10 @@ pub fn run_smoke_script_batch(
     tools: &[String],
     smoke_level: &str,
 ) -> anyhow::Result<()> {
-    let script = match runtime {
-        "docker-arm64" => "bijux-dev-dna/containers/smoke-docker-arm64.sh",
-        "docker-amd64" => "bijux-dev-dna/containers/smoke-docker-amd64.sh",
-        "apptainer" => "bijux-dev-dna/containers/smoke-apptainer.sh",
+    let command = match runtime {
+        "docker-arm64" => "smoke-containers-docker-arm64",
+        "docker-amd64" => "smoke-containers-docker-amd64",
+        "apptainer" => "smoke-containers-apptainer",
         other => {
             anyhow::bail!(
                 "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
@@ -393,10 +400,18 @@ pub fn run_smoke_script_batch(
         }
     };
     let tools_csv = tools.join(",");
-    let status = std::process::Command::new("sh")
-        .arg(script)
+    let status = std::process::Command::new("cargo")
+        .args([
+            "run",
+            "-q",
+            "-p",
+            "bijux-dev-dna",
+            "--",
+            "containers",
+            "run",
+            command,
+        ])
         .env("TOOLS", tools_csv)
-        .env("JOBS", "1")
         .env("SMOKE_LEVEL", smoke_level)
         .status()?;
     if !status.success() {
