@@ -1,3 +1,3 @@
 # runtime/references
 
-Reference materialization lock outputs for `scripts/tooling/acquire-reference.sh`.
+Reference materialization lock outputs for `cargo run -q -p bijux-dev-dna -- tooling run acquire-reference`.

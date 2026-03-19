@@ -5,7 +5,7 @@ TOY_OUT ?= $(ARTIFACT_ROOT)/toy_runs
 
 
 toy-golden-check: ## Compare produced toy outputs to goldens (timestamp-tolerant hashes).
-	@ARTIFACT_ROOT="$(ARTIFACT_ROOT)" ./scripts/run.sh test toy_runs check --profile all --out "$(TOY_OUT)"
+	@ARTIFACT_ROOT="$(ARTIFACT_ROOT)" cargo run -q -p bijux-dev-dna -- test run toy_runs check --profile all --out "$(TOY_OUT)"
 
 refresh-toy: ## Regenerate deterministic toy datasets in assets/toy.
 	@cargo run -q -p bijux-dev-dna -- assets run refresh-toy

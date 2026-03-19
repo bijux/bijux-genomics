@@ -9,17 +9,17 @@ This freeze marks governance checks for container policy Stage 1 on HPC frontend
 ## Evidence
 - `cargo run -p bijux-dev-dna -- containers run check-tool-id-manifest` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-tool-id-contract` -> `OK`
-- `scripts/checks/check-domain-tool-parity.sh` -> `OK`
+- `cargo run -q -p bijux-dev-dna -- checks run check-domain-tool-parity` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-tool-container-coverage` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-non-bijux-sources` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-promotion-policy` -> `OK`
-- `scripts/checks/check-deprecations-enforcement.sh` -> `OK`
+- `cargo run -q -p bijux-dev-dna -- checks run check-deprecations-enforcement` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-deprecations` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-version-lock` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-docker-labels` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-registry-vs-defs` -> `OK`
-- `scripts/checks/check-container-ssot-parity.sh` -> `OK`
-- `scripts/checks/check-registry-required-tools-parity.sh` -> `OK`
+- `cargo run -q -p bijux-dev-dna -- checks run check-container-ssot-parity` -> `OK`
+- `cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-qa-matrix-generated` -> `OK`
 - `cargo run -p bijux-dev-dna -- containers run check-dockerfiles-built` -> `SKIP (CI-only gate)`
 

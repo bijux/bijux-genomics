@@ -1,104 +1,104 @@
 make _domain-validate
 make _examples-validate
-./scripts/run.sh checks check-supported-scripts
-./scripts/run.sh checks check-config-layout
-./scripts/run.sh checks check-config-index-discipline
-./scripts/run.sh checks check-config-filenames
-./scripts/run.sh checks check-config-headers
-./scripts/run.sh checks check-config-schema
-./scripts/run.sh checks check-docs-requirements-lock
-./scripts/run.sh checks check-nextest-profile-contract
-./scripts/run.sh checks check-runtime-profiles-contract
-./scripts/run.sh checks check-runtime-execution-kernel-config
-./scripts/run.sh checks check-certification-schema-docs
-./scripts/run.sh checks check-logging-contract
-./scripts/run.sh checks check-run-directory-layout
-./scripts/run.sh checks check-benchmark-integrity-policy
-./scripts/run.sh checks check-hpc-rsync-docs-parity
-./scripts/run.sh checks check-config-owners
-./scripts/run.sh checks check-registry-required-tools-parity
-./scripts/run.sh checks check-container-ssot-parity
-./scripts/run.sh checks check-domain-tool-parity
-./scripts/run.sh checks check-stage-domain-parity
-./scripts/run.sh checks check-stage-registry-governance
-./scripts/run.sh checks check-param-registry-completeness
-./scripts/run.sh checks check-deprecations-enforcement
-./scripts/run.sh checks check-species-aliases
-./scripts/run.sh checks check-bench-knobs
-./scripts/run.sh checks check-registry-split
-./scripts/run.sh checks check-tool-registry-lock
-./scripts/run.sh checks check-panel-locks
-./scripts/run.sh checks check-panel-license-policy
-./scripts/run.sh checks check-enabled-vcf-panel-metadata
-./scripts/run.sh checks check-reference-service-boundary
-./scripts/run.sh checks check-reference-path-governance
-./scripts/run.sh checks check-coverage-regimes-schema
-./scripts/run.sh domain check-domain-layout
-./scripts/run.sh domain check-domain-schema
-./scripts/run.sh domain check-domain-index
-./scripts/run.sh domain check-shared-tools
-./scripts/run.sh domain check-tool-container-parity
-./scripts/run.sh domain check-default-settings-docs
-./scripts/run.sh domain check-fixture-contracts
-./scripts/run.sh domain check-orphan-files
-./scripts/run.sh domain check-doc-links
-./scripts/run.sh domain check-external-tool-policy
-./scripts/run.sh domain check-inventory
-./scripts/run.sh docs check-domain-doc-references
-./scripts/run.sh docs check-doc-links
-./scripts/run.sh checks check-docs-build-contract
-./scripts/run.sh docs check-docs-graph
-./scripts/run.sh docs check-doc-root-layout
-./scripts/run.sh docs check-doc-depth
-./scripts/run.sh docs check-doc-major-depth
-./scripts/run.sh docs check-no-placeholder-language
-./scripts/run.sh docs check-generated-docs
-./scripts/run.sh docs check-doc-assets
-./scripts/run.sh tooling check-config-paths
-./scripts/run.sh tooling check-config-snapshot --if-config-changed
-./scripts/run.sh checks check-root-layout
-./scripts/run.sh checks check-artifacts-tracked
-./scripts/run.sh checks check-no-target-paths-in-tests
-./scripts/run.sh checks check-no-user-path-literals
-./scripts/run.sh checks check-script-writes
-./scripts/run.sh checks check-assets-drift
-./scripts/run.sh checks check-assets-contracts
-./scripts/run.sh checks check-asset-manifests
-./scripts/run.sh checks check-asset-checksums
-./scripts/run.sh checks check-assets-large-file-allowlist
-./scripts/run.sh checks check-golden-artifact-schema
-./scripts/run.sh checks check-assets-reference-schema
-./scripts/run.sh checks tree-intent
-./scripts/run.sh checks check-readme-links
-./scripts/run.sh checks check-ci-shell-scripts
-./scripts/run.sh checks check-lib-api
-./scripts/run.sh checks check-exit-codes
-./scripts/run.sh checks check-script-deps
-./scripts/run.sh checks check-script-help
-./scripts/run.sh checks check-script-interface
-./scripts/run.sh checks check-artifact-env-contract
-./scripts/run.sh checks check-shell-portability
-./scripts/run.sh checks check-network-usage
-./scripts/run.sh checks check-no-temp-leaks
-./scripts/run.sh checks check-hidden-tmp-usage
-./scripts/run.sh checks check-executor-no-unwrap
-./scripts/run.sh checks check-clippy-allowlist-expiry
-./scripts/run.sh checks check-clippy-allowlist-growth
-./scripts/run.sh checks check-rustflags-consistency
-./scripts/run.sh checks check-executor-features-docs
-./scripts/run.sh checks check-no-parallel-accidental
-./scripts/run.sh checks check-hpc-safety
-./scripts/run.sh checks check-output-roots
-./scripts/run.sh checks check-artifacts-layout
-./scripts/run.sh checks check-script-arg-style
-./scripts/run.sh checks check-script-entrypoint
-./scripts/run.sh checks check-make-help-sync
-./scripts/run.sh checks check-gitignore-contract
-./scripts/run.sh checks check-cargo-config-policy
-./scripts/run.sh checks check-audit-allowlist
-./scripts/run.sh checks check-no-orphan-scripts
-./scripts/run.sh checks check-no-raw-cargo-in-makes
-./scripts/run.sh checks check-no-raw-cargo-in-scripts
-./scripts/run.sh checks check-domain-realization
-./scripts/run.sh containers lint
-./scripts/run.sh test test-scripts-smoke
+cargo run -q -p bijux-dev-dna -- checks run check-supported-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-config-layout
+cargo run -q -p bijux-dev-dna -- checks run check-config-index-discipline
+cargo run -q -p bijux-dev-dna -- checks run check-config-filenames
+cargo run -q -p bijux-dev-dna -- checks run check-config-headers
+cargo run -q -p bijux-dev-dna -- checks run check-config-schema
+cargo run -q -p bijux-dev-dna -- checks run check-docs-requirements-lock
+cargo run -q -p bijux-dev-dna -- checks run check-nextest-profile-contract
+cargo run -q -p bijux-dev-dna -- checks run check-runtime-profiles-contract
+cargo run -q -p bijux-dev-dna -- checks run check-runtime-execution-kernel-config
+cargo run -q -p bijux-dev-dna -- checks run check-certification-schema-docs
+cargo run -q -p bijux-dev-dna -- checks run check-logging-contract
+cargo run -q -p bijux-dev-dna -- checks run check-run-directory-layout
+cargo run -q -p bijux-dev-dna -- checks run check-benchmark-integrity-policy
+cargo run -q -p bijux-dev-dna -- checks run check-hpc-rsync-docs-parity
+cargo run -q -p bijux-dev-dna -- checks run check-config-owners
+cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity
+cargo run -q -p bijux-dev-dna -- checks run check-container-ssot-parity
+cargo run -q -p bijux-dev-dna -- checks run check-domain-tool-parity
+cargo run -q -p bijux-dev-dna -- checks run check-stage-domain-parity
+cargo run -q -p bijux-dev-dna -- checks run check-stage-registry-governance
+cargo run -q -p bijux-dev-dna -- checks run check-param-registry-completeness
+cargo run -q -p bijux-dev-dna -- checks run check-deprecations-enforcement
+cargo run -q -p bijux-dev-dna -- checks run check-species-aliases
+cargo run -q -p bijux-dev-dna -- checks run check-bench-knobs
+cargo run -q -p bijux-dev-dna -- checks run check-registry-split
+cargo run -q -p bijux-dev-dna -- checks run check-tool-registry-lock
+cargo run -q -p bijux-dev-dna -- checks run check-panel-locks
+cargo run -q -p bijux-dev-dna -- checks run check-panel-license-policy
+cargo run -q -p bijux-dev-dna -- checks run check-enabled-vcf-panel-metadata
+cargo run -q -p bijux-dev-dna -- checks run check-reference-service-boundary
+cargo run -q -p bijux-dev-dna -- checks run check-reference-path-governance
+cargo run -q -p bijux-dev-dna -- checks run check-coverage-regimes-schema
+cargo run -q -p bijux-dev-dna -- domain run check-domain-layout
+cargo run -q -p bijux-dev-dna -- domain run check-domain-schema
+cargo run -q -p bijux-dev-dna -- domain run check-domain-index
+cargo run -q -p bijux-dev-dna -- domain run check-shared-tools
+cargo run -q -p bijux-dev-dna -- domain run check-tool-container-parity
+cargo run -q -p bijux-dev-dna -- domain run check-default-settings-docs
+cargo run -q -p bijux-dev-dna -- domain run check-fixture-contracts
+cargo run -q -p bijux-dev-dna -- domain run check-orphan-files
+cargo run -q -p bijux-dev-dna -- domain run check-doc-links
+cargo run -q -p bijux-dev-dna -- domain run check-external-tool-policy
+cargo run -q -p bijux-dev-dna -- domain run check-inventory
+cargo run -q -p bijux-dev-dna -- docs run check-domain-doc-references
+cargo run -q -p bijux-dev-dna -- docs run check-doc-links
+cargo run -q -p bijux-dev-dna -- checks run check-docs-build-contract
+cargo run -q -p bijux-dev-dna -- docs run check-docs-graph
+cargo run -q -p bijux-dev-dna -- docs run check-doc-root-layout
+cargo run -q -p bijux-dev-dna -- docs run check-doc-depth
+cargo run -q -p bijux-dev-dna -- docs run check-doc-major-depth
+cargo run -q -p bijux-dev-dna -- docs run check-no-placeholder-language
+cargo run -q -p bijux-dev-dna -- docs run check-generated-docs
+cargo run -q -p bijux-dev-dna -- docs run check-doc-assets
+cargo run -q -p bijux-dev-dna -- tooling run check-config-paths
+cargo run -q -p bijux-dev-dna -- tooling run check-config-snapshot --if-config-changed
+cargo run -q -p bijux-dev-dna -- checks run check-root-layout
+cargo run -q -p bijux-dev-dna -- checks run check-artifacts-tracked
+cargo run -q -p bijux-dev-dna -- checks run check-no-target-paths-in-tests
+cargo run -q -p bijux-dev-dna -- checks run check-no-user-path-literals
+cargo run -q -p bijux-dev-dna -- checks run check-script-writes
+cargo run -q -p bijux-dev-dna -- checks run check-assets-drift
+cargo run -q -p bijux-dev-dna -- checks run check-assets-contracts
+cargo run -q -p bijux-dev-dna -- checks run check-asset-manifests
+cargo run -q -p bijux-dev-dna -- checks run check-asset-checksums
+cargo run -q -p bijux-dev-dna -- checks run check-assets-large-file-allowlist
+cargo run -q -p bijux-dev-dna -- checks run check-golden-artifact-schema
+cargo run -q -p bijux-dev-dna -- checks run check-assets-reference-schema
+cargo run -q -p bijux-dev-dna -- checks run tree-intent
+cargo run -q -p bijux-dev-dna -- checks run check-readme-links
+cargo run -q -p bijux-dev-dna -- checks run check-ci-shell-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-lib-api
+cargo run -q -p bijux-dev-dna -- checks run check-exit-codes
+cargo run -q -p bijux-dev-dna -- checks run check-script-deps
+cargo run -q -p bijux-dev-dna -- checks run check-script-help
+cargo run -q -p bijux-dev-dna -- checks run check-script-interface
+cargo run -q -p bijux-dev-dna -- checks run check-artifact-env-contract
+cargo run -q -p bijux-dev-dna -- checks run check-shell-portability
+cargo run -q -p bijux-dev-dna -- checks run check-network-usage
+cargo run -q -p bijux-dev-dna -- checks run check-no-temp-leaks
+cargo run -q -p bijux-dev-dna -- checks run check-hidden-tmp-usage
+cargo run -q -p bijux-dev-dna -- checks run check-executor-no-unwrap
+cargo run -q -p bijux-dev-dna -- checks run check-clippy-allowlist-expiry
+cargo run -q -p bijux-dev-dna -- checks run check-clippy-allowlist-growth
+cargo run -q -p bijux-dev-dna -- checks run check-rustflags-consistency
+cargo run -q -p bijux-dev-dna -- checks run check-executor-features-docs
+cargo run -q -p bijux-dev-dna -- checks run check-no-parallel-accidental
+cargo run -q -p bijux-dev-dna -- checks run check-hpc-safety
+cargo run -q -p bijux-dev-dna -- checks run check-output-roots
+cargo run -q -p bijux-dev-dna -- checks run check-artifacts-layout
+cargo run -q -p bijux-dev-dna -- checks run check-script-arg-style
+cargo run -q -p bijux-dev-dna -- checks run check-script-entrypoint
+cargo run -q -p bijux-dev-dna -- checks run check-make-help-sync
+cargo run -q -p bijux-dev-dna -- checks run check-gitignore-contract
+cargo run -q -p bijux-dev-dna -- checks run check-cargo-config-policy
+cargo run -q -p bijux-dev-dna -- checks run check-audit-allowlist
+cargo run -q -p bijux-dev-dna -- checks run check-no-orphan-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
+cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-domain-realization
+cargo run -q -p bijux-dev-dna -- containers run lint
+cargo run -q -p bijux-dev-dna -- test run test-scripts-smoke

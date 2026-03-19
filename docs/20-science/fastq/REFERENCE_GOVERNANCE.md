@@ -4,7 +4,7 @@ FASTQ stages that require references must resolve species/build authority via `b
 
 ## Rules
 - Do not hardcode host filesystem reference paths.
-- Reference acquisition is only allowed through `scripts/tooling/acquire-reference.sh`.
+- Reference acquisition is only allowed through `cargo run -q -p bijux-dev-dna -- tooling run acquire-reference`.
 - Runtime writes `run_artifacts/reference_manifest.json` for reference-consuming stages.
 
 

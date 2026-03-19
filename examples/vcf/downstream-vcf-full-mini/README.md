@@ -3,7 +3,7 @@
 ## Purpose
 Run a full downstream VCF workflow from toy VCF inputs through PCA, ROH, IBD, and demography with deterministic golden outputs.
 
-Canonical invocation: `./scripts/run.sh examples run vcf_downstream_vcf_full_mini`
+Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run vcf_downstream_vcf_full_mini`
 
 ## Step 1 Containers
 - Ensure container plan is resolved by the runner (`ensure-images --plan`).

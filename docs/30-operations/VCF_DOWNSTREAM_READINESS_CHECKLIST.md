@@ -14,14 +14,14 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 - Production badge eligibility requires lock validity and acceptance criteria success.
 
 ## Required Green Checks
-- `./scripts/run.sh checks check-vcf-reference-governance`
-- `./scripts/run.sh checks check-vcf-compatibility-matrix`
-- `./scripts/run.sh checks check-vcf-deprecation-lifecycle`
-- `./scripts/run.sh checks check-registry-required-tools-parity`
-- `./scripts/run.sh checks check-param-registry-completeness`
-- `./scripts/run.sh checks check-frontend-mini-artifacts`
-- `./scripts/run.sh checks check-frontend-observability-proof`
-- `./scripts/run.sh checks check-frontend-telemetry-sanity`
+- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-reference-governance`
+- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-compatibility-matrix`
+- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-deprecation-lifecycle`
+- `cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity`
+- `cargo run -q -p bijux-dev-dna -- checks run check-param-registry-completeness`
+- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-mini-artifacts`
+- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-observability-proof`
+- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-telemetry-sanity`
 
 ## Stage Acceptance Criteria Source
 - `configs/vcf/downstream_acceptance.toml`

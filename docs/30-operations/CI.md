@@ -17,8 +17,8 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - `coverage`
 
 ## CI Profiles
-- Fast CI profile: `./scripts/run.sh tooling ci-fast`
-- Slow CI profile: `./scripts/run.sh tooling ci-slow`
+- Fast CI profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
+- Slow CI profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
 - Fast profile intent: static/policy/contract gates with deterministic runner settings.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
 - Test/coverage runner defaults are pinned in `configs/rust/nextest.toml` and `configs/coverage/runner.toml`.
@@ -29,7 +29,7 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 ## HPC Forward-compat
 - With HPC enabled, `make ci` still enforces the same gate order and policy checks.
 - Path roots and container storage may resolve to HPC profile locations, not local defaults.
-- Use profile-aware commands and avoid hardcoded local paths in scripts/docs.
+- Use profile-aware commands and avoid hardcoded local paths in docs automation.
 
 ## Non-goals
 - Documenting non-`make ci` target suites.
@@ -43,8 +43,8 @@ Applies only to the files and workflows referenced in this document.
 ## Examples
 - Local: `make ci`
 - HPC profile enabled: `ARTIFACT_ROOT=artifacts make ci`
-- Fast profile: `./scripts/run.sh tooling ci-fast`
-- Slow profile: `./scripts/run.sh tooling ci-slow`
+- Fast profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
+- Slow profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
 
 ## Failure modes
 - Running CI-related scripts outside the shared artifact contract fails by policy.

@@ -9,7 +9,7 @@ Purpose: define the mandatory gate before tagging a container-affecting release.
 
 ## Required Commands
 1. `cargo run -p bijux-dev-dna -- containers run ensure-images -- --plan`
-2. `./scripts/run.sh containers lint`
+2. `cargo run -q -p bijux-dev-dna -- containers run lint`
 3. `cargo run -p bijux-dev-dna -- containers run container-doctor -- --strict`
 4. `cargo run -p bijux-dev-dna -- containers run release-gate`
 

@@ -25,7 +25,7 @@ An asset is deterministic, version-controlled data (not executable code) require
 ## Regeneration Workflow
 1. Run the relevant generator script (for example `cargo run -p bijux-dev-dna -- assets run refresh-toy` or `cargo run -p bijux-dev-dna -- assets run refresh-golden`).
 2. Update package checksums and generation metadata.
-3. Run asset policy checks (`./scripts/run.sh checks check-assets-contracts`).
+3. Run asset policy checks (`cargo run -q -p bijux-dev-dna -- checks run check-assets-contracts`).
 4. Commit data + metadata + check updates together.
 
 ## What Must Be Committed

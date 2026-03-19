@@ -17,8 +17,8 @@ VCF panel/map assets are acquired once on frontend/shared storage and reused by 
 
 Rules:
 - Network fetch for panel/map artifacts is allowed only in:
-  - `scripts/tooling/acquire-panels.sh`
-  - `scripts/tooling/acquire-maps.sh`
+  - `cargo run -q -p bijux-dev-dna -- tooling run acquire-panels`
+  - `cargo run -q -p bijux-dev-dna -- tooling run acquire-maps`
 - Runtime/planner stages must not redownload references.
 - Cache layout must be:
   - `raw/` immutable downloads

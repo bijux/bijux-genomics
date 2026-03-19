@@ -4,8 +4,13 @@ IFS=$'\n\t'
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
-source "${ROOT_DIR}/scripts/_lib/common.sh"
-require_stable_env
+ARTIFACT_ROOT=${ARTIFACT_ROOT:-"${ROOT_DIR}/artifacts"}
+ISO_ROOT=${ISO_ROOT:-"${ARTIFACT_ROOT}"}
+CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-"${ARTIFACT_ROOT}/target"}
+CARGO_HOME=${CARGO_HOME:-"${ARTIFACT_ROOT}/cargo/home"}
+TMPDIR=${TMPDIR:-"${ARTIFACT_ROOT}/tmp"}
+export ARTIFACT_ROOT ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TZ=UTC LC_ALL=C
+mkdir -p "$ARTIFACT_ROOT" "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR"
 
 usage() {
   cat <<'EOF'
@@ -22,7 +27,7 @@ fi
 [[ $# -eq 1 ]] || { usage >&2; exit 2; }
 example_id="$1"
 
-run_with_artifact_env "$ROOT_DIR/scripts/run.sh" examples run "${example_id}"
+cargo run -q -p bijux-dev-dna -- examples run run "${example_id}"
 
 example_dir="$(find "$ROOT_DIR/examples" -type f -name example.toml -print | while read -r f; do
   if rg -q \"^id\\s*=\\s*\\\"${example_id}\\\"\\s*$\" \"$f\"; then
