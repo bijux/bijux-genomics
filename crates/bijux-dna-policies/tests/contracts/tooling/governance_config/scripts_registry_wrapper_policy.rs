@@ -11,22 +11,20 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn policy__contracts__scripts_registry_wrapper_policy__registry_script_is_cli_wrapper_only() {
+fn policy__contracts__scripts_registry_wrapper_policy__container_shell_wrappers_are_removed() {
     let root = repo_root();
-    let script = root
-        .join("bijux-dev-dna")
-        .join("containers")
-        .join("registry-tools.sh");
-    let content =
-        std::fs::read_to_string(&script).expect("read bijux-dev-dna/containers/registry-tools.sh");
+    let wrappers = WalkDir::new(root.join("bijux-dev-dna").join("containers"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("sh"))
+        .map(|entry| entry.path().display().to_string())
+        .collect::<Vec<_>>();
 
     bijux_dna_policies::policy_assert!(
-        content.contains("cargo run --bin bijux-dna -- registry"),
-        "bijux-dev-dna/containers/registry-tools.sh must delegate to CLI registry commands"
-    );
-    bijux_dna_policies::policy_assert!(
-        !content.contains("awk "),
-        "bijux-dev-dna/containers/registry-tools.sh must not parse generated configs directly"
+        wrappers.is_empty(),
+        "bijux-dev-dna/containers must not contain shell wrappers after migration:\n{}",
+        wrappers.join("\n")
     );
 }
 

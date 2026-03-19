@@ -5,33 +5,28 @@ mod support;
 #[test]
 fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_image_identity() {
     let root = support::workspace_root();
-    let scripts = [
-        root.join("bijux-dev-dna/containers/smoke-docker-arm64.sh"),
-        root.join("bijux-dev-dna/containers/smoke-apptainer.sh"),
-    ];
+    let source = root.join("crates/bijux-dev-dna/src/native/containers.rs");
     let required_tokens = [
         "\"runtime\"",
         "\"image\"",
         "\"resolved_image_digest\"",
         "\"declared_version\"",
         "\"upstream\"",
-        "\"upstream_pin\"",
-        "\"version_command\"",
+        "\"upstream_checksum\"",
+        "\"smoke_version_cmd\"",
         "\"version_output\"",
     ];
 
     let mut offenders = Vec::new();
-    for script in scripts {
-        let raw = std::fs::read_to_string(&script)
-            .unwrap_or_else(|_| panic!("read {}", script.display()));
-        for token in required_tokens {
-            if !raw.contains(token) {
-                offenders.push(format!(
-                    "{} missing manifest token {}",
-                    script.display(),
-                    token
-                ));
-            }
+    let raw = std::fs::read_to_string(&source)
+        .unwrap_or_else(|_| panic!("read {}", source.display()));
+    for token in required_tokens {
+        if !raw.contains(token) {
+            offenders.push(format!(
+                "{} missing manifest token {}",
+                source.display(),
+                token
+            ));
         }
     }
 

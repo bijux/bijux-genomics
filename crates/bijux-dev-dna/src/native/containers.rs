@@ -3384,18 +3384,6 @@ fn check_apptainer_cache_policy(workspace: &Workspace) -> Result<ContainerComman
             policy.display()
         )));
     }
-    for rel in [
-        "bijux-dev-dna/containers/build-apptainer-all.sh",
-        "bijux-dev-dna/containers/smoke-apptainer.sh",
-    ] {
-        let text = read_utf8(&workspace.path(rel))?;
-        if !text.contains("apptainer_cache_policy.toml") && !text.contains("CACHE_POLICY_TOML") {
-            return Ok(ContainerCommandOutcome::failure(format!(
-                "apptainer cache policy: {} does not consume cache policy config\n",
-                workspace.path(rel).display()
-            )));
-        }
-    }
     success_line("apptainer cache policy: OK")
 }
 
@@ -6080,14 +6068,6 @@ fn check_time_locale_determinism(workspace: &Workspace) -> Result<ContainerComma
             ));
         }
     }
-    let smoke_docker = read_utf8(&workspace.path("bijux-dev-dna/containers/smoke-docker-arm64.sh"))?;
-    for marker in ["-e TZ=UTC", "-e LC_ALL=C"] {
-        if !smoke_docker.contains(marker) {
-            errors.push(format!(
-                "bijux-dev-dna/containers/smoke-docker-arm64.sh must pass '{marker}' to docker run"
-            ));
-        }
-    }
     if errors.is_empty() {
         return success_line("time/locale determinism: OK");
     }
@@ -7791,30 +7771,18 @@ fn check_hpc_frontend_policy_enforcement(
             policy.display()
         )));
     }
-    let build_script = workspace.path("bijux-dev-dna/containers/build-apptainer-all.sh");
-    let frontend_script = workspace.path("bijux-dev-dna/containers/build-apptainer-hpc-frontend.sh");
-    let smoke_script = workspace.path("bijux-dev-dna/containers/smoke-apptainer.sh");
     let mut errors = Vec::new();
-    for path in [&build_script, &frontend_script, &smoke_script] {
-        let text = read_utf8(path)?;
-        if !(text.contains("hpc_frontend_build_policy.toml")
-            || text.contains("compute_hostname_regex")
-            || text.contains("refusing build on compute node")
-            || text.contains("refusing apptainer build on compute node")
-            || text.contains("refusing apptainer smoke/build on compute node"))
-        {
+    let registry = crate::registry::containers::container_registry(workspace)?;
+    for command in [
+        "build-apptainer-all",
+        "build-apptainer-hpc-frontend",
+        "run-apptainer-frontend-smoke",
+    ] {
+        if !registry.iter().any(|row| row.id == command) {
             errors.push(format!(
-                "hpc frontend policy: missing compute-node refusal guard in {}",
-                workspace.rel(path).display()
+                "hpc frontend policy: missing native container command `{command}`"
             ));
         }
-    }
-    let frontend_text = read_utf8(&frontend_script)?;
-    if !frontend_text.contains("containers run check-version-hash-pin") {
-        errors.push(
-            "hpc frontend policy: frontend build script must enforce pinned versions via bijux-dev-dna check-version-hash-pin"
-                .to_string(),
-        );
     }
     if errors.is_empty() {
         return success_line("hpc frontend policy enforcement: OK");
@@ -8146,42 +8114,27 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
 
 fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let checklist_path = workspace.path("containers/docs/RELEASE_CHECKLIST.md");
-    let gate_path = workspace.path("bijux-dev-dna/containers/release-gate.sh");
     if !checklist_path.exists() {
         return Ok(ContainerCommandOutcome::failure(
             "release checklist check: missing containers/docs/RELEASE_CHECKLIST.md\n",
         ));
     }
-    if !gate_path.exists() {
-        return Ok(ContainerCommandOutcome::failure(
-            "release checklist check: missing bijux-dev-dna/containers/release-gate.sh\n",
-        ));
-    }
     let checklist = read_utf8(&checklist_path)?;
-    let gate = read_utf8(&gate_path)?;
-    let script_regex = Regex::new(r"`(bijux-dev-dna/containers/[^`]+\.sh)`").expect("regex");
-    let mut scripts = BTreeSet::new();
-    for capture in script_regex.captures_iter(&checklist) {
-        if let Some(value) = capture.get(1) {
-            scripts.insert(value.as_str().to_string());
-        }
-    }
-    let missing = scripts
-        .into_iter()
-        .filter(|script| workspace.path(script).exists())
-        .filter(|script| {
-            script
-                .rsplit('/')
-                .next()
-                .map(|name| !gate.contains(name))
-                .unwrap_or(false)
-        })
+    let registry = crate::registry::containers::container_registry(workspace)?;
+    let command_regex = Regex::new(
+        r"cargo run -p bijux-dev-dna -- containers run ([a-z0-9-]+)",
+    )
+    .expect("regex");
+    let missing = command_regex
+        .captures_iter(&checklist)
+        .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
+        .filter(|command| !registry.iter().any(|row| row.id == *command))
         .collect::<Vec<_>>();
     if missing.is_empty() {
         return success_line("release checklist mapping: OK");
     }
     failure_lines(
-        "release checklist check: release-gate missing checklist-mapped scripts:",
+        "release checklist check: missing native checklist commands:",
         &missing,
     )
 }
