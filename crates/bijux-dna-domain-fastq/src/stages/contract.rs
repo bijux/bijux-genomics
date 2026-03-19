@@ -259,6 +259,8 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
             }
         }
         FastqArtifactKind::StatsOnly
+        | FastqArtifactKind::ReferenceFasta
+        | FastqArtifactKind::ReferenceIndex
         | FastqArtifactKind::AmpliconTable
         | FastqArtifactKind::RepresentativeFasta
         | FastqArtifactKind::TaxonomyMapping => {}
@@ -456,6 +458,8 @@ pub fn normalize_outputs(
             })
         }
         FastqArtifactKind::StatsOnly
+        | FastqArtifactKind::ReferenceFasta
+        | FastqArtifactKind::ReferenceIndex
         | FastqArtifactKind::AmpliconTable
         | FastqArtifactKind::RepresentativeFasta
         | FastqArtifactKind::TaxonomyMapping => Ok(NormalizedOutputs {
