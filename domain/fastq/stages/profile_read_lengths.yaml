@@ -8,11 +8,11 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "stats_json"
-    data_type: "json"
-    cardinality: "One"
-  - name: "stats_report"
+  - name: "length_distribution_tsv"
     data_type: "tsv"
+    cardinality: "One"
+  - name: "length_distribution_json"
+    data_type: "json"
     cardinality: "One"
 parameters:
   - name: "histogram_bins"
@@ -37,8 +37,8 @@ image_requirements:
 required_inputs:
   - "reads"
 required_outputs:
-  - "stats_json"
-  - "stats_report"
+  - "length_distribution_tsv"
+  - "length_distribution_json"
 tool_capability_requirements:
   - "SE"
 invariants:
@@ -47,6 +47,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
+  - seqkit_stats
   - seqfu
   - prinseq
   - fastp

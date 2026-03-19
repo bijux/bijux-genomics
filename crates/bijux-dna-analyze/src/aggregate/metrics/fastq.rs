@@ -619,6 +619,34 @@ impl StageMetricSchema for FastqStatsMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqReadLengthMetrics {
+    pub read_count: u64,
+    pub mean_read_length: f64,
+    pub max_read_length: u64,
+    pub distinct_lengths: u64,
+}
+
+impl StageMetricSchema for FastqReadLengthMetrics {
+    const STAGE: &'static str = "fastq.profile_read_lengths";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if !self.mean_read_length.is_finite() || self.mean_read_length < 0.0 {
+            return Err(BenchError::Validation(
+                "mean_read_length must be finite and >= 0".to_string(),
+            ));
+        }
+        if self.read_count > 0 && self.max_read_length == 0 {
+            return Err(BenchError::Validation(
+                "max_read_length must be > 0 when reads are present".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqOverrepresentedMetrics {
     pub sequence_count: u64,
     pub flagged_sequences: u64,
@@ -638,6 +666,72 @@ impl StageMetricSchema for FastqOverrepresentedMetrics {
         if !self.top_fraction.is_finite() || !(0.0..=1.0).contains(&self.top_fraction) {
             return Err(BenchError::Validation(
                 "top_fraction must be within [0, 1]".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqDuplicateMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub duplicate_reads: u64,
+    pub dedup_rate: f64,
+}
+
+impl StageMetricSchema for FastqDuplicateMetrics {
+    const STAGE: &'static str = "fastq.remove_duplicates";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.duplicate_reads != self.reads_in.saturating_sub(self.reads_out) {
+            return Err(BenchError::Validation(
+                "duplicate_reads must equal reads_in - reads_out".to_string(),
+            ));
+        }
+        if !self.dedup_rate.is_finite() || !(0.0..=1.0).contains(&self.dedup_rate) {
+            return Err(BenchError::Validation(
+                "dedup_rate must be within [0, 1]".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqChimeraMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub chimeras_removed: u64,
+    pub chimera_fraction: f64,
+}
+
+impl StageMetricSchema for FastqChimeraMetrics {
+    const STAGE: &'static str = "fastq.remove_chimeras";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.chimeras_removed != self.reads_in.saturating_sub(self.reads_out) {
+            return Err(BenchError::Validation(
+                "chimeras_removed must equal reads_in - reads_out".to_string(),
+            ));
+        }
+        if !self.chimera_fraction.is_finite() || !(0.0..=1.0).contains(&self.chimera_fraction) {
+            return Err(BenchError::Validation(
+                "chimera_fraction must be within [0, 1]".to_string(),
             ));
         }
         Ok(())
@@ -756,7 +850,10 @@ pub const FASTQ_QC_POST_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_UMI_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_SCREEN_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_STATS_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_READ_LENGTH_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_OVERREPRESENTED_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_DUPLICATE_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_CHIMERA_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_NORMALIZE_PRIMERS_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_INFER_ASVS_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_NORMALIZE_ABUNDANCE_SCHEMA_VERSION: i32 = 1;

@@ -52,6 +52,10 @@ pub const FASTQ_QC_POST_CLASSES: [MetricClass; 2] =
     [MetricClass::QualityShift, MetricClass::Contamination];
 pub const FASTQ_STATS_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Composition];
+pub const FASTQ_READ_LENGTH_CLASSES: [MetricClass; 2] =
+    [MetricClass::Integrity, MetricClass::Composition];
+pub const FASTQ_CHIMERA_CLASSES: [MetricClass; 2] =
+    [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_CLUSTER_OTUS_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Composition];
 pub const FASTQ_NORMALIZE_PRIMERS_CLASSES: [MetricClass; 2] =
@@ -136,6 +140,18 @@ pub const FASTQ_RRNA_INVARIANTS: [&str; 3] = [
 ];
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
+pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 4] = [
+    "read_count >= 0",
+    "mean_read_length >= 0",
+    "max_read_length >= mean_read_length (warn)",
+    "distinct_lengths >= 0",
+];
+pub const FASTQ_CHIMERA_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "chimeras_removed == reads_in - reads_out",
+    "chimera_fraction in [0, 1]",
+    "counts are non-negative",
+];
 pub const FASTQ_CLUSTER_OTUS_INVARIANTS: [&str; 3] = [
     "reads_in >= 0",
     "otu_count >= 0",
@@ -273,11 +289,23 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS,
             notes: "Abundance normalization operates on a feature table and emits a normalized compositional table.",
         }),
+        "fastq.remove_chimeras" => Some(StageMetricSpec {
+            stage: "fastq.remove_chimeras",
+            classes: &FASTQ_CHIMERA_CLASSES,
+            invariants: &FASTQ_CHIMERA_INVARIANTS,
+            notes: "Chimera removal filters chimeric amplicon reads while preserving deterministic non-chimera output order.",
+        }),
         "fastq.profile_reads" => Some(StageMetricSpec {
             stage: "fastq.profile_reads",
             classes: &FASTQ_STATS_CLASSES,
             invariants: &FASTQ_STATS_INVARIANTS,
             notes: "Stats is report-only and must not mutate reads.",
+        }),
+        "fastq.profile_read_lengths" => Some(StageMetricSpec {
+            stage: "fastq.profile_read_lengths",
+            classes: &FASTQ_READ_LENGTH_CLASSES,
+            invariants: &FASTQ_READ_LENGTH_INVARIANTS,
+            notes: "Read-length profiling emits deterministic histogram artifacts and summary statistics without mutating reads.",
         }),
         "fastq.profile_overrepresented_sequences" => Some(StageMetricSpec {
             stage: "fastq.profile_overrepresented_sequences",

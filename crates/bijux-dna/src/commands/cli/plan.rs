@@ -5,13 +5,14 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
-    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs,
-    BenchFastqInferAsvsArgs, BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs,
-    BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
-    BenchFastqProfileOverrepresentedArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs,
-    BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
-    BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs,
-    DnaCommand, FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
+    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs,
+    BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs,
+    BenchFastqPreprocessArgs, BenchFastqProfileOverrepresentedArgs,
+    BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs, BenchFastqRemoveChimerasArgs,
+    BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
+    BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
+    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand, FastqCommand,
+    FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
 #[must_use]
@@ -194,6 +195,23 @@ pub fn bench_args_detect_adapters(
 
 /// # Errors
 /// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_profile_read_lengths(
+    args: &BenchFastqProfileReadLengthsArgs,
+) -> Result<engine_args::BenchFastqProfileReadLengthsArgs> {
+    Ok(engine_args::BenchFastqProfileReadLengthsArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.profile_read_lengths", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
 pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::BenchFastqFilterArgs> {
     Ok(engine_args::BenchFastqFilterArgs {
         sample_id: args.sample_id.clone(),
@@ -238,6 +256,40 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> Result<engine_args::Bench
         r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.merge_pairs", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_remove_duplicates(
+    args: &BenchFastqRemoveDuplicatesArgs,
+) -> Result<engine_args::BenchFastqRemoveDuplicatesArgs> {
+    Ok(engine_args::BenchFastqRemoveDuplicatesArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.remove_duplicates", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_remove_chimeras(
+    args: &BenchFastqRemoveChimerasArgs,
+) -> Result<engine_args::BenchFastqRemoveChimerasArgs> {
+    Ok(engine_args::BenchFastqRemoveChimerasArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.remove_chimeras", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,

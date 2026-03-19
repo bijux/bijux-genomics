@@ -34,10 +34,16 @@ pub enum BenchFastqCommand {
     Validate(BenchFastqValidateArgs),
     #[command(name = "detect-adapters")]
     DetectAdapters(BenchFastqDetectAdaptersArgs),
+    #[command(name = "profile-read-lengths")]
+    ProfileReadLengths(BenchFastqProfileReadLengthsArgs),
     Filter(BenchFastqFilterArgs),
     #[command(name = "filter-low-complexity")]
     FilterLowComplexity(BenchFastqFilterLowComplexityArgs),
     Merge(BenchFastqMergeArgs),
+    #[command(name = "remove-duplicates")]
+    RemoveDuplicates(BenchFastqRemoveDuplicatesArgs),
+    #[command(name = "remove-chimeras")]
+    RemoveChimeras(BenchFastqRemoveChimerasArgs),
     #[command(name = "normalize-primers")]
     NormalizePrimers(BenchFastqNormalizePrimersArgs),
     #[command(name = "infer-asvs")]
@@ -51,6 +57,7 @@ pub enum BenchFastqCommand {
     #[command(name = "index-reference")]
     IndexReference(BenchFastqIndexReferenceArgs),
     Screen(BenchFastqScreenArgs),
+    #[command(name = "profile-reads", visible_alias = "stats")]
     Stats(BenchFastqStatsArgs),
     #[command(name = "profile-overrepresented-sequences", visible_alias = "overrepresented")]
     ProfileOverrepresentedSequences(BenchFastqProfileOverrepresentedArgs),
@@ -195,6 +202,28 @@ pub struct BenchFastqDetectAdaptersArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchFastqProfileReadLengthsArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchFastqFilterArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
@@ -256,6 +285,50 @@ pub struct BenchFastqMergeArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub r2: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqRemoveDuplicatesArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqRemoveChimerasArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]

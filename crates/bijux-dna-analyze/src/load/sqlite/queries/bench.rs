@@ -9,9 +9,10 @@ use super::super::{
 use crate::aggregate::metrics::{ImageQaRecord, IMAGE_QA_SCHEMA_VERSION};
 use crate::aggregate::BenchmarkRecord;
 use crate::{
-    FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqQcPostMetrics,
-    FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
-    FastqOverrepresentedMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqUmiMetrics,
+    FastqChimeraMetrics, FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
+    FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics,
+    FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics, FastqQcPostMetrics,
+    FastqReadLengthMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqUmiMetrics,
 };
 /// Insert a FASTQ detect-adapters benchmark record into the v1 table.
 ///
@@ -766,6 +767,24 @@ macro_rules! bench_record_table {
     };
 }
 
+bench_record_table!(
+    insert_fastq_read_lengths_v1,
+    fetch_fastq_read_lengths_v1,
+    "bench_fastq_read_lengths_v1",
+    FastqReadLengthMetrics
+);
+bench_record_table!(
+    insert_fastq_duplicates_v1,
+    fetch_fastq_duplicates_v1,
+    "bench_fastq_duplicates_v1",
+    FastqDuplicateMetrics
+);
+bench_record_table!(
+    insert_fastq_chimeras_v1,
+    fetch_fastq_chimeras_v1,
+    "bench_fastq_chimeras_v1",
+    FastqChimeraMetrics
+);
 bench_record_table!(
     insert_fastq_normalize_primers_v1,
     fetch_fastq_normalize_primers_v1,

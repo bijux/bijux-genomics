@@ -8,13 +8,16 @@ use crate::commands::command_prelude::{
     bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
     bench_args_infer_asvs, bench_args_merge, bench_args_normalize_abundance,
     bench_args_normalize_primers, bench_args_preprocess, bench_args_profile_overrepresented,
-    bench_args_qc_post, bench_args_screen, bench_args_stats, bench_args_trim,
+    bench_args_profile_read_lengths, bench_args_qc_post, bench_args_remove_chimeras,
+    bench_args_remove_duplicates, bench_args_screen, bench_args_stats, bench_args_trim,
     bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
     bench_args_validate, bench_fastq_correct, bench_fastq_detect_adapters, bench_fastq_filter,
     bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
     bench_fastq_merge, bench_fastq_normalize_abundance, bench_fastq_normalize_primers,
-    bench_fastq_preprocess, bench_fastq_profile_overrepresented, bench_fastq_qc_post,
-    bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
+    bench_fastq_preprocess, bench_fastq_profile_overrepresented,
+    bench_fastq_profile_read_lengths, bench_fastq_qc_post, bench_fastq_remove_chimeras,
+    bench_fastq_remove_duplicates, bench_fastq_screen, bench_fastq_stats_neutral,
+    bench_fastq_trim,
     bench_fastq_trim_polyg_tails, bench_fastq_trim_terminal_damage, bench_fastq_umi,
     bench_fastq_validate_reads, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
@@ -22,13 +25,14 @@ use crate::commands::command_prelude::{
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_correct_report, write_detect_adapters_report, write_filter_low_complexity_report,
-    write_filter_report, write_index_reference_report, write_infer_asvs_report,
-    write_merge_report, write_normalize_abundance_report, write_normalize_primers_report,
-    write_overrepresented_report, write_qc_post_report, write_run_report_from_facts,
-    write_run_summary_from_facts, write_stage_summary_csv, write_stats_report,
-    write_trim_polyg_report, write_trim_report, write_trim_terminal_damage_report,
-    write_umi_report, write_validate_report, AnalyzeCommand,
+    write_chimeras_report, write_correct_report, write_detect_adapters_report,
+    write_duplicates_report, write_filter_low_complexity_report, write_filter_report,
+    write_index_reference_report, write_infer_asvs_report, write_merge_report,
+    write_normalize_abundance_report, write_normalize_primers_report,
+    write_overrepresented_report, write_qc_post_report, write_read_lengths_report,
+    write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
+    write_stats_report, write_trim_polyg_report, write_trim_report,
+    write_trim_terminal_damage_report, write_umi_report, write_validate_report, AnalyzeCommand,
     BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand,
     Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
@@ -828,6 +832,63 @@ pub(crate) fn handle_meta_commands(
                         let bench_args = bench_args_merge(args)?;
                         let outcome = bench_fastq_merge(&catalog, &platform, None, &bench_args)?;
                         write_merge_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::ProfileReadLengths(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_profile_read_lengths(args)?;
+                        let outcome = bench_fastq_profile_read_lengths(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_read_lengths_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::RemoveDuplicates(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_remove_duplicates(args)?;
+                        let outcome = bench_fastq_remove_duplicates(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_duplicates_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::RemoveChimeras(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_remove_chimeras(args)?;
+                        let outcome = bench_fastq_remove_chimeras(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_chimeras_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,

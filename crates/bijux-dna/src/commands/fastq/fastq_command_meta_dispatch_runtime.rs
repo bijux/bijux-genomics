@@ -335,6 +335,63 @@
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::ProfileReadLengths(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_profile_read_lengths(args)?;
+                        let outcome = bench_fastq_profile_read_lengths(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_read_lengths_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::RemoveDuplicates(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_remove_duplicates(args)?;
+                        let outcome = bench_fastq_remove_duplicates(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_duplicates_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::RemoveChimeras(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_remove_chimeras(args)?;
+                        let outcome = bench_fastq_remove_chimeras(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_chimeras_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::NormalizePrimers(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_normalize_primers(args)?;

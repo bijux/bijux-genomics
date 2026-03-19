@@ -83,6 +83,18 @@ pub struct BenchFastqDetectAdaptersArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqProfileReadLengthsArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqFilterArgs {
     pub sample_id: String,
     pub r1: PathBuf,
@@ -116,6 +128,30 @@ pub struct BenchFastqMergeArgs {
     pub sample_id: String,
     pub r1: PathBuf,
     pub r2: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BenchFastqRemoveDuplicatesArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BenchFastqRemoveChimerasArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
