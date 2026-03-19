@@ -19,7 +19,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "adapterremoval",
             "trimmomatic",
             "trim_galore",
-            "seqpurge",
             "prinseq",
             "seqkit",
             "skewer",
