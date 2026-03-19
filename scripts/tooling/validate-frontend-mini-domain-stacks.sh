@@ -114,7 +114,7 @@ sim_cases = [
 ]
 for profile, depth, want in sim_cases:
     proc = subprocess.run(
-        [str(root / "scripts/tooling/simulate-coverage-regime.sh"), depth, "--profile", profile],
+        [str(root / "scripts/run.sh"), "tooling", "simulate-coverage-regime", depth, "--profile", profile],
         text=True,
         capture_output=True,
         check=False,

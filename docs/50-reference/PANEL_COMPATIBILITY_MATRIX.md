@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-panel-compatibility-matrix.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-panel-compatibility-matrix -->
 
 # PANEL_COMPATIBILITY_MATRIX
 

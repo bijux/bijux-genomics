@@ -206,6 +206,31 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCheckConfigSnapshot,
         ),
         native(
+            "check-config-paths",
+            "Validate config path literals referenced across governed source roots.",
+            NativeOpsCommandKey::ToolingCheckConfigPaths,
+        ),
+        native(
+            "clean-docs",
+            "Remove generated docs artifacts under the governed docs artifact root.",
+            NativeOpsCommandKey::ToolingCleanDocs,
+        ),
+        native(
+            "config-inventory",
+            "Generate governed config inventory artifacts under artifacts/.",
+            NativeOpsCommandKey::ToolingConfigInventory,
+        ),
+        native(
+            "docs-build",
+            "Build, lint, or serve the governed MkDocs site using the native control plane.",
+            NativeOpsCommandKey::ToolingDocsBuild,
+        ),
+        native(
+            "generate-configs",
+            "Compile generated domain config artifacts from governed domain sources.",
+            NativeOpsCommandKey::ToolingGenerateConfigs,
+        ),
+        native(
             "generate-compatibility-matrix",
             "Generate docs/50-reference/COMPATIBILITY_MATRIX.md from governed registries.",
             NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix,
@@ -214,6 +239,16 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "generate-config-tree-snapshot",
             "Generate configs/schema/config_tree.snapshot and its marker contract.",
             NativeOpsCommandKey::ToolingGenerateConfigTreeSnapshot,
+        ),
+        native(
+            "generate-panel-compatibility-matrix",
+            "Generate docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md from panel and map catalogs.",
+            NativeOpsCommandKey::ToolingGeneratePanelCompatibilityMatrix,
+        ),
+        native(
+            "generate-policy-index",
+            "Generate artifacts/policies/index.md from policy test sources.",
+            NativeOpsCommandKey::ToolingGeneratePolicyIndex,
         ),
         native(
             "generate-docs",
@@ -239,6 +274,41 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "generate-tool-index",
             "Generate docs/20-science/TOOL_INDEX.md from governed tool registries.",
             NativeOpsCommandKey::ToolingGenerateToolIndex,
+        ),
+        native(
+            "image-qa",
+            "Run the image QA binary through the native control plane.",
+            NativeOpsCommandKey::ToolingImageQa,
+        ),
+        native(
+            "inventory",
+            "Generate governed inventory artifacts under artifacts/inventory.",
+            NativeOpsCommandKey::ToolingInventory,
+        ),
+        native(
+            "make-help",
+            "Print public and optional internal make target help.",
+            NativeOpsCommandKey::ToolingMakeHelp,
+        ),
+        native(
+            "repo-doctor",
+            "Run the governed repository doctor bundle.",
+            NativeOpsCommandKey::ToolingRepoDoctor,
+        ),
+        native(
+            "bijux",
+            "Run the bijux-dna binary inside the governed artifact environment.",
+            NativeOpsCommandKey::ToolingRunBijux,
+        ),
+        native(
+            "setup-docs-venv",
+            "Create or refresh the governed docs virtual environment.",
+            NativeOpsCommandKey::ToolingSetupDocsVenv,
+        ),
+        native(
+            "simulate-coverage-regime",
+            "Simulate deterministic VCF coverage regime selection from configured thresholds.",
+            NativeOpsCommandKey::ToolingSimulateCoverageRegime,
         ),
     ]
 }

@@ -27,7 +27,7 @@ The mini validator must enforce all checks listed below.
   - `gl` (low depth)
   - `pseudohaploid` (mid depth)
   - `diploid` (high depth)
-  via `scripts/tooling/simulate-coverage-regime.sh`.
+  via `cargo run -p bijux-dev-dna -- tooling run simulate-coverage-regime`.
 - BAM authenticity consistency is validated from stage contract + fixtures (`authenticct`, `pmdtools`, `damageprofiler`).
 
 ## Current Gap (Detected by Validator)
