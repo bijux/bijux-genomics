@@ -5,7 +5,7 @@ mod support;
 #[test]
 fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_deterministic() {
     let root = support::workspace_root();
-    let checksum = root.join("scripts/assets/toy/core-v1/CHECKSUMS.sha256");
+    let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
     if !checksum.exists() {
         eprintln!(
             "skip toy golden deterministic check; missing {}",
@@ -65,8 +65,8 @@ fn policy__contracts__toy_golden_runs_policy__make_refresh_targets_use_assets_sc
     let mk = std::fs::read_to_string(root.join("makes/cargo.mk"))
         .unwrap_or_else(|err| panic!("read makes/cargo.mk: {err}"));
     assert!(
-        mk.contains("./scripts/run.sh assets refresh-toy")
-            && mk.contains("./scripts/run.sh assets refresh-golden"),
-        "toy.mk refresh targets must call scripts/assets refresh entrypoints"
+        mk.contains("cargo run -q -p bijux-dev-dna -- assets run refresh-toy")
+            && mk.contains("cargo run -q -p bijux-dev-dna -- assets run refresh-golden"),
+        "toy refresh targets must call the native assets control plane"
     );
 }

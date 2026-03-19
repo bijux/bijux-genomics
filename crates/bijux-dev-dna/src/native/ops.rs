@@ -19,6 +19,9 @@ pub fn run_native_ops_command(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     match key {
+        NativeOpsCommandKey::AssetsRefreshGolden => assets_refresh_golden(workspace, args),
+        NativeOpsCommandKey::AssetsRefreshToy => assets_refresh_toy(workspace, args),
+        NativeOpsCommandKey::AssetsValidateReference => assets_validate_reference(workspace, args),
         NativeOpsCommandKey::DocsCheckDocAssets => docs_check_doc_assets(workspace, args),
         NativeOpsCommandKey::DocsCheckDocDepth => docs_check_doc_depth(workspace, args),
         NativeOpsCommandKey::DocsCheckDocLinks => docs_check_doc_links(workspace, args),
@@ -54,6 +57,325 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
         NativeOpsCommandKey::TestToyRuns => test_toy_runs(workspace, args),
     }
+}
+
+fn assets_refresh_golden(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("refresh-golden", args)?;
+    let out_dir = workspace.path("artifacts/assets-refresh/golden/toy-runs-v1");
+    let target_dir = workspace.path("assets/golden/toy-runs-v1");
+    let report_path = workspace.path("artifacts/assets-refresh/golden/report.json");
+
+    if out_dir.exists() {
+        fs::remove_dir_all(&out_dir).with_context(|| format!("remove {}", out_dir.display()))?;
+    }
+    if let Some(parent) = out_dir.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    if let Some(parent) = report_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+
+    let outcome = test_toy_runs(
+        workspace,
+        &[
+            "refresh".to_string(),
+            "--accept".to_string(),
+            "--profile".to_string(),
+            "all".to_string(),
+            "--out".to_string(),
+            out_dir.display().to_string(),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Ok(outcome);
+    }
+
+    for entry in fs::read_dir(&out_dir).with_context(|| format!("read {}", out_dir.display()))? {
+        let bundle = entry?.path();
+        if !bundle.is_dir() {
+            continue;
+        }
+        write_utf8(
+            &bundle.join("GENERATE.md"),
+            r#"# GENERATE
+
+## Command(s)
+Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
+
+## Tool versions
+- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/golden/report.json`.
+
+## Input origins
+- Derived from repository mini reference toy runs (`cargo run -p bijux-dev-dna -- test run toy-runs -- refresh --accept --profile all`).
+
+## Expected outputs
+- `manifest.json`
+- `metrics.json`
+- `artifact_checksums.json`
+- `report.html`
+- `CHECKSUMS.sha256`
+"#,
+        )?;
+        write_checksum_manifest(
+            &bundle.join("CHECKSUMS.sha256"),
+            &[
+                "artifact_checksums.json",
+                "manifest.json",
+                "metrics.json",
+                "report.html",
+                "GENERATE.md",
+            ],
+        )?;
+    }
+
+    write_refresh_report(
+        &out_dir,
+        &report_path,
+        "golden/toy-runs-v1",
+        "cargo run -p bijux-dev-dna -- assets run refresh-golden",
+    )?;
+    replace_dir(&out_dir, &target_dir)?;
+    success_line(format!("golden refresh: wrote {}", target_dir.display()))
+}
+
+fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("refresh-toy", args)?;
+    let stage_dir = workspace.path("artifacts/assets-refresh/toy/core-v1");
+    let target_dir = workspace.path("assets/toy/core-v1");
+    let report_path = workspace.path("artifacts/assets-refresh/toy/report.json");
+
+    if stage_dir.exists() {
+        fs::remove_dir_all(&stage_dir).with_context(|| format!("remove {}", stage_dir.display()))?;
+    }
+    fs::create_dir_all(stage_dir.join("fastq"))
+        .with_context(|| format!("create {}", stage_dir.join("fastq").display()))?;
+    fs::create_dir_all(stage_dir.join("bam"))
+        .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
+    fs::create_dir_all(stage_dir.join("vcf"))
+        .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
+    if let Some(parent) = report_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+
+    write_utf8(
+        &stage_dir.join("fastq/reads_1.fastq"),
+        "@read1/1\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/1\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
+    )?;
+    write_utf8(
+        &stage_dir.join("fastq/reads_2.fastq"),
+        "@read1/2\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/2\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
+    )?;
+    write_utf8(
+        &stage_dir.join("bam/toy.sam"),
+        "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:1000\nread1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\nread2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
+    )?;
+    write_utf8(
+        &stage_dir.join("vcf/toy.vcf"),
+        "##fileformat=VCFv4.2\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t10\t.\tA\tG\t60\tPASS\t.\n",
+    )?;
+
+    write_checksum_manifest(
+        &stage_dir.join("CHECKSUMS.sha256"),
+        &[
+            "bam/toy.sam",
+            "fastq/reads_1.fastq",
+            "fastq/reads_2.fastq",
+            "vcf/toy.vcf",
+        ],
+    )?;
+    write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
+    write_checksum_manifest(
+        &stage_dir.join("fastq/CHECKSUMS.sha256"),
+        &["reads_1.fastq", "reads_2.fastq"],
+    )?;
+    write_checksum_manifest(&stage_dir.join("vcf/CHECKSUMS.sha256"), &["toy.vcf"])?;
+
+    write_utf8(
+        &stage_dir.join("GENERATE.md"),
+        r#"# GENERATE
+
+## Command(s)
+Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
+
+## Tool versions
+- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
+
+## Input origins
+- Synthetic deterministic toy records authored in `bijux-dev-dna` assets control-plane commands.
+
+## Expected outputs
+- `fastq/reads_1.fastq`
+- `fastq/reads_2.fastq`
+- `bam/toy.sam`
+- `vcf/toy.vcf`
+- `CHECKSUMS.sha256`
+"#,
+    )?;
+
+    write_refresh_report(
+        &stage_dir,
+        &report_path,
+        "toy/core-v1",
+        "cargo run -p bijux-dev-dna -- assets run refresh-toy",
+    )?;
+    replace_dir(&stage_dir, &target_dir)?;
+    success_line(format!("toy refresh: wrote {}", target_dir.display()))
+}
+
+fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("validate-reference", args)?;
+    let ref_root = workspace.path("assets/reference");
+    if !ref_root.exists() {
+        return Ok(OpsCommandOutcome::failure(
+            "assets-reference-schema: assets/reference missing\n",
+        ));
+    }
+
+    let mut errors = Vec::new();
+    if !ref_root.join("SCHEMAS.md").is_file() {
+        errors.push("assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string());
+    }
+
+    let schema_re = Regex::new(r"(?m)^schema_version:\s*\S+")?;
+    let id_re = Regex::new(r"(?m)^\s*-\s*id:\s*([A-Za-z0-9_.-]+)\s*$")?;
+    let section_re = Regex::new(r"^\s*[A-Za-z0-9_]+:\s*")?;
+
+    let mut yaml_files = WalkDir::new(&ref_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| entry.path().to_path_buf())
+        .filter(|path| {
+            matches!(
+                path.extension().and_then(|ext| ext.to_str()),
+                Some("yaml") | Some("yml")
+            )
+        })
+        .collect::<Vec<_>>();
+    yaml_files.sort();
+
+    for path in &yaml_files {
+        let text = read_utf8(path)?;
+        let rel = workspace.rel(path).to_string_lossy().to_string();
+        if !schema_re.is_match(&text) {
+            errors.push(format!("{rel}: missing schema_version"));
+        }
+
+        let non_comment_keys = text
+            .lines()
+            .filter(|line| {
+                let trimmed = line.trim();
+                !trimmed.is_empty() && !trimmed.starts_with('#') && trimmed.contains(':')
+            })
+            .count();
+        if non_comment_keys < 2 {
+            errors.push(format!(
+                "{rel}: expected schema_version plus at least one additional key"
+            ));
+        }
+
+        let mut counts = BTreeMap::new();
+        for capture in id_re.captures_iter(&text) {
+            let Some(id) = capture.get(1).map(|value| value.as_str().to_string()) else {
+                continue;
+            };
+            *counts.entry(id).or_insert(0usize) += 1;
+        }
+        let duplicates = counts
+            .into_iter()
+            .filter_map(|(id, count)| (count > 1).then_some(id))
+            .collect::<Vec<_>>();
+        if !duplicates.is_empty() {
+            errors.push(format!("{rel}: duplicated ids: {}", duplicates.join(", ")));
+        }
+    }
+
+    let mut banks = fs::read_dir(&ref_root)
+        .with_context(|| format!("read {}", ref_root.display()))?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    banks.sort();
+
+    for bank_dir in banks {
+        let mut bank_files = fs::read_dir(&bank_dir)
+            .with_context(|| format!("read {}", bank_dir.display()))?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| {
+                matches!(
+                    path.extension().and_then(|ext| ext.to_str()),
+                    Some("yaml") | Some("yml")
+                ) && !path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_default()
+                    .contains("presets")
+            })
+            .collect::<Vec<_>>();
+        bank_files.sort();
+        let mut preset_files = fs::read_dir(&bank_dir)
+            .with_context(|| format!("read {}", bank_dir.display()))?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| {
+                matches!(
+                    path.extension().and_then(|ext| ext.to_str()),
+                    Some("yaml") | Some("yml")
+                ) && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_default()
+                    .contains("presets")
+            })
+            .collect::<Vec<_>>();
+        preset_files.sort();
+        if preset_files.is_empty() {
+            continue;
+        }
+
+        let mut bank_ids = BTreeSet::new();
+        for bank_file in bank_files {
+            for capture in id_re.captures_iter(&read_utf8(&bank_file)?) {
+                if let Some(id) = capture.get(1).map(|value| value.as_str().to_string()) {
+                    bank_ids.insert(id);
+                }
+            }
+        }
+
+        for preset_file in preset_files {
+            let rel = workspace.rel(&preset_file).to_string_lossy().to_string();
+            let text = read_utf8(&preset_file)?;
+            let mut lines = text.lines().peekable();
+            while let Some(line) = lines.next() {
+                let trimmed = line.trim_start();
+                if !(trimmed.ends_with("_ids:") && trimmed.contains(':')) {
+                    continue;
+                }
+                while let Some(next_line) = lines.peek().copied() {
+                    let next_trimmed = next_line.trim();
+                    if next_trimmed.is_empty() {
+                        lines.next();
+                        continue;
+                    }
+                    if section_re.is_match(next_line) && !next_trimmed.starts_with('-') {
+                        break;
+                    }
+                    let candidate = next_trimmed.trim_start_matches('-').trim();
+                    if !candidate.is_empty() && !bank_ids.contains(candidate) {
+                        errors.push(format!("{rel}: unresolved preset reference id: {candidate}"));
+                    }
+                    lines.next();
+                }
+            }
+        }
+    }
+
+    if errors.is_empty() {
+        return success_line("assets-reference-schema: OK");
+    }
+    failure_lines("assets-reference-schema: FAILED", &errors)
 }
 
 fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -2505,6 +2827,121 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
         lines.push("".to_string());
     }
     write_utf8(out, &lines.join("\n"))
+}
+
+fn write_checksum_manifest(manifest_path: &Path, rel_paths: &[&str]) -> Result<()> {
+    let base = manifest_path
+        .parent()
+        .context("checksum manifest path missing parent directory")?;
+    let mut lines = Vec::new();
+    for rel in rel_paths {
+        let path = base.join(rel);
+        lines.push(format!("{}  {}", sha256_hex(&path)?, rel));
+    }
+    write_utf8(manifest_path, &format!("{}\n", lines.join("\n")))
+}
+
+fn write_refresh_report(
+    content_root: &Path,
+    report_path: &Path,
+    asset: &str,
+    generator_command: &str,
+) -> Result<()> {
+    let mut files = WalkDir::new(content_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| entry.path().to_path_buf())
+        .collect::<Vec<_>>();
+    files.sort();
+
+    let mut checksums = serde_json::Map::new();
+    let mut listed = Vec::new();
+    for path in files {
+        let rel = path
+            .strip_prefix(content_root)
+            .context("strip content root prefix")?
+            .to_string_lossy()
+            .to_string();
+        listed.push(rel.clone());
+        checksums.insert(rel, json!(sha256_hex(&path)?));
+    }
+
+    write_json_pretty(
+        report_path,
+        &json!({
+            "schema_version": "bijux.assets.refresh_report.v1",
+            "asset": asset,
+            "generator_command": generator_command,
+            "inputs": listed,
+            "input_list": listed,
+            "output_checksums": checksums,
+            "tool_versions": refresh_tool_versions(),
+            "checksums": checksums,
+        }),
+    )
+}
+
+fn refresh_tool_versions() -> Value {
+    json!({
+        "bijux-dev-dna": env!("CARGO_PKG_VERSION"),
+        "cargo": command_version_line("cargo", &["--version"]),
+        "rustc": command_version_line("rustc", &["--version"]),
+    })
+}
+
+fn command_version_line(program: &str, args: &[&str]) -> String {
+    std::process::Command::new(program)
+        .args(args)
+        .output()
+        .ok()
+        .and_then(|output| {
+            output.status.success().then(|| {
+                String::from_utf8_lossy(&output.stdout)
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .trim()
+                    .to_string()
+            })
+        })
+        .filter(|line| !line.is_empty())
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn replace_dir(src: &Path, dst: &Path) -> Result<()> {
+    if dst.exists() {
+        fs::remove_dir_all(dst).with_context(|| format!("remove {}", dst.display()))?;
+    }
+    if let Some(parent) = dst.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    copy_dir_recursive(src, dst)
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
+    for entry in WalkDir::new(src).into_iter().filter_map(Result::ok) {
+        let path = entry.path();
+        let rel = path
+            .strip_prefix(src)
+            .context("strip copy source prefix")?;
+        if rel.as_os_str().is_empty() {
+            continue;
+        }
+        let target = dst.join(rel);
+        if entry.file_type().is_dir() {
+            fs::create_dir_all(&target).with_context(|| format!("create {}", target.display()))?;
+        } else {
+            if let Some(parent) = target.parent() {
+                fs::create_dir_all(parent)
+                    .with_context(|| format!("create {}", parent.display()))?;
+            }
+            fs::copy(path, &target)
+                .with_context(|| format!("copy {} -> {}", path.display(), target.display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn count_schema_filtered(dir: PathBuf) -> Result<usize> {

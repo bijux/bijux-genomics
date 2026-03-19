@@ -8,16 +8,16 @@ toy-golden-check: ## Compare produced toy outputs to goldens (timestamp-tolerant
 	@ARTIFACT_ROOT="$(ARTIFACT_ROOT)" ./scripts/run.sh test toy_runs check --profile all --out "$(TOY_OUT)"
 
 refresh-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/run.sh assets refresh-toy
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-toy
 
 refresh-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/run.sh assets refresh-golden
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-golden
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/run.sh assets refresh-toy
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-toy
 
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/run.sh assets refresh-golden
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-golden
 
 golden-refresh: refresh-golden ## Backward-compatible alias.
 

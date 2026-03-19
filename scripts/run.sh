@@ -68,6 +68,10 @@ PY
       printf '%s\t%s\tci_allowed=true\n' "$group" "$command_id"
     done
   done
+  cargo run -q -p bijux-dev-dna -- assets list | while IFS= read -r command_id; do
+    [[ -n "$command_id" ]] || continue
+    printf 'assets\t%s\tci_allowed=true\n' "$command_id"
+  done
   cargo run -q -p bijux-dev-dna -- domain list | while IFS= read -r command_id; do
     [[ -n "$command_id" ]] || continue
     printf 'domain\t%s\tci_allowed=true\n' "$command_id"
@@ -121,6 +125,8 @@ elif [[ "$group" == "domain" ]]; then
   cargo run -p bijux-dev-dna -- domain run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "containers" ]]; then
   cargo run -p bijux-dev-dna -- containers run "$command" -- "$@" || rc=$?
+elif [[ "$group" == "assets" ]]; then
+  cargo run -p bijux-dev-dna -- assets run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "docs" || "$group" == "examples" || "$group" == "hpc" || "$group" == "lab" || "$group" == "smoke" || "$group" == "test" ]]; then
   native_command="$command"
   case "$group/$command" in

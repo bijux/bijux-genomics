@@ -63,7 +63,6 @@ fn make_text(root: &Path) -> String {
 fn policy__contracts__scripts_layout_policy__scripts_live_in_allowed_tree() {
     let root = workspace_root();
     let allowed_prefixes = [
-        "scripts/assets/",
         "scripts/tooling/",
         "scripts/_lib/",
         "scripts/experimental/",
@@ -156,7 +155,6 @@ fn policy__contracts__scripts_layout_policy__supported_scripts_are_make_referenc
         if rel.starts_with("scripts/experimental/")
             || rel.starts_with("scripts/_lib/")
             || rel == "scripts/run.sh"
-            || rel.starts_with("scripts/assets/")
             || rel.starts_with("scripts/tooling/")
         {
             continue;
