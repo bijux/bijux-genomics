@@ -34,8 +34,10 @@ image_requirements:
     - gzip
   forbids:
     - network
-required_inputs: []
-required_outputs: []
+required_inputs:
+  - "reads"
+required_outputs:
+  - "rrna_filtered_reads"
 tool_capability_requirements:
   - "rrna_classification"
 invariants:
