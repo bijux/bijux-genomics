@@ -85,8 +85,8 @@ schema_version = "bijux.bam.params.v1"
 
 [[entries]]
 stage_id = "fastq.deplete_reference_contaminants"
-param_type_id = "paramless"
-schema_version = "none"
+param_type_id = "fastq.deplete_reference_contaminants"
+schema_version = "bijux.fastq.params.deplete_reference_contaminants.v1"
 
 [[entries]]
 stage_id = "fastq.correct_errors"

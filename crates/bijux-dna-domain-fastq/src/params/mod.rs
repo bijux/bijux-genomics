@@ -8,9 +8,9 @@ use crate::stages::ids::{
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS, STAGE_CORRECT_ERRORS,
     STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS,
     STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS,
-    STAGE_REPORT_QC, STAGE_DEPLETE_HOST, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
-    STAGE_PROFILE_READS, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS,
-    STAGE_VALIDATE_READS,
+    STAGE_REPORT_QC, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA,
+    STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS,
+    STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -121,6 +121,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: screen::HOST_DEPLETION_SCHEMA_VERSION,
         });
     }
+    if stage_id == &STAGE_DEPLETE_REFERENCE_CONTAMINANTS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.deplete_reference_contaminants",
+            schema_version: screen::REFERENCE_DEPLETION_SCHEMA_VERSION,
+        });
+    }
     if stage_id == &STAGE_DEPLETE_RRNA {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.deplete_rrna",
@@ -209,6 +215,7 @@ pub enum EffectiveParams {
     Filter(filter::FilterEffectiveParams),
     Merge(merge::MergeEffectiveParams),
     HostDepletion(screen::HostDepletionEffectiveParams),
+    ReferenceContaminantDepletion(screen::ReferenceContaminantEffectiveParams),
     Rrna(screen::RrnaEffectiveParams),
     Screen(screen::ScreenEffectiveParams),
     ReportQc(qc_post::QcPostEffectiveParams),
@@ -232,6 +239,7 @@ impl EffectiveParams {
             Self::Filter(params) => params.missing_required_fields(),
             Self::Merge(params) => params.missing_required_fields(),
             Self::HostDepletion(params) => params.missing_required_fields(),
+            Self::ReferenceContaminantDepletion(params) => params.missing_required_fields(),
             Self::Rrna(params) => params.missing_required_fields(),
             Self::Screen(params) => params.missing_required_fields(),
             Self::ReportQc(params) => params.missing_required_fields(),
@@ -255,6 +263,7 @@ impl EffectiveParams {
             Self::Filter(params) => params.retention_conditions(),
             Self::Merge(params) => params.retention_conditions(),
             Self::HostDepletion(params) => params.retention_conditions(),
+            Self::ReferenceContaminantDepletion(params) => params.retention_conditions(),
             Self::Rrna(params) => params.retention_conditions(),
             Self::Screen(params) => params.retention_conditions(),
             Self::ReportQc(params) => params.retention_conditions(),
@@ -335,6 +344,13 @@ pub fn parse_effective_params(
         return serde_json::from_value::<screen::HostDepletionEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::HostDepletion);
+    }
+    if stage_id == &STAGE_DEPLETE_REFERENCE_CONTAMINANTS {
+        return serde_json::from_value::<screen::ReferenceContaminantEffectiveParams>(
+            value.clone(),
+        )
+        .ok()
+        .map(EffectiveParams::ReferenceContaminantDepletion);
     }
     if stage_id == &STAGE_DEPLETE_RRNA {
         return serde_json::from_value::<screen::RrnaEffectiveParams>(value.clone())

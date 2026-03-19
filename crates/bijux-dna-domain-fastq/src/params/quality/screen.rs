@@ -87,6 +87,52 @@ impl HostDepletionEffectiveParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
+pub struct ReferenceContaminantEffectiveParams {
+    pub schema_version: String,
+    pub paired_mode: PairedMode,
+    pub threads: u32,
+    pub contaminant_reference: String,
+    pub index_artifact: String,
+    pub retain_unmapped_pairs: bool,
+}
+
+impl ReferenceContaminantEffectiveParams {
+    #[must_use]
+    pub fn missing_required_fields(&self) -> Vec<&'static str> {
+        let mut missing = Vec::new();
+        if self.schema_version.trim().is_empty() {
+            missing.push("schema_version");
+        }
+        if self.paired_mode == PairedMode::Unknown {
+            missing.push("paired_mode");
+        }
+        if self.threads == 0 {
+            missing.push("threads");
+        }
+        if self.contaminant_reference.trim().is_empty() {
+            missing.push("contaminant_reference");
+        }
+        if self.index_artifact.trim().is_empty() {
+            missing.push("index_artifact");
+        }
+        missing
+    }
+
+    #[must_use]
+    pub fn retention_conditions(&self) -> serde_json::Value {
+        serde_json::json!({
+            "schema_version": self.schema_version,
+            "paired_mode": self.paired_mode,
+            "threads": self.threads,
+            "contaminant_reference": self.contaminant_reference,
+            "index_artifact": self.index_artifact,
+            "retain_unmapped_pairs": self.retain_unmapped_pairs,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RrnaEffectiveParams {
     pub paired_mode: PairedMode,
     pub threads: u32,

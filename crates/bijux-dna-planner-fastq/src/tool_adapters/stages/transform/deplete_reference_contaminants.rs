@@ -4,7 +4,12 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    screen::{
+        ReferenceContaminantEffectiveParams, REFERENCE_DEPLETION_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -43,14 +48,17 @@ pub fn plan_contaminant_screen(
     };
     let output_r2 = r2.map(|_| out_dir.join("contaminant_screened_R2.fastq.gz"));
     let report = out_dir.join("contaminant_screen_report.json");
-    let effective_params = ScreenEffectiveParams {
+    let effective_params = ReferenceContaminantEffectiveParams {
+        schema_version: REFERENCE_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        contaminant_db: Some("contaminant_reference".to_string()),
+        contaminant_reference: "contaminant_reference".to_string(),
+        index_artifact: "contaminant_reference_index".to_string(),
+        retain_unmapped_pairs: r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
