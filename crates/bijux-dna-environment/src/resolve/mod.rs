@@ -352,9 +352,9 @@ pub fn validate_images_for_stage(
 /// Returns an error when the runtime is unsupported or smoke script exits non-zero.
 pub fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
     let script = match runtime {
-        "docker-arm64" => "scripts/containers/smoke-docker-arm64.sh",
-        "docker-amd64" => "scripts/containers/smoke-docker-amd64.sh",
-        "apptainer" => "scripts/containers/smoke-apptainer.sh",
+        "docker-arm64" => "bijux-dev-dna/containers/smoke-docker-arm64.sh",
+        "docker-amd64" => "bijux-dev-dna/containers/smoke-docker-amd64.sh",
+        "apptainer" => "bijux-dev-dna/containers/smoke-apptainer.sh",
         other => {
             anyhow::bail!(
                 "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
@@ -383,9 +383,9 @@ pub fn run_smoke_script_batch(
     smoke_level: &str,
 ) -> anyhow::Result<()> {
     let script = match runtime {
-        "docker-arm64" => "scripts/containers/smoke-docker-arm64.sh",
-        "docker-amd64" => "scripts/containers/smoke-docker-amd64.sh",
-        "apptainer" => "scripts/containers/smoke-apptainer.sh",
+        "docker-arm64" => "bijux-dev-dna/containers/smoke-docker-arm64.sh",
+        "docker-amd64" => "bijux-dev-dna/containers/smoke-docker-amd64.sh",
+        "apptainer" => "bijux-dev-dna/containers/smoke-apptainer.sh",
         other => {
             anyhow::bail!(
                 "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"

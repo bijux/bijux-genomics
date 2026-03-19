@@ -657,11 +657,17 @@ fn script_container_commands(workspace: &Workspace) -> Result<Vec<ContainerComma
         if native_ids.contains(id) {
             continue;
         }
+        let canonical_path = format!("bijux-dev-dna/containers/{id}.sh");
+        let rel_path = if workspace.path(&canonical_path).is_file() {
+            canonical_path
+        } else {
+            entry.path.clone()
+        };
         commands.push(ContainerCommandDefinition {
             id: id.to_string(),
-            summary: format!("Run `{}`.", entry.path),
+            summary: format!("Run `{}`.", rel_path),
             command: ContainerCommandSpec::Script {
-                rel_path: entry.path,
+                rel_path,
             },
         });
     }

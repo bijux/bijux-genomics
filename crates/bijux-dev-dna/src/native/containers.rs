@@ -366,7 +366,7 @@ pub fn run_native_container_command(
             ensure_no_args("smoke-containers-docker-arm64", args)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-docker-arm64.sh",
+                "bijux-dev-dna/containers/smoke-docker-arm64.sh",
                 &[
                     ("TOOLS", env_or_empty("TOOLS")),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -382,7 +382,7 @@ pub fn run_native_container_command(
             ensure_no_args("smoke-containers-docker-amd64", args)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-docker-amd64.sh",
+                "bijux-dev-dna/containers/smoke-docker-amd64.sh",
                 &[
                     ("TOOLS", env_or_empty("TOOLS")),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -398,7 +398,7 @@ pub fn run_native_container_command(
             ensure_no_args("smoke-containers-apptainer", args)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-apptainer.sh",
+                "bijux-dev-dna/containers/smoke-apptainer.sh",
                 &[
                     ("TOOLS", env_or_empty("TOOLS")),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -414,7 +414,7 @@ pub fn run_native_container_command(
             ensure_no_args("smoke-cntainers-apptainer-bijux-run", args)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-apptainer.sh",
+                "bijux-dev-dna/containers/smoke-apptainer.sh",
                 &[
                     ("TOOLS", env_or_empty("TOOLS")),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -432,7 +432,7 @@ pub fn run_native_container_command(
             ensure_no_args("smoke-cntainers-apptainer-apptainer-run", args)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-apptainer.sh",
+                "bijux-dev-dna/containers/smoke-apptainer.sh",
                 &[
                     ("TOOLS", env_or_empty("TOOLS")),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -478,7 +478,7 @@ pub fn run_native_container_command(
             let tools = resolve_toolkit_tools(workspace, &toolkit)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-docker-arm64.sh",
+                "bijux-dev-dna/containers/smoke-docker-arm64.sh",
                 &[
                     ("TOOLS", tools),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -498,7 +498,7 @@ pub fn run_native_container_command(
             let tools = resolve_toolkit_tools(workspace, &toolkit)?;
             smoke_runtime_script(
                 workspace,
-                "scripts/containers/smoke-apptainer.sh",
+                "bijux-dev-dna/containers/smoke-apptainer.sh",
                 &[
                     ("TOOLS", tools),
                     ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -3431,8 +3431,8 @@ fn check_apptainer_cache_policy(workspace: &Workspace) -> Result<ContainerComman
         )));
     }
     for rel in [
-        "scripts/containers/build-apptainer-all.sh",
-        "scripts/containers/smoke-apptainer.sh",
+        "bijux-dev-dna/containers/build-apptainer-all.sh",
+        "bijux-dev-dna/containers/smoke-apptainer.sh",
     ] {
         let text = read_utf8(&workspace.path(rel))?;
         if !text.contains("apptainer_cache_policy.toml") && !text.contains("CACHE_POLICY_TOML") {
@@ -4865,7 +4865,7 @@ fn check_hpc_image_naming(
     }
     let plan = run_program_with_env(
         workspace,
-        "./scripts/containers/ensure-images.sh",
+        "./bijux-dev-dna/containers/ensure-images.sh",
         &["--plan".to_string()],
         &artifact_env(workspace)?,
     )?;
@@ -5904,7 +5904,7 @@ fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     }
     let hook = run_program_with_env(
         workspace,
-        "./scripts/containers/vuln-scan-hook.sh",
+        "./bijux-dev-dna/containers/vuln-scan-hook.sh",
         &[
             workspace.path("artifacts/containers/sbom").display().to_string(),
             out.display().to_string(),
@@ -6148,11 +6148,11 @@ fn check_time_locale_determinism(workspace: &Workspace) -> Result<ContainerComma
             ));
         }
     }
-    let smoke_docker = read_utf8(&workspace.path("scripts/containers/smoke-docker-arm64.sh"))?;
+    let smoke_docker = read_utf8(&workspace.path("bijux-dev-dna/containers/smoke-docker-arm64.sh"))?;
     for marker in ["-e TZ=UTC", "-e LC_ALL=C"] {
         if !smoke_docker.contains(marker) {
             errors.push(format!(
-                "scripts/containers/smoke-docker-arm64.sh must pass '{marker}' to docker run"
+                "bijux-dev-dna/containers/smoke-docker-arm64.sh must pass '{marker}' to docker run"
             ));
         }
     }
@@ -7859,9 +7859,9 @@ fn check_hpc_frontend_policy_enforcement(
             policy.display()
         )));
     }
-    let build_script = workspace.path("scripts/containers/build-apptainer-all.sh");
-    let frontend_script = workspace.path("scripts/containers/build-apptainer-hpc-frontend.sh");
-    let smoke_script = workspace.path("scripts/containers/smoke-apptainer.sh");
+    let build_script = workspace.path("bijux-dev-dna/containers/build-apptainer-all.sh");
+    let frontend_script = workspace.path("bijux-dev-dna/containers/build-apptainer-hpc-frontend.sh");
+    let smoke_script = workspace.path("bijux-dev-dna/containers/smoke-apptainer.sh");
     let mut errors = Vec::new();
     for path in [&build_script, &frontend_script, &smoke_script] {
         let text = read_utf8(path)?;
@@ -8214,7 +8214,7 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
 
 fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let checklist_path = workspace.path("containers/docs/RELEASE_CHECKLIST.md");
-    let gate_path = workspace.path("scripts/containers/release-gate.sh");
+    let gate_path = workspace.path("bijux-dev-dna/containers/release-gate.sh");
     if !checklist_path.exists() {
         return Ok(ContainerCommandOutcome::failure(
             "release checklist check: missing containers/docs/RELEASE_CHECKLIST.md\n",
@@ -8611,7 +8611,7 @@ fn run_build_contract(workspace: &Workspace, tools_csv: &str) -> Result<Containe
     if container_type == "apptainer" {
         smoke_runtime_script(
             workspace,
-            "scripts/containers/smoke-apptainer.sh",
+            "bijux-dev-dna/containers/smoke-apptainer.sh",
             &[
                 ("TOOLS", tools_csv.to_string()),
                 ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -8626,7 +8626,7 @@ fn run_build_contract(workspace: &Workspace, tools_csv: &str) -> Result<Containe
     } else {
         smoke_runtime_script(
             workspace,
-            "scripts/containers/smoke-docker-arm64.sh",
+            "bijux-dev-dna/containers/smoke-docker-arm64.sh",
             &[
                 ("TOOLS", tools_csv.to_string()),
                 ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -8657,7 +8657,7 @@ fn run_test_images(workspace: &Workspace, args: &[String]) -> Result<ContainerCo
         };
         return smoke_runtime_script(
             workspace,
-            "scripts/containers/smoke-docker-arm64.sh",
+            "bijux-dev-dna/containers/smoke-docker-arm64.sh",
             &[
                 ("TOOLS", tools_csv),
                 ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -8744,7 +8744,7 @@ fn run_image_smoke_vcf(workspace: &Workspace, args: &[String]) -> Result<Contain
     if checked_container_type()? == "apptainer" {
         smoke_runtime_script(
             workspace,
-            "scripts/containers/smoke-apptainer.sh",
+            "bijux-dev-dna/containers/smoke-apptainer.sh",
             &[
                 ("TOOLS", tools_csv),
                 ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
@@ -8755,7 +8755,7 @@ fn run_image_smoke_vcf(workspace: &Workspace, args: &[String]) -> Result<Contain
     } else {
         smoke_runtime_script(
             workspace,
-            "scripts/containers/smoke-docker-arm64.sh",
+            "bijux-dev-dna/containers/smoke-docker-arm64.sh",
             &[
                 ("TOOLS", tools_csv),
                 ("BIJUX_WORKERS", env_or_default("BIJUX_WORKERS", "1")),
