@@ -28,7 +28,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 
 #[test]
 fn rrna_stage_feeds_filtered_reads_to_next_stage() -> Result<()> {
-    let stages = vec!["fastq.rrna".to_string(), "fastq.stats_neutral".to_string()];
+    let stages = vec!["fastq.rrna".to_string(), "fastq.profile_reads".to_string()];
     let tools = vec![dummy_tool("sortmerna"), dummy_tool("seqkit_stats")];
     let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
         &stages,
@@ -45,7 +45,7 @@ fn rrna_stage_feeds_filtered_reads_to_next_stage() -> Result<()> {
     )?;
     assert_eq!(plans.len(), 2);
     assert_eq!(plans[0].stage_id.as_str(), "fastq.rrna");
-    assert_eq!(plans[1].stage_id.as_str(), "fastq.stats_neutral");
+    assert_eq!(plans[1].stage_id.as_str(), "fastq.profile_reads");
     assert_eq!(plans[1].io.inputs[0].path, plans[0].io.outputs[0].path);
     Ok(())
 }

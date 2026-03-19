@@ -7,8 +7,8 @@ use bijux_dna_core::contract::{objective_spec, select_stage};
 use bijux_dna_core::contract::{BenchResultStatus, Objective};
 use bijux_dna_domain_fastq::BenchResultsRepository;
 use bijux_dna_domain_fastq::{
-    bench_dir_name, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_QC_POST, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_VALIDATE_PRE,
+    bench_dir_name, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_REPORT_QC, STAGE_PROFILE_READS,
+    STAGE_TRIM_READS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
 use rusqlite::{params, Connection};
@@ -95,10 +95,10 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
     );
 
     let stages = [
-        (STAGE_VALIDATE_PRE, "bench_fastq_validate_v1"),
-        (STAGE_TRIM, "bench_fastq_trim_v2"),
-        (STAGE_FILTER, "bench_fastq_filter_v2"),
-        (STAGE_STATS_NEUTRAL, "bench_fastq_stats_v1"),
+        (STAGE_VALIDATE_READS, "bench_fastq_validate_v1"),
+        (STAGE_TRIM_READS, "bench_fastq_trim_v2"),
+        (STAGE_FILTER_READS, "bench_fastq_filter_v2"),
+        (STAGE_PROFILE_READS, "bench_fastq_stats_v1"),
     ];
 
     for (stage, table) in stages {
@@ -131,12 +131,12 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
     }
 
     let pipeline_stages = vec![
-        STAGE_VALIDATE_PRE,
+        STAGE_VALIDATE_READS,
         STAGE_DETECT_ADAPTERS,
-        STAGE_TRIM,
-        STAGE_FILTER,
-        STAGE_STATS_NEUTRAL,
-        STAGE_QC_POST,
+        STAGE_TRIM_READS,
+        STAGE_FILTER_READS,
+        STAGE_PROFILE_READS,
+        STAGE_REPORT_QC,
     ];
 
     let repo = SqliteBenchResultsRepository::new(temp_root.clone());

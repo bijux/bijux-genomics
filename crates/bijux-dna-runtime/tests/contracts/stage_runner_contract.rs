@@ -3,7 +3,7 @@ use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 #[test]
 fn docker_runner_contract_covers_core_domains() {
     for stage_id in [
-        "fastq.trim",
+        "fastq.trim_reads",
         "bam.align",
         "vcf.phasing",
         "core.prepare_reference",

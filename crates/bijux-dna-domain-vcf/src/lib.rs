@@ -16,7 +16,7 @@ pub use taxonomy::{
 
 pub const STAGE_PREFIX: &str = "vcf.";
 pub const STAGE_CALL: &str = "vcf.call";
-pub const STAGE_FILTER: &str = "vcf.filter";
+pub const STAGE_FILTER_READS: &str = "vcf.filter";
 pub const STAGE_STATS: &str = "vcf.stats";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,7 +123,7 @@ impl VcfStage {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Call => STAGE_CALL,
-            Self::Filter => STAGE_FILTER,
+            Self::Filter => STAGE_FILTER_READS,
             Self::Stats => STAGE_STATS,
         }
     }
@@ -140,7 +140,7 @@ impl TryFrom<&str> for VcfStage {
     fn try_from(value: &str) -> Result<Self> {
         match value {
             STAGE_CALL => Ok(Self::Call),
-            STAGE_FILTER => Ok(Self::Filter),
+            STAGE_FILTER_READS => Ok(Self::Filter),
             STAGE_STATS => Ok(Self::Stats),
             _ => Err(anyhow!("unknown VCF stage: {value}")),
         }

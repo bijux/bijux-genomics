@@ -216,7 +216,7 @@ pub enum FastqCommand {
         about = "Summarize FASTQ read statistics (neutral).",
         after_help = "Example:\n  bijux-dna fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
     )]
-    StatsNeutral(CommonArgs),
+    ProfileReads(CommonArgs),
     Umi(CommonArgs),
     #[command(name = "error-correct")]
     ErrorCorrect(CommonArgs),
@@ -227,7 +227,7 @@ pub enum FastqCommand {
         about = "Validate FASTQ reads (pre).",
         after_help = "Examples:\n  bijux-dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator\n  bijux-dna fastq validate-pre --list-tools"
     )]
-    ValidatePre(FastqValidateArgs),
+    ValidateReads(FastqValidateArgs),
     #[command(about = "Compare two FASTQ runs.")]
     Compare(FastqCompareArgs),
     Align(CommonArgs),

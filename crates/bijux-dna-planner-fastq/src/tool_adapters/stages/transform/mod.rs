@@ -1,11 +1,11 @@
 pub mod contaminant_screen;
 pub mod correct;
 pub mod deduplicate;
-pub mod filter;
+pub mod filter_reads;
 pub mod host_depletion;
 pub mod low_complexity;
 pub mod merge;
-pub mod trim;
+pub mod trim_reads;
 pub mod umi;
 pub mod polyg_tailing {
     use std::path::Path;

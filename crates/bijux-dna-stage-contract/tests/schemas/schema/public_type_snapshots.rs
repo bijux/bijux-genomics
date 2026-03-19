@@ -6,7 +6,7 @@ use bijux_dna_stage_contract::{
 
 fn stage_plan() -> StagePlanV1 {
     StagePlanV1 {
-        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim"),
+        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
         stage_version: bijux_dna_core::ids::StageVersion(1),
         tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
         tool_version: "1.0".to_string(),
@@ -30,7 +30,7 @@ fn stage_plan() -> StagePlanV1 {
                 bijux_dna_core::contract::ArtifactRole::TrimmedReads,
             )],
         },
-        out_dir: "out/fastq.trim".into(),
+        out_dir: "out/fastq.trim_reads".into(),
         params: serde_json::json!({"quality": 20}),
         effective_params: serde_json::json!({"quality": 20}),
         aux_images: BTreeMap::new(),
@@ -117,7 +117,7 @@ fn stage_plugin_output_snapshot() {
         metrics: bijux_dna_core::metrics::MetricsEnvelope {
             schema_version: "bijux.metrics_envelope.v2".to_string(),
             contract_version: bijux_dna_core::contract::ContractVersion::v1(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             stage_version: 1,
             tool_id: "fastp".to_string(),
             tool_version: "1.0".to_string(),

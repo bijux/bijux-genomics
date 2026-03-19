@@ -12,7 +12,7 @@
   "selected_tools": ["fastp"],
   "defaults_diff": {},
   "reasons": ["fastp provides trim+filter in one step"],
-  "contract_hashes": {"fastq.trim": "sha256:..."}
+  "contract_hashes": {"fastq.trim_reads": "sha256:..."}
 }
 ```
 

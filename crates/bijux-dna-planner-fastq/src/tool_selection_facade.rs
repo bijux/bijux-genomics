@@ -1,6 +1,6 @@
 pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let mut allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM_READS);
     if allow_experimental {
         if !allowlist.iter().any(|tool| tool.as_str() == "seqpurge") {
             allowlist.push(bijux_dna_core::ids::ToolId::from_static("seqpurge"));
@@ -13,13 +13,13 @@ pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<V
 
 pub fn select_validate_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_VALIDATE_PRE);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_VALIDATE_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
@@ -39,7 +39,7 @@ pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Resul
 
 pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_QC_POST);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_REPORT_QC);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
@@ -50,13 +50,13 @@ pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
 
 pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_SCREEN);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_STATS_NEUTRAL);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_PROFILE_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 

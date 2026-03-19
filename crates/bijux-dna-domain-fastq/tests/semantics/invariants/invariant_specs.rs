@@ -169,22 +169,22 @@ fn effective_params_validate() -> serde_json::Value {
 fn fixture_for_invariant(id: &str) -> (String, serde_json::Value, serde_json::Value) {
     match id {
         "effective_params_present" => (
-            "fastq.trim".to_string(),
+            "fastq.trim_reads".to_string(),
             serde_json::to_value(trim_metrics(0.9, 1.0)).unwrap(),
             serde_json::json!({}),
         ),
         "metrics_parse" => (
-            "fastq.trim".to_string(),
+            "fastq.trim_reads".to_string(),
             serde_json::json!({}),
             effective_params_trim(),
         ),
         "retention_sanity" => (
-            "fastq.trim".to_string(),
+            "fastq.trim_reads".to_string(),
             serde_json::to_value(trim_metrics(0.1, 1.0)).unwrap(),
             effective_params_trim(),
         ),
         "quality_direction" => (
-            "fastq.trim".to_string(),
+            "fastq.trim_reads".to_string(),
             serde_json::to_value(trim_metrics(0.9, -10.0)).unwrap(),
             effective_params_trim(),
         ),
@@ -194,12 +194,12 @@ fn fixture_for_invariant(id: &str) -> (String, serde_json::Value, serde_json::Va
             effective_params_merge(),
         ),
         "n_rate_sanity" => (
-            "fastq.filter".to_string(),
+            "fastq.filter_reads".to_string(),
             serde_json::to_value(filter_metrics(0.1)).unwrap(),
             effective_params_filter(),
         ),
         "validate_malformed_reads" => (
-            "fastq.validate_pre".to_string(),
+            "fastq.validate_reads".to_string(),
             serde_json::to_value(validate_metrics(1)).unwrap(),
             effective_params_validate(),
         ),

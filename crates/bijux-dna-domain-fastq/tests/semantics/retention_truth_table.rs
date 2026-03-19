@@ -26,7 +26,7 @@ fn ratio(out: u64, input: u64) -> f64 {
 fn fastq_retention_truth_table() {
     let cases = [
         RetentionCase {
-            stage_id: "fastq.trim",
+            stage_id: "fastq.trim_reads",
             reads_in: 100,
             reads_out: 80,
             bases_in: 1000,
@@ -38,7 +38,7 @@ fn fastq_retention_truth_table() {
             expected_pairs: None,
         },
         RetentionCase {
-            stage_id: "fastq.filter",
+            stage_id: "fastq.filter_reads",
             reads_in: 100,
             reads_out: 70,
             bases_in: 1000,

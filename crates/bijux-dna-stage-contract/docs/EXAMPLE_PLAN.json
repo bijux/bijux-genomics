@@ -6,8 +6,8 @@
   "planner_id": "planner.fastq.v1",
   "steps": [
     {
-      "step_id": "fastq.trim",
-      "stage_id": "fastq.trim",
+      "step_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp",
       "tool_version": "1.0",
       "inputs": [

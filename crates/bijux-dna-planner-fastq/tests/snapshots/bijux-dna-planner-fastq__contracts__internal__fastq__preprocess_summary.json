@@ -38,8 +38,8 @@
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
     "stages": [
-      "fastq.trim",
-      "fastq.validate_pre"
+      "fastq.trim_reads",
+      "fastq.validate_reads"
     ]
   },
   "effective_params": {
@@ -49,8 +49,8 @@
     "paired_mode": "paired_end",
     "pipeline_mode": "shotgun",
     "stages": [
-      "fastq.trim",
-      "fastq.validate_pre"
+      "fastq.trim_reads",
+      "fastq.validate_reads"
     ],
     "threads": 1
   },

@@ -15,7 +15,7 @@ fn replay_regenerates_outputs_from_manifest() -> Result<()> {
     let manifest = ExecutionManifest {
         contract_version: ContractVersion::v1(),
         run_id: "run-1".to_string(),
-        stage: "fastq.trim".to_string(),
+        stage: "fastq.trim_reads".to_string(),
         tool: "tool".to_string(),
         tool_version: "0.0.1-test".to_string(),
         image_digest: "sha256:synthetic-image".to_string(),

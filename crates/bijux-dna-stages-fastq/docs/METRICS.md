@@ -3,9 +3,9 @@
 Schema: `bijux.metrics.summary.v1`
 
 Required stage metrics in default FASTQ pipelines:
-- `fastq.trim`: trim retention and quality deltas (`reads_in/out`, `bases_in/out`, `delta_metrics`, `retention`)
-- `fastq.filter`: filter removals and retention (`reads_removed_*`, `delta_metrics`, `retention`)
-- `fastq.qc_post`: QC summary with adapter/duplication/N-content indicators and report paths
+- `fastq.trim_reads`: trim retention and quality deltas (`reads_in/out`, `bases_in/out`, `delta_metrics`, `retention`)
+- `fastq.filter_reads`: filter removals and retention (`reads_removed_*`, `delta_metrics`, `retention`)
+- `fastq.report_qc`: QC summary with adapter/duplication/N-content indicators and report paths
 
 Tool metrics schemas covered by parsers:
 - `bijux.fastp.metrics.v1`

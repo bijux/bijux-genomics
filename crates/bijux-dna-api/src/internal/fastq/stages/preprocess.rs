@@ -32,7 +32,7 @@ use crate::internal::handlers::fastq::summary::{
     StageExecutionSummary,
 };
 use crate::internal::handlers::fastq::write_explain_plan_json;
-use crate::internal::handlers::fastq::{STAGE_PREPROCESS, STAGE_QC_POST, STAGE_TRIM};
+use crate::internal::handlers::fastq::{STAGE_PREPROCESS_SUMMARY, STAGE_REPORT_QC, STAGE_TRIM_READS};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{

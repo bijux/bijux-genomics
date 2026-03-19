@@ -32,7 +32,7 @@ pub fn write_validate_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.validate_pre", &rankings);
+        crate::decision::score::print_rank_explain("fastq.validate_reads", &rankings);
     }
     Ok(())
 }
@@ -69,7 +69,7 @@ pub fn write_filter_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.filter", &rankings);
+        crate::decision::score::print_rank_explain("fastq.filter_reads", &rankings);
     }
     Ok(())
 }
@@ -161,7 +161,7 @@ pub fn write_qc_post_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.qc_post", &BTreeMap::new());
+        crate::decision::score::print_rank_explain("fastq.report_qc", &BTreeMap::new());
     }
     Ok(())
 }
@@ -226,7 +226,7 @@ pub fn write_stats_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
+        crate::decision::score::print_rank_explain("fastq.profile_reads", &BTreeMap::new());
     }
     Ok(())
 }

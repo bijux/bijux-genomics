@@ -117,12 +117,12 @@ pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
         library_damage_treatment: LibraryDamageTreatment::NoUdg,
         threads: 1,
         stages: vec![
-            "fastq.validate_pre".to_string(),
+            "fastq.validate_reads".to_string(),
             "fastq.detect_adapters".to_string(),
-            "fastq.trim".to_string(),
-            "fastq.filter".to_string(),
-            "fastq.stats_neutral".to_string(),
-            "fastq.qc_post".to_string(),
+            "fastq.trim_reads".to_string(),
+            "fastq.filter_reads".to_string(),
+            "fastq.profile_reads".to_string(),
+            "fastq.report_qc".to_string(),
         ],
         enable_contaminant_removal: false,
     }

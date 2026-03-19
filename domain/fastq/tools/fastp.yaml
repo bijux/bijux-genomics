@@ -43,9 +43,9 @@ license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
   - "fastq.detect_adapters"
-  - "fastq.trim"
-  - "fastq.filter"
-  - "fastq.length_distribution_pre"
+  - "fastq.trim_reads"
+  - "fastq.filter_reads"
+  - "fastq.profile_read_lengths"
   - "fastq.polyg_tailing"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"

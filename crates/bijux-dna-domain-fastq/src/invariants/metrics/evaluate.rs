@@ -36,7 +36,7 @@ pub fn evaluate_invariants(
 
     let mut key_metrics = serde_json::Map::new();
 
-    if stage_id == &STAGE_TRIM {
+    if stage_id == &STAGE_TRIM_READS {
         if let Ok(metrics) = serde_json::from_value::<FastqTrimMetricsV1>(metrics_json.clone()) {
             key_metrics.insert(
                 "read_retention".to_string(),
@@ -110,10 +110,10 @@ pub fn evaluate_invariants(
                 "metrics_parse",
                 InvariantStatusV1::Fail,
                 "failed to parse trim metrics".to_string(),
-                Some("verify metrics schema for fastq.trim".to_string()),
+                Some("verify metrics schema for fastq.trim_reads".to_string()),
             ));
         }
-    } else if stage_id == &STAGE_FILTER {
+    } else if stage_id == &STAGE_FILTER_READS {
         if let Ok(metrics) = serde_json::from_value::<FastqFilterMetricsV1>(metrics_json.clone()) {
             key_metrics.insert(
                 "read_retention".to_string(),
@@ -219,10 +219,10 @@ pub fn evaluate_invariants(
                 "metrics_parse",
                 InvariantStatusV1::Fail,
                 "failed to parse filter metrics".to_string(),
-                Some("verify metrics schema for fastq.filter".to_string()),
+                Some("verify metrics schema for fastq.filter_reads".to_string()),
             ));
         }
-    } else if stage_id == &STAGE_VALIDATE_PRE {
+    } else if stage_id == &STAGE_VALIDATE_READS {
         if let Ok(metrics) =
             serde_json::from_value::<FastqValidateMetricsV1>(metrics_json.clone())
         {
@@ -250,7 +250,7 @@ pub fn evaluate_invariants(
                 "metrics_parse",
                 InvariantStatusV1::Fail,
                 "failed to parse validate metrics".to_string(),
-                Some("verify metrics schema for fastq.validate_pre".to_string()),
+                Some("verify metrics schema for fastq.validate_reads".to_string()),
             ));
         }
     } else if stage_id == &STAGE_MERGE {
@@ -324,36 +324,36 @@ pub fn evaluate_invariants(
 
 #[allow(dead_code)]
 pub const CORE_STAGES: [StageId; 6] = [
-    STAGE_VALIDATE_PRE,
-    STAGE_TRIM,
+    STAGE_VALIDATE_READS,
+    STAGE_TRIM_READS,
     STAGE_MERGE,
     STAGE_CORRECT,
-    STAGE_FILTER,
-    STAGE_STATS_NEUTRAL,
+    STAGE_FILTER_READS,
+    STAGE_PROFILE_READS,
 ];
 
 #[allow(dead_code)]
-pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_QC_POST, STAGE_UMI, STAGE_SCREEN];
+pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_REPORT_QC, STAGE_UMI, STAGE_SCREEN_TAXONOMY];
 
 #[allow(dead_code)]
 pub const META_STAGES: [StageId; 0] = [];
 
 #[allow(dead_code)]
 pub const MUTATING_STAGES: [StageId; 5] = [
-    STAGE_TRIM,
+    STAGE_TRIM_READS,
     STAGE_MERGE,
     STAGE_CORRECT,
-    STAGE_FILTER,
+    STAGE_FILTER_READS,
     STAGE_UMI,
 ];
 
 #[allow(dead_code)]
-pub const LOSSLESS_STAGES: [StageId; 2] = [STAGE_VALIDATE_PRE, STAGE_STATS_NEUTRAL];
+pub const LOSSLESS_STAGES: [StageId; 2] = [STAGE_VALIDATE_READS, STAGE_PROFILE_READS];
 
 #[allow(dead_code)]
 pub const OBSERVATIONAL_STAGES: [StageId; 4] = [
-    STAGE_VALIDATE_PRE,
-    STAGE_STATS_NEUTRAL,
-    STAGE_QC_POST,
-    STAGE_SCREEN,
+    STAGE_VALIDATE_READS,
+    STAGE_PROFILE_READS,
+    STAGE_REPORT_QC,
+    STAGE_SCREEN_TAXONOMY,
 ];

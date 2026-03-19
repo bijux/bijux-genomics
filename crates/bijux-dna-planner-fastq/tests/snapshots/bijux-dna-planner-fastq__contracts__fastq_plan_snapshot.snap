@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 80
+assertion_line: 81
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -11,8 +11,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "deterministic_scheduler": true,
   "edges": [
     {
-      "from": "fastq.validate_pre",
-      "to": "fastq.trim"
+      "from": "fastq.validate_reads",
+      "to": "fastq.trim_reads"
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
@@ -50,33 +50,33 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "trimmed_reads",
             "optional": false,
-            "path": "out/trim/fastp/fastp.fastq.gz",
+            "path": "out/trim_reads/fastp/fastp.fastq.gz",
             "role": "trimmed_reads"
           },
           {
             "name": "trim_report",
             "optional": false,
-            "path": "out/trim/fastp/trim.report.json",
+            "path": "out/trim_reads/fastp/trim.report.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "out/trim/fastp/stage.metrics.json",
+            "path": "out/trim_reads/fastp/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/trim/fastp",
+      "out_dir": "out/trim_reads/fastp",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
         "threads": 2,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.trim",
-      "step_id": "fastq.trim"
+      "stage_id": "fastq.trim_reads",
+      "step_id": "fastq.trim_reads"
     },
     {
       "aux_images": {},
@@ -103,21 +103,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "validation_report",
             "optional": false,
-            "path": "out/validate_pre/fastqvalidator/validation.json",
+            "path": "out/validate_reads/fastqvalidator/validation.json",
             "role": "report_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/validate_pre/fastqvalidator",
+      "out_dir": "out/validate_reads/fastqvalidator",
       "resources": {
         "mem_gb": 1,
         "runtime": "short",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.validate_pre",
-      "step_id": "fastq.validate_pre"
+      "stage_id": "fastq.validate_reads",
+      "step_id": "fastq.validate_reads"
     }
   ]
 }

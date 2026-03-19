@@ -62,7 +62,7 @@ pub(crate) fn write_run_manifest(
                 &artifacts_dir.join("telemetry").join("events.jsonl"),
             );
             let mut primary_outputs = Vec::new();
-            if entry.plan.step_id.as_str() == STAGE_QC_POST.as_str() {
+            if entry.plan.step_id.as_str() == STAGE_REPORT_QC.as_str() {
                 let qc_report = artifacts_dir
                     .join("reports")
                     .join(format!("{}.qc_post_report.json", entry.plan.step_id.0));

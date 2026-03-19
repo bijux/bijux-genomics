@@ -4,7 +4,7 @@ This document tracks default scientific thresholds and tool choices that affect 
 Publication-scoped scientific artifacts are referenced via [`assets/publications/adna-methods-2024/index.md`](../../assets/publications/adna-methods-2024/index.md); see [`docs/20-science/PUBLICATION_ASSETS.md`](./PUBLICATION_ASSETS.md).
 
 ## FASTQ
-- `fastq.trim.min_len > 0` in all aDNA presets.
+- `fastq.trim_reads.min_len > 0` in all aDNA presets.
 - `adapter_policy != none` in all aDNA presets.
 - `fastq.merge` is required for paired reference aDNA unless explicitly disabled with justification.
 - Reference-grade aDNA profile includes required stages for pre/post QC, trimming/filtering, merge, contamination hooks, and summary outputs.

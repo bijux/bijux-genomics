@@ -43,7 +43,7 @@ fn validate_domain_indexes_and_pipelines(
         for stage_id in &index.stage_ids {
             if is_umbrella_stage(stage_id) {
                 bail!(
-                    "{} contains umbrella stage {}. Use explicit stage IDs (e.g. fastq.validate_pre, fastq.stats_neutral, ...).",
+                    "{} contains umbrella stage {}. Use explicit stage IDs (e.g. fastq.validate_reads, fastq.profile_reads, ...).",
                     index_path.display(),
                     stage_id
                 );

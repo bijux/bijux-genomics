@@ -53,7 +53,7 @@ pub(crate) fn handle_fastq_bench(
             }
             Ok(true)
         }
-        FastqCommand::ValidatePre(args) if is_bench_requested_validate(args) => {
+        FastqCommand::ValidateReads(args) if is_bench_requested_validate(args) => {
             set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
@@ -62,7 +62,7 @@ pub(crate) fn handle_fastq_bench(
             let runner = None;
             let bench_args = bench_args_from_validate(args)?;
             let outcome = bench_fastq_validate_pre(&catalog, &platform, runner, &bench_args)?;
-            let qc_class = qc_class_label("fastq.validate_pre");
+            let qc_class = qc_class_label("fastq.validate_reads");
             write_validate_report(
                 &outcome.bench_dir,
                 &outcome.records,
@@ -391,7 +391,7 @@ pub(crate) fn set_tool_tier_policy(allow_silver: bool, allow_experimental: bool)
 fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
     match command {
         FastqCommand::Trim(args) => (args.common.allow_silver, args.common.allow_experimental),
-        FastqCommand::ValidatePre(args) => {
+        FastqCommand::ValidateReads(args) => {
             (args.common.allow_silver, args.common.allow_experimental)
         }
         FastqCommand::Filter(args) => (args.common.allow_silver, args.common.allow_experimental),
@@ -407,7 +407,7 @@ fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
         | FastqCommand::Qc(args)
         | FastqCommand::Umi(args)
         | FastqCommand::Contam(args)
-        | FastqCommand::StatsNeutral(args)
+        | FastqCommand::ProfileReads(args)
         | FastqCommand::Align(args) => (args.allow_silver, args.allow_experimental),
         _ => (false, false),
     }
@@ -416,7 +416,7 @@ fn explain_fastq_stage(
     registry: &bijux_dna_api::v1::api::run::ToolRegistry,
     stage_id: &str,
 ) -> Result<()> {
-    if stage_id == "fastq.trim" {
+    if stage_id == "fastq.trim_reads" {
         let default_profile = bijux_dna_api::v1::api::plan::select_pipeline(
             bijux_dna_api::v1::api::plan::Domain::Fastq,
             "fastq-to-fastq__default__v1",
@@ -425,11 +425,11 @@ fn explain_fastq_stage(
             bijux_dna_api::v1::api::plan::Domain::Fastq,
             "fastq-to-fastq__reference_adna__v1",
         )?;
-        let trim_stage = StageId::from_static("fastq.trim");
-        let param_schema = lookup_param_schema_id("fastq.trim")
+        let trim_stage = StageId::from_static("fastq.trim_reads");
+        let param_schema = lookup_param_schema_id("fastq.trim_reads")
             .unwrap_or_else(|| "unknown_from_registry".to_string());
         let payload = serde_json::json!({
-            "stage_id": "fastq.trim",
+            "stage_id": "fastq.trim_reads",
             "param_schema": param_schema,
             "param_variant": "FastqTrim (effective defaults payload)",
             "defaults": {
@@ -440,7 +440,7 @@ fn explain_fastq_stage(
                 "fastq-default": bijux_dna_api::v1::api::plan::validate_fastq_profile(&default_profile),
                 "fastq-reference-adna": bijux_dna_api::v1::api::plan::validate_fastq_profile(&reference_profile),
             },
-            "metrics_schema": "bijux.fastq.trim.v1",
+            "metrics_schema": "bijux.fastq.trim_reads.v1",
         });
         render::json::print_pretty(&payload)?;
         return Ok(());

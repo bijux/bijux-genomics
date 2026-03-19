@@ -121,7 +121,7 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
         .collect();
     let mut final_outputs = Vec::new();
     for row in rows {
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             final_outputs.extend(stage_outputs_for_row(row));
         }
     }

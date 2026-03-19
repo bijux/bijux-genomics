@@ -17,27 +17,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     {
       "banks": {},
-      "stage_id": "fastq.filter",
+      "stage_id": "fastq.filter_reads",
       "tool_id": "seqkit"
     },
     {
       "banks": {},
-      "stage_id": "fastq.qc_post",
+      "stage_id": "fastq.report_qc",
       "tool_id": "multiqc"
     },
     {
       "banks": {},
-      "stage_id": "fastq.stats_neutral",
+      "stage_id": "fastq.profile_reads",
       "tool_id": "seqkit_stats"
     },
     {
       "banks": {},
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     },
     {
       "banks": {},
-      "stage_id": "fastq.validate_pre",
+      "stage_id": "fastq.validate_reads",
       "tool_id": "fastqvalidator"
     }
   ],
@@ -46,16 +46,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "missing_reports": [
       "fastq.detect_adapters:metrics_path",
       "fastq.detect_adapters:retention_report",
-      "fastq.filter:metrics_path",
-      "fastq.filter:retention_report",
-      "fastq.qc_post:metrics_path",
-      "fastq.qc_post:retention_report",
-      "fastq.stats_neutral:metrics_path",
-      "fastq.stats_neutral:retention_report",
-      "fastq.trim:metrics_path",
-      "fastq.trim:retention_report",
-      "fastq.validate_pre:metrics_path",
-      "fastq.validate_pre:retention_report"
+      "fastq.filter_reads:metrics_path",
+      "fastq.filter_reads:retention_report",
+      "fastq.report_qc:metrics_path",
+      "fastq.report_qc:retention_report",
+      "fastq.profile_reads:metrics_path",
+      "fastq.profile_reads:retention_report",
+      "fastq.trim_reads:metrics_path",
+      "fastq.trim_reads:retention_report",
+      "fastq.validate_reads:metrics_path",
+      "fastq.validate_reads:retention_report"
     ],
     "status": "incomplete"
   },
@@ -180,8 +180,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.filter",
-      "stage_id": "fastq.filter",
+      "span_id": "span-fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
       "tool_id": "seqkit",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
@@ -190,8 +190,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.qc_post",
-      "stage_id": "fastq.qc_post",
+      "span_id": "span-fastq.report_qc",
+      "stage_id": "fastq.report_qc",
       "tool_id": "multiqc",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
@@ -200,8 +200,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.stats_neutral",
-      "stage_id": "fastq.stats_neutral",
+      "span_id": "span-fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
       "tool_id": "seqkit_stats",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
@@ -210,8 +210,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.trim",
-      "stage_id": "fastq.trim",
+      "span_id": "span-fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
@@ -220,8 +220,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.validate_pre",
-      "stage_id": "fastq.validate_pre",
+      "span_id": "span-fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
       "tool_id": "fastqvalidator",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
@@ -244,31 +244,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc"
         },
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats"
         },
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
       ]
@@ -334,27 +334,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "results": [],
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
           "results": [],
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc"
         },
         {
           "results": [],
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats"
         },
         {
           "results": [],
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
           "results": [],
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
       ]
@@ -382,27 +382,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "banks": {},
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
           "banks": {},
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc"
         },
         {
           "banks": {},
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats"
         },
         {
           "banks": {},
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
           "banks": {},
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
       ]
@@ -412,16 +412,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "missing_reports": [
         "fastq.detect_adapters:metrics_path",
         "fastq.detect_adapters:retention_report",
-        "fastq.filter:metrics_path",
-        "fastq.filter:retention_report",
-        "fastq.qc_post:metrics_path",
-        "fastq.qc_post:retention_report",
-        "fastq.stats_neutral:metrics_path",
-        "fastq.stats_neutral:retention_report",
-        "fastq.trim:metrics_path",
-        "fastq.trim:retention_report",
-        "fastq.validate_pre:metrics_path",
-        "fastq.validate_pre:retention_report"
+        "fastq.filter_reads:metrics_path",
+        "fastq.filter_reads:retention_report",
+        "fastq.report_qc:metrics_path",
+        "fastq.report_qc:retention_report",
+        "fastq.profile_reads:metrics_path",
+        "fastq.profile_reads:retention_report",
+        "fastq.trim_reads:metrics_path",
+        "fastq.trim_reads:retention_report",
+        "fastq.validate_reads:metrics_path",
+        "fastq.validate_reads:retention_report"
       ],
       "status": "incomplete"
     },
@@ -478,7 +478,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "telemetry_decisions": [],
           "tool_id": "seqkit",
           "tool_version": "99.99.99+fixture"
@@ -494,7 +494,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "telemetry_decisions": [],
           "tool_id": "multiqc",
           "tool_version": "99.99.99+fixture"
@@ -510,7 +510,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "telemetry_decisions": [],
           "tool_id": "seqkit_stats",
           "tool_version": "99.99.99+fixture"
@@ -526,7 +526,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "telemetry_decisions": [],
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
@@ -542,7 +542,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "telemetry_decisions": [],
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
@@ -559,16 +559,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "missing_reports": [
           "fastq.detect_adapters:metrics_path",
           "fastq.detect_adapters:retention_report",
-          "fastq.filter:metrics_path",
-          "fastq.filter:retention_report",
-          "fastq.qc_post:metrics_path",
-          "fastq.qc_post:retention_report",
-          "fastq.stats_neutral:metrics_path",
-          "fastq.stats_neutral:retention_report",
-          "fastq.trim:metrics_path",
-          "fastq.trim:retention_report",
-          "fastq.validate_pre:metrics_path",
-          "fastq.validate_pre:retention_report"
+          "fastq.filter_reads:metrics_path",
+          "fastq.filter_reads:retention_report",
+          "fastq.report_qc:metrics_path",
+          "fastq.report_qc:retention_report",
+          "fastq.profile_reads:metrics_path",
+          "fastq.profile_reads:retention_report",
+          "fastq.trim_reads:metrics_path",
+          "fastq.trim_reads:retention_report",
+          "fastq.validate_reads:metrics_path",
+          "fastq.validate_reads:retention_report"
         ],
         "status": "incomplete"
       }
@@ -598,13 +598,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "bases_dropped": 200,
           "reads_dropped": 20,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
           "bases_dropped": 200,
           "reads_dropped": 20,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -615,16 +615,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "items": [
           "fastq.detect_adapters:metrics_path",
           "fastq.detect_adapters:retention_report",
-          "fastq.filter:metrics_path",
-          "fastq.filter:retention_report",
-          "fastq.qc_post:metrics_path",
-          "fastq.qc_post:retention_report",
-          "fastq.stats_neutral:metrics_path",
-          "fastq.stats_neutral:retention_report",
-          "fastq.trim:metrics_path",
-          "fastq.trim:retention_report",
-          "fastq.validate_pre:metrics_path",
-          "fastq.validate_pre:retention_report"
+          "fastq.filter_reads:metrics_path",
+          "fastq.filter_reads:retention_report",
+          "fastq.report_qc:metrics_path",
+          "fastq.report_qc:retention_report",
+          "fastq.profile_reads:metrics_path",
+          "fastq.profile_reads:retention_report",
+          "fastq.trim_reads:metrics_path",
+          "fastq.trim_reads:retention_report",
+          "fastq.validate_reads:metrics_path",
+          "fastq.validate_reads:retention_report"
         ],
         "kind": "missing_reports"
       }
@@ -671,35 +671,35 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit",
           "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
           "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
           "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
@@ -718,35 +718,35 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit",
           "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
           "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
           "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
@@ -782,7 +782,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.filter": {
+          "fastq.filter_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -818,7 +818,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.qc_post": {
+          "fastq.report_qc": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -830,7 +830,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.screen": {
+          "fastq.screen_taxonomy": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -842,7 +842,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.stats_neutral": {
+          "fastq.profile_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -854,7 +854,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.trim": {
+          "fastq.trim_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -878,7 +878,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.validate_pre": {
+          "fastq.validate_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -903,7 +903,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "sample_reads": null,
             "threads": 1
           },
-          "fastq.filter": {
+          "fastq.filter_reads": {
             "contaminant_db": null,
             "entropy_threshold": null,
             "low_complexity_threshold": null,
@@ -928,30 +928,30 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "paired_mode": "single_end",
             "pipeline_mode": "shotgun",
             "stages": [
-              "fastq.validate_pre",
+              "fastq.validate_reads",
               "fastq.detect_adapters",
-              "fastq.trim",
-              "fastq.filter",
-              "fastq.stats_neutral",
-              "fastq.qc_post"
+              "fastq.trim_reads",
+              "fastq.filter_reads",
+              "fastq.profile_reads",
+              "fastq.report_qc"
             ],
             "threads": 1
           },
-          "fastq.qc_post": {
+          "fastq.report_qc": {
             "paired_mode": "single_end",
             "threads": 1
           },
-          "fastq.screen": {
+          "fastq.screen_taxonomy": {
             "contaminant_db": null,
             "paired_mode": "single_end",
             "threads": 1
           },
-          "fastq.stats_neutral": {
+          "fastq.profile_reads": {
             "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.stats.v1",
             "threads": 1
           },
-          "fastq.trim": {
+          "fastq.trim_reads": {
             "adapter_policy": "none",
             "contaminant_policy": null,
             "min_len": 0,
@@ -967,7 +967,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "threads": 1,
             "umi_pattern": null
           },
-          "fastq.validate_pre": {
+          "fastq.validate_reads": {
             "paired_mode": "single_end",
             "q_cutoff": null,
             "threads": 1
@@ -1000,7 +1000,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.filter": {
+          "fastq.filter_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1036,7 +1036,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.qc_post": {
+          "fastq.report_qc": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1048,7 +1048,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.screen": {
+          "fastq.screen_taxonomy": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1060,7 +1060,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.stats_neutral": {
+          "fastq.profile_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1072,7 +1072,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.trim": {
+          "fastq.trim_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1096,7 +1096,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.validate_pre": {
+          "fastq.validate_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -1112,15 +1112,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tools": {
           "fastq.correct": "rcorrector",
           "fastq.detect_adapters": "fastqc",
-          "fastq.filter": "seqkit",
+          "fastq.filter_reads": "seqkit",
           "fastq.merge": "vsearch",
           "fastq.preprocess": "planner",
-          "fastq.qc_post": "multiqc",
-          "fastq.screen": "kraken2",
-          "fastq.stats_neutral": "seqkit_stats",
-          "fastq.trim": "fastp",
+          "fastq.report_qc": "multiqc",
+          "fastq.screen_taxonomy": "kraken2",
+          "fastq.profile_reads": "seqkit_stats",
+          "fastq.trim_reads": "fastp",
           "fastq.umi": "umi_tools",
-          "fastq.validate_pre": "fastqvalidator"
+          "fastq.validate_reads": "fastqvalidator"
         }
       },
       "overrides": []
@@ -1149,7 +1149,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tier_rationale": "unknown_tool",
           "tool_id": "seqkit",
           "tool_tier": "experimental",
@@ -1163,7 +1163,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tier_rationale": "unknown_tool",
           "tool_id": "multiqc",
           "tool_tier": "experimental",
@@ -1177,7 +1177,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tier_rationale": "diagnostic_stats",
           "tool_id": "seqkit_stats",
           "tool_tier": "silver",
@@ -1191,7 +1191,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tier_rationale": "curated_default",
           "tool_id": "fastp",
           "tool_tier": "gold",
@@ -1205,7 +1205,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tier_rationale": "unknown_tool",
           "tool_id": "fastqvalidator",
           "tool_tier": "experimental",
@@ -1290,7 +1290,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit",
           "tool_version": "99.99.99+fixture"
         },
@@ -1304,7 +1304,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
           "tool_version": "99.99.99+fixture"
         },
@@ -1318,7 +1318,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
           "tool_version": "99.99.99+fixture"
         },
@@ -1332,7 +1332,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
@@ -1346,7 +1346,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
@@ -1369,7 +1369,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "status": "incomplete"
         },
         {
@@ -1378,7 +1378,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "status": "incomplete"
         },
         {
@@ -1387,7 +1387,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "status": "incomplete"
         },
         {
@@ -1396,7 +1396,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "status": "incomplete"
         },
         {
@@ -1405,7 +1405,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "status": "incomplete"
         }
       ]
@@ -1423,35 +1423,35 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
       ]
@@ -1471,7 +1471,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.filter",
+          "stage_id": "fastq.filter_reads",
           "tool_id": "seqkit"
         },
         {
@@ -1479,7 +1479,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "fastq.report_qc",
           "tool_id": "multiqc"
         },
         {
@@ -1487,7 +1487,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats"
         },
         {
@@ -1495,7 +1495,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
@@ -1503,7 +1503,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
       ],
@@ -1514,23 +1514,23 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.filter"
+          "stage_id": "fastq.filter_reads"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.qc_post"
+          "stage_id": "fastq.report_qc"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.stats_neutral"
+          "stage_id": "fastq.profile_reads"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.trim"
+          "stage_id": "fastq.trim_reads"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.validate_pre"
+          "stage_id": "fastq.validate_reads"
         }
       ]
     },
@@ -1566,8 +1566,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.filter",
-      "stage_report_path": "fastq.filter/stage_report.json",
+      "stage_id": "fastq.filter_reads",
+      "stage_report_path": "fastq.filter_reads/stage_report.json",
       "tool_id": "seqkit",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
@@ -1582,8 +1582,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.qc_post",
-      "stage_report_path": "fastq.qc_post/stage_report.json",
+      "stage_id": "fastq.report_qc",
+      "stage_report_path": "fastq.report_qc/stage_report.json",
       "tool_id": "multiqc",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
@@ -1598,8 +1598,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.stats_neutral",
-      "stage_report_path": "fastq.stats_neutral/stage_report.json",
+      "stage_id": "fastq.profile_reads",
+      "stage_report_path": "fastq.profile_reads/stage_report.json",
       "tool_id": "seqkit_stats",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
@@ -1614,8 +1614,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.trim",
-      "stage_report_path": "fastq.trim/stage_report.json",
+      "stage_id": "fastq.trim_reads",
+      "stage_report_path": "fastq.trim_reads/stage_report.json",
       "tool_id": "fastp",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
@@ -1630,8 +1630,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.validate_pre",
-      "stage_report_path": "fastq.validate_pre/stage_report.json",
+      "stage_id": "fastq.validate_reads",
+      "stage_report_path": "fastq.validate_reads/stage_report.json",
       "tool_id": "fastqvalidator",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
@@ -1642,11 +1642,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "event_count": 0,
     "events": [
       "fastq.detect_adapters/telemetry/events.jsonl",
-      "fastq.filter/telemetry/events.jsonl",
-      "fastq.qc_post/telemetry/events.jsonl",
-      "fastq.stats_neutral/telemetry/events.jsonl",
-      "fastq.trim/telemetry/events.jsonl",
-      "fastq.validate_pre/telemetry/events.jsonl"
+      "fastq.filter_reads/telemetry/events.jsonl",
+      "fastq.report_qc/telemetry/events.jsonl",
+      "fastq.profile_reads/telemetry/events.jsonl",
+      "fastq.trim_reads/telemetry/events.jsonl",
+      "fastq.validate_reads/telemetry/events.jsonl"
     ],
     "timeline": []
   }

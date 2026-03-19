@@ -37,7 +37,7 @@ fn fact_table_rejects_partial_deltas() {
     let row = FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "1.0".to_string(),
         image_digest: None,

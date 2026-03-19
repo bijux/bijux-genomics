@@ -134,7 +134,7 @@
         "taxonomy_db_hash": "unknown",
         "taxonomy_db_version": "unknown"
       },
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     }
   ],
@@ -142,7 +142,7 @@
   "completeness": {
     "missing_metrics": [],
     "missing_reports": [
-      "fastq.trim:metrics_path"
+      "fastq.trim_reads:metrics_path"
     ],
     "status": "incomplete"
   },
@@ -266,7 +266,7 @@
       "image_digest": "sha256:img",
       "params_hash": "params",
       "span_id": "span-1",
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp",
       "tool_version": "0.23.4",
       "trace_id": "trace-1"
@@ -297,7 +297,7 @@
       "params_hash": "params",
       "retention_report_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/retention_report.json",
       "runtime_s": 1.0,
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "stage_report_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/stage_report.json",
       "tool_id": "fastp",
       "tool_invocation_path": "",
@@ -337,10 +337,10 @@
       <section id="stages" class="section">
         <h2>stages</h2>
         <div class="stage-tabs">
-<button class=\"stage-tab active\" data-stage=\"fastq.trim\">fastq.trim</button>
+<button class=\"stage-tab active\" data-stage=\"fastq.trim_reads\">fastq.trim_reads</button>
         </div>
-<div class=\"stage-panel active\" data-stage=\"fastq.trim\">
-  <h3>fastq.trim</h3>
+<div class=\"stage-panel active\" data-stage=\"fastq.trim_reads\">
+  <h3>fastq.trim_reads</h3>
   <div class=\"stage-meta\">
     <span>tool: fastp</span>
     <span>version: 0.23.4</span>
@@ -355,7 +355,7 @@
     <h4>Artifacts</h4>
     <ul><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/retention_report.json\">retention_report</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
   </div>
-  <div class=\"stage-plots\" data-stage=\"fastq.trim\"></div>
+  <div class=\"stage-plots\" data-stage=\"fastq.trim_reads\"></div>
 </div>
       </section>
 

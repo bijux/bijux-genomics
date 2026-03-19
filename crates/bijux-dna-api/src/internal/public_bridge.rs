@@ -12,5 +12,5 @@ pub(crate) mod handlers {
 }
 
 pub(crate) mod fastq {
-    pub(crate) use crate::internal::fastq::stages::stats_neutral;
+    pub(crate) use crate::internal::fastq::stages::profile_reads;
 }

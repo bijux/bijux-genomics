@@ -16,7 +16,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     let row = FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:abc".to_string()),
@@ -79,7 +79,7 @@ fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
         FactsRowV1 {
             schema_version: "bijux.facts.v1".to_string(),
             run_id: "run-2".to_string(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: Some("sha256:abc".to_string()),
@@ -105,7 +105,7 @@ fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
         FactsRowV1 {
             schema_version: "bijux.facts.v1".to_string(),
             run_id: "run-2".to_string(),
-            stage_id: "fastq.validate_pre".to_string(),
+            stage_id: "fastq.validate_reads".to_string(),
             tool_id: "fastqvalidator".to_string(),
             tool_version: "1.0".to_string(),
             image_digest: Some("sha256:def".to_string()),

@@ -13,9 +13,9 @@ fn bank_dir() -> PathBuf {
 fn stage_output_bank_has_all_fastq_stage_files() {
     let dir = bank_dir();
     let expected = [
-        "fastq.trim.fastp.txt",
-        "fastq.validate_pre.seqkit.tsv",
-        "fastq.filter.prinseq.txt",
+        "fastq.trim_reads.fastp.txt",
+        "fastq.validate_reads.seqkit.tsv",
+        "fastq.filter_reads.prinseq.txt",
         "fastq.merge.flash2.txt",
         "fastq.deduplicate.clumpify.txt",
         "fastq.deduplicate.fastuniq.txt",
@@ -24,10 +24,10 @@ fn stage_output_bank_has_all_fastq_stage_files() {
         "fastq.low_complexity.dustmasker.txt",
         "fastq.low_complexity.prinseq.txt",
         "fastq.correct.rcorrector.txt",
-        "fastq.qc_post.multiqc.txt",
+        "fastq.report_qc.multiqc.txt",
         "fastq.umi.umi_tools.txt",
-        "fastq.stats_neutral.seqkit.txt",
-        "fastq.screen.fastq_screen.tsv",
+        "fastq.profile_reads.seqkit.txt",
+        "fastq.screen_taxonomy.fastq_screen.tsv",
     ];
     for file in expected {
         let path = dir.join(file);
@@ -88,7 +88,7 @@ fn kv_u64(raw: &str, key: &str) -> Option<u64> {
 
 #[test]
 fn seqkit_fixture_roundtrip_preserves_metrics() -> Result<()> {
-    let path = bank_dir().join("fastq.validate_pre.seqkit.tsv");
+    let path = bank_dir().join("fastq.validate_reads.seqkit.tsv");
     let raw = std::fs::read_to_string(path)?;
     let metrics = parse_seqkit_stats(&raw)?;
     let reconstructed = format!(
@@ -111,7 +111,7 @@ fn fastqvalidator_fixture_invariant_nonzero_reads() -> Result<()> {
 
 #[test]
 fn screen_fixture_invariant_contamination_rate_bounds() -> Result<()> {
-    let raw = std::fs::read_to_string(bank_dir().join("fastq.screen.fastq_screen.tsv"))?;
+    let raw = std::fs::read_to_string(bank_dir().join("fastq.screen_taxonomy.fastq_screen.tsv"))?;
     let mut unmapped = None;
     for line in raw.lines() {
         let line = line.trim();

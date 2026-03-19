@@ -29,7 +29,7 @@ Each stage should cite method families plus tool-specific papers. Domain YAML re
 
 ## Examples
 - `bam.damage` references method-level damage models and tool-level parsers (`mapdamage2`, `pydamage`).
-- `fastq.trim` references adapter/quality trimming methods and tool-specific defaults provenance.
+- `fastq.trim_reads` references adapter/quality trimming methods and tool-specific defaults provenance.
 
 ## Failure modes
 - Missing citations in domain YAML cause provenance gaps and policy failures.

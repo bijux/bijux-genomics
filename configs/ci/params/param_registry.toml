@@ -99,8 +99,8 @@ param_type_id = "fastq.detect_adapters"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.filter"
-param_type_id = "fastq.filter"
+stage_id = "fastq.filter_reads"
+param_type_id = "fastq.filter_reads"
 schema_version = "legacy.unversioned"
 
 [[entries]]
@@ -109,7 +109,7 @@ param_type_id = "paramless"
 schema_version = "none"
 
 [[entries]]
-stage_id = "fastq.length_distribution_pre"
+stage_id = "fastq.profile_read_lengths"
 param_type_id = "paramless"
 schema_version = "none"
 
@@ -119,7 +119,7 @@ param_type_id = "fastq.merge"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.overrepresented_sequences"
+stage_id = "fastq.profile_overrepresented_sequences"
 param_type_id = "paramless"
 schema_version = "none"
 
@@ -134,8 +134,8 @@ param_type_id = "paramless"
 schema_version = "none"
 
 [[entries]]
-stage_id = "fastq.qc_post"
-param_type_id = "fastq.qc_post"
+stage_id = "fastq.report_qc"
+param_type_id = "fastq.report_qc"
 schema_version = "legacy.unversioned"
 
 [[entries]]
@@ -144,18 +144,18 @@ param_type_id = "fastq.rrna"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.screen"
-param_type_id = "fastq.screen"
+stage_id = "fastq.screen_taxonomy"
+param_type_id = "fastq.screen_taxonomy"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.stats_neutral"
+stage_id = "fastq.profile_reads"
 param_type_id = "fastq.stats"
 schema_version = "bijux.fastq.params.stats.v1"
 
 [[entries]]
-stage_id = "fastq.trim"
-param_type_id = "fastq.trim"
+stage_id = "fastq.trim_reads"
+param_type_id = "fastq.trim_reads"
 schema_version = "legacy.unversioned"
 
 [[entries]]
@@ -164,7 +164,7 @@ param_type_id = "fastq.umi"
 schema_version = "bijux.fastq.params.umi.v1"
 
 [[entries]]
-stage_id = "fastq.validate_pre"
+stage_id = "fastq.validate_reads"
 param_type_id = "fastq.validate"
 schema_version = "legacy.unversioned"
 

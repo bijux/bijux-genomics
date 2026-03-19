@@ -1,28 +1,28 @@
 use bijux_dna_core::prelude::{StageId, StageVersion};
 use bijux_dna_domain_fastq::stages::ids as fastq_ids;
 
-pub mod validate_pre {
-    pub use crate::tool_adapters::stages::pre::validate_pre::*;
+pub mod validate_reads {
+    pub use crate::tool_adapters::stages::pre::validate_reads::*;
 }
 
 pub mod detect_adapters {
     pub use crate::tool_adapters::stages::pre::detect_adapters::*;
 }
 
-pub mod length_distribution_pre {
-    pub use crate::tool_adapters::stages::pre::length_distribution_pre::*;
+pub mod profile_read_lengths {
+    pub use crate::tool_adapters::stages::pre::profile_read_lengths::*;
 }
 
-pub mod overrepresented_sequences {
-    pub use crate::tool_adapters::stages::pre::overrepresented_sequences::*;
+pub mod profile_overrepresented_sequences {
+    pub use crate::tool_adapters::stages::pre::profile_overrepresented_sequences::*;
 }
 
-pub mod trim {
-    pub use crate::tool_adapters::stages::transform::trim::*;
+pub mod trim_reads {
+    pub use crate::tool_adapters::stages::transform::trim_reads::*;
 }
 
-pub mod filter {
-    pub use crate::tool_adapters::stages::transform::filter::*;
+pub mod filter_reads {
+    pub use crate::tool_adapters::stages::transform::filter_reads::*;
 }
 
 pub mod deduplicate {
@@ -57,20 +57,20 @@ pub mod umi {
     pub use crate::tool_adapters::stages::transform::umi::*;
 }
 
-pub mod stats_neutral {
-    pub use crate::tool_adapters::stages::qc::stats_neutral::*;
+pub mod profile_reads {
+    pub use crate::tool_adapters::stages::qc::profile_reads::*;
 }
 
-pub mod qc_post {
-    pub use crate::tool_adapters::stages::qc::qc_post::*;
+pub mod report_qc {
+    pub use crate::tool_adapters::stages::qc::report_qc::*;
 }
 
 pub mod rrna {
     pub use crate::tool_adapters::stages::qc::rrna::*;
 }
 
-pub mod screen {
-    pub use crate::tool_adapters::stages::qc::screen::*;
+pub mod screen_taxonomy {
+    pub use crate::tool_adapters::stages::qc::screen_taxonomy::*;
 }
 
 #[derive(Debug, Clone)]
@@ -88,13 +88,13 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::trim::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::trim::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::trim_reads::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::trim_reads::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::pre::validate_pre::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::pre::validate_pre::STAGE_VERSION,
+            id: crate::tool_adapters::stages::pre::validate_reads::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::validate_reads::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
@@ -103,18 +103,18 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::pre::length_distribution_pre::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::pre::length_distribution_pre::STAGE_VERSION,
+            id: crate::tool_adapters::stages::pre::profile_read_lengths::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::profile_read_lengths::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::pre::overrepresented_sequences::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::pre::overrepresented_sequences::STAGE_VERSION,
+            id: crate::tool_adapters::stages::pre::profile_overrepresented_sequences::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::profile_overrepresented_sequences::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::filter::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::filter::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::filter_reads::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::filter_reads::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
@@ -153,13 +153,13 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::qc::screen::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::qc::screen::STAGE_VERSION,
+            id: crate::tool_adapters::stages::qc::screen_taxonomy::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::qc::screen_taxonomy::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::qc::stats_neutral::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::qc::stats_neutral::STAGE_VERSION,
+            id: crate::tool_adapters::stages::qc::profile_reads::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::qc::profile_reads::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
@@ -193,8 +193,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::qc::qc_post::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::qc::qc_post::STAGE_VERSION,
+            id: crate::tool_adapters::stages::qc::report_qc::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::qc::report_qc::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {

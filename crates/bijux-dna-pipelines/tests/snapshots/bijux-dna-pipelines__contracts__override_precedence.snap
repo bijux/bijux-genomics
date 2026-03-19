@@ -5,9 +5,9 @@ expression: "bijux_testkit::snapshot_normalize_json(&json)"
 {
   "params": {},
   "rationales": {
-    "fastq.trim": "api override"
+    "fastq.trim_reads": "api override"
   },
   "tools": {
-    "fastq.trim": "trimmomatic"
+    "fastq.trim_reads": "trimmomatic"
   }
 }

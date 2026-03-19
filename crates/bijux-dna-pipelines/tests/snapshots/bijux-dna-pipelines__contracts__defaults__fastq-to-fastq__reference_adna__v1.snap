@@ -30,7 +30,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "aDNA preset: stricter adapter detection depth for short fragments"
     },
-    "fastq.filter": {
+    "fastq.filter_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -78,7 +78,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.qc_post": {
+    "fastq.report_qc": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -90,7 +90,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.screen": {
+    "fastq.screen_taxonomy": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -102,7 +102,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "reference-grade aDNA: contamination/host depletion hook with declared reference DB"
     },
-    "fastq.stats_neutral": {
+    "fastq.profile_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -114,7 +114,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.trim": {
+    "fastq.trim_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -138,7 +138,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.validate_pre": {
+    "fastq.validate_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -163,7 +163,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "sample_reads": 2000000,
       "threads": 1
     },
-    "fastq.filter": {
+    "fastq.filter_reads": {
       "contaminant_db": null,
       "damage_mode": "ancient",
       "entropy_threshold": null,
@@ -201,30 +201,30 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "paired_mode": "paired_end",
       "pipeline_mode": "shotgun",
       "stages": [
-        "fastq.validate_pre",
+        "fastq.validate_reads",
         "fastq.detect_adapters",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post"
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
       ],
       "threads": 1
     },
-    "fastq.qc_post": {
+    "fastq.report_qc": {
       "paired_mode": "paired_end",
       "threads": 1
     },
-    "fastq.screen": {
+    "fastq.screen_taxonomy": {
       "contaminant_db": "host_depletion_db",
       "paired_mode": "paired_end",
       "threads": 1
     },
-    "fastq.stats_neutral": {
+    "fastq.profile_reads": {
       "paired_mode": "paired_end",
       "schema_version": "bijux.fastq.params.stats.v1",
       "threads": 1
     },
-    "fastq.trim": {
+    "fastq.trim_reads": {
       "adapter_policy": "ancient_strict",
       "contaminant_policy": null,
       "damage_mode": "ancient",
@@ -241,7 +241,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "threads": 1,
       "umi_pattern": null
     },
-    "fastq.validate_pre": {
+    "fastq.validate_reads": {
       "paired_mode": "paired_end",
       "q_cutoff": null,
       "threads": 1
@@ -274,7 +274,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "aDNA preset: stricter adapter detection depth for short fragments"
     },
-    "fastq.filter": {
+    "fastq.filter_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -322,7 +322,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.qc_post": {
+    "fastq.report_qc": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -334,7 +334,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.screen": {
+    "fastq.screen_taxonomy": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -346,7 +346,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "reference-grade aDNA: contamination/host depletion hook with declared reference DB"
     },
-    "fastq.stats_neutral": {
+    "fastq.profile_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -358,7 +358,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.trim": {
+    "fastq.trim_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -382,7 +382,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.validate_pre": {
+    "fastq.validate_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -398,15 +398,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "tools": {
     "fastq.correct": "rcorrector",
     "fastq.detect_adapters": "fastqc",
-    "fastq.filter": "seqkit",
+    "fastq.filter_reads": "seqkit",
     "fastq.low_complexity": "bbduk",
     "fastq.merge": "vsearch",
     "fastq.preprocess": "planner",
-    "fastq.qc_post": "multiqc",
-    "fastq.screen": "kraken2",
-    "fastq.stats_neutral": "seqkit_stats",
-    "fastq.trim": "fastp",
+    "fastq.report_qc": "multiqc",
+    "fastq.screen_taxonomy": "kraken2",
+    "fastq.profile_reads": "seqkit_stats",
+    "fastq.trim_reads": "fastp",
     "fastq.umi": "umi_tools",
-    "fastq.validate_pre": "fastqvalidator"
+    "fastq.validate_reads": "fastqvalidator"
   }
 }

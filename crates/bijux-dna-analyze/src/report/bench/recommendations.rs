@@ -425,7 +425,7 @@ pub fn write_trim_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.trim", &rankings);
+        crate::decision::score::print_rank_explain("fastq.trim_reads", &rankings);
     }
     Ok(())
 }

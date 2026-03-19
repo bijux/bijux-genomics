@@ -254,7 +254,7 @@ pub(super) fn bam_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
 pub(super) fn impact_metrics_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut impacts = Vec::new();
     for row in rows {
-        if row.stage_id == "fastq.filter" || row.stage_id == "fastq.trim" {
+        if row.stage_id == "fastq.filter_reads" || row.stage_id == "fastq.trim_reads" {
             let reads_in = row.reads_in.unwrap_or(0);
             let reads_out = row.reads_out.unwrap_or(0);
             let bases_in = row.bases_in.unwrap_or(0);
@@ -302,7 +302,7 @@ pub(super) fn findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
 fn fastq_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
     let mut claims = Vec::new();
     for row in rows {
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             let adapter_content = row
                 .metrics
                 .get("adapter_content_mean")
@@ -371,7 +371,7 @@ fn fastq_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
                 }));
             }
         }
-        if row.stage_id == "fastq.filter" {
+        if row.stage_id == "fastq.filter_reads" {
             if let (Some(ri), Some(ro)) = (row.reads_in, row.reads_out) {
                 if ri > 0 && (u64_to_f64(ro) / u64_to_f64(ri)) < 0.5 {
                     claims.push(serde_json::json!({

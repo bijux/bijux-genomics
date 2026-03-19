@@ -29,11 +29,11 @@ pub use invariants::{
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     let tools = BTreeMap::from([
         (
-            StageId::from_static("fastq.validate_pre"),
+            StageId::from_static("fastq.validate_reads"),
             ToolId::from_static(id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
         ),
         (
-            StageId::from_static("fastq.stats_neutral"),
+            StageId::from_static("fastq.profile_reads"),
             ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
         ),
         (
@@ -49,15 +49,15 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             ToolId::from_static(id_catalog::TOOL_FASTQC),
         ),
         (
-            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.trim_reads"),
             ToolId::from_static(id_catalog::TOOL_FASTP),
         ),
         (
-            StageId::from_static("fastq.filter"),
+            StageId::from_static("fastq.filter_reads"),
             ToolId::from_static(id_catalog::TOOL_SEQKIT),
         ),
         (
-            StageId::from_static("fastq.qc_post"),
+            StageId::from_static("fastq.report_qc"),
             ToolId::from_static(id_catalog::TOOL_MULTIQC),
         ),
         (
@@ -69,17 +69,17 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             ToolId::from_static(id_catalog::TOOL_VSEARCH),
         ),
         (
-            StageId::from_static("fastq.screen"),
+            StageId::from_static("fastq.screen_taxonomy"),
             ToolId::from_static(id_catalog::TOOL_KRAKEN2),
         ),
     ]);
     let mut params = BTreeMap::new();
     params.insert(
-        StageId::from_static("fastq.validate_pre"),
+        StageId::from_static("fastq.validate_reads"),
         DefaultParams::FastqValidate(validate_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.stats_neutral"),
+        StageId::from_static("fastq.profile_reads"),
         DefaultParams::FastqStats(stats_defaults(paired)),
     );
     params.insert(
@@ -95,15 +95,15 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         DefaultParams::FastqDetectAdapters(detect_adapters_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         DefaultParams::FastqTrim(trim_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.filter"),
+        StageId::from_static("fastq.filter_reads"),
         DefaultParams::FastqFilter(filter_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.qc_post"),
+        StageId::from_static("fastq.report_qc"),
         DefaultParams::FastqQcPost(qc_post_defaults(paired)),
     );
     params.insert(
@@ -115,7 +115,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         DefaultParams::FastqMerge(merge_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.screen"),
+        StageId::from_static("fastq.screen_taxonomy"),
         DefaultParams::FastqScreen(screen_defaults(paired)),
     );
     let mut rationales = BTreeMap::new();
@@ -135,7 +135,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
     let mut defaults = fastq_defaults(true);
 
     defaults.tools.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         ToolId::from_static(id_catalog::TOOL_ADAPTERREMOVAL),
     );
     defaults.tools.insert(
@@ -145,7 +145,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
 
     if let Some(DefaultParams::FastqTrim(mut params)) = defaults
         .params
-        .get(&StageId::from_static("fastq.trim"))
+        .get(&StageId::from_static("fastq.trim_reads"))
         .cloned()
     {
         params.paired_mode = PairedMode::PairedEnd;
@@ -155,14 +155,14 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         params.damage_mode = Some(DamageMode::Ancient);
         params.polyx_policy = Some("trim".to_string());
         defaults.params.insert(
-            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.trim_reads"),
             DefaultParams::FastqTrim(params),
         );
     }
 
     if let Some(DefaultParams::FastqFilter(mut params)) = defaults
         .params
-        .get(&StageId::from_static("fastq.filter"))
+        .get(&StageId::from_static("fastq.filter_reads"))
         .cloned()
     {
         params.paired_mode = PairedMode::PairedEnd;
@@ -170,7 +170,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         params.polyx_policy = Some("trim".to_string());
         params.max_n_fraction = Some(0.02);
         defaults.params.insert(
-            StageId::from_static("fastq.filter"),
+            StageId::from_static("fastq.filter_reads"),
             DefaultParams::FastqFilter(params),
         );
     }
@@ -217,7 +217,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
     }
 
     defaults.rationales.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         "aDNA preset: short-read preserving trim with strict adapter handling".to_string(),
     );
     defaults.rationales.insert(
@@ -321,12 +321,12 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
             required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
             required_stages: vec![
-                "fastq.validate_pre",
+                "fastq.validate_reads",
                 "fastq.detect_adapters",
-                "fastq.trim",
-                "fastq.filter",
-                "fastq.stats_neutral",
-                "fastq.qc_post",
+                "fastq.trim_reads",
+                "fastq.filter_reads",
+                "fastq.profile_reads",
+                "fastq.report_qc",
             ],
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec![
@@ -343,12 +343,12 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_default_profile() -> PipelineProfile {
     let required_stages = vec![
-        "fastq.validate_pre",
+        "fastq.validate_reads",
         "fastq.detect_adapters",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc",
     ];
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_DEFAULT),
@@ -417,13 +417,13 @@ pub fn fastq_adna_profile() -> PipelineProfile {
             required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
             required_stages: vec![
-                "fastq.validate_pre",
+                "fastq.validate_reads",
                 "fastq.detect_adapters",
-                "fastq.trim",
-                "fastq.filter",
+                "fastq.trim_reads",
+                "fastq.filter_reads",
                 "fastq.merge",
-                "fastq.stats_neutral",
-                "fastq.qc_post",
+                "fastq.profile_reads",
+                "fastq.report_qc",
             ],
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec![

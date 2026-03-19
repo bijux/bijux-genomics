@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
-    STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
-    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST,
-    STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_LOW_COMPLEXITY,
+    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC,
+    STAGE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -47,13 +47,13 @@ pub struct StageParamDescriptor {
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
-    if stage_id == &STAGE_VALIDATE_PRE {
+    if stage_id == &STAGE_VALIDATE_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.validate",
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_STATS_NEUTRAL {
+    if stage_id == &STAGE_PROFILE_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.stats",
             schema_version: stats::STATS_SCHEMA_VERSION,
@@ -77,9 +77,9 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_TRIM {
+    if stage_id == &STAGE_TRIM_READS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.trim",
+            param_type_id: "fastq.trim_reads",
             schema_version: "legacy.unversioned",
         });
     }
@@ -89,9 +89,9 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_FILTER {
+    if stage_id == &STAGE_FILTER_READS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.filter",
+            param_type_id: "fastq.filter_reads",
             schema_version: "legacy.unversioned",
         });
     }
@@ -107,15 +107,15 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_SCREEN {
+    if stage_id == &STAGE_SCREEN_TAXONOMY {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.screen",
+            param_type_id: "fastq.screen_taxonomy",
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_QC_POST {
+    if stage_id == &STAGE_REPORT_QC {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.qc_post",
+            param_type_id: "fastq.report_qc",
             schema_version: "legacy.unversioned",
         });
     }
@@ -190,7 +190,7 @@ pub enum EffectiveParams {
     Merge(merge::MergeEffectiveParams),
     Rrna(screen::RrnaEffectiveParams),
     Screen(screen::ScreenEffectiveParams),
-    QcPost(qc_post::QcPostEffectiveParams),
+    ReportQc(qc_post::QcPostEffectiveParams),
     PrimerNormalization(edna::PrimerNormalizationEffectiveParams),
     ChimeraDetection(edna::ChimeraDetectionEffectiveParams),
     AsvInference(edna::AsvInferenceEffectiveParams),
@@ -212,7 +212,7 @@ impl EffectiveParams {
             Self::Merge(params) => params.missing_required_fields(),
             Self::Rrna(params) => params.missing_required_fields(),
             Self::Screen(params) => params.missing_required_fields(),
-            Self::QcPost(params) => params.missing_required_fields(),
+            Self::ReportQc(params) => params.missing_required_fields(),
             Self::PrimerNormalization(_)
             | Self::ChimeraDetection(_)
             | Self::AsvInference(_)
@@ -234,7 +234,7 @@ impl EffectiveParams {
             Self::Merge(params) => params.retention_conditions(),
             Self::Rrna(params) => params.retention_conditions(),
             Self::Screen(params) => params.retention_conditions(),
-            Self::QcPost(params) => params.retention_conditions(),
+            Self::ReportQc(params) => params.retention_conditions(),
             Self::PrimerNormalization(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::ChimeraDetection(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::AsvInference(params) => serde_json::to_value(params).unwrap_or_default(),
@@ -251,12 +251,12 @@ pub fn parse_effective_params(
     stage_id: &StageId,
     value: &serde_json::Value,
 ) -> Option<EffectiveParams> {
-    if stage_id == &STAGE_VALIDATE_PRE {
+    if stage_id == &STAGE_VALIDATE_READS {
         return serde_json::from_value::<validate::ValidateEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Validate);
     }
-    if stage_id == &STAGE_STATS_NEUTRAL {
+    if stage_id == &STAGE_PROFILE_READS {
         return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
             .ok()
             .map(EffectiveParams::Stats);
@@ -278,7 +278,7 @@ pub fn parse_effective_params(
         .ok()
         .map(EffectiveParams::DetectAdapters);
     }
-    if stage_id == &STAGE_TRIM {
+    if stage_id == &STAGE_TRIM_READS {
         return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Trim);
@@ -288,7 +288,7 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Trim);
     }
-    if stage_id == &STAGE_FILTER {
+    if stage_id == &STAGE_FILTER_READS {
         return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Filter);
@@ -308,15 +308,15 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Rrna);
     }
-    if stage_id == &STAGE_SCREEN {
+    if stage_id == &STAGE_SCREEN_TAXONOMY {
         return serde_json::from_value::<screen::ScreenEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Screen);
     }
-    if stage_id == &STAGE_QC_POST {
+    if stage_id == &STAGE_REPORT_QC {
         return serde_json::from_value::<qc_post::QcPostEffectiveParams>(value.clone())
             .ok()
-            .map(EffectiveParams::QcPost);
+            .map(EffectiveParams::ReportQc);
     }
     if stage_id == &STAGE_PRIMER_NORMALIZATION {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())

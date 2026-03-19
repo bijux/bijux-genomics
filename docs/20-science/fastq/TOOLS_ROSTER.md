@@ -20,13 +20,13 @@ Clarifies tool coverage and rationale.
 
 | Stage | Supported tools | Rationale |
 | --- | --- | --- |
-| fastq.validate_pre | fastqvalidator, seqkit | Format validation + counts |
+| fastq.validate_reads | fastqvalidator, seqkit | Format validation + counts |
 | fastq.detect_adapters | fastp | Integrated adapter detection |
-| fastq.trim | fastp, cutadapt, trimmomatic | Standard trimming tools |
-| fastq.filter | seqkit, prinseq, fastp | Quality/length filtering |
-| fastq.stats_neutral | seqkit_stats | Fast statistics |
+| fastq.trim_reads | fastp, cutadapt, trimmomatic | Standard trimming tools |
+| fastq.filter_reads | seqkit, prinseq, fastp | Quality/length filtering |
+| fastq.profile_reads | seqkit_stats | Fast statistics |
 | fastq.merge | pear, flash2, bbmerge, vsearch | Merge alternatives |
 | fastq.correct | rcorrector, spades/bayeshammer, lighter, musket | Error correction options |
 | fastq.umi | umi_tools | UMI handling |
-| fastq.qc_post | multiqc | QC aggregation |
-| fastq.screen | kraken2, centrifuge | Contamination screening |
+| fastq.report_qc | multiqc | QC aggregation |
+| fastq.screen_taxonomy | kraken2, centrifuge | Contamination screening |

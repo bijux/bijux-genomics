@@ -127,7 +127,7 @@ fn selection_objectives_and_partial_behavior_are_deterministic() {
         assert_eq!(spec.name, objective.as_str());
     }
 
-    let stage = StageId::new("fastq.trim");
+    let stage = StageId::new("fastq.trim_reads");
     let fast = vec![BenchResultRecord {
         dataset_id: "d1".to_string(),
         tool: "fast".to_string(),
@@ -168,12 +168,12 @@ fn selection_objectives_and_partial_behavior_are_deterministic() {
     let selected_allow_partial =
         select_stage(&stage, &records, &objective_spec(Objective::Balanced), true);
     assert!(selected_allow_partial.selected.is_some());
-    assert_eq!(selected_allow_partial.stage.as_str(), "fastq.trim");
+    assert_eq!(selected_allow_partial.stage.as_str(), "fastq.trim_reads");
 }
 
 #[test]
 fn ids_validation_covers_success_and_failure_paths() {
-    assert!(parse_stage_id("fastq.trim").is_ok());
+    assert!(parse_stage_id("fastq.trim_reads").is_ok());
     assert!(parse_tool_id("fastp").is_ok());
     assert!(parse_pipeline_id("fastq-to-fastq__default__v1").is_ok());
 
@@ -185,8 +185,8 @@ fn ids_validation_covers_success_and_failure_paths() {
 
 #[test]
 fn execution_graph_option_helpers_and_validation_paths() {
-    let a = mk_step("b", "fastq.trim");
-    let b = mk_step("a", "fastq.qc_post");
+    let a = mk_step("b", "fastq.trim_reads");
+    let b = mk_step("a", "fastq.report_qc");
     let graph = ExecutionGraph::new(
         "fastq-to-fastq__default__v1",
         "planner-v1",
@@ -213,7 +213,7 @@ fn execution_graph_option_helpers_and_validation_paths() {
             inputs: Vec::new(),
             outputs: Vec::new(),
         },
-        ..mk_step("x", "fastq.trim")
+        ..mk_step("x", "fastq.trim_reads")
     };
     let bad_graph = ExecutionGraph::new(
         "fastq-to-fastq__default__v1",

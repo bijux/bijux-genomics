@@ -27,7 +27,7 @@ fn assert_snapshot(name: &str, failure: &BenchmarkFailure) -> Result<()> {
 #[test]
 fn failure_hint_adapter_snapshot() -> Result<()> {
     let failure = bijux_dna_analyze::failure::classify_raw_failure(&RawFailure {
-        stage: "fastq.trim".to_string(),
+        stage: "fastq.trim_reads".to_string(),
         tool: "fastp".to_string(),
         reason: "adapter preset missing".to_string(),
         category: ErrorCategory::ContractError,
@@ -39,7 +39,7 @@ fn failure_hint_adapter_snapshot() -> Result<()> {
 #[test]
 fn failure_hint_timeout_snapshot() -> Result<()> {
     let failure = bijux_dna_analyze::failure::classify_raw_failure(&RawFailure {
-        stage: "fastq.trim".to_string(),
+        stage: "fastq.trim_reads".to_string(),
         tool: "fastp".to_string(),
         reason: "timeout while running tool".to_string(),
         category: ErrorCategory::ToolError,
@@ -51,7 +51,7 @@ fn failure_hint_timeout_snapshot() -> Result<()> {
 #[test]
 fn failure_hint_invalid_snapshot() -> Result<()> {
     let failure = bijux_dna_analyze::failure::classify_raw_failure(&RawFailure {
-        stage: "fastq.validate_pre".to_string(),
+        stage: "fastq.validate_reads".to_string(),
         tool: "fastqvalidator".to_string(),
         reason: "invalid fastq records".to_string(),
         category: ErrorCategory::PlanError,

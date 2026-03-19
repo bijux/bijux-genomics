@@ -33,6 +33,6 @@
     }
   },
   "schema_version": "bijux.bank_report.v1",
-  "stage_id": "fastq.trim",
+  "stage_id": "fastq.trim_reads",
   "tool_id": "fastp"
 }

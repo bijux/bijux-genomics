@@ -13,7 +13,7 @@ Makes expected outputs explicit for validation.
 Stage contracts in `crates/bijux-dna-stages-fastq`.
 
 ## Examples
-- fastq.trim -> metrics.json + stage_report.json
+- fastq.trim_reads -> metrics.json + stage_report.json
 
 ## Failure modes
 Missing required artifacts fail contract enforcement.

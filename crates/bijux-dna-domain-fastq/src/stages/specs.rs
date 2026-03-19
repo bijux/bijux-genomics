@@ -5,15 +5,15 @@ use crate::types::FastqArtifactKind;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum FastqStage {
     PrepareReference,
-    ValidatePre,
-    LengthDistributionPre,
+    ValidateReads,
+    ProfileReadLengths,
     DetectAdapters,
     DamageAwarePretrim,
     PrimerNormalization,
     PolygTailing,
     Trim,
     Filter,
-    StatsNeutral,
+    ProfileReads,
     Rrna,
     Merge,
     Deduplicate,
@@ -22,8 +22,8 @@ pub enum FastqStage {
     ContaminantScreen,
     Correct,
     Umi,
-    OverrepresentedSequences,
-    QcPost,
+    ProfileOverrepresentedSequences,
+    ReportQc,
     Screen,
     ChimeraDetection,
     AsvInference,
@@ -55,12 +55,12 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
                 optional_outputs: None,
             },
         },
-        FastqStage::ValidatePre
-        | FastqStage::LengthDistributionPre
+        FastqStage::ValidateReads
+        | FastqStage::ProfileReadLengths
         | FastqStage::DetectAdapters
-        | FastqStage::StatsNeutral
-        | FastqStage::OverrepresentedSequences
-        | FastqStage::QcPost
+        | FastqStage::ProfileReads
+        | FastqStage::ProfileOverrepresentedSequences
+        | FastqStage::ReportQc
         | FastqStage::Screen => StageContract {
             stage,
             io: StageIO {
@@ -182,13 +182,13 @@ pub enum QcClass {
 #[must_use]
 pub fn qc_class_for_stage(stage_id: &str) -> Option<QcClass> {
     match stage_id {
-        "fastq.validate_pre" => Some(QcClass::Structural),
-        "fastq.length_distribution_pre"
+        "fastq.validate_reads" => Some(QcClass::Structural),
+        "fastq.profile_read_lengths"
         | "fastq.detect_adapters"
-        | "fastq.stats_neutral"
-        | "fastq.overrepresented_sequences"
-        | "fastq.qc_post"
-        | "fastq.screen" => Some(QcClass::Statistical),
+        | "fastq.profile_reads"
+        | "fastq.profile_overrepresented_sequences"
+        | "fastq.report_qc"
+        | "fastq.screen_taxonomy" => Some(QcClass::Statistical),
         _ => None,
     }
 }

@@ -31,28 +31,28 @@ impl FastqPipelineMode {
 #[must_use]
 pub fn canonical_stage_order() -> Vec<StageId> {
     vec![
-        StageId::from_static("fastq.validate_pre"),
+        StageId::from_static("fastq.validate_reads"),
         StageId::from_static("fastq.detect_adapters"),
         StageId::from_static("fastq.damage_aware_pretrim"),
-        StageId::from_static("fastq.trim"),
-        StageId::from_static("fastq.filter"),
-        StageId::from_static("fastq.stats_neutral"),
+        StageId::from_static("fastq.trim_reads"),
+        StageId::from_static("fastq.filter_reads"),
+        StageId::from_static("fastq.profile_reads"),
     ]
 }
 
 #[must_use]
 pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
     vec![
-        StageId::from_static("fastq.validate_pre"),
+        StageId::from_static("fastq.validate_reads"),
         StageId::from_static("fastq.detect_adapters"),
         StageId::from_static("fastq.damage_aware_pretrim"),
         StageId::from_static("fastq.primer_normalization"),
-        StageId::from_static("fastq.trim"),
-        StageId::from_static("fastq.filter"),
+        StageId::from_static("fastq.trim_reads"),
+        StageId::from_static("fastq.filter_reads"),
         StageId::from_static("fastq.chimera_detection"),
         StageId::from_static("fastq.asv_inference"),
         StageId::from_static("fastq.abundance_normalization"),
-        StageId::from_static("fastq.stats_neutral"),
+        StageId::from_static("fastq.profile_reads"),
     ]
 }
 
@@ -62,25 +62,25 @@ pub fn optional_branches() -> Vec<(StageId, Vec<StageId>)> {
         (
             StageId::from_static("fastq.merge"),
             vec![
-                StageId::from_static("fastq.trim"),
-                StageId::from_static("fastq.filter"),
+                StageId::from_static("fastq.trim_reads"),
+                StageId::from_static("fastq.filter_reads"),
             ],
         ),
         (
             StageId::from_static("fastq.correct"),
-            vec![StageId::from_static("fastq.trim")],
+            vec![StageId::from_static("fastq.trim_reads")],
         ),
         (
             StageId::from_static("fastq.umi"),
-            vec![StageId::from_static("fastq.trim")],
+            vec![StageId::from_static("fastq.trim_reads")],
         ),
         (
-            StageId::from_static("fastq.qc_post"),
-            vec![StageId::from_static("fastq.validate_pre")],
+            StageId::from_static("fastq.report_qc"),
+            vec![StageId::from_static("fastq.validate_reads")],
         ),
         (
-            StageId::from_static("fastq.screen"),
-            vec![StageId::from_static("fastq.validate_pre")],
+            StageId::from_static("fastq.screen_taxonomy"),
+            vec![StageId::from_static("fastq.validate_reads")],
         ),
     ]
 }
@@ -89,19 +89,19 @@ pub fn optional_branches() -> Vec<(StageId, Vec<StageId>)> {
 pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
     vec![
         (
-            StageId::from_static("fastq.validate_pre"),
+            StageId::from_static("fastq.validate_reads"),
             StageId::from_static("fastq.merge"),
         ),
         (
-            StageId::from_static("fastq.stats_neutral"),
-            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.profile_reads"),
+            StageId::from_static("fastq.trim_reads"),
         ),
         (
-            StageId::from_static("fastq.stats_neutral"),
-            StageId::from_static("fastq.filter"),
+            StageId::from_static("fastq.profile_reads"),
+            StageId::from_static("fastq.filter_reads"),
         ),
         (
-            StageId::from_static("fastq.stats_neutral"),
+            StageId::from_static("fastq.profile_reads"),
             StageId::from_static("fastq.merge"),
         ),
         (
@@ -118,23 +118,23 @@ pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
 #[must_use]
 pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
     match stage_id.as_str() {
-        "fastq.validate_pre"
+        "fastq.validate_reads"
         | "fastq.detect_adapters"
         | "fastq.damage_aware_pretrim"
-        | "fastq.trim"
+        | "fastq.trim_reads"
         | "fastq.merge"
         | "fastq.correct"
-        | "fastq.filter"
-        | "fastq.stats_neutral"
+        | "fastq.filter_reads"
+        | "fastq.profile_reads"
         | "fastq.primer_normalization"
         | "fastq.chimera_detection"
         | "fastq.abundance_normalization" => Some(StageCriticality::Essential),
         "fastq.asv_inference"
         | "fastq.otu_clustering"
-        | "fastq.qc_post"
+        | "fastq.report_qc"
         | "fastq.umi"
         => Some(StageCriticality::Optional),
-        "fastq.screen" => Some(StageCriticality::Experimental),
+        "fastq.screen_taxonomy" => Some(StageCriticality::Experimental),
         _ => None,
     }
 }

@@ -26,7 +26,7 @@ fn trim_tool_params_are_typed_and_roundtrip() {
 #[test]
 fn fastq_qc_and_classification_models_require_provenance_and_units() {
     let screen = bijux_dna_domain_fastq::KrakenUniqClassificationMetricsV1 {
-        schema_version: "bijux.fastq.screen.krakenuniq.v1".to_string(),
+        schema_version: "bijux.fastq.screen_taxonomy.krakenuniq.v1".to_string(),
         provenance: bijux_dna_domain_fastq::ClassificationDbProvenanceV1 {
             db_name: "kraken2-standard".to_string(),
             db_version: "2026.01".to_string(),

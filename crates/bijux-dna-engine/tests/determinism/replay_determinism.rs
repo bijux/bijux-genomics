@@ -19,8 +19,8 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
     let output_path = out_dir.join("output.txt");
 
     let step = bijux_dna_core::contract::ExecutionStep {
-        step_id: StepId::new("fastq.trim"),
-        stage_id: StageId::new("fastq.trim"),
+        step_id: StepId::new("fastq.trim_reads"),
+        stage_id: StageId::new("fastq.trim_reads"),
         image: ContainerImageRefV1 {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),

@@ -21,7 +21,7 @@ stage_ids:
 - bam.endogenous_content
 - bam.overlap_correction
 - fastq.prepare_reference
-- fastq.qc_post
+- fastq.report_qc
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:

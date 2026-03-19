@@ -62,7 +62,7 @@ fn fastq_plan_snapshot() {
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
-        stages: vec!["fastq.validate_pre".to_string(), "fastq.trim".to_string()],
+        stages: vec!["fastq.validate_reads".to_string(), "fastq.trim_reads".to_string()],
         tools: vec![tool_validate, tool_trim],
         aux_images: BTreeMap::new(),
         adapter_bank: None,
@@ -84,16 +84,16 @@ fn fastq_plan_snapshot() {
 #[test]
 fn tool_override_precedence_is_stable() {
     let mut base = BTreeMap::new();
-    base.insert("fastq.trim".to_string(), "fastp".to_string());
+    base.insert("fastq.trim_reads".to_string(), "fastp".to_string());
     let mut profile = BTreeMap::new();
-    profile.insert("fastq.trim".to_string(), "cutadapt".to_string());
+    profile.insert("fastq.trim_reads".to_string(), "cutadapt".to_string());
     let mut cli = BTreeMap::new();
-    cli.insert("fastq.trim".to_string(), "bbduk".to_string());
+    cli.insert("fastq.trim_reads".to_string(), "bbduk".to_string());
     let mut forced = BTreeMap::new();
-    forced.insert("fastq.trim".to_string(), "trimmomatic".to_string());
+    forced.insert("fastq.trim_reads".to_string(), "trimmomatic".to_string());
     let merged = apply_tool_overrides(base, profile, cli, forced);
     assert_eq!(
-        merged.get("fastq.trim").map(String::as_str),
+        merged.get("fastq.trim_reads").map(String::as_str),
         Some("trimmomatic")
     );
 }
@@ -102,21 +102,21 @@ fn tool_override_precedence_is_stable() {
 fn default_pipeline_plan_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
     let stages = [
-        "fastq.validate_pre",
+        "fastq.validate_reads",
         "fastq.detect_adapters",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc",
     ];
     let tool_id_for_stage = |stage: &str| -> &'static str {
         match stage {
-            "fastq.validate_pre" => "fastqvalidator",
+            "fastq.validate_reads" => "fastqvalidator",
             "fastq.detect_adapters" => "fastqc",
-            "fastq.trim" => "fastp",
-            "fastq.filter" => "fastp",
-            "fastq.stats_neutral" => "seqkit_stats",
-            "fastq.qc_post" => "multiqc",
+            "fastq.trim_reads" => "fastp",
+            "fastq.filter_reads" => "fastp",
+            "fastq.profile_reads" => "seqkit_stats",
+            "fastq.report_qc" => "multiqc",
             _ => "echo",
         }
     };

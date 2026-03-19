@@ -20,7 +20,7 @@ fn manifest_has_required_fields() {
         tool_invocations: vec![bijux_dna_core::metrics::ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             contract_version: bijux_dna_core::contract::ContractVersion { major: 1, minor: 0 },
-            stage_id: bijux_dna_core::ids::StageId::new("fastq.trim"),
+            stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
             tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
             tool_version: "1.0".to_string(),
             resolved_tool_version: None,
@@ -114,7 +114,7 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
         build_profile: "test".to_string(),
         plan_hash: Some("sha256:plan".to_string()),
     };
-    write_run_manifest(&run_dirs, "fastq.trim", "fastp", &rp, None, &[])
+    write_run_manifest(&run_dirs, "fastq.trim_reads", "fastp", &rp, None, &[])
         .unwrap_or_else(|e| panic!("write run manifest: {e}"));
     let raw = std::fs::read_to_string(&run_dirs.run_manifest_path)
         .unwrap_or_else(|e| panic!("read run manifest: {e}"));
@@ -163,7 +163,7 @@ fn run_manifest_writes_reproducibility_report_artifact() {
         build_profile: "test".to_string(),
         plan_hash: Some("sha256:plan".to_string()),
     };
-    write_run_manifest(&run_dirs, "fastq.trim", "fastp", &rp, None, &[])
+    write_run_manifest(&run_dirs, "fastq.trim_reads", "fastp", &rp, None, &[])
         .unwrap_or_else(|e| panic!("write run manifest: {e}"));
     let repro_path = run_dirs
         .manifest_path
@@ -209,7 +209,7 @@ fn run_manifest_writes_profile_and_lock_manifests() {
         build_profile: "test".to_string(),
         plan_hash: Some("sha256:plan".to_string()),
     };
-    write_run_manifest(&run_dirs, "fastq.trim", "fastp", &rp, None, &[])
+    write_run_manifest(&run_dirs, "fastq.trim_reads", "fastp", &rp, None, &[])
         .unwrap_or_else(|e| panic!("write run manifest: {e}"));
     let run_dir = run_dirs
         .run_manifest_path

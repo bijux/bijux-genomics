@@ -83,7 +83,7 @@ pub struct FastqTrimMetrics {
 }
 
 impl StageMetricSchema for FastqTrimMetrics {
-    const STAGE: &'static str = "fastq.trim";
+    const STAGE: &'static str = "fastq.trim_reads";
     const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
@@ -128,7 +128,7 @@ pub struct FastqValidateMetrics {
 }
 
 impl StageMetricSchema for FastqValidateMetrics {
-    const STAGE: &'static str = "fastq.validate_pre";
+    const STAGE: &'static str = "fastq.validate_reads";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -177,7 +177,7 @@ pub struct FastqFilterMetrics {
 }
 
 impl StageMetricSchema for FastqFilterMetrics {
-    const STAGE: &'static str = "fastq.filter";
+    const STAGE: &'static str = "fastq.filter_reads";
     const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
@@ -321,7 +321,7 @@ pub struct FastqQcPostMetrics {
 }
 
 impl StageMetricSchema for FastqQcPostMetrics {
-    const STAGE: &'static str = "fastq.qc_post";
+    const STAGE: &'static str = "fastq.report_qc";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -399,7 +399,7 @@ pub struct FastqScreenMetrics {
 }
 
 impl StageMetricSchema for FastqScreenMetrics {
-    const STAGE: &'static str = "fastq.screen";
+    const STAGE: &'static str = "fastq.screen_taxonomy";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -440,7 +440,7 @@ pub struct FastqStatsMetrics {
 }
 
 impl StageMetricSchema for FastqStatsMetrics {
-    const STAGE: &'static str = "fastq.stats_neutral";
+    const STAGE: &'static str = "fastq.profile_reads";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {

@@ -3,11 +3,11 @@
   "run_id": "fastq-to-fastq__default__v1",
   "schema_version": "bijux.run_manifest.v1",
   "stages": [
-    "fastq.validate_pre",
+    "fastq.validate_reads",
     "fastq.detect_adapters",
-    "fastq.trim",
-    "fastq.filter",
-    "fastq.stats_neutral",
-    "fastq.qc_post"
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.profile_reads",
+    "fastq.report_qc"
   ]
 }

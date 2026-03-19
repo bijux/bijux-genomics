@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.stage_report.v1",
-  "stage_id": "fastq.filter",
+  "stage_id": "fastq.filter_reads",
   "stage_version": 1,
   "tool_id": "unknown",
   "tool_version": "99.99.99+fixture",
@@ -14,7 +14,7 @@
   "errors": [],
   "invariants": [],
   "verdict": {
-    "stage_id": "fastq.filter",
+    "stage_id": "fastq.filter_reads",
     "verdict": "pass",
     "reasons": [],
     "key_metrics": {}

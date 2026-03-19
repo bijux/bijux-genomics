@@ -35,7 +35,7 @@ fn stage_or<'a>(
 #[test]
 fn trim_outputs_are_compatible_with_merge_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let trim = stage_or(&registry, "fastq.trim")?;
+    let trim = stage_or(&registry, "fastq.trim_reads")?;
     let merge = stage_or(&registry, "fastq.merge")?;
     assert!(
         stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
@@ -48,8 +48,8 @@ fn trim_outputs_are_compatible_with_merge_inputs() -> Result<(), Box<dyn std::er
 #[test]
 fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let filter = stage_or(&registry, "fastq.filter")?;
-    let stats = stage_or(&registry, "fastq.stats_neutral")?;
+    let filter = stage_or(&registry, "fastq.filter_reads")?;
+    let stats = stage_or(&registry, "fastq.profile_reads")?;
     assert!(
         stage_port_matches(&filter.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&stats.inputs, "fastq", Cardinality::Many),
@@ -61,9 +61,9 @@ fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::
 #[test]
 fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let validate = stage_or(&registry, "fastq.validate_pre")?;
-    let trim = stage_or(&registry, "fastq.trim")?;
-    let filter = stage_or(&registry, "fastq.filter")?;
+    let validate = stage_or(&registry, "fastq.validate_reads")?;
+    let trim = stage_or(&registry, "fastq.trim_reads")?;
+    let filter = stage_or(&registry, "fastq.filter_reads")?;
 
     assert!(
         stage_port_matches(&validate.inputs, "fastq", Cardinality::Many)
@@ -81,7 +81,7 @@ fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::E
 #[test]
 fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let trim = stage_or(&registry, "fastq.trim")?;
+    let trim = stage_or(&registry, "fastq.trim_reads")?;
     let correct = stage_or(&registry, "fastq.correct")?;
     assert!(
         stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
@@ -95,7 +95,7 @@ fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::
 fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
     let correct = stage_or(&registry, "fastq.correct")?;
-    let filter = stage_or(&registry, "fastq.filter")?;
+    let filter = stage_or(&registry, "fastq.filter_reads")?;
     assert!(
         stage_port_matches(&correct.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&filter.inputs, "fastq", Cardinality::Many),
@@ -108,7 +108,7 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
 fn validate_pre_outputs_are_compatible_with_qc_post_inputs(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let validate_pre = stage_or(&registry, "fastq.validate_pre")?;
+    let validate_pre = stage_or(&registry, "fastq.validate_reads")?;
     assert!(
         stage_port_matches(&validate_pre.outputs, "json", Cardinality::One),
         "validate_pre must emit one JSON report artifact"

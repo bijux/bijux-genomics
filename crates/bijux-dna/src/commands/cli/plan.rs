@@ -21,27 +21,27 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             | FastqCommand::Explain { .. }
             | FastqCommand::Compare(_)
             | FastqCommand::Run(_) => (
-                StageId::from_static("fastq.trim"),
+                StageId::from_static("fastq.trim_reads"),
                 ToolId::from_static("fastp"),
                 CommonArgs::default(),
             ),
             FastqCommand::Trim(args) => (
-                StageId::from_static("fastq.trim"),
+                StageId::from_static("fastq.trim_reads"),
                 ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
-            FastqCommand::ValidatePre(args) => (
-                StageId::from_static("fastq.validate_pre"),
+            FastqCommand::ValidateReads(args) => (
+                StageId::from_static("fastq.validate_reads"),
                 ToolId::from_static("fastqvalidator"),
                 args.common.clone(),
             ),
-            FastqCommand::StatsNeutral(common) => (
-                StageId::from_static("fastq.stats_neutral"),
+            FastqCommand::ProfileReads(common) => (
+                StageId::from_static("fastq.profile_reads"),
                 ToolId::from_static("seqkit_stats"),
                 common.clone(),
             ),
             FastqCommand::Filter(args) => (
-                StageId::from_static("fastq.trim"),
+                StageId::from_static("fastq.trim_reads"),
                 ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
@@ -51,7 +51,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             | FastqCommand::ErrorCorrect(common)
             | FastqCommand::Qc(common)
             | FastqCommand::Align(common) => (
-                StageId::from_static("fastq.trim"),
+                StageId::from_static("fastq.trim_reads"),
                 ToolId::from_static("fastp"),
                 common.clone(),
             ),
@@ -86,7 +86,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
         },
         _ => (
-            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.trim_reads"),
             ToolId::from_static("fastp"),
             CommonArgs::default(),
         ),
@@ -100,7 +100,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFa
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.trim", &args.tools)?,
+        tools: resolve_bench_tools("fastq.trim_reads", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -124,7 +124,7 @@ pub fn bench_args_validate(
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.validate_pre", &args.tools)?,
+        tools: resolve_bench_tools("fastq.validate_reads", &args.tools)?,
         explain: args.explain,
         strict: args.strict,
         replicates: args.replicates,
@@ -140,7 +140,7 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::Ben
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.filter", &args.tools)?,
+        tools: resolve_bench_tools("fastq.filter_reads", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -194,7 +194,7 @@ pub fn bench_args_qc_post(
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.qc_post", &args.tools)?,
+        tools: resolve_bench_tools("fastq.report_qc", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -225,7 +225,7 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> Result<engine_args::Ben
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.screen", &args.tools)?,
+        tools: resolve_bench_tools("fastq.screen_taxonomy", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -240,7 +240,7 @@ pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> Result<engine_args::Bench
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: resolve_bench_tools("fastq.stats_neutral", &args.tools)?,
+        tools: resolve_bench_tools("fastq.profile_reads", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,

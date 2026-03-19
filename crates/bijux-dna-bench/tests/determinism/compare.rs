@@ -26,7 +26,7 @@ fn bench_compare_snapshot() -> Result<()> {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["fastq.trim".to_string()],
+        vec!["fastq.trim_reads".to_string()],
         vec!["fastp".to_string()],
         vec!["params-a".to_string()],
         ReplicatePolicy {
@@ -59,7 +59,7 @@ fn bench_compare_snapshot() -> Result<()> {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["fastq.trim".to_string()],
+        vec!["fastq.trim_reads".to_string()],
         vec!["fastp".to_string()],
         vec!["params-a".to_string()],
         ReplicatePolicy {
@@ -89,7 +89,7 @@ fn bench_compare_snapshot() -> Result<()> {
         dataset_id: "dataset-1".to_string(),
         dataset_class: "trueseq".to_string(),
         read_layout: "paired".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: "sha256:abc".to_string(),
@@ -101,7 +101,7 @@ fn bench_compare_snapshot() -> Result<()> {
         exit_code: 0,
         failure_kind: None,
         metrics: MetricsEnvelope {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             schema_version: "metrics.v1".to_string(),
             values: BTreeMap::new(),
         },

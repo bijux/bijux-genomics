@@ -5,7 +5,7 @@ pub(crate) fn qa_qc_post_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_QC_POST.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_REPORT_QC.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -150,7 +150,7 @@ pub(crate) fn qa_stats_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_STATS_NEUTRAL.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_PROFILE_READS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -255,7 +255,7 @@ use anyhow::{anyhow, Context, Result};
 use uuid::Uuid;
 
 use bijux_dna_core::contract::ToolRegistry;
-use bijux_dna_domain_fastq::{STAGE_QC_POST, STAGE_STATS_NEUTRAL, STAGE_UMI};
+use bijux_dna_domain_fastq::{STAGE_REPORT_QC, STAGE_PROFILE_READS, STAGE_UMI};
 
 use crate::api::{PlatformSpec, ToolImageSpec};
 use crate::image_qa::fs::temp_out_dir;

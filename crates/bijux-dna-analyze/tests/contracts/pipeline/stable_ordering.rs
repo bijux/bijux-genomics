@@ -9,7 +9,7 @@ fn row(tool: &str, runtime: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
     FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: tool.to_string(),
         tool_version: "0.1".to_string(),
         image_digest: None,

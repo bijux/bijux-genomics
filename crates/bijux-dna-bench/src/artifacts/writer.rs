@@ -198,7 +198,7 @@ mod tests {
             dataset_id: "dataset-1".to_string(),
             dataset_class: "trueseq".to_string(),
             read_layout: "paired".to_string(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: "sha256:abc".to_string(),
@@ -210,7 +210,7 @@ mod tests {
             exit_code: 0,
             failure_kind: None,
             metrics: MetricsEnvelope {
-                stage_id: "fastq.trim".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
                 schema_version: "metrics.v1".to_string(),
                 values: BTreeMap::new(),
             },
@@ -238,7 +238,7 @@ mod tests {
                 dataset_id: "dataset-1".to_string(),
                 dataset_class: "trueseq".to_string(),
                 read_layout: "paired".to_string(),
-                stage_id: "fastq.trim".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
                 tool_id: "fastp".to_string(),
                 params_hash: "params-a".to_string(),
                 runtime: MetricSummary {
@@ -279,7 +279,7 @@ mod tests {
         let decision = GateDecision {
             schema_version: "bijux.bench.gate.v1".to_string(),
             dataset_id: "dataset-1".to_string(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             params_hash: "params-a".to_string(),
             passes: true,

@@ -20,7 +20,7 @@
       "dataset_id": "dataset-1",
       "dataset_class": "trueseq",
       "read_layout": "paired",
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp",
       "params_hash": "params-a"
     }

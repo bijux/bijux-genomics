@@ -391,7 +391,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                     "screen_reference_db_missing",
                     Some(id_catalog::FASTQ_SCREEN),
                     InvariantSeverity::Soft,
-                    "fastq.screen requires contaminant_db when enabled for reference-grade profile",
+                    "fastq.screen_taxonomy requires contaminant_db when enabled for reference-grade profile",
                 ));
             }
         }

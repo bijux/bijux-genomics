@@ -6,7 +6,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::ImageQaOutcome;
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_TRIM, STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
 };
 use uuid::Uuid;
 
@@ -43,7 +43,7 @@ pub(crate) fn run_behavioral_qa(
         QaStage::Correct => {
             qa_correct_tool(tool, platform, catalog, registry, dataset, seqkit_image)
         }
-        QaStage::QcPost => qa_qc_post_tool(tool, platform, catalog, registry, dataset),
+        QaStage::ReportQc => qa_qc_post_tool(tool, platform, catalog, registry, dataset),
         QaStage::Umi => qa_umi_tool(tool, platform, catalog, registry, dataset, seqkit_image),
         QaStage::Stats => qa_stats_tool(tool, platform, catalog, registry, dataset),
         QaStage::Screen => qa_screen_tool(tool, platform, catalog, registry, dataset),
@@ -62,7 +62,7 @@ fn qa_trim_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_TRIM.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_TRIM_READS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -172,7 +172,7 @@ fn qa_validate_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_VALIDATE_PRE.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_VALIDATE_READS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -211,7 +211,7 @@ fn qa_filter_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_FILTER.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_FILTER_READS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;

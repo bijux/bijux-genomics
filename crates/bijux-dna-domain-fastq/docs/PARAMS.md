@@ -34,14 +34,14 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 
 | Stage ID | Param Type | Meaning |
 | --- | --- | --- |
-| `fastq.validate_pre` | `ValidateEffectiveParams` | input FASTQ structural validation controls |
-| `fastq.stats_neutral` | `FastqStatsParams` | neutral read statistics collection controls |
+| `fastq.validate_reads` | `ValidateEffectiveParams` | input FASTQ structural validation controls |
+| `fastq.profile_reads` | `FastqStatsParams` | neutral read statistics collection controls |
 | `fastq.correct` | `FastqCorrectParams` | error-correction controls |
 | `fastq.umi` | `FastqUmiParams` | UMI extraction/normalization controls |
 | `fastq.detect_adapters` | `DetectAdaptersEffectiveParams` | adapter discovery controls |
-| `fastq.trim` | `TrimEffectiveParams` | adapter/quality/length trimming controls |
-| `fastq.filter` | `FilterEffectiveParams` | contamination and complexity filtering controls |
+| `fastq.trim_reads` | `TrimEffectiveParams` | adapter/quality/length trimming controls |
+| `fastq.filter_reads` | `FilterEffectiveParams` | contamination and complexity filtering controls |
 | `fastq.merge` | `MergeEffectiveParams` | paired-end overlap merge controls |
 | `fastq.rrna` | `RrnaEffectiveParams` | rRNA screen controls |
-| `fastq.screen` | `ScreenEffectiveParams` | contaminant taxonomy screen controls |
-| `fastq.qc_post` | `QcPostEffectiveParams` | post-processing QC report controls |
+| `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls |
+| `fastq.report_qc` | `QcPostEffectiveParams` | post-processing QC report controls |

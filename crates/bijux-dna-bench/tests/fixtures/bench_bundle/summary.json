@@ -45,7 +45,7 @@
           "trimmed_mean": 1.0
         }
       },
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     }
   ],
@@ -56,11 +56,11 @@
       "dataset_class": "trueseq",
       "low_power_count": 1,
       "row_count": 1,
-      "stage_id": "fastq.trim"
+      "stage_id": "fastq.trim_reads"
     }
   ],
   "suite_id": "suite-bundle",
   "warnings": [
-    "low_power:fastq.trim:fastp:dataset-1"
+    "low_power:fastq.trim_reads:fastp:dataset-1"
   ]
 }

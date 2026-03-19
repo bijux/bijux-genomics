@@ -32,25 +32,25 @@ impl BenchResultsRepository for SqliteBenchResultsRepository {
 }
 
 fn table_for_stage(stage: &StageId) -> Option<&'static str> {
-    if stage == &bijux_dna_domain_fastq::STAGE_VALIDATE_PRE {
+    if stage == &bijux_dna_domain_fastq::STAGE_VALIDATE_READS {
         Some("bench_fastq_validate_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS {
         Some("bench_fastq_detect_adapters_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_READS {
         Some("bench_fastq_trim_v2")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_FILTER {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_FILTER_READS {
         Some("bench_fastq_filter_v2")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_STATS_NEUTRAL {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_PROFILE_READS {
         Some("bench_fastq_stats_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_MERGE {
         Some("bench_fastq_merge_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_CORRECT {
         Some("bench_fastq_correct_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_QC_POST {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_REPORT_QC {
         Some("bench_fastq_qc_post_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_UMI {
         Some("bench_fastq_umi_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_SCREEN {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY {
         Some("bench_fastq_screen_v1")
     } else {
         None

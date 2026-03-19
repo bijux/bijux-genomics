@@ -48,7 +48,7 @@ pub struct EnsureImagesArgs {
     pub hpc_root: Option<PathBuf>,
     #[arg(long)]
     pub domain: String,
-    #[arg(long, help = "Single stage id like fastq.trim", conflicts_with = "stages")]
+    #[arg(long, help = "Single stage id like fastq.trim_reads", conflicts_with = "stages")]
     pub stage: Option<String>,
     #[arg(long, help = "Comma-separated stage ids or short stage names")]
     pub stages: Option<String>,
@@ -64,7 +64,7 @@ pub struct EnsureImagesArgs {
 pub struct EnsureStageArgs {
     #[arg(long)]
     pub hpc_root: Option<PathBuf>,
-    #[arg(long, help = "Stage id like fastq.trim")]
+    #[arg(long, help = "Stage id like fastq.trim_reads")]
     pub stage: String,
     #[arg(long, default_value_t = false)]
     pub force_smoke: bool,

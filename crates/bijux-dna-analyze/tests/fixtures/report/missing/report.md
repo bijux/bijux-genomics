@@ -6,4 +6,4 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `fastq.validate_pre` via `fastqvalidator` (1.0)
+- `fastq.validate_reads` via `fastqvalidator` (1.0)

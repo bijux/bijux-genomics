@@ -11,7 +11,7 @@ use bijux_dna_core::prelude::hashing::params_hash;
 
 fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     match stage_id {
-        "fastq.trim" => vec![
+        "fastq.trim_reads" => vec![
             "adapterremoval",
             "atropos",
             "bbduk",
@@ -24,18 +24,18 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.damage_aware_pretrim" | "fastq.primer_normalization" => {
             vec!["cutadapt", "seqkit"]
         }
-        "fastq.filter" => vec!["prinseq", "seqkit", "fastp"],
+        "fastq.filter_reads" => vec!["prinseq", "seqkit", "fastp"],
         "fastq.deduplicate" => vec!["fastuniq", "clumpify", "prinseq"],
         "fastq.low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
         "fastq.polyg_tailing" => vec!["fastp", "bbduk"],
         "fastq.host_depletion" => vec!["bowtie2", "samtools"],
         "fastq.contaminant_screen" => vec!["bbduk", "bowtie2"],
-        "fastq.length_distribution_pre" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
-        "fastq.overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
+        "fastq.profile_read_lengths" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
+        "fastq.profile_overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
         "fastq.chimera_detection" | "fastq.otu_clustering" => vec!["vsearch"],
         "fastq.asv_inference" => vec!["dada2"],
         "fastq.abundance_normalization" => vec!["seqfu", "seqkit"],
-        "fastq.validate_pre" => vec![
+        "fastq.validate_reads" => vec![
             "seqtk",
             "fastqc",
             "fastqvalidator",
@@ -46,9 +46,9 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.merge" => vec!["pear", "vsearch", "bbmerge", "flash2"],
         "fastq.correct" => vec!["rcorrector", "spades", "bayeshammer", "lighter", "musket"],
         "fastq.umi" => vec!["umi_tools"],
-        "fastq.stats_neutral" => vec!["seqkit_stats"],
-        "fastq.qc_post" => vec!["multiqc"],
-        "fastq.screen" => vec![
+        "fastq.profile_reads" => vec!["seqkit_stats"],
+        "fastq.report_qc" => vec!["multiqc"],
+        "fastq.screen_taxonomy" => vec![
             "kraken2",
             "centrifuge",
             "metaphlan",
@@ -144,9 +144,9 @@ pub struct NormalizedOutputs {
 #[must_use]
 pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     match stage_id {
-        "fastq.trim"
+        "fastq.trim_reads"
         | "fastq.damage_aware_pretrim"
-        | "fastq.filter"
+        | "fastq.filter_reads"
         | "fastq.primer_normalization"
         | "fastq.chimera_detection"
         | "fastq.deduplicate"
@@ -198,13 +198,13 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out / reads_in; bases_out / bases_in",
             retention_units: "reads,bases",
         }),
-        "fastq.validate_pre"
-        | "fastq.length_distribution_pre"
-        | "fastq.overrepresented_sequences"
+        "fastq.validate_reads"
+        | "fastq.profile_read_lengths"
+        | "fastq.profile_overrepresented_sequences"
         | "fastq.detect_adapters"
-        | "fastq.stats_neutral"
-        | "fastq.qc_post"
-        | "fastq.screen" => Some(FastqStageContract {
+        | "fastq.profile_reads"
+        | "fastq.report_qc"
+        | "fastq.screen_taxonomy" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
             may_drop_reads: false,
@@ -253,7 +253,7 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
     };
     match contract.input_kind {
         FastqArtifactKind::SingleEnd => {
-            if input_kind == FastqArtifactKind::PairedEnd && stage_id != "fastq.stats_neutral" {
+            if input_kind == FastqArtifactKind::PairedEnd && stage_id != "fastq.profile_reads" {
                 return Err(anyhow!("stage {stage_id} does not accept paired-end input"));
             }
         }

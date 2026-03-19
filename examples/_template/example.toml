@@ -11,4 +11,4 @@ target_se = 10
 target_pe = 10
 benchmark_suite = "fastq_stage01_validate_pre"
 runtime = "apptainer"
-stage_1 = "fastq.validate_pre"
+stage_1 = "fastq.validate_reads"

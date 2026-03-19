@@ -7,12 +7,12 @@ pub struct MetricsSchemaId {
 
 pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     MetricsSchemaId {
-        stage_id: "fastq.trim",
+        stage_id: "fastq.trim_reads",
         schema: "fastq_trim_v2",
         version: 2,
     },
     MetricsSchemaId {
-        stage_id: "fastq.validate_pre",
+        stage_id: "fastq.validate_reads",
         schema: "fastq_validate_pre_v1",
         version: 1,
     },
@@ -27,7 +27,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 2,
     },
     MetricsSchemaId {
-        stage_id: "fastq.filter",
+        stage_id: "fastq.filter_reads",
         schema: "fastq_filter_v2",
         version: 2,
     },
@@ -52,7 +52,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.qc_post",
+        stage_id: "fastq.report_qc",
         schema: "fastq_qc_post_v1",
         version: 1,
     },
@@ -62,7 +62,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.screen",
+        stage_id: "fastq.screen_taxonomy",
         schema: "fastq_screen_v1",
         version: 1,
     },
@@ -72,7 +72,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 2,
     },
     MetricsSchemaId {
-        stage_id: "fastq.stats_neutral",
+        stage_id: "fastq.profile_reads",
         schema: "fastq_stats_neutral_v1",
         version: 1,
     },

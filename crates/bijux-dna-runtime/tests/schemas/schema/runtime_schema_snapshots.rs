@@ -31,7 +31,7 @@ fn run_layout_schema_snapshot() {
 fn run_record_schema_snapshot() {
     let record = bijux_dna_core::contract::RunRecordV1::new(vec![
         bijux_dna_core::contract::StageExecutionRecordV1 {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             attempt: 0,
             success: true,
             cached: false,
@@ -74,7 +74,7 @@ fn run_manifest_schema_snapshot() {
     let invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
         contract_version: ContractVersion::v1(),
-        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim"),
+        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
         tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
         tool_version: "1.0".to_string(),
         resolved_tool_version: None,

@@ -515,7 +515,7 @@ mod tests {
     use super::{write_cross_run_manifest, write_defaults_ledger};
     use bijux_dna_pipelines::registry::profile_by_id;
     use bijux_dna_pipelines::Domain;
-    use bijux_dna_planner_fastq::stage_api::STAGE_TRIM;
+    use bijux_dna_planner_fastq::stage_api::STAGE_TRIM_READS;
 
     #[test]
     fn cross_run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
@@ -539,7 +539,7 @@ mod tests {
         let fastq_summary = serde_json::json!({
             "run_id": "run-1",
             "stages": [{
-                "stage_id": STAGE_TRIM.as_str(),
+                "stage_id": STAGE_TRIM_READS.as_str(),
                 "tool_id": "fastp",
                 "artifacts": {},
             }]

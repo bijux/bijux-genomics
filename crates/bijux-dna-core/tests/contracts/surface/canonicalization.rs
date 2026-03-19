@@ -37,6 +37,6 @@ fn parameters_json_canonicalization_normalizes_numbers() {
 
 #[test]
 fn metrics_schema_resolves_stage() {
-    let schema = metrics_schema_for_stage("fastq.trim");
+    let schema = metrics_schema_for_stage("fastq.trim_reads");
     assert!(schema.is_some());
 }

@@ -9,7 +9,7 @@ fn dashboard_contract_has_required_fields_and_sorting() -> anyhow::Result<()> {
         FactsRowV1 {
             schema_version: "bijux.facts.v1".to_string(),
             run_id: "run-b".to_string(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: Some("sha256:abc".to_string()),
@@ -35,7 +35,7 @@ fn dashboard_contract_has_required_fields_and_sorting() -> anyhow::Result<()> {
         FactsRowV1 {
             schema_version: "bijux.facts.v1".to_string(),
             run_id: "run-a".to_string(),
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: Some("sha256:def".to_string()),

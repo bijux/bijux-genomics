@@ -20,8 +20,8 @@ pub use validation::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use std::path::PathBuf;
 
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS,
+    STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,7 +31,7 @@ pub(crate) enum QaStage {
     Filter,
     Merge,
     Correct,
-    QcPost,
+    ReportQc,
     Umi,
     Stats,
     Screen,
@@ -40,15 +40,15 @@ pub(crate) enum QaStage {
 impl QaStage {
     pub(crate) fn stage_id(self) -> bijux_dna_core::ids::StageId {
         match self {
-            QaStage::Trim => STAGE_TRIM.clone(),
-            QaStage::Validate => STAGE_VALIDATE_PRE.clone(),
-            QaStage::Filter => STAGE_FILTER.clone(),
+            QaStage::Trim => STAGE_TRIM_READS.clone(),
+            QaStage::Validate => STAGE_VALIDATE_READS.clone(),
+            QaStage::Filter => STAGE_FILTER_READS.clone(),
             QaStage::Merge => STAGE_MERGE.clone(),
             QaStage::Correct => STAGE_CORRECT.clone(),
-            QaStage::QcPost => STAGE_QC_POST.clone(),
+            QaStage::ReportQc => STAGE_REPORT_QC.clone(),
             QaStage::Umi => STAGE_UMI.clone(),
-            QaStage::Stats => STAGE_STATS_NEUTRAL.clone(),
-            QaStage::Screen => STAGE_SCREEN.clone(),
+            QaStage::Stats => STAGE_PROFILE_READS.clone(),
+            QaStage::Screen => STAGE_SCREEN_TAXONOMY.clone(),
         }
     }
 
@@ -73,7 +73,7 @@ impl QaStage {
             QaStage::Filter => &["prinseq", "fastp", "seqkit"],
             QaStage::Merge => &["pear", "vsearch", "bbmerge", "flash2"],
             QaStage::Correct => &["rcorrector"],
-            QaStage::QcPost => &["fastqc", "multiqc"],
+            QaStage::ReportQc => &["fastqc", "multiqc"],
             QaStage::Umi => &["umi_tools"],
             QaStage::Stats => &["seqkit_stats"],
             QaStage::Screen => &[

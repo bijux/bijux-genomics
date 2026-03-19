@@ -64,7 +64,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 
     let stage_report = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         stage_version: 2,
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
@@ -78,7 +78,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         errors: vec![],
         invariants: vec![],
         verdict: Some(StageVerdictV1 {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             verdict: InvariantStatusV1::Pass,
             reasons: Vec::new(),
             key_metrics: serde_json::json!({}),
@@ -94,7 +94,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 
     let effective_config = EffectiveConfigV1 {
         schema_version: "bijux.effective_config.v1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         stage_version: 2,
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
@@ -133,7 +133,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
     let tool_invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
         contract_version: bijux_dna_core::contract::ContractVersion::v1(),
-        stage_id: bijux_dna_core::ids::StageId::from_static("fastq.trim"),
+        stage_id: bijux_dna_core::ids::StageId::from_static("fastq.trim_reads"),
         tool_id: bijux_dna_core::ids::ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
         resolved_tool_version: Some("0.23.4".to_string()),
@@ -177,7 +177,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 
     let retention_report = RetentionReportV1 {
         schema_version: "bijux.retention_report.v1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         boundary: "pre/post".to_string(),
@@ -195,7 +195,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 
     let bank_report = serde_json::json!({
         "schema_version": "bijux.bank_report.v1",
-        "stage_id": "fastq.trim",
+        "stage_id": "fastq.trim_reads",
         "tool_id": "fastp",
         "banks": {
             "adapters": {
@@ -237,7 +237,7 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:img".to_string()),
@@ -296,7 +296,7 @@ fn report_includes_sections_block() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-sections".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:img".to_string()),
@@ -393,7 +393,7 @@ fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-3".to_string(),
-        stage_id: "fastq.validate_pre".to_string(),
+        stage_id: "fastq.validate_reads".to_string(),
         tool_id: "fastqvalidator".to_string(),
         tool_version: "1.0".to_string(),
         image_digest: Some("sha256:img3".to_string()),
@@ -431,7 +431,7 @@ fn report_provenance_is_complete() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-4".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:img".to_string()),

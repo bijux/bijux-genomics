@@ -39,7 +39,7 @@
           "preset": "illumina_twocolor"
         }
       },
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     }
   ],
@@ -168,7 +168,7 @@
       "image_digest": "sha256:img",
       "params_hash": "params",
       "span_id": "span-1",
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp",
       "tool_version": "0.23.4",
       "trace_id": "trace-1"
@@ -181,7 +181,7 @@
         "min_len": 20
       },
       "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     }
   ],
@@ -192,7 +192,7 @@
       },
       "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
       "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "tool_id": "fastp"
     }
   ],
@@ -204,7 +204,7 @@
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -265,7 +265,7 @@
       "entries": [
         {
           "results": [],
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -320,7 +320,7 @@
               "preset": "illumina_twocolor"
             }
           },
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -364,7 +364,7 @@
           "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "telemetry_decisions": [],
           "tool_id": "fastp",
           "tool_version": "0.23.4"
@@ -407,7 +407,7 @@
         {
           "bases_dropped": 200,
           "reads_dropped": 20,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -448,7 +448,7 @@
         {
           "effective_config_path": "effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "0.23.4"
         }
@@ -460,7 +460,7 @@
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "0.23.4"
         }
@@ -490,7 +490,7 @@
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tier_rationale": "curated_default",
           "tool_id": "fastp",
           "tool_tier": "gold",
@@ -546,7 +546,7 @@
             "min_len": 20
           },
           "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ],
@@ -557,7 +557,7 @@
           },
           "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
           "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -588,7 +588,7 @@
             "min_len": 20
           },
           "resolved_tool_version": "0.23.4",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "0.23.4"
         }
@@ -599,7 +599,7 @@
         {
           "missing_metrics": [],
           "missing_reports": [],
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "status": "complete"
         }
       ]
@@ -610,7 +610,7 @@
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -622,14 +622,14 @@
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ],
       "waterfall": [
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.trim"
+          "stage_id": "fastq.trim_reads"
         }
       ]
     },
@@ -640,7 +640,7 @@
             "min_len": 20
           },
           "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ],
@@ -651,7 +651,7 @@
           },
           "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
           "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ]
@@ -668,7 +668,7 @@
       "params_hash": "params",
       "retention_report_path": "retention_report.json",
       "runtime_s": 1.0,
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "stage_report_path": "stage_report.json",
       "tool_id": "fastp",
       "tool_invocation_path": "tool_invocation.json",

@@ -19,11 +19,11 @@ use self::registry::{
 mod registry;
 
 const FASTQ_1XX_STAGE_CATALOG: &[&str] = &[
-    "fastq.validate_pre",
-    "fastq.trim",
-    "fastq.filter",
-    "fastq.stats_neutral",
-    "fastq.qc_post",
+    "fastq.validate_reads",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.profile_reads",
+    "fastq.report_qc",
 ];
 
 const BAM_2XX_STAGE_CATALOG: &[&str] = &[

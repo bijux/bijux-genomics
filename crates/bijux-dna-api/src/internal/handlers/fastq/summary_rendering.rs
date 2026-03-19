@@ -115,19 +115,19 @@ fn fastq_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json:
     let mut transforms = 0_u64;
     for entry in stage_runs {
         let id = entry.plan.stage_id.as_str();
-        if id == "fastq.validate_pre" || id == "fastq.length_distribution_pre" {
+        if id == "fastq.validate_reads" || id == "fastq.profile_read_lengths" {
             pre_qc_stages += 1;
         }
-        if id == "fastq.qc_post" {
+        if id == "fastq.report_qc" {
             post_qc_stages += 1;
         }
-        if id == "fastq.screen" || id == "fastq.contaminant_screen" || id == "fastq.rrna" {
+        if id == "fastq.screen_taxonomy" || id == "fastq.contaminant_screen" || id == "fastq.rrna" {
             classification_stages += 1;
         }
         if matches!(
             id,
-            "fastq.trim"
-                | "fastq.filter"
+            "fastq.trim_reads"
+                | "fastq.filter_reads"
                 | "fastq.correct"
                 | "fastq.merge"
                 | "fastq.deduplicate"

@@ -15,25 +15,25 @@ fn override_precedence_is_stable() {
 
     let mut base_tools = BTreeMap::new();
     base_tools.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         ToolId::from_static("fastp"),
     );
 
     let mut profile_tools = BTreeMap::new();
     profile_tools.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         ToolId::from_static("cutadapt"),
     );
 
     let mut cli_tools = BTreeMap::new();
     cli_tools.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         ToolId::from_static("bbduk"),
     );
 
     let mut api_tools = BTreeMap::new();
     api_tools.insert(
-        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.trim_reads"),
         ToolId::from_static("trimmomatic"),
     );
 

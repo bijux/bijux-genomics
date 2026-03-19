@@ -10,19 +10,19 @@ use super::{defs, fields};
 pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
     match kind {
         defs::StageMetricKind::FastqTrim => defs::StageMetricSpec {
-            stage: "fastq.trim",
+            stage: "fastq.trim_reads",
             version: 2,
             metrics: &fields::FASTQ_TRIM_METRICS,
             invariants: &fields::FASTQ_TRIM_INVARIANTS,
         },
         defs::StageMetricKind::FastqValidate => defs::StageMetricSpec {
-            stage: "fastq.validate_pre",
+            stage: "fastq.validate_reads",
             version: 1,
             metrics: &fields::FASTQ_VALIDATE_METRICS,
             invariants: &fields::FASTQ_VALIDATE_INVARIANTS,
         },
         defs::StageMetricKind::FastqFilter => defs::StageMetricSpec {
-            stage: "fastq.filter",
+            stage: "fastq.filter_reads",
             version: 2,
             metrics: &fields::FASTQ_FILTER_METRICS,
             invariants: &fields::FASTQ_FILTER_INVARIANTS,
@@ -40,7 +40,7 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             invariants: &fields::FASTQ_CORRECT_INVARIANTS,
         },
         defs::StageMetricKind::FastqQcPost => defs::StageMetricSpec {
-            stage: "fastq.qc_post",
+            stage: "fastq.report_qc",
             version: 1,
             metrics: &fields::FASTQ_QC_POST_METRICS,
             invariants: &fields::FASTQ_QC_POST_INVARIANTS,
@@ -52,13 +52,13 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             invariants: &fields::FASTQ_UMI_INVARIANTS,
         },
         defs::StageMetricKind::FastqScreen => defs::StageMetricSpec {
-            stage: "fastq.screen",
+            stage: "fastq.screen_taxonomy",
             version: 1,
             metrics: &fields::FASTQ_SCREEN_METRICS,
             invariants: &fields::FASTQ_SCREEN_INVARIANTS,
         },
         defs::StageMetricKind::FastqStats => defs::StageMetricSpec {
-            stage: "fastq.stats_neutral",
+            stage: "fastq.profile_reads",
             version: 1,
             metrics: &fields::FASTQ_STATS_METRICS,
             invariants: &fields::FASTQ_STATS_INVARIANTS,

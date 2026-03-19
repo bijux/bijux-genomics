@@ -1,4 +1,4 @@
-use bijux_dna_domain_vcf::{VcfStage, STAGE_CALL, STAGE_FILTER, STAGE_STATS};
+use bijux_dna_domain_vcf::{VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_STATS};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VcfStageSpec {
@@ -104,7 +104,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: false,
         },
         VcfStageSpec {
-            stage_id: STAGE_FILTER,
+            stage_id: STAGE_FILTER_READS,
             metrics_schema: "bijux.vcf.filter.v1",
             smoke_supported: true,
             parser_supported: true,

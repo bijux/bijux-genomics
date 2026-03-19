@@ -39,7 +39,7 @@ fn top_findings_from_invariants(rows: &[FactsRowV1], limit: usize) -> Vec<serde_
 pub(crate) fn qc_improvement_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;
     for row in rows {
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             report_path = report_path_for(&row.reports, "qc_post_report");
             if report_path.is_some() {
                 break;
@@ -114,7 +114,7 @@ pub(crate) fn qc_improvement_section(rows: &[FactsRowV1]) -> serde_json::Value {
 pub(crate) fn qc_artifacts_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;
     for row in rows {
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             report_path = report_path_for(&row.reports, "qc_post_report");
             if report_path.is_some() {
                 break;
@@ -145,7 +145,7 @@ pub(crate) fn qc_artifacts_section(rows: &[FactsRowV1]) -> serde_json::Value {
 pub(crate) fn filter_interpretation_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;
     for row in rows {
-        if row.stage_id == "fastq.filter" {
+        if row.stage_id == "fastq.filter_reads" {
             report_path = report_path_for(&row.reports, "filter_report");
             if report_path.is_some() {
                 break;
@@ -194,7 +194,7 @@ pub(crate) fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Valu
     let mut report_path = None;
     let mut detect_path = None;
     for row in rows {
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             report_path = report_path_for(&row.reports, "qc_post_report");
             if report_path.is_some() {
                 break;

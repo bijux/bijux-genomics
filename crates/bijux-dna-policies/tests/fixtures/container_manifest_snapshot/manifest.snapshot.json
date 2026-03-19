@@ -152,7 +152,7 @@
         "docker",
         "apptainer"
       ],
-      "tool_id": "fastq.validate_pre",
+      "tool_id": "fastq.validate_reads",
       "upstream": "https://github.com/vsearch/vsearch",
       "version": "2.28.1"
     },

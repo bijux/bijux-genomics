@@ -37,7 +37,7 @@ pub struct BoundaryInvariant {
 
 pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 6] = [
     BoundaryInvariant {
-        from: StageId::from_static("fastq.validate_pre"),
+        from: StageId::from_static("fastq.validate_reads"),
         to: StageId::from_static("fastq.detect_adapters"),
         rule: "validation does not modify reads; adapter detection consumes validated reads",
     },
@@ -48,29 +48,29 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 6] = [
     },
     BoundaryInvariant {
         from: StageId::from_static("fastq.damage_aware_pretrim"),
-        to: StageId::from_static("fastq.trim"),
+        to: StageId::from_static("fastq.trim_reads"),
         rule: "damage-aware pretrim output remains FASTQ and preserves pairing semantics",
     },
     BoundaryInvariant {
-        from: StageId::from_static("fastq.trim"),
-        to: StageId::from_static("fastq.filter"),
+        from: StageId::from_static("fastq.trim_reads"),
+        to: StageId::from_static("fastq.filter_reads"),
         rule: "trim output must remain FASTQ and preserve pairing",
     },
     BoundaryInvariant {
-        from: StageId::from_static("fastq.filter"),
-        to: StageId::from_static("fastq.stats_neutral"),
+        from: StageId::from_static("fastq.filter_reads"),
+        to: StageId::from_static("fastq.profile_reads"),
         rule: "filter output remains FASTQ; stats is report-only",
     },
     BoundaryInvariant {
         from: StageId::from_static("fastq.merge"),
-        to: StageId::from_static("fastq.stats_neutral"),
+        to: StageId::from_static("fastq.profile_reads"),
         rule: "merge produces merged reads; stats accepts merged FASTQ",
     },
 ];
 
 pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
-        stage_id: StageId::from_static("fastq.validate_pre"),
+        stage_id: StageId::from_static("fastq.validate_reads"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -81,7 +81,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.length_distribution_pre"),
+        stage_id: StageId::from_static("fastq.profile_read_lengths"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -136,7 +136,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.trim"),
+        stage_id: StageId::from_static("fastq.trim_reads"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -151,7 +151,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.filter"),
+        stage_id: StageId::from_static("fastq.filter_reads"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -166,7 +166,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.stats_neutral"),
+        stage_id: StageId::from_static("fastq.profile_reads"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -273,7 +273,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.overrepresented_sequences"),
+        stage_id: StageId::from_static("fastq.profile_overrepresented_sequences"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -328,7 +328,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.screen"),
+        stage_id: StageId::from_static("fastq.screen_taxonomy"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Experimental,
         semantics: StageSemantics {
@@ -339,7 +339,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.qc_post"),
+        stage_id: StageId::from_static("fastq.report_qc"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
