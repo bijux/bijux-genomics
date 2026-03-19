@@ -1,30 +1,6 @@
 # Supported script surface
 
 [[script]]
-id = "refresh_golden"
-path = "scripts/assets/refresh-golden.sh"
-purpose = "assets script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "refresh_toy"
-path = "scripts/assets/refresh-toy.sh"
-purpose = "assets script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "validate_reference"
-path = "scripts/assets/validate-reference.sh"
-purpose = "assets script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "run"
 path = "scripts/run.sh"
 purpose = "run.sh script"
@@ -260,14 +236,6 @@ ci_allowed = false
 id = "tooling_make"
 path = "scripts/tooling/make.sh"
 purpose = "tooling group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "assets_make"
-path = "scripts/assets/make.sh"
-purpose = "assets group dispatcher"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
