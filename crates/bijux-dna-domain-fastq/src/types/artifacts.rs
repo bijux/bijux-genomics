@@ -9,6 +9,8 @@ pub enum FastqArtifactKind {
     PairedEnd,
     Merged,
     StatsOnly,
+    ReferenceFasta,
+    ReferenceIndex,
     AmpliconTable,
     RepresentativeFasta,
     TaxonomyMapping,
