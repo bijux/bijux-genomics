@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-correct-errors-01"
+domain = "fastq"
+stages = ["fastq.correct_errors"]

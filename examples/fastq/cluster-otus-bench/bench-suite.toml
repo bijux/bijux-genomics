@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-cluster-otus-01"
+domain = "fastq"
+stages = ["fastq.cluster_otus"]

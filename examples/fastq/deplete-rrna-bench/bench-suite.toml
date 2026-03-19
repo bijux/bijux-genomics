@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-deplete-rrna-01"
+domain = "fastq"
+stages = ["fastq.deplete_rrna"]

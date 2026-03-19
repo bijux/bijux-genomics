@@ -1,6 +1,46 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: cargo run -p bijux-dev-dna -- examples run generate-index
 examples:
+  - id: fastq_cluster_otus_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/cluster-otus-bench
+  - id: fastq_correct_errors_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/correct-errors-bench
+  - id: fastq_deplete_host_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/deplete-host-bench
+  - id: fastq_deplete_reference_contaminants_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/deplete-reference-contaminants-bench
+  - id: fastq_deplete_rrna_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/deplete-rrna-bench
   - id: fastq_edna_mini
     domain: fastq
     corpus_required: corpus-01-mini

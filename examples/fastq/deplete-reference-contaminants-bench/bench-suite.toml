@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-deplete-reference-contaminants-01"
+domain = "fastq"
+stages = ["fastq.deplete_reference_contaminants"]
