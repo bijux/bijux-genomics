@@ -4,7 +4,11 @@ use clap::{Parser, Subcommand};
 use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
+use crate::application::ops::OpsApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
+use crate::registry::ops::{
+    docs_registry, examples_registry, hpc_registry, lab_registry, smoke_registry, test_registry,
+};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -21,6 +25,12 @@ enum Command {
     Checks(ChecksCommand),
     Containers(ContainersCommand),
     Domain(DomainCommand),
+    Docs(OpsCommand),
+    Examples(OpsCommand),
+    Hpc(OpsCommand),
+    Lab(OpsCommand),
+    Smoke(OpsCommand),
+    Test(OpsCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -61,8 +71,24 @@ pub struct DomainCommand {
     command: DomainSubcommand,
 }
 
+#[derive(Parser, Debug)]
+pub struct OpsCommand {
+    #[command(subcommand)]
+    command: OpsSubcommand,
+}
+
 #[derive(Subcommand, Debug)]
 enum DomainSubcommand {
+    List,
+    Run {
+        id: String,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum OpsSubcommand {
     List,
     Run {
         id: String,
@@ -79,6 +105,12 @@ pub fn run() -> Result<()> {
         Command::Checks(command) => run_checks(command),
         Command::Containers(command) => run_containers(command),
         Command::Domain(command) => run_domain(command),
+        Command::Docs(command) => run_ops(command, docs_registry),
+        Command::Examples(command) => run_ops(command, examples_registry),
+        Command::Hpc(command) => run_ops(command, hpc_registry),
+        Command::Lab(command) => run_ops(command, lab_registry),
+        Command::Smoke(command) => run_ops(command, smoke_registry),
+        Command::Test(command) => run_ops(command, test_registry),
     }
 }
 
@@ -173,6 +205,37 @@ fn run_domain(command: DomainCommand) -> Result<()> {
             if !outcome.is_success() {
                 anyhow::bail!(
                     "domain command `{id}` failed with exit code {}",
+                    outcome.exit_code
+                );
+            }
+            Ok(())
+        }
+    }
+}
+
+fn run_ops(
+    command: OpsCommand,
+    registry: fn() -> Vec<crate::model::ops::OpsCommandDefinition>,
+) -> Result<()> {
+    let app = OpsApplication::new(registry)?;
+    match command.command {
+        OpsSubcommand::List => {
+            for command in app.registry() {
+                println!("{}", command.id);
+            }
+            Ok(())
+        }
+        OpsSubcommand::Run { id, args } => {
+            let outcome = app.run(&id, &args)?;
+            if !outcome.stdout.is_empty() {
+                print!("{}", outcome.stdout);
+            }
+            if !outcome.stderr.is_empty() {
+                eprint!("{}", outcome.stderr);
+            }
+            if !outcome.is_success() {
+                anyhow::bail!(
+                    "operational command `{id}` failed with exit code {}",
                     outcome.exit_code
                 );
             }
