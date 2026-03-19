@@ -287,6 +287,7 @@ pub struct BenchFastqDepleteHostArgs {
 pub struct BenchFastqDepleteReferenceContaminantsArgs {
     pub sample_id: String,
     pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
@@ -299,6 +300,7 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
 pub struct BenchFastqDepleteRrnaArgs {
     pub sample_id: String,
     pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
