@@ -55,7 +55,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: compute neutral read-length summaries without mutating reads.
 - Inputs/Outputs: reads -> stats_json.
 - Metrics: length distributions, read counts.
-- Tools: seqkit_stats, seqfu, prinseq, fastp.
+- Tools: seqkit_stats, prinseq, fastp.
 
 ### fastq.profile_reads {#fastq-stats-neutral}
 - Purpose: compute neutral read-level summary statistics.
@@ -157,4 +157,4 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: normalize abundance summaries after amplicon inference.
 - Inputs/Outputs: feature table -> normalized_abundance_table.
 - Metrics: normalized abundance summaries.
-- Tools: seqfu, seqkit.
+- Tools: seqkit.

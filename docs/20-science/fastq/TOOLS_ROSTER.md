@@ -22,7 +22,7 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper | Adapter and quality trimming backends accepted by the current contract |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | Quality/length/content filtering without stage overloading |
 | fastq.filter_low_complexity | prinseq, bbduk, fastp | Dedicated low-complexity-capable backends admitted in the current runtime set |
-| fastq.profile_read_lengths | seqkit_stats, seqfu, prinseq, fastp | Neutral read-length summaries |
+| fastq.profile_read_lengths | seqkit_stats, prinseq, fastp | Neutral read-length summaries |
 | fastq.profile_reads | seqkit_stats | Deterministic baseline read statistics |
 | fastq.profile_overrepresented_sequences | fastqc, seqkit | Overrepresented-sequence reporting |
 | fastq.merge_pairs | pear, vsearch, bbmerge, flash2, leehom | Overlap-aware paired-end merging backends still supported by the runtime contract |
@@ -39,4 +39,4 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.remove_chimeras | vsearch | Chimera removal in amplicon workflows |
 | fastq.cluster_otus | vsearch | OTU clustering |
 | fastq.infer_asvs | no admitted backend yet | Stage contract is defined, but governed runtime admission for ASV inference is still pending |
-| fastq.normalize_abundance | seqfu, seqkit | Post-inference abundance normalization helpers |
+| fastq.normalize_abundance | seqkit | Post-inference abundance normalization helpers |
