@@ -1,12 +1,12 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::process::ProcessRunner;
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::workspace::Workspace;
 use crate::model::check::{
     CheckDefinition, CheckOutcome, CheckSelection, CheckStatus, CommandSpec, ExecutionMode,
 };
-use crate::native::run_native_check;
-use crate::registry::checks::check_registry;
+use crate::commands::run_native_check;
+use crate::catalog::checks::check_registry;
 
 #[derive(Debug)]
 pub struct CheckApplication {

@@ -5,11 +5,11 @@ use regex::Regex;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::model::ops::NativeOpsCommandKey;
-use crate::native::run_native_ops_command;
-use crate::native::support::{fail, load_supported_scripts, pass, read, run_command};
+use crate::commands::run_native_ops_command;
+use crate::commands::command_support::{fail, load_supported_scripts, pass, read, run_command};
 
 pub(crate) fn check_audit_allowlist(
     workspace: &Workspace,
@@ -171,7 +171,7 @@ pub(crate) fn check_benchmark_integrity_policy(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/native/ops.rs"))?;
+    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/commands/ops.rs"))?;
     let mut errors = Vec::new();
     if !native_ops.contains("tooling_benchmarks") {
         errors.push("native tooling benchmarks workflow must exist".to_string());
@@ -400,7 +400,7 @@ pub(crate) fn check_artifact_env_contract(
     let snapshots = workspace.path("crates");
     let path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
     let mut leaks = Vec::new();
-    for entry in WalkDir::new(&snapshots).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&snapshots).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -498,7 +498,7 @@ pub(crate) fn check_assets_reference_schema(
         Regex::new(r"^\s*[A-Za-z0-9_]+_ids:\s*$").context("compile preset key regex")?;
     let yaml_iter = WalkDir::new(&ref_root)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             matches!(
@@ -542,7 +542,7 @@ pub(crate) fn check_assets_reference_schema(
     }
     for entry in std::fs::read_dir(&ref_root)
         .with_context(|| format!("read {}", ref_root.display()))?
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         let dir = entry.path();
         if !dir.is_dir() {
@@ -552,7 +552,7 @@ pub(crate) fn check_assets_reference_schema(
         let mut preset_files = Vec::new();
         for child in std::fs::read_dir(&dir)
             .with_context(|| format!("read {}", dir.display()))?
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
         {
             let path = child.path();
             if !path.is_file() {
@@ -689,7 +689,7 @@ pub(crate) fn check_docs_build_contract(
         ));
     }
 
-    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/native/ops.rs"))?;
+    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/commands/ops.rs"))?;
     if !native_ops.contains("XDG_CACHE_HOME") {
         violations.push(
             "docs-build-contract: native docs workflow must set XDG_CACHE_HOME to artifacts/docs/.cache".to_string(),
@@ -968,7 +968,7 @@ pub(crate) fn check_hidden_tmp_usage(
     ];
     let mut violations = Vec::new();
     for root in roots {
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1001,7 +1001,7 @@ pub(crate) fn check_hpc_safety(
         return pass(check, "legacy hpc script surface is absent");
     }
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -1158,7 +1158,7 @@ pub(crate) fn check_no_fake_artifacts(
         Regex::new(r"placeholder|fake_artifact|dummy_artifact|stub_artifact").expect("regex");
     let mut hits = Vec::new();
     for root in source_roots {
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1176,7 +1176,7 @@ pub(crate) fn check_no_fake_artifacts(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1210,7 +1210,7 @@ pub(crate) fn check_no_target_paths_in_tests(
         workspace.path("scripts"),
         workspace.path("makes"),
     ] {
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1220,7 +1220,7 @@ pub(crate) fn check_no_target_paths_in_tests(
             {
                 continue;
             }
-            if rel == "crates/bijux-dev-dna/src/native/workspace_checks.rs" {
+            if rel == "crates/bijux-dev-dna/src/commands/repo_checks.rs" {
                 continue;
             }
             if !source_like_scan_path(&rel) {
@@ -1252,7 +1252,7 @@ pub(crate) fn check_no_user_path_literals(
         workspace.path("scripts"),
         workspace.path("makes"),
     ] {
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1262,7 +1262,7 @@ pub(crate) fn check_no_user_path_literals(
             {
                 continue;
             }
-            if rel == "crates/bijux-dev-dna/src/native/workspace_checks.rs" {
+            if rel == "crates/bijux-dev-dna/src/commands/repo_checks.rs" {
                 continue;
             }
             if rel.starts_with("examples/") || rel.ends_with(".md") {
@@ -1486,7 +1486,7 @@ pub(crate) fn check_rustflags_consistency(
     let mut violations = Vec::new();
     for entry in WalkDir::new(workspace.path("crates"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         if !entry.file_type().is_file() {
             continue;
@@ -1511,7 +1511,7 @@ pub(crate) fn check_rustflags_consistency(
             }
             continue;
         }
-        for entry in WalkDir::new(&path).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&path).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1521,7 +1521,7 @@ pub(crate) fn check_rustflags_consistency(
             }
             let raw = read(entry.path())?;
             if raw.contains("RUSTFLAGS=")
-                && rel != "crates/bijux-dev-dna/src/native/ops.rs"
+                && rel != "crates/bijux-dev-dna/src/commands/ops.rs"
             {
                 violations.push(rel);
             }
@@ -1604,7 +1604,7 @@ fn script_readme_paths(workspace: &Workspace) -> Result<Vec<String>> {
     for entry in WalkDir::new(workspace.path("scripts"))
         .max_depth(2)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         if entry.file_type().is_file() && entry.file_name() == "README.md" {
             paths.push(workspace.rel(entry.path()).display().to_string());

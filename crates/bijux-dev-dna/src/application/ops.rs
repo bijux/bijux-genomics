@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::ops::{OpsCommandDefinition, OpsCommandOutcome, OpsCommandSpec};
-use crate::native::run_native_ops_command;
+use crate::commands::run_native_ops_command;
 
 #[derive(Debug)]
 pub struct OpsApplication {

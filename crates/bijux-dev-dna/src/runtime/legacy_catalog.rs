@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct SupportedScriptCatalog {

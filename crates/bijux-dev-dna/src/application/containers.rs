@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::container::{ContainerCommandDefinition, ContainerCommandOutcome, ContainerCommandSpec};
-use crate::native::run_native_container_command;
-use crate::registry::containers::container_registry;
+use crate::commands::run_native_container_command;
+use crate::catalog::containers::container_registry;
 
 #[derive(Debug)]
 pub struct ContainerApplication {

@@ -6,7 +6,7 @@ mod support;
 fn policy__contracts__container_smoke_registry_driven_policy__smoke_scripts_are_registry_driven_only(
 ) {
     let root = support::workspace_root();
-    let raw = std::fs::read_to_string(root.join("crates/bijux-dev-dna/src/registry/containers.rs"))
+    let raw = std::fs::read_to_string(root.join("crates/bijux-dev-dna/src/catalog/containers.rs"))
         .expect("read native container registry");
     let mut offenders = Vec::new();
     for command in ["smoke-docker-arm64", "smoke-apptainer"] {

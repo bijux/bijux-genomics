@@ -12,8 +12,8 @@ use walkdir::WalkDir;
 use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
-use crate::infrastructure::process::ProcessRunner;
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckSelection, CheckStatus};
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
 
@@ -321,7 +321,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 
     let mut yaml_files = WalkDir::new(&ref_root)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_path_buf())
         .filter(|path| {
@@ -371,7 +371,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 
     let mut banks = fs::read_dir(&ref_root)
         .with_context(|| format!("read {}", ref_root.display()))?
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
         .collect::<Vec<_>>();
@@ -380,7 +380,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
     for bank_dir in banks {
         let mut bank_files = fs::read_dir(&bank_dir)
             .with_context(|| format!("read {}", bank_dir.display()))?
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
             .map(|entry| entry.path())
             .filter(|path| {
                 matches!(
@@ -396,7 +396,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
         bank_files.sort();
         let mut preset_files = fs::read_dir(&bank_dir)
             .with_context(|| format!("read {}", bank_dir.display()))?
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
             .map(|entry| entry.path())
             .filter(|path| {
                 matches!(
@@ -1730,7 +1730,7 @@ fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -2902,7 +2902,7 @@ fn tooling_validate_frontend_mini_domain_stacks(
     }
     for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
@@ -2966,7 +2966,7 @@ fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<Op
     let out_md = workspace.path("artifacts/inventory/configs.md");
     let mut config_files = WalkDir::new(workspace.path("configs"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .collect::<Vec<_>>();
@@ -3723,7 +3723,7 @@ fn tooling_generate_policy_index(workspace: &Workspace, args: &[String]) -> Resu
     ];
     let mut files = WalkDir::new(workspace.path("crates/bijux-dna-policies/tests"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
         .map(|entry| entry.path().to_path_buf())
@@ -3774,7 +3774,7 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     let mut lines = vec!["docs_index_coverage".to_string()];
     let mut dirs = WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_dir())
         .map(|entry| entry.path().to_path_buf())
         .collect::<Vec<_>>();
@@ -4168,7 +4168,7 @@ fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     ensure_help_only("check-doc-assets", args)?;
     let docs_root = workspace.path("docs");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -4195,7 +4195,7 @@ fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let non_goals = Regex::new(r"(?mi)^##\s+Non-goals\s*$")?;
     let contracts = Regex::new(r"(?mi)^##\s+Contracts\s*$")?;
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -4245,7 +4245,7 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
     let mut missing = Vec::new();
     let mut publication = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -4423,7 +4423,7 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         }
     }
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -4464,14 +4464,14 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     for dir in std::iter::once(docs_root.clone()).chain(
         WalkDir::new(&docs_root)
             .into_iter()
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
             .filter(|entry| entry.file_type().is_dir())
             .map(|entry| entry.path().to_path_buf()),
     ) {
         let markdowns = fs::read_dir(&dir)
             .ok()
             .into_iter()
-            .flat_map(|entries| entries.filter_map(Result::ok))
+            .flat_map(|entries| entries.filter_map(|entry| entry.ok()))
             .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("md"))
             .count();
         if markdowns > 0 && !dir.join("index.md").exists() {
@@ -4483,7 +4483,7 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     }
     let all_docs = WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| {
             entry.file_type().is_file()
                 && entry.path().extension().and_then(|ext| ext.to_str()) == Some("md")
@@ -4561,7 +4561,7 @@ fn docs_check_domain_doc_references(
     let mut errors = Vec::new();
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
     {
         let raw = read_utf8(entry.path())?;
@@ -4603,7 +4603,7 @@ fn docs_check_generated_docs(
     }
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
     {
         if entry
@@ -4703,7 +4703,7 @@ fn docs_check_no_placeholder_language(
     let mut violations = Vec::new();
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
     {
         let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
@@ -6168,7 +6168,7 @@ fn run_programs_with_env(
 fn walk_file_list(workspace: &Workspace, root: &str, extension: Option<&str>) -> Result<String> {
     let mut files = WalkDir::new(workspace.path(root))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             extension.is_none()
@@ -6351,7 +6351,7 @@ fn sorted_unique(values: Vec<String>) -> Vec<String> {
 fn find_first_named_file(base: &Path, name: &str) -> Option<PathBuf> {
     let mut matches = WalkDir::new(base)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.file_name().to_string_lossy() == name)
         .map(|entry| entry.into_path())
@@ -6754,7 +6754,7 @@ fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
 
         for entry in WalkDir::new(workspace.path("assets"))
             .into_iter()
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
         {
             let metadata = std::fs::metadata(entry.path())
                 .with_context(|| format!("read metadata {}", entry.path().display()))?;
@@ -6976,7 +6976,7 @@ fn build_combined_toy_report(run_root: &Path, selected: &[&str]) -> Result<PathB
 
 fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(src).into_iter().filter_map(|entry| entry.ok()) {
         let rel = match entry.path().strip_prefix(src) {
             Ok(rel) => rel,
             Err(_) => continue,
@@ -7278,7 +7278,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         "| Domain | Stage Count | Tool Count | Fixture Count |".to_string(),
         "|---|---:|---:|---:|".to_string(),
     ];
-    for entry in fs::read_dir(&domain_root)?.filter_map(Result::ok) {
+    for entry in fs::read_dir(&domain_root)?.filter_map(|entry| entry.ok()) {
         let path = entry.path();
         if !path.is_dir() {
             continue;
@@ -7322,7 +7322,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         "| Path | Kind | Owner | Purpose |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    for entry in fs::read_dir(&workspace.root)?.filter_map(Result::ok) {
+    for entry in fs::read_dir(&workspace.root)?.filter_map(|entry| entry.ok()) {
         let path = entry.path();
         let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
             continue;
@@ -7350,7 +7350,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
     ]);
     let scripts_root = workspace.path("scripts");
     if scripts_root.is_dir() {
-        for entry in fs::read_dir(&scripts_root)?.filter_map(Result::ok) {
+        for entry in fs::read_dir(&scripts_root)?.filter_map(|entry| entry.ok()) {
             let path = entry.path();
             if !path.is_dir() {
                 continue;
@@ -7438,7 +7438,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
     dirs.extend(
         WalkDir::new(&docs_root)
             .into_iter()
-            .filter_map(Result::ok)
+            .filter_map(|entry| entry.ok())
             .filter(|entry| entry.file_type().is_dir())
             .map(|entry| entry.path().to_path_buf()),
     );
@@ -7450,7 +7450,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
         }
         let from = workspace.rel(&index).display().to_string();
         let mut children = Vec::new();
-        for entry in fs::read_dir(&dir)?.filter_map(Result::ok) {
+        for entry in fs::read_dir(&dir)?.filter_map(|entry| entry.ok()) {
             let path = entry.path();
             if path.is_file()
                 && path.extension().and_then(|ext| ext.to_str()) == Some("md")
@@ -7495,7 +7495,7 @@ fn write_refresh_report(
 ) -> Result<()> {
     let mut files = WalkDir::new(content_root)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_path_buf())
         .collect::<Vec<_>>();
@@ -7567,7 +7567,7 @@ fn replace_dir(src: &Path, dst: &Path) -> Result<()> {
 
 fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(src).into_iter().filter_map(|entry| entry.ok()) {
         let path = entry.path();
         let rel = path
             .strip_prefix(src)
@@ -7594,7 +7594,7 @@ fn config_tree_snapshot_text(workspace: &Workspace) -> Result<String> {
     let configs_root = workspace.path("configs");
     let mut files = WalkDir::new(&configs_root)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .collect::<Vec<_>>();
@@ -7622,8 +7622,8 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
     let watched = [
         "configs/",
         "crates/bijux-dev-dna/src/model/ops.rs",
-        "crates/bijux-dev-dna/src/native/ops.rs",
-        "crates/bijux-dev-dna/src/registry/ops.rs",
+        "crates/bijux-dev-dna/src/commands/ops.rs",
+        "crates/bijux-dev-dna/src/catalog/ops.rs",
     ];
     let mut staged_args = vec![
         "diff".to_string(),
@@ -7648,7 +7648,7 @@ fn count_schema_filtered(dir: PathBuf) -> Result<usize> {
         return Ok(0);
     }
     Ok(fs::read_dir(dir)?
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| {
             entry.path().extension().and_then(|ext| ext.to_str()) == Some("yaml")
                 && entry.file_name().to_string_lossy() != "_schema.yaml"
@@ -7663,7 +7663,7 @@ fn glob_count(dir: PathBuf, suffix: &str) -> Result<usize> {
     let wanted = suffix.trim_start_matches('*');
     Ok(WalkDir::new(dir)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             entry

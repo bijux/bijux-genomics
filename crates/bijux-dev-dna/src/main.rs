@@ -1,3 +1,3 @@
 fn main() -> anyhow::Result<()> {
-    bijux_dev_dna::interfaces::cli::run()
+    bijux_dev_dna::run()
 }

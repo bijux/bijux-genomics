@@ -9,8 +9,8 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
-use crate::infrastructure::process::ProcessRunner;
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::workspace::Workspace;
 use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
 
 pub fn run_native_container_command(
@@ -2776,7 +2776,7 @@ fn check_promotion_lock_integrity(workspace: &Workspace) -> Result<ContainerComm
 fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path("crates/bijux-dev-dna/src/native/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dev-dna/src/commands/containers.rs");
     let versions_path = workspace.path("containers/versions/versions.toml");
 
     let manifest_candidates = [
@@ -2957,7 +2957,7 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
     let lock: serde_json::Value =
         serde_json::from_str(&read_utf8(&workspace.path("containers/versions/lock.json"))?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path("crates/bijux-dev-dna/src/native/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dev-dna/src/commands/containers.rs");
     let mut errors = Vec::new();
     if lock
         .get("schema_version")
@@ -7758,7 +7758,7 @@ fn check_hpc_frontend_policy_enforcement(
         )));
     }
     let mut errors = Vec::new();
-    let registry = crate::registry::containers::container_registry(workspace)?;
+    let registry = crate::catalog::containers::container_registry(workspace)?;
     for command in [
         "build-apptainer-all",
         "build-apptainer-hpc-frontend",
@@ -8106,7 +8106,7 @@ fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutc
         ));
     }
     let checklist = read_utf8(&checklist_path)?;
-    let registry = crate::registry::containers::container_registry(workspace)?;
+    let registry = crate::catalog::containers::container_registry(workspace)?;
     let command_regex = Regex::new(
         r"cargo run -p bijux-dev-dna -- containers run ([a-z0-9-]+)",
     )
@@ -9069,7 +9069,7 @@ fn write_frontend_sif_digests(
     host: &str,
 ) -> Result<()> {
     let mut items = Vec::new();
-    for entry in WalkDir::new(sif_dir).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(sif_dir).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("sif")
         {
@@ -9931,7 +9931,7 @@ fn write_frontend_security_summary(
     let manifests = WalkDir::new(out_dir)
         .max_depth(1)
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("json"))
         .filter(|entry| {
@@ -10290,7 +10290,7 @@ fn write_vuln_hook_report(
     std::fs::create_dir_all(&per_tool_dir)
         .with_context(|| format!("create {}", per_tool_dir.display()))?;
     let mut rows = Vec::new();
-    for entry in WalkDir::new(sbom_root).into_iter().filter_map(Result::ok) {
+    for entry in WalkDir::new(sbom_root).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
             || !entry

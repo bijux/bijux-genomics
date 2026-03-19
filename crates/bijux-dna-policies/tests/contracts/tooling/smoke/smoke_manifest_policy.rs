@@ -5,7 +5,7 @@ mod support;
 #[test]
 fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_image_identity() {
     let root = support::workspace_root();
-    let source = root.join("crates/bijux-dev-dna/src/native/containers.rs");
+    let source = root.join("crates/bijux-dev-dna/src/commands/containers.rs");
     let required_tokens = [
         "\"runtime\"",
         "\"image\"",

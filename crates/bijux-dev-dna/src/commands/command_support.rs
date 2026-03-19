@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use walkdir::WalkDir;
 
-use crate::infrastructure::process::ProcessRunner;
-pub(crate) use crate::infrastructure::script_catalog::load_supported_scripts;
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::process::ProcessRunner;
+pub(crate) use crate::runtime::legacy_catalog::load_supported_scripts;
+use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 
 pub(crate) fn pass(check: &CheckDefinition, detail: impl Into<String>) -> Result<CheckOutcome> {
@@ -28,7 +28,7 @@ pub(crate) fn make_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut files = vec![workspace.path("Makefile")];
     for entry in WalkDir::new(workspace.path("makes"))
         .into_iter()
-        .filter_map(Result::ok)
+        .filter_map(|entry| entry.ok())
     {
         if !entry.file_type().is_file() {
             continue;

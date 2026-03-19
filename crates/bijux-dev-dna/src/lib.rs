@@ -3,9 +3,11 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 #![deny(clippy::todo)]
 
-pub mod application;
-pub mod infrastructure;
-pub mod interfaces;
-pub mod model;
-pub mod native;
-pub mod registry;
+mod application;
+mod catalog;
+mod commands;
+mod model;
+mod runtime;
+mod cli;
+
+pub use cli::run;

@@ -9,8 +9,8 @@ use sha2::{Digest, Sha256};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
-use crate::infrastructure::process::ProcessRunner;
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::workspace::Workspace;
 use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};
 
 const DOMAIN_INDEX_REGENERATE_PREFIX: &str =

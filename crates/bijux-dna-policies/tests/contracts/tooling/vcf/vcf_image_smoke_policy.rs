@@ -9,7 +9,7 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let root = support::workspace_root();
     let registry_path = root.join("configs/ci/registry/tool_registry_vcf.toml");
     let images_path = root.join("configs/ci/tools/images.toml");
-    let native_path = root.join("crates/bijux-dev-dna/src/native/containers.rs");
+    let native_path = root.join("crates/bijux-dev-dna/src/commands/containers.rs");
 
     let registry_raw = std::fs::read_to_string(&registry_path)
         .unwrap_or_else(|_| panic!("read {registry_path:?}"));
