@@ -1,6 +1,7 @@
 //! FASTQ stage wiring (internal).
 
 pub(crate) mod correct_errors;
+pub(crate) mod cluster_otus;
 pub(crate) mod deplete_host;
 pub(crate) mod deplete_rrna;
 pub(crate) mod deplete_reference_contaminants;

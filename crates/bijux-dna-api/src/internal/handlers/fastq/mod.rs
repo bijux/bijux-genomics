@@ -15,6 +15,7 @@ pub(crate) use bijux_dna_domain_fastq::stages::ids::{
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_INDEX_REFERENCE,
 };
 pub use explain::{write_explain_md, write_explain_plan_json};
+pub use stages::cluster_otus::bench_fastq_cluster_otus;
 pub use stages::correct_errors::bench_fastq_correct;
 pub use stages::deplete_host::bench_fastq_deplete_host;
 pub use stages::deplete_rrna::bench_fastq_deplete_rrna;

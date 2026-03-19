@@ -1,5 +1,5 @@
 use crate::{
-    FastqChimeraMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
+    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
     FastqDepleteRrnaMetrics,
     FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
     FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
@@ -373,6 +373,42 @@ pub fn write_deplete_rrna_report(
         .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.deplete_rrna", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the OTU clustering benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_cluster_otus_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqClusterOtusMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| {
+            serde_json::json!({
+                "otu_count": record.metrics.metrics.otu_count,
+                "representative_count": record.metrics.metrics.representative_count,
+            })
+        })
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.cluster_otus", &BTreeMap::new());
     }
     Ok(())
 }

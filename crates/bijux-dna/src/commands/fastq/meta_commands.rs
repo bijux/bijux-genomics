@@ -4,7 +4,7 @@ use super::api_bridge::{
 use super::debug_commands::handle_debug_command;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
-    anyhow, atomic_write_bytes, bench_args_correct, bench_args_deplete_host,
+    anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct, bench_args_deplete_host,
     bench_args_deplete_reference_contaminants, bench_args_deplete_rrna,
     bench_args_detect_adapters,
     bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
@@ -13,7 +13,7 @@ use crate::commands::command_prelude::{
     bench_args_profile_read_lengths, bench_args_qc_post, bench_args_remove_chimeras,
     bench_args_remove_duplicates, bench_args_screen, bench_args_stats, bench_args_trim,
     bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
-    bench_args_validate, bench_fastq_correct, bench_fastq_deplete_host,
+    bench_args_validate, bench_fastq_cluster_otus, bench_fastq_correct, bench_fastq_deplete_host,
     bench_fastq_deplete_reference_contaminants, bench_fastq_deplete_rrna,
     bench_fastq_detect_adapters, bench_fastq_filter,
     bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
@@ -29,7 +29,7 @@ use crate::commands::command_prelude::{
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_chimeras_report, write_correct_report, write_deplete_host_report,
+    write_chimeras_report, write_cluster_otus_report, write_correct_report, write_deplete_host_report,
     write_deplete_reference_contaminants_report, write_deplete_rrna_report,
     write_detect_adapters_report,
     write_duplicates_report, write_filter_low_complexity_report, write_filter_report,
@@ -926,6 +926,21 @@ pub(crate) fn handle_meta_commands(
                         let outcome =
                             bench_fastq_infer_asvs(&catalog, &platform, None, &bench_args)?;
                         write_infer_asvs_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::ClusterOtus(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_cluster_otus(args)?;
+                        let outcome =
+                            bench_fastq_cluster_otus(&catalog, &platform, None, &bench_args)?;
+                        write_cluster_otus_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,

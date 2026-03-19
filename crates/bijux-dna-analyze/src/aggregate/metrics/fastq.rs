@@ -703,6 +703,27 @@ impl StageMetricSchema for FastqDepleteRrnaMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqClusterOtusMetrics {
+    pub otu_count: u64,
+    pub representative_count: u64,
+}
+
+impl StageMetricSchema for FastqClusterOtusMetrics {
+    const STAGE: &'static str = "fastq.cluster_otus";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.representative_count > self.otu_count {
+            return Err(BenchError::Validation(
+                "representative_count must be <= otu_count".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LengthHistogramBin {
     pub length: u64,
     pub count: u64,
