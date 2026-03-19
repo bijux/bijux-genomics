@@ -15,7 +15,6 @@ Use one container per tool identity. Mode differences must be expressed via CLI 
 
 ## Build Script Layout
 Canonical container build/smoke/lint scripts live under `bijux-dev-dna/containers/`.
-Compatibility wrappers remain in `scripts/containers/` for legacy entrypoints.
 
 ## Contract
 - Container metadata must satisfy the policy tests.
