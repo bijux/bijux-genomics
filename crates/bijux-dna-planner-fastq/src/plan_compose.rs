@@ -254,7 +254,8 @@ where
             stage if stage == STAGE_RRNA.as_str() => {
                 let plan =
                     crate::tool_adapters::fastq::rrna::plan_rrna(tool, &current_r1, &out_dir)?;
-                (plan, current_r1.clone(), current_r2.clone())
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
             }
             stage if stage == STAGE_SCREEN.as_str() => {
                 let plan =

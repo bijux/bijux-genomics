@@ -6,6 +6,8 @@ mod domain_parity;
 mod no_parsing;
 #[path = "plan/plan_json.rs"]
 mod plan_json;
+#[path = "plan/rrna_flow.rs"]
+mod rrna_flow;
 #[path = "plan/plan_snapshots.rs"]
 mod plan_snapshots;
 #[path = "plan/trim_params.rs"]
