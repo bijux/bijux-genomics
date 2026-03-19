@@ -54,6 +54,8 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
         plan.io.outputs[0].path.to_string_lossy(),
         "out/fastp.fastq.gz"
     );
+    assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
     Ok(())
 }
 

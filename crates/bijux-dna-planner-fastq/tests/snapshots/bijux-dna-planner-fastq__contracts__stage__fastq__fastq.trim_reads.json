@@ -33,15 +33,9 @@
         "optional": false
       },
       {
-        "name": "trim_report",
+        "name": "report_json",
         "path": "out/trim_report.json",
         "role": "report_json",
-        "optional": false
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json",
-        "role": "metrics_json",
         "optional": false
       }
     ]
