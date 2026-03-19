@@ -67,6 +67,7 @@ where
                 let plan = crate::tool_adapters::fastq::profile_read_lengths::plan(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                 )?;
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())

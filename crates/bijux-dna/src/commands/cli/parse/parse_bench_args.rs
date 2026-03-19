@@ -229,6 +229,8 @@ pub struct BenchFastqProfileReadLengthsArgs {
     #[arg(long)]
     pub r1: PathBuf,
     #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
