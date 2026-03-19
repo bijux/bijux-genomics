@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-trim-terminal-damage-01"
+domain = "fastq"
+stages = ["fastq.trim_terminal_damage"]

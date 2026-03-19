@@ -17,6 +17,30 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: fastq_trim_polyg_tails_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/trim-polyg-tails-bench
+  - id: fastq_trim_reads_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/trim-reads-bench
+  - id: fastq_trim_terminal_damage_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/trim-terminal-damage-bench
   - id: fastq_validate_reads_bench
     domain: fastq
     corpus_required: corpus-01-mini

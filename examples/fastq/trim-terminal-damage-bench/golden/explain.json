@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_trim_terminal_damage_bench",
+  "explain": "Deterministic terminal-damage trimming benchmark with explicit damage-mode governance."
+}

@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_trim_reads_bench",
+  "explain": "Deterministic trim benchmark with pinned adapter, polyX, and contaminant governance."
+}
