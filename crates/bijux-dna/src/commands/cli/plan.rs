@@ -125,6 +125,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFa
     Ok(engine_args::BenchFastqTrimArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.trim_reads", &args.tools)?,
         explain: args.explain,
@@ -727,6 +728,7 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
             .r1
             .clone()
             .ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
+        r2: args.r2.clone(),
         out: args
             .out
             .clone()

@@ -14,6 +14,7 @@ pub enum FastqPlannerMode {
 pub struct BenchFastqTrimArgs {
     pub sample_id: String,
     pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,

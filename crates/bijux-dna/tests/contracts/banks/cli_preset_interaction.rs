@@ -16,6 +16,7 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
         list_adapters: false,
         sample_id: Some("s1".to_string()),
         r1: Some(PathBuf::from("reads.fastq.gz")),
+        r2: None,
         out: Some(PathBuf::from("out")),
         tools: vec!["fastp".to_string()],
         adapter_bank_preset: Some("illumina-default".to_string()),
