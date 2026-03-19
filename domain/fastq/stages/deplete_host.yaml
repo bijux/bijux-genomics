@@ -4,14 +4,20 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "reference_index"
     data_type: "ref_index"
     cardinality: "One"
 outputs:
-  - name: "host_depleted_reads"
+  - name: "host_depleted_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "host_depleted_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "host_depletion_report_json"
@@ -29,6 +35,14 @@ metrics:
     meaning: "Number of input reads."
   - name: "reads_out"
     meaning: "Number of reads after host depletion."
+  - name: "bases_in"
+    meaning: "Number of input bases."
+  - name: "bases_out"
+    meaning: "Number of output bases after host depletion."
+  - name: "pairs_in"
+    meaning: "Number of input read pairs."
+  - name: "pairs_out"
+    meaning: "Number of output read pairs after host depletion."
   - name: "host_fraction_removed"
     meaning: "Fraction of input reads removed during host depletion."
 description: "FASTQ stage for host read depletion via reference mapping."
@@ -42,22 +56,24 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - "reads"
+  - "reads_r1"
   - "reference_index"
 required_outputs:
-  - "host_depleted_reads"
+  - "host_depleted_reads_r1"
   - "host_depletion_report_json"
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
+  - "host_depleted_reads_r2"
 compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "reference index must match host depletion reference and naming conventions."
+  - "single-end input omits reads_r2 and host_depleted_reads_r2; paired-end input preserves mate synchronization."
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"
