@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 356be8eaf04e8dd07268fb3ab370f07e3f0e5571
+# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -248,40 +248,6 @@ apptainer_def = "containers/apptainer/lunarc/damageprofiler.def"
 require_labels = true
 
 [[tools]]
-id = "fastq_screen"
-tool_id = "fastq_screen"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.screen_taxonomy"]
-bindings = ["fastq.screen_taxonomy"]
-tool_role = "screen"
-version = "0.15.3"
-default_version = "0.15.3"
-upstream = "https://github.com/fastq_screen/fastq_screen"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/fastq_screen/fastq_screen"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/fastq_screen@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "fastq_screen --version"
-help_cmd = "fastq_screen --help"
-smoke_version_cmd = "fastq_screen --version"
-smoke_help_cmd = "fastq_screen --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "fastq_screen --help"
-expected_bin = "fastq_screen"
-expected_artifacts = ["classification_report_json", "screen_report_tsv"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
-apptainer_def = "containers/apptainer/lunarc/fastq_screen.def"
-require_labels = true
-
-[[tools]]
 id = "flash2"
 tool_id = "flash2"
 domain = "fastq"
@@ -415,40 +381,6 @@ metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.lighter"
 apptainer_def = "containers/apptainer/lunarc/lighter.def"
-require_labels = true
-
-[[tools]]
-id = "metaphlan"
-tool_id = "metaphlan"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.screen_taxonomy"]
-bindings = ["fastq.screen_taxonomy"]
-tool_role = "screen"
-version = "4.1.1"
-default_version = "4.1.1"
-upstream = "https://github.com/biobakery/MetaPhlAn"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/biobakery/MetaPhlAn"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/metaphlan@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "metaphlan --version"
-help_cmd = "metaphlan --help"
-smoke_version_cmd = "metaphlan --version"
-smoke_help_cmd = "metaphlan --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "metaphlan --help"
-expected_bin = "metaphlan"
-expected_artifacts = ["classification_report_json", "screen_report_tsv"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
-apptainer_def = "containers/apptainer/lunarc/metaphlan.def"
 require_labels = true
 
 [[tools]]

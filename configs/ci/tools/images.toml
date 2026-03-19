@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 356be8eaf04e8dd07268fb3ab370f07e3f0e5571
+# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -85,9 +85,6 @@ enabled = false
 [fastp]
 version = "latest-pinned"
 
-[fastq_screen]
-version = "latest-pinned"
-
 [fastqc]
 version = "latest-pinned"
 
@@ -150,9 +147,6 @@ version = "latest-pinned"
 
 [mapdamage2]
 version = "2.2.2"
-
-[metaphlan]
-version = "latest-pinned"
 
 [minimac4]
 version = "planned"
