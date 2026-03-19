@@ -40,11 +40,7 @@ pub fn plan(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        if filtered_r2.is_some() {
-            ArtifactId::from_static("chimera_filtered_reads_r1")
-        } else {
-            ArtifactId::from_static("chimera_filtered_reads")
-        },
+        ArtifactId::from_static("chimera_filtered_reads_r1"),
         filtered_r1.clone(),
         ArtifactRole::Reads,
     )];
