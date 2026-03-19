@@ -157,20 +157,30 @@ fn build_tool_registries_toml(
     }
 
     for (stage_id, tools_set) in stage_to_tools {
+        let stage_domain = stage_id.split('.').next().unwrap_or_default();
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
-        all.retain(|tool_id| production_tool_ids.contains(tool_id));
+        all.retain(|tool_id| {
+            production_tool_ids.contains(tool_id)
+                && tools
+                    .get(tool_id)
+                    .is_some_and(|tool| tool.domain == stage_domain)
+        });
         all.sort();
         let mut primary = stage_defaults
             .get(stage_id)
             .cloned()
-            .filter(|tool_id| production_tool_ids.contains(tool_id))
+            .filter(|tool_id| {
+                production_tool_ids.contains(tool_id)
+                    && tools
+                        .get(tool_id)
+                        .is_some_and(|tool| tool.domain == stage_domain)
+            })
             .into_iter()
             .collect::<Vec<_>>();
         if primary.is_empty() {
             primary = all.first().cloned().into_iter().collect::<Vec<_>>();
         }
         if primary.is_empty() {
-            let stage_domain = stage_id.split('.').next().unwrap_or_default();
             primary.push(if stage_domain == "bam" {
                 "samtools".to_string()
             } else {
@@ -290,6 +300,7 @@ fn build_images_toml(
 }
 
 fn build_stages_toml(
+    tools: &ToolMap,
     stage_to_tools: &StageToolMap,
     stage_statuses: &StageStatusMap,
     stage_output_kinds: &StageOutputKindsMap,
@@ -370,8 +381,14 @@ fn build_stages_toml(
         let _ = writeln!(stages_toml, "[[stages]]");
         let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
         let _ = writeln!(stages_toml, "status = \"{status}\"");
+        let stage_domain = stage_id.split('.').next().unwrap_or_default();
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
-        v.retain(|tool_id| production_tool_ids.contains(tool_id));
+        v.retain(|tool_id| {
+            production_tool_ids.contains(tool_id)
+                && tools
+                    .get(tool_id)
+                    .is_some_and(|tool| tool.domain == stage_domain)
+        });
         v.sort();
         let output_kinds = stage_output_kinds
             .get(stage_id)
