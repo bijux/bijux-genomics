@@ -1,7 +1,7 @@
 mod containers;
 mod domain;
 mod ops;
-mod legacy_surface;
+mod automation_boundary;
 mod command_support;
 mod repo_checks;
 
@@ -47,7 +47,9 @@ pub fn run_native_check(
         NativeCheckKey::CertificationSchemaDocs => {
             repo_checks::check_certification_schema_docs(workspace, check)
         }
-        NativeCheckKey::CiShellScripts => legacy_surface::check_ci_shell_scripts(workspace, check),
+        NativeCheckKey::CiAutomationSurface => {
+            automation_boundary::check_ci_automation_surface(workspace, check)
+        }
         NativeCheckKey::ClippyAllowlistExpiry => {
             repo_checks::check_clippy_allowlist_expiry(workspace, check)
         }
@@ -64,7 +66,9 @@ pub fn run_native_check(
         NativeCheckKey::ExamplesRunnerContract => {
             repo_checks::check_examples_runner_contract(workspace, check)
         }
-        NativeCheckKey::ExitCodes => legacy_surface::check_exit_codes(workspace, check),
+        NativeCheckKey::AutomationExitCodes => {
+            automation_boundary::check_automation_exit_codes(workspace, check)
+        }
         NativeCheckKey::FrontendMiniDomainValidation => {
             repo_checks::check_frontend_mini_domain_validation(workspace, check)
         }
@@ -81,31 +85,37 @@ pub fn run_native_check(
         NativeCheckKey::HpcRsyncDocsParity => {
             repo_checks::check_hpc_rsync_docs_parity(workspace, check)
         }
-        NativeCheckKey::LibApi => legacy_surface::check_lib_api(workspace, check),
+        NativeCheckKey::AutomationBoundary => {
+            automation_boundary::check_automation_boundary(workspace, check)
+        }
         NativeCheckKey::LoggingContract => {
             repo_checks::check_logging_contract(workspace, check)
         }
         NativeCheckKey::MakeHelpSync => repo_checks::check_make_help_sync(workspace, check),
-        NativeCheckKey::NetworkUsage => legacy_surface::check_network_usage(workspace, check),
+        NativeCheckKey::AutomationNetworkUsage => {
+            automation_boundary::check_automation_network_usage(workspace, check)
+        }
         NativeCheckKey::NoFakeArtifacts => {
             repo_checks::check_no_fake_artifacts(workspace, check)
         }
-        NativeCheckKey::NoOrphanScripts => {
-            legacy_surface::check_no_orphan_scripts(workspace, check)
+        NativeCheckKey::LegacyAutomationReferences => {
+            automation_boundary::check_legacy_automation_references(workspace, check)
         }
-        NativeCheckKey::NoParallelAccidental => {
-            legacy_surface::check_no_parallel_accidental(workspace, check)
+        NativeCheckKey::AutomationParallelism => {
+            automation_boundary::check_automation_parallelism(workspace, check)
         }
         NativeCheckKey::NoRawCargoInMakes => {
-            legacy_surface::check_no_raw_cargo_in_makes(workspace, check)
+            automation_boundary::check_no_raw_cargo_in_makes(workspace, check)
         }
-        NativeCheckKey::NoRawCargoInScripts => {
-            legacy_surface::check_no_raw_cargo_in_scripts(workspace, check)
+        NativeCheckKey::NoRawCargoInAutomation => {
+            automation_boundary::check_no_raw_cargo_in_automation(workspace, check)
         }
         NativeCheckKey::NoTargetPathsInTests => {
             repo_checks::check_no_target_paths_in_tests(workspace, check)
         }
-        NativeCheckKey::NoTempLeaks => legacy_surface::check_no_temp_leaks(workspace, check),
+        NativeCheckKey::AutomationTempDiscipline => {
+            automation_boundary::check_automation_temp_discipline(workspace, check)
+        }
         NativeCheckKey::NoUserPathLiterals => {
             repo_checks::check_no_user_path_literals(workspace, check)
         }
@@ -118,26 +128,38 @@ pub fn run_native_check(
         NativeCheckKey::RustflagsConsistency => {
             repo_checks::check_rustflags_consistency(workspace, check)
         }
-        NativeCheckKey::ScriptArgStyle => legacy_surface::check_script_arg_style(workspace, check),
-        NativeCheckKey::ScriptDeps => legacy_surface::check_script_deps(workspace, check),
-        NativeCheckKey::ScriptEntrypoint => {
-            legacy_surface::check_script_entrypoint(workspace, check)
+        NativeCheckKey::AutomationArgStyle => {
+            automation_boundary::check_automation_arg_style(workspace, check)
         }
-        NativeCheckKey::ScriptHelp => legacy_surface::check_script_help(workspace, check),
-        NativeCheckKey::ScriptInterface => legacy_surface::check_script_interface(workspace, check),
-        NativeCheckKey::ScriptWrites => legacy_surface::check_script_writes(workspace, check),
-        NativeCheckKey::ShellPortability => {
-            legacy_surface::check_shell_portability(workspace, check)
+        NativeCheckKey::AutomationDependencies => {
+            automation_boundary::check_automation_dependencies(workspace, check)
+        }
+        NativeCheckKey::AutomationEntrypoints => {
+            automation_boundary::check_automation_entrypoints(workspace, check)
+        }
+        NativeCheckKey::AutomationHelp => {
+            automation_boundary::check_automation_help(workspace, check)
+        }
+        NativeCheckKey::AutomationInterface => {
+            automation_boundary::check_automation_interface(workspace, check)
+        }
+        NativeCheckKey::AutomationWrites => {
+            automation_boundary::check_automation_writes(workspace, check)
+        }
+        NativeCheckKey::AutomationPortability => {
+            automation_boundary::check_automation_portability(workspace, check)
         }
         NativeCheckKey::SsotGuardrails => repo_checks::check_ssot_guardrails(workspace, check),
         NativeCheckKey::SpeciesAliases => repo_checks::check_species_aliases(workspace, check),
-        NativeCheckKey::SupportedScripts => {
-            legacy_surface::check_supported_scripts(workspace, check)
+        NativeCheckKey::LegacyAutomationRemoved => {
+            automation_boundary::check_legacy_automation_removed(workspace, check)
         }
         NativeCheckKey::ToolRegistryLock => {
             repo_checks::check_tool_registry_lock(workspace, check)
         }
-        NativeCheckKey::TreeIntent => legacy_surface::check_tree_intent(workspace, check),
+        NativeCheckKey::AutomationIntent => {
+            automation_boundary::check_automation_intent(workspace, check)
+        }
         NativeCheckKey::VcfCompatibilityMatrix => {
             repo_checks::check_vcf_compatibility_matrix(workspace, check)
         }

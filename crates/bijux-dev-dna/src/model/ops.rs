@@ -38,7 +38,7 @@ pub enum NativeOpsCommandKey {
     SmokeRun,
     SmokeBam,
     SmokeFastq,
-    TestScriptsSmoke,
+    TestControlPlaneSmoke,
     TestTriage,
     TestReproduceFailure,
     TestFastqGoldRepro,

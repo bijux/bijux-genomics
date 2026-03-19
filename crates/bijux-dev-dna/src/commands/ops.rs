@@ -55,7 +55,7 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::SmokeRun => smoke_run(workspace, args),
         NativeOpsCommandKey::SmokeBam => smoke_bam(workspace, args),
         NativeOpsCommandKey::SmokeFastq => smoke_fastq(workspace, args),
-        NativeOpsCommandKey::TestScriptsSmoke => test_scripts_smoke(workspace, args),
+        NativeOpsCommandKey::TestControlPlaneSmoke => test_control_plane_smoke(workspace, args),
         NativeOpsCommandKey::TestTriage => test_triage(workspace, args),
         NativeOpsCommandKey::TestReproduceFailure => test_reproduce_failure(workspace, args),
         NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
@@ -1530,15 +1530,15 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
         .collect::<Vec<_>>();
     let mut stdout = String::new();
     if changed.is_empty() {
-        run_check_ids(&mut stdout, &["check-config-schema", "check-script-interface"])?;
-        stdout.push_str("lint-fast: no changed files; running config+script lint baseline\n");
+        run_check_ids(&mut stdout, &["check-config-schema", "check-automation-interface"])?;
+        stdout.push_str("lint-fast: no changed files; running config+automation lint baseline\n");
         return Ok(OpsCommandOutcome::success(stdout));
     }
     let mut need_fmt = false;
     let mut need_clippy = false;
     let mut need_docs = false;
     let mut need_configs = false;
-    let mut need_scripts = false;
+    let mut need_automation = false;
     for file in &changed {
         if file.ends_with(".rs") || *file == "Cargo.toml" || *file == "Cargo.lock" || file.starts_with("crates/") {
             need_fmt = true;
@@ -1551,7 +1551,7 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
             need_configs = true;
         }
         if file.starts_with("makes/") || *file == "Makefile" {
-            need_scripts = true;
+            need_automation = true;
         }
     }
     if need_fmt {
@@ -1585,12 +1585,12 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
         stdout.push_str("lint-fast: running config checks\n");
         run_check_ids(&mut stdout, &["check-config-schema", "check-config-layout"])?;
     }
-    if need_scripts {
-        stdout.push_str("lint-fast: running script interface checks\n");
+    if need_automation {
+        stdout.push_str("lint-fast: running automation interface checks\n");
         run_check_ids(
             &mut stdout,
             &[
-                "check-script-interface",
+                "check-automation-interface",
                 "check-clippy-allowlist-growth",
                 "check-rustflags-consistency",
             ],
@@ -1710,7 +1710,6 @@ fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<
     scan_roots.extend([
         workspace.path("makes"),
         workspace.path("crates"),
-        workspace.path("scripts"),
         workspace.path("docs"),
         workspace.path(".github"),
     ]);
@@ -3764,11 +3763,14 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     ensure_help_only("inventory", args)?;
     let out_dir = workspace.path("artifacts/inventory");
     fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
-    let scripts_out = out_dir.join("scripts_inventory.txt");
+    let control_plane_out = out_dir.join("control_plane_inventory.txt");
     let configs_out = out_dir.join("configs_inventory.txt");
     let docs_out = out_dir.join("docs_index_coverage.txt");
     let assets_out = out_dir.join("assets_inventory.txt");
-    write_utf8(&scripts_out, &walk_file_list(workspace, "scripts", Some("sh"))?)?;
+    let mut control_plane_lines = walk_file_list(workspace, "makes", Some("mk"))?;
+    control_plane_lines.push('\n');
+    control_plane_lines.push_str(&walk_file_list(workspace, "crates/bijux-dev-dna/src", Some("rs"))?);
+    write_utf8(&control_plane_out, &control_plane_lines)?;
     write_utf8(&configs_out, &walk_file_list(workspace, "configs", None)?)?;
     write_utf8(&assets_out, &walk_file_list(workspace, "assets", None)?)?;
     let mut lines = vec!["docs_index_coverage".to_string()];
@@ -3787,7 +3789,7 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     write_utf8(&docs_out, &format!("{}\n", lines.join("\n")))?;
     success_line(format!(
         "wrote {}\nwrote {}\nwrote {}\nwrote {}",
-        scripts_out.display(),
+        control_plane_out.display(),
         configs_out.display(),
         docs_out.display(),
         assets_out.display()
@@ -3866,14 +3868,14 @@ fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsComm
     let check_ids: Vec<&str> = match mode {
         "--fast" => vec![
             "check-root-layout",
-            "check-supported-scripts",
-            "check-no-orphan-scripts",
+            "check-legacy-automation-removed",
+            "check-legacy-automation-references",
         ],
         "--full" => vec![
             "check-root-layout",
             "check-config-layout",
-            "check-supported-scripts",
-            "check-no-orphan-scripts",
+            "check-legacy-automation-removed",
+            "check-legacy-automation-references",
         ],
         other => {
             return Ok(OpsCommandOutcome::failure(format!(
@@ -5730,13 +5732,13 @@ fn smoke_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutco
     )
 }
 
-fn test_scripts_smoke(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mut dry_run = false;
     for arg in args {
         match arg.as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- test run test-scripts-smoke -- [--dry-run]",
+                    "Usage: cargo run -p bijux-dev-dna -- test run test-control-plane-smoke -- [--dry-run]",
                 )
             }
             "--dry-run" => dry_run = true,
@@ -5794,12 +5796,12 @@ fn test_scripts_smoke(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     }
     if failures.is_empty() {
         return success_line(if dry_run {
-            "test-scripts-smoke: dry-run OK"
+            "test-control-plane-smoke: dry-run OK"
         } else {
-            "test-scripts-smoke: OK"
+            "test-control-plane-smoke: OK"
         });
     }
-    failure_lines("test-scripts-smoke: failures:", &failures)
+    failure_lines("test-control-plane-smoke: failures:", &failures)
 }
 
 fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -7344,21 +7346,14 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
     }
     lines.extend([
         "".to_string(),
-        "## Script Intent".to_string(),
-        "| Script Path | Purpose |".to_string(),
+        "## Automation Intent".to_string(),
+        "| Control Plane Path | Purpose |".to_string(),
         "|---|---|".to_string(),
     ]);
-    let scripts_root = workspace.path("scripts");
-    if scripts_root.is_dir() {
-        for entry in fs::read_dir(&scripts_root)?.filter_map(|entry| entry.ok()) {
-            let path = entry.path();
-            if !path.is_dir() {
-                continue;
-            }
-            let rel = workspace.rel(&path).display().to_string();
-            let purpose = read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
-            lines.push(format!("| `{rel}` | {purpose} |"));
-        }
+    for rel in ["crates/bijux-dev-dna", "makes"] {
+        let path = workspace.path(rel);
+        let purpose = read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
+        lines.push(format!("| `{rel}` | {purpose} |"));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
 }

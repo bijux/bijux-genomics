@@ -5172,7 +5172,7 @@ fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<ContainerCom
 
 fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
-    let scan_roots = [workspace.path("scripts"), workspace.path("makes")];
+    let scan_roots = [workspace.path("makes"), workspace.path("crates/bijux-dev-dna/src")];
     let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$").expect("regex");
     let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)").expect("regex");
     for root in scan_roots {
