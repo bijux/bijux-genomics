@@ -22,9 +22,9 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Purpose: validate FASTQ format and counts.
 - Inputs/Outputs: reads → validation_report.
 - Metrics: read counts, format errors.
-- Tools: fastqvalidator, seqkit.
-- Defaults: pipeline defaults for validation thresholds.
-- References: FASTQ‑Validator, SeqKit.
+- Tools: fastqvalidator, fqtools, seqtk.
+- Defaults: pipeline defaults for strict validation before any mutating stage.
+- References: FASTQ‑Validator, fqtools, seqtk.
 
 ### fastq.detect_adapters {#fastq-detect-adapters}
 - Purpose: detect adapter contamination.

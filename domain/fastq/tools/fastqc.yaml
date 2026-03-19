@@ -33,7 +33,6 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
-  - "fastq.validate_reads"
   - "fastq.detect_adapters"
   - "fastq.report_qc"
   - "fastq.profile_overrepresented_sequences"

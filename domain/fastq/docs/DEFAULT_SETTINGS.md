@@ -43,6 +43,11 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.infer_asvs`: default `vsearch` (placeholder). rationale: ASV engine remains external/experimental; placeholder preserves deterministic stage contract.
 - `fastq.normalize_abundance`: default `seqkit_stats` (placeholder). rationale: deterministic normalization reporting baseline for compositional warnings.
 
+validation_benchmark_policy: fastq.validate_reads
+- default benchmark backend is `fastqvalidator`
+- `fqtools` and `seqtk` are comparison backends for parser-level agreement studies
+- `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
+
 single_tool_justification: fastq.index_reference
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna

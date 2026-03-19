@@ -10,7 +10,7 @@ container:
   digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 command_template:
   - "fqtools"
-  - "count"
+  - "validate"
   - "{{reads}}"
 outputs: []
 metrics_parser: "fastq_validate_v1"
@@ -21,7 +21,7 @@ constraints:
   threads: 4
 execution_contract:
   required_inputs:
-    - "reads_r1"
+    - "reads"
   expected_outputs:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
@@ -33,9 +33,9 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.validate_reads"]
-expected_artifacts: ["report_json"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+expected_artifacts: ["validation_report"]
+metrics_schema_id: "bijux.fastq.validate.v1"
+metrics_schema: "bijux.fastq.validate.v1"
 version_cmd: "fqtools --version"
 help_cmd: "fqtools --help"
 comparability:

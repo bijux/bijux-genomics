@@ -20,7 +20,7 @@ Clarifies tool coverage and rationale.
 
 | Stage | Supported tools | Rationale |
 | --- | --- | --- |
-| fastq.validate_reads | fastqvalidator, seqkit | Format validation + counts |
+| fastq.validate_reads | fastqvalidator, fqtools, seqtk | Structural validation + parser cross-checks before mutating stages |
 | fastq.detect_adapters | fastp | Integrated adapter detection |
 | fastq.trim_reads | fastp, cutadapt, trimmomatic | Standard trimming tools |
 | fastq.filter_reads | seqkit, prinseq, fastp | Quality/length filtering |
