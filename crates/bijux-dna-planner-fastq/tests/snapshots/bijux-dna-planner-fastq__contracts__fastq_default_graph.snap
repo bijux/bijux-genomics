@@ -258,7 +258,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "trim_report",
             "optional": false,
-            "path": "trim.report.json",
+            "path": "trim_report.json",
             "role": "report_json"
           },
           {

@@ -34,7 +34,7 @@
       },
       {
         "name": "trim_report",
-        "path": "out/trim.report.json",
+        "path": "out/trim_report.json",
         "role": "report_json",
         "optional": false
       },
