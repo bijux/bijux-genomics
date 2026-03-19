@@ -10,6 +10,12 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_FILTER_LOW_COMPLEXITY;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+#[derive(Debug, Clone, Default)]
+pub struct LowComplexityPlanOptions {
+    pub entropy_threshold: Option<f64>,
+    pub polyx_threshold: Option<u32>,
+}
+
 pub fn normalize_low_complexity_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -40,6 +46,7 @@ pub fn plan_low_complexity(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
     out_dir: &Path,
+    options: &LowComplexityPlanOptions,
 ) -> Result<StagePlanV1> {
     let output_name = low_complexity_output_name(&tool.tool_id.0)
         .ok_or_else(|| anyhow!("unsupported low-complexity tool"))?;
@@ -80,8 +87,14 @@ pub fn plan_low_complexity(
             "input": r1,
             "output": output,
             "report_json": report,
+            "entropy_threshold": options.entropy_threshold,
+            "polyx_threshold": options.polyx_threshold,
         }),
-        effective_params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "threads": tool.resources.threads,
+            "entropy_threshold": options.entropy_threshold,
+            "polyx_threshold": options.polyx_threshold,
+        }),
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
