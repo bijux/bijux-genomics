@@ -446,51 +446,6 @@ fn explain_fastq_stage(
         render::json::print_pretty(&payload)?;
         return Ok(());
     }
-    if stage_id == "fastq.preprocess" {
-        let args = bijux_dna_api::v1::api::bench::fastq_args::BenchFastqPreprocessArgs {
-            sample_id: "explain".to_string(),
-            profile: None,
-            r1: PathBuf::from("reads.fastq.gz"),
-            r2: None,
-            out: PathBuf::from("artifacts"),
-            strict: false,
-            auto: false,
-            objective: bijux_dna_api::v1::api::bench::Objective::Balanced,
-            bench_corpus: None,
-            allow_partial: false,
-            dry_run: false,
-            replicates: 1,
-            jobs: 1,
-            ci_bootstrap: None,
-            adapter_bank_preset: None,
-            adapter_bank: Some(format!(
-                "preset:{}",
-                bijux_dna_api::v1::api::bench::fastq_banks::DEFAULT_ADAPTER_PRESET
-            )),
-            adapter_bank_file: None,
-            enable_adapters: Vec::new(),
-            disable_adapters: Vec::new(),
-            polyx_preset: None,
-            contaminant_preset: None,
-            enable_contaminant_removal: false,
-            no_qc_post: false,
-            force_merge: false,
-            enable_correct: false,
-            allow_planned: false,
-            mode: bijux_dna_api::v1::api::bench::fastq_args::FastqPlannerMode::Shotgun,
-        };
-        let pipeline_id = args
-            .profile
-            .as_deref()
-            .unwrap_or("fastq-to-fastq__default__v1");
-        let stages = bijux_dna_api::v1::api::plan::fastq_pipeline_id_catalog(pipeline_id);
-        println!("stage: {stage_id}");
-        println!("pipeline:");
-        for step in stages {
-            println!("- {step}");
-        }
-        return Ok(());
-    }
     let stage_id =
         StageId::try_from(stage_id).map_err(|_| anyhow!("invalid stage id: {stage_id}"))?;
     let stage = registry

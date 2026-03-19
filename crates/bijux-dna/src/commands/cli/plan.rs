@@ -46,23 +46,43 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
                 common.clone(),
             ),
             FastqCommand::Filter(args) => (
-                StageId::from_static("fastq.trim_reads"),
+                StageId::from_static("fastq.filter_reads"),
                 ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
-            FastqCommand::Merge(common)
-            | FastqCommand::Contam(common)
-            | FastqCommand::Umi(common)
-            | FastqCommand::ErrorCorrect(common)
-            | FastqCommand::Qc(common)
-            | FastqCommand::Align(common) => (
-                StageId::from_static("fastq.trim_reads"),
-                ToolId::from_static("fastp"),
+            FastqCommand::Merge(common) => (
+                StageId::from_static("fastq.merge_pairs"),
+                ToolId::from_static("vsearch"),
+                common.clone(),
+            ),
+            FastqCommand::Contam(common) => (
+                StageId::from_static("fastq.deplete_reference_contaminants"),
+                ToolId::from_static("bowtie2"),
+                common.clone(),
+            ),
+            FastqCommand::Umi(common) => (
+                StageId::from_static("fastq.extract_umis"),
+                ToolId::from_static("umi_tools"),
+                common.clone(),
+            ),
+            FastqCommand::ErrorCorrect(common) => (
+                StageId::from_static("fastq.correct_errors"),
+                ToolId::from_static("rcorrector"),
+                common.clone(),
+            ),
+            FastqCommand::Qc(common) => (
+                StageId::from_static("fastq.report_qc"),
+                ToolId::from_static("fastqc"),
+                common.clone(),
+            ),
+            FastqCommand::Align(common) => (
+                StageId::from_static("fastq.index_reference"),
+                ToolId::from_static("bowtie2-build"),
                 common.clone(),
             ),
             FastqCommand::Preprocess(args) => (
-                StageId::from_static("fastq.preprocess"),
-                ToolId::from_static("fastp"),
+                StageId::from_static("fastq.validate_reads"),
+                ToolId::from_static("fastqvalidator"),
                 args.common.clone(),
             ),
         },
