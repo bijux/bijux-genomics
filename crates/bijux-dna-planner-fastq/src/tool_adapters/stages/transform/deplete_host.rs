@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    screen::{HostDepletionEffectiveParams, HOST_DEPLETION_SCHEMA_VERSION},
+    PairedMode,
+};
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -42,10 +45,13 @@ pub fn plan_host_depletion(
     } else {
         PairedMode::SingleEnd
     };
-    let effective_params = ScreenEffectiveParams {
+    let effective_params = HostDepletionEffectiveParams {
+        schema_version: HOST_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode,
         threads: tool.resources.threads,
-        contaminant_db: Some("host_reference".to_string()),
+        host_reference: "host_reference".to_string(),
+        index_artifact: "host_reference_index".to_string(),
+        retain_unmapped_pairs: r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),

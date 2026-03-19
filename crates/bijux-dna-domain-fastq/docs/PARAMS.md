@@ -42,6 +42,7 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.trim_reads` | `TrimEffectiveParams` | adapter/quality/length trimming controls |
 | `fastq.filter_reads` | `FilterEffectiveParams` | contamination and complexity filtering controls |
 | `fastq.merge_pairs` | `MergeEffectiveParams` | paired-end overlap merge controls |
+| `fastq.deplete_host` | `HostDepletionEffectiveParams` | host-reference depletion controls |
 | `fastq.deplete_rrna` | `RrnaEffectiveParams` | rRNA screen controls |
 | `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls |
 | `fastq.report_qc` | `QcPostEffectiveParams` | post-processing QC report controls |

@@ -1,0 +1,78 @@
+{
+  "stage_id": "fastq.deplete_host",
+  "stage_version": 1,
+  "tool_id": "bowtie2",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "host_depleted_reads_r1",
+        "path": "out/host_depleted_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "host_depleted_reads_r2",
+        "path": "out/host_depleted_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "host_depletion_report_json",
+        "path": "out/host_depletion_report.json",
+        "role": "report_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "input_r1": "reads_R1.fastq.gz",
+    "input_r2": "reads_R2.fastq.gz",
+    "output_r1": "out/host_depleted_R1.fastq.gz",
+    "output_r2": "out/host_depleted_R2.fastq.gz",
+    "report_json": "out/host_depletion_report.json",
+    "tool": "bowtie2"
+  },
+  "effective_params": {
+    "host_reference": "host_reference",
+    "index_artifact": "host_reference_index",
+    "paired_mode": "paired_end",
+    "retain_unmapped_pairs": true,
+    "schema_version": "bijux.fastq.params.deplete_host.v1",
+    "threads": 1
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}
