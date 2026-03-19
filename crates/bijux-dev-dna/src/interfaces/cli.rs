@@ -1,10 +1,16 @@
+use std::fs;
+use std::time::Instant;
+
 use anyhow::Result;
+use chrono::Utc;
 use clap::{Parser, Subcommand};
+use serde_json::json;
 
 use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
 use crate::application::ops::OpsApplication;
+use crate::infrastructure::workspace::Workspace;
 use crate::model::check::{CheckSelection, CheckStatus};
 use crate::registry::ops::{
     assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry,
@@ -100,22 +106,20 @@ enum OpsSubcommand {
     },
 }
 
-/// # Errors
-/// Returns an error if CLI parsing or command execution fails.
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Command::Assets(command) => run_ops(command, assets_registry),
+        Command::Assets(command) => run_ops("assets", command, assets_registry),
         Command::Checks(command) => run_checks(command),
         Command::Containers(command) => run_containers(command),
         Command::Domain(command) => run_domain(command),
-        Command::Docs(command) => run_ops(command, docs_registry),
-        Command::Examples(command) => run_ops(command, examples_registry),
-        Command::Hpc(command) => run_ops(command, hpc_registry),
-        Command::Lab(command) => run_ops(command, lab_registry),
-        Command::Smoke(command) => run_ops(command, smoke_registry),
-        Command::Test(command) => run_ops(command, test_registry),
-        Command::Tooling(command) => run_ops(command, tooling_registry),
+        Command::Docs(command) => run_ops("docs", command, docs_registry),
+        Command::Examples(command) => run_ops("examples", command, examples_registry),
+        Command::Hpc(command) => run_ops("hpc", command, hpc_registry),
+        Command::Lab(command) => run_ops("lab", command, lab_registry),
+        Command::Smoke(command) => run_ops("smoke", command, smoke_registry),
+        Command::Test(command) => run_ops("test", command, test_registry),
+        Command::Tooling(command) => run_ops("tooling", command, tooling_registry),
     }
 }
 
@@ -129,35 +133,42 @@ fn run_checks(command: ChecksCommand) -> Result<()> {
             Ok(())
         }
         ChecksSubcommand::Run { all, id } => {
-            let selection = if all {
-                CheckSelection::All
+            let command_id = if all {
+                "all".to_string()
             } else {
-                CheckSelection::Single(
-                    id.ok_or_else(|| anyhow::anyhow!("checks run requires <id> or --all"))?,
-                )
+                id.clone().unwrap_or_default()
             };
-            let outcomes = app.run_selection(selection)?;
-            let mut failed = false;
-            for outcome in outcomes {
-                println!(
-                    "{}: {}",
-                    outcome.id,
-                    match outcome.status {
-                        CheckStatus::Passed => "passed",
-                        CheckStatus::Failed => {
-                            failed = true;
-                            "failed"
+            with_timing("checks", &command_id, || {
+                let selection = if all {
+                    CheckSelection::All
+                } else {
+                    CheckSelection::Single(
+                        id.ok_or_else(|| anyhow::anyhow!("checks run requires <id> or --all"))?,
+                    )
+                };
+                let outcomes = app.run_selection(selection)?;
+                let mut failed = false;
+                for outcome in outcomes {
+                    println!(
+                        "{}: {}",
+                        outcome.id,
+                        match outcome.status {
+                            CheckStatus::Passed => "passed",
+                            CheckStatus::Failed => {
+                                failed = true;
+                                "failed"
+                            }
                         }
+                    );
+                    if outcome.status == CheckStatus::Failed && !outcome.detail.trim().is_empty() {
+                        println!("{}", outcome.detail.trim());
                     }
-                );
-                if outcome.status == CheckStatus::Failed && !outcome.detail.trim().is_empty() {
-                    println!("{}", outcome.detail.trim());
                 }
-            }
-            if failed {
-                anyhow::bail!("one or more checks failed");
-            }
-            Ok(())
+                if failed {
+                    anyhow::bail!("one or more checks failed");
+                }
+                Ok(())
+            })
         }
     }
 }
@@ -171,7 +182,7 @@ fn run_containers(command: ContainersCommand) -> Result<()> {
             }
             Ok(())
         }
-        ContainersSubcommand::Run { id, args } => {
+        ContainersSubcommand::Run { id, args } => with_timing("containers", &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {
                 print!("{}", outcome.stdout);
@@ -186,7 +197,7 @@ fn run_containers(command: ContainersCommand) -> Result<()> {
                 );
             }
             Ok(())
-        }
+        }),
     }
 }
 
@@ -199,7 +210,7 @@ fn run_domain(command: DomainCommand) -> Result<()> {
             }
             Ok(())
         }
-        DomainSubcommand::Run { id, args } => {
+        DomainSubcommand::Run { id, args } => with_timing("domain", &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {
                 print!("{}", outcome.stdout);
@@ -214,11 +225,12 @@ fn run_domain(command: DomainCommand) -> Result<()> {
                 );
             }
             Ok(())
-        }
+        }),
     }
 }
 
 fn run_ops(
+    group: &str,
     command: OpsCommand,
     registry: fn() -> Vec<crate::model::ops::OpsCommandDefinition>,
 ) -> Result<()> {
@@ -230,7 +242,7 @@ fn run_ops(
             }
             Ok(())
         }
-        OpsSubcommand::Run { id, args } => {
+        OpsSubcommand::Run { id, args } => with_timing(group, &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {
                 print!("{}", outcome.stdout);
@@ -240,11 +252,68 @@ fn run_ops(
             }
             if !outcome.is_success() {
                 anyhow::bail!(
-                    "operational command `{id}` failed with exit code {}",
+                    "{group} command `{id}` failed with exit code {}",
                     outcome.exit_code
                 );
             }
             Ok(())
-        }
+        }),
     }
+}
+
+fn with_timing<F>(group: &str, command: &str, action: F) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+{
+    let started_at = Utc::now();
+    let timer = Instant::now();
+    let result = action();
+    let ended_at = Utc::now();
+    let exit_code = if result.is_ok() { 0 } else { 1 };
+    let status = if exit_code == 0 { "ok" } else { "fail" };
+    write_timing(group, command, status, exit_code, started_at, ended_at, timer.elapsed().as_secs());
+    result
+}
+
+fn write_timing(
+    group: &str,
+    command: &str,
+    status: &str,
+    exit_code: i32,
+    started_at: chrono::DateTime<Utc>,
+    ended_at: chrono::DateTime<Utc>,
+    duration_seconds: u64,
+) {
+    let Ok(workspace) = Workspace::resolve() else {
+        return;
+    };
+    let timing_dir = std::env::var("ARTIFACT_DIR")
+        .ok()
+        .or_else(|| std::env::var("ISO_ROOT").ok())
+        .map(|raw| {
+            let path = std::path::PathBuf::from(raw);
+            if path.is_absolute() {
+                path.join("timing")
+            } else {
+                workspace.root.join(path).join("timing")
+            }
+        })
+        .unwrap_or_else(|| workspace.path("artifacts/timing"));
+    if fs::create_dir_all(&timing_dir).is_err() {
+        return;
+    }
+    let file_name = format!("{}__{}.json", group, command.replace('/', "_"));
+    let payload = json!({
+        "group": group,
+        "command": command,
+        "status": status,
+        "exit_code": exit_code,
+        "start_utc": started_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        "end_utc": ended_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        "duration_seconds": duration_seconds,
+    });
+    let _ = fs::write(
+        timing_dir.join(file_name),
+        format!("{}\n", serde_json::to_string_pretty(&payload).unwrap_or_default()),
+    );
 }

@@ -201,6 +201,11 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
 pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
     vec![
         native(
+            "cargo-targets",
+            "Run governed cargo test and nextest target bundles.",
+            NativeOpsCommandKey::ToolingCargoTargets,
+        ),
+        native(
             "check-config-snapshot",
             "Validate configs/schema/config_tree.snapshot against the governed config tree.",
             NativeOpsCommandKey::ToolingCheckConfigSnapshot,
@@ -211,9 +216,89 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCheckConfigPaths,
         ),
         native(
+            "ci-audit",
+            "Run the governed advisory audit gate.",
+            NativeOpsCommandKey::ToolingCiAudit,
+        ),
+        native(
+            "ci-clippy",
+            "Run workspace clippy through the native control plane.",
+            NativeOpsCommandKey::ToolingCiClippy,
+        ),
+        native(
+            "ci-clippy-executors",
+            "Run clippy on runner and executor crates through the native control plane.",
+            NativeOpsCommandKey::ToolingCiClippyExecutors,
+        ),
+        native(
+            "ci-coverage",
+            "Run the governed coverage workflow through the native control plane.",
+            NativeOpsCommandKey::ToolingCiCoverage,
+        ),
+        native(
+            "ci-fast",
+            "Run the fast CI make profile through the native control plane.",
+            NativeOpsCommandKey::ToolingCiFast,
+        ),
+        native(
+            "ci-fmt",
+            "Run rustfmt through the native control plane.",
+            NativeOpsCommandKey::ToolingCiFmt,
+        ),
+        native(
+            "ci-install-tools",
+            "Install required CI cargo tools.",
+            NativeOpsCommandKey::ToolingCiInstallTools,
+        ),
+        native(
+            "ci-slow",
+            "Run the slow CI make profile through the native control plane.",
+            NativeOpsCommandKey::ToolingCiSlow,
+        ),
+        native(
+            "ci-test",
+            "Run governed nextest suites through the native control plane.",
+            NativeOpsCommandKey::ToolingCiTest,
+        ),
+        native(
+            "ci-test-slow",
+            "Run governed slow nextest suites through the native control plane.",
+            NativeOpsCommandKey::ToolingCiTestSlow,
+        ),
+        native(
             "clean-docs",
             "Remove generated docs artifacts under the governed docs artifact root.",
             NativeOpsCommandKey::ToolingCleanDocs,
+        ),
+        native(
+            "certification-gate",
+            "Run the governed local certification gate bundle.",
+            NativeOpsCommandKey::ToolingCertificationGate,
+        ),
+        native(
+            "certify-all",
+            "Generate the cross-domain certification bundle.",
+            NativeOpsCommandKey::ToolingCertifyAll,
+        ),
+        native(
+            "certify-bam",
+            "Run the BAM certification bundle slice.",
+            NativeOpsCommandKey::ToolingCertifyBam,
+        ),
+        native(
+            "certify-domains",
+            "Run governed domain certification and emit the certification bundle.",
+            NativeOpsCommandKey::ToolingCertifyDomains,
+        ),
+        native(
+            "certify-fastq",
+            "Run the FASTQ certification bundle slice.",
+            NativeOpsCommandKey::ToolingCertifyFastq,
+        ),
+        native(
+            "certify-vcf",
+            "Run the VCF certification bundle slice.",
+            NativeOpsCommandKey::ToolingCertifyVcf,
         ),
         native(
             "config-inventory",
@@ -224,6 +309,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "docs-build",
             "Build, lint, or serve the governed MkDocs site using the native control plane.",
             NativeOpsCommandKey::ToolingDocsBuild,
+        ),
+        native(
+            "flake-hunt",
+            "Run repeated nextest executions for a flake candidate expression.",
+            NativeOpsCommandKey::ToolingFlakeHunt,
         ),
         native(
             "generate-configs",
@@ -284,6 +374,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "inventory",
             "Generate governed inventory artifacts under artifacts/inventory.",
             NativeOpsCommandKey::ToolingInventory,
+        ),
+        native(
+            "lint-fast",
+            "Run changed-path lint gates through the native control plane.",
+            NativeOpsCommandKey::ToolingLintFast,
         ),
         native(
             "make-help",
