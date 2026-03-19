@@ -354,6 +354,7 @@ pub fn bench_args_infer_asvs(
     Ok(engine_args::BenchFastqInferAsvsArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.infer_asvs", &args.tools)?,
         explain: args.explain,
