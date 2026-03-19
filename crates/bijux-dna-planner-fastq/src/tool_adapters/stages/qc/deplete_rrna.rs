@@ -84,7 +84,7 @@ pub fn plan_rrna(
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("rrna_report_tsv"),
         report.clone(),
-        ArtifactRole::ReportJson,
+        ArtifactRole::SummaryTsv,
     ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("rrna_report_json"),

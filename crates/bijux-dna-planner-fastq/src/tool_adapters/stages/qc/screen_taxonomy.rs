@@ -68,7 +68,7 @@ pub fn plan_screen(
                     ArtifactRef::required(
                         ArtifactId::from_static("screen_report_tsv"),
                         report.clone(),
-                        ArtifactRole::ReportJson,
+                        ArtifactRole::SummaryTsv,
                     ),
                     ArtifactRef::required(
                         ArtifactId::from_static("classification_report_json"),
@@ -80,7 +80,7 @@ pub fn plan_screen(
                     outputs.push(ArtifactRef::required(
                         ArtifactId::from_static("bracken_abundance_tsv"),
                         bracken_report.clone(),
-                        ArtifactRole::ReportJson,
+                        ArtifactRole::SummaryTsv,
                     ));
                 }
                 outputs

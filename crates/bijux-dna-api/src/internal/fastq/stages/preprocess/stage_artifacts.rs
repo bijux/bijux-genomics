@@ -192,8 +192,8 @@ fn write_stage_standardized_metrics(
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["qc_modules", "warnings", "failures"],
-            "report_html": out_dir.join("multiqc").join("multiqc_report.html"),
-            "report_data_dir": out_dir.join("multiqc").join("multiqc_data"),
+            "report_html": out_dir.join("multiqc_report.html"),
+            "report_data_dir": out_dir.join("multiqc_data"),
         }),
         "fastq.normalize_primers" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
