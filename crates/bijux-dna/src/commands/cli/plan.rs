@@ -4,7 +4,7 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
-    BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
+    BamCommand, BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
     BenchFastqDepleteHostArgs, BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
     BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs,
     BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs,
@@ -345,6 +345,23 @@ pub fn bench_args_infer_asvs(
         r1: args.r1.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.infer_asvs", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_cluster_otus(
+    args: &BenchFastqClusterOtusArgs,
+) -> Result<engine_args::BenchFastqClusterOtusArgs> {
+    Ok(engine_args::BenchFastqClusterOtusArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.cluster_otus", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,

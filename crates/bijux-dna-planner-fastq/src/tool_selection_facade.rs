@@ -82,6 +82,13 @@ pub fn select_normalize_abundance_tools(tools: &[String]) -> Result<Vec<String>>
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_cluster_otus_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS,
+    );
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let mut allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS);

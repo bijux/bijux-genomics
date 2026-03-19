@@ -197,6 +197,18 @@ pub struct BenchFastqNormalizeAbundanceArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqClusterOtusArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqIndexReferenceArgs {
     pub sample_id: String,
     pub reference_fasta: PathBuf,

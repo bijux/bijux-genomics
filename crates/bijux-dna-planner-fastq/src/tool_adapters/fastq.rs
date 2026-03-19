@@ -29,6 +29,10 @@ pub mod infer_asvs {
     pub use crate::tool_adapters::stages::amplicon::infer_asvs::*;
 }
 
+pub mod cluster_otus {
+    pub use crate::tool_adapters::stages::amplicon::cluster_otus::*;
+}
+
 pub mod normalize_abundance {
     pub use crate::tool_adapters::stages::amplicon::normalize_abundance::*;
 }
@@ -212,8 +216,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_CLUSTER_OTUS,
-            version: StageVersion(1),
+            id: crate::tool_adapters::stages::amplicon::cluster_otus::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::amplicon::cluster_otus::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {

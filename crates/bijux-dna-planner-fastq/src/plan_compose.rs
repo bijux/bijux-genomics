@@ -331,17 +331,11 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = plan_amplicon_stage(
-                    stage,
+                let plan = crate::tool_adapters::fastq::cluster_otus::plan(
                     tool,
                     &current_r1,
                     &out_dir,
-                    serde_json::json!({
-                        "identity_threshold": 0.97,
-                        "output_table_kind": "otu_abundance_table",
-                        "output_naming": "deterministic"
-                    }),
-                );
+                )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (plan, current_r1.clone(), current_r2.clone(), next_feature_table)
             }

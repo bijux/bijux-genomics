@@ -14,7 +14,7 @@ pub(crate) use crate::commands::cli::env::{
 };
 pub(crate) use crate::commands::cli::render;
 pub(crate) use crate::commands::cli::{
-    bench_args_correct, bench_args_deplete_host, bench_args_deplete_reference_contaminants,
+    bench_args_cluster_otus, bench_args_correct, bench_args_deplete_host, bench_args_deplete_reference_contaminants,
     bench_args_deplete_rrna, bench_args_detect_adapters, bench_args_filter,
     bench_args_filter_low_complexity, bench_args_from_trim, bench_args_from_validate,
     bench_args_index_reference, bench_args_infer_asvs, bench_args_merge,
@@ -35,7 +35,7 @@ pub(crate) use bijux_dna_api::v1::api::bench::fastq_banks::{
 };
 pub(crate) use bijux_dna_api::v1::api::bench::AdapterPresetsV1;
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    bench_fastq_correct, bench_fastq_deplete_host, bench_fastq_deplete_reference_contaminants,
+    bench_fastq_cluster_otus, bench_fastq_correct, bench_fastq_deplete_host, bench_fastq_deplete_reference_contaminants,
     bench_fastq_deplete_rrna,
     bench_fastq_detect_adapters, bench_fastq_filter,
     bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
@@ -50,7 +50,7 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
 };
 pub(crate) use bijux_dna_api::v1::api::report::render_report_bundle_html;
 pub(crate) use bijux_dna_api::v1::api::report::{
-    load_facts_auto, load_run_summary, write_correct_report, write_deplete_host_report,
+    load_facts_auto, load_run_summary, write_cluster_otus_report, write_correct_report, write_deplete_host_report,
     write_deplete_reference_contaminants_report, write_deplete_rrna_report,
     write_detect_adapters_report,
     write_chimeras_report, write_duplicates_report, write_filter_low_complexity_report,
