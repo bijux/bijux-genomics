@@ -9,7 +9,7 @@ Authority for planner-stage bindings lives in `src/tool_adapters/stages/catalog.
 | fastq.trim_polyg_tails | fastp, bbduk | trimmed FASTQ, trim report | polyG/polyX trimming counts |
 | fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, seqpurge, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper | trimmed FASTQ | retention, bases_kept |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | filtered FASTQ | filter counts |
-| fastq.filter_low_complexity | dustmasker, prinseq, bbduk, fastp | filtered FASTQ, low-complexity report | reads_removed_low_complexity |
+| fastq.filter_low_complexity | prinseq, bbduk, fastp | filtered FASTQ, low-complexity report | reads_removed_low_complexity |
 | fastq.merge_pairs | pear, vsearch, bbmerge, flash2, leehom | merged FASTQ, merge report | merge_rate |
 | fastq.remove_duplicates | fastuniq, clumpify | deduplicated FASTQ | dedup_rate |
 | fastq.deplete_host | bowtie2 | host-depleted FASTQ, host depletion report | host_fraction_removed |
