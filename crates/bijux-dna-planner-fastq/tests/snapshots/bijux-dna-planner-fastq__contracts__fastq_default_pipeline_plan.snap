@@ -154,7 +154,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "name": "qc_tsv",
             "optional": false,
             "path": "out/profile_reads/seqkit_stats/qc.tsv",
-            "role": "report_json"
+            "role": "summary_tsv"
           },
           {
             "name": "qc_plots_dir",
