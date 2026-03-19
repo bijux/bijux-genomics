@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-infer-asvs-01"
+domain = "fastq"
+stages = ["fastq.infer_asvs"]

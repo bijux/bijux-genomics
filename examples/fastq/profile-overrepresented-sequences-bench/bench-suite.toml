@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-profile-overrepresented-sequences-01"
+domain = "fastq"
+stages = ["fastq.profile_overrepresented_sequences"]
