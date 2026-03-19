@@ -299,6 +299,8 @@ pub struct FastqValidateArgs {
     #[arg(long)]
     pub r1: Option<PathBuf>,
     #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
     pub out: Option<PathBuf>,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,

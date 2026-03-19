@@ -19,9 +19,8 @@ use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::plan as plan_validate_reads;
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
-use bijux_dna_planner_fastq::stage_api::FastqArtifact;
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -43,9 +42,13 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqValidateMetrics>> {
     let tools = select_validate_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_VALIDATE_READS.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_VALIDATE_READS.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_VALIDATE_READS.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -102,7 +105,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_validate_reads(&tool_spec, &bench_inputs.r1, &out_dir)?;
+        let plan =
+            plan_validate_reads(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash =
             params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -175,6 +179,7 @@ struct ValidateBenchInputs {
     r1: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
 }
@@ -217,13 +222,45 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
         ));
     }
 
-    let input_hash = hash_file_sha256(&r1).context("hash validation input")?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&r1).context("hash validation input r1")?,
+            hash_file_sha256(r2).context("hash validation input r2")?
+        )
+    } else {
+        hash_file_sha256(&r1).context("hash validation input")?
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        let r2 = r2.canonicalize().context("resolve r2 path")?;
+        let r2_dir = r2
+            .parent()
+            .ok_or_else(|| anyhow!("r2 has no parent"))?
+            .to_path_buf();
+        let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
+        let stats_output = execute_observer_command(
+            &seqkit_image.full_name,
+            stats_spec.mount_dir.as_path(),
+            &stats_spec.args,
+            runner,
+        )?;
+        if stats_output.exit_code != 0 {
+            return Err(anyhow!(
+                "seqkit validation observer failed for r2: {}",
+                stats_output.stderr
+            ));
+        }
+        Some(parse_seqkit_stats(&stats_output.stdout)?)
+    } else {
+        None
+    };
 
     Ok(ValidateBenchInputs {
         runner,
         r1,
         input_hash,
         input_stats: parse_seqkit_stats(&stats_output.stdout)?,
+        input_stats_r2,
         bench_dir,
         tools_root,
     })
@@ -239,7 +276,11 @@ fn build_validate_record(
     execution: &StageResultV1,
     strict_mode: bool,
 ) -> Result<BenchmarkRecord<FastqValidateMetrics>> {
-    let metrics = derive_validate_metrics(&bench_inputs.input_stats, execution);
+    let metrics = derive_validate_metrics(
+        &bench_inputs.input_stats,
+        bench_inputs.input_stats_r2.as_ref(),
+        execution,
+    );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -292,6 +333,7 @@ fn build_validate_record(
 
 fn derive_validate_metrics(
     input_stats: &SeqkitMetrics,
+    input_stats_r2: Option<&SeqkitMetrics>,
     execution: &StageResultV1,
 ) -> FastqValidateMetrics {
     let merged = format!("{}\n{}", execution.stdout, execution.stderr);
@@ -305,13 +347,15 @@ fn derive_validate_metrics(
     } else {
         reads_total.saturating_sub(reads_invalid)
     };
+    let reads_in = input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
     FastqValidateMetrics {
-        reads_in: input_stats.reads,
-        reads_out: input_stats.reads,
-        bases_in: input_stats.bases,
-        bases_out: input_stats.bases,
-        pairs_in: None,
-        pairs_out: None,
+        reads_in,
+        reads_out: reads_in,
+        bases_in,
+        bases_out: bases_in,
+        pairs_in: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
+        pairs_out: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
         reads_total,
         reads_valid,
         reads_invalid,

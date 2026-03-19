@@ -190,6 +190,7 @@ pub fn bench_args_validate(
     Ok(engine_args::BenchFastqValidateArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.validate_reads", &args.tools)?,
         explain: args.explain,
@@ -763,6 +764,7 @@ pub fn bench_args_from_validate(
             .r1
             .clone()
             .ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
+        r2: args.r2.clone(),
         out: args
             .out
             .clone()
