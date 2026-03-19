@@ -81,3 +81,19 @@ fn prinseq_trim_reads_binding_is_present_when_experimental_registry_is_enabled()
         "prinseq must be registered for fastq.trim_reads when the stage contract advertises it"
     );
 }
+
+#[test]
+fn seqkit_normalize_abundance_binding_is_present_in_the_governed_registry() {
+    let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+    let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
+    std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+    std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+
+    let registry = load_manifests(&registry_path()).expect("load governed registry");
+    let stage_id = StageId::from_static("fastq.normalize_abundance");
+    let tool_id = ToolId::from_static("seqkit");
+    assert!(
+        registry.tool_by_id(&stage_id, &tool_id).is_some(),
+        "seqkit must be registered for fastq.normalize_abundance when it is the governed default"
+    );
+}

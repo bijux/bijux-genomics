@@ -45,6 +45,7 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
+  - "fastq.normalize_abundance"
   - "fastq.normalize_primers"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
