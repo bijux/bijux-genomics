@@ -31,10 +31,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.index_reference",
   "tool_ids": [
     "star",
-    "samtools",
-    "bwa-mem2",
-    "bowtie2-build",
-    "minimap2",
-    "hisat2-build"
+    "samtools"
   ]
 }

@@ -60,10 +60,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.index_reference" => vec![
             "star",
             "samtools",
-            "bwa-mem2",
-            "bowtie2-build",
-            "minimap2",
-            "hisat2-build",
         ],
         "fastq.deplete_rrna" => vec!["sortmerna"],
         _ => Vec::new(),

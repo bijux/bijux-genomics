@@ -37,10 +37,6 @@ allowed_missingness:
 compatible_tools:
   - star
   - samtools
-  - bwa-mem2
-  - bowtie2-build
-  - minimap2
-  - hisat2-build
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"

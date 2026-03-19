@@ -117,14 +117,7 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
 
 fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
     match stage_id {
-        "fastq.index_reference" => Some(&[
-            "star",
-            "samtools",
-            "bwa-mem2",
-            "bowtie2-build",
-            "minimap2",
-            "hisat2-build",
-        ]),
+        "fastq.index_reference" => Some(&["star", "samtools"]),
         "fastq.validate_reads" => Some(&["fastqvalidator", "seqtk", "fqtools"]),
         "fastq.detect_adapters" => Some(&["fastqc"]),
         "fastq.trim_reads" => Some(&[
