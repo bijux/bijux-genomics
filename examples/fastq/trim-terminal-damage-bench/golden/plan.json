@@ -1,0 +1,5 @@
+{
+  "example_id": "fastq_trim_terminal_damage_bench",
+  "domain": "fastq",
+  "stages": ["fastq.trim_terminal_damage"]
+}

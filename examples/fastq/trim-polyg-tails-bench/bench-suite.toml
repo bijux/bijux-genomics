@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-trim-polyg-tails-01"
+domain = "fastq"
+stages = ["fastq.trim_polyg_tails"]

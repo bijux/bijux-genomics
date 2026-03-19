@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_trim_polyg_tails_bench",
+  "explain": "Deterministic polyG-tail trimming benchmark with chemistry-pinned preset governance."
+}

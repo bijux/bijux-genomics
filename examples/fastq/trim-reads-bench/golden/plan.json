@@ -1,0 +1,5 @@
+{
+  "example_id": "fastq_trim_reads_bench",
+  "domain": "fastq",
+  "stages": ["fastq.trim_reads"]
+}

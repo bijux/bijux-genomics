@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-trim-reads-01"
+domain = "fastq"
+stages = ["fastq.trim_reads"]
