@@ -12,7 +12,24 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_CLUSTER_OTUS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<StagePlanV1> {
+pub fn plan(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+) -> Result<StagePlanV1> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -24,11 +41,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads"),
-                reads.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
+            inputs,
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("otu_table_tsv"),
@@ -41,18 +54,13 @@ pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
-                    ArtifactId::from_static("merged_reads"),
-                    out_dir.join("merged_reads.fastq.gz"),
+                    ArtifactId::from_static("taxonomy_ready_fasta"),
+                    out_dir.join("taxonomy_ready.fasta"),
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
-                    ArtifactId::from_static("unmerged_reads_r1"),
-                    out_dir.join("unmerged_reads_R1.fastq.gz"),
-                    ArtifactRole::Reads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("unmerged_reads_r2"),
-                    out_dir.join("unmerged_reads_R2.fastq.gz"),
+                    ArtifactId::from_static("taxonomy_ready_fastq"),
+                    out_dir.join("taxonomy_ready.fastq"),
                     ArtifactRole::Reads,
                 ),
             ],
@@ -62,6 +70,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<
         effective_params: serde_json::json!({
             "identity_threshold": 0.97,
             "output_table_kind": "otu_abundance_table",
+            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "output_naming": "deterministic"
         }),
         aux_images: std::collections::BTreeMap::new(),

@@ -189,5 +189,16 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_eq!(plan.io.inputs.len(), 2);
     assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
+        &dummy_tool("vsearch"),
+        r1,
+        Some(r2),
+        out_dir,
+    )?;
+    assert_eq!(plan.io.inputs.len(), 2);
+    assert_eq!(plan.io.outputs.len(), 4);
+    assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "taxonomy_ready_fasta");
     Ok(())
 }
