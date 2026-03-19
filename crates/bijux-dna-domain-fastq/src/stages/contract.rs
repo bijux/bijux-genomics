@@ -23,7 +23,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             vec!["cutadapt", "seqkit"]
         }
         "fastq.filter_reads" => vec!["bbduk", "fastp", "seqkit"],
-        "fastq.remove_duplicates" => vec!["fastuniq", "clumpify", "prinseq"],
+        "fastq.remove_duplicates" => vec!["clumpify", "fastuniq"],
         "fastq.filter_low_complexity" => vec!["bbduk"],
         "fastq.trim_polyg_tails" => vec!["fastp", "bbduk"],
         "fastq.deplete_host" => vec!["bowtie2", "samtools"],
@@ -41,11 +41,9 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.profile_reads" => vec!["seqkit_stats"],
         "fastq.report_qc" => vec!["multiqc"],
         "fastq.screen_taxonomy" => vec![
+            "bracken",
             "kraken2",
-            "centrifuge",
-            "metaphlan",
-            "kaiju",
-            "fastq_screen",
+            "krakenuniq",
         ],
         "fastq.index_reference" => vec!["star", "samtools"],
         "fastq.deplete_rrna" => vec!["sortmerna"],
