@@ -89,14 +89,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "coverage_summary"
-path = "scripts/tooling/coverage_summary.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "generate_configs"
 path = "scripts/tooling/generate-configs.sh"
 purpose = "tooling script"
@@ -210,36 +202,12 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "vcf_deprecate_knob"
-path = "scripts/tooling/deprecate-vcf-knob.sh"
-purpose = "vcf governance script"
-inputs = ["configs/vcf/deprecations/knobs.toml"]
-outputs = ["configs/vcf/deprecations/", "artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
-id = "vcf_deprecate_panel"
-path = "scripts/tooling/deprecate-vcf-panel.sh"
-purpose = "vcf governance script"
-inputs = ["configs/vcf/deprecations/panels.toml"]
-outputs = ["configs/vcf/deprecations/", "artifacts/", "$ISO_ROOT/"]
-ci_allowed = false
-
-[[script]]
 id = "certification_gate"
 path = "scripts/tooling/certification-gate.sh"
 purpose = "tooling script"
 inputs = ["examples/", "assets/"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = false
-
-[[script]]
-id = "crash_triage"
-path = "scripts/tooling/crash-triage.sh"
-purpose = "tooling script"
-inputs = ["artifacts/"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
 
 [[script]]
 id = "certify_fastq"
@@ -312,4 +280,3 @@ purpose = "tooling script"
 inputs = ["configs/rust/nextest.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
-
