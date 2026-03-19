@@ -33,14 +33,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_config_snapshot"
-path = "scripts/tooling/check-config-snapshot.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "ci_audit"
 path = "scripts/tooling/ci-audit.sh"
 purpose = "tooling script"
@@ -123,14 +115,6 @@ ci_allowed = true
 [[script]]
 id = "coverage_summary"
 path = "scripts/tooling/coverage_summary.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_config_tree_snapshot"
-path = "scripts/tooling/generate-config-tree-snapshot.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
