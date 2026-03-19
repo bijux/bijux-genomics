@@ -8,12 +8,12 @@ pub struct MetricsSchemaId {
 pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     MetricsSchemaId {
         stage_id: "fastq.trim_reads",
-        schema: "fastq_trim_v2",
+        schema: "fastq_trim_reads_v2",
         version: 2,
     },
     MetricsSchemaId {
         stage_id: "fastq.validate_reads",
-        schema: "fastq_validate_pre_v1",
+        schema: "fastq_validate_reads_v1",
         version: 1,
     },
     MetricsSchemaId {
@@ -23,12 +23,12 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     },
     MetricsSchemaId {
         stage_id: "fastq.trim_terminal_damage",
-        schema: "fastq_trim_v2",
+        schema: "fastq_trim_terminal_damage_v2",
         version: 2,
     },
     MetricsSchemaId {
         stage_id: "fastq.filter_reads",
-        schema: "fastq_filter_v2",
+        schema: "fastq_filter_reads_v2",
         version: 2,
     },
     MetricsSchemaId {
@@ -43,37 +43,37 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     },
     MetricsSchemaId {
         stage_id: "fastq.merge_pairs",
-        schema: "fastq_merge_v1",
+        schema: "fastq_merge_pairs_v1",
         version: 1,
     },
     MetricsSchemaId {
         stage_id: "fastq.correct_errors",
-        schema: "fastq_correct_v1",
+        schema: "fastq_correct_errors_v1",
         version: 1,
     },
     MetricsSchemaId {
         stage_id: "fastq.report_qc",
-        schema: "fastq_qc_post_v1",
+        schema: "fastq_report_qc_v1",
         version: 1,
     },
     MetricsSchemaId {
         stage_id: "fastq.extract_umis",
-        schema: "fastq_umi_v1",
+        schema: "fastq_extract_umis_v1",
         version: 1,
     },
     MetricsSchemaId {
         stage_id: "fastq.screen_taxonomy",
-        schema: "fastq_screen_v1",
+        schema: "fastq_screen_taxonomy_v1",
         version: 1,
     },
     MetricsSchemaId {
         stage_id: "fastq.deplete_rrna",
-        schema: "fastq_filter_v2",
+        schema: "fastq_deplete_rrna_v2",
         version: 2,
     },
     MetricsSchemaId {
         stage_id: "fastq.profile_reads",
-        schema: "fastq_stats_neutral_v1",
+        schema: "fastq_profile_reads_v1",
         version: 1,
     },
     MetricsSchemaId {

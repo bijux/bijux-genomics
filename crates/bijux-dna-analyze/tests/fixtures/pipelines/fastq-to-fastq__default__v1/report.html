@@ -151,8 +151,8 @@
         "taxonomy_db_hash": "unknown",
         "taxonomy_db_version": "unknown"
       },
-      "stage_id": "fastq.report_qc",
-      "tool_id": "multiqc"
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats"
     },
     {
       "banks": {
@@ -161,8 +161,8 @@
         "taxonomy_db_hash": "unknown",
         "taxonomy_db_version": "unknown"
       },
-      "stage_id": "fastq.profile_reads",
-      "tool_id": "seqkit_stats"
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc"
     },
     {
       "banks": {
@@ -191,8 +191,8 @@
     "missing_reports": [
       "fastq.detect_adapters:metrics_path",
       "fastq.filter_reads:metrics_path",
-      "fastq.report_qc:metrics_path",
       "fastq.profile_reads:metrics_path",
+      "fastq.report_qc:metrics_path",
       "fastq.trim_reads:metrics_path",
       "fastq.validate_reads:metrics_path"
     ],
@@ -344,9 +344,9 @@
       },
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.report_qc",
-      "stage_id": "fastq.report_qc",
-      "tool_id": "multiqc",
+      "span_id": "span-fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -359,9 +359,9 @@
       },
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.profile_reads",
-      "stage_id": "fastq.profile_reads",
-      "tool_id": "seqkit_stats",
+      "span_id": "span-fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -453,9 +453,9 @@
       "params_hash": "params",
       "retention_report_path": "/tmp/retention_report.json",
       "runtime_s": 1.0,
-      "stage_id": "fastq.report_qc",
+      "stage_id": "fastq.profile_reads",
       "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "multiqc",
+      "tool_id": "seqkit_stats",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },
@@ -469,9 +469,9 @@
       "params_hash": "params",
       "retention_report_path": "/tmp/retention_report.json",
       "runtime_s": 1.0,
-      "stage_id": "fastq.profile_reads",
+      "stage_id": "fastq.report_qc",
       "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "seqkit_stats",
+      "tool_id": "multiqc",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },
@@ -541,7 +541,7 @@
       <section id="stages" class="section">
         <h2>stages</h2>
         <div class="stage-tabs">
-<button class=\"stage-tab active\" data-stage=\"fastq.detect_adapters\">fastq.detect_adapters</button><button class=\"stage-tab \" data-stage=\"fastq.filter_reads\">fastq.filter_reads</button><button class=\"stage-tab \" data-stage=\"fastq.report_qc\">fastq.report_qc</button><button class=\"stage-tab \" data-stage=\"fastq.profile_reads\">fastq.profile_reads</button><button class=\"stage-tab \" data-stage=\"fastq.trim_reads\">fastq.trim_reads</button><button class=\"stage-tab \" data-stage=\"fastq.validate_reads\">fastq.validate_reads</button>
+<button class=\"stage-tab active\" data-stage=\"fastq.detect_adapters\">fastq.detect_adapters</button><button class=\"stage-tab \" data-stage=\"fastq.filter_reads\">fastq.filter_reads</button><button class=\"stage-tab \" data-stage=\"fastq.profile_reads\">fastq.profile_reads</button><button class=\"stage-tab \" data-stage=\"fastq.report_qc\">fastq.report_qc</button><button class=\"stage-tab \" data-stage=\"fastq.trim_reads\">fastq.trim_reads</button><button class=\"stage-tab \" data-stage=\"fastq.validate_reads\">fastq.validate_reads</button>
         </div>
 <div class=\"stage-panel active\" data-stage=\"fastq.detect_adapters\">
   <h3>fastq.detect_adapters</h3>
@@ -577,23 +577,6 @@
     <ul><li><a href=\"/tmp/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"/tmp/retention_report.json\">retention_report</a></li><li><a href=\"/tmp/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
   </div>
   <div class=\"stage-plots\" data-stage=\"fastq.filter_reads\"></div>
-</div><div class=\"stage-panel \" data-stage=\"fastq.report_qc\">
-  <h3>fastq.report_qc</h3>
-  <div class=\"stage-meta\">
-    <span>tool: multiqc</span>
-    <span>version: 99.99.99+fixture</span>
-    <span>params: params</span>
-  </div>
-  <div class=\"stage-meta\">
-    <span>exit_code: 0</span>
-    <span>runtime_s: 1.00</span>
-    <span>memory_mb: 64.0</span>
-  </div>
-  <div class=\"stage-artifacts\">
-    <h4>Artifacts</h4>
-    <ul><li><a href=\"/tmp/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"/tmp/retention_report.json\">retention_report</a></li><li><a href=\"/tmp/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
-  </div>
-  <div class=\"stage-plots\" data-stage=\"fastq.report_qc\"></div>
 </div><div class=\"stage-panel \" data-stage=\"fastq.profile_reads\">
   <h3>fastq.profile_reads</h3>
   <div class=\"stage-meta\">
@@ -611,6 +594,23 @@
     <ul><li><a href=\"/tmp/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"/tmp/retention_report.json\">retention_report</a></li><li><a href=\"/tmp/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
   </div>
   <div class=\"stage-plots\" data-stage=\"fastq.profile_reads\"></div>
+</div><div class=\"stage-panel \" data-stage=\"fastq.report_qc\">
+  <h3>fastq.report_qc</h3>
+  <div class=\"stage-meta\">
+    <span>tool: multiqc</span>
+    <span>version: 99.99.99+fixture</span>
+    <span>params: params</span>
+  </div>
+  <div class=\"stage-meta\">
+    <span>exit_code: 0</span>
+    <span>runtime_s: 1.00</span>
+    <span>memory_mb: 64.0</span>
+  </div>
+  <div class=\"stage-artifacts\">
+    <h4>Artifacts</h4>
+    <ul><li><a href=\"/tmp/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"/tmp/retention_report.json\">retention_report</a></li><li><a href=\"/tmp/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
+  </div>
+  <div class=\"stage-plots\" data-stage=\"fastq.report_qc\"></div>
 </div><div class=\"stage-panel \" data-stage=\"fastq.trim_reads\">
   <h3>fastq.trim_reads</h3>
   <div class=\"stage-meta\">

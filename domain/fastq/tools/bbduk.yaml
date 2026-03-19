@@ -12,9 +12,9 @@ container:
 command_template:
   - "bbduk.sh"
   - "in={{reads}}"
-  - "out={{trimmed_reads}}"
+  - "out={{filtered_fastq}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "filtered_fastq"
     data_type: "fastq"
     cardinality: "Many"
 metrics_parser: "fastq_trim_v1"
@@ -25,9 +25,9 @@ constraints:
   threads: 4
 execution_contract:
   required_inputs:
-    - "reads_r1"
+    - "reads"
   expected_outputs:
-    - "bbduk.fastq.gz"
+    - "filtered_fastq"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 

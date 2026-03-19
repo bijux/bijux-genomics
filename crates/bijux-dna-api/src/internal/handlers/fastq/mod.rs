@@ -21,7 +21,8 @@ pub use stages::report_qc::bench_fastq_qc_post;
 pub use stages::screen_taxonomy::bench_fastq_screen;
 pub use stages::trim_reads::bench_fastq_trim;
 pub use stages::extract_umis::bench_fastq_umi;
-pub use stages::validate_reads::bench_fastq_validate_pre;
+pub use stages::validate_reads::bench_fastq_validate_reads;
+pub use stages::validate_reads::bench_fastq_validate_reads as bench_fastq_validate_pre;
 pub(crate) use summary::StageExecutionSummary;
 /// Benchmarking result for a FASTQ stage.
 ///

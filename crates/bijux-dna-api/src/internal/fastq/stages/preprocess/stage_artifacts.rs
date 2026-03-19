@@ -90,7 +90,7 @@ fn write_stage_standardized_metrics(
     execution: &StageResultV1,
 ) -> Result<()> {
     let metrics = match stage_id {
-        "fastq.validate_reads" => parse_validate_pre_metrics(execution),
+        "fastq.validate_reads" => parse_validate_reads_metrics(execution),
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,

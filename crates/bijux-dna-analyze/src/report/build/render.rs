@@ -20,7 +20,7 @@ fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
         _ => None,
     };
     serde_json::json!({
-        "validate_pre_mean_q": validate_mean_q,
+        "validate_reads_mean_q": validate_mean_q,
         "qc_post_mean_q": qc_post_mean_q,
         "mean_q_delta": delta,
     })

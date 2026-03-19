@@ -24,6 +24,6 @@ fn metric_set_converts_to_envelope() {
         adapter_overrides: None,
     };
     let set: MetricSet<_> = metric_set(metrics);
-    assert_eq!(set.metrics_schema, "fastq_trim_v2");
+    assert_eq!(set.metrics_schema, "fastq_trim_reads_v2");
     assert_eq!(set.version, 2);
 }

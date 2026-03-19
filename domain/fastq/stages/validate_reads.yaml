@@ -15,10 +15,16 @@ parameters: []
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
+  - name: "reads_out"
+    meaning: "Number of reads carried forward by this report-only validation stage"
   - name: "bases_in"
     meaning: "Number of input bases"
+  - name: "bases_out"
+    meaning: "Number of bases carried forward by this report-only validation stage"
   - name: "pairs_in"
     meaning: "Number of input read pairs"
+  - name: "pairs_out"
+    meaning: "Number of read pairs carried forward by this report-only validation stage"
   - name: "reads_total"
     meaning: "Total number of reads observed"
   - name: "reads_valid"
@@ -27,8 +33,6 @@ metrics:
     meaning: "Number of reads that failed validation"
   - name: "mean_q"
     meaning: "Mean Phred quality score"
-  - name: "strict_pass"
-    meaning: "Whether the validator backend exited successfully under strict validation policy"
 description: "FASTQ stage for structural validation and format-integrity accounting before downstream planning."
 mutates_fastq: false
 report_only: true

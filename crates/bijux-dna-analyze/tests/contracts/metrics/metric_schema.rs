@@ -49,7 +49,7 @@ fn metrics_schema_matches_stage_and_version() {
     }));
     assert!(record.validate().is_ok());
     let schema = record.metrics.metrics_schema;
-    assert_eq!(schema, "fastq_trim_v2");
+    assert_eq!(schema, "fastq_trim_reads_v2");
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn metrics_schema_rejects_unknown() {
         adapter_bank_hash: None,
         adapter_overrides: None,
     });
-    metrics.metrics_schema = "fastq_trim_v1".to_string();
+    metrics.metrics_schema = "fastq_trim_reads_v1".to_string();
     let record = base_record(metrics);
     match record.validate() {
         Ok(()) => panic!("expected schema mismatch"),
@@ -104,7 +104,7 @@ fn metrics_schema_rejects_mixed_stage() {
         adapter_bank_hash: None,
         adapter_overrides: None,
     });
-    metrics.metrics_schema = "fastq_validate_v1".to_string();
+    metrics.metrics_schema = "fastq_validate_reads_v1".to_string();
     let record = base_record(metrics);
     match record.validate() {
         Ok(()) => panic!("expected schema mismatch"),
@@ -170,7 +170,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         adapter_bank_hash: None,
         adapter_overrides: None,
     });
-    assert_eq!(trim.metrics_schema, "fastq_trim_v2");
+    assert_eq!(trim.metrics_schema, "fastq_trim_reads_v2");
 
     let validate = metric_set(FastqValidateMetrics {
         reads_in: 100,
@@ -184,7 +184,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_invalid: 10,
         mean_q: 30.0,
     });
-    assert_eq!(validate.metrics_schema, "fastq_validate_pre_v1");
+    assert_eq!(validate.metrics_schema, "fastq_validate_reads_v1");
 
     let filter = metric_set(FastqFilterMetrics {
         reads_in: 100,
@@ -209,7 +209,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
             gc_delta: 0.1,
         },
     });
-    assert_eq!(filter.metrics_schema, "fastq_filter_v2");
+    assert_eq!(filter.metrics_schema, "fastq_filter_reads_v2");
 
     let merge = metric_set(FastqMergeMetrics {
         reads_in: 100,
@@ -224,7 +224,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_unmerged: 10,
         merge_rate: 0.8,
     });
-    assert_eq!(merge.metrics_schema, "fastq_merge_v1");
+    assert_eq!(merge.metrics_schema, "fastq_merge_pairs_v1");
 
     let correct = metric_set(FastqCorrectMetrics {
         reads_in: 100,
@@ -237,7 +237,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         mean_q_after: 31.0,
         kmer_fix_rate: 0.5,
     });
-    assert_eq!(correct.metrics_schema, "fastq_correct_v1");
+    assert_eq!(correct.metrics_schema, "fastq_correct_errors_v1");
 
     let qc_post = metric_set(FastqQcPostMetrics {
         reads_in: 100,
@@ -253,7 +253,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         multiqc_report: None,
         multiqc_data: None,
     });
-    assert_eq!(qc_post.metrics_schema, "fastq_qc_post_v1");
+    assert_eq!(qc_post.metrics_schema, "fastq_report_qc_v1");
 
     let umi = metric_set(FastqUmiMetrics {
         reads_in: 100,
@@ -264,7 +264,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         pairs_out: None,
         dedup_rate: 0.2,
     });
-    assert_eq!(umi.metrics_schema, "fastq_umi_v1");
+    assert_eq!(umi.metrics_schema, "fastq_extract_umis_v1");
 
     let screen = metric_set(FastqScreenMetrics {
         reads_in: 100,
@@ -276,7 +276,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         contamination_rate: 0.1,
         contamination_summary: bijux_dna_analyze::model::JsonBlob::default(),
     });
-    assert_eq!(screen.metrics_schema, "fastq_screen_v1");
+    assert_eq!(screen.metrics_schema, "fastq_screen_taxonomy_v1");
 
     let stats = metric_set(FastqStatsMetrics {
         reads_total: 100,
@@ -288,5 +288,5 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
             count: 100,
         }],
     });
-    assert_eq!(stats.metrics_schema, "fastq_stats_neutral_v1");
+    assert_eq!(stats.metrics_schema, "fastq_profile_reads_v1");
 }

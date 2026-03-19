@@ -36,7 +36,7 @@ fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     None
 }
 
-fn parse_validate_pre_metrics(execution: &StageResultV1) -> serde_json::Value {
+fn parse_validate_reads_metrics(execution: &StageResultV1) -> serde_json::Value {
     let merged = format!("{}\n{}", execution.stdout, execution.stderr);
     let read_count = parse_first_u64_after_key(&merged, "read")
         .or_else(|| parse_first_u64_after_key(&merged, "sequences"));
@@ -117,7 +117,7 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
 
 fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
     let allowed: &[&str] = match stage_id {
-        "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk", "seqkit"],
+        "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk", "fastq_scan"],
         "fastq.detect_adapters" => &["fastp", "fastqc"],
         "fastq.trim_reads" => &["adapterremoval", "cutadapt", "atropos", "fastp", "bbduk", "trimmomatic"],
         "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
