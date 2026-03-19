@@ -133,7 +133,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
             &preprocess_plan,
             &dummy_tool("planner"),
         )?;
-    assert_snapshot("stage__fastq__fastq.preprocess", &plan)?;
+    assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::qc_post::plan_qc_post(
         &dummy_tool("multiqc"),
