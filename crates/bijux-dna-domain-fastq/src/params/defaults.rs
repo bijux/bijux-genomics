@@ -1,5 +1,5 @@
 use super::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
-use super::detect_adapters::DetectAdaptersEffectiveParams;
+use super::detect_adapters::{DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION};
 use super::filter::FilterEffectiveParams;
 use super::merge::MergeEffectiveParams;
 use super::preprocess::LibraryDamageTreatment;
@@ -62,9 +62,12 @@ pub fn umi_defaults(paired: bool) -> FastqUmiParams {
 #[must_use]
 pub fn detect_adapters_defaults(paired: bool) -> DetectAdaptersEffectiveParams {
     DetectAdaptersEffectiveParams {
+        schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
         sample_reads: None,
+        report_only: true,
+        evidence_engine: "fastqc".to_string(),
     }
 }
 

@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{detect_adapters::DetectAdaptersEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    detect_adapters::{DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION},
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -20,6 +23,7 @@ pub fn plan(
     let report = out_dir.join("adapter_report.json");
     let fastqc_dir = out_dir.join("fastqc");
     let effective_params = DetectAdaptersEffectiveParams {
+        schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
@@ -27,6 +31,8 @@ pub fn plan(
         },
         threads: tool.resources.threads,
         sample_reads: Some(100_000),
+        report_only: true,
+        evidence_engine: tool.tool_id.to_string(),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),

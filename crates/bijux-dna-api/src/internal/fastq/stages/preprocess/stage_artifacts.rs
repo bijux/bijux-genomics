@@ -94,6 +94,7 @@ fn write_stage_standardized_metrics(
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
+            "report_only": true,
             "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
         }),
         "fastq.profile_read_lengths" => serde_json::json!({

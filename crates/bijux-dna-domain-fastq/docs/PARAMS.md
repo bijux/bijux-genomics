@@ -38,7 +38,7 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.profile_reads` | `FastqStatsParams` | neutral read statistics collection controls |
 | `fastq.correct_errors` | `FastqCorrectParams` | error-correction controls |
 | `fastq.extract_umis` | `FastqUmiParams` | UMI extraction/normalization controls |
-| `fastq.detect_adapters` | `DetectAdaptersEffectiveParams` | adapter discovery controls |
+| `fastq.detect_adapters` | `DetectAdaptersEffectiveParams` | report-only adapter evidence controls |
 | `fastq.trim_reads` | `TrimEffectiveParams` | adapter/quality/length trimming controls |
 | `fastq.filter_reads` | `FilterEffectiveParams` | contamination and complexity filtering controls |
 | `fastq.merge_pairs` | `MergeEffectiveParams` | paired-end overlap merge controls |

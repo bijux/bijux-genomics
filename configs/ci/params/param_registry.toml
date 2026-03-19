@@ -96,7 +96,7 @@ schema_version = "bijux.fastq.params.correct.v1"
 [[entries]]
 stage_id = "fastq.detect_adapters"
 param_type_id = "fastq.detect_adapters"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.detect_adapters.v1"
 
 [[entries]]
 stage_id = "fastq.filter_reads"

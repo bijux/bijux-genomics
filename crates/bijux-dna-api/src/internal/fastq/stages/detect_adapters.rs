@@ -210,6 +210,8 @@ fn build_detect_record(
         "schema_version": "bijux.fastq.detect_adapters.report.v1",
         "stage_id": STAGE_DETECT_ADAPTERS.as_str(),
         "tool_id": tool,
+        "report_only": true,
+        "evidence_engine": tool,
         "input_fastq": bench_inputs.r1,
         "input_fastq_r2": input_stats_r2.map(|_| serde_json::Value::String("paired".to_string())),
         "candidate_adapter_count": metrics.candidate_adapter_count,
