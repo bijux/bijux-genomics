@@ -1,6 +1,6 @@
 tool=vsearch
 tool_version=pinned
-stage=fastq.otu_clustering
+stage=fastq.cluster_otus
 domain=fastq
 fixture_kind=truth
 command=vsearch

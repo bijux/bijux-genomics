@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.asv_inference"
+stage_id: "fastq.infer_asvs"
 status: "out_of_scope"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"

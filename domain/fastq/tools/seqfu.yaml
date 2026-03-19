@@ -10,7 +10,7 @@ citation: pending:tool-publication
 stage_ids:
 - fastq.profile_reads
 - fastq.profile_read_lengths
-- fastq.abundance_normalization
+- fastq.normalize_abundance
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:

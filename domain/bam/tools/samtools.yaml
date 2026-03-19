@@ -20,7 +20,7 @@ stage_ids:
 - bam.coverage
 - bam.endogenous_content
 - bam.overlap_correction
-- fastq.prepare_reference
+- fastq.index_reference
 - fastq.report_qc
 status: supported
 scope: pre_hpc_pre_vcf

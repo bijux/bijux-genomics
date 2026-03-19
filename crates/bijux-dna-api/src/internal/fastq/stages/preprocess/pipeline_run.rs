@@ -51,11 +51,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
     if args.mode == bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::Shotgun {
         let amplicon_only = [
-            "fastq.primer_normalization",
-            "fastq.chimera_detection",
-            "fastq.asv_inference",
-            "fastq.otu_clustering",
-            "fastq.abundance_normalization",
+            "fastq.normalize_primers",
+            "fastq.remove_chimeras",
+            "fastq.infer_asvs",
+            "fastq.cluster_otus",
+            "fastq.normalize_abundance",
         ];
         if let Some(stage) = pipeline
             .stages
@@ -448,11 +448,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         if matches!(
             stage_id.as_str(),
             "fastq.trim_terminal_damage"
-                | "fastq.primer_normalization"
-                | "fastq.chimera_detection"
-                | "fastq.otu_clustering"
-                | "fastq.asv_inference"
-                | "fastq.abundance_normalization"
+                | "fastq.normalize_primers"
+                | "fastq.remove_chimeras"
+                | "fastq.cluster_otus"
+                | "fastq.infer_asvs"
+                | "fastq.normalize_abundance"
         ) {
             let stage_metrics = materialize_amplicon_stage_outputs(&stage_root, planned)?;
             enforce_amplicon_qc_thresholds(&stage_root, &stage_id, &stage_metrics)?;

@@ -133,11 +133,11 @@ fn fastq_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json:
                 | "fastq.remove_duplicates"
                 | "fastq.extract_umis"
                 | "fastq.deplete_host"
-                | "fastq.primer_normalization"
-                | "fastq.chimera_detection"
-                | "fastq.asv_inference"
-                | "fastq.otu_clustering"
-                | "fastq.abundance_normalization"
+                | "fastq.normalize_primers"
+                | "fastq.remove_chimeras"
+                | "fastq.infer_asvs"
+                | "fastq.cluster_otus"
+                | "fastq.normalize_abundance"
         ) {
             transforms += 1;
         }

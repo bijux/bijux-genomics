@@ -351,7 +351,7 @@ fn write_edna_report_summary(
     let mut normalization = None;
     for stage in stage_runs {
         let stage_root = run_root.join(stage.plan.step_id.as_str());
-        if stage.plan.step_id.as_str() == "fastq.chimera_detection" {
+        if stage.plan.step_id.as_str() == "fastq.remove_chimeras" {
             let path = stage_root.join("metrics.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {
@@ -361,21 +361,21 @@ fn write_edna_report_summary(
                 }
             }
         }
-        if stage.plan.step_id.as_str() == "fastq.asv_inference" {
+        if stage.plan.step_id.as_str() == "fastq.infer_asvs" {
             let table = stage.plan.out_dir.join("asv_abundance.tsv");
             if let Ok(raw) = std::fs::read_to_string(table) {
                 asv_rows =
                     Some(raw.lines().skip(1).filter(|l| !l.trim().is_empty()).count() as u64);
             }
         }
-        if stage.plan.step_id.as_str() == "fastq.otu_clustering" {
+        if stage.plan.step_id.as_str() == "fastq.cluster_otus" {
             let table = stage.plan.out_dir.join("otu_abundance.tsv");
             if let Ok(raw) = std::fs::read_to_string(table) {
                 otu_rows =
                     Some(raw.lines().skip(1).filter(|l| !l.trim().is_empty()).count() as u64);
             }
         }
-        if stage.plan.step_id.as_str() == "fastq.abundance_normalization" {
+        if stage.plan.step_id.as_str() == "fastq.normalize_abundance" {
             let path = stage_root.join("metrics.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
                 normalization = serde_json::from_str::<serde_json::Value>(&raw).ok();
@@ -387,7 +387,7 @@ fn write_edna_report_summary(
         "chimera_rate": chimera_rate,
         "asv_table_rows": asv_rows,
         "otu_table_rows": otu_rows,
-        "abundance_normalization": normalization
+        "normalize_abundance": normalization
     });
     bijux_dna_infra::atomic_write_json(&run_root.join("edna_summary.json"), &payload)?;
     Ok(())

@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.chimera_detection"
+stage_id: "fastq.normalize_primers"
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
@@ -8,16 +8,13 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "chimera_filtered_reads"
+  - name: "primer_normalized_reads"
     data_type: "fastq"
     cardinality: "Many"
-  - name: "merged_reads"
+  - name: "filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
-  - name: "unmerged_reads_r1"
-    data_type: "fastq"
-    cardinality: "Many"
-  - name: "unmerged_reads_r2"
+  - name: "trimmed_reads"
     data_type: "fastq"
     cardinality: "Many"
 metrics:
@@ -29,13 +26,16 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 compatible_tools:
-  - vsearch
+  - cutadapt
+  - seqkit
 assumptions:
-  - "Reference or de-novo chimera detection mode is fixed per run."
-  - "Chimera reference database id/version/checksum is explicit when reference mode is used."
+  - "Marker-specific primer references are curated before execution."
+  - "Ambiguous primer matches are retained with explicit tags."
+  - "Primer mismatch tolerance and orientation mode are explicit per run."
+  - "Marker metadata (marker_id, region, primer_set_version) is carried in example/runtime manifests."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
-  - "contaminant_db_bank"
+  - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs: []
 required_outputs: []

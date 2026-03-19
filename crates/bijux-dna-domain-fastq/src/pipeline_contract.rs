@@ -46,12 +46,12 @@ pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
         StageId::from_static("fastq.validate_reads"),
         StageId::from_static("fastq.detect_adapters"),
         StageId::from_static("fastq.trim_terminal_damage"),
-        StageId::from_static("fastq.primer_normalization"),
+        StageId::from_static("fastq.normalize_primers"),
         StageId::from_static("fastq.trim_reads"),
         StageId::from_static("fastq.filter_reads"),
-        StageId::from_static("fastq.chimera_detection"),
-        StageId::from_static("fastq.asv_inference"),
-        StageId::from_static("fastq.abundance_normalization"),
+        StageId::from_static("fastq.remove_chimeras"),
+        StageId::from_static("fastq.infer_asvs"),
+        StageId::from_static("fastq.normalize_abundance"),
         StageId::from_static("fastq.profile_reads"),
     ]
 }
@@ -105,12 +105,12 @@ pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
             StageId::from_static("fastq.merge_pairs"),
         ),
         (
-            StageId::from_static("fastq.asv_inference"),
-            StageId::from_static("fastq.otu_clustering"),
+            StageId::from_static("fastq.infer_asvs"),
+            StageId::from_static("fastq.cluster_otus"),
         ),
         (
-            StageId::from_static("fastq.otu_clustering"),
-            StageId::from_static("fastq.asv_inference"),
+            StageId::from_static("fastq.cluster_otus"),
+            StageId::from_static("fastq.infer_asvs"),
         ),
     ]
 }
@@ -126,11 +126,11 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.correct_errors"
         | "fastq.filter_reads"
         | "fastq.profile_reads"
-        | "fastq.primer_normalization"
-        | "fastq.chimera_detection"
-        | "fastq.abundance_normalization" => Some(StageCriticality::Essential),
-        "fastq.asv_inference"
-        | "fastq.otu_clustering"
+        | "fastq.normalize_primers"
+        | "fastq.remove_chimeras"
+        | "fastq.normalize_abundance" => Some(StageCriticality::Essential),
+        "fastq.infer_asvs"
+        | "fastq.cluster_otus"
         | "fastq.report_qc"
         | "fastq.extract_umis"
         => Some(StageCriticality::Optional),

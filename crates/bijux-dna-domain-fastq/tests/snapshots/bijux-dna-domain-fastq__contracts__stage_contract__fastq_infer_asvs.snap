@@ -1,31 +1,33 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
-assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
+  "amplicon_semantics": {
+    "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
+  },
   "inputs": {
-    "kind": "ReferenceFasta"
+    "kind": "SingleEnd"
   },
   "metrics": {},
   "outputs": {
     "emits_fastq": false,
-    "kind": "ReferenceIndex"
+    "kind": "StatsOnly"
   },
   "retention": {
-    "definition": "indexed_reference_entries_out == reference_entries_in",
+    "definition": "non-empty table rows and stable sample identifiers",
     "may_drop": [],
     "may_drop_reads": false,
     "must_preserve_pairing": false,
     "preserves": [
-      "reference_sequence_records"
+      "sample_ids",
+      "abundance_units"
     ],
-    "units": "reference_entries"
+    "units": "rows,samples"
   },
   "schema_version": "bijux.stage_contract.v1",
-  "stage_id": "fastq.prepare_reference",
+  "stage_id": "fastq.infer_asvs",
   "tool_ids": [
-    "star",
-    "samtools"
+    "dada2"
   ]
 }

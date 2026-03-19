@@ -41,13 +41,13 @@ const VCF_EXECUTOR: &str = "stages-vcf.pipeline";
 
 const ENTRIES: &[StageExecutorEntry] = &[
     StageExecutorEntry {
-        stage_id: "fastq.abundance_normalization",
+        stage_id: "fastq.normalize_abundance",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.chimera_detection",
+        stage_id: "fastq.remove_chimeras",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -113,7 +113,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.otu_clustering",
+        stage_id: "fastq.cluster_otus",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -131,13 +131,13 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.prepare_reference",
+        stage_id: "fastq.index_reference",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.primer_normalization",
+        stage_id: "fastq.normalize_primers",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,

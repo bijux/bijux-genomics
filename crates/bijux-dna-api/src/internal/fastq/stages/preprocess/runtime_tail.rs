@@ -286,11 +286,11 @@ fn enforce_stage_applicability(
     }
     if matches!(
         stage,
-        "fastq.primer_normalization"
-            | "fastq.chimera_detection"
-            | "fastq.asv_inference"
-            | "fastq.otu_clustering"
-            | "fastq.abundance_normalization"
+        "fastq.normalize_primers"
+            | "fastq.remove_chimeras"
+            | "fastq.infer_asvs"
+            | "fastq.cluster_otus"
+            | "fastq.normalize_abundance"
     ) && !matches!(
         args.mode,
         bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
@@ -376,11 +376,11 @@ fn write_fastq_output_contract(
         .collect::<Vec<_>>();
     let expected_ecological_outputs = match planned.stage_id.as_str() {
         "fastq.trim_terminal_damage" => vec!["trimmed_reads"],
-        "fastq.primer_normalization" => vec!["primer_orientation_report"],
-        "fastq.chimera_detection" => vec!["chimera_metrics_json"],
-        "fastq.asv_inference" => vec!["asv_table_tsv", "asv_sequences_fasta"],
-        "fastq.otu_clustering" => vec!["otu_table_tsv", "otu_sequences_fasta"],
-        "fastq.abundance_normalization" => vec!["normalized_abundance_tsv"],
+        "fastq.normalize_primers" => vec!["primer_orientation_report"],
+        "fastq.remove_chimeras" => vec!["chimera_metrics_json"],
+        "fastq.infer_asvs" => vec!["asv_table_tsv", "asv_sequences_fasta"],
+        "fastq.cluster_otus" => vec!["otu_table_tsv", "otu_sequences_fasta"],
+        "fastq.normalize_abundance" => vec!["normalized_abundance_tsv"],
         _ => Vec::new(),
     };
     let ecological_checksums = planned

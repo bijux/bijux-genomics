@@ -4,7 +4,7 @@
 Describe OTU clustering versus ASV inference contracts for FASTQ ecology workflows.
 
 ## Scope
-`fastq.otu_clustering` and `fastq.asv_inference` stage interpretation.
+`fastq.cluster_otus` and `fastq.infer_asvs` stage interpretation.
 
 ## Non-goals
 - Declaring one method universally superior.

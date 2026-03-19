@@ -466,7 +466,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbduk", "fastp"]
 
 [[stages]]
-id = "fastq.prepare_reference"
+id = "fastq.index_reference"
 status = "supported"
 output_kinds = ["directory"]
 ordering_after = []
@@ -602,8 +602,8 @@ tools = ["umi_tools"]
 id = "fastq.validate_reads"
 status = "supported"
 output_kinds = ["json"]
-ordering_after = ["fastq.prepare_reference"]
-prerequisites = ["fastq.prepare_reference"]
+ordering_after = ["fastq.index_reference"]
+prerequisites = ["fastq.index_reference"]
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
@@ -623,7 +623,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.prepare_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge_pairs", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
+stages = ["fastq.index_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge_pairs", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"

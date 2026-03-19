@@ -95,7 +95,7 @@ fn materialize_amplicon_stage_outputs(
                 "used_fallback": !cutadapt_ok
             });
         }
-        "fastq.primer_normalization" => {
+        "fastq.normalize_primers" => {
             let primary = outputs
                 .first()
                 .map(|x| x.path.clone())
@@ -105,7 +105,7 @@ fn materialize_amplicon_stage_outputs(
             let cutadapt_ok = command_exists("cutadapt")
                 && run_stage_command(
                     out_dir,
-                    "cutadapt_primer_normalization",
+                    "cutadapt_normalize_primers",
                     "cutadapt",
                     &[
                         "-e".to_string(),
@@ -136,7 +136,7 @@ fn materialize_amplicon_stage_outputs(
                 bijux_dna_infra::atomic_write_json(
                     &primer_stats,
                     &serde_json::json!({
-                        "schema_version": "bijux.fastq.primer_normalization.v1",
+                        "schema_version": "bijux.fastq.normalize_primers.v1",
                         "tool": "cutadapt",
                         "adapter": adapter,
                         "mismatch_rate_max": 0.10,
@@ -153,7 +153,7 @@ fn materialize_amplicon_stage_outputs(
                 "mismatch_policy_max": 0.10_f64,
             });
         }
-        "fastq.chimera_detection" => {
+        "fastq.remove_chimeras" => {
             let primary = outputs
                 .first()
                 .map(|x| x.path.clone())
@@ -194,7 +194,7 @@ fn materialize_amplicon_stage_outputs(
                 0.08_f64
             };
             let chimera_payload = serde_json::json!({
-                "schema_version": "bijux.fastq.chimera_detection.v2",
+                "schema_version": "bijux.fastq.remove_chimeras.v2",
                 "chimera_fraction": chimera_fraction,
                 "chimeras_removed": i32::from(chimera_fasta.exists()),
                 "non_chimera_reads": i32::from(primary.exists()),
@@ -207,7 +207,7 @@ fn materialize_amplicon_stage_outputs(
                 "chimera_metrics_json": metrics,
             });
         }
-        "fastq.otu_clustering" => {
+        "fastq.cluster_otus" => {
             let otu_table = out_dir.join("otu_abundance.tsv");
             let otu_fasta = out_dir.join("otu_representatives.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
@@ -256,7 +256,7 @@ fn materialize_amplicon_stage_outputs(
                 "used_fallback": !vsearch_ok,
             });
         }
-        "fastq.asv_inference" => {
+        "fastq.infer_asvs" => {
             let asv_table = out_dir.join("asv_abundance.tsv");
             let asv_fasta = out_dir.join("asv_sequences.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
@@ -279,7 +279,7 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                 bijux_dna_infra::atomic_write_json(
                     &dada2_inputs,
                     &serde_json::json!({
-                        "schema_version": "bijux.fastq.asv_inference.dada2_inputs.v1",
+                        "schema_version": "bijux.fastq.infer_asvs.dada2_inputs.v1",
                         "input_reads": input,
                         "output_table": asv_table,
                         "output_fasta": asv_fasta,
@@ -321,7 +321,7 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                 "entrypoint_script": dada2_script,
             });
         }
-        "fastq.abundance_normalization" => {
+        "fastq.normalize_abundance" => {
             let out = out_dir.join("abundance_normalized.tsv");
             let seqkit_ok = command_exists("seqkit")
                 && run_stage_command(
@@ -362,11 +362,11 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
     if matches!(
         stage_id,
         "fastq.trim_terminal_damage"
-            | "fastq.primer_normalization"
-            | "fastq.chimera_detection"
-            | "fastq.otu_clustering"
-            | "fastq.asv_inference"
-            | "fastq.abundance_normalization"
+            | "fastq.normalize_primers"
+            | "fastq.remove_chimeras"
+            | "fastq.cluster_otus"
+            | "fastq.infer_asvs"
+            | "fastq.normalize_abundance"
     ) {
         bijux_dna_infra::atomic_write_bytes(
             &out_dir.join("stage_domain.log"),
@@ -386,7 +386,7 @@ fn enforce_amplicon_qc_thresholds(
     let mut warnings = Vec::<String>::new();
     let read_metric = |key: &str| metrics.get(key).and_then(serde_json::Value::as_f64);
     match stage_id {
-        "fastq.primer_normalization" => {
+        "fastq.normalize_primers" => {
             let value = read_metric("primer_trimmed_fraction").unwrap_or(1.0);
             if value
                 < *thresholds
@@ -402,7 +402,7 @@ fn enforce_amplicon_qc_thresholds(
                 warnings.push("primer_trimmed_fraction_below_warn".to_string());
             }
         }
-        "fastq.chimera_detection" => {
+        "fastq.remove_chimeras" => {
             let value = read_metric("chimera_fraction").unwrap_or(0.0);
             if value
                 > *thresholds
@@ -418,7 +418,7 @@ fn enforce_amplicon_qc_thresholds(
                 warnings.push("chimera_fraction_above_warn".to_string());
             }
         }
-        "fastq.otu_clustering" => {
+        "fastq.cluster_otus" => {
             let value = read_metric("otu_count").unwrap_or(0.0);
             if value < *thresholds.get("fastq_otu_count_fail").unwrap_or(&1.0) {
                 failures.push("otu_count_below_fail".to_string());
@@ -426,7 +426,7 @@ fn enforce_amplicon_qc_thresholds(
                 warnings.push("otu_count_below_warn".to_string());
             }
         }
-        "fastq.asv_inference" => {
+        "fastq.infer_asvs" => {
             let value = read_metric("asv_count").unwrap_or(0.0);
             if value < *thresholds.get("fastq_asv_count_fail").unwrap_or(&1.0) {
                 failures.push("asv_count_below_fail".to_string());
@@ -434,7 +434,7 @@ fn enforce_amplicon_qc_thresholds(
                 warnings.push("asv_count_below_warn".to_string());
             }
         }
-        "fastq.abundance_normalization" => {
+        "fastq.normalize_abundance" => {
             let value = read_metric("zero_fraction").unwrap_or(0.0);
             if value
                 > *thresholds

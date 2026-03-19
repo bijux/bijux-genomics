@@ -17,7 +17,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - stage/tool combinations must remain in index compatibility map
 
 ## Stage Coverage
-- `fastq.prepare_reference`: default `star`.
+- `fastq.index_reference`: default `star`.
 - `fastq.validate_reads`: default `fastqvalidator`.
 - `fastq.profile_read_lengths`: default `seqkit_stats`.
 - `fastq.detect_adapters`: default `fastp`.
@@ -37,20 +37,20 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.profile_overrepresented_sequences`: default `fastqc`.
 - `fastq.screen_taxonomy`: default `kraken2`.
 - `fastq.trim_terminal_damage`: default `cutadapt`. rationale: deterministic terminal mask/trim policy for aDNA damage-aware pretrim.
-- `fastq.primer_normalization`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
-- `fastq.chimera_detection`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
-- `fastq.otu_clustering`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
-- `fastq.asv_inference`: default `vsearch` (placeholder). rationale: ASV engine remains external/experimental; placeholder preserves deterministic stage contract.
-- `fastq.abundance_normalization`: default `seqkit_stats` (placeholder). rationale: deterministic normalization reporting baseline for compositional warnings.
+- `fastq.normalize_primers`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
+- `fastq.remove_chimeras`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
+- `fastq.cluster_otus`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
+- `fastq.infer_asvs`: default `vsearch` (placeholder). rationale: ASV engine remains external/experimental; placeholder preserves deterministic stage contract.
+- `fastq.normalize_abundance`: default `seqkit_stats` (placeholder). rationale: deterministic normalization reporting baseline for compositional warnings.
 
-single_tool_justification: fastq.prepare_reference
+single_tool_justification: fastq.index_reference
 single_tool_justification: fastq.detect_adapters
 single_tool_justification: fastq.deplete_rrna
 single_tool_justification: fastq.extract_umis
-single_tool_justification: fastq.primer_normalization
-single_tool_justification: fastq.chimera_detection
-single_tool_justification: fastq.otu_clustering
-single_tool_justification: fastq.asv_inference
-single_tool_justification: fastq.abundance_normalization
+single_tool_justification: fastq.normalize_primers
+single_tool_justification: fastq.remove_chimeras
+single_tool_justification: fastq.cluster_otus
+single_tool_justification: fastq.infer_asvs
+single_tool_justification: fastq.normalize_abundance
 
 single_tool_justification: fastq.trim_terminal_damage

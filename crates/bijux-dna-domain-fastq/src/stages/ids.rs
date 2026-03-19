@@ -20,24 +20,24 @@ pub const STAGE_EXTRACT_UMIS: StageId = StageId::from_static("fastq.extract_umis
 pub const STAGE_PROFILE_OVERREPRESENTED_SEQUENCES: StageId =
     StageId::from_static("fastq.profile_overrepresented_sequences");
 pub const STAGE_SCREEN_TAXONOMY: StageId = StageId::from_static("fastq.screen_taxonomy");
-pub const STAGE_PREPARE_REFERENCE: StageId = StageId::from_static("fastq.prepare_reference");
+pub const STAGE_INDEX_REFERENCE: StageId = StageId::from_static("fastq.index_reference");
 pub const STAGE_DEPLETE_RRNA: StageId = StageId::from_static("fastq.deplete_rrna");
-pub const STAGE_PRIMER_NORMALIZATION: StageId = StageId::from_static("fastq.primer_normalization");
-pub const STAGE_CHIMERA_DETECTION: StageId = StageId::from_static("fastq.chimera_detection");
-pub const STAGE_ASV_INFERENCE: StageId = StageId::from_static("fastq.asv_inference");
-pub const STAGE_OTU_CLUSTERING: StageId = StageId::from_static("fastq.otu_clustering");
-pub const STAGE_ABUNDANCE_NORMALIZATION: StageId =
-    StageId::from_static("fastq.abundance_normalization");
+pub const STAGE_NORMALIZE_PRIMERS: StageId = StageId::from_static("fastq.normalize_primers");
+pub const STAGE_REMOVE_CHIMERAS: StageId = StageId::from_static("fastq.remove_chimeras");
+pub const STAGE_INFER_ASVS: StageId = StageId::from_static("fastq.infer_asvs");
+pub const STAGE_CLUSTER_OTUS: StageId = StageId::from_static("fastq.cluster_otus");
+pub const STAGE_NORMALIZE_ABUNDANCE: StageId =
+    StageId::from_static("fastq.normalize_abundance");
 
 pub const STAGE_PREFIX: &str = "fastq.";
 
 pub const STAGES: [StageId; 25] = [
-    STAGE_PREPARE_REFERENCE,
+    STAGE_INDEX_REFERENCE,
     STAGE_VALIDATE_READS,
     STAGE_PROFILE_READ_LENGTHS,
     STAGE_DETECT_ADAPTERS,
     STAGE_TRIM_TERMINAL_DAMAGE,
-    STAGE_PRIMER_NORMALIZATION,
+    STAGE_NORMALIZE_PRIMERS,
     STAGE_TRIM_POLYG_TAILS,
     STAGE_TRIM_READS,
     STAGE_FILTER_READS,
@@ -51,10 +51,10 @@ pub const STAGES: [StageId; 25] = [
     STAGE_CORRECT_ERRORS,
     STAGE_EXTRACT_UMIS,
     STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
-    STAGE_CHIMERA_DETECTION,
-    STAGE_ASV_INFERENCE,
-    STAGE_OTU_CLUSTERING,
-    STAGE_ABUNDANCE_NORMALIZATION,
+    STAGE_REMOVE_CHIMERAS,
+    STAGE_INFER_ASVS,
+    STAGE_CLUSTER_OTUS,
+    STAGE_NORMALIZE_ABUNDANCE,
     STAGE_SCREEN_TAXONOMY,
     STAGE_REPORT_QC,
 ];
@@ -97,20 +97,20 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("extract_umis")
     } else if stage == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
         Some("profile_overrepresented_sequences")
-    } else if stage == &STAGE_PRIMER_NORMALIZATION {
-        Some("primer_normalization")
-    } else if stage == &STAGE_CHIMERA_DETECTION {
-        Some("chimera_detection")
-    } else if stage == &STAGE_ASV_INFERENCE {
-        Some("asv_inference")
-    } else if stage == &STAGE_OTU_CLUSTERING {
-        Some("otu_clustering")
-    } else if stage == &STAGE_ABUNDANCE_NORMALIZATION {
-        Some("abundance_normalization")
+    } else if stage == &STAGE_NORMALIZE_PRIMERS {
+        Some("normalize_primers")
+    } else if stage == &STAGE_REMOVE_CHIMERAS {
+        Some("remove_chimeras")
+    } else if stage == &STAGE_INFER_ASVS {
+        Some("infer_asvs")
+    } else if stage == &STAGE_CLUSTER_OTUS {
+        Some("cluster_otus")
+    } else if stage == &STAGE_NORMALIZE_ABUNDANCE {
+        Some("normalize_abundance")
     } else if stage == &STAGE_SCREEN_TAXONOMY {
         Some("screen_taxonomy")
-    } else if stage == &STAGE_PREPARE_REFERENCE {
-        Some("prepare_reference")
+    } else if stage == &STAGE_INDEX_REFERENCE {
+        Some("index_reference")
     } else {
         None
     }

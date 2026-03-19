@@ -132,7 +132,7 @@ fn fastq_amplicon_runtime_invokes_real_tool_paths() {
         .unwrap_or_else(|e| panic!("read {}: {e}", governance_src.display()));
     let raw = format!("{raw_runtime}\n{raw_governance}");
     for needle in [
-        "cutadapt_primer_normalization",
+        "cutadapt_normalize_primers",
         "vsearch_uchime_denovo",
         "vsearch_cluster_fast",
         "dada2_rscript",

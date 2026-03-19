@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.prepare_reference"
+stage_id: "fastq.index_reference"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"

@@ -4,7 +4,7 @@ This document maps FASTQ stage-level scientific assumptions used in the pre-HPC 
 Source of truth remains `domain/fastq/stages/*.yaml` (`assumptions` field).
 
 ## Stage assumptions
-- `fastq.prepare_reference`: reference sequence is representative and build inputs are stable.
+- `fastq.index_reference`: reference sequence is representative and build inputs are stable.
 - `fastq.validate_reads`: FASTQ records are expected to be well-formed after ingest.
 - `fastq.detect_adapters`: adapter bank captures dominant library prep adapters.
 - `fastq.trim_reads`: adapter/quality trimming improves downstream signal-to-noise.

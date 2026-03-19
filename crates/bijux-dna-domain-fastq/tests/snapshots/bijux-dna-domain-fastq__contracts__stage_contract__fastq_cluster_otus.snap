@@ -3,6 +3,9 @@ source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.r
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
+  "amplicon_semantics": {
+    "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
+  },
   "inputs": {
     "kind": "SingleEnd"
   },
@@ -23,9 +26,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "units": "rows,samples"
   },
   "schema_version": "bijux.stage_contract.v1",
-  "stage_id": "fastq.abundance_normalization",
+  "stage_id": "fastq.cluster_otus",
   "tool_ids": [
-    "seqfu",
-    "seqkit"
+    "vsearch"
   ]
 }

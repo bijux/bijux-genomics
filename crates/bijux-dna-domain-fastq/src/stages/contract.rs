@@ -21,7 +21,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "trim_galore",
             "seqpurge",
         ],
-        "fastq.trim_terminal_damage" | "fastq.primer_normalization" => {
+        "fastq.trim_terminal_damage" | "fastq.normalize_primers" => {
             vec!["cutadapt", "seqkit"]
         }
         "fastq.filter_reads" => vec!["prinseq", "seqkit", "fastp"],
@@ -32,9 +32,9 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.deplete_reference_contaminants" => vec!["bbduk", "bowtie2"],
         "fastq.profile_read_lengths" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.profile_overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
-        "fastq.chimera_detection" | "fastq.otu_clustering" => vec!["vsearch"],
-        "fastq.asv_inference" => vec!["dada2"],
-        "fastq.abundance_normalization" => vec!["seqfu", "seqkit"],
+        "fastq.remove_chimeras" | "fastq.cluster_otus" => vec!["vsearch"],
+        "fastq.infer_asvs" => vec!["dada2"],
+        "fastq.normalize_abundance" => vec!["seqfu", "seqkit"],
         "fastq.validate_reads" => vec![
             "seqtk",
             "fastqc",
@@ -55,7 +55,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "kaiju",
             "fastq_screen",
         ],
-        "fastq.prepare_reference" => vec!["star", "samtools"],
+        "fastq.index_reference" => vec!["star", "samtools"],
         "fastq.deplete_rrna" => vec!["sortmerna"],
         _ => Vec::new(),
     }
@@ -95,7 +95,7 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
         "tool_ids": tool_ids_for_stage(stage_id),
     });
     let amplicon_semantics = match stage_id {
-        "fastq.primer_normalization" => Some(serde_json::json!({
+        "fastq.normalize_primers" => Some(serde_json::json!({
             "orientation_policy": "normalize_to_primer_forward_orientation",
             "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
         })),
@@ -104,13 +104,13 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
             "udg_classification": "configured_or_inferred",
             "aligner_compatibility": "refuse_if_requested_output_breaks_downstream_expectations",
         })),
-        "fastq.chimera_detection" => Some(serde_json::json!({
+        "fastq.remove_chimeras" => Some(serde_json::json!({
             "chimera_removed_definition": "reads flagged as de_novo/reference chimeras are excluded from downstream abundance tables"
         })),
-        "fastq.asv_inference" => Some(serde_json::json!({
+        "fastq.infer_asvs" => Some(serde_json::json!({
             "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
         })),
-        "fastq.otu_clustering" => Some(serde_json::json!({
+        "fastq.cluster_otus" => Some(serde_json::json!({
             "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
         })),
         _ => None,
@@ -147,8 +147,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         "fastq.trim_reads"
         | "fastq.trim_terminal_damage"
         | "fastq.filter_reads"
-        | "fastq.primer_normalization"
-        | "fastq.chimera_detection"
+        | "fastq.normalize_primers"
+        | "fastq.remove_chimeras"
         | "fastq.remove_duplicates"
         | "fastq.filter_low_complexity"
         | "fastq.trim_polyg_tails"
@@ -215,7 +215,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out == reads_in; bases_out == bases_in",
             retention_units: "reads,bases",
         }),
-        "fastq.prepare_reference" => Some(FastqStageContract {
+        "fastq.index_reference" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::ReferenceFasta,
             output_kind: FastqArtifactKind::ReferenceIndex,
             may_drop_reads: false,
@@ -226,7 +226,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "indexed_reference_entries_out == reference_entries_in",
             retention_units: "reference_entries",
         }),
-        "fastq.asv_inference" | "fastq.otu_clustering" | "fastq.abundance_normalization" => {
+        "fastq.infer_asvs" | "fastq.cluster_otus" | "fastq.normalize_abundance" => {
             Some(FastqStageContract {
                 input_kind: FastqArtifactKind::SingleEnd,
                 output_kind: FastqArtifactKind::StatsOnly,
