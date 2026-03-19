@@ -42,7 +42,8 @@ image_requirements:
     - gzip
   forbids:
     - network
-required_inputs: []
+required_inputs:
+  - reads
 required_outputs:
   - report_json
 tool_capability_requirements: []
@@ -52,7 +53,6 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - fastqvalidator
   - fastqvalidator
   - fastq_scan
   - seqtk

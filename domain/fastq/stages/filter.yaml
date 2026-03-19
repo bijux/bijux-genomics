@@ -69,8 +69,11 @@ image_requirements:
     - gzip
   forbids:
     - network
-required_inputs: []
-required_outputs: []
+required_inputs:
+  - reads
+required_outputs:
+  - filtered_reads
+  - trimmed_reads
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
