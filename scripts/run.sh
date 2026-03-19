@@ -54,7 +54,7 @@ for e in sorted(entries, key=lambda x: (x.get("path", ""), x.get("id", ""))):
     grp, name = rel.split("/", 1)
     if grp in ("_lib", "experimental"):
         continue
-    if grp in ("containers", "domain"):
+    if grp in ("containers", "domain", "docs", "examples", "hpc", "lab", "smoke", "test"):
         continue
     if not name.endswith(".sh") or name == "make.sh":
         continue
@@ -62,6 +62,12 @@ for e in sorted(entries, key=lambda x: (x.get("path", ""), x.get("id", ""))):
     ci = e.get("ci_allowed", "false")
     print(f"{grp}\t{cmd}\tci_allowed={ci}")
 PY
+  for group in docs examples hpc lab smoke test; do
+    cargo run -q -p bijux-dev-dna -- "$group" list | while IFS= read -r command_id; do
+      [[ -n "$command_id" ]] || continue
+      printf '%s\t%s\tci_allowed=true\n' "$group" "$command_id"
+    done
+  done
   cargo run -q -p bijux-dev-dna -- domain list | while IFS= read -r command_id; do
     [[ -n "$command_id" ]] || continue
     printf 'domain\t%s\tci_allowed=true\n' "$command_id"
@@ -115,6 +121,18 @@ elif [[ "$group" == "domain" ]]; then
   cargo run -p bijux-dev-dna -- domain run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "containers" ]]; then
   cargo run -p bijux-dev-dna -- containers run "$command" -- "$@" || rc=$?
+elif [[ "$group" == "docs" || "$group" == "examples" || "$group" == "hpc" || "$group" == "lab" || "$group" == "smoke" || "$group" == "test" ]]; then
+  native_command="$command"
+  case "$group/$command" in
+    hpc/pull|hpc/lunarc/pull) native_command="lunarc-pull" ;;
+    hpc/push|hpc/lunarc/push) native_command="lunarc-push" ;;
+    lab/run_bench) native_command="run-bench" ;;
+    lab/run_pipelines) native_command="run-pipelines" ;;
+    smoke/smoke_bam) native_command="smoke-bam" ;;
+    smoke/smoke_fastq) native_command="smoke-fastq" ;;
+    test/toy_runs) native_command="toy-runs" ;;
+  esac
+  cargo run -p bijux-dev-dna -- "$group" run "$native_command" -- "$@" || rc=$?
 else
   target="${SCRIPT_DIR}/${group}/make.sh"
   if [[ ! -x "$target" ]]; then

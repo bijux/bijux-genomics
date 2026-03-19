@@ -4,7 +4,7 @@
 Provide a fast, repeatable workflow for debugging failed example runs.
 
 ## Scope
-Applies to failures from `scripts/examples/run.sh` and related example policy checks.
+Applies to failures from `scripts/run.sh examples run` and related example policy checks.
 
 ## Non-goals
 - Replacing crate-level debugging docs.
@@ -22,7 +22,7 @@ Applies to failures from `scripts/examples/run.sh` and related example policy ch
 
 ## Triage Steps
 1. Re-run the example:
-   - `./scripts/examples/run.sh <example-id>`
+   - `./scripts/run.sh examples run <example-id>`
 2. Inspect generated bundle and logs:
    - `artifacts/examples/<example-id>/bundle.tar.gz`
    - `.../run_report.json`

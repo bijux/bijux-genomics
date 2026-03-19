@@ -14,7 +14,16 @@ fn repo_root() -> Result<PathBuf> {
 
 fn run_fastq_toy(out_dir: &Path) -> Result<PathBuf> {
     let root = repo_root()?;
-    let status = Command::new(root.join("scripts/test/toy_runs.sh"))
+    let status = Command::new("cargo")
+        .arg("run")
+        .arg("-q")
+        .arg("-p")
+        .arg("bijux-dev-dna")
+        .arg("--")
+        .arg("test")
+        .arg("run")
+        .arg("toy-runs")
+        .arg("--")
         .arg("run")
         .arg("--profile")
         .arg("fastq")
