@@ -1,27 +1,26 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "inputs": {
-    "kind": "SingleEnd"
+    "kind": "ReferenceFasta"
   },
   "metrics": {},
   "outputs": {
     "emits_fastq": false,
-    "kind": "StatsOnly"
+    "kind": "ReferenceIndex"
   },
   "retention": {
-    "definition": "reads_out == reads_in; bases_out == bases_in",
+    "definition": "indexed_reference_entries_out == reference_entries_in",
     "may_drop": [],
     "may_drop_reads": false,
-    "must_preserve_pairing": true,
+    "must_preserve_pairing": false,
     "preserves": [
-      "reads",
-      "pairs",
-      "bases"
+      "reference_sequence_records"
     ],
-    "units": "reads,bases"
+    "units": "reference_entries"
   },
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "fastq.prepare_reference",
