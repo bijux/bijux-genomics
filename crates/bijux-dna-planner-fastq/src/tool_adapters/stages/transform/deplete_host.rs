@@ -82,7 +82,7 @@ pub fn plan_host_depletion(
     } else {
         let output = out_dir.join("host_depleted.fastq.gz");
         outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("host_depleted_reads"),
+            ArtifactId::from_static("host_depleted_reads_r1"),
             output.clone(),
             ArtifactRole::Reads,
         ));
