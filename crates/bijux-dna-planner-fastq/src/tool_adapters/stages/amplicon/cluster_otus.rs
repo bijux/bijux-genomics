@@ -19,13 +19,13 @@ pub fn plan(
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
+        ArtifactId::from_static("reads"),
         r1.to_path_buf(),
         ArtifactRole::Reads,
     )];
     if let Some(r2) = r2 {
         inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
+            ArtifactId::from_static("reads"),
             r2.to_path_buf(),
             ArtifactRole::Reads,
         ));
@@ -44,12 +44,12 @@ pub fn plan(
             inputs,
             outputs: vec![
                 ArtifactRef::required(
-                    ArtifactId::from_static("otu_table_tsv"),
+                    ArtifactId::from_static("otu_table"),
                     out_dir.join("otu_abundance.tsv"),
                     ArtifactRole::SummaryTsv,
                 ),
                 ArtifactRef::required(
-                    ArtifactId::from_static("otu_sequences_fasta"),
+                    ArtifactId::from_static("otu_representatives"),
                     out_dir.join("otu_representatives.fasta"),
                     ArtifactRole::Reads,
                 ),

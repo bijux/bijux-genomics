@@ -199,7 +199,8 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_eq!(plan.io.inputs.len(), 2);
     assert_eq!(plan.io.outputs.len(), 4);
-    assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
+    assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
+    assert_eq!(plan.io.inputs[1].name.as_str(), "reads");
     assert_eq!(plan.io.outputs[2].name.as_str(), "taxonomy_ready_fasta");
     Ok(())
 }

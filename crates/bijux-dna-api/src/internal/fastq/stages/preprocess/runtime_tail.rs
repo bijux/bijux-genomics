@@ -379,7 +379,7 @@ fn write_fastq_output_contract(
         "fastq.normalize_primers" => vec!["primer_orientation_report"],
         "fastq.remove_chimeras" => vec!["chimera_metrics_json"],
         "fastq.infer_asvs" => vec!["asv_table_tsv", "asv_sequences_fasta"],
-        "fastq.cluster_otus" => vec!["otu_table_tsv", "otu_sequences_fasta"],
+        "fastq.cluster_otus" => vec!["otu_table", "otu_representatives"],
         "fastq.normalize_abundance" => vec!["normalized_abundance_tsv"],
         _ => Vec::new(),
     };
