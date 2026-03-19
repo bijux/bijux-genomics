@@ -50,6 +50,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "overrepresented sequence profiles are diagnostic and do not mutate reads."
-bank_hooks: []
+bank_hooks:
+  - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

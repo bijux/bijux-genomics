@@ -62,6 +62,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "primer normalization applies only to amplicon libraries with explicit primer governance."
   - "single-end input omits reads_r2 and normalized_reads_r2; paired-end input preserves mate synchronization."
-bank_hooks: []
+bank_hooks:
+  - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []
