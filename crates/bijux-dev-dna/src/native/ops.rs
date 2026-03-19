@@ -60,13 +60,35 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::TestReproduceFailure => test_reproduce_failure(workspace, args),
         NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
         NativeOpsCommandKey::TestToyRuns => test_toy_runs(workspace, args),
+        NativeOpsCommandKey::ToolingCargoTargets => tooling_cargo_targets(workspace, args),
         NativeOpsCommandKey::ToolingCheckConfigSnapshot => {
             tooling_check_config_snapshot(workspace, args)
         }
         NativeOpsCommandKey::ToolingCheckConfigPaths => tooling_check_config_paths(workspace, args),
+        NativeOpsCommandKey::ToolingCiAudit => tooling_ci_audit(workspace, args),
+        NativeOpsCommandKey::ToolingCiClippy => tooling_ci_clippy(workspace, args),
+        NativeOpsCommandKey::ToolingCiClippyExecutors => {
+            tooling_ci_clippy_executors(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingCiCoverage => tooling_ci_coverage(workspace, args),
+        NativeOpsCommandKey::ToolingCiFast => tooling_ci_fast(workspace, args),
+        NativeOpsCommandKey::ToolingCiFmt => tooling_ci_fmt(workspace, args),
+        NativeOpsCommandKey::ToolingCiInstallTools => tooling_ci_install_tools(workspace, args),
+        NativeOpsCommandKey::ToolingCiSlow => tooling_ci_slow(workspace, args),
+        NativeOpsCommandKey::ToolingCiTest => tooling_ci_test(workspace, args),
+        NativeOpsCommandKey::ToolingCiTestSlow => tooling_ci_test_slow(workspace, args),
         NativeOpsCommandKey::ToolingCleanDocs => tooling_clean_docs(workspace, args),
+        NativeOpsCommandKey::ToolingCertificationGate => {
+            tooling_certification_gate(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingCertifyAll => tooling_certify_all(workspace, args),
+        NativeOpsCommandKey::ToolingCertifyBam => tooling_certify_bam(workspace, args),
+        NativeOpsCommandKey::ToolingCertifyDomains => tooling_certify_domains(workspace, args),
+        NativeOpsCommandKey::ToolingCertifyFastq => tooling_certify_fastq(workspace, args),
+        NativeOpsCommandKey::ToolingCertifyVcf => tooling_certify_vcf(workspace, args),
         NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
         NativeOpsCommandKey::ToolingDocsBuild => tooling_docs_build(workspace, args),
+        NativeOpsCommandKey::ToolingFlakeHunt => tooling_flake_hunt(workspace, args),
         NativeOpsCommandKey::ToolingGenerateConfigs => tooling_generate_configs(workspace, args),
         NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix => {
             tooling_generate_compatibility_matrix(workspace, args)
@@ -89,6 +111,7 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingGenerateToolIndex => tooling_generate_tool_index(workspace, args),
         NativeOpsCommandKey::ToolingImageQa => tooling_image_qa(workspace, args),
         NativeOpsCommandKey::ToolingInventory => tooling_inventory(workspace, args),
+        NativeOpsCommandKey::ToolingLintFast => tooling_lint_fast(workspace, args),
         NativeOpsCommandKey::ToolingMakeHelp => tooling_make_help(workspace, args),
         NativeOpsCommandKey::ToolingRepoDoctor => tooling_repo_doctor(workspace, args),
         NativeOpsCommandKey::ToolingRunBijux => tooling_run_bijux(workspace, args),
@@ -416,6 +439,1149 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
         return success_line("assets-reference-schema: OK");
     }
     failure_lines("assets-reference-schema: FAILED", &errors)
+}
+
+fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let Some(subcommand) = args.first().map(String::as_str) else {
+        return Ok(OpsCommandOutcome::failure(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run cargo-targets -- <subcommand> [args...]\n",
+        ));
+    };
+    let envs = artifact_env(workspace)?;
+    let common_envs = artifact_env_with_common_test_env(workspace)?;
+    match subcommand {
+        "policy-fast" => run_program_with_env(
+            workspace,
+            "cargo",
+            &[
+                "test".to_string(),
+                "-p".to_string(),
+                "bijux-dna-policies".to_string(),
+                "--test".to_string(),
+                "dependency_graph".to_string(),
+                "--test".to_string(),
+                "purity_scans".to_string(),
+                "--test".to_string(),
+                "core_layering".to_string(),
+                "--test".to_string(),
+                "domain_dependency_policy".to_string(),
+                "--test".to_string(),
+                "ci_tools_policy".to_string(),
+                "--test".to_string(),
+                "dev_deps_policy".to_string(),
+                "--test".to_string(),
+                "heavy_deps_policy".to_string(),
+            ],
+            &envs,
+        ),
+        "ssot-policy-fast" => run_programs_with_env(
+            workspace,
+            &[
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "policy_test_names_are_consistent",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "supported_stages_and_tools_are_complete",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "each_tool_has_exactly_one_domain_and_stage_binding",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+            ],
+            &common_envs,
+        ),
+        "test-profile-invariants" => run_program_with_env(
+            workspace,
+            "cargo",
+            &[
+                "test".to_string(),
+                "-p".to_string(),
+                "bijux-dna-pipelines".to_string(),
+                "--test".to_string(),
+                "invariant_fast".to_string(),
+                "--".to_string(),
+                "--nocapture".to_string(),
+            ],
+            &common_envs,
+        ),
+        "registry-lint" => run_programs_with_env(
+            workspace,
+            &[
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "production_registry_is_pinned_and_non_floating",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "profiles_only_use_valid_production_tools",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+            ],
+            &common_envs,
+        ),
+        "unit-contract-fast" => run_programs_with_env(
+            workspace,
+            &[
+                ("cargo", vec!["test", "-p", "bijux-dna-runner", "--lib", "--", "--nocapture"]),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-planner-fastq", "--lib", "--", "--nocapture"],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-planner-bam", "--lib", "--", "--nocapture"],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-stages-fastq", "--lib", "--", "--nocapture"],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-stages-bam", "--lib", "--", "--nocapture"],
+                ),
+                ("cargo", vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"]),
+            ],
+            &common_envs,
+        ),
+        "release-readiness" => run_programs_with_env(
+            workspace,
+            &[
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "profiles_release_readiness_gate",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "reference_adna_profile_uses_production_tools_only",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+            ],
+            &common_envs,
+        ),
+        "policy-full" => run_program_with_env(
+            workspace,
+            "cargo",
+            &["test".to_string(), "-p".to_string(), "bijux-dna-policies".to_string()],
+            &envs,
+        ),
+        "domain-coverage" => run_program_with_env(
+            workspace,
+            "cargo",
+            &[
+                "run".to_string(),
+                "-p".to_string(),
+                "bijux-dna".to_string(),
+                "--bin".to_string(),
+                "bijux-dna".to_string(),
+                "--".to_string(),
+                "domain".to_string(),
+                "coverage".to_string(),
+                "--domain-dir".to_string(),
+                "domain".to_string(),
+            ],
+            &envs,
+        ),
+        "snapshots" => run_program_with_env(
+            workspace,
+            "cargo",
+            &["insta".to_string(), "test".to_string(), "--workspace".to_string()],
+            &envs,
+        ),
+        "snapshots-accept" => run_program_with_env(
+            workspace,
+            "cargo",
+            &["insta".to_string(), "accept".to_string(), "--workspace".to_string()],
+            &envs,
+        ),
+        "snapshots-review" => {
+            run_program_with_env(workspace, "cargo", &["insta".to_string(), "review".to_string()], &envs)
+        }
+        "fix-snapshots" => run_programs_with_env(
+            workspace,
+            &[
+                ("cargo", vec!["insta", "test", "--workspace"]),
+                ("cargo", vec!["insta", "accept", "--workspace"]),
+            ],
+            &envs,
+        ),
+        "policy-only-fast-gate" => run_programs_with_env(
+            workspace,
+            &[
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-policies",
+                        "--test",
+                        "contracts",
+                        "--test",
+                        "boundaries",
+                        "--test",
+                        "determinism",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-core", "--test", "contracts", "--", "--nocapture"],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-pipelines",
+                        "--test",
+                        "contracts",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-runtime", "--test", "contracts", "--", "--nocapture"],
+                ),
+            ],
+            &common_envs,
+        ),
+        "vcf-certification" => run_program_with_env(
+            workspace,
+            "cargo",
+            &[
+                "nextest".to_string(),
+                "run".to_string(),
+                "-p".to_string(),
+                "bijux-dna-stages-vcf".to_string(),
+                "--all-features".to_string(),
+                "--failure-output".to_string(),
+                "immediate-final".to_string(),
+                "--no-tests".to_string(),
+                "pass".to_string(),
+            ],
+            &common_envs,
+        ),
+        "ci-clippy-executors" => tooling_ci_clippy_executors(workspace, &[]),
+        "nextest-run" => run_program_with_env(
+            workspace,
+            "cargo",
+            &std::iter::once("nextest".to_string())
+                .chain(std::iter::once("run".to_string()))
+                .chain(args.iter().skip(1).cloned())
+                .collect::<Vec<_>>(),
+            &common_envs,
+        ),
+        "bam-smoke-test" => run_program_with_env(
+            workspace,
+            "cargo",
+            &[
+                "test".to_string(),
+                "-p".to_string(),
+                "bijux-dna-api".to_string(),
+                "bam_smoke_runner_minimal_pipeline_validates_report_section_presence".to_string(),
+                "--".to_string(),
+                "--exact".to_string(),
+            ],
+            &common_envs,
+        ),
+        other => Ok(OpsCommandOutcome::failure(format!(
+            "unsupported cargo-targets subcommand: {other}\n"
+        ))),
+    }
+}
+
+fn tooling_ci_fmt(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-fmt", args)?;
+    let envs = artifact_env(workspace)?;
+    run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "fmt".to_string(),
+            "--all".to_string(),
+            "--".to_string(),
+            "--check".to_string(),
+        ],
+        &envs,
+    )
+}
+
+fn tooling_ci_clippy(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-clippy", args)?;
+    let mut envs = artifact_env(workspace)?;
+    envs.push(("CLIPPY_CONF_DIR".to_string(), "configs/rust".to_string()));
+    if let Ok(value) = std::env::var("CARGO_BUILD_JOBS") {
+        if !value.trim().is_empty() {
+            envs.push(("CARGO_BUILD_JOBS".to_string(), value));
+        }
+    }
+    run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "clippy".to_string(),
+            "--workspace".to_string(),
+            "--all-targets".to_string(),
+            "--all-features".to_string(),
+            "--".to_string(),
+            "-D".to_string(),
+            "warnings".to_string(),
+        ],
+        &envs,
+    )
+}
+
+fn tooling_ci_clippy_executors(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-clippy-executors", args)?;
+    let mut envs = artifact_env(workspace)?;
+    if let Ok(value) = std::env::var("CARGO_BUILD_JOBS") {
+        if !value.trim().is_empty() {
+            envs.push(("CARGO_BUILD_JOBS".to_string(), value));
+        }
+    }
+    run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "clippy".to_string(),
+            "--all-targets".to_string(),
+            "--all-features".to_string(),
+            "-p".to_string(),
+            "bijux-dna-engine".to_string(),
+            "-p".to_string(),
+            "bijux-dna-runner".to_string(),
+            "-p".to_string(),
+            "bijux-dna-runtime".to_string(),
+            "-p".to_string(),
+            "bijux-dna-api".to_string(),
+            "-p".to_string(),
+            "bijux-dna-stages-bam".to_string(),
+            "-p".to_string(),
+            "bijux-dna-stages-vcf".to_string(),
+            "--".to_string(),
+            "-D".to_string(),
+            "warnings".to_string(),
+        ],
+        &envs,
+    )
+}
+
+fn tooling_ci_audit(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-audit", args)?;
+    let mut stdout = String::new();
+    run_check_ids(&mut stdout, &["check-audit-allowlist"])?;
+    let outcome = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "deny".to_string(),
+            "check".to_string(),
+            "--config".to_string(),
+            "configs/rust/deny.toml".to_string(),
+        ],
+        &artifact_env(workspace)?,
+    )?;
+    Ok(merge_outcomes(OpsCommandOutcome::success(stdout), outcome))
+}
+
+fn tooling_ci_install_tools(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-install-tools", args)?;
+    run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "install".to_string(),
+            "--locked".to_string(),
+            "cargo-nextest".to_string(),
+            "cargo-llvm-cov".to_string(),
+            "cargo-deny".to_string(),
+        ],
+        &artifact_env(workspace)?,
+    )
+}
+
+fn tooling_ci_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-fast", args)?;
+    run_make_target(workspace, "_ci-fast")
+}
+
+fn tooling_ci_slow(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-slow", args)?;
+    run_make_target(workspace, "_ci-slow")
+}
+
+fn tooling_ci_test(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-test", args)?;
+    let mut stdout = String::new();
+    run_check_ids(
+        &mut stdout,
+        &["check-artifact-env-contract", "check-ssot-guardrails"],
+    )?;
+    set_assets_readonly(workspace, true)?;
+    let envs = ci_test_env(workspace, false)?;
+    let expr = resolved_nextest_expression(false);
+    let mut argv = vec![
+        "nextest".to_string(),
+        "run".to_string(),
+        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml"),
+        "--workspace".to_string(),
+        env_or_default("TEST_FEATURES", "--all-features"),
+        "--profile".to_string(),
+        resolved_nextest_profile(false)?,
+        "--test-threads".to_string(),
+        resolved_nextest_threads(false)?,
+        "--no-tests".to_string(),
+        env_or_default("NEXTEST_NO_TESTS", "pass"),
+    ];
+    let run_ignored = resolved_run_ignored(false)?;
+    if !run_ignored.is_empty() {
+        argv.extend(run_ignored.split_whitespace().map(ToOwned::to_owned));
+    }
+    if let Some(value) = expr {
+        argv.push("-E".to_string());
+        argv.push(value);
+    }
+    let outcome = run_program_with_env(workspace, "cargo", &argv, &envs);
+    let restore = set_assets_readonly(workspace, false);
+    let mut combined = OpsCommandOutcome::success(stdout);
+    let test_outcome = outcome?;
+    combined = merge_outcomes(combined, test_outcome);
+    restore?;
+    run_check_ids(&mut combined.stdout, &["check-artifact-env-contract"])?;
+    Ok(combined)
+}
+
+fn tooling_ci_test_slow(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-test-slow", args)?;
+    set_assets_readonly(workspace, true)?;
+    let envs = ci_test_env(workspace, true)?;
+    let mut argv = vec![
+        "nextest".to_string(),
+        "run".to_string(),
+        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml"),
+        "--workspace".to_string(),
+        env_or_default("TEST_FEATURES", "--all-features"),
+        "--profile".to_string(),
+        std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "slow-integration".to_string()),
+        "--test-threads".to_string(),
+        std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "8".to_string()),
+        "--no-tests".to_string(),
+        env_or_default("NEXTEST_NO_TESTS", "pass"),
+    ];
+    argv.extend(
+        std::env::var("RUN_IGNORED")
+            .unwrap_or_else(|_| "--run-ignored all".to_string())
+            .split_whitespace()
+            .map(ToOwned::to_owned),
+    );
+    argv.push("-E".to_string());
+    argv.push("test(/::slow__/)".to_string());
+    let outcome = run_program_with_env(workspace, "cargo", &argv, &envs);
+    let restore = set_assets_readonly(workspace, false);
+    let test_outcome = outcome?;
+    restore?;
+    Ok(test_outcome)
+}
+
+fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("ci-coverage", args)?;
+    let artifact_root = artifact_root_path(workspace)?;
+    let coverage_root = artifact_root.join("coverage");
+    if coverage_root.exists() {
+        fs::remove_dir_all(&coverage_root).with_context(|| format!("remove {}", coverage_root.display()))?;
+    }
+    fs::create_dir_all(&coverage_root).with_context(|| format!("create {}", coverage_root.display()))?;
+    let envs = ci_test_env(workspace, false)?;
+    let nextest_config = env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
+    let test_features = env_or_default("TEST_FEATURES", "--all-features");
+    let nextest_profile = std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "ci".to_string());
+    let nextest_threads = std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "1".to_string());
+    let run_ignored = resolved_run_ignored(false)?;
+    let no_cfg_coverage = read_coverage_runner_flag(workspace, "no_cfg_coverage", "--no-cfg-coverage")?;
+    let coverage_out = std::env::var("COVERAGE_OUT").unwrap_or_else(|_| "coverage.json".to_string());
+    let mut clean = run_program_with_env(
+        workspace,
+        "cargo",
+        &["llvm-cov".to_string(), "clean".to_string()],
+        &envs,
+    )?;
+    let nextest = run_program_with_env(
+        workspace,
+        "cargo",
+        &std::iter::once("llvm-cov".to_string())
+            .chain(std::iter::once("nextest".to_string()))
+            .chain(std::iter::once("--no-report".to_string()))
+            .chain(std::iter::once(no_cfg_coverage))
+            .chain(nextest_config.split_whitespace().map(ToOwned::to_owned))
+            .chain(std::iter::once("--workspace".to_string()))
+            .chain(test_features.split_whitespace().map(ToOwned::to_owned))
+            .chain(std::iter::once("--profile".to_string()))
+            .chain(std::iter::once(nextest_profile))
+            .chain(std::iter::once("--test-threads".to_string()))
+            .chain(std::iter::once(nextest_threads))
+            .chain(run_ignored.split_whitespace().map(ToOwned::to_owned))
+            .collect::<Vec<_>>(),
+        &envs,
+    )?;
+    clean = merge_outcomes(clean, nextest);
+    if !clean.is_success() {
+        return Ok(clean);
+    }
+    let json_report = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "llvm-cov".to_string(),
+            "report".to_string(),
+            "--json".to_string(),
+            "--output-path".to_string(),
+            coverage_root.join(&coverage_out).display().to_string(),
+        ],
+        &envs,
+    )?;
+    let html_report = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "llvm-cov".to_string(),
+            "report".to_string(),
+            "--html".to_string(),
+            "--output-dir".to_string(),
+            coverage_root.display().to_string(),
+        ],
+        &envs,
+    )?;
+    Ok(merge_outcomes(merge_outcomes(clean, json_report), html_report))
+}
+
+fn tooling_certification_gate(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certification-gate", args)?;
+    tooling_certify_all(workspace, &[])
+}
+
+fn tooling_certify_all(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certify-all", args)?;
+    tooling_certify_domains_with_mode(workspace, "all")
+}
+
+fn tooling_certify_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certify-fastq", args)?;
+    tooling_certify_domains_with_mode(workspace, "fastq")
+}
+
+fn tooling_certify_bam(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certify-bam", args)?;
+    tooling_certify_domains_with_mode(workspace, "bam")
+}
+
+fn tooling_certify_vcf(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certify-vcf", args)?;
+    tooling_certify_domains_with_mode(workspace, "vcf")
+}
+
+fn tooling_certify_domains(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let Some(mode) = args.first().map(String::as_str) else {
+        return Ok(OpsCommandOutcome::failure(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
+        ));
+    };
+    tooling_certify_domains_with_mode(workspace, mode)
+}
+
+fn tooling_certify_domains_with_mode(
+    workspace: &Workspace,
+    mode: &str,
+) -> Result<OpsCommandOutcome> {
+    match mode {
+        "fastq" | "bam" | "vcf" | "all" => {}
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
+            ))
+        }
+    }
+
+    let mut execution = OpsCommandOutcome::success(String::new());
+    let cert_root = artifact_root_path(workspace)?.join("certification");
+    fs::create_dir_all(&cert_root).with_context(|| format!("create {}", cert_root.display()))?;
+
+    if matches!(mode, "fastq" | "all") {
+        execution = merge_outcomes(
+            execution,
+            examples_run(
+                workspace,
+                &[
+                    "--allow-non-isolate".to_string(),
+                    "fastq_edna_mini".to_string(),
+                ],
+            )?,
+        );
+        if !execution.is_success() {
+            return Ok(execution);
+        }
+    }
+
+    if matches!(mode, "vcf" | "all") {
+        for example_id in [
+            "vcf_damage_aware_genotype_mini",
+            "vcf_downstream_vcf_full_mini",
+            "vcf_downstream_demography_mini",
+            "vcf_imputation_mini",
+        ] {
+            execution = merge_outcomes(
+                execution,
+                examples_run(
+                    workspace,
+                    &[
+                        "--allow-non-isolate".to_string(),
+                        example_id.to_string(),
+                    ],
+                )?,
+            );
+            if !execution.is_success() {
+                return Ok(execution);
+            }
+        }
+    }
+
+    if matches!(mode, "bam" | "all") {
+        let bam_smoke_input = workspace.path("assets/golden/smoke-inputs-v1/bam/sample.bam");
+        if bam_smoke_input.exists() {
+            execution = merge_outcomes(execution, smoke_run(workspace, &["bam".to_string()])?);
+            if !execution.is_success() {
+                return Ok(execution);
+            }
+        } else {
+            execution.stdout.push_str(
+                "certify-domains: BAM smoke input missing; continuing with fixture-backed BAM certification\n",
+            );
+        }
+    }
+
+    let production_mode = env_flag("BIJUX_CERT_PRODUCTION_MODE");
+    let truth_vcf = std::env::var("BIJUX_TRUTH_VCF").unwrap_or_default();
+    let doc = read_utf8(&workspace.path("docs/50-reference/MANIFEST_MIGRATION.md"))?;
+    let mut errors = Vec::new();
+    let mut warnings = Vec::new();
+    let mut domains = serde_json::Map::new();
+    let mut seen_schema_versions = BTreeSet::new();
+
+    if matches!(mode, "fastq" | "all") {
+        let example_root = workspace.path("examples/fastq/edna-mini");
+        let artifact_root = workspace.path("artifacts/examples/fastq_edna_mini");
+        let manifest_path = artifact_root.join("manifest.json");
+        let metrics_path = artifact_root.join("metrics.json");
+        let report_path = artifact_root.join("report.json");
+        ensure_exists(&manifest_path, "fastq manifest", &mut errors);
+        ensure_exists(&metrics_path, "fastq metrics", &mut errors);
+        ensure_exists(&report_path, "fastq report", &mut errors);
+
+        if manifest_path.exists() {
+            let manifest = read_json_value(&manifest_path)?;
+            check_schema_doc(
+                value_string(manifest.get("schema_version")),
+                &doc,
+                &mut seen_schema_versions,
+                &mut errors,
+            );
+            for key in ["schema_version", "example_id", "files"] {
+                if manifest.get(key).is_none() {
+                    errors.push(format!("fastq manifest missing key `{key}`"));
+                }
+            }
+        }
+        if metrics_path.exists() {
+            let metrics = read_json_value(&metrics_path)?;
+            for key in ["example_id", "collected_at", "status"] {
+                if metrics.get(key).is_none() {
+                    errors.push(format!("fastq metrics missing key `{key}`"));
+                }
+            }
+        }
+        compare_json_key_drift(
+            &report_path,
+            &example_root.join("golden/report.json"),
+            "fastq report",
+            &mut errors,
+        )?;
+
+        let mut fastq_warnings = Vec::new();
+        if report_path.exists() {
+            collect_warning_strings_json(&read_json_value(&report_path)?, &mut fastq_warnings);
+        }
+        warnings.extend(fastq_warnings.iter().cloned());
+        domains.insert(
+            "fastq".to_string(),
+            json!({
+                "status": "ok",
+                "warnings": sorted_unique(fastq_warnings),
+                "artifacts_dir": artifact_root.display().to_string(),
+            }),
+        );
+    }
+
+    if matches!(mode, "bam" | "all") {
+        let fixture_root = workspace.path(
+            "crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts",
+        );
+        let run_manifest_path = fixture_root.join("run_manifest.json");
+        let report_path = fixture_root.join("report.json");
+        let facts_path = fixture_root.join("facts.jsonl");
+        ensure_exists(&run_manifest_path, "bam run_manifest", &mut errors);
+        ensure_exists(&report_path, "bam report", &mut errors);
+        ensure_exists(&facts_path, "bam facts", &mut errors);
+
+        if run_manifest_path.exists() {
+            let run_manifest = read_json_value(&run_manifest_path)?;
+            check_schema_doc(
+                value_string(run_manifest.get("schema_version")),
+                &doc,
+                &mut seen_schema_versions,
+                &mut errors,
+            );
+            for key in ["schema_version", "run_id"] {
+                if run_manifest.get(key).is_none() {
+                    errors.push(format!("bam run_manifest missing key `{key}`"));
+                }
+            }
+        }
+        if report_path.exists() {
+            let report = read_json_value(&report_path)?;
+            for key in ["schema_version", "stages"] {
+                if report.get(key).is_none() {
+                    errors.push(format!("bam report missing key `{key}`"));
+                }
+            }
+            check_schema_doc(
+                value_string(report.get("schema_version")),
+                &doc,
+                &mut seen_schema_versions,
+                &mut errors,
+            );
+        }
+        if facts_path.exists() {
+            let first_line = read_utf8(&facts_path)?
+                .lines()
+                .find(|line| !line.trim().is_empty())
+                .map(ToOwned::to_owned);
+            match first_line {
+                Some(line) => {
+                    let value: Value = serde_json::from_str(&line)
+                        .with_context(|| format!("parse {}", facts_path.display()))?;
+                    check_schema_doc(
+                        value_string(value.get("schema_version")),
+                        &doc,
+                        &mut seen_schema_versions,
+                        &mut errors,
+                    );
+                    if value.get("metrics").is_none() {
+                        errors.push("bam facts.jsonl missing metrics object".to_string());
+                    }
+                }
+                None => errors.push("bam facts.jsonl missing first JSON line".to_string()),
+            }
+        }
+        domains.insert(
+            "bam".to_string(),
+            json!({
+                "status": "ok",
+                "warnings": Vec::<String>::new(),
+                "artifacts_dir": fixture_root.display().to_string(),
+            }),
+        );
+    }
+
+    if matches!(mode, "vcf" | "all") {
+        let mut vcf_warnings = Vec::new();
+        for (example_id, example_root) in [
+            (
+                "vcf_damage_aware_genotype_mini",
+                workspace.path("examples/vcf/damage-aware-genotype-mini"),
+            ),
+            (
+                "vcf_downstream_vcf_full_mini",
+                workspace.path("examples/vcf/downstream-vcf-full-mini"),
+            ),
+            (
+                "vcf_downstream_demography_mini",
+                workspace.path("examples/vcf/downstream-demography-mini"),
+            ),
+            (
+                "vcf_imputation_mini",
+                workspace.path("examples/vcf/imputation-mini"),
+            ),
+        ] {
+            let artifact_root = workspace.path("artifacts/examples").join(example_id);
+            let report_path = artifact_root.join("report.json");
+            let explain_path = artifact_root.join("explain.json");
+            let metrics_path = artifact_root.join("metrics.json");
+            let manifest_path = artifact_root.join("manifest.json");
+            ensure_exists(&report_path, &format!("{example_id} report"), &mut errors);
+            ensure_exists(&explain_path, &format!("{example_id} explain"), &mut errors);
+            ensure_exists(&metrics_path, &format!("{example_id} metrics"), &mut errors);
+            ensure_exists(&manifest_path, &format!("{example_id} manifest"), &mut errors);
+            compare_json_key_drift(
+                &report_path,
+                &example_root.join("golden/report.json"),
+                &format!("{example_id} report"),
+                &mut errors,
+            )?;
+            compare_json_key_drift(
+                &explain_path,
+                &example_root.join("golden/explain.json"),
+                &format!("{example_id} explain"),
+                &mut errors,
+            )?;
+
+            if report_path.exists() {
+                let report = read_json_value(&report_path)?;
+                let report_schema = value_string(report.get("schema_version"));
+                if !report_schema.is_empty() {
+                    check_schema_doc(
+                        report_schema,
+                        &doc,
+                        &mut seen_schema_versions,
+                        &mut errors,
+                    );
+                } else if manifest_path.exists() {
+                    let manifest = read_json_value(&manifest_path)?;
+                    let manifest_schema = value_string(manifest.get("schema_version"));
+                    if !manifest_schema.is_empty() {
+                        check_schema_doc(
+                            manifest_schema,
+                            &doc,
+                            &mut seen_schema_versions,
+                            &mut errors,
+                        );
+                    } else {
+                        errors.push(format!(
+                            "{example_id}: neither report nor manifest declares schema_version"
+                        ));
+                    }
+                } else {
+                    errors.push(format!(
+                        "{example_id}: neither report nor manifest declares schema_version"
+                    ));
+                }
+                collect_warning_strings_json(&report, &mut vcf_warnings);
+            }
+        }
+
+        let truth_path = truth_vcf.trim();
+        let truth_hook = if truth_path.is_empty() {
+            json!({
+                "enabled": false,
+                "truth_vcf": Value::Null,
+                "status": "skipped",
+                "details": "no truth VCF provided",
+            })
+        } else if !Path::new(truth_path).exists() {
+            errors.push(format!("truth VCF path does not exist: {truth_path}"));
+            json!({
+                "enabled": true,
+                "truth_vcf": truth_path,
+                "status": "failed",
+                "details": "path missing",
+            })
+        } else {
+            json!({
+                "enabled": true,
+                "truth_vcf": truth_path,
+                "status": "ok",
+                "details": "hook enabled; downstream concordance metrics must be consumed from imputation outputs",
+            })
+        };
+        warnings.extend(vcf_warnings.iter().cloned());
+        domains.insert(
+            "vcf".to_string(),
+            json!({
+                "status": "ok",
+                "warnings": sorted_unique(vcf_warnings),
+                "truth_concordance_hook": truth_hook,
+                "artifacts_dir": workspace.path("artifacts/examples").display().to_string(),
+            }),
+        );
+    }
+
+    warnings = sorted_unique(warnings);
+    if production_mode && !warnings.is_empty() {
+        errors.push(format!(
+            "production mode forbids warnings; found {} warning entries",
+            warnings.len()
+        ));
+    }
+
+    let generated_at = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    let stamp = json!({
+        "schema_version": "bijux.certification_run_stamp.v1",
+        "mode": if production_mode { "production" } else { "non_production" },
+        "relaxed_thresholds": !production_mode,
+        "generated_at_utc": generated_at,
+    });
+    let bundle = json!({
+        "schema_version": "bijux.certification_bundle.v2",
+        "generated_at_utc": generated_at,
+        "mode": stamp["mode"].clone(),
+        "relaxed_thresholds": stamp["relaxed_thresholds"].clone(),
+        "domains": Value::Object(domains),
+        "golden_drift_policy": {
+            "mode": "schema_and_required_keys_only",
+            "exact_metric_values_compared": false,
+        },
+        "artifact_schema_versions_seen": seen_schema_versions.into_iter().collect::<Vec<_>>(),
+        "errors": errors,
+        "warnings": warnings,
+        "status": if errors.is_empty() { "ok" } else { "failed" },
+    });
+
+    write_json_pretty(&cert_root.join("run_stamp.json"), &stamp)?;
+    write_json_pretty(&cert_root.join("certification_bundle.json"), &bundle)?;
+
+    if bundle["status"] == "failed" {
+        execution.stderr.push_str("certification: FAILED\n");
+        if let Some(items) = bundle["errors"].as_array() {
+            for item in items {
+                execution.stderr.push_str("- ");
+                execution
+                    .stderr
+                    .push_str(item.as_str().unwrap_or_default());
+                execution.stderr.push('\n');
+            }
+        }
+        execution.exit_code = 1;
+        return Ok(execution);
+    }
+
+    execution.stdout.push_str("certification: OK\n");
+    execution.stdout.push_str(&format!(
+        "certify-domains: OK ({})\n",
+        cert_root.join("certification_bundle.json").display()
+    ));
+    Ok(execution)
+}
+
+fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut expr = None;
+    let mut runs = 20usize;
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--expr" => {
+                expr = args.get(index + 1).cloned();
+                index += 2;
+            }
+            "--runs" => {
+                runs = args
+                    .get(index + 1)
+                    .context("missing value for --runs")?
+                    .parse::<usize>()
+                    .context("parse --runs")?;
+                index += 2;
+            }
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run flake-hunt -- --expr '<nextest-filter>' [--runs N]",
+                )
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+    let expr = expr.context("--expr is required")?;
+    let log_dir = artifact_root_path(workspace)?.join("flake-hunt");
+    fs::create_dir_all(&log_dir).with_context(|| format!("create {}", log_dir.display()))?;
+    let mut stdout = String::new();
+    let mut failures = 0usize;
+    for run_index in 1..=runs {
+        stdout.push_str(&format!("[{run_index}/{runs}] nextest run -E {expr}\n"));
+        let outcome = tooling_cargo_targets(
+            workspace,
+            &[
+                "nextest-run".to_string(),
+                "--config-file".to_string(),
+                "configs/rust/nextest.toml".to_string(),
+                "--profile".to_string(),
+                "flake".to_string(),
+                "-E".to_string(),
+                expr.clone(),
+            ],
+        )?;
+        fs::write(log_dir.join("last.log"), format!("{}{}", outcome.stdout, outcome.stderr))
+            .with_context(|| format!("write {}", log_dir.join("last.log").display()))?;
+        if outcome.is_success() {
+            stdout.push_str("  PASS\n");
+        } else {
+            failures += 1;
+            stdout.push_str("  FAIL\n");
+            stdout.push_str(&outcome.stdout);
+            stdout.push_str(&outcome.stderr);
+        }
+    }
+    stdout.push_str(&format!(
+        "Expression: {expr}\nRuns: {runs}\nPassed: {}\nFailed: {failures}\n",
+        runs - failures
+    ));
+    if failures == 0 {
+        return Ok(OpsCommandOutcome::success(stdout));
+    }
+    Ok(OpsCommandOutcome::failure(stdout))
+}
+
+fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("lint-fast", args)?;
+    let base_ref = std::env::var("LINT_FAST_BASE_REF").ok().filter(|value| !value.is_empty()).unwrap_or_else(|| {
+        let head_prev = run_program(workspace, "git", &["rev-parse".to_string(), "--verify".to_string(), "HEAD~1".to_string()]);
+        match head_prev {
+            Ok(outcome) if outcome.is_success() => "HEAD~1".to_string(),
+            _ => "HEAD".to_string(),
+        }
+    });
+    let diff = run_program(
+        workspace,
+        "git",
+        &["diff".to_string(), "--name-only".to_string(), format!("{base_ref}..HEAD")],
+    )?;
+    let changed = diff
+        .stdout
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .collect::<Vec<_>>();
+    let mut stdout = String::new();
+    if changed.is_empty() {
+        run_check_ids(&mut stdout, &["check-config-schema", "check-script-interface"])?;
+        stdout.push_str("lint-fast: no changed files; running config+script lint baseline\n");
+        return Ok(OpsCommandOutcome::success(stdout));
+    }
+    let mut need_fmt = false;
+    let mut need_clippy = false;
+    let mut need_docs = false;
+    let mut need_configs = false;
+    let mut need_scripts = false;
+    for file in &changed {
+        if file.ends_with(".rs") || *file == "Cargo.toml" || *file == "Cargo.lock" || file.starts_with("crates/") {
+            need_fmt = true;
+            need_clippy = true;
+        }
+        if file.starts_with("docs/") || file.ends_with("README.md") {
+            need_docs = true;
+        }
+        if file.starts_with("configs/") || file.starts_with("assets/reference/") {
+            need_configs = true;
+        }
+        if file.starts_with("scripts/") || file.starts_with("makes/") || *file == "Makefile" {
+            need_scripts = true;
+        }
+    }
+    if need_fmt {
+        stdout.push_str("lint-fast: running rustfmt\n");
+        let outcome = tooling_ci_fmt(workspace, &[])?;
+        if !outcome.is_success() {
+            return Ok(merge_outcomes(OpsCommandOutcome::success(stdout), outcome));
+        }
+    }
+    if need_clippy {
+        stdout.push_str("lint-fast: running clippy for executor/runtime subset\n");
+        let outcome = tooling_ci_clippy_executors(workspace, &[])?;
+        if !outcome.is_success() {
+            return Ok(merge_outcomes(OpsCommandOutcome::success(stdout), outcome));
+        }
+    }
+    if need_docs {
+        stdout.push_str("lint-fast: running docs checks\n");
+        let docs_outcome = run_native_ops_command(
+            &NativeOpsCommandKey::DocsCheckDocLinks,
+            workspace,
+            &[],
+        )?;
+        if !docs_outcome.is_success() {
+            return Ok(merge_outcomes(OpsCommandOutcome::success(stdout), docs_outcome));
+        }
+        stdout.push_str(&docs_outcome.stdout);
+        run_check_ids(&mut stdout, &["check-docs-build-contract"])?;
+    }
+    if need_configs {
+        stdout.push_str("lint-fast: running config checks\n");
+        run_check_ids(&mut stdout, &["check-config-schema", "check-config-layout"])?;
+    }
+    if need_scripts {
+        stdout.push_str("lint-fast: running script interface checks\n");
+        run_check_ids(
+            &mut stdout,
+            &[
+                "check-script-interface",
+                "check-clippy-allowlist-growth",
+                "check-rustflags-consistency",
+            ],
+        )?;
+    }
+    stdout.push_str("lint-fast: OK\n");
+    Ok(OpsCommandOutcome::success(stdout))
 }
 
 fn tooling_generate_tool_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -3226,6 +4392,27 @@ fn run_check_ids(stdout: &mut String, check_ids: &[&str]) -> Result<()> {
     Ok(())
 }
 
+fn run_programs_with_env(
+    workspace: &Workspace,
+    commands: &[(&str, Vec<&str>)],
+    envs: &[(String, String)],
+) -> Result<OpsCommandOutcome> {
+    let mut aggregate = OpsCommandOutcome::success(String::new());
+    for (program, args) in commands {
+        let outcome = run_program_with_env(
+            workspace,
+            program,
+            &args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
+            envs,
+        )?;
+        aggregate = merge_outcomes(aggregate, outcome);
+        if !aggregate.is_success() {
+            return Ok(aggregate);
+        }
+    }
+    Ok(aggregate)
+}
+
 fn walk_file_list(workspace: &Workspace, root: &str, extension: Option<&str>) -> Result<String> {
     let mut files = WalkDir::new(workspace.path(root))
         .into_iter()
@@ -3275,8 +4462,138 @@ fn write_json_pretty(path: &Path, value: &Value) -> Result<()> {
     write_utf8(path, &format!("{}\n", serde_json::to_string_pretty(value)?))
 }
 
+fn read_json_value(path: &Path) -> Result<Value> {
+    serde_json::from_str(&read_utf8(path)?).with_context(|| format!("parse {}", path.display()))
+}
+
 fn trim_quoted(raw: &str) -> String {
     raw.trim().trim_matches('"').to_string()
+}
+
+fn env_flag(name: &str) -> bool {
+    matches!(
+        std::env::var(name).ok().as_deref(),
+        Some("1" | "true" | "TRUE")
+    )
+}
+
+fn ensure_exists(path: &Path, label: &str, errors: &mut Vec<String>) -> bool {
+    if path.exists() {
+        true
+    } else {
+        errors.push(format!("{label} missing: {}", path.display()));
+        false
+    }
+}
+
+fn value_string(value: Option<&Value>) -> String {
+    value.and_then(Value::as_str).unwrap_or_default().trim().to_string()
+}
+
+fn check_schema_doc(
+    schema_version: String,
+    doc: &str,
+    seen_schema_versions: &mut BTreeSet<String>,
+    errors: &mut Vec<String>,
+) {
+    if schema_version.is_empty() {
+        return;
+    }
+    seen_schema_versions.insert(schema_version.clone());
+    if !doc.contains(&schema_version) {
+        errors.push(format!(
+            "schema version `{schema_version}` not documented in docs/50-reference/MANIFEST_MIGRATION.md"
+        ));
+    }
+}
+
+fn flatten_json_keys(value: &Value, prefix: &str, out: &mut BTreeSet<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                let next = if prefix.is_empty() {
+                    key.clone()
+                } else {
+                    format!("{prefix}.{key}")
+                };
+                out.insert(next.clone());
+                flatten_json_keys(nested, &next, out);
+            }
+        }
+        Value::Array(items) => {
+            if let Some(Value::Object(first)) = items.first() {
+                let next = format!("{prefix}[]");
+                flatten_json_keys(&Value::Object(first.clone()), &next, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn compare_json_key_drift(
+    current_path: &Path,
+    golden_path: &Path,
+    label: &str,
+    errors: &mut Vec<String>,
+) -> Result<()> {
+    if !ensure_exists(current_path, &format!("{label} current"), errors)
+        || !ensure_exists(golden_path, &format!("{label} golden"), errors)
+    {
+        return Ok(());
+    }
+    let current = read_json_value(current_path)?;
+    let golden = read_json_value(golden_path)?;
+    let mut current_keys = BTreeSet::new();
+    let mut golden_keys = BTreeSet::new();
+    flatten_json_keys(&current, "", &mut current_keys);
+    flatten_json_keys(&golden, "", &mut golden_keys);
+    let missing = golden_keys
+        .difference(&current_keys)
+        .take(12)
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        errors.push(format!("{label}: missing golden keys (key-drift): {missing:?}"));
+    }
+    Ok(())
+}
+
+fn collect_warning_strings_json(value: &Value, out: &mut Vec<String>) {
+    match value {
+        Value::Object(map) => {
+            for (key, nested) in map {
+                if key.to_lowercase().starts_with("warn") {
+                    match nested {
+                        Value::Array(items) => out.extend(
+                            items.iter().filter_map(|item| match item {
+                                Value::String(value) => Some(value.clone()),
+                                other if !other.is_null() => Some(other.to_string()),
+                                _ => None,
+                            }),
+                        ),
+                        Value::String(item) => out.push(item.clone()),
+                        other if !other.is_null() => out.push(other.to_string()),
+                        _ => {}
+                    }
+                }
+                collect_warning_strings_json(nested, out);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                collect_warning_strings_json(item, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn sorted_unique(values: Vec<String>) -> Vec<String> {
+    values
+        .into_iter()
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
 }
 
 fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
@@ -3322,6 +4639,195 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
             cargo_target_dir.display().to_string(),
         ),
     ])
+}
+
+fn artifact_env_with_common_test_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
+    let mut envs = artifact_env(workspace)?;
+    envs.push(("TZ".to_string(), "UTC".to_string()));
+    envs.push(("LC_ALL".to_string(), "C".to_string()));
+    if let Ok(value) = std::env::var("CARGO_TARGET_DIR") {
+        if !value.trim().is_empty() {
+            envs.push(("CARGO_TARGET_DIR".to_string(), value));
+        }
+    }
+    if let Ok(output) = std::process::Command::new("sh")
+        .args(["-c", "command -v sccache || true"])
+        .current_dir(&workspace.root)
+        .output()
+    {
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !path.is_empty() {
+            envs.push(("RUSTC_WRAPPER".to_string(), path));
+        }
+    }
+    Ok(envs)
+}
+
+fn run_make_target(workspace: &Workspace, target: &str) -> Result<OpsCommandOutcome> {
+    run_program_with_env(
+        workspace,
+        "make",
+        &[target.to_string()],
+        &artifact_env(workspace)?,
+    )
+}
+
+fn ci_test_env(workspace: &Workspace, slow: bool) -> Result<Vec<(String, String)>> {
+    let mut envs = artifact_env(workspace)?;
+    let artifact_root = artifact_root_path(workspace)?;
+    envs.push(("TZ".to_string(), "UTC".to_string()));
+    envs.push(("LC_ALL".to_string(), "C".to_string()));
+    envs.push((
+        "TEST_TARGET_DIR".to_string(),
+        artifact_root.join("target").display().to_string(),
+    ));
+    envs.push((
+        "COV_TARGET_DIR".to_string(),
+        artifact_root.join("target").display().to_string(),
+    ));
+    envs.push((
+        "TEST_TMP_DIR".to_string(),
+        artifact_root.join("tmp/test").display().to_string(),
+    ));
+    envs.push((
+        "COV_TMP_DIR".to_string(),
+        artifact_root.join("tmp/coverage").display().to_string(),
+    ));
+    envs.push((
+        "TEST_PROFRAW_DIR".to_string(),
+        artifact_root.join("coverage/profraw-test").display().to_string(),
+    ));
+    envs.push((
+        "COV_PROFRAW_DIR".to_string(),
+        artifact_root.join("coverage/profraw-coverage").display().to_string(),
+    ));
+    if slow {
+        if let Ok(output) = std::process::Command::new("sh")
+            .args(["-c", "command -v sccache || true"])
+            .current_dir(&workspace.root)
+            .output()
+        {
+            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !path.is_empty() {
+                envs.push(("RUSTC_WRAPPER".to_string(), path));
+            }
+        }
+    }
+    Ok(envs)
+}
+
+fn resolved_nextest_expression(fast_only: bool) -> Option<String> {
+    if let Ok(value) = std::env::var("NEXTEST_TEST_EXPR") {
+        if !value.trim().is_empty() {
+            return Some(value);
+        }
+    }
+    if let Ok(value) = std::env::var("NEXTEST_FAST_EXPR") {
+        if !value.trim().is_empty() {
+            return Some(value);
+        }
+    }
+    if fast_only || std::env::var("NEXTEST_PROFILE").ok().as_deref() == Some("fast-unit") {
+        return Some("not test(/::slow__/)".to_string());
+    }
+    None
+}
+
+fn resolved_nextest_profile(slow: bool) -> Result<String> {
+    if let Ok(value) = std::env::var("NEXTEST_PROFILE") {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    if slow {
+        return Ok("slow-integration".to_string());
+    }
+    Ok(cfg
+        .get("nextest_profile")
+        .and_then(TomlValue::as_str)
+        .unwrap_or("ci")
+        .to_string())
+}
+
+fn resolved_nextest_threads(slow: bool) -> Result<String> {
+    if let Ok(value) = std::env::var("NEXTEST_TEST_THREADS") {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    if slow {
+        return Ok("8".to_string());
+    }
+    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    Ok(cfg
+        .get("test_threads")
+        .and_then(TomlValue::as_integer)
+        .unwrap_or(1)
+        .to_string())
+}
+
+fn resolved_run_ignored(slow: bool) -> Result<String> {
+    if let Ok(value) = std::env::var("RUN_IGNORED") {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    if slow {
+        return Ok("--run-ignored all".to_string());
+    }
+    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    Ok(if cfg
+        .get("run_ignored")
+        .and_then(TomlValue::as_bool)
+        .unwrap_or(true)
+    {
+        "--run-ignored all".to_string()
+    } else {
+        String::new()
+    })
+}
+
+fn read_coverage_runner_flag(
+    workspace: &Workspace,
+    key: &str,
+    flag: &str,
+) -> Result<String> {
+    let cfg: TomlValue = toml::from_str(&read_utf8(&workspace.path("configs/coverage/runner.toml"))?)?;
+    Ok(if cfg
+        .get(key)
+        .and_then(TomlValue::as_bool)
+        .unwrap_or(false)
+    {
+        flag.to_string()
+    } else {
+        String::new()
+    })
+}
+
+fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        for entry in WalkDir::new(workspace.path("assets"))
+            .into_iter()
+            .filter_map(Result::ok)
+        {
+            let metadata = std::fs::metadata(entry.path())
+                .with_context(|| format!("read metadata {}", entry.path().display()))?;
+            let mut perms = metadata.permissions();
+            let mode = perms.mode();
+            if readonly {
+                perms.set_mode(mode & !0o222);
+            } else {
+                perms.set_mode((mode | 0o200) & !0o022);
+            }
+            std::fs::set_permissions(entry.path(), perms)
+                .with_context(|| format!("set permissions {}", entry.path().display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn pythonpath_with_tooling(workspace: &Workspace, rel: &str) -> String {
