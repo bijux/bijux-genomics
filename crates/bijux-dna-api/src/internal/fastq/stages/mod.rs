@@ -1,7 +1,10 @@
 //! FASTQ stage wiring (internal).
 
 pub(crate) mod correct_errors;
+pub(crate) mod detect_adapters;
 pub(crate) mod filter_reads;
+pub(crate) mod filter_low_complexity;
+pub(crate) mod index_reference;
 pub(crate) mod merge_pairs;
 pub(crate) mod preprocess;
 pub(crate) mod profile_reads;

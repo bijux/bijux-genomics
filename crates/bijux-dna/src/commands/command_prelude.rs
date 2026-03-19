@@ -14,10 +14,11 @@ pub(crate) use crate::commands::cli::env::{
 };
 pub(crate) use crate::commands::cli::render;
 pub(crate) use crate::commands::cli::{
-    bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
-    bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
-    bench_args_stats, bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage,
-    bench_args_umi, bench_args_validate,
+    bench_args_correct, bench_args_detect_adapters, bench_args_filter,
+    bench_args_filter_low_complexity, bench_args_from_trim, bench_args_from_validate,
+    bench_args_index_reference, bench_args_merge, bench_args_preprocess, bench_args_qc_post,
+    bench_args_screen, bench_args_stats, bench_args_trim, bench_args_trim_polyg,
+    bench_args_trim_terminal_damage, bench_args_umi, bench_args_validate,
     fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
     preprocess_args_from_cli, AnalyzeCommand, BenchBamCommand, BenchCommand, BenchFastqCommand,
     Cli, DnaCommand, EnvCommand, FastqCommand, PipelinesCommand, PoliciesCommand,
@@ -30,15 +31,17 @@ pub(crate) use bijux_dna_api::v1::api::bench::fastq_banks::{
 };
 pub(crate) use bijux_dna_api::v1::api::bench::AdapterPresetsV1;
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
-    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
-    bench_fastq_trim_polyg_tails, bench_fastq_trim_terminal_damage, bench_fastq_umi,
-    bench_fastq_validate_reads, compare_runs, compare_runs_with_baseline, print_bench_schema,
-    RankInput,
+    bench_fastq_correct, bench_fastq_detect_adapters, bench_fastq_filter,
+    bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_merge,
+    bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral,
+    bench_fastq_trim, bench_fastq_trim_polyg_tails, bench_fastq_trim_terminal_damage,
+    bench_fastq_umi, bench_fastq_validate_reads, compare_runs, compare_runs_with_baseline,
+    print_bench_schema, RankInput,
 };
 pub(crate) use bijux_dna_api::v1::api::report::render_report_bundle_html;
 pub(crate) use bijux_dna_api::v1::api::report::{
-    load_facts_auto, load_run_summary, write_correct_report, write_filter_report,
+    load_facts_auto, load_run_summary, write_correct_report, write_detect_adapters_report,
+    write_filter_low_complexity_report, write_filter_report, write_index_reference_report,
     write_merge_report, write_qc_post_report, write_run_report_from_facts,
     write_run_summary_from_facts, write_stage_summary_csv, write_stats_report,
     write_trim_polyg_report, write_trim_report, write_trim_terminal_damage_report,

@@ -9,6 +9,10 @@ pub mod detect_adapters {
     pub use crate::tool_adapters::stages::pre::detect_adapters::*;
 }
 
+pub mod index_reference {
+    pub use crate::tool_adapters::stages::pre::index_reference::*;
+}
+
 pub mod profile_read_lengths {
     pub use crate::tool_adapters::stages::pre::profile_read_lengths::*;
 }
@@ -86,6 +90,11 @@ pub struct StageInfo {
 
 pub fn registry() -> Vec<StageInfo> {
     vec![
+        StageInfo {
+            id: crate::tool_adapters::stages::pre::index_reference::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::pre::index_reference::STAGE_VERSION,
+            affects_read_counts: false,
+        },
         StageInfo {
             id: crate::tool_adapters::stages::transform::correct_errors::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::correct_errors::STAGE_VERSION,

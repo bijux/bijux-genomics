@@ -4,11 +4,12 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
-    BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
+    BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
+    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
     BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
-    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand,
-    FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
+    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand, FastqCommand,
+    FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
 #[must_use]
@@ -174,6 +175,23 @@ pub fn bench_args_validate(
 
 /// # Errors
 /// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_detect_adapters(
+    args: &BenchFastqDetectAdaptersArgs,
+) -> Result<engine_args::BenchFastqDetectAdaptersArgs> {
+    Ok(engine_args::BenchFastqDetectAdaptersArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.detect_adapters", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
 pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::BenchFastqFilterArgs> {
     Ok(engine_args::BenchFastqFilterArgs {
         sample_id: args.sample_id.clone(),
@@ -187,6 +205,25 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::Ben
         max_n: args.max_n,
         low_complexity_threshold: args.low_complexity_threshold,
         kmer_ref: args.kmer_ref.clone(),
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_filter_low_complexity(
+    args: &BenchFastqFilterLowComplexityArgs,
+) -> Result<engine_args::BenchFastqFilterLowComplexityArgs> {
+    Ok(engine_args::BenchFastqFilterLowComplexityArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.filter_low_complexity", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+        entropy_threshold: args.entropy_threshold,
+        polyx_threshold: args.polyx_threshold,
     })
 }
 
@@ -250,6 +287,23 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> Result<engine_args::BenchFast
         r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.extract_umis", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_index_reference(
+    args: &BenchFastqIndexReferenceArgs,
+) -> Result<engine_args::BenchFastqIndexReferenceArgs> {
+    Ok(engine_args::BenchFastqIndexReferenceArgs {
+        sample_id: args.sample_id.clone(),
+        reference_fasta: args.reference_fasta.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.index_reference", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,

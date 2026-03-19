@@ -32,12 +32,18 @@ pub enum BenchFastqCommand {
     #[command(name = "trim-terminal-damage")]
     TrimTerminalDamage(BenchFastqTrimTerminalDamageArgs),
     Validate(BenchFastqValidateArgs),
+    #[command(name = "detect-adapters")]
+    DetectAdapters(BenchFastqDetectAdaptersArgs),
     Filter(BenchFastqFilterArgs),
+    #[command(name = "filter-low-complexity")]
+    FilterLowComplexity(BenchFastqFilterLowComplexityArgs),
     Merge(BenchFastqMergeArgs),
     Correct(BenchFastqCorrectArgs),
     #[command(name = "report-qc", visible_alias = "qc-post", alias = "qc2")]
     ReportQc(BenchFastqQcPostArgs),
     Umi(BenchFastqUmiArgs),
+    #[command(name = "index-reference")]
+    IndexReference(BenchFastqIndexReferenceArgs),
     Screen(BenchFastqScreenArgs),
     Stats(BenchFastqStatsArgs),
     Preprocess(BenchFastqPreprocessArgs),
@@ -159,6 +165,28 @@ pub struct BenchFastqValidateArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchFastqDetectAdaptersArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchFastqFilterArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
@@ -184,6 +212,32 @@ pub struct BenchFastqFilterArgs {
     pub low_complexity_threshold: Option<f64>,
     #[arg(long)]
     pub kmer_ref: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqFilterLowComplexityArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+    #[arg(long)]
+    pub entropy_threshold: Option<f64>,
+    #[arg(long)]
+    pub polyx_threshold: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -264,6 +318,28 @@ pub struct BenchFastqUmiArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqIndexReferenceArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub reference_fasta: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]

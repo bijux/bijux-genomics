@@ -12,6 +12,8 @@ pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
+    let report = out_dir.join("adapter_report.json");
+    let fastqc_dir = out_dir.join("fastqc");
     let effective_params = DetectAdaptersEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
         threads: tool.resources.threads,
@@ -34,9 +36,9 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
                 ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("fastqc_dir"),
-                out_dir.join("fastqc"),
-                ArtifactRole::Index,
+                ArtifactId::from_static("adapter_report"),
+                report.clone(),
+                ArtifactRole::ReportJson,
             )],
         },
         out_dir: out_dir.to_path_buf(),
@@ -44,6 +46,8 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
             "tool": tool.tool_id.0,
             "input": r1,
             "out_dir": out_dir,
+            "report_json": report,
+            "fastqc_dir": fastqc_dir,
             "sample_reads": effective_params.sample_reads,
         }),
         effective_params: serde_json::to_value(&effective_params)

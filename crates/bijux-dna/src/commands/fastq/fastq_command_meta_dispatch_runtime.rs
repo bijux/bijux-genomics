@@ -273,11 +273,45 @@
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::DetectAdapters(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_detect_adapters(args)?;
+                        let outcome =
+                            bench_fastq_detect_adapters(&catalog, &platform, None, &bench_args)?;
+                        write_detect_adapters_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::Filter(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_filter(args)?;
                         let outcome = bench_fastq_filter(&catalog, &platform, None, &bench_args)?;
                         write_filter_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::FilterLowComplexity(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_filter_low_complexity(args)?;
+                        let outcome = bench_fastq_filter_low_complexity(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_filter_low_complexity_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,
@@ -349,6 +383,21 @@
                         let bench_args = bench_args_umi(args)?;
                         let outcome = bench_fastq_umi(&catalog, &platform, None, &bench_args)?;
                         write_umi_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::IndexReference(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_index_reference(args)?;
+                        let outcome =
+                            bench_fastq_index_reference(&catalog, &platform, None, &bench_args)?;
+                        write_index_reference_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,

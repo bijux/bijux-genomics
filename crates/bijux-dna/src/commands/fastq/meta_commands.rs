@@ -4,11 +4,13 @@ use super::api_bridge::{
 use super::debug_commands::handle_debug_command;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
-    anyhow, atomic_write_bytes, bench_args_correct, bench_args_filter, bench_args_merge,
-    bench_args_preprocess, bench_args_qc_post, bench_args_screen, bench_args_stats,
-    bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
-    bench_args_validate, bench_fastq_correct, bench_fastq_filter, bench_fastq_merge,
-    bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen,
+    anyhow, atomic_write_bytes, bench_args_correct, bench_args_detect_adapters,
+    bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
+    bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
+    bench_args_stats, bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage,
+    bench_args_umi, bench_args_validate, bench_fastq_correct, bench_fastq_detect_adapters,
+    bench_fastq_filter, bench_fastq_filter_low_complexity, bench_fastq_index_reference,
+    bench_fastq_merge, bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen,
     bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_trim_polyg_tails,
     bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
@@ -16,7 +18,8 @@ use crate::commands::command_prelude::{
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
+    write_correct_report, write_detect_adapters_report, write_filter_low_complexity_report,
+    write_filter_report, write_index_reference_report, write_merge_report, write_qc_post_report,
     write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
     write_stats_report, write_trim_polyg_report, write_trim_report,
     write_trim_terminal_damage_report, write_umi_report, write_validate_report, AnalyzeCommand,
@@ -766,11 +769,45 @@ pub(crate) fn handle_meta_commands(
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::DetectAdapters(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_detect_adapters(args)?;
+                        let outcome =
+                            bench_fastq_detect_adapters(&catalog, &platform, None, &bench_args)?;
+                        write_detect_adapters_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::Filter(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_filter(args)?;
                         let outcome = bench_fastq_filter(&catalog, &platform, None, &bench_args)?;
                         write_filter_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::FilterLowComplexity(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_filter_low_complexity(args)?;
+                        let outcome = bench_fastq_filter_low_complexity(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_filter_low_complexity_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,
@@ -842,6 +879,21 @@ pub(crate) fn handle_meta_commands(
                         let bench_args = bench_args_umi(args)?;
                         let outcome = bench_fastq_umi(&catalog, &platform, None, &bench_args)?;
                         write_umi_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::IndexReference(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_index_reference(args)?;
+                        let outcome =
+                            bench_fastq_index_reference(&catalog, &platform, None, &bench_args)?;
+                        write_index_reference_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,

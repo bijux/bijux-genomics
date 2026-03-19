@@ -7,13 +7,19 @@ use crate::internal::fastq::stages;
 pub(crate) mod summary;
 
 pub(crate) use crate::internal::fastq::stage_catalog::{
-    STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_PREPROCESS_SUMMARY,
-    STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS,
-    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
+    STAGE_CORRECT_ERRORS, STAGE_EXTRACT_UMIS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS,
+    STAGE_PREPROCESS_SUMMARY, STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+};
+pub(crate) use bijux_dna_domain_fastq::stages::ids::{
+    STAGE_DETECT_ADAPTERS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_INDEX_REFERENCE,
 };
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use stages::correct_errors::bench_fastq_correct;
+pub use stages::detect_adapters::bench_fastq_detect_adapters;
 pub use stages::filter_reads::bench_fastq_filter;
+pub use stages::filter_low_complexity::bench_fastq_filter_low_complexity;
+pub use stages::index_reference::bench_fastq_index_reference;
 pub use stages::merge_pairs::bench_fastq_merge;
 pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
 pub use stages::profile_reads::bench_fastq_stats_neutral;
