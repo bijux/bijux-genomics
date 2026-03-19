@@ -10,4 +10,4 @@ This directory contains publication-scoped datasets and metadata manifests.
 ---
 Asset Provenance Footer
 Last regenerated: 2026-02-13
-Regenerate command: `./scripts/run.sh assets refresh-toy && ./scripts/run.sh assets refresh-golden`
+Regenerate command: `cargo run -p bijux-dev-dna -- assets run refresh-toy && cargo run -p bijux-dev-dna -- assets run refresh-golden`

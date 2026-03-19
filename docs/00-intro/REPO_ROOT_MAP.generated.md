@@ -42,7 +42,6 @@ Top-level workspace paths only.
 | Script Path | Purpose |
 |---|---|
 | `scripts/_lib` | shared shell helper library for supported scripts. |
-| `scripts/assets` | deterministic asset and golden fixture refresh scripts. |
 | `scripts/checks` | enforce CI and repository script policies. |
 | `scripts/docs` | docs checks and documentation tooling entrypoints. |
 | `bijux-dev-dna/containers` | canonical container runtime build/lint/smoke entrypoints. |

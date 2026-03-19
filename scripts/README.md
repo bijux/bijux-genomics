@@ -8,8 +8,9 @@ Allowed subdirectories:
 Internal-only:
 - `scripts/_lib`: shared shell helpers only.
 - `scripts/experimental`: quarantined non-supported scripts.
-- `scripts/assets`: asset refresh helpers.
 
+The assets control plane is `cargo run -p bijux-dev-dna -- assets ...`.
+The compatibility entrypoint remains `./scripts/run.sh assets <command>`.
 The checks control plane is `cargo run -p bijux-dev-dna -- checks ...`.
 The compatibility entrypoint remains `./scripts/run.sh checks <check-id>`.
 The docs control plane is `cargo run -p bijux-dev-dna -- docs ...`.

@@ -1,13 +1,13 @@
 # GENERATE
 
 ## Command(s)
-Generated via `scripts/assets/refresh-golden.sh`.
+Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
 
 ## Tool versions
-- `python3` and `shasum` versions are recorded in `artifacts/assets-refresh/golden/report.json`.
+- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/golden/report.json`.
 
 ## Input origins
-- Derived from repository mini reference toy runs (`scripts/run.sh test toy-runs refresh --accept --profile all`).
+- Derived from repository mini reference toy runs (`cargo run -p bijux-dev-dna -- test run toy-runs -- refresh --accept --profile all`).
 
 ## Expected outputs
 - `manifest.json`

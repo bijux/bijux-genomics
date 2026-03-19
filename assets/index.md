@@ -22,4 +22,4 @@ A single taxonomy keeps ownership clear, prevents root-level sprawl, and separat
 ---
 Asset Provenance Footer
 Last regenerated: 2026-02-13
-Regenerate command: `./scripts/run.sh assets refresh-toy && ./scripts/run.sh assets refresh-golden`
+Regenerate command: `cargo run -p bijux-dev-dna -- assets run refresh-toy && cargo run -p bijux-dev-dna -- assets run refresh-golden`

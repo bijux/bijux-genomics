@@ -1,13 +1,13 @@
 # GENERATE
 
 ## Command(s)
-Generated via `scripts/assets/refresh-toy.sh`.
+Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
 
 ## Tool versions
-- `python3` and `shasum` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
+- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
 
 ## Input origins
-- Synthetic deterministic toy records authored in `scripts/assets/refresh-toy.sh`.
+- Synthetic deterministic toy records authored in `bijux-dev-dna` assets control-plane commands.
 
 ## Expected outputs
 - `fastq/reads_1.fastq`
