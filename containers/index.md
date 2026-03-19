@@ -24,6 +24,6 @@ sha256(containers/versions/lock.json)     = <64-hex>
 ```
 
 ## Contracts
-- Runtime/build parity is enforced by container checks under `scripts/containers/`.
+- Runtime/build parity is enforced by container checks under `bijux-dev-dna/containers/`.
 - No floating tags for production tools.
 - Promotion to production requires locked version metadata and locked digest evidence.

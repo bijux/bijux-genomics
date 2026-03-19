@@ -17,7 +17,7 @@ Specifies required green checks and evidence artifacts before starting Slurm wor
 All items below must be true before enabling Slurm execution phase:
 
 1. Frontend all-tools container workflow is green:
-   - `scripts/containers/apptainer-build-all.sh`
+   - `bijux-dev-dna/containers/apptainer-build-all.sh`
    - smoke contracts, lock checks, SBOM/license/provenance checks pass.
 2. Two frontend mini E2E runs are green:
    - VCF downstream mini (`vcf_downstream_vcf_full_mini`)

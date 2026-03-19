@@ -44,8 +44,8 @@ Top-level workspace paths only.
 | `scripts/_lib` | shared shell helper library for supported scripts. |
 | `scripts/assets` | deterministic asset and golden fixture refresh scripts. |
 | `scripts/checks` | enforce CI and repository script policies. |
-| `scripts/containers` | container runtime build/lint/smoke entrypoints. |
 | `scripts/docs` | docs checks and documentation tooling entrypoints. |
+| `bijux-dev-dna/containers` | canonical container runtime build/lint/smoke entrypoints. |
 | `scripts/run.sh domain <command>` | compatibility entrypoint for the Rust-owned domain control plane in `crates/bijux-dev-dna`. |
 | `scripts/examples` | generate, validate, and run curated repository examples. |
 | `scripts/experimental` | quarantined non-supported scripts not called from make/CI. |

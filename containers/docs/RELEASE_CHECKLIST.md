@@ -8,10 +8,10 @@ Purpose: define the mandatory gate before tagging a container-affecting release.
 - Planned/production status transitions are tracked via promotion/demotion scripts.
 
 ## Required Commands
-1. `./scripts/containers/ensure-images.sh --plan`
+1. `./bijux-dev-dna/containers/ensure-images.sh --plan`
 2. `./scripts/run.sh containers lint`
-3. `./scripts/containers/container-doctor.sh --strict`
-4. `./scripts/containers/release-gate.sh`
+3. `./bijux-dev-dna/containers/container-doctor.sh --strict`
+4. `./bijux-dev-dna/containers/release-gate.sh`
 
 ## Required Artifacts
 - `artifacts/containers/ensure-images/report.json`

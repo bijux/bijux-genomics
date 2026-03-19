@@ -3,7 +3,6 @@
 Purpose: canonical container runtime build/lint/smoke entrypoints.
 
 Scripts in this directory are the first-class implementation owned by the Rust-native container control plane in `crates/bijux-dev-dna`.
-Compatibility shims remain in `scripts/containers/` and execute the same command with `exec` for legacy entrypoints.
 
 Back to index: `scripts/README.md`.
 
