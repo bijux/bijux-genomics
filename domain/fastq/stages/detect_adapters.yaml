@@ -7,6 +7,9 @@ inputs:
   - name: "reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
 outputs:
   - name: "adapter_report"
     data_type: "json"
@@ -26,12 +29,12 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
 compatible_tools:
   - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "single-end input omits reads_r2; paired-end input contributes both mates to adapter detection."
 bank_hooks:
   - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"
