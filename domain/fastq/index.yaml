@@ -194,7 +194,7 @@ active_defaults:
   fastq.extract_umis: umi_tools
   fastq.profile_read_lengths: seqkit_stats
   fastq.trim_polyg_tails: fastp
-  fastq.deplete_reference_contaminants: bbduk
+  fastq.deplete_reference_contaminants: bowtie2
   fastq.trim_terminal_damage: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
 active_default_rationale:
@@ -220,8 +220,8 @@ active_default_rationale:
     pre-trim size distribution.
   fastq.trim_polyg_tails: Default polyG trimmer uses fastp polyG-tail handling for common
     sequencer artifacts.
-  fastq.deplete_reference_contaminants: Default contaminant screen uses k-mer depletion against
-    configured decoy references.
+  fastq.deplete_reference_contaminants: Default contaminant screen uses reference-guided
+    depletion against governed decoy references.
   fastq.trim_terminal_damage: Damage-aware pretrim default uses deterministic terminal mask/trim
     policy for aDNA damage-aware pretrim.
   fastq.normalize_primers: Deterministic primer trimming with explicit mismatch/orientation

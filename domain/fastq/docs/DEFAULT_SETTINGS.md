@@ -31,7 +31,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.remove_duplicates`: default `fastuniq`.
 - `fastq.filter_low_complexity`: default `bbduk`.
 - `fastq.deplete_host`: default `bowtie2`.
-- `fastq.deplete_reference_contaminants`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
+- `fastq.deplete_reference_contaminants`: default `bowtie2`. rationale: reference-guided decoy depletion stays aligned with the current stage contract.
 - `fastq.correct_errors`: default `rcorrector`.
 - `fastq.extract_umis`: default `umi_tools`.
 - `fastq.profile_overrepresented_sequences`: default `fastqc`.
@@ -40,8 +40,8 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.normalize_primers`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
 - `fastq.remove_chimeras`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
 - `fastq.cluster_otus`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
-- `fastq.infer_asvs`: default `vsearch` (placeholder). rationale: ASV engine remains external/experimental; placeholder preserves deterministic stage contract.
-- `fastq.normalize_abundance`: default `seqkit_stats` (placeholder). rationale: deterministic normalization reporting baseline for compositional warnings.
+- `fastq.infer_asvs`: no blessed default runtime backend yet. rationale: the stage contract is defined, but no admitted ASV engine is currently shipped in the governed runtime set.
+- `fastq.normalize_abundance`: default `seqkit`. rationale: abundance-table normalization stays within the currently admitted amplicon table tooling.
 
 validation_benchmark_policy: fastq.validate_reads
 - default benchmark backend is `fastqvalidator`

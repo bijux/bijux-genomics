@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4e0f77825a0093fa3d955eaabb9f2dd5b23bc784
+# source_commit: c1f8cc053d25fe22f4fbcbeb2976924616af93cb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -248,40 +248,6 @@ apptainer_def = "containers/apptainer/lunarc/bowtie2.def"
 require_labels = true
 
 [[tools]]
-id = "bracken"
-tool_id = "bracken"
-domain = "fastq"
-domains = ["fastq"]
-status = "production"
-stage_ids = ["fastq.screen_taxonomy"]
-bindings = ["fastq.screen_taxonomy"]
-tool_role = "screen"
-version = "2.9"
-default_version = "2.9"
-upstream = "https://github.com/jenniferlu717/Bracken"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/jenniferlu717/Bracken"
-pinned_commit = "git:c5bfec1929fe30feef21afbde67b16bda44de448"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/bracken:2.9"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "bracken --version"
-help_cmd = "bracken -h"
-smoke_version_cmd = "bracken --version"
-smoke_help_cmd = "bracken -h"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "bracken -h"
-expected_bin = "bracken"
-expected_artifacts = ["abundance_report", "screen_summary"]
-metrics_schema = "bijux.fastq.classify.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bracken"
-apptainer_def = "containers/apptainer/lunarc/bracken.def"
-require_labels = true
-
-[[tools]]
 id = "bwa"
 tool_id = "bwa"
 domain = "bam"
@@ -423,9 +389,9 @@ tool_id = "fastp"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.detect_adapters", "fastq.trim_reads", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails"]
-bindings = ["fastq.detect_adapters", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
-tool_role = "trimmer"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.filter_low_complexity", "fastq.profile_read_lengths", "fastq.trim_polyg_tails"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
+tool_role = "filter"
 version = "0.23.4"
 default_version = "0.23.4"
 upstream = "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz"
@@ -1579,7 +1545,7 @@ requires_reporting = false
 id = "fastq.deplete_host"
 required_tool_roles = ["transform"]
 primary_tools = ["bowtie2"]
-optional_alternatives = ["samtools"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1590,12 +1556,12 @@ requires_reporting = false
 [[stages]]
 id = "fastq.deplete_reference_contaminants"
 required_tool_roles = ["screen"]
-primary_tools = ["bbduk"]
-optional_alternatives = ["bowtie2"]
+primary_tools = ["bowtie2"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default contaminant screen uses k-mer depletion against configured decoy references."
+default_rationale = "Default contaminant screen uses reference-guided depletion against governed decoy references."
 requires_validation = false
 requires_reporting = false
 
@@ -1614,12 +1580,12 @@ requires_reporting = false
 [[stages]]
 id = "fastq.detect_adapters"
 required_tool_roles = ["trimmer"]
-primary_tools = ["fastp"]
+primary_tools = ["fastqc"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default adapter detector aligned with trim defaults."
+default_rationale = "Default adapter detector remains report-only and avoids mutating reads."
 requires_validation = false
 requires_reporting = false
 
@@ -1631,7 +1597,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default UMI handler preserves compatibility with stage contract."
+default_rationale = "Default UMI handler extracts barcodes without dropping reads."
 requires_validation = false
 requires_reporting = false
 
@@ -1639,7 +1605,7 @@ requires_reporting = false
 id = "fastq.filter_low_complexity"
 required_tool_roles = ["filter"]
 primary_tools = ["bbduk"]
-optional_alternatives = []
+optional_alternatives = ["fastp"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1698,7 +1664,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.normalize_abundance"
 required_tool_roles = ["transform"]
-primary_tools = ["fastp"]
+primary_tools = ["seqkit"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
@@ -1747,7 +1713,7 @@ requires_reporting = false
 id = "fastq.profile_reads"
 required_tool_roles = ["transform"]
 primary_tools = ["seqkit_stats"]
-optional_alternatives = ["seqkit"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1795,7 +1761,7 @@ requires_reporting = true
 id = "fastq.screen_taxonomy"
 required_tool_roles = ["screen"]
 primary_tools = ["kraken2"]
-optional_alternatives = ["bracken", "krakenuniq"]
+optional_alternatives = ["krakenuniq"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1843,7 +1809,7 @@ requires_reporting = false
 id = "fastq.validate_reads"
 required_tool_roles = ["validator"]
 primary_tools = ["fastqvalidator"]
-optional_alternatives = ["fastqc", "fqtools", "seqtk"]
+optional_alternatives = ["fqtools", "seqtk"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
