@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4e0f77825a0093fa3d955eaabb9f2dd5b23bc784
+# source_commit: c1f8cc053d25fe22f4fbcbeb2976924616af93cb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -551,40 +551,6 @@ metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.skewer"
 apptainer_def = "containers/apptainer/lunarc/skewer.def"
-require_labels = true
-
-[[tools]]
-id = "spades"
-tool_id = "spades"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.correct_errors"]
-bindings = ["fastq.correct_errors"]
-tool_role = "corrector"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/ablab/spades"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/ablab/spades"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/spades@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "spades --version"
-help_cmd = "spades --help"
-smoke_version_cmd = "spades --version"
-smoke_help_cmd = "spades --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "spades --help"
-expected_bin = "spades"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.spades"
-apptainer_def = "containers/apptainer/lunarc/spades.def"
 require_labels = true
 
 [[tools]]
