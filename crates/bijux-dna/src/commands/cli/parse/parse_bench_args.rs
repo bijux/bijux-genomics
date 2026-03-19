@@ -35,7 +35,7 @@ pub enum BenchFastqCommand {
     Filter(BenchFastqFilterArgs),
     Merge(BenchFastqMergeArgs),
     Correct(BenchFastqCorrectArgs),
-    #[command(name = "qc-post", alias = "qc2")]
+    #[command(name = "report-qc", visible_alias = "qc-post", alias = "qc2")]
     ReportQc(BenchFastqQcPostArgs),
     Umi(BenchFastqUmiArgs),
     Screen(BenchFastqScreenArgs),

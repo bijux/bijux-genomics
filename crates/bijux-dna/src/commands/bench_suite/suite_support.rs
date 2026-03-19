@@ -62,7 +62,7 @@ fn stage_checks(stage: &str) -> Vec<String> {
             "artifact_set_complete".to_string(),
         ],
         "stats" => vec!["stats_artifact_present".to_string()],
-        "qc_post" => vec![
+        "qc_post" | "report_qc" | "fastq.report_qc" => vec![
             "qc_artifact_present".to_string(),
             "artifact_set_complete".to_string(),
         ],
