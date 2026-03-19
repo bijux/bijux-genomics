@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/canonical_writer.rs"]
 mod mod_contracts_canonical_writer_rs;
+#[path = "contracts/experimental_registry_alias.rs"]
+mod mod_contracts_experimental_registry_alias_rs;
 #[path = "contracts/manifest_integrity.rs"]
 mod mod_contracts_manifest_integrity_rs;
 #[path = "contracts/reference.rs"]

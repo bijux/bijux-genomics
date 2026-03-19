@@ -336,6 +336,13 @@ fn find_domain_dir(path: &Path) -> Option<PathBuf> {
     None
 }
 
+fn experimental_manifests_enabled() -> bool {
+    ["BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "BIJUX_EXPERIMENTAL_TOOLS"]
+        .into_iter()
+        .filter_map(|key| std::env::var(key).ok())
+        .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+}
+
 /// # Errors
 /// Returns an error if registry config cannot be read or parsed.
 #[allow(clippy::too_many_lines)]
@@ -361,10 +368,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
     let mut parsed: toml::Value = raw
         .parse()
         .with_context(|| format!("parse {}", registry_path.display()))?;
-    let experimental_enabled = std::env::var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS")
-        .ok()
-        .is_some_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
-    if experimental_enabled {
+    if experimental_manifests_enabled() {
         let experimental_path = registry_path
             .parent()
             .unwrap_or_else(|| Path::new("."))
