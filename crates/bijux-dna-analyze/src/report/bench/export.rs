@@ -1,5 +1,6 @@
 use crate::{
     FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqLowComplexityMetrics,
+    FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
     FastqOverrepresentedMetrics,
 };
 
@@ -331,6 +332,69 @@ pub fn write_overrepresented_report(
             "fastq.profile_overrepresented_sequences",
             &BTreeMap::new(),
         );
+    }
+    Ok(())
+}
+
+/// Write the normalize-primers benchmark report.
+pub fn write_normalize_primers_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqNormalizePrimersMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.normalize_primers", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the infer-asvs benchmark report.
+pub fn write_infer_asvs_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqInferAsvsMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.infer_asvs", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the normalize-abundance benchmark report.
+pub fn write_normalize_abundance_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqNormalizeAbundanceMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.normalize_abundance", &BTreeMap::new());
     }
     Ok(())
 }

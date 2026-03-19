@@ -10,6 +10,7 @@ use crate::aggregate::metrics::{ImageQaRecord, IMAGE_QA_SCHEMA_VERSION};
 use crate::aggregate::BenchmarkRecord;
 use crate::{
     FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqQcPostMetrics,
+    FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
     FastqOverrepresentedMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqUmiMetrics,
 };
 /// Insert a FASTQ detect-adapters benchmark record into the v1 table.
@@ -671,6 +672,118 @@ pub fn fetch_fastq_overrepresented_v1(
         Err(err) => Err(err.into()),
     }
 }
+
+macro_rules! bench_record_table {
+    ($insert_fn:ident, $fetch_fn:ident, $table:literal, $metric_ty:ty) => {
+        pub fn $insert_fn(conn: &Connection, record: &BenchmarkRecord<$metric_ty>) -> Result<()> {
+            conn.execute(
+                concat!(
+                    "CREATE TABLE IF NOT EXISTS ", $table, " (",
+                    "record_id INTEGER PRIMARY KEY AUTOINCREMENT,",
+                    "tool TEXT NOT NULL,",
+                    "tool_version TEXT NOT NULL,",
+                    "image_digest TEXT NOT NULL,",
+                    "runner TEXT NOT NULL,",
+                    "platform TEXT NOT NULL,",
+                    "input_hash TEXT NOT NULL,",
+                    "params_hash TEXT NOT NULL,",
+                    "parameters_json TEXT NOT NULL,",
+                    "schema_version INTEGER NOT NULL,",
+                    "runtime_s REAL NOT NULL,",
+                    "memory_mb REAL NOT NULL,",
+                    "exit_code INTEGER NOT NULL,",
+                    "metrics_json TEXT NOT NULL,",
+                    "inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                    ")"
+                ),
+                [],
+            )?;
+            ensure_inserted_at_column(conn, $table)?;
+            ensure_record_id_column(conn, $table)?;
+            ensure_params_hash_column(conn, $table)?;
+            ensure_identity_index(conn, $table)?;
+
+            let metrics_json = serde_json::to_string(&record.metrics)?;
+            let parameters_json = serde_json::to_string(&record.context.parameters)?;
+            let params_hash = params_hash(record.context.parameters.as_value())?;
+            conn.execute(
+                concat!(
+                    "INSERT INTO ", $table, " (",
+                    "tool, tool_version, image_digest, runner, platform, input_hash, params_hash,",
+                    "parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json",
+                    ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)"
+                ),
+                (
+                    &record.context.tool,
+                    &record.context.tool_version,
+                    &record.context.image_digest,
+                    &record.context.runner,
+                    &record.context.platform,
+                    &record.context.input_hash,
+                    params_hash,
+                    parameters_json,
+                    record.metrics.version,
+                    record.execution.runtime_s,
+                    record.execution.memory_mb,
+                    record.execution.exit_code,
+                    metrics_json,
+                ),
+            )?;
+            Ok(())
+        }
+
+        #[allow(clippy::too_many_arguments)]
+        pub fn $fetch_fn(
+            conn: &Connection,
+            tool: &str,
+            tool_version: &str,
+            image_digest: &str,
+            runner: &str,
+            platform: &str,
+            input_hash: &str,
+            params_hash: &str,
+        ) -> Result<Option<BenchmarkRecord<$metric_ty>>> {
+            let mut stmt = conn.prepare(
+                concat!(
+                    "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,",
+                    " parameters_json, runtime_s, memory_mb, exit_code, metrics_json ",
+                    "FROM ", $table, " ",
+                    "WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 ",
+                    "AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7 ",
+                    "ORDER BY record_id DESC, inserted_at DESC LIMIT 1"
+                ),
+            )?;
+            let row = stmt.query_row(
+                params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
+                benchmark_record_from_row::<$metric_ty>,
+            );
+            match row {
+                Ok(record) => Ok(Some(record)),
+                Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+                Err(err) => Err(err.into()),
+            }
+        }
+    };
+}
+
+bench_record_table!(
+    insert_fastq_normalize_primers_v1,
+    fetch_fastq_normalize_primers_v1,
+    "bench_fastq_normalize_primers_v1",
+    FastqNormalizePrimersMetrics
+);
+bench_record_table!(
+    insert_fastq_infer_asvs_v1,
+    fetch_fastq_infer_asvs_v1,
+    "bench_fastq_infer_asvs_v1",
+    FastqInferAsvsMetrics
+);
+bench_record_table!(
+    insert_fastq_normalize_abundance_v1,
+    fetch_fastq_normalize_abundance_v1,
+    "bench_fastq_normalize_abundance_v1",
+    FastqNormalizeAbundanceMetrics
+);
 // Image QA storage in `SQLite`.
 
 /// Insert an image QA record.

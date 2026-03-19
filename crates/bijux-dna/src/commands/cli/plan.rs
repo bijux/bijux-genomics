@@ -5,12 +5,13 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
-    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqMergeArgs,
-    BenchFastqPreprocessArgs, BenchFastqProfileOverrepresentedArgs, BenchFastqQcPostArgs,
-    BenchFastqScreenArgs, BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs,
+    BenchFastqInferAsvsArgs, BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs,
+    BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
+    BenchFastqProfileOverrepresentedArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs,
+    BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
     BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs,
-    DnaCommand, FastqCommand,
-    FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
+    DnaCommand, FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
 #[must_use]
@@ -237,6 +238,57 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> Result<engine_args::Bench
         r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.merge_pairs", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_normalize_primers(
+    args: &BenchFastqNormalizePrimersArgs,
+) -> Result<engine_args::BenchFastqNormalizePrimersArgs> {
+    Ok(engine_args::BenchFastqNormalizePrimersArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.normalize_primers", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_infer_asvs(
+    args: &BenchFastqInferAsvsArgs,
+) -> Result<engine_args::BenchFastqInferAsvsArgs> {
+    Ok(engine_args::BenchFastqInferAsvsArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.infer_asvs", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_normalize_abundance(
+    args: &BenchFastqNormalizeAbundanceArgs,
+) -> Result<engine_args::BenchFastqNormalizeAbundanceArgs> {
+    Ok(engine_args::BenchFastqNormalizeAbundanceArgs {
+        sample_id: args.sample_id.clone(),
+        table: args.table.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.normalize_abundance", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
