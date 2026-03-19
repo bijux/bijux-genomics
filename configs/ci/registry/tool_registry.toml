@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c7bed1c585349a95228c95eb802d146420df0573
+# source_commit: 0ea620e46d043f61df403c81e8ea31f6c6592034
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -444,7 +444,7 @@ smoke_help_cmd = "fastqc --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastqc --help"
 expected_bin = "fastqc"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["adapter_report", "overrepresented_sequences_json", "overrepresented_sequences_tsv"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastqc"

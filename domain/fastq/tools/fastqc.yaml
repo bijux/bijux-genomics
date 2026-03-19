@@ -35,7 +35,10 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.detect_adapters"
   - "fastq.profile_overrepresented_sequences"
-expected_artifacts: ["report_json"]
+expected_artifacts:
+  - "adapter_report"
+  - "overrepresented_sequences_json"
+  - "overrepresented_sequences_tsv"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "fastqc --version"
