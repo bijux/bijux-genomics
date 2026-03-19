@@ -12,14 +12,12 @@ use bijux_dna_core::prelude::hashing::params_hash;
 fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     match stage_id {
         "fastq.trim_reads" => vec![
-            "adapterremoval",
-            "atropos",
+            "alientrimmer",
             "bbduk",
             "cutadapt",
             "fastp",
-            "trimmomatic",
-            "trim_galore",
-            "seqpurge",
+            "fastx_clipper",
+            "seqkit",
         ],
         "fastq.trim_terminal_damage" | "fastq.normalize_primers" => {
             vec!["cutadapt", "seqkit"]
