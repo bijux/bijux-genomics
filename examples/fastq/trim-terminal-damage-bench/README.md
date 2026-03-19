@@ -23,5 +23,6 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_t
 
 ## HPC Run
 - Preferred command:
-  `cargo run -q -p bijux-dna -- bench fastq trim-terminal-damage --sample-id trim-terminal-damage-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --damage-mode ancient --trim-5p-bases 2 --trim-3p-bases 2`
+  `cargo run -q -p bijux-dna -- bench fastq trim-terminal-damage --sample-id trim-terminal-damage-hpc --r1 <reads_R1.fastq.gz> --r2 <reads_R2.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --damage-mode ancient --trim-5p-bases 2 --trim-3p-bases 2`
 - Keep damage-mode and trim-window choices explicit in scheduler submissions so downstream interpretation stays defensible.
+- Single-end datasets may omit `--r2`; paired-end datasets should pass both mates so damage summaries remain mate-aware.
