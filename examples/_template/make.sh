@@ -22,7 +22,7 @@ fi
 [[ $# -eq 1 ]] || { usage >&2; exit 2; }
 example_id="$1"
 
-run_with_artifact_env "$ROOT_DIR/scripts/examples/run.sh" "${example_id}"
+run_with_artifact_env "$ROOT_DIR/scripts/run.sh" examples run "${example_id}"
 
 example_dir="$(find "$ROOT_DIR/examples" -type f -name example.toml -print | while read -r f; do
   if rg -q \"^id\\s*=\\s*\\\"${example_id}\\\"\\s*$\" \"$f\"; then

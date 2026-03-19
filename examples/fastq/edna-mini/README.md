@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic mini eDNA FASTQ path with primer/chimera/OTU/abundance stages enabled.
 
-Canonical invocation: `./scripts/examples/run.sh fastq_edna_mini`
+Canonical invocation: `./scripts/run.sh examples run fastq_edna_mini`
 
 ## Step 1 Containers
 - Ensure image plan is resolved by the runner (`ensure-images --plan`).

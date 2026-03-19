@@ -44,7 +44,7 @@ else
 fi
 
 if [[ "$mode" == "fastq" || "$mode" == "all" ]]; then
-  "$ROOT_DIR/scripts/examples/run.sh" --allow-non-isolate fastq_edna_mini
+  "$ROOT_DIR/scripts/run.sh" examples run --allow-non-isolate fastq_edna_mini
 fi
 if [[ "$mode" == "vcf" || "$mode" == "all" ]]; then
   for ex in \
@@ -52,7 +52,7 @@ if [[ "$mode" == "vcf" || "$mode" == "all" ]]; then
     vcf_downstream_vcf_full_mini \
     vcf_downstream_demography_mini \
     vcf_imputation_mini; do
-    "$ROOT_DIR/scripts/examples/run.sh" --allow-non-isolate "$ex"
+    "$ROOT_DIR/scripts/run.sh" examples run --allow-non-isolate "$ex"
   done
 fi
 if [[ "$mode" == "bam" || "$mode" == "all" ]]; then

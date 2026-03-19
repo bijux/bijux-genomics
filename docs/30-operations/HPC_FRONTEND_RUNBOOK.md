@@ -32,9 +32,9 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 - Enforce host policy via `configs/ci/tools/hpc_frontend_build_policy.toml`.
 
 ## Validation Commands
-1. `./scripts/hpc/validate-frontend-constraints.sh --confirm`
+1. `./scripts/run.sh hpc validate-frontend-constraints --confirm`
 2. `./bijux-dev-dna/containers/apptainer-build-all.sh`
-3. `./scripts/hpc/run-frontend-mini-e2e.sh --confirm`
+3. `./scripts/run.sh hpc run-frontend-mini-e2e --confirm`
 4. `./scripts/run.sh checks check-frontend-mini-artifacts`
 5. `./scripts/run.sh checks check-frontend-observability-proof`
 6. `./scripts/run.sh checks check-frontend-telemetry-sanity`
