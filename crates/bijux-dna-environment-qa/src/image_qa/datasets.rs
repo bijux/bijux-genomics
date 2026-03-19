@@ -6,17 +6,28 @@ use super::support::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 
 use super::{QaDataset, QaStage};
 
+fn fastq_corpus_root() -> PathBuf {
+    std::env::var_os("BIJUX_FASTQ_CORPUS_ROOT")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("artifacts/corpus/fastq"))
+}
+
 pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
-    let canonical = PathBuf::from("scripts/lab/corpus/fastq/canonical");
+    let root = fastq_corpus_root();
+    let canonical = root.join("canonical");
     if canonical.exists() {
         return discover_canonical_datasets(&canonical);
     }
-    let root = PathBuf::from("scripts/lab/corpus/fastq");
     if !root.exists() {
-        return Err(anyhow!("scripts/lab/corpus/fastq not found"));
+        return Err(anyhow!(
+            "FASTQ corpus root not found at {} (set BIJUX_FASTQ_CORPUS_ROOT to override)",
+            root.display()
+        ));
     }
     let mut datasets = Vec::new();
-    for entry in std::fs::read_dir(&root).context("read scripts/lab/corpus/fastq")? {
+    for entry in std::fs::read_dir(&root)
+        .with_context(|| format!("read FASTQ corpus root {}", root.display()))?
+    {
         let entry = entry?;
         let path = entry.path();
         if path.is_dir() {
@@ -72,7 +83,7 @@ pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
     }
 
     if datasets.is_empty() {
-        return Err(anyhow!("no FASTQ files found in scripts/lab/corpus/fastq"));
+        return Err(anyhow!("no FASTQ files found in {}", root.display()));
     }
     Ok(datasets)
 }
@@ -83,7 +94,8 @@ fn discover_canonical_datasets(root: &Path) -> Result<Vec<QaDataset>> {
     let pe_r2 = root.join("BIJUX_PE_R2.fastq.gz");
     if !se.exists() || !pe_r1.exists() || !pe_r2.exists() {
         return Err(anyhow!(
-            "canonical FASTQ dataset missing in scripts/lab/corpus/fastq/canonical"
+            "canonical FASTQ dataset missing in {}",
+            root.display()
         ));
     }
     Ok(vec![
