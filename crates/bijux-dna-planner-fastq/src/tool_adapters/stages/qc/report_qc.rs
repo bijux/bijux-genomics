@@ -29,9 +29,11 @@ pub fn aux_tool_ids() -> &'static [&'static str] {
 pub fn plan_qc_post(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
     aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
     raw_r1: Option<&Path>,
+    raw_r2: Option<&Path>,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     if normalize_qc_post_tool_list(std::slice::from_ref(&tool_id))?.is_empty() {
@@ -39,16 +41,36 @@ pub fn plan_qc_post(
     }
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
-        "input": r1,
+        "input_r1": r1,
+        "input_r2": r2,
         "out_dir": out_dir
     });
     if let Some(raw) = raw_r1 {
         params["raw_r1"] = serde_json::json!(raw);
     }
+    if let Some(raw) = raw_r2 {
+        params["raw_r2"] = serde_json::json!(raw);
+    }
     let effective_params = QcPostEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
         threads: tool.resources.threads,
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
             ArtifactRef::optional(
@@ -76,11 +98,7 @@ pub fn plan_qc_post(
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
+            inputs,
             outputs,
         },
         out_dir: out_dir.to_path_buf(),

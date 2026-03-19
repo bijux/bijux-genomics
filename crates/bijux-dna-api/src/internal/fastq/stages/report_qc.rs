@@ -18,11 +18,10 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_qc_post_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{aux_tool_ids, plan_qc_post};
-use bijux_dna_planner_fastq::stage_api::FastqArtifact;
+use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -45,9 +44,13 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqQcPostMetrics>> {
     let tools = select_qc_post_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_REPORT_QC.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_REPORT_QC.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_REPORT_QC.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -112,7 +115,15 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec(STAGE_REPORT_QC.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_tools.clone(), None)?;
+        let plan = plan_qc_post(
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            aux_tools.clone(),
+            None,
+            None,
+        )?;
         let params_hash =
             params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -179,8 +190,10 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
 struct QcPostBenchInputs {
     runner: RuntimeKind,
     r1: PathBuf,
+    r2: Option<PathBuf>,
     input_hash: String,
     input_stats: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
 }
@@ -223,11 +236,45 @@ fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
         ));
     }
 
+    let (r2, input_stats_r2) = if let Some(r2) = args.r2.as_deref() {
+        let r2 = r2.canonicalize().context("resolve r2 path")?;
+        let r2_dir = r2
+            .parent()
+            .ok_or_else(|| anyhow!("r2 has no parent"))?
+            .to_path_buf();
+        let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
+        let stats_output = execute_observer_command(
+            &seqkit_image.full_name,
+            stats_spec.mount_dir.as_path(),
+            &stats_spec.args,
+            runner,
+        )?;
+        if stats_output.exit_code != 0 {
+            return Err(anyhow!(
+                "seqkit qc observer failed for r2: {}",
+                stats_output.stderr
+            ));
+        }
+        (Some(r2), Some(parse_seqkit_stats(&stats_output.stdout)?))
+    } else {
+        (None, None)
+    };
+
     Ok(QcPostBenchInputs {
         runner,
-        input_hash: hash_file_sha256(&r1).context("hash qc input")?,
+        input_hash: if let Some(r2) = r2.as_ref() {
+            format!(
+                "{}+{}",
+                hash_file_sha256(&r1).context("hash qc input r1")?,
+                hash_file_sha256(r2).context("hash qc input r2")?
+            )
+        } else {
+            hash_file_sha256(&r1).context("hash qc input")?
+        },
         input_stats: parse_seqkit_stats(&stats_output.stdout)?,
+        input_stats_r2,
         r1,
+        r2,
         bench_dir,
         tools_root,
     })
@@ -242,7 +289,11 @@ fn build_qc_post_record(
     out_dir: &Path,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
-    let metrics = derive_qc_post_metrics(&bench_inputs.input_stats, out_dir);
+    let metrics = derive_qc_post_metrics(
+        &bench_inputs.input_stats,
+        bench_inputs.input_stats_r2.as_ref(),
+        out_dir,
+    );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -250,11 +301,14 @@ fn build_qc_post_record(
         "schema_version": "bijux.fastq.report_qc.report.v1",
         "stage_id": STAGE_REPORT_QC.as_str(),
         "tool_id": tool,
-        "input_fastq": bench_inputs.r1,
+        "input_fastq_r1": bench_inputs.r1,
+        "input_fastq_r2": bench_inputs.r2,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "bases_in": metrics.bases_in,
         "bases_out": metrics.bases_out,
+        "pairs_in": metrics.pairs_in,
+        "pairs_out": metrics.pairs_out,
         "mean_q": metrics.mean_q,
         "contamination_rate": metrics.contamination_rate,
         "raw_fastqc_dir": metrics.raw_fastqc_dir,
@@ -297,19 +351,32 @@ fn build_qc_post_record(
     Ok(record)
 }
 
-fn derive_qc_post_metrics(input_stats: &SeqkitMetrics, out_dir: &Path) -> FastqQcPostMetrics {
+fn derive_qc_post_metrics(
+    input_stats: &SeqkitMetrics,
+    input_stats_r2: Option<&SeqkitMetrics>,
+    out_dir: &Path,
+) -> FastqQcPostMetrics {
     let multiqc_report = out_dir.join("multiqc_report.html");
     let multiqc_data = out_dir.join("multiqc_data");
     let raw_fastqc_dir = out_dir.join("fastqc_raw");
     let trimmed_fastqc_dir = out_dir.join("fastqc_trimmed");
+    let reads_in = input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let weighted_q_sum = input_stats.mean_q * input_stats.bases as f64
+        + input_stats_r2.map_or(0.0, |stats| stats.mean_q * stats.bases as f64);
+    let mean_q = if bases_in == 0 {
+        0.0
+    } else {
+        weighted_q_sum / bases_in as f64
+    };
     FastqQcPostMetrics {
-        reads_in: input_stats.reads,
-        reads_out: input_stats.reads,
-        bases_in: input_stats.bases,
-        bases_out: input_stats.bases,
-        pairs_in: None,
-        pairs_out: None,
-        mean_q: input_stats.mean_q,
+        reads_in,
+        reads_out: reads_in,
+        bases_in,
+        bases_out: bases_in,
+        pairs_in: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
+        pairs_out: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
+        mean_q,
         contamination_rate: 0.0,
         raw_fastqc_dir: path_if_exists(&raw_fastqc_dir),
         trimmed_fastqc_dir: path_if_exists(&trimmed_fastqc_dir),

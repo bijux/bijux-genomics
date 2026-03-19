@@ -48,6 +48,7 @@ where
     let mut current_r1 = r1.to_path_buf();
     let raw_r1 = r1.to_path_buf();
     let mut current_r2 = r2.map(|path| path.to_path_buf());
+    let raw_r2 = r2.map(|path| path.to_path_buf());
     let mut current_feature_table: Option<PathBuf> = None;
     let mut plans = Vec::new();
     for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
@@ -285,9 +286,11 @@ where
                 let plan = crate::tool_adapters::fastq::report_qc::plan_qc_post(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                     stage_aux_images,
                     Some(raw_r1.as_path()),
+                    raw_r2.as_deref(),
                 )?;
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
