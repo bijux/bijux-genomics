@@ -12,8 +12,10 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
-use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::RawFailure;
+use bijux_dna_planner_fastq::stage_api::{
+    bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
+    RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -36,8 +38,25 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_stats = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let input_hash = hash_file_sha256(&args.r1)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
+    } else {
+        None
+    };
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?)
+    } else {
+        hash_file_sha256(&args.r1)?
+    };
     let bench_dir_name =
         bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS)
             .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
@@ -68,6 +87,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
             &tool_spec,
             &args.r1,
+            args.r2.as_deref(),
             &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -110,27 +130,42 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         if !plan.io.outputs[0].path.exists() {
             std::fs::copy(&args.r1, &plan.io.outputs[0].path)?;
         }
-        let output_stats = observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
-        let chimeras_removed = input_stats.reads.saturating_sub(output_stats.reads);
-        let chimera_fraction = if input_stats.reads == 0 {
+        let output_r2 = args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone());
+        if let (Some(input_r2), Some(output_r2)) = (args.r2.as_deref(), output_r2.as_deref()) {
+            if !output_r2.exists() {
+                std::fs::copy(input_r2, output_r2)?;
+            }
+        }
+        let metrics_index = if output_r2.is_some() { 2 } else { 1 };
+        let output_stats_r1 =
+            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
+        let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
+            Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
+        } else {
+            None
+        };
+        let reads_in = input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out = output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let chimeras_removed = reads_in.saturating_sub(reads_out);
+        let chimera_fraction = if reads_in == 0 {
             0.0
         } else {
-            chimeras_removed as f64 / input_stats.reads as f64
+            chimeras_removed as f64 / reads_in as f64
         };
-        if !plan.io.outputs[1].path.exists() {
+        if !plan.io.outputs[metrics_index].path.exists() {
             let payload = serde_json::json!({
                 "schema_version": "bijux.fastq.remove_chimeras.v2",
                 "chimera_fraction": chimera_fraction,
                 "chimeras_removed": chimeras_removed,
-                "non_chimera_reads": output_stats.reads,
+                "non_chimera_reads": reads_out,
                 "tool": tool,
                 "used_fallback": true,
             });
-            bijux_dna_infra::atomic_write_json(&plan.io.outputs[1].path, &payload)?;
+            bijux_dna_infra::atomic_write_json(&plan.io.outputs[metrics_index].path, &payload)?;
         }
         let metrics = FastqChimeraMetrics {
-            reads_in: input_stats.reads,
-            reads_out: output_stats.reads,
+            reads_in,
+            reads_out,
             chimeras_removed,
             chimera_fraction,
         };
@@ -139,9 +174,11 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             "schema_version": "bijux.fastq.remove_chimeras.report.v1",
             "stage_id": STAGE_ID,
             "tool_id": tool,
-            "input_fastq": args.r1,
-            "chimera_filtered_reads": plan.io.outputs[0].path,
-            "chimera_metrics_json": plan.io.outputs[1].path,
+            "input_fastq_r1": args.r1,
+            "input_fastq_r2": args.r2,
+            "chimera_filtered_reads_r1": plan.io.outputs[0].path,
+            "chimera_filtered_reads_r2": output_r2,
+            "chimera_metrics_json": plan.io.outputs[metrics_index].path,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
