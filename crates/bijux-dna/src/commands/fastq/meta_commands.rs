@@ -4,14 +4,16 @@ use super::api_bridge::{
 use super::debug_commands::handle_debug_command;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
-    anyhow, atomic_write_bytes, bench_args_correct, bench_args_detect_adapters,
+    anyhow, atomic_write_bytes, bench_args_correct, bench_args_deplete_host,
+    bench_args_deplete_reference_contaminants, bench_args_detect_adapters,
     bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
     bench_args_infer_asvs, bench_args_merge, bench_args_normalize_abundance,
     bench_args_normalize_primers, bench_args_preprocess, bench_args_profile_overrepresented,
     bench_args_profile_read_lengths, bench_args_qc_post, bench_args_remove_chimeras,
     bench_args_remove_duplicates, bench_args_screen, bench_args_stats, bench_args_trim,
     bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
-    bench_args_validate, bench_fastq_correct, bench_fastq_detect_adapters, bench_fastq_filter,
+    bench_args_validate, bench_fastq_correct, bench_fastq_deplete_host,
+    bench_fastq_deplete_reference_contaminants, bench_fastq_detect_adapters, bench_fastq_filter,
     bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
     bench_fastq_merge, bench_fastq_normalize_abundance, bench_fastq_normalize_primers,
     bench_fastq_preprocess, bench_fastq_profile_overrepresented,
@@ -25,7 +27,8 @@ use crate::commands::command_prelude::{
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_chimeras_report, write_correct_report, write_detect_adapters_report,
+    write_chimeras_report, write_correct_report, write_deplete_host_report,
+    write_deplete_reference_contaminants_report, write_detect_adapters_report,
     write_duplicates_report, write_filter_low_complexity_report, write_filter_report,
     write_index_reference_report, write_infer_asvs_report, write_merge_report,
     write_normalize_abundance_report, write_normalize_primers_report,
@@ -1044,6 +1047,40 @@ pub(crate) fn handle_meta_commands(
                         let bench_args = bench_args_screen(args)?;
                         let outcome = bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
                         write_screen_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::DepleteHost(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_deplete_host(args)?;
+                        let outcome =
+                            bench_fastq_deplete_host(&catalog, &platform, None, &bench_args)?;
+                        write_deplete_host_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::DepleteReferenceContaminants(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_deplete_reference_contaminants(args)?;
+                        let outcome = bench_fastq_deplete_reference_contaminants(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_deplete_reference_contaminants_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,
