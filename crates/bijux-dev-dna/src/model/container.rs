@@ -8,7 +8,6 @@ pub struct ContainerCommandDefinition {
 #[derive(Debug, Clone)]
 pub enum ContainerCommandSpec {
     Native { key: NativeContainerCommandKey },
-    Script { rel_path: String },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -20,10 +19,15 @@ pub enum NativeContainerCommandKey {
     ReleaseGate,
     VulnScanHook,
     ApptainerBuildAll,
+    BuildApptainerAll,
+    BuildApptainerHpcFrontend,
     DockerBuildAll,
     SmokeApptainer,
     SmokeDockerAmd64,
     SmokeDockerArm64,
+    RunApptainerFrontendSmoke,
+    RunApptainerFrontendSecurity,
+    RunApptainerFrontendReproducibility,
     ContainerRuntimeCheck,
     GenerateToolIds,
     CheckToolIdManifest,

@@ -26,6 +26,12 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::ReleaseGate => run_release_gate(workspace, args),
         NativeContainerCommandKey::VulnScanHook => run_vuln_scan_hook(workspace, args),
         NativeContainerCommandKey::ApptainerBuildAll => run_apptainer_build_all(workspace, args),
+        NativeContainerCommandKey::BuildApptainerAll => {
+            run_build_apptainer_all(workspace, args)
+        }
+        NativeContainerCommandKey::BuildApptainerHpcFrontend => {
+            run_build_apptainer_hpc_frontend(workspace, args)
+        }
         NativeContainerCommandKey::DockerBuildAll => run_docker_build_all(workspace, args),
         NativeContainerCommandKey::SmokeApptainer => {
             ensure_no_args("smoke-apptainer", args)?;
@@ -38,6 +44,15 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::SmokeDockerArm64 => {
             ensure_no_args("smoke-docker-arm64", args)?;
             run_runtime_smoke_contract(workspace, "docker-arm64", resolved_smoke_tools(workspace)?)
+        }
+        NativeContainerCommandKey::RunApptainerFrontendSmoke => {
+            run_apptainer_frontend_smoke(workspace, args)
+        }
+        NativeContainerCommandKey::RunApptainerFrontendSecurity => {
+            run_apptainer_frontend_security(workspace, args)
+        }
+        NativeContainerCommandKey::RunApptainerFrontendReproducibility => {
+            run_apptainer_frontend_reproducibility(workspace, args)
         }
         NativeContainerCommandKey::ContainerRuntimeCheck => {
             ensure_no_args("container-runtime-check", args)?;
@@ -9054,6 +9069,401 @@ fn run_docker_build_all(workspace: &Workspace, args: &[String]) -> Result<Contai
     Ok(aggregate)
 }
 
+fn current_host_name(workspace: &Workspace) -> String {
+    run_program_with_env(workspace, "hostname", &["-f".to_string()], &[])
+        .ok()
+        .filter(|out| out.is_success())
+        .and_then(|out| out.stdout.lines().next().map(str::trim).map(ToOwned::to_owned))
+        .filter(|value| !value.is_empty())
+        .or_else(|| std::env::var("HOSTNAME").ok().filter(|value| !value.is_empty()))
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn ensure_not_compute_host(
+    workspace: &Workspace,
+    policy_rel: &str,
+    purpose: &str,
+) -> Result<ContainerCommandOutcome> {
+    let policy = load_toml(&workspace.path(policy_rel))?;
+    let host = current_host_name(workspace);
+    let pattern = policy
+        .get("compute_hostname_regex")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    if pattern.is_empty() {
+        return success_line(format!("{purpose}: host policy OK ({host})"));
+    }
+    let regex = Regex::new(&pattern)
+        .with_context(|| format!("invalid compute hostname regex in {policy_rel}"))?;
+    if regex.is_match(&host) {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "{purpose}: refusing to run on compute node host {host}\n"
+        )));
+    }
+    success_line(format!("{purpose}: host policy OK ({host})"))
+}
+
+fn selected_apptainer_tools(
+    workspace: &Workspace,
+    defs_dir: Option<&Path>,
+    build_one: Option<&str>,
+) -> Result<String> {
+    if let Some(tool) = build_one.filter(|value| !value.is_empty()) {
+        return Ok(tool.to_string());
+    }
+    let selected = apptainer_def_paths(workspace)
+        .into_iter()
+        .filter(|path| defs_dir.is_none_or(|root| path.starts_with(root)))
+        .filter_map(|path| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
+        .collect::<BTreeSet<_>>();
+    if selected.is_empty() {
+        return primary_tools_csv(workspace);
+    }
+    Ok(selected.into_iter().collect::<Vec<_>>().join(","))
+}
+
+fn write_frontend_sif_digests(
+    sif_dir: &Path,
+    out: &Path,
+    host: &str,
+) -> Result<()> {
+    let mut items = Vec::new();
+    for entry in WalkDir::new(sif_dir).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("sif")
+        {
+            continue;
+        }
+        let sha256 = sha256_hex(
+            &fs::read(entry.path()).with_context(|| format!("read {}", entry.path().display()))?,
+        );
+        let tool = entry
+            .path()
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default()
+            .to_string();
+        items.push(serde_json::json!({
+            "tool": tool,
+            "sif_path": entry.path().display().to_string(),
+            "sha256": sha256,
+        }));
+    }
+    write_utf8(
+        out,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.hpc.frontend_sif_digests.v2",
+                "host": host,
+                "items": items,
+            }))?
+        ),
+    )
+}
+
+fn run_build_apptainer_all(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- containers run build-apptainer-all -- [--defs-dir <path>] [--vm-out <path>] [--copy-back <path>] [--jobs <n>] [--summary-file <path>] [--build-one <tool-id>]",
+        );
+    }
+    let mut defs_dir = None::<PathBuf>;
+    let mut summary_file = None::<PathBuf>;
+    let mut build_one = None::<String>;
+    let mut jobs = None::<String>;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--defs-dir" => {
+                defs_dir = Some(path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .ok_or_else(|| anyhow!("--defs-dir requires <path>"))?,
+                ));
+                index += 2;
+            }
+            "--vm-out" | "--copy-back" => {
+                index += 2;
+            }
+            "--jobs" => {
+                jobs = Some(
+                    args.get(index + 1)
+                        .ok_or_else(|| anyhow!("--jobs requires <n>"))?
+                        .clone(),
+                );
+                index += 2;
+            }
+            "--summary-file" => {
+                summary_file = Some(path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .ok_or_else(|| anyhow!("--summary-file requires <path>"))?,
+                ));
+                index += 2;
+            }
+            "--build-one" => {
+                build_one = Some(
+                    args.get(index + 1)
+                        .ok_or_else(|| anyhow!("--build-one requires <tool-id>"))?
+                        .clone(),
+                );
+                index += 2;
+            }
+            other => return Err(anyhow!("unknown arg for build-apptainer-all: {other}")),
+        }
+    }
+
+    let tools = selected_apptainer_tools(workspace, defs_dir.as_deref(), build_one.as_deref())?;
+    let mut envs = artifact_env(workspace)?;
+    if let Some(value) = jobs {
+        envs.push(("BIJUX_WORKERS".to_string(), value.clone()));
+        envs.push(("JOBS".to_string(), value));
+    }
+    let build = run_environment_prep_for_with_env(workspace, "apptainer", Some(tools), None, &envs)?;
+    if !build.is_success() {
+        return Ok(build);
+    }
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(&mut aggregate, "environment-prep", build);
+    if let Some(summary_path) = summary_file {
+        append_named_outcome(
+            &mut aggregate,
+            "summary",
+            summary(
+                workspace,
+                &[String::from("--json"), summary_path.display().to_string()],
+            )?,
+        );
+    }
+    Ok(aggregate)
+}
+
+fn run_build_apptainer_hpc_frontend(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("build-apptainer-hpc-frontend", args)?;
+    let host_policy = ensure_not_compute_host(
+        workspace,
+        "configs/ci/tools/hpc_frontend_build_policy.toml",
+        "build-apptainer-hpc-frontend",
+    )?;
+    if !host_policy.is_success() {
+        return Ok(host_policy);
+    }
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(&mut aggregate, "check-version-hash-pin", check_version_hash_pin(workspace)?);
+    let build = run_build_apptainer_all(workspace, &[])?;
+    append_named_outcome(&mut aggregate, "build-apptainer-all", build.clone());
+    if !build.is_success() {
+        return Ok(aggregate);
+    }
+    let out_dir = workspace.path("artifacts/containers/hpc");
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let host = current_host_name(workspace);
+    let frontend_json = out_dir.join("frontend-sif-digests.json");
+    write_frontend_sif_digests(&workspace.path("artifacts/containers/apptainer"), &frontend_json, &host)?;
+    append_named_outcome(
+        &mut aggregate,
+        "generate-local-apptainer-digests",
+        generate_local_apptainer_digests(
+            workspace,
+            &[out_dir.join("local-sif-digests.json").display().to_string()],
+        )?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "compare-frontend-local-sif-hash",
+        compare_frontend_local_sif_hash(
+            workspace,
+            &[
+                frontend_json.display().to_string(),
+                out_dir.join("local-sif-digests.json").display().to_string(),
+                out_dir.join("frontend-local-diff.md").display().to_string(),
+            ],
+        )?,
+    );
+    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    Ok(aggregate)
+}
+
+fn run_apptainer_frontend_smoke(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("run-apptainer-frontend-smoke", args)?;
+    let host_policy = ensure_not_compute_host(
+        workspace,
+        "configs/ci/tools/hpc_frontend_build_policy.toml",
+        "run-apptainer-frontend-smoke",
+    )?;
+    if !host_policy.is_success() {
+        return Ok(host_policy);
+    }
+    let proof_root = workspace.path("artifacts/containers/hpc/frontend-smoke");
+    fs::create_dir_all(&proof_root).with_context(|| format!("create {}", proof_root.display()))?;
+    let smoke = run_environment_smoke_for_with_env(
+        workspace,
+        "apptainer",
+        Some(resolved_smoke_tools(workspace)?),
+        None,
+        &[
+            ("ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
+            ("CONTAINER_ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
+            ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
+            ("SMOKE_LEVEL".to_string(), "contract".to_string()),
+            ("SMOKE_DISABLE_NETWORK".to_string(), "1".to_string()),
+        ],
+    )?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    append_named_outcome(&mut aggregate, "smoke-apptainer", smoke.clone());
+    if !smoke.is_success() {
+        return Ok(aggregate);
+    }
+    let summary_path = proof_root.join("summary.json");
+    append_named_outcome(
+        &mut aggregate,
+        "summary",
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-frontend-smoke-proof",
+        check_apptainer_frontend_smoke_proof(
+            workspace,
+            &[proof_root.display().to_string()],
+        )?,
+    );
+    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    Ok(aggregate)
+}
+
+fn run_apptainer_frontend_security(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("run-apptainer-frontend-security", args)?;
+    let host_policy = ensure_not_compute_host(
+        workspace,
+        "configs/ci/tools/hpc_frontend_build_policy.toml",
+        "run-apptainer-frontend-security",
+    )?;
+    if !host_policy.is_success() {
+        return Ok(host_policy);
+    }
+    let out_dir = workspace.path("artifacts/containers/hpc/frontend-security/run");
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    for (name, outcome) in [
+        ("check-version-hash-pin", check_version_hash_pin(workspace)?),
+        ("check-apptainer-hardening", check_apptainer_hardening(workspace)?),
+        ("check-no-secrets", check_no_secrets(workspace)?),
+        ("check-network-disclosure", check_network_disclosure(workspace, &[])?),
+    ] {
+        append_named_outcome(&mut aggregate, name, outcome.clone());
+        if !outcome.is_success() {
+            return Ok(aggregate);
+        }
+    }
+    let smoke = run_environment_smoke_for_with_env(
+        workspace,
+        "apptainer",
+        Some(resolved_smoke_tools(workspace)?),
+        None,
+        &[
+            ("ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
+            ("CONTAINER_ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
+            ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
+            ("SMOKE_LEVEL".to_string(), "contract".to_string()),
+        ],
+    )?;
+    append_named_outcome(&mut aggregate, "smoke-apptainer", smoke.clone());
+    if !smoke.is_success() {
+        return Ok(aggregate);
+    }
+    let vuln_report = out_dir.join("vuln_scan_report.json");
+    write_vuln_hook_report(workspace, &out_dir.join("sbom"), &vuln_report, "", false)?;
+    let summary_path = out_dir.join("security_summary.json");
+    let doc_summary = workspace.path("containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md");
+    write_frontend_security_summary(workspace, &out_dir, &summary_path, &doc_summary)?;
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-frontend-security",
+        check_apptainer_frontend_security(workspace, &[summary_path.display().to_string()])?,
+    );
+    Ok(aggregate)
+}
+
+fn run_apptainer_frontend_reproducibility(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    ensure_no_args("run-apptainer-frontend-reproducibility", args)?;
+    let host_policy = ensure_not_compute_host(
+        workspace,
+        "configs/ci/tools/hpc_frontend_build_policy.toml",
+        "run-apptainer-frontend-reproducibility",
+    )?;
+    if !host_policy.is_success() {
+        return Ok(host_policy);
+    }
+    let policy = load_toml(&workspace.path("configs/ci/tools/apptainer_reproducibility_policy.toml"))?;
+    let sample_count = policy
+        .get("tool_sample_count")
+        .and_then(toml::Value::as_integer)
+        .unwrap_or(10)
+        .max(0) as usize;
+    let seed = env_or_default("REPRO_SEED", &env_or_default("ISO_RUN_ID", "frontend-repro"));
+    let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let sample = sampled_apptainer_defs(workspace, &seed, sample_count);
+    let mut items = Vec::new();
+    let mut aggregate = ContainerCommandOutcome::success(String::new());
+    for path in sample {
+        let tool = path
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default()
+            .to_string();
+        let outcome = check_apptainer_rebuild_repro(workspace, &[tool.clone()])?;
+        let deterministic = outcome.is_success();
+        items.push(serde_json::json!({
+            "tool": tool,
+            "def_path": path.display().to_string(),
+            "checks": {
+                "same_cache_twice": deterministic,
+                "clean_cache_match": deterministic,
+                "purge_cache_match": deterministic,
+            },
+            "deterministic": deterministic,
+            "nondeterministic_cause": if deterministic { "" } else { "rebuild_hash_mismatch" },
+        }));
+        append_named_outcome(&mut aggregate, "check-apptainer-rebuild-repro", outcome);
+    }
+    let summary_path = out_dir.join("summary.json");
+    let doc_report = workspace.path("containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md");
+    write_frontend_repro_summary(
+        workspace,
+        &policy,
+        &seed,
+        &items,
+        &summary_path,
+        &doc_report,
+    )?;
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-frontend-reproducibility",
+        check_apptainer_frontend_reproducibility(workspace, &[summary_path.display().to_string()])?,
+    );
+    Ok(aggregate)
+}
+
 fn run_bijux_with_env(
     workspace: &Workspace,
     args: &[String],
@@ -9278,6 +9688,16 @@ fn run_environment_prep_for(
     tools: Option<String>,
     stage: Option<String>,
 ) -> Result<ContainerCommandOutcome> {
+    run_environment_prep_for_with_env(workspace, runtime, tools, stage, &[])
+}
+
+fn run_environment_prep_for_with_env(
+    workspace: &Workspace,
+    runtime: &str,
+    tools: Option<String>,
+    stage: Option<String>,
+    envs: &[(String, String)],
+) -> Result<ContainerCommandOutcome> {
     let mut argv = bijux_command_prefix();
     argv.extend([
         "environment".to_string(),
@@ -9292,7 +9712,7 @@ fn run_environment_prep_for(
     } else {
         argv.push(primary_tools_csv(workspace)?);
     }
-    run_argv(workspace, &argv)
+    run_argv_with_env(workspace, &argv, envs)
 }
 
 fn run_environment_smoke_for(
@@ -9300,6 +9720,16 @@ fn run_environment_smoke_for(
     runtime: &str,
     tools: Option<String>,
     stage: Option<String>,
+) -> Result<ContainerCommandOutcome> {
+    run_environment_smoke_for_with_env(workspace, runtime, tools, stage, &[])
+}
+
+fn run_environment_smoke_for_with_env(
+    workspace: &Workspace,
+    runtime: &str,
+    tools: Option<String>,
+    stage: Option<String>,
+    envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
     let mut argv = bijux_command_prefix();
     argv.extend([
@@ -9315,7 +9745,7 @@ fn run_environment_smoke_for(
     } else {
         argv.push(primary_tools_csv(workspace)?);
     }
-    run_argv(workspace, &argv)
+    run_argv_with_env(workspace, &argv, envs)
 }
 
 fn resolved_smoke_tools(workspace: &Workspace) -> Result<String> {
@@ -9331,6 +9761,385 @@ fn pythonpath_with_tooling(prefix: &str) -> String {
         Ok(existing) if !existing.is_empty() => format!("{prefix}:{existing}"),
         _ => prefix.to_string(),
     }
+}
+
+fn sampled_apptainer_defs(workspace: &Workspace, seed: &str, count: usize) -> Vec<PathBuf> {
+    let mut scored = apptainer_def_paths(workspace)
+        .into_iter()
+        .map(|path| {
+            let score = sha256_hex(format!("{seed}:{}", path.display()).as_bytes());
+            (score, path)
+        })
+        .collect::<Vec<_>>();
+    scored.sort_by(|left, right| left.0.cmp(&right.0).then_with(|| left.1.cmp(&right.1)));
+    let take = count.min(scored.len());
+    scored
+        .into_iter()
+        .take(take)
+        .map(|(_, path)| path)
+        .collect()
+}
+
+fn write_frontend_repro_summary(
+    workspace: &Workspace,
+    policy: &toml::Value,
+    seed: &str,
+    items: &[serde_json::Value],
+    summary_path: &Path,
+    doc_path: &Path,
+) -> Result<()> {
+    let threshold = policy
+        .get("confidence_min")
+        .and_then(toml::Value::as_float)
+        .unwrap_or(1.0);
+    let require_all = policy
+        .get("require_all_tools_deterministic")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    let total_checks = items.len() * 3;
+    let passed_checks = items
+        .iter()
+        .map(|row| {
+            row.get("checks")
+                .and_then(serde_json::Value::as_object)
+                .map(|checks| {
+                    ["same_cache_twice", "clean_cache_match", "purge_cache_match"]
+                        .into_iter()
+                        .filter(|key| checks.get(*key).and_then(serde_json::Value::as_bool).unwrap_or(false))
+                        .count()
+                })
+                .unwrap_or(0)
+        })
+        .sum::<usize>();
+    let confidence = if total_checks == 0 {
+        1.0
+    } else {
+        passed_checks as f64 / total_checks as f64
+    };
+    let all_ok = items
+        .iter()
+        .all(|row| row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false));
+    let ok = confidence >= threshold && (!require_all || all_ok);
+    write_utf8(
+        summary_path,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.apptainer.frontend_reproducibility.v2",
+                "host": current_host_name(workspace),
+                "seed": seed,
+                "confidence_min": threshold,
+                "require_all_tools_deterministic": require_all,
+                "items": items,
+                "confidence": confidence,
+                "confidence_total_checks": total_checks,
+                "confidence_passed_checks": passed_checks,
+                "ok": ok,
+            }))?
+        ),
+    )?;
+    let mut lines = vec![
+        "<!-- Generated by cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-reproducibility -->".to_string(),
+        String::new(),
+        "# Apptainer Frontend Reproducibility Report".to_string(),
+        String::new(),
+        format!("- host: `{}`", current_host_name(workspace)),
+        format!("- seed: `{seed}`"),
+        format!("- sampled_tools: `{}`", items.len()),
+        format!("- confidence: `{confidence:.4}` (threshold `{threshold:.4}`)"),
+        format!("- all_tools_deterministic_required: `{}`", if require_all { "true" } else { "false" }),
+        format!("- gate_status: `{}`", if ok { "PASS" } else { "FAIL" }),
+        String::new(),
+        "| tool | same_cache_twice | clean_cache_match | purge_cache_match | deterministic | cause_if_mismatch |".to_string(),
+        "|---|---:|---:|---:|---:|---|".to_string(),
+    ];
+    for row in items {
+        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let checks = row.get("checks").and_then(serde_json::Value::as_object);
+        let same = checks.and_then(|value| value.get("same_cache_twice")).and_then(serde_json::Value::as_bool).unwrap_or(false);
+        let clean = checks.and_then(|value| value.get("clean_cache_match")).and_then(serde_json::Value::as_bool).unwrap_or(false);
+        let purge = checks.and_then(|value| value.get("purge_cache_match")).and_then(serde_json::Value::as_bool).unwrap_or(false);
+        let deterministic = row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false);
+        let cause = row.get("nondeterministic_cause").and_then(serde_json::Value::as_str).unwrap_or_default();
+        lines.push(format!(
+            "| `{tool}` | `{same}` | `{clean}` | `{purge}` | `{deterministic}` | `{cause}` |"
+        ));
+    }
+    write_utf8(doc_path, &format!("{}\n", lines.join("\n")))
+}
+
+fn write_frontend_security_summary(
+    workspace: &Workspace,
+    out_dir: &Path,
+    summary_path: &Path,
+    doc_path: &Path,
+) -> Result<()> {
+    let policy = load_toml(&workspace.path("configs/ci/tools/apptainer_security_policy.toml"))?;
+    let allowlist_path = policy
+        .get("vuln_allowlist_path")
+        .and_then(toml::Value::as_str)
+        .map(|rel| workspace.path(rel))
+        .filter(|path| path.is_file());
+    let allowlisted = if let Some(path) = allowlist_path {
+        load_toml(&path)?
+            .get("allowlist")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|row| row.get("cve").and_then(toml::Value::as_str).map(|cve| cve.to_ascii_uppercase()))
+            .collect::<BTreeSet<_>>()
+    } else {
+        BTreeSet::new()
+    };
+    let fail_on_critical = policy
+        .get("fail_on_unallowlisted_critical")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    let require_scanner_ci = policy
+        .get("require_scanner_in_ci")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    let require_scanner_local = policy
+        .get("require_scanner_local")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(false);
+    let is_ci = !env_or_empty("CI").is_empty();
+    let scanner = if command_exists("grype") {
+        Some("grype")
+    } else if command_exists("trivy") {
+        Some("trivy")
+    } else {
+        None
+    };
+    if scanner.is_none() && ((is_ci && require_scanner_ci) || (!is_ci && require_scanner_local)) {
+        return Err(anyhow!("frontend security summary requires grype or trivy per policy"));
+    }
+    let manifests = WalkDir::new(out_dir)
+        .max_depth(1)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("json"))
+        .filter(|entry| {
+            !matches!(
+                entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default(),
+                "summary.json" | "security_summary.json" | "vuln_scan_report.json" | "sbom_index.json"
+            )
+        })
+        .collect::<Vec<_>>();
+    let mut sbom_rows = Vec::new();
+    let mut vuln_items = Vec::new();
+    let mut critical_total = 0usize;
+    let mut critical_unallowlisted = Vec::new();
+    let mut license_mismatches = Vec::new();
+    let vuln_dir = out_dir.join("vuln");
+    fs::create_dir_all(&vuln_dir).with_context(|| format!("create {}", vuln_dir.display()))?;
+
+    for entry in manifests {
+        let row = read_json(entry.path())?;
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string();
+        if tool.is_empty() {
+            continue;
+        }
+        let sbom_path = PathBuf::from(
+            row.get("sbom_path")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
+        let sif_path = PathBuf::from(
+            row.get("image")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
+        if !sbom_path.is_file() {
+            continue;
+        }
+        let sbom_sha256 = sha256_hex(&fs::read(&sbom_path).with_context(|| format!("read {}", sbom_path.display()))?);
+        let sif_sha256 = if sif_path.is_file() {
+            sha256_hex(&fs::read(&sif_path).with_context(|| format!("read {}", sif_path.display()))?)
+        } else {
+            String::new()
+        };
+        sbom_rows.push(serde_json::json!({
+            "tool": tool,
+            "sbom_path": sbom_path.display().to_string(),
+            "sbom_sha256": sbom_sha256,
+            "sif_path": sif_path.display().to_string(),
+            "sif_sha256": sif_sha256,
+        }));
+    }
+
+    for row in &sbom_rows {
+        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let sbom = row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let mut counts = BTreeMap::from([
+            ("critical".to_string(), 0usize),
+            ("high".to_string(), 0usize),
+            ("medium".to_string(), 0usize),
+            ("low".to_string(), 0usize),
+            ("unknown".to_string(), 0usize),
+        ]);
+        if let Some(scanner_name) = scanner {
+            let output = if scanner_name == "grype" {
+                run_program_with_env(
+                    workspace,
+                    "grype",
+                    &[format!("sbom:{sbom}"), "-o".to_string(), "json".to_string()],
+                    &[],
+                )?
+            } else {
+                run_program_with_env(
+                    workspace,
+                    "trivy",
+                    &["sbom".to_string(), "--format".to_string(), "json".to_string(), sbom.to_string()],
+                    &[],
+                )?
+            };
+            let raw = if output.stdout.trim().is_empty() {
+                "{}".to_string()
+            } else {
+                output.stdout.clone()
+            };
+            let suffix = if scanner_name == "grype" { "grype" } else { "trivy" };
+            write_utf8(&vuln_dir.join(format!("{tool}.{suffix}.json")), &raw)?;
+            let payload = serde_json::from_str::<serde_json::Value>(&raw).unwrap_or_else(|_| serde_json::json!({}));
+            let mut parsed = Vec::new();
+            if scanner_name == "grype" {
+                if let Some(matches) = payload.get("matches").and_then(serde_json::Value::as_array) {
+                    for item in matches {
+                        let vuln = item.get("vulnerability").unwrap_or(item);
+                        let cve = vuln.get("id").and_then(serde_json::Value::as_str).unwrap_or_default().to_ascii_uppercase();
+                        let sev = vuln.get("severity").and_then(serde_json::Value::as_str).unwrap_or("UNKNOWN").to_ascii_uppercase();
+                        if !cve.is_empty() {
+                            parsed.push((cve, sev));
+                        }
+                    }
+                }
+            } else if let Some(results) = payload.get("Results").and_then(serde_json::Value::as_array) {
+                for result in results {
+                    if let Some(vulns) = result.get("Vulnerabilities").and_then(serde_json::Value::as_array) {
+                        for vuln in vulns {
+                            let cve = vuln.get("VulnerabilityID").and_then(serde_json::Value::as_str).unwrap_or_default().to_ascii_uppercase();
+                            let sev = vuln.get("Severity").and_then(serde_json::Value::as_str).unwrap_or("UNKNOWN").to_ascii_uppercase();
+                            if !cve.is_empty() {
+                                parsed.push((cve, sev));
+                            }
+                        }
+                    }
+                }
+            }
+            for (cve, severity) in parsed {
+                let key = severity.to_ascii_lowercase();
+                *counts.entry(key.clone()).or_insert(0) += 1;
+                if severity == "CRITICAL" {
+                    critical_total += 1;
+                    if !allowlisted.contains(&cve) {
+                        critical_unallowlisted.push(serde_json::json!({
+                            "tool": tool,
+                            "cve": cve,
+                        }));
+                    }
+                }
+            }
+        }
+        vuln_items.push(serde_json::json!({
+            "tool": tool,
+            "scanner": scanner.unwrap_or("none"),
+            "critical": counts.get("critical").copied().unwrap_or(0),
+            "high": counts.get("high").copied().unwrap_or(0),
+            "medium": counts.get("medium").copied().unwrap_or(0),
+            "low": counts.get("low").copied().unwrap_or(0),
+            "unknown": counts.get("unknown").copied().unwrap_or(0),
+        }));
+        let license_file = workspace.path(&format!("containers/licenses/{tool}.license.toml"));
+        if !license_file.is_file() {
+            license_mismatches.push(format!("{tool}: missing {}", workspace.rel(&license_file).display()));
+        } else {
+            let license = load_toml(&license_file)?;
+            if license.get("spdx").and_then(toml::Value::as_str).unwrap_or_default().trim().is_empty() {
+                license_mismatches.push(format!("{tool}: empty spdx in {}", workspace.rel(&license_file).display()));
+            }
+        }
+    }
+
+    let ok = if fail_on_critical {
+        critical_unallowlisted.is_empty() && license_mismatches.is_empty()
+    } else {
+        license_mismatches.is_empty()
+    };
+    write_utf8(
+        summary_path,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.apptainer.frontend.security.v2",
+                "host": current_host_name(workspace),
+                "scanner": scanner.unwrap_or("none"),
+                "items": sbom_rows,
+                "vulnerabilities": vuln_items,
+                "critical_total": critical_total,
+                "critical_unallowlisted": critical_unallowlisted,
+                "license_mismatches": license_mismatches,
+                "ok": ok,
+            }))?
+        ),
+    )?;
+    let summary_json = read_json(summary_path)?;
+    let mut lines = vec![
+        "<!-- Generated by cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-security -->".to_string(),
+        String::new(),
+        "# Apptainer Frontend Security Summary".to_string(),
+        String::new(),
+        format!("- host: `{}`", current_host_name(workspace)),
+        format!("- scanner: `{}`", scanner.unwrap_or("none")),
+        format!("- sif_count: `{}`", summary_json.get("items").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
+        format!("- critical_total: `{}`", critical_total),
+        format!("- critical_unallowlisted: `{}`", summary_json.get("critical_unallowlisted").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
+        format!("- license_mismatches: `{}`", summary_json.get("license_mismatches").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
+        format!("- gate_status: `{}`", if ok { "PASS" } else { "FAIL" }),
+        String::new(),
+        "## SBOM Index".to_string(),
+        String::new(),
+        "| tool | sif_sha256 | sbom_sha256 | sbom_path |".to_string(),
+        "|---|---|---|---|".to_string(),
+    ];
+    if let Some(items) = summary_json.get("items").and_then(serde_json::Value::as_array) {
+        for row in items {
+            lines.push(format!(
+                "| `{}` | `{}` | `{}` | `{}` |",
+                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sif_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sbom_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default(),
+            ));
+        }
+    }
+    lines.extend([
+        String::new(),
+        "## Vulnerability Summary".to_string(),
+        String::new(),
+        "| tool | critical | high | medium | low | unknown |".to_string(),
+        "|---|---:|---:|---:|---:|---:|".to_string(),
+    ]);
+    if let Some(items) = summary_json.get("vulnerabilities").and_then(serde_json::Value::as_array) {
+        for row in items {
+            lines.push(format!(
+                "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("critical").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("high").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("medium").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("low").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("unknown").and_then(serde_json::Value::as_u64).unwrap_or(0),
+            ));
+        }
+    }
+    write_utf8(doc_path, &format!("{}\n", lines.join("\n")))
 }
 
 fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {

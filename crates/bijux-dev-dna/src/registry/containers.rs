@@ -1,14 +1,10 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::script_catalog::load_supported_scripts;
 use crate::infrastructure::workspace::Workspace;
-use crate::model::container::{
-    ContainerCommandDefinition, ContainerCommandSpec, NativeContainerCommandKey,
-};
+use crate::model::container::{ContainerCommandDefinition, ContainerCommandSpec, NativeContainerCommandKey};
 
-pub fn container_registry(workspace: &Workspace) -> Result<Vec<ContainerCommandDefinition>> {
+pub fn container_registry(_workspace: &Workspace) -> Result<Vec<ContainerCommandDefinition>> {
     let mut commands = native_container_commands();
-    commands.extend(script_container_commands(workspace)?);
     commands.sort_by(|left, right| left.id.cmp(&right.id));
 
     for pair in commands.windows(2) {
@@ -58,6 +54,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ApptainerBuildAll,
         ),
         native(
+            "build-apptainer-all",
+            "Build the selected apptainer definitions through the native environment surface.",
+            NativeContainerCommandKey::BuildApptainerAll,
+        ),
+        native(
+            "build-apptainer-hpc-frontend",
+            "Build and compare frontend apptainer artifacts through the native workflow.",
+            NativeContainerCommandKey::BuildApptainerHpcFrontend,
+        ),
+        native(
             "docker-build-all",
             "Run the docker-arm64 build-and-proof workflow.",
             NativeContainerCommandKey::DockerBuildAll,
@@ -76,6 +82,21 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             "smoke-docker-arm64",
             "Run the docker-arm64 smoke surface.",
             NativeContainerCommandKey::SmokeDockerArm64,
+        ),
+        native(
+            "run-apptainer-frontend-smoke",
+            "Run the frontend apptainer smoke proof workflow.",
+            NativeContainerCommandKey::RunApptainerFrontendSmoke,
+        ),
+        native(
+            "run-apptainer-frontend-security",
+            "Run the frontend apptainer security workflow.",
+            NativeContainerCommandKey::RunApptainerFrontendSecurity,
+        ),
+        native(
+            "run-apptainer-frontend-reproducibility",
+            "Run the frontend apptainer reproducibility workflow.",
+            NativeContainerCommandKey::RunApptainerFrontendReproducibility,
         ),
         native(
             "container-runtime-check",
@@ -688,45 +709,6 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ApptainerEnsureStage,
         ),
     ]
-}
-
-fn script_container_commands(workspace: &Workspace) -> Result<Vec<ContainerCommandDefinition>> {
-    let mut commands = Vec::new();
-    let native_ids = native_container_commands()
-        .into_iter()
-        .map(|command| command.id)
-        .collect::<std::collections::BTreeSet<_>>();
-    for entry in load_supported_scripts(workspace)? {
-        if !entry.path.starts_with("bijux-dev-dna/containers/") || !entry.path.ends_with(".sh") {
-            continue;
-        }
-        if entry.path == "bijux-dev-dna/containers/make.sh" {
-            continue;
-        }
-        let id = entry
-            .path
-            .rsplit('/')
-            .next()
-            .and_then(|name| name.strip_suffix(".sh"))
-            .ok_or_else(|| anyhow!("unsupported container script path `{}`", entry.path))?;
-        if native_ids.contains(id) {
-            continue;
-        }
-        let canonical_path = format!("bijux-dev-dna/containers/{id}.sh");
-        let rel_path = if workspace.path(&canonical_path).is_file() {
-            canonical_path
-        } else {
-            entry.path.clone()
-        };
-        commands.push(ContainerCommandDefinition {
-            id: id.to_string(),
-            summary: format!("Run `{}`.", rel_path),
-            command: ContainerCommandSpec::Script {
-                rel_path,
-            },
-        });
-    }
-    Ok(commands)
 }
 
 fn native(
