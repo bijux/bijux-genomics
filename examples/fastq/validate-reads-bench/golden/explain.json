@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_validate_reads_bench",
+  "explain": "Deterministic validation benchmark with strict-mode policy held constant across validator backends."
+}

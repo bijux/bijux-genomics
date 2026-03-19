@@ -29,3 +29,6 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_v
 1. `cargo run -q -p bijux-dev-dna -- hpc run validate-frontend-constraints --confirm`
 2. `cargo run -q -p bijux-dev-dna -- examples run run fastq_validate_reads_bench`
 3. Collect outputs under `artifacts/examples/fastq_validate_reads_bench/`
+
+Preferred direct benchmark command:
+`cargo run -q -p bijux-dna -- bench fastq validate-reads --sample-id validate-reads-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --strict --replicates 3 --jobs 8`

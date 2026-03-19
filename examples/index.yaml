@@ -161,6 +161,14 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/report-qc-bench
+  - id: fastq_screen_taxonomy_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/screen-taxonomy-bench
   - id: fastq_trim_polyg_tails_bench
     domain: fastq
     corpus_required: corpus-01-mini
