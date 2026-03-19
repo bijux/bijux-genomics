@@ -13,9 +13,11 @@ stage_ids:
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts:
+  - "host_depleted_reads"
+  - "contaminant_screened_reads"
   - "report_json"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "bowtie2 --version"
 help_cmd: "bowtie2 --help"
 comparability:

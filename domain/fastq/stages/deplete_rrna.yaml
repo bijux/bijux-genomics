@@ -11,6 +11,12 @@ outputs:
   - name: "rrna_filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "rrna_report_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "rrna_report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "rrna_db"
     param_type: "path"
@@ -38,6 +44,8 @@ required_inputs:
   - "reads"
 required_outputs:
   - "rrna_filtered_reads"
+  - "rrna_report_tsv"
+  - "rrna_report_json"
 tool_capability_requirements:
   - "rrna_classification"
 invariants:
@@ -49,7 +57,7 @@ compatible_tools:
   - sortmerna
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "rRNA reference bank is versioned separately from host and taxonomy databases."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
