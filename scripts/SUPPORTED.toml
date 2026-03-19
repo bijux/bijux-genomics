@@ -145,48 +145,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "generate_docs_graph"
-path = "scripts/tooling/generate-docs-graph.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_docs"
-path = "scripts/tooling/generate-docs.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_compatibility_matrix"
-path = "scripts/tooling/generate-compatibility-matrix.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "generate_policy_index"
 path = "scripts/tooling/generate-policy-index.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_repo_root_map"
-path = "scripts/tooling/generate-repo-root-map.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_tool_index"
-path = "scripts/tooling/generate-tool-index.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -236,14 +196,6 @@ ci_allowed = false
 id = "tooling_make"
 path = "scripts/tooling/make.sh"
 purpose = "tooling group dispatcher"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "generate_domain_coverage_doc"
-path = "scripts/tooling/generate-domain-coverage-doc.sh"
-purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
