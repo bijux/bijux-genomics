@@ -9,14 +9,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "benchmarks"
-path = "scripts/tooling/benchmarks.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "cargo_targets"
 path = "scripts/tooling/cargo-targets.sh"
 purpose = "tooling script"
@@ -155,22 +147,6 @@ ci_allowed = true
 [[script]]
 id = "ci_slow"
 path = "scripts/tooling/ci-slow.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "benchmark_integrity_mini"
-path = "scripts/tooling/benchmark-integrity-mini.sh"
-purpose = "tooling script"
-inputs = ["assets/toy/core-v1/fastq/reads_1.fastq", "configs/bench/knobs.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "validate_frontend_mini_domain_stacks"
-path = "scripts/tooling/validate-frontend-mini-domain-stacks.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
