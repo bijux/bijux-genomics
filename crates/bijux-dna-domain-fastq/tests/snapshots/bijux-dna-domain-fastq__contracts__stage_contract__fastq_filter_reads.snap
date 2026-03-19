@@ -52,6 +52,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "tool_ids": [
     "bbduk",
     "fastp",
+    "prinseq",
     "seqkit"
   ]
 }
