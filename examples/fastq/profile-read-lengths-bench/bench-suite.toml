@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-profile-read-lengths-01"
+domain = "fastq"
+stages = ["fastq.profile_read_lengths"]

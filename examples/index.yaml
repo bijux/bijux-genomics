@@ -113,6 +113,22 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/profile-overrepresented-sequences-bench
+  - id: fastq_profile_read_lengths_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/profile-read-lengths-bench
+  - id: fastq_profile_reads_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/profile-reads-bench
   - id: fastq_qc_pre_bench
     domain: fastq
     corpus_required: corpus-01-mini
@@ -121,6 +137,22 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: fastq_remove_chimeras_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/remove-chimeras-bench
+  - id: fastq_remove_duplicates_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/remove-duplicates-bench
   - id: fastq_report_qc_bench
     domain: fastq
     corpus_required: corpus-01-mini
