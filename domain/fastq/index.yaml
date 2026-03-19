@@ -350,17 +350,190 @@ stage_completeness_checklist:
   - fixtures_present
   - compatible_tools_declared
 stage_default_settings:
+  fastq.cluster_otus:
+    vsearch:
+      profile: adna_sane_default
+      notes: amplicon clustering preset for stable OTU centroids
+  fastq.correct_errors:
+    rcorrector:
+      profile: adna_sane_default
+      notes: kmer correction baseline preset
+    musket:
+      profile: adna_sane_default
+      notes: multistage short-read correction preset
+    lighter:
+      profile: adna_sane_default
+      notes: sampling-based correction preset
+    bayeshammer:
+      profile: adna_sane_default
+      notes: bayesian short-read correction preset
+  fastq.deplete_host:
+    bowtie2:
+      profile: adna_sane_default
+      notes: host mapping depletion preset with unmapped-read retention
+  fastq.deplete_reference_contaminants:
+    bowtie2:
+      profile: adna_sane_default
+      notes: reference contaminant depletion preset for decoy references
+  fastq.deplete_rrna:
+    sortmerna:
+      profile: adna_sane_default
+      notes: rRNA rejection preset for metatranscriptomic screening
+  fastq.detect_adapters:
+    fastqc:
+      profile: adna_sane_default
+      notes: adapter-content reporting preset without read mutation
+  fastq.extract_umis:
+    umi_tools:
+      profile: adna_sane_default
+      notes: UMI extraction preset with barcode-pattern-aware header propagation
+  fastq.filter_low_complexity:
+    dustmasker:
+      profile: adna_sane_default
+      notes: DUST-based complexity masking preset
+    prinseq:
+      profile: adna_sane_default
+      notes: sequence-complexity filtering preset
+    bbduk:
+      profile: adna_sane_default
+      notes: entropy and homopolymer filtering preset
+    fastp:
+      profile: adna_sane_default
+      notes: single-pass low-complexity filtering preset
+  fastq.filter_reads:
+    fastp:
+      profile: adna_sane_default
+      notes: quality and length filtering baseline preset
+    seqkit:
+      profile: adna_sane_default
+      notes: stream-safe FASTQ filtering preset
+    prinseq:
+      profile: adna_sane_default
+      notes: rule-based quality filtering preset
+    bbduk:
+      profile: adna_sane_default
+      notes: kmer and quality filtering preset
   fastq.index_reference:
     star:
       profile: adna_sane_default
-      notes: high-specificity reference indexing preset
+      notes: splice-aware reference indexing preset
     samtools:
       profile: adna_sane_default
-      notes: deterministic reference helper preset
-  fastq.detect_adapters:
+      notes: FASTA index helper preset
+    bwa-mem2:
+      profile: adna_sane_default
+      notes: BWA-MEM2 reference indexing preset
+    bowtie2-build:
+      profile: adna_sane_default
+      notes: Bowtie2 host-screen index preset
+    minimap2:
+      profile: adna_sane_default
+      notes: minimap2 reference sketch preset
+    hisat2-build:
+      profile: adna_sane_default
+      notes: HISAT2 reference index preset
+  fastq.infer_asvs:
+    dada2:
+      profile: adna_sane_default
+      notes: amplicon denoising preset for ASV inference
+  fastq.merge_pairs:
+    pear:
+      profile: adna_sane_default
+      notes: overlap merge baseline preset
+    vsearch:
+      profile: adna_sane_default
+      notes: merge alternative preset
+    bbmerge:
+      profile: adna_sane_default
+      notes: quality-balanced overlap merge preset
+    flash2:
+      profile: adna_sane_default
+      notes: fast overlap merge preset
+    leehom:
+      profile: adna_sane_default
+      notes: short-fragment collapse merge preset
+  fastq.normalize_abundance:
+    seqfu:
+      profile: adna_sane_default
+      notes: abundance table normalization preset
+    seqkit:
+      profile: adna_sane_default
+      notes: deterministic table normalization helper preset
+  fastq.normalize_primers:
+    cutadapt:
+      profile: adna_sane_default
+      notes: primer normalization preset with explicit adapter semantics
+    seqkit:
+      profile: adna_sane_default
+      notes: deterministic sequence normalization helper preset
+  fastq.profile_overrepresented_sequences:
+    fastqc:
+      profile: adna_sane_default
+      notes: overrepresented-sequence reporting preset
+    seqkit:
+      profile: adna_sane_default
+      notes: sequence counting preset for overrepresentation summaries
+  fastq.profile_read_lengths:
+    seqkit_stats:
+      profile: adna_sane_default
+      notes: deterministic read-length histogram preset
+    seqfu:
+      profile: adna_sane_default
+      notes: auxiliary read-length summary preset
+    prinseq:
+      profile: adna_sane_default
+      notes: legacy read-length profiling preset
     fastp:
       profile: adna_sane_default
-      notes: adapter detection without irreversible filtering
+      notes: stats-only length summary preset
+  fastq.profile_reads:
+    seqkit_stats:
+      profile: adna_sane_default
+      notes: neutral FASTQ statistics preset
+  fastq.remove_chimeras:
+    vsearch:
+      profile: adna_sane_default
+      notes: chimera screening and removal preset
+  fastq.remove_duplicates:
+    fastuniq:
+      profile: adna_sane_default
+      notes: pair-aware duplicate removal preset
+    clumpify:
+      profile: adna_sane_default
+      notes: kmer-clumped duplicate removal preset
+  fastq.report_qc:
+    multiqc:
+      profile: adna_sane_default
+      notes: operator-facing QC aggregation preset
+  fastq.screen_taxonomy:
+    kraken2:
+      profile: adna_sane_default
+      notes: kmer classification baseline preset
+    krakenuniq:
+      profile: adna_sane_default
+      notes: unique-kmer taxonomy preset
+    diamond:
+      profile: adna_sane_default
+      notes: protein-space screening preset
+    centrifuge:
+      profile: adna_sane_default
+      notes: compressed-index taxonomy preset
+    metaphlan:
+      profile: adna_sane_default
+      notes: marker-gene profiling preset
+    kaiju:
+      profile: adna_sane_default
+      notes: translated-search taxonomy preset
+    fastq_screen:
+      profile: adna_sane_default
+      notes: reference-panel origin screening preset
+  fastq.trim_polyg_tails:
+    fastp:
+      profile: adna_sane_default
+      notes: polyG-tail trimming preset
+    bbduk:
+      profile: adna_sane_default
+      notes: polyX and homopolymer trimming preset
   fastq.trim_reads:
     fastp:
       profile: adna_sane_default
@@ -404,191 +577,23 @@ stage_default_settings:
     fastx_clipper:
       profile: adna_sane_default
       notes: legacy clipping preset
-  fastq.filter_reads:
-    fastp:
+  fastq.trim_terminal_damage:
+    cutadapt:
       profile: adna_sane_default
-      notes: quality/length filter preset
+      notes: terminal trim or mask preset for damage-aware preprocessing
     seqkit:
       profile: adna_sane_default
-      notes: stream-safe filter preset
-    prinseq:
-      profile: adna_sane_default
-      notes: complexity filtering preset
-    bbduk:
-      profile: adna_sane_default
-      notes: kmer filter preset
+      notes: deterministic post-trim summary preset
   fastq.validate_reads:
     fastqvalidator:
       profile: adna_sane_default
       notes: strict fastq validation preset
-    fastqvalidator:
-      profile: adna_sane_default
-      notes: official validator baseline preset
-    fastq_scan:
-      profile: adna_sane_default
-      notes: fast validation summary preset
     seqtk:
       profile: adna_sane_default
       notes: lightweight validation preset
     fqtools:
       profile: adna_sane_default
       notes: format sanity preset
-    fastqc:
-      profile: adna_sane_default
-      notes: qc probe preset for validation stage
-  fastq.profile_reads:
-    seqkit_stats:
-      profile: adna_sane_default
-      notes: deterministic stats preset
-    seqkit:
-      profile: adna_sane_default
-      notes: streamed stats preset
-    seqfu:
-      profile: adna_sane_default
-      notes: supplementary neutral stats preset
-  fastq.deplete_rrna:
-    sortmerna:
-      profile: adna_sane_default
-      notes: rRNA depletion screening preset
-  fastq.report_qc:
-    multiqc:
-      profile: adna_sane_default
-      notes: operator-facing aggregation preset
-  fastq.screen_taxonomy:
-    kraken2:
-      profile: adna_sane_default
-      notes: taxonomy baseline preset
-    krakenuniq:
-      profile: adna_sane_default
-      notes: unique-kmer taxonomy preset
-    bracken:
-      profile: adna_sane_default
-      notes: abundance refinement preset
-    diamond:
-      profile: adna_sane_default
-      notes: alignment-based classifier preset
-    centrifuge:
-      profile: adna_sane_default
-      notes: classifier alternative preset
-    metaphlan:
-      profile: adna_sane_default
-      notes: marker-gene profiling preset
-    kaiju:
-      profile: adna_sane_default
-      notes: protein-level classification preset
-    fastq_screen:
-      profile: adna_sane_default
-      notes: alignment-screen preset
-  fastq.merge_pairs:
-    pear:
-      profile: adna_sane_default
-      notes: overlap merge baseline preset
-    vsearch:
-      profile: adna_sane_default
-      notes: merge alternative preset
-    bbmerge:
-      profile: adna_sane_default
-      notes: merge quality-balanced preset
-    flash2:
-      profile: adna_sane_default
-      notes: fast overlap merge preset
-    leehom:
-      profile: adna_sane_default
-      notes: aDNA collapse merge preset
-    seqprep:
-      profile: adna_sane_default
-      notes: classic overlap merge preset
-  fastq.remove_duplicates:
-    fastuniq:
-      profile: adna_sane_default
-      notes: pair-aware deduplication baseline preset
-    clumpify:
-      profile: adna_sane_default
-      notes: bbtools clumpify dedup preset
-    prinseq:
-      profile: adna_sane_default
-      notes: sequence-based deduplication preset
-  fastq.filter_low_complexity:
-    dustmasker:
-      profile: adna_sane_default
-      notes: DUST complexity masking preset
-    prinseq:
-      profile: adna_sane_default
-      notes: prinseq complexity filter preset
-    bbduk:
-      profile: adna_sane_default
-      notes: entropy/polyX complexity filter preset
-  fastq.deplete_host:
-    bowtie2:
-      profile: adna_sane_default
-      notes: host mapping depletion baseline preset
-    samtools:
-      profile: adna_sane_default
-      notes: unmapped read extraction preset
-  fastq.correct_errors:
-    rcorrector:
-      profile: adna_sane_default
-      notes: kmer correction baseline preset
-    lighter:
-      profile: adna_sane_default
-      notes: sampling-based correction preset
-    musket:
-      profile: adna_sane_default
-      notes: multistage correction preset
-    bayeshammer:
-      profile: adna_sane_default
-      notes: bayesian correction preset
-    spades:
-      profile: adna_sane_default
-      notes: spades correction mode preset
-  fastq.extract_umis:
-    umi_tools:
-      profile: adna_sane_default
-      notes: umi extraction/dedup preset
-  fastq.profile_read_lengths:
-    seqkit_stats:
-      profile: adna_sane_default
-      notes: deterministic length histogram baseline preset
-    seqfu:
-      profile: adna_sane_default
-      notes: auxiliary pre-trim length statistics preset
-    prinseq:
-      profile: adna_sane_default
-      notes: legacy length profile preset
-    fastp:
-      profile: adna_sane_default
-      notes: fastp stats-only length summary preset
-  fastq.trim_polyg_tails:
-    fastp:
-      profile: adna_sane_default
-      notes: polyG-tail trimming preset
-    bbduk:
-      profile: adna_sane_default
-      notes: polyX/polyG trimming preset
-  fastq.deplete_reference_contaminants:
-    bbduk:
-      profile: adna_sane_default
-      notes: k-mer contaminant screen baseline preset
-    bowtie2:
-      profile: adna_sane_default
-      notes: mapping-based decoy contamination screen preset
-  fastq.trim_terminal_damage:
-    cutadapt:
-      profile: adna_sane_default
-      notes: terminal trim/mask baseline for aDNA damage-aware preprocessing
-    seqkit:
-      profile: adna_sane_default
-      notes: deterministic post-trim length and composition summary preset
-  fastq.profile_overrepresented_sequences:
-    fastqc:
-      profile: adna_sane_default
-      notes: FastQC overrepresented module preset
-    fastq_scan:
-      profile: adna_sane_default
-      notes: fastq_scan overrepresented heuristic preset
-    seqkit:
-      profile: adna_sane_default
-      notes: seqkit k-mer overrepresentation heuristic preset
 stage_comparability_mapping:
   fastq.index_reference:
   - reference_index_build_metrics
