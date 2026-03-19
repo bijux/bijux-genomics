@@ -3,24 +3,71 @@ use std::path::PathBuf;
 
 use bijux_dna_core::ids::{StageId, ToolId};
 
+fn experimental_registry_enabled() -> bool {
+    ["BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "BIJUX_EXPERIMENTAL_TOOLS"]
+        .into_iter()
+        .filter_map(|key| std::env::var(key).ok())
+        .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+}
+
 fn registry_toml() -> Option<toml::Value> {
-    let cwd = std::env::current_dir().ok()?;
-    let mut candidates = vec![bijux_dna_infra::configs_file(
-        &cwd,
-        "ci/registry/tool_registry.toml",
-    )];
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    candidates.push(
-        manifest_dir
-            .parent()
-            .and_then(std::path::Path::parent)
-            .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?,
-    );
-    let path = candidates
+    let path = candidates_for_registry()
         .into_iter()
         .find(|candidate| candidate.exists())?;
     let raw = std::fs::read_to_string(path).ok()?;
-    raw.parse::<toml::Value>().ok()
+    let mut parsed = raw.parse::<toml::Value>().ok()?;
+    if experimental_registry_enabled() {
+        let experimental_path = candidates_for_experimental_registry()
+            .into_iter()
+            .find(|candidate| candidate.exists())?;
+        let exp_raw = std::fs::read_to_string(experimental_path).ok()?;
+        let exp = exp_raw.parse::<toml::Value>().ok()?;
+        if let Some(exp_tools) = exp.get("tools").and_then(toml::Value::as_array) {
+            let current = parsed
+                .as_table_mut()
+                .and_then(|table| table.get_mut("tools"))
+                .and_then(toml::Value::as_array_mut);
+            if let Some(current_tools) = current {
+                current_tools.extend(exp_tools.iter().cloned());
+            }
+        }
+    }
+    Some(parsed)
+}
+
+fn candidates_for_registry() -> Vec<PathBuf> {
+    let cwd = std::env::current_dir().ok();
+    let mut candidates = Vec::new();
+    if let Some(cwd) = cwd {
+        candidates.push(bijux_dna_infra::configs_file(
+            &cwd,
+            "ci/registry/tool_registry.toml",
+        ));
+    }
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    if let Some(root) = manifest_dir.parent().and_then(std::path::Path::parent) {
+        candidates.push(bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"));
+    }
+    candidates
+}
+
+fn candidates_for_experimental_registry() -> Vec<PathBuf> {
+    let cwd = std::env::current_dir().ok();
+    let mut candidates = Vec::new();
+    if let Some(cwd) = cwd {
+        candidates.push(bijux_dna_infra::configs_file(
+            &cwd,
+            "ci/registry/tool_registry_experimental.toml",
+        ));
+    }
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    if let Some(root) = manifest_dir.parent().and_then(std::path::Path::parent) {
+        candidates.push(bijux_dna_infra::configs_file(
+            root,
+            "ci/registry/tool_registry_experimental.toml",
+        ));
+    }
+    candidates
 }
 
 #[must_use]
