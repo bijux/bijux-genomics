@@ -22,6 +22,11 @@ pub const FASTQ_VALIDATE_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
 pub const FASTQ_DETECT_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
 pub const FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Retention];
+pub const FASTQ_POLYG_TRIM_CLASSES: [MetricClass; 3] = [
+    MetricClass::Integrity,
+    MetricClass::Retention,
+    MetricClass::QualityShift,
+];
 pub const FASTQ_TRIM_CLASSES: [MetricClass; 3] = [
     MetricClass::Integrity,
     MetricClass::Retention,
@@ -65,6 +70,12 @@ pub const FASTQ_DETECT_INVARIANTS: [&str; 2] =
 pub const FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS: [&str; 3] = [
     "reads_out <= reads_in",
     "bases_out <= bases_in",
+    "counts are non-negative",
+];
+pub const FASTQ_POLYG_TRIM_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "bases_out <= bases_in",
+    "mean_q_after >= mean_q_before (warn)",
     "counts are non-negative",
 ];
 
@@ -138,6 +149,12 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             classes: &FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES,
             invariants: &FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS,
             notes: "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order.",
+        }),
+        "fastq.trim_polyg_tails" => Some(StageMetricSpec {
+            stage: "fastq.trim_polyg_tails",
+            classes: &FASTQ_POLYG_TRIM_CLASSES,
+            invariants: &FASTQ_POLYG_TRIM_INVARIANTS,
+            notes: "PolyG tail trimming removes sequencer-specific terminal artifacts while preserving deterministic read order.",
         }),
         "fastq.trim_reads" => Some(StageMetricSpec {
             stage: "fastq.trim_reads",

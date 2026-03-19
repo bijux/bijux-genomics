@@ -27,6 +27,11 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 2,
     },
     MetricsSchemaId {
+        stage_id: "fastq.trim_polyg_tails",
+        schema: "fastq_trim_polyg_tails_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.filter_reads",
         schema: "fastq_filter_reads_v2",
         version: 2,
