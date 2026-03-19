@@ -15,6 +15,8 @@ mod mod_contracts_ssot_literals_rs;
 mod mod_contracts_stage_contract_snapshots_rs;
 #[path = "contracts/stage_default_settings_parity.rs"]
 mod mod_contracts_stage_default_settings_parity_rs;
+#[path = "contracts/stage_output_size_estimates_parity.rs"]
+mod mod_contracts_stage_output_size_estimates_parity_rs;
 #[path = "contracts/stage_contract_tool_ids_parity.rs"]
 mod mod_contracts_stage_contract_tool_ids_parity_rs;
 #[path = "contracts/tool_metrics.rs"]
