@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1f61e3c735dd2ed5b43758187ab59aa44f8d225d
+# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -62,6 +62,9 @@ version = "0.7.17"
 [centrifuge]
 version = "latest-pinned"
 
+[clumpify]
+version = "39.08"
+
 [contammix]
 version = "1.0.11"
 
@@ -90,6 +93,9 @@ version = "latest-pinned"
 
 [fastqvalidator]
 version = "latest-pinned"
+
+[fastuniq]
+version = "1.1"
 
 [fastx_clipper]
 version = "0.0.14"
