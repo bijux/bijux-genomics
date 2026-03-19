@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: scripts/tooling/generate-tool-index.sh -->
+<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-tool-index -->
 
 # TOOL_INDEX
 
@@ -13,7 +13,7 @@ Source of truth = registry contracts + `artifacts/containers/summary.json` self-
 - Replacing full scientific method docs for each domain.
 
 ## Contracts
-- Manual edits are forbidden; regenerate via script.
+- Manual edits are forbidden; regenerate via native control-plane.
 - Source of truth is registry + containers; this file is a rendered view.
 - Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.
 
@@ -59,12 +59,11 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `bwa` | `aligner` | `bam.align` | `bijuxdna/bwa:0.7.17` | `0.7.17` | upstream:https://github.com/lh3/bwa | `production` |
 | `centrifuge` | `screen` | `fastq.screen` | `bijuxdna/centrifuge@sha256:pending` | `1.0.4` | upstream:https://github.com/DaehwanKimLab/centrifuge | `experimental` |
 | `contammix` | `transform` | `bam.contamination` | `bijuxdna/contammix:1.0.11` | `1.0.11` | upstream:https://bioconductor.org/packages/contamMix | `production` |
-| `cutadapt` | `transform` | `fastq.trim, fastq.primer_normalization` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `latest-pinned` | upstream:https://github.com/cutadapt/cutadapt | `experimental` |
+| `cutadapt` | `trimmer` | `fastq.trim, fastq.primer_normalization, fastq.damage_aware_pretrim` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | upstream:https://github.com/cutadapt/cutadapt | `production` |
 | `damageprofiler` | `transform` | `bam.damage, bam.authenticity` | `bijuxdna/damageprofiler:latest-pinned` | `latest-pinned` | upstream:https://github.com/Integrative-Transcriptomics/DamageProfiler | `experimental` |
 | `eagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `eigensoft` | `population_structure` | `vcf.pca, vcf.population_structure` | `registry_lock` | `8.0.0` | planned | `experimental` |
 | `fastp` | `filter` | `fastq.trim, fastq.filter` | `bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10` | `0.23.4` | upstream:https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz | `production` |
-| `fastq.validate_pre` | `transform` | `fastq.merge, fastq.chimera_detection, fastq.otu_clustering` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | upstream:https://github.com/vsearch/vsearch | `production` |
 | `fastq_screen` | `screen` | `fastq.screen` | `bijuxdna/fastq_screen@sha256:pending` | `0.15.3` | upstream:https://github.com/fastq_screen/fastq_screen | `experimental` |
 | `fastqc` | `trimmer` | `fastq.detect_adapters` | `bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789` | `0.12.1` | upstream:https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip | `production` |
 | `fastqvalidator` | `validator` | `fastq.validate_pre` | `bijuxdna/fastqvalidator@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `v0.1.1` | upstream:https://github.com/fastqvalidator/fastqvalidator | `production` |
@@ -100,7 +99,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-dna | `production` |
 | `samtools` | `aligner` | `fastq.prepare_reference, fastq.host_depletion, fastq.qc_post` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
 | `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | upstream:https://github.com/grenaud/schmutzi | `production` |
-| `seqkit` | `filter` | `fastq.filter, fastq.primer_normalization` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
+| `seqkit` | `trimmer` | `fastq.filter, fastq.primer_normalization, fastq.damage_aware_pretrim` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
 | `seqkit_stats` | `qc` | `fastq.stats_neutral` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
 | `seqtk` | `validator` | `fastq.validate_pre` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `experimental` |
 | `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
@@ -113,4 +112,5 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `trimmomatic` | `trimmer` | `fastq.trim` | `bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4` | `0.39` | upstream:http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip | `experimental` |
 | `umi_tools` | `transform` | `fastq.umi` | `bijuxdna/umi_tools@sha256:pending` | `1.1.6` | upstream:https://github.com/umi_tools/umi_tools | `production` |
 | `verifybamid2` | `transform` | `bam.contamination` | `bijuxdna/verifybamid2:2.0.1` | `2.0.1` | upstream:https://github.com/Griffan/VerifyBamID | `production` |
+| `vsearch` | `transform` | `fastq.merge, fastq.chimera_detection, fastq.otu_clustering` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | upstream:https://github.com/vsearch/vsearch | `production` |
 | `yleaf` | `transform` | `bam.sex, bam.haplogroups` | `bijuxdna/yleaf:latest-pinned` | `latest-pinned` | upstream:https://github.com/genid/Yleaf | `experimental` |

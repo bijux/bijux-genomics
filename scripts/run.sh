@@ -72,6 +72,10 @@ PY
     [[ -n "$command_id" ]] || continue
     printf 'assets\t%s\tci_allowed=true\n' "$command_id"
   done
+  cargo run -q -p bijux-dev-dna -- tooling list | while IFS= read -r command_id; do
+    [[ -n "$command_id" ]] || continue
+    printf 'tooling\t%s\tci_allowed=true\n' "$command_id"
+  done
   cargo run -q -p bijux-dev-dna -- domain list | while IFS= read -r command_id; do
     [[ -n "$command_id" ]] || continue
     printf 'domain\t%s\tci_allowed=true\n' "$command_id"
@@ -127,6 +131,24 @@ elif [[ "$group" == "containers" ]]; then
   cargo run -p bijux-dev-dna -- containers run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "assets" ]]; then
   cargo run -p bijux-dev-dna -- assets run "$command" -- "$@" || rc=$?
+elif [[ "$group" == "tooling" ]]; then
+  case "$command" in
+    generate-compatibility-matrix|generate-docs|generate-docs-graph|generate-domain-coverage-doc|generate-repo-root-map|generate-tool-index)
+      cargo run -p bijux-dev-dna -- tooling run "$command" -- "$@" || rc=$?
+      ;;
+    *)
+      target="${SCRIPT_DIR}/${group}/make.sh"
+      if [[ ! -x "$target" ]]; then
+        if [[ -f "$target" ]]; then
+          chmod +x "$target"
+        else
+          echo "group dispatcher missing: ${target#"$ROOT_DIR/"}" >&2
+          exit 1
+        fi
+      fi
+      "$target" "$command" "$@" || rc=$?
+      ;;
+  esac
 elif [[ "$group" == "docs" || "$group" == "examples" || "$group" == "hpc" || "$group" == "lab" || "$group" == "smoke" || "$group" == "test" ]]; then
   native_command="$command"
   case "$group/$command" in

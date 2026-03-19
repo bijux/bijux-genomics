@@ -8,7 +8,7 @@ use crate::application::ops::OpsApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
 use crate::registry::ops::{
     assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry,
-    smoke_registry, test_registry,
+    smoke_registry, test_registry, tooling_registry,
 };
 
 #[derive(Parser, Debug)]
@@ -33,6 +33,7 @@ enum Command {
     Lab(OpsCommand),
     Smoke(OpsCommand),
     Test(OpsCommand),
+    Tooling(OpsCommand),
 }
 
 #[derive(Parser, Debug)]
@@ -114,6 +115,7 @@ pub fn run() -> Result<()> {
         Command::Lab(command) => run_ops(command, lab_registry),
         Command::Smoke(command) => run_ops(command, smoke_registry),
         Command::Test(command) => run_ops(command, test_registry),
+        Command::Tooling(command) => run_ops(command, tooling_registry),
     }
 }
 

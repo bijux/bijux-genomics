@@ -1,5 +1,19 @@
 # GENERATED FILE - DO NOT EDIT
-# Regenerate with: scripts/tooling/generate-docs-graph.sh
+# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph
+
+[[edge]]
+from = "docs/index.md"
+children = [
+  "docs/00-intro/index.md",
+  "docs/10-architecture/index.md",
+  "docs/20-science/index.md",
+  "docs/30-operations/index.md",
+  "docs/40-policies/index.md",
+  "docs/50-reference/index.md",
+  "docs/cli/index.md",
+  "docs/containers/index.md",
+  "docs/decisions/index.md",
+]
 
 [[edge]]
 from = "docs/index.md"
@@ -37,6 +51,7 @@ children = [
   "docs/10-architecture/ARCHITECTURE_OVERVIEW.md",
   "docs/10-architecture/BOUNDARY_DIAGRAM.md",
   "docs/10-architecture/BOUNDARY_MAP.md",
+  "docs/10-architecture/CONTRACTS/index.md",
   "docs/10-architecture/CONTRACT_AUTHORITY.md",
   "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md",
   "docs/10-architecture/CONTRACT_SPINE.md",
@@ -44,7 +59,6 @@ children = [
   "docs/10-architecture/DATAFLOW.md",
   "docs/10-architecture/DEPENDENCY_RULES.md",
   "docs/10-architecture/SSOT.md",
-  "docs/10-architecture/CONTRACTS/index.md",
 ]
 
 [[edge]]

@@ -25,6 +25,8 @@ The smoke control plane is `cargo run -p bijux-dev-dna -- smoke ...`.
 The compatibility entrypoint remains `./scripts/run.sh smoke <command>`.
 The test control plane is `cargo run -p bijux-dev-dna -- test ...`.
 The compatibility entrypoint remains `./scripts/run.sh test <command>`.
+The tooling control plane is `cargo run -p bijux-dev-dna -- tooling ...`.
+The compatibility entrypoint remains `./scripts/run.sh tooling <command>`.
 The containers control plane is `cargo run -p bijux-dev-dna -- containers ...`.
 The canonical entrypoints are `cargo run -p bijux-dev-dna -- containers ...`.
 The compatibility entrypoint remains `./scripts/run.sh containers <command>`.
