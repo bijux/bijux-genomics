@@ -280,6 +280,7 @@ where
                     &current_r1,
                     r2,
                     &out_dir,
+                    None,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();

@@ -10,6 +10,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_EXTRACT_UMIS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+const DEFAULT_UMI_PATTERN: &str = "NNNNNNNN";
 
 pub fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -25,16 +26,18 @@ pub fn plan_umi(
     r1: &Path,
     r2: &Path,
     out_dir: &Path,
+    umi_pattern: Option<&str>,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_umi_tool_list(std::slice::from_ref(&tool_id))?;
-    let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
+    let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
+    let umi_pattern = umi_pattern.unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
-        umi_pattern: None,
+        umi_pattern: Some(umi_pattern.to_string()),
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -61,12 +64,12 @@ pub fn plan_umi(
             ],
             outputs: vec![
                 ArtifactRef::required(
-                    ArtifactId::from_static("dedup_reads_r1"),
+                    ArtifactId::from_static("umi_reads_r1"),
                     output_r1.clone(),
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
-                    ArtifactId::from_static("dedup_reads_r2"),
+                    ArtifactId::from_static("umi_reads_r2"),
                     output_r2.clone(),
                     ArtifactRole::Reads,
                 ),
@@ -79,7 +82,8 @@ pub fn plan_umi(
             "r2": r2,
             "out_dir": out_dir,
             "output_r1": output_r1,
-            "output_r2": output_r2
+            "output_r2": output_r2,
+            "umi_pattern": umi_pattern
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize umi effective params: {error}"))?,

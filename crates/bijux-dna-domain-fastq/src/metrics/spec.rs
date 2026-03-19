@@ -251,7 +251,7 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             stage: "fastq.extract_umis",
             classes: &FASTQ_UMI_CLASSES,
             invariants: &FASTQ_UMI_INVARIANTS,
-            notes: "UMI processing may drop reads during deduplication.",
+            notes: "UMI extraction should preserve read counts while enriching read identifiers.",
         }),
         "fastq.screen_taxonomy" => Some(StageMetricSpec {
             stage: "fastq.screen_taxonomy",

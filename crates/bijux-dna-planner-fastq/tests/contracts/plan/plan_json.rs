@@ -111,6 +111,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         r1,
         r2,
         out_dir,
+        Some("NNNNNNNN"),
     )?;
     assert_snapshot("stage__fastq__fastq.extract_umis", &plan)?;
 

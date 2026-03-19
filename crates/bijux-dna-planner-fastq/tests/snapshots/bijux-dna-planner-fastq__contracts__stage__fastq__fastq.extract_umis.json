@@ -33,14 +33,14 @@
     ],
     "outputs": [
       {
-        "name": "dedup_reads_r1",
-        "path": "out/reads_r1.fastq.gz",
+        "name": "umi_reads_r1",
+        "path": "out/umi_tools.r1.fastq.gz",
         "role": "reads",
         "optional": false
       },
       {
-        "name": "dedup_reads_r2",
-        "path": "out/reads_r2.fastq.gz",
+        "name": "umi_reads_r2",
+        "path": "out/umi_tools.r2.fastq.gz",
         "role": "reads",
         "optional": false
       }
@@ -49,17 +49,18 @@
   "out_dir": "out",
   "params": {
     "out_dir": "out",
-    "output_r1": "out/reads_r1.fastq.gz",
-    "output_r2": "out/reads_r2.fastq.gz",
+    "output_r1": "out/umi_tools.r1.fastq.gz",
+    "output_r2": "out/umi_tools.r2.fastq.gz",
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
-    "tool": "umi_tools"
+    "tool": "umi_tools",
+    "umi_pattern": "NNNNNNNN"
   },
   "effective_params": {
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.umi.v1",
     "threads": 1,
-    "umi_pattern": null
+    "umi_pattern": "NNNNNNNN"
   },
   "aux_images": {},
   "reason": {

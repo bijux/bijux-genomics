@@ -42,3 +42,5 @@ artifact_ids:
   - trimmed_fastq
   - trimmed_fastq_r1
   - trimmed_fastq_r2
+  - umi_reads_r1
+  - umi_reads_r2
