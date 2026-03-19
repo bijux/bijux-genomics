@@ -46,10 +46,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     let tools = select_correct_tools(&args.tools, allow_experimental)?;
     let artifact = FastqArtifactKind::PairedEnd;
     preflight_stage(STAGE_CORRECT_ERRORS.as_str(), artifact)?;
-    let r2 = args
-        .r2
-        .as_deref()
-        .ok_or_else(|| anyhow!("paired-end correction requires r2 input"))?;
+    let r2 = args.r2.as_path();
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
 
@@ -191,12 +188,7 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r2 = args
-        .r2
-        .as_deref()
-        .ok_or_else(|| anyhow!("paired-end correction requires r2 input"))?
-        .canonicalize()
-        .context("resolve r2 path")?;
+    let r2 = args.r2.canonicalize().context("resolve r2 path")?;
     let r1_dir = r1
         .parent()
         .ok_or_else(|| anyhow!("r1 has no parent"))?

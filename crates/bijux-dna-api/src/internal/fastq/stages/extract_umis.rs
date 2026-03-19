@@ -40,10 +40,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqUmiMetrics>> {
     let tools = select_umi_tools(&args.tools)?;
-    let r2 = args
-        .r2
-        .as_deref()
-        .ok_or_else(|| anyhow!("umi stage requires paired-end input"))?;
+    let r2 = args.r2.as_path();
     preflight_stage(STAGE_EXTRACT_UMIS.as_str(), FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
@@ -73,7 +70,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &tools, platform, catalog)?;
 
-    ensure_umi_headers(&args.r1, args.r2.as_deref())?;
+    ensure_umi_headers(&args.r1, Some(r2))?;
 
     let sqlite_path = bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
