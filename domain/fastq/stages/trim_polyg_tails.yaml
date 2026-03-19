@@ -4,7 +4,7 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
     data_type: "fastq"
     cardinality: "Many"
 outputs:
@@ -46,7 +46,7 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - "reads"
+  - "reads_r1"
 required_outputs:
   - "trimmed_reads"
   - "report_json"

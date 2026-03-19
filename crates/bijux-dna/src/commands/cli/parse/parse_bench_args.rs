@@ -26,11 +26,13 @@ pub struct BenchRunArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum BenchFastqCommand {
+    #[command(name = "trim-reads", visible_alias = "trim")]
     Trim(BenchFastqTrimArgs),
     #[command(name = "trim-polyg-tails")]
     TrimPolygTails(BenchFastqTrimPolygArgs),
     #[command(name = "trim-terminal-damage")]
     TrimTerminalDamage(BenchFastqTrimTerminalDamageArgs),
+    #[command(name = "validate-reads", visible_alias = "validate")]
     Validate(BenchFastqValidateArgs),
     #[command(name = "detect-adapters")]
     DetectAdapters(BenchFastqDetectAdaptersArgs),
@@ -56,6 +58,7 @@ pub enum BenchFastqCommand {
     Umi(BenchFastqUmiArgs),
     #[command(name = "index-reference")]
     IndexReference(BenchFastqIndexReferenceArgs),
+    #[command(name = "screen-taxonomy", visible_alias = "screen")]
     Screen(BenchFastqScreenArgs),
     #[command(name = "profile-reads", visible_alias = "stats")]
     Stats(BenchFastqStatsArgs),
