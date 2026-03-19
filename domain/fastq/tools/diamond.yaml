@@ -12,7 +12,8 @@ stage_ids:
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- screen_report
+- classification_report_json
+- screen_report_tsv
 metrics_schema_id: bijux.fastq.classify.v1
 metrics_schema: bijux.fastq.classify.v1
 version_cmd: diamond --version
