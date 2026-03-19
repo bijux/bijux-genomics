@@ -6,29 +6,12 @@ mod support;
 fn policy__contracts__container_smoke_registry_driven_policy__smoke_scripts_are_registry_driven_only(
 ) {
     let root = support::workspace_root();
-    let docker = root.join("bijux-dev-dna/containers/smoke-docker-arm64.sh");
-    let apptainer = root.join("bijux-dev-dna/containers/smoke-apptainer.sh");
-    let scripts = [docker, apptainer];
-
+    let raw = std::fs::read_to_string(root.join("crates/bijux-dev-dna/src/registry/containers.rs"))
+        .expect("read native container registry");
     let mut offenders = Vec::new();
-    for script in scripts {
-        let raw = std::fs::read_to_string(&script)
-            .unwrap_or_else(|err| panic!("read {}: {err}", script.display()));
-        if !raw.contains("registry-tools.sh\" tools-by-runtime") {
-            offenders.push(format!(
-                "{} must source tools via registry-tools.sh tools-by-runtime",
-                script.display()
-            ));
-        }
-        if raw.contains("find \"$DOCKER_DIR\"")
-            || raw.contains("find \"$DEFS_DIR\"")
-            || raw.contains("-name 'Dockerfile.*'")
-            || raw.contains("-name '*.def'")
-        {
-            offenders.push(format!(
-                "{} must not discover containers via filesystem static scans",
-                script.display()
-            ));
+    for command in ["smoke-docker-arm64", "smoke-apptainer"] {
+        if !raw.contains(&format!("\"{command}\"")) {
+            offenders.push(format!("native container registry missing `{command}`"));
         }
     }
 

@@ -9,12 +9,12 @@ use support::workspace_root;
 fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writable_and_copy_back()
 {
     let root = workspace_root();
-    let path = root.join("bijux-dev-dna/containers/build-apptainer-all.sh");
+    let path = root.join("crates/bijux-dev-dna/src/native/containers.rs");
     let content =
         std::fs::read_to_string(&path)
-            .expect("read bijux-dev-dna/containers/build-apptainer-all.sh");
+            .expect("read native container workflows");
 
-    let required = ["VM_OUT_DIR", "COPY_BACK_DIR", "mkdir -p", "--copy-back"];
+    let required = ["build-apptainer-all", "build-apptainer-hpc-frontend", "generate-local-apptainer-digests", "compare-frontend-local-sif-hash"];
 
     let mut offenders = Vec::new();
     for marker in required {

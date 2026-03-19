@@ -201,11 +201,8 @@ pub(crate) fn check_script_arg_style(
         "scripts/run.sh",
         "scripts/tooling/benchmarks.sh",
         "scripts/tooling/cargo-targets.sh",
-        "bijux-dev-dna/containers/make.sh",
         "scripts/assets/make.sh",
         "scripts/tooling/make.sh",
-        "bijux-dev-dna/containers/lint.sh",
-        "bijux-dev-dna/containers/smoke-docker-amd64.sh",
         "scripts/tooling/coverage_summary.sh",
     ];
     let positional_re = Regex::new(r#""\$[2-9]"|\$\{[2-9]\}|"\\$@"|"\\$#""#).expect("regex");
@@ -442,8 +439,6 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let allowlist = [
-        "bijux-dev-dna/containers/registry-tools.sh",
-        "bijux-dev-dna/containers/smoke-apptainer.sh",
         "scripts/run.sh",
         "scripts/tooling/bijux.sh",
         "scripts/tooling/generate-configs.sh",

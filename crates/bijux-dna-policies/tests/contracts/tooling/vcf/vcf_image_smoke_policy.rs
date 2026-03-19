@@ -9,8 +9,7 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let root = support::workspace_root();
     let registry_path = root.join("configs/ci/registry/tool_registry_vcf.toml");
     let images_path = root.join("configs/ci/tools/images.toml");
-    let docker_smoke_path = root.join("bijux-dev-dna/containers/smoke-docker-arm64.sh");
-    let apptainer_smoke_path = root.join("bijux-dev-dna/containers/smoke-apptainer.sh");
+    let native_path = root.join("crates/bijux-dev-dna/src/native/containers.rs");
 
     let registry_raw = std::fs::read_to_string(&registry_path)
         .unwrap_or_else(|_| panic!("read {registry_path:?}"));
@@ -22,10 +21,8 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let images: toml::Value = images_raw
         .parse()
         .unwrap_or_else(|_| panic!("parse {images_path:?}"));
-    let docker_smoke = std::fs::read_to_string(&docker_smoke_path)
-        .unwrap_or_else(|_| panic!("read {docker_smoke_path:?}"));
-    let apptainer_smoke = std::fs::read_to_string(&apptainer_smoke_path)
-        .unwrap_or_else(|_| panic!("read {apptainer_smoke_path:?}"));
+    let native = std::fs::read_to_string(&native_path)
+        .unwrap_or_else(|_| panic!("read {native_path:?}"));
 
     let image_ids = images
         .as_table()
@@ -71,14 +68,11 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
         }
     }
 
-    for (name, script_raw) in [
-        ("docker", docker_smoke.as_str()),
-        ("apptainer", apptainer_smoke.as_str()),
-    ] {
+    for name in ["docker", "apptainer"] {
         for marker in ["resolved_image_digest", "declared_version"] {
-            if !script_raw.contains(marker) {
+            if !native.contains(marker) {
                 offenders.push(format!(
-                    "{name} smoke manifest writer missing marker `{marker}`"
+                    "{name} smoke manifest writer missing marker `{marker}` in native container control plane"
                 ));
             }
         }
