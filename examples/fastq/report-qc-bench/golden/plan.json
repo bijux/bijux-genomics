@@ -1,0 +1,5 @@
+{
+  "example_id": "fastq_report_qc_bench",
+  "domain": "fastq",
+  "stages": ["fastq.report_qc"]
+}
