@@ -1,9 +1,5 @@
 schema_version: "bijux.tool.v1"
 tool_id: "fastqc"
-stage_id: "fastq.detect_adapters"
-role: "diagnostic"
-authoritative: false
-strict_capable: false
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
@@ -36,7 +32,11 @@ default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
-stage_ids: ["fastq.detect_adapters"]
+stage_ids:
+  - "fastq.validate_pre"
+  - "fastq.detect_adapters"
+  - "fastq.qc_post"
+  - "fastq.overrepresented_sequences"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"

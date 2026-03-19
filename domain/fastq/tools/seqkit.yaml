@@ -1,9 +1,5 @@
 schema_version: "bijux.tool.v1"
 tool_id: "seqkit"
-stage_id: "fastq.filter"
-role: "authoritative"
-authoritative: false
-strict_capable: false
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
@@ -47,9 +43,12 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
+  - "fastq.trim"
   - "fastq.filter"
+  - "fastq.stats_neutral"
   - "fastq.primer_normalization"
   - "fastq.damage_aware_pretrim"
+  - "fastq.overrepresented_sequences"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
