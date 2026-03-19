@@ -32,7 +32,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         }
         "fastq.filter_reads" => vec!["fastp", "seqkit", "prinseq", "bbduk"],
         "fastq.remove_duplicates" => vec!["fastuniq", "clumpify"],
-        "fastq.filter_low_complexity" => vec!["dustmasker", "prinseq", "bbduk", "fastp"],
+        "fastq.filter_low_complexity" => vec!["prinseq", "bbduk", "fastp"],
         "fastq.trim_polyg_tails" => vec!["fastp", "bbduk"],
         "fastq.deplete_host" => vec!["bowtie2"],
         "fastq.deplete_reference_contaminants" => vec!["bowtie2"],

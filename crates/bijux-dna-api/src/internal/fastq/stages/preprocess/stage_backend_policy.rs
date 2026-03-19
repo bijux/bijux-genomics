@@ -142,7 +142,7 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
         "fastq.correct_errors" => Some(&["rcorrector", "musket", "lighter", "bayeshammer"]),
         "fastq.extract_umis" => Some(&["umi_tools"]),
         "fastq.filter_reads" => Some(&["fastp", "seqkit", "prinseq", "bbduk"]),
-        "fastq.filter_low_complexity" => Some(&["dustmasker", "prinseq", "bbduk", "fastp"]),
+        "fastq.filter_low_complexity" => Some(&["prinseq", "bbduk", "fastp"]),
         "fastq.profile_reads" => Some(&["seqkit_stats"]),
         "fastq.profile_read_lengths" => Some(&["seqkit_stats", "seqfu", "prinseq", "fastp"]),
         "fastq.profile_overrepresented_sequences" => Some(&["fastqc", "seqkit"]),

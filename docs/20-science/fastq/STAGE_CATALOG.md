@@ -49,7 +49,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: remove low-complexity reads with dedicated complexity-aware filters.
 - Inputs/Outputs: reads -> filtered_fastq, filter_report_json.
 - Metrics: reads_removed_low_complexity.
-- Tools: dustmasker, prinseq, bbduk, fastp.
+- Tools: prinseq, bbduk, fastp.
 
 ### fastq.profile_read_lengths {#fastq-read-lengths}
 - Purpose: compute neutral read-length summaries without mutating reads.
