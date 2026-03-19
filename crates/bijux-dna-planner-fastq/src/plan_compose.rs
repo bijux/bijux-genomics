@@ -222,8 +222,12 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan =
-                    crate::tool_adapters::fastq::validate_reads::plan(tool, &current_r1, &out_dir)?;
+                let plan = crate::tool_adapters::fastq::validate_reads::plan(
+                    tool,
+                    &current_r1,
+                    current_r2.as_deref(),
+                    &out_dir,
+                )?;
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_MERGE_PAIRS.as_str() => {
