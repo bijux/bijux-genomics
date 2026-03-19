@@ -94,6 +94,13 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.screen", &plan)?;
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::rrna::plan_rrna(
+        &dummy_tool("sortmerna"),
+        r1,
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.rrna", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::umi::plan_umi(
         &dummy_tool("umi_tools"),
         r1,
