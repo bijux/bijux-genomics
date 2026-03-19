@@ -68,9 +68,6 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - multiqc
-  - qualimap
-  - samtools
-  - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "single-end input omits reads_r2; paired-end input contributes both mates to the aggregated QC report."
