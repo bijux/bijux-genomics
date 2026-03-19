@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: af2125db4d4785f53c80ab4f9e629b976c03a51e
+# source_commit: aaef19bd933e89f3660ec0a95808a94a9d28883d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -36,7 +36,7 @@ smoke_help_cmd = "alientrimmer --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "alientrimmer --help"
 expected_bin = "alientrimmer"
-expected_artifacts = ["trimmed_fastq_r1", "trimmed_fastq_r2", "trim_report"]
+expected_artifacts = ["trimmed_reads", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.alientrimmer"
@@ -546,7 +546,7 @@ smoke_help_cmd = "fastx_clipper --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastx_clipper --help"
 expected_bin = "fastx_clipper"
-expected_artifacts = ["trimmed_fastq", "trim_report"]
+expected_artifacts = ["trimmed_reads", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastx_clipper"
