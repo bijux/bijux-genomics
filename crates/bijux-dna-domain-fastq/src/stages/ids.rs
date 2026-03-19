@@ -20,7 +20,6 @@ pub const STAGE_UMI: StageId = StageId::from_static("fastq.umi");
 pub const STAGE_OVERREPRESENTED_SEQUENCES: StageId =
     StageId::from_static("fastq.overrepresented_sequences");
 pub const STAGE_SCREEN: StageId = StageId::from_static("fastq.screen");
-pub const STAGE_PREPROCESS: StageId = StageId::from_static("fastq.preprocess");
 pub const STAGE_PREPARE_REFERENCE: StageId = StageId::from_static("fastq.prepare_reference");
 pub const STAGE_RRNA: StageId = StageId::from_static("fastq.rrna");
 pub const STAGE_PRIMER_NORMALIZATION: StageId = StageId::from_static("fastq.primer_normalization");
@@ -110,8 +109,6 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("abundance_normalization")
     } else if stage == &STAGE_SCREEN {
         Some("screen")
-    } else if stage == &STAGE_PREPROCESS {
-        Some("preprocess")
     } else if stage == &STAGE_PREPARE_REFERENCE {
         Some("prepare_reference")
     } else {
