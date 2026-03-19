@@ -37,7 +37,7 @@ pub mod validate {
             inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("reference"),
                 reference.to_path_buf(),
-                ArtifactRole::Index,
+                ArtifactRole::Reference,
             ));
         }
         if let Some(bam_index) = bam_index {
@@ -161,7 +161,7 @@ pub mod align {
                 bijux_dna_stage_contract::ArtifactRef::required(
                     ArtifactId::from_static("reference"),
                     reference.to_path_buf(),
-                    ArtifactRole::Index,
+                    ArtifactRole::Reference,
                 ),
             ];
             if let Some(r2) = r2 {

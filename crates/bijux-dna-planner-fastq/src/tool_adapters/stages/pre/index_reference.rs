@@ -46,7 +46,7 @@ pub fn plan(
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reference_fasta"),
                 reference_fasta.to_path_buf(),
-                ArtifactRole::Index,
+                ArtifactRole::Reference,
             )],
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reference_index"),
