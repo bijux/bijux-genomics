@@ -490,7 +490,7 @@ pub mod gc_bias {
                     bijux_dna_stage_contract::ArtifactRef::required(
                         ArtifactId::from_static("reference"),
                         reference.to_path_buf(),
-                        ArtifactRole::Index,
+                        ArtifactRole::Reference,
                     ),
                 ],
                 outputs,
