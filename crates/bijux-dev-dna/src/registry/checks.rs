@@ -142,8 +142,19 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         native("check-hidden-tmp-usage", NativeCheckKey::HiddenTmpUsage),
         process(
             "check-hpc-frontend-constraints",
-            "./scripts/hpc/validate-frontend-constraints.sh",
-            &["--confirm"],
+            "cargo",
+            &[
+                "run",
+                "-q",
+                "-p",
+                "bijux-dev-dna",
+                "--",
+                "hpc",
+                "run",
+                "validate-frontend-constraints",
+                "--",
+                "--confirm",
+            ],
         ),
         native(
             "check-hpc-rsync-docs-parity",

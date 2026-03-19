@@ -7,6 +7,8 @@ use walkdir::WalkDir;
 
 use crate::infrastructure::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome};
+use crate::model::ops::NativeOpsCommandKey;
+use crate::native::run_native_ops_command;
 use crate::native::support::{fail, load_supported_scripts, pass, read, run_command};
 
 pub(crate) fn check_audit_allowlist(
@@ -481,22 +483,146 @@ pub(crate) fn check_assets_reference_schema(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let output = run_command(
-        workspace,
-        "./scripts/run.sh",
-        &["assets", "validate-reference"],
-    )?;
-    if output.status.success() {
+    let ref_root = workspace.path("assets/reference");
+    if !ref_root.exists() {
+        return fail(check, "assets-reference-schema: assets/reference missing");
+    }
+    let mut errors = Vec::new();
+    if !ref_root.join("SCHEMAS.md").exists() {
+        errors.push("assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string());
+    }
+    let schema_re = Regex::new(r"(?m)^schema_version:\s*\S+").context("compile schema regex")?;
+    let id_re =
+        Regex::new(r"(?m)^\s*-\s*id:\s*([A-Za-z0-9_.-]+)\s*$").context("compile id regex")?;
+    let preset_key_re =
+        Regex::new(r"^\s*[A-Za-z0-9_]+_ids:\s*$").context("compile preset key regex")?;
+    let yaml_iter = WalkDir::new(&ref_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| {
+            matches!(
+                entry.path().extension().and_then(|ext| ext.to_str()),
+                Some("yaml" | "yml")
+            )
+        });
+    for entry in yaml_iter {
+        let raw = read(entry.path())?;
+        let rel = workspace.rel(entry.path()).display().to_string();
+        if !schema_re.is_match(&raw) {
+            errors.push(format!("{rel}: missing schema_version"));
+        }
+        let non_comment_keys = raw
+            .lines()
+            .filter(|line| {
+                let trimmed = line.trim();
+                !trimmed.is_empty() && !trimmed.starts_with('#') && trimmed.contains(':')
+            })
+            .count();
+        if non_comment_keys < 2 {
+            errors.push(format!(
+                "{rel}: expected schema_version plus at least one additional key"
+            ));
+        }
+        let ids = id_re
+            .captures_iter(&raw)
+            .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
+            .collect::<Vec<_>>();
+        let duplicates = ids
+            .iter()
+            .filter(|id| ids.iter().filter(|candidate| *candidate == *id).count() > 1)
+            .cloned()
+            .collect::<BTreeSet<_>>();
+        if !duplicates.is_empty() {
+            errors.push(format!(
+                "{rel}: duplicated ids: {}",
+                duplicates.into_iter().collect::<Vec<_>>().join(", ")
+            ));
+        }
+    }
+    for entry in std::fs::read_dir(&ref_root)
+        .with_context(|| format!("read {}", ref_root.display()))?
+        .filter_map(Result::ok)
+    {
+        let dir = entry.path();
+        if !dir.is_dir() {
+            continue;
+        }
+        let mut bank_files = Vec::new();
+        let mut preset_files = Vec::new();
+        for child in std::fs::read_dir(&dir)
+            .with_context(|| format!("read {}", dir.display()))?
+            .filter_map(Result::ok)
+        {
+            let path = child.path();
+            if !path.is_file() {
+                continue;
+            }
+            if !matches!(
+                path.extension().and_then(|ext| ext.to_str()),
+                Some("yaml" | "yml")
+            ) {
+                continue;
+            }
+            let name = path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or_default()
+                .to_string();
+            if name.contains("presets") {
+                preset_files.push(path);
+            } else {
+                bank_files.push(path);
+            }
+        }
+        if preset_files.is_empty() {
+            continue;
+        }
+        let mut bank_ids = BTreeSet::new();
+        for bank in bank_files {
+            for capture in id_re.captures_iter(&read(&bank)?) {
+                if let Some(value) = capture.get(1) {
+                    bank_ids.insert(value.as_str().to_string());
+                }
+            }
+        }
+        for preset in preset_files {
+            let rel = workspace.rel(&preset).display().to_string();
+            let raw = read(&preset)?;
+            let mut lines = raw.lines().peekable();
+            while let Some(line) = lines.next() {
+                if !preset_key_re.is_match(line) {
+                    continue;
+                }
+                while let Some(next) = lines.peek() {
+                    let trimmed = next.trim();
+                    if trimmed.is_empty() {
+                        let _ = lines.next();
+                        continue;
+                    }
+                    if !next.starts_with("      - ") && !next.starts_with("    - ") {
+                        if Regex::new(r"^\s*[A-Za-z0-9_]+:\s*")
+                            .context("compile nested key regex")?
+                            .is_match(next)
+                        {
+                            break;
+                        }
+                    }
+                    let Some(item) = trimmed.strip_prefix("- ") else {
+                        break;
+                    };
+                    if !bank_ids.is_empty() && !bank_ids.contains(item) {
+                        errors.push(format!("{rel}: unresolved preset reference id: {item}"));
+                    }
+                    let _ = lines.next();
+                }
+            }
+        }
+    }
+    if errors.is_empty() {
         return pass(check, "asset reference validation completed");
     }
-    fail(
-        check,
-        format!(
-            "{}{}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        ),
-    )
+    fail(check, format!("assets-reference-schema: FAILED\n{}", errors.join("\n")))
 }
 
 pub(crate) fn check_cargo_config_policy(
@@ -696,14 +822,18 @@ pub(crate) fn check_examples_runner_contract(
             std::fs::remove_dir_all(&output_dir)
                 .with_context(|| format!("remove {}", output_dir.display()))?;
         }
-        let output = run_command(workspace, "./scripts/examples/run.sh", &[&id])?;
-        if !output.status.success() {
+        let output = run_native_ops_command(
+            &NativeOpsCommandKey::ExamplesRun,
+            workspace,
+            &[id.clone()],
+        )?;
+        if !output.is_success() {
             return fail(
                 check,
                 format!(
                     "examples runner failed:\n{}{}",
-                    String::from_utf8_lossy(&output.stdout),
-                    String::from_utf8_lossy(&output.stderr)
+                    output.stdout,
+                    output.stderr
                 ),
             );
         }
@@ -1412,20 +1542,20 @@ pub(crate) fn check_frontend_mini_domain_validation(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let output = run_command(
+    let output = run_native_ops_command(
+        &NativeOpsCommandKey::HpcRunFrontendMiniE2e,
         workspace,
-        "./scripts/tooling/validate-frontend-mini-domain-stacks.sh",
-        &[],
+        &["--confirm".to_string()],
     )?;
-    if output.status.success() {
+    if output.is_success() {
         return pass(check, "frontend mini domain validation completed");
     }
     fail(
         check,
         format!(
             "{}{}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
+            output.stdout,
+            output.stderr
         ),
     )
 }
