@@ -204,8 +204,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.detect_adapters"
         | "fastq.stats_neutral"
         | "fastq.qc_post"
-        | "fastq.screen"
-        | "fastq.prepare_reference" => Some(FastqStageContract {
+        | "fastq.screen" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
             may_drop_reads: false,
@@ -215,6 +214,17 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop: &[],
             retention_definition: "reads_out == reads_in; bases_out == bases_in",
             retention_units: "reads,bases",
+        }),
+        "fastq.prepare_reference" => Some(FastqStageContract {
+            input_kind: FastqArtifactKind::ReferenceFasta,
+            output_kind: FastqArtifactKind::ReferenceIndex,
+            may_drop_reads: false,
+            must_preserve_pairing: false,
+            emits_fastq: false,
+            preserves: &["reference_sequence_records"],
+            may_drop: &[],
+            retention_definition: "indexed_reference_entries_out == reference_entries_in",
+            retention_units: "reference_entries",
         }),
         "fastq.asv_inference" | "fastq.otu_clustering" | "fastq.abundance_normalization" => {
             Some(FastqStageContract {
