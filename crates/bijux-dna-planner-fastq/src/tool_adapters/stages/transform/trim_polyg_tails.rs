@@ -66,7 +66,7 @@ pub fn plan_trim_polyg_tails(
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
         report.clone(),
-        ArtifactRole::MetricsJson,
+        ArtifactRole::ReportJson,
     ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),

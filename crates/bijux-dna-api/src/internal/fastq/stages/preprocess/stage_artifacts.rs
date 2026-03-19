@@ -116,7 +116,7 @@ fn write_stage_standardized_metrics(
             "applicability": {
                 "requires_illumina_like_cycle_artifacts": true,
             },
-            "report_json": out_dir.join("polyg_tailing_report.json"),
+            "report_json": out_dir.join("trim_polyg_tails_report.json"),
         }),
         "fastq.filter_low_complexity" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -218,6 +218,7 @@ fn write_stage_standardized_metrics(
                 "ct_ga_asymmetry_pre",
                 "ct_ga_asymmetry_post"
             ],
+            "report_json": out_dir.join("trim_terminal_damage_report.json"),
         }),
         "fastq.remove_chimeras" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
