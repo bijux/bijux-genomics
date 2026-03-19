@@ -38,7 +38,7 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_detect_adapters_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_READS {
         Some("bench_fastq_trim_v2")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_POLYG_TAILS {
+    } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS {
         Some("bench_fastq_trim_polyg_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_TRIM_TERMINAL_DAMAGE {
         Some("bench_fastq_trim_terminal_damage_v1")
@@ -76,9 +76,11 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_umi_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY {
         Some("bench_fastq_screen_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_HOST {
+    } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST {
         Some("bench_fastq_deplete_host_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_REFERENCE_CONTAMINANTS {
+    } else if stage
+        == &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS
+    {
         Some("bench_fastq_deplete_reference_contaminants_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA {
         Some("bench_fastq_deplete_rrna_v1")
@@ -86,6 +88,60 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_index_reference_v1")
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::table_for_stage;
+    use bijux_dna_domain_fastq::stages::ids::{
+        STAGE_CLUSTER_OTUS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+        STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
+        STAGE_INDEX_REFERENCE, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE,
+        STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+        STAGE_PROFILE_READ_LENGTHS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
+        STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_TERMINAL_DAMAGE,
+    };
+    use bijux_dna_domain_fastq::{
+        STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_PROFILE_READS, STAGE_REPORT_QC,
+        STAGE_TRIM_READS, STAGE_VALIDATE_READS,
+    };
+
+    #[test]
+    fn benchmarked_fastq_stage_surface_has_sqlite_table_mapping() {
+        for stage in [
+            &STAGE_VALIDATE_READS,
+            &STAGE_DETECT_ADAPTERS,
+            &STAGE_TRIM_READS,
+            &STAGE_TRIM_POLYG_TAILS,
+            &STAGE_TRIM_TERMINAL_DAMAGE,
+            &STAGE_FILTER_READS,
+            &STAGE_FILTER_LOW_COMPLEXITY,
+            &STAGE_PROFILE_READS,
+            &STAGE_PROFILE_READ_LENGTHS,
+            &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+            &STAGE_MERGE_PAIRS,
+            &STAGE_CORRECT_ERRORS,
+            &STAGE_REMOVE_DUPLICATES,
+            &STAGE_REMOVE_CHIMERAS,
+            &STAGE_NORMALIZE_PRIMERS,
+            &STAGE_INFER_ASVS,
+            &STAGE_CLUSTER_OTUS,
+            &STAGE_NORMALIZE_ABUNDANCE,
+            &STAGE_REPORT_QC,
+            &STAGE_EXTRACT_UMIS,
+            &STAGE_SCREEN_TAXONOMY,
+            &STAGE_DEPLETE_HOST,
+            &STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+            &STAGE_DEPLETE_RRNA,
+            &STAGE_INDEX_REFERENCE,
+        ] {
+            assert!(
+                table_for_stage(stage).is_some(),
+                "missing sqlite table mapping for {}",
+                stage.as_str()
+            );
+        }
     }
 }
 
