@@ -115,34 +115,69 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     }
 }
 
-fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
-    let allowed: &[&str] = match stage_id {
-        "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk"],
-        "fastq.detect_adapters" => &["fastqc"],
-        "fastq.trim_reads" => &[
-            "alientrimmer",
-            "bbduk",
-            "cutadapt",
+fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
+    match stage_id {
+        "fastq.index_reference" => Some(&[
+            "star",
+            "samtools",
+            "bwa-mem2",
+            "bowtie2-build",
+            "minimap2",
+            "hisat2-build",
+        ]),
+        "fastq.validate_reads" => Some(&["fastqvalidator", "seqtk", "fqtools"]),
+        "fastq.detect_adapters" => Some(&["fastqc"]),
+        "fastq.trim_reads" => Some(&[
             "fastp",
-            "fastx_clipper",
+            "cutadapt",
+            "atropos",
+            "bbduk",
+            "adapterremoval",
+            "trimmomatic",
+            "trim_galore",
+            "seqpurge",
+            "prinseq",
             "seqkit",
-        ],
-        "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
-        "fastq.merge_pairs" => &["bbmerge", "flash2", "leehom", "pear"],
-        "fastq.remove_duplicates" => &["clumpify", "fastuniq"],
-        "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "bayeshammer"],
-        "fastq.filter_reads" => &["bbduk", "fastp", "prinseq", "seqkit"],
-        "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker", "fastp"],
-        "fastq.trim_polyg_tails" => &["fastp", "bbduk"],
-        "fastq.screen_taxonomy" => &["kraken2", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
-        "fastq.deplete_reference_contaminants" => &["bbduk", "bowtie2"],
-        "fastq.deplete_rrna" => &["sortmerna"],
-        "fastq.deplete_host" => &["bowtie2"],
-        "fastq.normalize_primers" => &["cutadapt"],
-        "fastq.remove_chimeras" | "fastq.cluster_otus" => &["vsearch"],
-        "fastq.infer_asvs" => &["dada2"],
-        "fastq.normalize_abundance" => &["seqfu", "seqkit"],
-        _ => return Ok(()),
+            "skewer",
+            "leehom",
+            "alientrimmer",
+            "fastx_clipper",
+        ]),
+        "fastq.trim_terminal_damage" => Some(&["cutadapt", "seqkit"]),
+        "fastq.merge_pairs" => Some(&["pear", "vsearch", "bbmerge", "flash2", "leehom"]),
+        "fastq.remove_duplicates" => Some(&["fastuniq", "clumpify"]),
+        "fastq.correct_errors" => Some(&["rcorrector", "musket", "lighter", "bayeshammer"]),
+        "fastq.extract_umis" => Some(&["umi_tools"]),
+        "fastq.filter_reads" => Some(&["fastp", "seqkit", "prinseq", "bbduk"]),
+        "fastq.filter_low_complexity" => Some(&["dustmasker", "prinseq", "bbduk", "fastp"]),
+        "fastq.profile_reads" => Some(&["seqkit_stats"]),
+        "fastq.profile_read_lengths" => Some(&["seqkit_stats", "seqfu", "prinseq", "fastp"]),
+        "fastq.profile_overrepresented_sequences" => Some(&["fastqc", "seqkit"]),
+        "fastq.report_qc" => Some(&["multiqc"]),
+        "fastq.trim_polyg_tails" => Some(&["fastp", "bbduk"]),
+        "fastq.screen_taxonomy" => Some(&[
+            "kraken2",
+            "krakenuniq",
+            "diamond",
+            "centrifuge",
+            "metaphlan",
+            "kaiju",
+            "fastq_screen",
+        ]),
+        "fastq.deplete_reference_contaminants" => Some(&["bowtie2"]),
+        "fastq.deplete_rrna" => Some(&["sortmerna"]),
+        "fastq.deplete_host" => Some(&["bowtie2"]),
+        "fastq.normalize_primers" => Some(&["cutadapt", "seqkit"]),
+        "fastq.remove_chimeras" | "fastq.cluster_otus" => Some(&["vsearch"]),
+        "fastq.infer_asvs" => Some(&["dada2"]),
+        "fastq.normalize_abundance" => Some(&["seqfu", "seqkit"]),
+        _ => None,
+    }
+}
+
+fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
+    let Some(allowed) = fastq_backend_allowlist(stage_id) else {
+        return Ok(());
     };
     if allowed.contains(&tool_id) {
         return Ok(());
@@ -151,6 +186,63 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "unsupported backend for {stage_id}: `{tool_id}` not in allowlist {}",
         allowed.join(",")
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Result;
+
+    use super::{fastq_backend_allowlist, workspace_root_path};
+
+    fn block_list(raw: &str, key: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut in_block = false;
+        for line in raw.lines() {
+            if line == format!("{key}:") {
+                in_block = true;
+                continue;
+            }
+            if !in_block {
+                continue;
+            }
+            if !line.starts_with("  - ") {
+                break;
+            }
+            out.push(line.trim_start_matches("  - ").to_string());
+        }
+        out
+    }
+
+    #[test]
+    fn fastq_backend_allowlist_matches_stage_manifests() -> Result<()> {
+        let stages_dir = workspace_root_path().join("domain/fastq/stages");
+        for entry in std::fs::read_dir(&stages_dir)? {
+            let path = entry?.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+                continue;
+            }
+            if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+                continue;
+            }
+            let raw = std::fs::read_to_string(&path)?;
+            let Some(stage_id) = raw
+                .lines()
+                .find_map(|line| line.strip_prefix("stage_id: "))
+                .map(|value| value.trim().trim_matches('"').to_string())
+            else {
+                continue;
+            };
+            let expected = block_list(&raw, "compatible_tools");
+            let actual = fastq_backend_allowlist(&stage_id)
+                .map(|tools| tools.iter().map(|tool| (*tool).to_string()).collect::<Vec<_>>())
+                .unwrap_or_default();
+            assert_eq!(
+                actual, expected,
+                "fastq API backend allowlist drifted from stage manifest compatible_tools for {stage_id}"
+            );
+        }
+        Ok(())
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
