@@ -133,7 +133,7 @@ elif [[ "$group" == "assets" ]]; then
   cargo run -p bijux-dev-dna -- assets run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "tooling" ]]; then
   case "$command" in
-    generate-compatibility-matrix|generate-docs|generate-docs-graph|generate-domain-coverage-doc|generate-repo-root-map|generate-tool-index)
+    check-config-snapshot|generate-compatibility-matrix|generate-config-tree-snapshot|generate-docs|generate-docs-graph|generate-domain-coverage-doc|generate-repo-root-map|generate-tool-index)
       cargo run -p bijux-dev-dna -- tooling run "$command" -- "$@" || rc=$?
       ;;
     *)
