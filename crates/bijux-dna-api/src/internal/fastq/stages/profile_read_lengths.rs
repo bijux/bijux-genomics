@@ -37,7 +37,15 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_profile_read_lengths_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_hash = hash_file_sha256(&args.r1).context("hash read-length input")?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash read-length input r1")?,
+            hash_file_sha256(r2).context("hash read-length input r2")?
+        )
+    } else {
+        hash_file_sha256(&args.r1).context("hash read-length input")?
+    };
 
     let bench_dir_name =
         bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS)
@@ -67,7 +75,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
-            &tool_spec, &args.r1, &out_dir,
+            &tool_spec, &args.r1, args.r2.as_deref(), &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -108,7 +116,10 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let lengths = read_fastq_lengths(&args.r1)?;
+        let mut lengths = read_fastq_lengths(&args.r1)?;
+        if let Some(r2) = args.r2.as_deref() {
+            lengths.extend(read_fastq_lengths(r2)?);
+        }
         if !plan.io.outputs[0].path.exists() || !plan.io.outputs[1].path.exists() {
             write_length_outputs(&plan.io.outputs[0].path, &plan.io.outputs[1].path, &lengths)?;
         }
@@ -119,6 +130,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             "stage_id": STAGE_ID,
             "tool_id": tool,
             "input_fastq": args.r1,
+            "input_fastq_r2": args.r2,
             "length_distribution_tsv": plan.io.outputs[0].path,
             "length_distribution_json": plan.io.outputs[1].path,
             "runtime_s": execution.runtime_s,
