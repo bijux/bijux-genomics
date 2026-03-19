@@ -725,7 +725,6 @@ stage_failure_diagnosis_hints:
   - inspect overrepresented table and adapter/contaminant sequence banks
 pipeline_compositions:
   pre_hpc_best:
-  - fastq.index_reference
   - fastq.validate_reads
   - fastq.profile_read_lengths
   - fastq.detect_adapters
@@ -733,6 +732,7 @@ pipeline_compositions:
   - fastq.trim_reads
   - fastq.filter_reads
   - fastq.merge_pairs
+  - fastq.index_reference
   - fastq.deplete_host
   - fastq.deplete_reference_contaminants
   - fastq.profile_reads
@@ -741,8 +741,7 @@ pipeline_compositions:
   - fastq.screen_taxonomy
 stage_ordering_constraints:
   fastq.index_reference: []
-  fastq.validate_reads:
-  - fastq.index_reference
+  fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
@@ -756,6 +755,7 @@ stage_ordering_constraints:
   fastq.filter_low_complexity:
   - fastq.remove_duplicates
   fastq.deplete_host:
+  - fastq.index_reference
   - fastq.merge_pairs
   fastq.profile_reads:
   - fastq.deplete_reference_contaminants
@@ -774,6 +774,7 @@ stage_ordering_constraints:
   fastq.trim_polyg_tails:
   - fastq.detect_adapters
   fastq.deplete_reference_contaminants:
+  - fastq.index_reference
   - fastq.deplete_host
   fastq.trim_terminal_damage:
   - fastq.validate_reads
@@ -781,8 +782,7 @@ stage_ordering_constraints:
   - fastq.report_qc
 stage_prerequisites:
   fastq.index_reference: []
-  fastq.validate_reads:
-  - fastq.index_reference
+  fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
@@ -796,6 +796,7 @@ stage_prerequisites:
   fastq.filter_low_complexity:
   - fastq.remove_duplicates
   fastq.deplete_host:
+  - fastq.index_reference
   - fastq.merge_pairs
   fastq.profile_reads:
   - fastq.deplete_reference_contaminants
@@ -814,6 +815,7 @@ stage_prerequisites:
   fastq.trim_polyg_tails:
   - fastq.detect_adapters
   fastq.deplete_reference_contaminants:
+  - fastq.index_reference
   - fastq.deplete_host
   fastq.trim_terminal_damage:
   - fastq.validate_reads
