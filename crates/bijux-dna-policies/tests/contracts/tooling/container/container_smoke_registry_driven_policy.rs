@@ -6,8 +6,8 @@ mod support;
 fn policy__contracts__container_smoke_registry_driven_policy__smoke_scripts_are_registry_driven_only(
 ) {
     let root = support::workspace_root();
-    let docker = root.join("scripts/containers/smoke-docker-arm64.sh");
-    let apptainer = root.join("scripts/containers/smoke-apptainer.sh");
+    let docker = root.join("bijux-dev-dna/containers/smoke-docker-arm64.sh");
+    let apptainer = root.join("bijux-dev-dna/containers/smoke-apptainer.sh");
     let scripts = [docker, apptainer];
 
     let mut offenders = Vec::new();
