@@ -66,6 +66,7 @@ allowed_missingness:
 compatible_tools:
   - multiqc
   - qualimap
+  - samtools
   - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
