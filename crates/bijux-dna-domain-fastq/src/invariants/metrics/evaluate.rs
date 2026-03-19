@@ -336,7 +336,7 @@ pub const CORE_STAGES: [StageId; 6] = [
 pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_QC_POST, STAGE_UMI, STAGE_SCREEN];
 
 #[allow(dead_code)]
-pub const META_STAGES: [StageId; 1] = [STAGE_PREPROCESS];
+pub const META_STAGES: [StageId; 0] = [];
 
 #[allow(dead_code)]
 pub const MUTATING_STAGES: [StageId; 5] = [

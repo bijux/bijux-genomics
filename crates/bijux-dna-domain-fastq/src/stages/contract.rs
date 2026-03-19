@@ -57,7 +57,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         ],
         "fastq.prepare_reference" => vec!["star", "samtools"],
         "fastq.rrna" => vec!["sortmerna"],
-        "fastq.preprocess" => vec!["planner"],
         _ => Vec::new(),
     }
 }
@@ -188,7 +187,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out == reads_in; bases_out <= bases_in",
             retention_units: "reads,bases",
         }),
-        "fastq.umi" | "fastq.preprocess" => Some(FastqStageContract {
+        "fastq.umi" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::PairedEnd,
             may_drop_reads: true,

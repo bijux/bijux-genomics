@@ -133,7 +133,7 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.otu_clustering"
         | "fastq.qc_post"
         | "fastq.umi"
-        | "fastq.preprocess" => Some(StageCriticality::Optional),
+        => Some(StageCriticality::Optional),
         "fastq.screen" => Some(StageCriticality::Experimental),
         _ => None,
     }
