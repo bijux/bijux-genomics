@@ -4,22 +4,31 @@ use crate::types::FastqArtifactKind;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum FastqStage {
-    Preprocess,
+    PrepareReference,
     ValidatePre,
+    LengthDistributionPre,
+    DetectAdapters,
     DamageAwarePretrim,
     PrimerNormalization,
+    PolygTailing,
+    Trim,
+    Filter,
+    StatsNeutral,
+    Rrna,
+    Merge,
+    Deduplicate,
+    LowComplexity,
+    HostDepletion,
+    ContaminantScreen,
+    Correct,
+    Umi,
+    OverrepresentedSequences,
+    QcPost,
+    Screen,
     ChimeraDetection,
     AsvInference,
     OtuClustering,
     AbundanceNormalization,
-    Trim,
-    Filter,
-    Merge,
-    Correct,
-    StatsNeutral,
-    QcPost,
-    Umi,
-    Screen,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -38,26 +47,47 @@ pub struct StageContract {
 #[must_use]
 pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
     match stage {
-        FastqStage::Preprocess => StageContract {
+        FastqStage::PrepareReference => StageContract {
             stage,
             io: StageIO {
-                inputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
-                outputs: vec![FastqArtifactKind::StatsOnly],
+                inputs: vec![FastqArtifactKind::ReferenceFasta],
+                outputs: vec![FastqArtifactKind::ReferenceIndex],
                 optional_outputs: None,
             },
         },
         FastqStage::ValidatePre
-        | FastqStage::DamageAwarePretrim
+        | FastqStage::LengthDistributionPre
+        | FastqStage::DetectAdapters
+        | FastqStage::StatsNeutral
+        | FastqStage::OverrepresentedSequences
+        | FastqStage::QcPost
+        | FastqStage::Screen => StageContract {
+            stage,
+            io: StageIO {
+                inputs: vec![
+                    FastqArtifactKind::SingleEnd,
+                    FastqArtifactKind::PairedEnd,
+                    FastqArtifactKind::Merged,
+                ],
+                outputs: vec![FastqArtifactKind::StatsOnly],
+                optional_outputs: None,
+            },
+        },
+        FastqStage::DamageAwarePretrim
         | FastqStage::PrimerNormalization
+        | FastqStage::PolygTailing
         | FastqStage::Trim
         | FastqStage::Filter
-        | FastqStage::Correct
-        | FastqStage::Umi => StageContract {
+        | FastqStage::Deduplicate
+        | FastqStage::LowComplexity
+        | FastqStage::HostDepletion
+        | FastqStage::ContaminantScreen
+        | FastqStage::Rrna => StageContract {
             stage,
             io: StageIO {
                 inputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
                 outputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
-                optional_outputs: None,
+                optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
             },
         },
         FastqStage::Merge => StageContract {
@@ -68,15 +98,11 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
                 optional_outputs: Some(vec![FastqArtifactKind::PairedEnd]),
             },
         },
-        FastqStage::StatsNeutral | FastqStage::QcPost | FastqStage::Screen => StageContract {
+        FastqStage::Correct | FastqStage::Umi => StageContract {
             stage,
             io: StageIO {
-                inputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
-                outputs: vec![FastqArtifactKind::StatsOnly],
+                inputs: vec![FastqArtifactKind::PairedEnd],
+                outputs: vec![FastqArtifactKind::PairedEnd],
                 optional_outputs: None,
             },
         },
@@ -157,7 +183,12 @@ pub enum QcClass {
 pub fn qc_class_for_stage(stage_id: &str) -> Option<QcClass> {
     match stage_id {
         "fastq.validate_pre" => Some(QcClass::Structural),
-        "fastq.detect_adapters" | "fastq.qc_post" => Some(QcClass::Statistical),
+        "fastq.length_distribution_pre"
+        | "fastq.detect_adapters"
+        | "fastq.stats_neutral"
+        | "fastq.overrepresented_sequences"
+        | "fastq.qc_post"
+        | "fastq.screen" => Some(QcClass::Statistical),
         _ => None,
     }
 }
