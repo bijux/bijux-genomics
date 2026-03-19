@@ -56,8 +56,9 @@
     "tool": "rcorrector"
   },
   "effective_params": {
+    "kmer_size": null,
     "paired_mode": "paired_end",
-    "q_cutoff": null,
+    "schema_version": "bijux.fastq.params.correct.v1",
     "threads": 1
   },
   "aux_images": {},
