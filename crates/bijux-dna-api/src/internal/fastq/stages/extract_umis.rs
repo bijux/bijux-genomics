@@ -13,9 +13,9 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_umi_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::extract_umis::plan_umi;
-use bijux_dna_planner_fastq::stage_api::FastqArtifact;
 use bijux_dna_planner_fastq::stage_api::{
-    ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+    ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
+    RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
@@ -40,12 +40,11 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqUmiMetrics>> {
     let tools = select_umi_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_EXTRACT_UMIS.as_str(), artifact.kind)?;
     let r2 = args
         .r2
         .as_deref()
         .ok_or_else(|| anyhow!("umi stage requires paired-end input"))?;
+    preflight_stage(STAGE_EXTRACT_UMIS.as_str(), FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
 
@@ -59,7 +58,11 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
-    let input_hash = hash_file_sha256(&args.r1).context("hash umi input")?;
+    let input_hash = format!(
+        "{}+{}",
+        hash_file_sha256(&args.r1).context("hash umi input r1")?,
+        hash_file_sha256(r2).context("hash umi input r2")?
+    );
 
     if args.explain {
         write_explain_md(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &[], None)?;
@@ -77,7 +80,8 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     let bench_path = bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
-    let input_stats = observe_fastq_stats(catalog, platform, platform.runner, &args.r1)?;
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, platform.runner, &args.r1)?;
+    let input_stats_r2 = observe_fastq_stats(catalog, platform, platform.runner, r2)?;
     let mut records = Vec::<BenchmarkRecord<FastqUmiMetrics>>::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
@@ -119,7 +123,9 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             platform,
             &input_hash,
             &args.r1,
-            &input_stats,
+            r2,
+            &input_stats_r1,
+            &input_stats_r2,
             tool,
             &tool_spec,
             &plan.params,
@@ -156,7 +162,9 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     input_hash: &str,
     r1: &std::path::Path,
+    r2: &std::path::Path,
     input_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    input_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
     params: &serde_json::Value,
@@ -164,23 +172,35 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_stats = if execution.exit_code == 0 && output_r1.exists() {
+    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let output_stats_r1 = if execution.exit_code == 0 && output_r1.exists() {
         observe_fastq_stats(catalog, platform, platform.runner, &output_r1)?
     } else {
         input_stats.clone()
     };
-    let dedup_rate = if input_stats.reads == 0 {
+    let output_stats_r2 = if execution.exit_code == 0 && output_r2.exists() {
+        observe_fastq_stats(catalog, platform, platform.runner, &output_r2)?
+    } else {
+        input_stats_r2.clone()
+    };
+    let reads_in = input_stats.reads + input_stats_r2.reads;
+    let reads_out = output_stats_r1.reads + output_stats_r2.reads;
+    let bases_in = input_stats.bases + input_stats_r2.bases;
+    let bases_out = output_stats_r1.bases + output_stats_r2.bases;
+    let pairs_in = input_stats.reads.min(input_stats_r2.reads);
+    let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
+    let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        1.0 - (output_stats.reads as f64 / input_stats.reads as f64)
+        1.0 - (reads_out as f64 / reads_in as f64)
     };
     let metrics = FastqUmiMetrics {
-        reads_in: input_stats.reads,
-        reads_out: output_stats.reads,
-        bases_in: input_stats.bases,
-        bases_out: output_stats.bases,
-        pairs_in: Some(input_stats.reads),
-        pairs_out: Some(output_stats.reads),
+        reads_in,
+        reads_out,
+        bases_in,
+        bases_out,
+        pairs_in: Some(pairs_in),
+        pairs_out: Some(pairs_out),
         dedup_rate,
     };
     let metric_set = metric_set(metrics.clone());
@@ -191,12 +211,15 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         "stage_id": STAGE_EXTRACT_UMIS.as_str(),
         "tool_id": tool,
         "input_r1": r1,
+        "input_r2": r2,
         "output_r1": output_r1,
-        "output_r2": out_dir.join("reads_r2.fastq.gz"),
+        "output_r2": output_r2,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "bases_in": metrics.bases_in,
         "bases_out": metrics.bases_out,
+        "pairs_in": metrics.pairs_in,
+        "pairs_out": metrics.pairs_out,
         "dedup_rate": metrics.dedup_rate,
         "runtime_s": execution.runtime_s,
         "memory_mb": execution.memory_mb,
