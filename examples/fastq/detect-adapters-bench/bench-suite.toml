@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-detect-adapters-01"
+domain = "fastq"
+stages = ["fastq.detect_adapters"]
