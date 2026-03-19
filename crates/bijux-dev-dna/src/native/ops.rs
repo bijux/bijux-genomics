@@ -1,0 +1,2669 @@
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, Context, Result};
+use chrono::Utc;
+use regex::Regex;
+use serde_json::{json, Value};
+use toml::Value as TomlValue;
+use walkdir::WalkDir;
+
+use crate::infrastructure::process::ProcessRunner;
+use crate::infrastructure::workspace::Workspace;
+use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
+
+pub fn run_native_ops_command(
+    key: &NativeOpsCommandKey,
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    match key {
+        NativeOpsCommandKey::DocsCheckDocAssets => docs_check_doc_assets(workspace, args),
+        NativeOpsCommandKey::DocsCheckDocDepth => docs_check_doc_depth(workspace, args),
+        NativeOpsCommandKey::DocsCheckDocLinks => docs_check_doc_links(workspace, args),
+        NativeOpsCommandKey::DocsCheckDocRootLayout => docs_check_doc_root_layout(workspace, args),
+        NativeOpsCommandKey::DocsCheckDocsGraph => docs_check_docs_graph(workspace, args),
+        NativeOpsCommandKey::DocsCheckDomainDocReferences => {
+            docs_check_domain_doc_references(workspace, args)
+        }
+        NativeOpsCommandKey::DocsCheckGeneratedDocs => docs_check_generated_docs(workspace, args),
+        NativeOpsCommandKey::DocsCheckNoPlaceholderLanguage => {
+            docs_check_no_placeholder_language(workspace, args)
+        }
+        NativeOpsCommandKey::DocsCheckRootPollution => docs_check_root_pollution(workspace, args),
+        NativeOpsCommandKey::DocsCheckDocMajorDepth => docs_check_doc_major_depth(workspace, args),
+        NativeOpsCommandKey::ExamplesGenerateIndex => examples_generate_index(workspace, args),
+        NativeOpsCommandKey::ExamplesCheckIndex => examples_check_index(workspace, args),
+        NativeOpsCommandKey::ExamplesRun => examples_run(workspace, args),
+        NativeOpsCommandKey::ExamplesCheckDrift => examples_check_drift(workspace, args),
+        NativeOpsCommandKey::HpcValidateFrontendConstraints => {
+            hpc_validate_frontend_constraints(workspace, args)
+        }
+        NativeOpsCommandKey::HpcRunFrontendMiniE2e => hpc_run_frontend_mini_e2e(workspace, args),
+        NativeOpsCommandKey::HpcLunarcPull => hpc_lunarc_pull(workspace, args),
+        NativeOpsCommandKey::HpcLunarcPush => hpc_lunarc_push(workspace, args),
+        NativeOpsCommandKey::LabRunBench => lab_run_bench(workspace, args),
+        NativeOpsCommandKey::LabRunPipelines => lab_run_pipelines(workspace, args),
+        NativeOpsCommandKey::SmokeRun => smoke_run(workspace, args),
+        NativeOpsCommandKey::SmokeBam => smoke_bam(workspace, args),
+        NativeOpsCommandKey::SmokeFastq => smoke_fastq(workspace, args),
+        NativeOpsCommandKey::TestScriptsSmoke => test_scripts_smoke(workspace, args),
+        NativeOpsCommandKey::TestTriage => test_triage(workspace, args),
+        NativeOpsCommandKey::TestReproduceFailure => test_reproduce_failure(workspace, args),
+        NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
+        NativeOpsCommandKey::TestToyRuns => test_toy_runs(workspace, args),
+    }
+}
+
+fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-doc-assets", args)?;
+    let docs_root = workspace.path("docs");
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+        let lower = rel.to_ascii_lowercase();
+        let is_image = [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"]
+            .iter()
+            .any(|ext| lower.ends_with(ext));
+        if is_image && !rel.starts_with("docs/assets/") {
+            offenders.push(rel);
+        }
+    }
+    if offenders.is_empty() {
+        return success_line("doc-assets: OK");
+    }
+    failure_lines("doc-assets: images must live under docs/assets/", &offenders)
+}
+
+fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-doc-depth", args)?;
+    let docs_root = workspace.path("docs");
+    let purpose = Regex::new(r"(?mi)^##\s+(Purpose|What)\s*$")?;
+    let scope = Regex::new(r"(?mi)^##\s+(Scope|Why)\s*$")?;
+    let non_goals = Regex::new(r"(?mi)^##\s+Non-goals\s*$")?;
+    let contracts = Regex::new(r"(?mi)^##\s+Contracts\s*$")?;
+    let mut violations = Vec::new();
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+        let rel = workspace.rel(path).to_string_lossy().to_string();
+        let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        if matches!(
+            name,
+            "index.md" | "command_snapshot.txt" | "release_help_snapshot.txt" | "DOCS_GRAPH.toml"
+        ) || name.ends_with(".generated.md")
+            || rel == "docs/cli/index.md"
+        {
+            continue;
+        }
+        let raw = read_utf8(path)?;
+        let mut missing = Vec::new();
+        if !purpose.is_match(&raw) {
+            missing.push("purpose");
+        }
+        if !scope.is_match(&raw) {
+            missing.push("scope");
+        }
+        if !non_goals.is_match(&raw) {
+            missing.push("non-goals");
+        }
+        if !contracts.is_match(&raw) {
+            missing.push("contracts");
+        }
+        if !missing.is_empty() {
+            violations.push(format!("{rel}: {}", missing.join(", ")));
+        }
+    }
+    if violations.is_empty() {
+        return success_line("doc-depth: OK");
+    }
+    failure_lines("doc-depth: missing required sections", &violations)
+}
+
+fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-doc-links", args)?;
+    let docs_root = workspace.path("docs");
+    let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
+    let mut missing = Vec::new();
+    let mut publication = Vec::new();
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
+        {
+            continue;
+        }
+        let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+        let raw = read_utf8(entry.path())?;
+        for capture in link_re.captures_iter(&raw) {
+            let Some(target) = capture.get(1).map(|value| value.as_str().trim()) else {
+                continue;
+            };
+            if target.is_empty()
+                || target.starts_with("http://")
+                || target.starts_with("https://")
+                || target.starts_with("mailto:")
+                || target.starts_with('#')
+            {
+                continue;
+            }
+            let target = target.split('#').next().unwrap_or_default();
+            if target.is_empty() {
+                continue;
+            }
+            let candidate = if target.starts_with('/') {
+                workspace.root.join(target.trim_start_matches('/'))
+            } else {
+                entry
+                    .path()
+                    .parent()
+                    .map(|parent| parent.join(target))
+                    .unwrap_or_else(|| workspace.root.join(target))
+            };
+            if !candidate.exists() {
+                missing.push(format!("{rel} -> {target}"));
+            }
+            if target.contains("assets/publications/")
+                && !target.split('#').next().unwrap_or_default().ends_with("/index.md")
+            {
+                publication.push(format!(
+                    "{rel} -> {target} (must link to assets/publications/<pub-id>/index.md)"
+                ));
+            }
+        }
+    }
+    for target in [
+        "make _ci-fast",
+        "make _ci-slow",
+        "make _quick",
+        "make policy-fast",
+        "make policy-full",
+    ] {
+        let matches = rg_lines(workspace, "docs", target)?;
+        missing.extend(matches.into_iter().map(|line| {
+            format!("stale make target reference `{target}`: {line}")
+        }));
+    }
+    if missing.is_empty() && publication.is_empty() {
+        return success_line("docs links: OK");
+    }
+    let mut errors = Vec::new();
+    errors.extend(missing);
+    errors.extend(publication);
+    failure_lines("docs link check failed:", &errors)
+}
+
+fn docs_check_doc_root_layout(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-doc-root-layout", args)?;
+    let allowed_dirs = BTreeSet::from([
+        "00-intro",
+        "10-architecture",
+        "20-science",
+        "30-operations",
+        "40-policies",
+        "50-reference",
+        "assets",
+        "cli",
+        "containers",
+        "decisions",
+        "overrides",
+    ]);
+    let required_dirs = BTreeSet::from([
+        "00-intro",
+        "10-architecture",
+        "20-science",
+        "30-operations",
+        "40-policies",
+        "50-reference",
+        "assets",
+    ]);
+    let docs_root = workspace.path("docs");
+    let mut violations = Vec::new();
+    for entry in fs::read_dir(&docs_root).with_context(|| format!("read {}", docs_root.display()))? {
+        let entry = entry?;
+        let path = entry.path();
+        let base = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default()
+            .to_string();
+        if path.is_dir() {
+            if !allowed_dirs.contains(base.as_str()) {
+                violations.push(format!("unsupported docs root directory: docs/{base}"));
+            }
+        } else if path.is_file() && base != "index.md" && base != "DOCS_GRAPH.toml" {
+            violations.push(format!("unsupported docs root file: docs/{base}"));
+        }
+    }
+    for required in required_dirs {
+        if !docs_root.join(required).is_dir() {
+            violations.push(format!("missing required docs root directory: docs/{required}"));
+        }
+    }
+    if violations.is_empty() {
+        return success_line("doc-root-layout: OK");
+    }
+    failure_lines("doc-root-layout: FAILED", &violations)
+}
+
+fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-docs-graph", args)?;
+    let docs_root = workspace.path("docs");
+    let graph_path = docs_root.join("DOCS_GRAPH.toml");
+    if !graph_path.is_file() {
+        return Ok(OpsCommandOutcome::failure(
+            "docs-graph: missing docs/DOCS_GRAPH.toml\n",
+        ));
+    }
+    let graph = read_utf8(&graph_path)?;
+    let mut edges = BTreeMap::<String, Vec<String>>::new();
+    let mut graph_nodes = BTreeSet::new();
+    let mut current = None::<String>;
+    let mut in_children = false;
+    for raw in graph.lines() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if line == "[[edge]]" {
+            current = None;
+            in_children = false;
+            continue;
+        }
+        if let Some(value) = line.strip_prefix("from = ") {
+            let from = trim_quoted(value);
+            graph_nodes.insert(from.clone());
+            current = Some(from);
+            continue;
+        }
+        if line == "children = [" {
+            in_children = true;
+            continue;
+        }
+        if in_children {
+            if line == "]" {
+                in_children = false;
+                continue;
+            }
+            let child = trim_quoted(line.trim_end_matches(','));
+            if let Some(from) = &current {
+                edges.entry(from.clone()).or_default().push(child.clone());
+                graph_nodes.insert(child);
+            }
+        }
+    }
+    let mut errors = Vec::new();
+    if !edges.contains_key("docs/index.md") {
+        errors.push("docs/index.md missing from graph roots".to_string());
+    }
+    for node in graph_nodes {
+        if !workspace.path(&node).exists() {
+            errors.push(format!("missing graph node target: {node}"));
+        }
+    }
+    let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
+        {
+            continue;
+        }
+        let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+        let raw = read_utf8(entry.path())?;
+        for capture in link_re.captures_iter(&raw) {
+            let Some(target) = capture.get(1).map(|value| value.as_str().trim()) else {
+                continue;
+            };
+            if target.is_empty()
+                || target.starts_with("http://")
+                || target.starts_with("https://")
+                || target.starts_with("mailto:")
+                || target.starts_with('#')
+            {
+                continue;
+            }
+            let target = target.split('#').next().unwrap_or_default();
+            if target.is_empty() {
+                continue;
+            }
+            let candidate = if target.starts_with('/') {
+                workspace.root.join(target.trim_start_matches('/'))
+            } else {
+                entry
+                    .path()
+                    .parent()
+                    .map(|parent| parent.join(target))
+                    .unwrap_or_else(|| workspace.root.join(target))
+            };
+            if !candidate.exists() {
+                errors.push(format!("{rel} -> {target}"));
+            }
+        }
+    }
+    for dir in std::iter::once(docs_root.clone()).chain(
+        WalkDir::new(&docs_root)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_type().is_dir())
+            .map(|entry| entry.path().to_path_buf()),
+    ) {
+        let markdowns = fs::read_dir(&dir)
+            .ok()
+            .into_iter()
+            .flat_map(|entries| entries.filter_map(Result::ok))
+            .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("md"))
+            .count();
+        if markdowns > 0 && !dir.join("index.md").exists() {
+            errors.push(format!(
+                "section folder lacks index.md: {}",
+                workspace.rel(&dir).display()
+            ));
+        }
+    }
+    let all_docs = WalkDir::new(&docs_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| {
+            entry.file_type().is_file()
+                && entry.path().extension().and_then(|ext| ext.to_str()) == Some("md")
+        })
+        .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
+        .filter(|rel| rel != "docs/DOCS_GRAPH.toml")
+        .collect::<BTreeSet<_>>();
+    let mut reachable = BTreeSet::new();
+    let mut queue = vec!["docs/index.md".to_string()];
+    while let Some(node) = queue.pop() {
+        if !reachable.insert(node.clone()) {
+            continue;
+        }
+        if let Some(children) = edges.get(&node) {
+            queue.extend(children.iter().cloned());
+        }
+    }
+    for rel in all_docs.difference(&reachable) {
+        errors.push(format!(
+            "docs not reachable from docs/index.md via docs/DOCS_GRAPH.toml: {rel}"
+        ));
+    }
+    if errors.is_empty() {
+        return success_line("docs-graph: OK");
+    }
+    failure_lines("docs-graph: FAILED", &errors)
+}
+
+fn docs_check_domain_doc_references(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-domain-doc-references", args)?;
+    let stage_id_re = Regex::new(r#"^\s*id\s*=\s*"([^"]+)""#)?;
+    let domain_stage_re = Regex::new(r#"^\s*-\s*((?:fastq|bam|vcf)\.[a-z0-9_]+)"#)?;
+    let tool_id_re = Regex::new(r#"^\s*(?:id|tool_id)\s*=\s*"([^"]+)""#)?;
+    let docs_stage_re = Regex::new(r"`((?:fastq|bam)\.[a-z0-9_]+)`")?;
+    let docs_tool_re = Regex::new(r"`tool:([a-z0-9][a-z0-9._-]*)`")?;
+    let mut stage_ids = BTreeSet::new();
+    for rel in [
+        "configs/ci/stages/stages.toml",
+        "configs/ci/stages/stages_vcf.toml",
+    ] {
+        for line in read_utf8(&workspace.path(rel))?.lines() {
+            if let Some(capture) = stage_id_re.captures(line) {
+                if let Some(value) = capture.get(1) {
+                    stage_ids.insert(value.as_str().to_string());
+                }
+            }
+        }
+    }
+    for domain_index in glob_paths(workspace, "domain/*/index.yaml")? {
+        for line in read_utf8(&domain_index)?.lines() {
+            if let Some(capture) = domain_stage_re.captures(line) {
+                if let Some(value) = capture.get(1) {
+                    stage_ids.insert(value.as_str().to_string());
+                }
+            }
+        }
+    }
+    let mut tool_ids = BTreeSet::new();
+    for rel in [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+    ] {
+        for line in read_utf8(&workspace.path(rel))?.lines() {
+            if let Some(capture) = tool_id_re.captures(line) {
+                if let Some(value) = capture.get(1) {
+                    tool_ids.insert(value.as_str().to_string());
+                }
+            }
+        }
+    }
+    let mut errors = Vec::new();
+    for entry in WalkDir::new(workspace.path("docs"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let raw = read_utf8(entry.path())?;
+        for capture in docs_stage_re.captures_iter(&raw) {
+            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            if !token.is_empty() && !stage_ids.contains(token) {
+                errors.push(format!("unknown stage: {token}"));
+            }
+        }
+        for capture in docs_tool_re.captures_iter(&raw) {
+            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            if !token.is_empty() && !token.contains('*') && !tool_ids.contains(token) {
+                errors.push(format!("unknown tool: {token}"));
+            }
+        }
+    }
+    if errors.is_empty() {
+        return success_line("docs stage/tool references validated");
+    }
+    failure_lines("docs reference unknown stage/tool ids", &errors)
+}
+
+fn docs_check_generated_docs(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-generated-docs", args)?;
+    let required = [
+        "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
+        "docs/20-science/TOOL_INDEX.md",
+        "docs/20-science/DOMAIN_COVERAGE.generated.md",
+        "docs/30-operations/APPTAINER_QA_MATRIX.md",
+        "docs/00-intro/REPO_ROOT_MAP.generated.md",
+        "docs/50-reference/COMPATIBILITY_MATRIX.md",
+    ];
+    let mut errors = Vec::new();
+    for rel in required {
+        ensure_generated_header(workspace, rel, &mut errors)?;
+    }
+    for entry in WalkDir::new(workspace.path("docs"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        if entry
+            .path()
+            .file_name()
+            .and_then(|value| value.to_str())
+            .map(|name| name.ends_with(".generated.md"))
+            .unwrap_or(false)
+        {
+            ensure_generated_header_path(workspace, entry.path(), &mut errors)?;
+        }
+    }
+    let temp_root = temp_subdir(workspace, "generated-docs")?;
+    fs::create_dir_all(temp_root.join("00-intro"))?;
+    fs::create_dir_all(temp_root.join("20-science"))?;
+    fs::create_dir_all(temp_root.join("30-operations"))?;
+    fs::create_dir_all(temp_root.join("50-reference"))?;
+    write_utf8(
+        &temp_root.join("30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"),
+        &read_utf8(&workspace.path("docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"))?,
+    )?;
+    generate_tool_index(workspace, &temp_root.join("20-science/TOOL_INDEX.md"))?;
+    generate_domain_coverage_doc(workspace, &temp_root.join("20-science/DOMAIN_COVERAGE.generated.md"))?;
+    let qa_matrix = run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "-q".to_string(),
+            "-p".to_string(),
+            "bijux-dev-dna".to_string(),
+            "--".to_string(),
+            "containers".to_string(),
+            "run".to_string(),
+            "generate-qa-matrix".to_string(),
+            "--".to_string(),
+            temp_root
+                .join("30-operations/APPTAINER_QA_MATRIX.md")
+                .display()
+                .to_string(),
+        ],
+    )?;
+    if !qa_matrix.is_success() {
+        return Ok(qa_matrix);
+    }
+    generate_repo_root_map(workspace, &temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
+    generate_compatibility_matrix(
+        workspace,
+        &temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
+    )?;
+    generate_docs_graph(workspace, &temp_root.join("DOCS_GRAPH.toml"))?;
+    for (actual, expected) in [
+        (
+            workspace.path("docs/20-science/TOOL_INDEX.md"),
+            temp_root.join("20-science/TOOL_INDEX.md"),
+        ),
+        (
+            workspace.path("docs/20-science/DOMAIN_COVERAGE.generated.md"),
+            temp_root.join("20-science/DOMAIN_COVERAGE.generated.md"),
+        ),
+        (
+            workspace.path("docs/30-operations/APPTAINER_QA_MATRIX.md"),
+            temp_root.join("30-operations/APPTAINER_QA_MATRIX.md"),
+        ),
+        (
+            workspace.path("docs/00-intro/REPO_ROOT_MAP.generated.md"),
+            temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"),
+        ),
+        (
+            workspace.path("docs/50-reference/COMPATIBILITY_MATRIX.md"),
+            temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
+        ),
+        (
+            workspace.path("docs/DOCS_GRAPH.toml"),
+            temp_root.join("DOCS_GRAPH.toml"),
+        ),
+    ] {
+        if read_utf8(&actual)? != read_utf8(&expected)? {
+            errors.push(format!(
+                "{} drifted from generated output",
+                workspace.rel(&actual).display()
+            ));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("generated docs headers: OK");
+    }
+    failure_lines("generated-docs: FAILED", &errors)
+}
+
+fn docs_check_no_placeholder_language(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-no-placeholder-language", args)?;
+    let re = Regex::new(r"\b(?:TODO|TBD|WIP|placeholder)\b")?;
+    let mut violations = Vec::new();
+    for entry in WalkDir::new(workspace.path("docs"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
+        if rel.starts_with("docs/overrides/") {
+            continue;
+        }
+        if entry.path().extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+        let raw = read_utf8(entry.path())?;
+        if re.is_match(&raw) {
+            violations.push(rel);
+        }
+    }
+    if violations.is_empty() {
+        return success_line("docs-placeholder-policy: OK");
+    }
+    failure_lines(
+        "docs-placeholder-policy: forbidden placeholder language found outside docs/overrides/",
+        &violations,
+    )
+}
+
+fn docs_check_root_pollution(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-root-pollution", args)?;
+    let mut offenders = Vec::new();
+    for rel in ["coverage", "target-docs"] {
+        if workspace.path(rel).exists() {
+            offenders.push(rel.to_string());
+        }
+    }
+    for entry in fs::read_dir(&workspace.root)? {
+        let entry = entry?;
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with("target-") {
+            offenders.push(name);
+        }
+    }
+    if offenders.is_empty() {
+        return success_line("root-pollution: OK");
+    }
+    failure_lines("root-pollution: forbidden repo-root outputs detected", &offenders)
+}
+
+fn docs_check_doc_major_depth(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-doc-major-depth", args)?;
+    let required = BTreeMap::from([
+        ("purpose", Regex::new(r"(?mi)^##\s+Purpose:?\s*$")?),
+        ("scope", Regex::new(r"(?mi)^##\s+Scope:?\s*$")?),
+        ("contracts", Regex::new(r"(?mi)^##\s+Contracts:?\s*$")?),
+        ("examples", Regex::new(r"(?mi)^##\s+Examples:?\s*$")?),
+        ("failure modes", Regex::new(r"(?mi)^##\s+Failure modes:?\s*$")?),
+    ]);
+    let mut errors = Vec::new();
+    for rel in [
+        "docs/10-architecture/ARCHITECTURE.md",
+        "docs/10-architecture/SSOT.md",
+        "docs/20-science/SCIENTIFIC_DEFAULTS.md",
+        "docs/30-operations/CONTAINERS.md",
+        "docs/30-operations/REPRODUCIBILITY.md",
+    ] {
+        let path = workspace.path(rel);
+        if !path.exists() {
+            errors.push(format!("{rel}: missing major doc file"));
+            continue;
+        }
+        let raw = read_utf8(&path)?;
+        let missing = required
+            .iter()
+            .filter_map(|(name, re)| (!re.is_match(&raw)).then_some(*name))
+            .collect::<Vec<_>>();
+        if !missing.is_empty() {
+            errors.push(format!("{rel}: missing sections: {}", missing.join(", ")));
+        }
+    }
+    if errors.is_empty() {
+        return success_line("doc-major-depth: OK");
+    }
+    failure_lines("doc-major-depth: FAILED", &errors)
+}
+
+fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut out = workspace.path("examples/index.yaml");
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--out" => {
+                let value = args.get(index + 1).context("missing value for --out")?;
+                out = path_from_arg(workspace, value);
+                index += 2;
+            }
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- examples run generate-index -- [--out <path>]",
+                )
+            }
+            other => return Err(anyhow!("unexpected arg: {other}")),
+        }
+    }
+    let mut rows = Vec::new();
+    for example_toml in glob_paths(workspace, "examples/**/example.toml")? {
+        let example_dir = example_toml.parent().context("example.toml without parent")?;
+        let rel = workspace.rel(example_dir).to_string_lossy().to_string();
+        if rel.starts_with("examples/_template") {
+            continue;
+        }
+        let data: TomlValue = toml::from_str(&read_utf8(&example_toml)?)?;
+        let example_id = data
+            .get("id")
+            .and_then(TomlValue::as_str)
+            .unwrap_or_else(|| {
+                example_dir
+                    .file_name()
+                    .and_then(|value| value.to_str())
+                    .unwrap_or("unknown")
+            })
+            .to_string();
+        let domain = data
+            .get("domain")
+            .and_then(TomlValue::as_str)
+            .unwrap_or("unknown")
+            .to_string();
+        let corpus = data
+            .get("corpus_required")
+            .and_then(TomlValue::as_str)
+            .unwrap_or("none")
+            .to_string();
+        let outputs = data
+            .get("expected_outputs")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+            .collect::<Vec<_>>();
+        rows.push((example_id, domain, corpus, outputs, rel));
+    }
+    rows.sort_by(|left, right| left.0.cmp(&right.0));
+    let mut lines = vec![
+        "# GENERATED FILE - DO NOT EDIT".to_string(),
+        "# Regenerate with: cargo run -p bijux-dev-dna -- examples run generate-index".to_string(),
+        "examples:".to_string(),
+    ];
+    for (example_id, domain, corpus, outputs, rel) in rows {
+        lines.push(format!("  - id: {example_id}"));
+        lines.push(format!("    domain: {domain}"));
+        lines.push(format!("    corpus_required: {corpus}"));
+        lines.push("    expected_outputs:".to_string());
+        if outputs.is_empty() {
+            lines.push("      - none".to_string());
+        } else {
+            lines.extend(outputs.into_iter().map(|output| format!("      - {output}")));
+        }
+        lines.push(format!("    path: {rel}"));
+    }
+    write_utf8(&out, &format!("{}\n", lines.join("\n")))?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn examples_check_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("check-index", args)?;
+    let index_path = workspace.path("examples/index.yaml");
+    if !index_path.is_file() {
+        return Ok(OpsCommandOutcome::failure(
+            "examples index missing: examples/index.yaml\n",
+        ));
+    }
+    let raw = read_utf8(&index_path)?;
+    if !raw.starts_with("# GENERATED FILE - DO NOT EDIT\n") {
+        return Ok(OpsCommandOutcome::failure(
+            "examples/index.yaml must be generated-only with header\n",
+        ));
+    }
+    let temp = temp_subdir(workspace, "examples-index")?;
+    let outcome = examples_generate_index(
+        workspace,
+        &[
+            "--out".to_string(),
+            temp.display().to_string(),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Ok(outcome);
+    }
+    if read_utf8(&index_path)? == read_utf8(&temp)? {
+        return success_line("examples index: OK");
+    }
+    Ok(OpsCommandOutcome::failure(
+        "examples/index.yaml drift; regenerate with cargo run -p bijux-dev-dna -- examples run generate-index\n",
+    ))
+}
+
+fn examples_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- examples run run -- [--allow-non-artifacts|--allow-non-isolate] <example-id>",
+        );
+    }
+    let mut allow_non_artifacts = false;
+    let mut positionals = Vec::new();
+    for arg in args {
+        match arg.as_str() {
+            "--allow-non-artifacts" | "--allow-non-isolate" => allow_non_artifacts = true,
+            other => positionals.push(other.to_string()),
+        }
+    }
+    if positionals.len() != 1 {
+        return Err(anyhow!("examples run requires exactly one <example-id>"));
+    }
+    let example_id = &positionals[0];
+    if !allow_non_artifacts {
+        ensure_artifact_root_inside_artifacts(workspace)?;
+    }
+    let example_dir = find_example_dir(workspace, example_id)?
+        .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
+    let example_toml: TomlValue = toml::from_str(&read_utf8(&example_dir.join("example.toml"))?)?;
+    let corpus_id = example_toml
+        .get("corpus_id")
+        .and_then(TomlValue::as_str)
+        .unwrap_or_default()
+        .to_string();
+    let mini_supported = example_toml
+        .get("mini_supported")
+        .and_then(TomlValue::as_bool)
+        .context("example config must define mini_supported")?;
+    if corpus_id.is_empty() {
+        return Err(anyhow!(
+            "example config must define corpus_id: {}",
+            workspace.rel(&example_dir.join("example.toml")).display()
+        ));
+    }
+    if !workspace.path(&format!("examples/data/{corpus_id}")).is_dir() {
+        return Err(anyhow!("example corpus missing: examples/data/{corpus_id}"));
+    }
+    let artifact_root = artifact_root_path(workspace)?;
+    let out_dir = artifact_root.join("examples").join(example_id);
+    fs::create_dir_all(&out_dir)?;
+    for file in ["plan.json", "explain.json", "report.json"] {
+        fs::copy(example_dir.join("golden").join(file), out_dir.join(file)).with_context(|| {
+            format!(
+                "copy {} -> {}",
+                example_dir.join("golden").join(file).display(),
+                out_dir.join(file).display()
+            )
+        })?;
+    }
+    fs::copy(
+        example_dir.join("golden/report.json"),
+        out_dir.join("golden_report.json"),
+    )?;
+    let iso_run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "none".to_string());
+    write_json_pretty(
+        &out_dir.join("run_report.json"),
+        &json!({
+            "example_id": example_id,
+            "corpus_id": corpus_id,
+            "iso_run_id": iso_run_id,
+            "mini_supported": mini_supported,
+            "status": "ok",
+            "steps": ["ensure_images", "run_bench", "collect_artifacts", "generate_report"],
+            "source": workspace.rel(&example_dir).display().to_string(),
+        }),
+    )?;
+    write_json_pretty(
+        &out_dir.join("manifest.json"),
+        &json!({
+            "schema_version": "bijux.example.bundle.v1",
+            "example_id": example_id,
+            "corpus_id": corpus_id,
+            "iso_run_id": iso_run_id,
+            "source": workspace.rel(&example_dir).display().to_string(),
+            "files": [
+                "plan.json",
+                "explain.json",
+                "report.json",
+                "golden_report.json",
+                "run_report.json",
+                "metrics.json",
+                "logs.txt"
+            ]
+        }),
+    )?;
+    write_json_pretty(
+        &out_dir.join("metrics.json"),
+        &json!({
+            "example_id": example_id,
+            "collected_at": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            "status": "ok",
+        }),
+    )?;
+    write_utf8(
+        &out_dir.join("logs.txt"),
+        &format!(
+            "example_id={example_id}\ncorpus_id={corpus_id}\nmini_supported={mini_supported}\nstep1=containers ensure-images --plan\nstep2=bench suite check\nstep3=collect golden outputs\nstep4=write run report and bundle\n"
+        ),
+    )?;
+    let tar = run_program(
+        workspace,
+        "tar",
+        &[
+            "-czf".to_string(),
+            out_dir.join("bundle.tar.gz").display().to_string(),
+            "-C".to_string(),
+            out_dir.display().to_string(),
+            "manifest.json".to_string(),
+            "metrics.json".to_string(),
+            "logs.txt".to_string(),
+            "plan.json".to_string(),
+            "explain.json".to_string(),
+            "report.json".to_string(),
+            "golden_report.json".to_string(),
+            "run_report.json".to_string(),
+        ],
+    )?;
+    if !tar.is_success() {
+        return Ok(tar);
+    }
+    for file in ["plan.json", "explain.json", "report.json"] {
+        if read_utf8(&example_dir.join("golden").join(file))? != read_utf8(&out_dir.join(file))? {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "example golden mismatch for {example_id}: {file}\n"
+            )));
+        }
+    }
+    success_line(format!(
+        "example run complete: {}",
+        workspace.rel(&out_dir.join("bundle.tar.gz")).display()
+    ))
+}
+
+fn examples_check_drift(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- examples run check-drift -- <example-id>",
+        );
+    }
+    if args.len() != 1 {
+        return Err(anyhow!("check-drift requires exactly one <example-id>"));
+    }
+    let example_id = &args[0];
+    let outcome = examples_run(workspace, std::slice::from_ref(example_id))?;
+    if !outcome.is_success() {
+        return Ok(outcome);
+    }
+    let example_dir = find_example_dir(workspace, example_id)?
+        .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
+    let art_dir = artifact_root_path(workspace)?.join("examples").join(example_id);
+    for file in ["plan.json", "explain.json"] {
+        if read_utf8(&example_dir.join("golden").join(file))? != read_utf8(&art_dir.join(file))? {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "example drift: {} mismatch for {example_id}\n",
+                file.trim_end_matches(".json")
+            )));
+        }
+    }
+    success_line(format!("example drift: OK ({example_id})"))
+}
+
+fn hpc_validate_frontend_constraints(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- hpc run validate-frontend-constraints -- [--dry-run|--confirm]",
+        );
+    }
+    let mut dry_run = true;
+    for arg in args {
+        match arg.as_str() {
+            "--dry-run" => dry_run = true,
+            "--confirm" => dry_run = false,
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    if dry_run {
+        return success_line("[dry-run] validate-frontend-constraints (pass --confirm to execute)");
+    }
+    let policy_path = PathBuf::from(
+        std::env::var("POLICY_TOML")
+            .unwrap_or_else(|_| workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml").display().to_string()),
+    );
+    let min_tmp_gb = std::env::var("MIN_TMP_GB")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(4);
+    let min_work_gb = std::env::var("MIN_WORK_GB")
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(10);
+    let work_dir = std::env::var("WORK_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            std::env::var("ISO_ROOT")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+        });
+    let policy: TomlValue = toml::from_str(&read_utf8(&policy_path)?)?;
+    let host = hostname(workspace)?;
+    if host_matches_policy(
+        &host,
+        policy
+            .get("compute_hostname_regex")
+            .and_then(TomlValue::as_str)
+            .unwrap_or_default(),
+    )? {
+        if std::env::var("CI").is_ok() || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
+        {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "frontend constraints: refusing compute host '{host}'\n"
+            )));
+        }
+        return success_line(format!("frontend constraints: SKIP (compute host {host})"));
+    }
+    let frontend_pattern = policy
+        .get("frontend_hostname_regex")
+        .and_then(TomlValue::as_str)
+        .unwrap_or_default();
+    if !frontend_pattern.is_empty() && !host_matches_policy(&host, frontend_pattern)? {
+        if std::env::var("CI").is_ok() || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
+        {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "frontend constraints: host '{host}' does not match frontend pattern\n"
+            )));
+        }
+        return success_line(format!("frontend constraints: SKIP (host {host} not frontend)"));
+    }
+    let tmp_gb = free_space_gb(Path::new("/tmp"))?;
+    let work_gb = free_space_gb(&work_dir)?;
+    if tmp_gb < min_tmp_gb {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "frontend constraints: /tmp free {tmp_gb}GB < required {min_tmp_gb}GB\n"
+        )));
+    }
+    if work_gb < min_work_gb {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "frontend constraints: work dir free {work_gb}GB < required {min_work_gb}GB ({})\n",
+            work_dir.display()
+        )));
+    }
+    let test_dir = work_dir.join(format!("hpc-frontend-constraints.{}", std::process::id()));
+    fs::create_dir_all(&test_dir)?;
+    fs::write(test_dir.join(".write_test"), [])?;
+    fs::remove_file(test_dir.join(".write_test"))?;
+    fs::remove_dir(&test_dir)?;
+    let module_state = if command_exists(workspace, "module")? {
+        let output = run_program(workspace, "module", &["avail".to_string()])?;
+        if !output.is_success() {
+            return Ok(OpsCommandOutcome::failure(
+                "frontend constraints: module command exists but module avail failed\n",
+            ));
+        }
+        "available"
+    } else {
+        "not_used"
+    };
+    success_line(format!(
+        "frontend constraints: OK (tmp={tmp_gb}GB work={work_gb}GB modules={module_state})"
+    ))
+}
+
+fn hpc_run_frontend_mini_e2e(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- hpc run run-frontend-mini-e2e -- [--dry-run|--confirm]",
+        );
+    }
+    let mut dry_run = true;
+    for arg in args {
+        match arg.as_str() {
+            "--dry-run" => dry_run = true,
+            "--confirm" => dry_run = false,
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    if dry_run {
+        return success_line("[dry-run] run-frontend-mini-e2e (pass --confirm to execute)");
+    }
+    let validation = hpc_validate_frontend_constraints(workspace, &["--confirm".to_string()])?;
+    if !validation.is_success() {
+        return Ok(validation);
+    }
+    let run_id = std::env::var("ISO_RUN_ID")
+        .unwrap_or_else(|_| Utc::now().format("%Y%m%dT%H%M%SZ").to_string());
+    let out_dir = std::env::var("OUT_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("hpc/frontend-mini-e2e").join(&run_id));
+    fs::create_dir_all(&out_dir)?;
+    let mut status = 0;
+    for (example_id, label) in [
+        ("vcf_downstream_vcf_full_mini", "vcf"),
+        ("fastq_edna_mini", "fastq"),
+    ] {
+        let example_out = out_dir.join(label);
+        fs::create_dir_all(&example_out)?;
+        let start = Utc::now();
+        let outcome = examples_run(
+            workspace,
+            &[
+                "--allow-non-isolate".to_string(),
+                example_id.to_string(),
+            ],
+        )?;
+        write_utf8(&example_out.join("runner.stdout.log"), &outcome.stdout)?;
+        write_utf8(&example_out.join("runner.stderr.log"), &outcome.stderr)?;
+        if !outcome.is_success() {
+            status = 1;
+        }
+        let src = artifact_root_path(workspace)?.join("examples").join(example_id);
+        for name in [
+            "plan.json",
+            "explain.json",
+            "report.json",
+            "run_report.json",
+            "metrics.json",
+            "logs.txt",
+        ] {
+            let path = src.join(name);
+            if path.exists() {
+                let _ = fs::copy(&path, example_out.join(name));
+            }
+        }
+        let domain_hash = sha256_hex(&workspace.path(&format!("domain/{label}/index.yaml")))?;
+        let example_toml = find_example_dir(workspace, example_id)?
+            .context("resolve example dir")?
+            .join("example.toml");
+        let config_hash = sha256_hex(&example_toml)?;
+        let lock_hash = sha256_hex(&workspace.path("containers/versions/lock.json"))?;
+        write_json_pretty(
+            &example_out.join("frontend_run_meta.json"),
+            &json!({
+                "schema_version": "bijux.frontend.mini.e2e.v1",
+                "example_id": example_id,
+                "label": label,
+                "start_utc": start.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "end_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                "exit_code": outcome.exit_code,
+                "host": hostname(workspace)?,
+                "tool_versions_ref": "artifacts/containers/hpc/frontend-smoke/summary.json",
+                "container_lock_sha256": lock_hash,
+                "domain_hash_sha256": domain_hash,
+                "config_hash_sha256": config_hash,
+            }),
+        )?;
+    }
+    write_json_pretty(
+        &out_dir.join("summary.json"),
+        &json!({
+            "schema_version": "bijux.frontend.mini.e2e.summary.v1",
+            "run_id": run_id,
+            "out_dir": out_dir.display().to_string(),
+            "status": if status == 0 { "ok" } else { "fail" },
+            "examples": [
+                {"id": "vcf_downstream_vcf_full_mini", "artifact_dir": out_dir.join("vcf").display().to_string()},
+                {"id": "fastq_edna_mini", "artifact_dir": out_dir.join("fastq").display().to_string()},
+            ]
+        }),
+    )?;
+    Ok(OpsCommandOutcome {
+        exit_code: status,
+        stdout: format!("{}\n", out_dir.join("summary.json").display()),
+        stderr: String::new(),
+    })
+}
+
+fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>]",
+        );
+    }
+    let mut dry_run = true;
+    let mut include_profile = "pull-results-default".to_string();
+    let mut exclude_profile = "pull-full-default".to_string();
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--dry-run" => {
+                dry_run = true;
+                index += 1;
+            }
+            "--confirm" => {
+                dry_run = false;
+                index += 1;
+            }
+            "--include" | "--include-profile" => {
+                include_profile = args.get(index + 1).context("missing value for include profile")?.clone();
+                index += 2;
+            }
+            "--exclude" | "--exclude-profile" => {
+                exclude_profile = args.get(index + 1).context("missing value for exclude profile")?.clone();
+                index += 2;
+            }
+            other if other.starts_with("--include=") || other.starts_with("--include-profile=") => {
+                include_profile = other.split('=').nth(1).unwrap_or_default().to_string();
+                index += 1;
+            }
+            other if other.starts_with("--exclude=") || other.starts_with("--exclude-profile=") => {
+                exclude_profile = other.split('=').nth(1).unwrap_or_default().to_string();
+                index += 1;
+            }
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    let lunarc_host = env_or_default("LUNARC_HOST", "lunarc");
+    let lunarc_root = env_or_default("LUNARC_ROOT", "${HOME}/bijux");
+    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &format!("{lunarc_root}/bijux-dna"));
+    let lunarc_pull_base = env_or_default("LUNARC_PULL_BASE", "${HOME}/bijux");
+    let pull_mode = env_or_default("PULL_MODE", "results");
+    let include_containers_manifest = env_or_default("INCLUDE_CONTAINERS_MANIFEST", "0") == "1";
+    let data_manifest_glob = env_or_empty("DATA_MANIFEST_GLOB");
+    let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
+    let mut pull_full_exclude = workspace.path("configs/hpc/rsync/pull-full-excludes.txt");
+    let mut pull_results_include = workspace.path("configs/hpc/rsync/pull-results-includes.txt");
+    if profiles_cfg.is_file() {
+        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")? {
+            pull_full_exclude = workspace.path(&rel);
+        }
+        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &include_profile, "include_file")? {
+            pull_results_include = workspace.path(&rel);
+        }
+    }
+    let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
+    let dest = PathBuf::from(lunarc_pull_base.replace("${HOME}", &env_or_default("HOME", "")))
+        .join(format!("lunarc-{timestamp}"));
+    if dry_run {
+        return success_line(format!(
+            "[dry-run] would pull mode={pull_mode} from {lunarc_host}:{lunarc_root} to {}",
+            dest.display()
+        ));
+    }
+    if dest.exists() {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "refusing pull: destination already exists: {}\n",
+            dest.display()
+        )));
+    }
+    fs::create_dir_all(&dest)?;
+    let mut pulled_paths = Vec::new();
+    if pull_mode == "full" {
+        let outcome = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                format!("--exclude-from={}", pull_full_exclude.display()),
+                format!("{lunarc_host}:{lunarc_root}/"),
+                format!("{}/", dest.display()),
+            ],
+        )?;
+        if !outcome.is_success() {
+            return Ok(outcome);
+        }
+        pulled_paths.push(format!("{lunarc_root}/"));
+    } else {
+        let outcome = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                format!("--include-from={}", pull_results_include.display()),
+                format!("{lunarc_host}:{lunarc_root}/"),
+                format!("{}/", dest.display()),
+            ],
+        )?;
+        if !outcome.is_success() {
+            return Ok(outcome);
+        }
+        pulled_paths.push(format!("{lunarc_root}/bijux-dna-results/"));
+        if include_containers_manifest {
+            fs::create_dir_all(dest.join("bijux-dna-containers"))?;
+            let _ = run_program(
+                workspace,
+                "rsync",
+                &[
+                    "-az".to_string(),
+                    format!("{lunarc_host}:{lunarc_root}/bijux-dna-containers/manifest/"),
+                    dest.join("bijux-dna-containers/manifest").display().to_string(),
+                ],
+            )?;
+            pulled_paths.push(format!("{lunarc_root}/bijux-dna-containers/manifest/"));
+        }
+        if !data_manifest_glob.is_empty() {
+            for rel in data_manifest_glob.split(',').map(str::trim).filter(|value| !value.is_empty()) {
+                let clean_rel = rel.trim_start_matches('/');
+                let target = dest.join("bijux-dna-data").join(clean_rel);
+                if let Some(parent) = target.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                let _ = run_program(
+                    workspace,
+                    "rsync",
+                    &[
+                        "-az".to_string(),
+                        format!("{lunarc_host}:{lunarc_root}/bijux-dna-data/{clean_rel}"),
+                        target.display().to_string(),
+                    ],
+                )?;
+                pulled_paths.push(format!("{lunarc_root}/bijux-dna-data/{clean_rel}"));
+            }
+        }
+    }
+    let remote_commit = trim_newline(&run_program(
+        workspace,
+        "ssh",
+        &[
+            lunarc_host.clone(),
+            format!("cd '{lunarc_repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
+        ],
+    )?.stdout);
+    let remote_hostname = trim_newline(&run_program(
+        workspace,
+        "ssh",
+        &[lunarc_host.clone(), "hostname -f 2>/dev/null || hostname".to_string()],
+    )?.stdout);
+    write_json_pretty(
+        &dest.join("PULLED_FROM.json"),
+        &json!({
+            "schema_version": "bijux.lunarc.pull.v1",
+            "remote_host": lunarc_host,
+            "remote_hostname": remote_hostname,
+            "remote_root": lunarc_root,
+            "remote_repo": lunarc_repo_dir,
+            "remote_commit": remote_commit,
+            "pulled_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            "pull_mode": pull_mode,
+            "paths": pulled_paths,
+        }),
+    )?;
+    success_line(format!("pulled_to={}", dest.display()))
+}
+
+fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-push -- [--dry-run|--confirm] [--exclude-profile <name>]",
+        );
+    }
+    let mut dry_run = true;
+    let mut exclude_profile = "push-default".to_string();
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--dry-run" => {
+                dry_run = true;
+                index += 1;
+            }
+            "--confirm" => {
+                dry_run = false;
+                index += 1;
+            }
+            "--exclude" | "--exclude-profile" => {
+                exclude_profile = args.get(index + 1).context("missing value for exclude profile")?.clone();
+                index += 2;
+            }
+            other if other.starts_with("--exclude=") || other.starts_with("--exclude-profile=") => {
+                exclude_profile = other.split('=').nth(1).unwrap_or_default().to_string();
+                index += 1;
+            }
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
+    let mut exclude_file = workspace.path("configs/hpc/rsync/push-excludes.txt");
+    if profiles_cfg.is_file() {
+        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")? {
+            exclude_file = workspace.path(&rel);
+        }
+    }
+    let lunarc_host = env_or_default("LUNARC_HOST", "lunarc");
+    let lunarc_root = env_or_default("LUNARC_ROOT", "${HOME}/bijux");
+    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &format!("{lunarc_root}/bijux-dna"));
+    let clean_context = env_or_default("CLEAN_CONTEXT", "1") == "1";
+    let allow_dirty = env_or_default("ALLOW_DIRTY", "0") == "1";
+    if !allow_dirty {
+        let dirty = run_program(
+            workspace,
+            "git",
+            &["status".to_string(), "--short".to_string()],
+        )?;
+        if !dirty.stdout.trim().is_empty() {
+            return Ok(OpsCommandOutcome::failure(
+                "refusing push: local git tree is dirty (set ALLOW_DIRTY=1 to override)\n",
+            ));
+        }
+    }
+    if dry_run {
+        return success_line(format!(
+            "[dry-run] would sync repo to {lunarc_host}:{lunarc_repo_dir}"
+        ));
+    }
+    let mkdir = run_program(
+        workspace,
+        "ssh",
+        &[lunarc_host.clone(), format!("mkdir -p '{lunarc_repo_dir}'")],
+    )?;
+    if !mkdir.is_success() {
+        return Ok(mkdir);
+    }
+    if clean_context {
+        let temp_root = temp_subdir(workspace, "lunarc-push")?;
+        let files_from = temp_root.join("files.txt");
+        let tracked = run_program(
+            workspace,
+            "git",
+            &["ls-files".to_string()],
+        )?;
+        if !tracked.is_success() {
+            return Ok(tracked);
+        }
+        write_utf8(&files_from, &tracked.stdout)?;
+        let sync = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                "--delete".to_string(),
+                format!("--files-from={}", files_from.display()),
+                "./".to_string(),
+                format!("{lunarc_host}:{lunarc_repo_dir}/"),
+            ],
+        )?;
+        if !sync.is_success() {
+            return Ok(sync);
+        }
+    } else {
+        let sync = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                "--delete".to_string(),
+                format!("--exclude-from={}", exclude_file.display()),
+                "./".to_string(),
+                format!("{lunarc_host}:{lunarc_repo_dir}/"),
+            ],
+        )?;
+        if !sync.is_success() {
+            return Ok(sync);
+        }
+    }
+    let remote_commit = trim_newline(&run_program(
+        workspace,
+        "ssh",
+        &[
+            lunarc_host.clone(),
+            format!("cd '{lunarc_repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
+        ],
+    )?.stdout);
+    success_line(format!(
+        "remote_repo={lunarc_repo_dir}\nremote_commit={remote_commit}"
+    ))
+}
+
+fn lab_run_bench(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("run-bench", args)?;
+    ensure_artifact_root_inside_artifacts(workspace)?;
+    let config = lab_config(workspace)?;
+    let corpus_root = env_or_override("CORPUS_ROOT", &config, "corpus_root")?;
+    let runner_kind = env_or_override("RUNNER_KIND", &config, "runner_kind")?;
+    let output_dir = env_or_override("OUTPUT_DIR", &config, "output_dir")?;
+    let fastq = run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "--bin".to_string(),
+            "bijux-dna".to_string(),
+            "--".to_string(),
+            "bench".to_string(),
+            "fastq".to_string(),
+            "--runner".to_string(),
+            runner_kind.clone(),
+            "--corpus-root".to_string(),
+            corpus_root.clone(),
+            "--out".to_string(),
+            output_dir.clone(),
+        ],
+    )?;
+    if !fastq.is_success() {
+        return Ok(fastq);
+    }
+    let bam = run_program(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "--bin".to_string(),
+            "bijux-dna".to_string(),
+            "--".to_string(),
+            "bench".to_string(),
+            "bam".to_string(),
+            "--runner".to_string(),
+            runner_kind,
+            "--corpus-root".to_string(),
+            corpus_root,
+            "--out".to_string(),
+            output_dir,
+        ],
+    )?;
+    Ok(merge_outcomes(
+        OpsCommandOutcome::success(fastq.stdout),
+        bam,
+    ))
+}
+
+fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("run-pipelines", args)?;
+    ensure_artifact_root_inside_artifacts(workspace)?;
+    let config = lab_config(workspace)?;
+    let corpus_root = env_or_override("CORPUS_ROOT", &config, "corpus_root")?;
+    let runner_kind = env_or_override("RUNNER_KIND", &config, "runner_kind")?;
+    let output_dir = env_or_override("OUTPUT_DIR", &config, "output_dir")?;
+    let pipeline_ids = env_or_override("PIPELINE_IDS", &config, "pipeline_ids")?;
+    let mut aggregate = OpsCommandOutcome::success(String::new());
+    for pipeline in pipeline_ids.split(',').map(str::trim).filter(|value| !value.is_empty()) {
+        let outcome = run_program(
+            workspace,
+            "cargo",
+            &[
+                "run".to_string(),
+                "--bin".to_string(),
+                "bijux-dna".to_string(),
+                "--".to_string(),
+                "run".to_string(),
+                "--pipeline".to_string(),
+                pipeline.to_string(),
+                "--runner".to_string(),
+                runner_kind.clone(),
+                "--corpus-root".to_string(),
+                corpus_root.clone(),
+                "--out".to_string(),
+                output_dir.clone(),
+            ],
+        )?;
+        aggregate = merge_outcomes(aggregate, outcome);
+        if !aggregate.is_success() {
+            return Ok(aggregate);
+        }
+    }
+    Ok(aggregate)
+}
+
+fn smoke_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line("Usage: cargo run -p bijux-dev-dna -- smoke run run -- <fastq|bam>");
+    }
+    match args.first().map(String::as_str) {
+        Some("fastq") if args.len() == 1 => smoke_fastq(workspace, &[]),
+        Some("bam") if args.len() == 1 => smoke_bam(workspace, &[]),
+        Some(other) => Err(anyhow!("unsupported smoke target: {other}")),
+        None => Err(anyhow!("smoke run requires <fastq|bam>")),
+    }
+}
+
+fn smoke_bam(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("smoke-bam", args)?;
+    let sample = workspace.path("assets/golden/smoke-inputs-v1/bam/sample.bam");
+    if !sample.is_file() {
+        return Ok(OpsCommandOutcome::failure(
+            "Missing assets/golden/smoke-inputs-v1/bam/sample.bam. Generate it with samtools (see assets/golden/README.md).\n",
+        ));
+    }
+    let output_dir = artifact_root_path(workspace)?.join("smoke_bam");
+    fs::create_dir_all(&output_dir)?;
+    let stage = run_program(
+        workspace,
+        "bijux",
+        &[
+            "bam".to_string(),
+            "stage".to_string(),
+            "--stage".to_string(),
+            "validate".to_string(),
+            "--bam".to_string(),
+            sample.display().to_string(),
+            "--out".to_string(),
+            output_dir.display().to_string(),
+            "--sample-id".to_string(),
+            "smoke_bam".to_string(),
+            "--dry-run".to_string(),
+        ],
+    )?;
+    if !stage.is_success() {
+        return Ok(stage);
+    }
+    let envs = artifact_env(workspace)?;
+    run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "test".to_string(),
+            "-p".to_string(),
+            "bijux-dna-api".to_string(),
+            "bam_smoke_runner_minimal_pipeline_validates_report_section_presence".to_string(),
+            "--".to_string(),
+            "--exact".to_string(),
+        ],
+        &envs,
+    )
+}
+
+fn smoke_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    ensure_help_only("smoke-fastq", args)?;
+    run_program(
+        workspace,
+        "bijux",
+        &[
+            "fastq".to_string(),
+            "preprocess".to_string(),
+            "--r1".to_string(),
+            "assets/golden/smoke-inputs-v1/fastq/se/reads.fastq".to_string(),
+            "--out".to_string(),
+            artifact_root_path(workspace)?.join("smoke_fastq").display().to_string(),
+            "--sample-id".to_string(),
+            "smoke_fastq".to_string(),
+            "--dry-run".to_string(),
+        ],
+    )
+}
+
+fn test_scripts_smoke(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut dry_run = false;
+    for arg in args {
+        match arg.as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- test run test-scripts-smoke -- [--dry-run]",
+                )
+            }
+            "--dry-run" => dry_run = true,
+            other => return Err(anyhow!("unknown arg: {other}")),
+        }
+    }
+    let probes = vec![
+        vec!["docs", "run", "check-doc-assets", "--", "--help"],
+        vec!["examples", "run", "generate-index", "--", "--help"],
+        vec!["lab", "run", "run-bench", "--", "--help"],
+        vec!["smoke", "run", "run", "--", "--help"],
+        vec!["test", "run", "toy-runs", "--", "--help"],
+        vec!["hpc", "run", "validate-frontend-constraints", "--", "--help"],
+    ];
+    let mut failures = Vec::new();
+    for probe in probes {
+        let outcome = run_program(
+            workspace,
+            "cargo",
+            &[
+                "run".to_string(),
+                "-q".to_string(),
+                "-p".to_string(),
+                "bijux-dev-dna".to_string(),
+                "--".to_string(),
+            ]
+            .into_iter()
+            .chain(probe.into_iter().map(ToOwned::to_owned))
+            .collect::<Vec<_>>(),
+        )?;
+        if !outcome.is_success() {
+            failures.push(format!("probe failed: {}", outcome.stderr.trim()));
+        }
+    }
+    if dry_run {
+        let hpc_dry = run_program(
+            workspace,
+            "cargo",
+            &[
+                "run".to_string(),
+                "-q".to_string(),
+                "-p".to_string(),
+                "bijux-dev-dna".to_string(),
+                "--".to_string(),
+                "hpc".to_string(),
+                "run".to_string(),
+                "validate-frontend-constraints".to_string(),
+                "--".to_string(),
+                "--dry-run".to_string(),
+            ],
+        )?;
+        if !hpc_dry.is_success() {
+            failures.push("hpc dry-run probe failed".to_string());
+        }
+    }
+    if failures.is_empty() {
+        return success_line(if dry_run {
+            "test-scripts-smoke: dry-run OK"
+        } else {
+            "test-scripts-smoke: OK"
+        });
+    }
+    failure_lines("test-scripts-smoke: failures:", &failures)
+}
+
+fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- test run test-triage -- [artifacts/test-logs/latest.log]",
+        );
+    }
+    let path = args
+        .first()
+        .map(|value| path_from_arg(workspace, value))
+        .unwrap_or_else(|| workspace.path("artifacts/test-logs/latest.log"));
+    if !path.is_file() {
+        return success_line(format!(
+            "missing log file: {}\nhint: run make test | tee artifacts/test-logs/<name>.log and copy to artifacts/test-logs/latest.log",
+            workspace.rel(&path).display()
+        ));
+    }
+    let failure_re = Regex::new(r"([A-Za-z0-9_:-]+::)+[A-Za-z0-9_:-]+")?;
+    let raw = read_utf8(&path)?;
+    let mut failures = BTreeSet::new();
+    for capture in failure_re.captures_iter(&raw) {
+        if let Some(value) = capture.get(0) {
+            failures.insert(value.as_str().to_string());
+        }
+    }
+    if failures.is_empty() {
+        return success_line("no test-like failure identifiers found");
+    }
+    let mut buckets = BTreeMap::<&str, Vec<String>>::new();
+    for name in failures {
+        let bucket = if name.contains("guardrail")
+            || name.contains("guardrails")
+            || name.contains("policy_test_names_are_consistent")
+            || name.contains("workspace_lints")
+        {
+            "guardrails"
+        } else if name.contains("snapshot") || name.contains("insta") {
+            "snapshots"
+        } else if name.contains("registry")
+            || name.contains("binding")
+            || name.contains("supported_stages_and_tools_are_complete")
+        {
+            "ssot-registry"
+        } else if name.contains("apptainer")
+            || name.contains("smoke")
+            || name.contains("containers")
+        {
+            "apptainer-policy"
+        } else if name.contains("spawn") || name.contains("process") || name.contains("command_new") {
+            "spawn-policy"
+        } else {
+            "other"
+        };
+        buckets.entry(bucket).or_default().push(name);
+    }
+    let mut stdout = format!("triage source: {}\n\n", workspace.rel(&path).display());
+    for bucket in [
+        "guardrails",
+        "snapshots",
+        "ssot-registry",
+        "apptainer-policy",
+        "spawn-policy",
+        "other",
+    ] {
+        if let Some(items) = buckets.get(bucket) {
+            stdout.push_str(&format!("[{bucket}] {}\n", items.len()));
+            for item in items {
+                stdout.push_str(&format!("- {item}\n"));
+            }
+            stdout.push('\n');
+        }
+    }
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn test_reproduce_failure(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- test run reproduce-failure -- <nextest-jsonl-log>",
+        );
+    }
+    let path = args
+        .first()
+        .map(|value| path_from_arg(workspace, value))
+        .context("usage: reproduce-failure <nextest-jsonl-log>")?;
+    if !path.is_file() {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "missing log file: {}\n",
+            path.display()
+        )));
+    }
+    let mut failures = BTreeSet::new();
+    for line in read_utf8(&path)?.lines() {
+        let Ok(payload) = serde_json::from_str::<Value>(line) else {
+            continue;
+        };
+        let status = payload
+            .get("status")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        if !matches!(status, "fail" | "failed") {
+            continue;
+        }
+        let test_name = payload
+            .get("name")
+            .or_else(|| payload.get("test_name"))
+            .or_else(|| payload.get("test"))
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        if test_name.is_empty() {
+            continue;
+        }
+        let binary = payload
+            .get("binary")
+            .or_else(|| payload.get("binary_id"))
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        failures.insert((binary.to_string(), test_name.to_string()));
+    }
+    let mut stdout = String::new();
+    for (binary, test_name) in failures {
+        if binary.is_empty() {
+            stdout.push_str(&format!(
+                "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {test_name}\n"
+            ));
+        } else {
+            stdout.push_str(&format!(
+                "ARTIFACT_ROOT=artifacts cargo nextest run --test-threads 1 {binary} {test_name}\n"
+            ));
+        }
+    }
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn test_fastq_gold_repro(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- test run fastq-gold-repro -- [out-dir]",
+        );
+    }
+    let out_base = args
+        .first()
+        .map(|value| path_from_arg(workspace, value))
+        .unwrap_or_else(|| workspace.path("artifacts/test/fastq-gold-repro"));
+    let run_a = out_base.join("run_a");
+    let run_b = out_base.join("run_b");
+    if run_a.exists() {
+        fs::remove_dir_all(&run_a)?;
+    }
+    if run_b.exists() {
+        fs::remove_dir_all(&run_b)?;
+    }
+    fs::create_dir_all(&run_a)?;
+    fs::create_dir_all(&run_b)?;
+    let first = test_toy_runs(
+        workspace,
+        &[
+            "run".to_string(),
+            "--profile".to_string(),
+            "fastq".to_string(),
+            "--out".to_string(),
+            run_a.display().to_string(),
+        ],
+    )?;
+    if !first.is_success() {
+        return Ok(first);
+    }
+    let second = test_toy_runs(
+        workspace,
+        &[
+            "run".to_string(),
+            "--profile".to_string(),
+            "fastq".to_string(),
+            "--out".to_string(),
+            run_b.display().to_string(),
+        ],
+    )?;
+    if !second.is_success() {
+        return Ok(second);
+    }
+    for rel in [
+        "fastq_reference_adna/artifact_checksums.json",
+        "fastq_reference_adna/manifest.json",
+        "fastq_reference_adna/metrics.json",
+    ] {
+        if read_utf8(&run_a.join(rel))? != read_utf8(&run_b.join(rel))? {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "fastq-gold-repro: artifact drift detected for {rel}\n"
+            )));
+        }
+    }
+    success_line("fastq-gold-repro: OK")
+}
+
+fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut argv = vec![
+        "-m".to_string(),
+        "bijux_dna_tools.toy_runs".to_string(),
+    ];
+    argv.extend(args.iter().cloned());
+    let mut envs = artifact_env(workspace)?;
+    envs.push((
+        "PYTHONPATH".to_string(),
+        pythonpath_with_tooling(workspace, "scripts/tooling/python"),
+    ));
+    envs.push(("PYTHONDONTWRITEBYTECODE".to_string(), "1".to_string()));
+    run_program_with_env(workspace, "python3", &argv, &envs)
+}
+
+fn ensure_help_only(command: &str, args: &[String]) -> Result<()> {
+    if args.is_empty() {
+        return Ok(());
+    }
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return Err(anyhow!("__help__:{command}"));
+    }
+    Err(anyhow!("{command} does not accept positional arguments"))
+}
+
+fn success_line(line: impl Into<String>) -> Result<OpsCommandOutcome> {
+    Ok(OpsCommandOutcome::success(format!("{}\n", line.into())))
+}
+
+fn failure_lines(title: &str, errors: &[String]) -> Result<OpsCommandOutcome> {
+    let mut stderr = String::from(title);
+    stderr.push('\n');
+    for error in errors {
+        stderr.push_str(error);
+        stderr.push('\n');
+    }
+    Ok(OpsCommandOutcome::failure(stderr))
+}
+
+fn merge_outcomes(mut left: OpsCommandOutcome, right: OpsCommandOutcome) -> OpsCommandOutcome {
+    left.exit_code = if left.exit_code != 0 {
+        left.exit_code
+    } else {
+        right.exit_code
+    };
+    left.stdout.push_str(&right.stdout);
+    left.stderr.push_str(&right.stderr);
+    left
+}
+
+fn run_program(
+    workspace: &Workspace,
+    program: &str,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    run_program_with_env(workspace, program, args, &[])
+}
+
+fn run_program_with_env(
+    workspace: &Workspace,
+    program: &str,
+    args: &[String],
+    envs: &[(String, String)],
+) -> Result<OpsCommandOutcome> {
+    let runner = ProcessRunner::new(workspace);
+    let output = runner.run_owned_with_env(program, args, envs)?;
+    Ok(OpsCommandOutcome::from_output(output))
+}
+
+fn read_utf8(path: &Path) -> Result<String> {
+    fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
+}
+
+fn write_utf8(path: &Path, raw: &str) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(path, raw).with_context(|| format!("write {}", path.display()))
+}
+
+fn write_json_pretty(path: &Path, value: &Value) -> Result<()> {
+    write_utf8(path, &format!("{}\n", serde_json::to_string_pretty(value)?))
+}
+
+fn trim_quoted(raw: &str) -> String {
+    raw.trim().trim_matches('"').to_string()
+}
+
+fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
+    let candidate = PathBuf::from(raw);
+    if candidate.is_absolute() {
+        candidate
+    } else {
+        workspace.root.join(candidate)
+    }
+}
+
+fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
+    let configured = std::env::var("ARTIFACT_ROOT").unwrap_or_else(|_| {
+        std::env::var("ISO_ROOT").unwrap_or_else(|_| "artifacts".to_string())
+    });
+    let path = if PathBuf::from(&configured).is_absolute() {
+        PathBuf::from(&configured)
+    } else {
+        workspace.root.join(&configured)
+    };
+    Ok(path)
+}
+
+fn ensure_artifact_root_inside_artifacts(workspace: &Workspace) -> Result<()> {
+    let display = artifact_root_path(workspace)?.display().to_string();
+    if !display.contains("/artifacts") && !display.ends_with("artifacts") {
+        return Err(anyhow!("artifact root must stay under artifacts/: {display}"));
+    }
+    Ok(())
+}
+
+fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
+    let artifact_root = artifact_root_path(workspace)?;
+    let cargo_target_dir = artifact_root.join("target");
+    for dir in [&artifact_root, &cargo_target_dir] {
+        fs::create_dir_all(dir)?;
+    }
+    Ok(vec![
+        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
+        ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
+        (
+            "CARGO_TARGET_DIR".to_string(),
+            cargo_target_dir.display().to_string(),
+        ),
+    ])
+}
+
+fn pythonpath_with_tooling(workspace: &Workspace, rel: &str) -> String {
+    let prefix = workspace.path(rel).display().to_string();
+    match std::env::var("PYTHONPATH") {
+        Ok(existing) if !existing.is_empty() => format!("{prefix}:{existing}"),
+        _ => prefix,
+    }
+}
+
+fn temp_subdir(workspace: &Workspace, prefix: &str) -> Result<PathBuf> {
+    let root = artifact_root_path(workspace)?.join("tmp");
+    fs::create_dir_all(&root)?;
+    let path = root.join(format!("{prefix}.{}", std::process::id()));
+    if path.exists() {
+        fs::remove_dir_all(&path)?;
+    }
+    fs::create_dir_all(&path)?;
+    Ok(path)
+}
+
+fn glob_paths(workspace: &Workspace, pattern: &str) -> Result<Vec<PathBuf>> {
+    let outcome = run_program(
+        workspace,
+        "rg",
+        &[
+            "--files".to_string(),
+            workspace.root.display().to_string(),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Ok(Vec::new());
+    }
+    let regex = glob_to_regex(pattern)?;
+    Ok(outcome
+        .stdout
+        .lines()
+        .map(PathBuf::from)
+        .filter(|path| regex.is_match(&workspace.rel(path).to_string_lossy()))
+        .collect())
+}
+
+fn glob_to_regex(pattern: &str) -> Result<Regex> {
+    let mut raw = String::from("^");
+    let mut chars = pattern.chars().peekable();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '*' if chars.peek() == Some(&'*') => {
+                let _ = chars.next();
+                raw.push_str(".*");
+            }
+            '*' => raw.push_str("[^/]*"),
+            '.' => raw.push_str(r"\."),
+            '?' => raw.push('.'),
+            '/' => raw.push('/'),
+            other => raw.push_str(&regex::escape(&other.to_string())),
+        }
+    }
+    raw.push('$');
+    Regex::new(&raw).context("compile glob regex")
+}
+
+fn rg_lines(workspace: &Workspace, path: &str, pattern: &str) -> Result<Vec<String>> {
+    let outcome = run_program(
+        workspace,
+        "rg",
+        &[
+            "-n".to_string(),
+            pattern.to_string(),
+            workspace.path(path).display().to_string(),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Ok(Vec::new());
+    }
+    Ok(outcome
+        .stdout
+        .lines()
+        .map(ToOwned::to_owned)
+        .collect())
+}
+
+fn find_example_dir(workspace: &Workspace, example_id: &str) -> Result<Option<PathBuf>> {
+    for example_toml in glob_paths(workspace, "examples/**/example.toml")? {
+        let data: TomlValue = toml::from_str(&read_utf8(&example_toml)?)?;
+        if data.get("id").and_then(TomlValue::as_str) == Some(example_id) {
+            return Ok(example_toml.parent().map(Path::to_path_buf));
+        }
+    }
+    Ok(None)
+}
+
+fn ensure_generated_header(workspace: &Workspace, rel: &str, errors: &mut Vec<String>) -> Result<()> {
+    ensure_generated_header_path(workspace, &workspace.path(rel), errors)
+}
+
+fn ensure_generated_header_path(
+    workspace: &Workspace,
+    path: &Path,
+    errors: &mut Vec<String>,
+) -> Result<()> {
+    let head = read_utf8(path)?
+        .lines()
+        .take(6)
+        .collect::<Vec<_>>()
+        .join("\n");
+    if !head.contains("GENERATED FILE - DO NOT EDIT") {
+        errors.push(format!(
+            "missing generated header in {}",
+            workspace.rel(path).display()
+        ));
+    }
+    Ok(())
+}
+
+fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
+    let summary_path = workspace.path("artifacts/containers/summary.json");
+    let mut tools = BTreeMap::<String, Value>::new();
+    let mut vcf_downstream = BTreeMap::<String, Value>::new();
+    for rel in [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    ] {
+        let value: TomlValue = toml::from_str(&read_utf8(&workspace.path(rel))?)?;
+        let entries = value
+            .get("tools")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default();
+        for entry in entries {
+            let Some(tool_id) = entry.get("id").and_then(TomlValue::as_str) else {
+                continue;
+            };
+            let stage_ids = entry
+                .get("stage_ids")
+                .and_then(TomlValue::as_array)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                .collect::<Vec<_>>();
+            tools.insert(
+                tool_id.to_string(),
+                json!({
+                    "purpose": entry.get("tool_role").and_then(TomlValue::as_str).unwrap_or("unknown"),
+                    "stages": stage_ids,
+                    "container_ref": entry.get("container_ref").and_then(TomlValue::as_str).unwrap_or("-"),
+                    "citation": entry.get("citation").and_then(TomlValue::as_str).unwrap_or("TBD"),
+                    "status": entry.get("status").and_then(TomlValue::as_str).unwrap_or("unknown"),
+                    "version": entry.get("version").and_then(TomlValue::as_str).unwrap_or("-"),
+                }),
+            );
+            if entry.get("domain").and_then(TomlValue::as_str) == Some("vcf")
+                && stage_ids.iter().any(|stage| stage.starts_with("vcf."))
+            {
+                vcf_downstream.insert(
+                    tool_id.to_string(),
+                    json!({
+                        "status": entry.get("status").and_then(TomlValue::as_str).unwrap_or("unknown"),
+                        "stages": stage_ids,
+                    }),
+                );
+            }
+        }
+    }
+    let mut self_reports = BTreeMap::<String, Value>::new();
+    if summary_path.is_file() {
+        let summary: Value = serde_json::from_str(&read_utf8(&summary_path)?)?;
+        if let Some(items) = summary.get("items").and_then(Value::as_array) {
+            for item in items {
+                let Some(tool) = item.get("tool").and_then(Value::as_str) else {
+                    continue;
+                };
+                let Some(manifest_path) = item.get("manifest").and_then(Value::as_str) else {
+                    continue;
+                };
+                let manifest_path = PathBuf::from(manifest_path);
+                if !manifest_path.is_file() {
+                    continue;
+                }
+                let manifest: Value = serde_json::from_str(&read_utf8(&manifest_path)?)?;
+                let Some(report_path) = manifest.get("self_report_path").and_then(Value::as_str) else {
+                    continue;
+                };
+                let report_path = PathBuf::from(report_path);
+                if report_path.is_file() {
+                    self_reports.insert(tool.to_string(), serde_json::from_str(&read_utf8(&report_path)?)?);
+                }
+            }
+        }
+    }
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "".to_string(),
+        "# TOOL_INDEX".to_string(),
+        "".to_string(),
+        "## Purpose".to_string(),
+        "Generated index of registry tools with stage bindings and container references/self-reports.".to_string(),
+        "".to_string(),
+        "## Scope".to_string(),
+        "Source of truth = registry contracts + `artifacts/containers/summary.json` self-reports when available.".to_string(),
+        "".to_string(),
+        "## Non-goals".to_string(),
+        "- Replacing full scientific method docs for each domain.".to_string(),
+        "".to_string(),
+        "## Contracts".to_string(),
+        "- Manual edits are forbidden; regenerate via native control-plane.".to_string(),
+        "- Source of truth is registry + containers; this file is a rendered view.".to_string(),
+        "- Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.".to_string(),
+        "".to_string(),
+        "See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)".to_string(),
+        "See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)".to_string(),
+        "".to_string(),
+        "## VCF Downstream / IBD Toolkit".to_string(),
+        "".to_string(),
+    ];
+    for (tool_id, info) in &vcf_downstream {
+        let stages = info
+            .get("stages")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+            .collect::<Vec<_>>()
+            .join(", ");
+        lines.push(format!(
+            "- `{tool_id}` ({}) : {}",
+            info.get("status").and_then(Value::as_str).unwrap_or("unknown"),
+            if stages.is_empty() { "-".to_string() } else { stages }
+        ));
+    }
+    lines.extend([
+        "".to_string(),
+        "| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
+    ]);
+    for (tool_id, row) in tools {
+        let stages = row
+            .get("stages")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let version = self_reports
+            .get(&tool_id)
+            .and_then(|report| report.get("version"))
+            .and_then(Value::as_str)
+            .unwrap_or_else(|| row.get("version").and_then(Value::as_str).unwrap_or("-"));
+        lines.push(format!(
+            "| `{tool_id}` | `{}` | `{}` | `{}` | `{}` | {} | `{}` |",
+            row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
+            if stages.is_empty() { "-" } else { &stages },
+            row.get("container_ref").and_then(Value::as_str).unwrap_or("-"),
+            version,
+            row.get("citation").and_then(Value::as_str).unwrap_or("TBD"),
+            row.get("status").and_then(Value::as_str).unwrap_or("unknown"),
+        ));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()> {
+    let domain_root = workspace.path("domain");
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "".to_string(),
+        "# DOMAIN_COVERAGE".to_string(),
+        "".to_string(),
+        "## Purpose".to_string(),
+        "Generated coverage table for domain stages/tools/fixtures.".to_string(),
+        "".to_string(),
+        "## Scope".to_string(),
+        "Derived from `domain/*/{stages,tools,fixtures}`.".to_string(),
+        "".to_string(),
+        "## Non-goals".to_string(),
+        "- Replacing per-domain scientific specifications.".to_string(),
+        "".to_string(),
+        "## Contracts".to_string(),
+        "- Generated-only document; manual edits are forbidden.".to_string(),
+        "- Counts must be deterministic for a fixed repository state.".to_string(),
+        "".to_string(),
+        "| Domain | Stage Count | Tool Count | Fixture Count |".to_string(),
+        "|---|---:|---:|---:|".to_string(),
+    ];
+    for entry in fs::read_dir(&domain_root)?.filter_map(Result::ok) {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let domain = path.file_name().and_then(|value| value.to_str()).unwrap_or("unknown");
+        let stages = count_schema_filtered(path.join("stages"))?;
+        let tools = count_schema_filtered(path.join("tools"))?;
+        let fixtures = glob_count(path.join("fixtures"), "*.txt")?;
+        lines.push(format!("| `{domain}` | {stages} | {tools} | {fixtures} |"));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
+    let owners_path = workspace.path("configs/OWNERS.toml");
+    let owners: TomlValue = toml::from_str(&read_utf8(&owners_path)?)?;
+    let rules = owners
+        .get("rule")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "".to_string(),
+        "# REPO_ROOT_MAP".to_string(),
+        "".to_string(),
+        "## Purpose".to_string(),
+        "Generated map of repository root entries with inferred ownership and intent.".to_string(),
+        "".to_string(),
+        "## Scope".to_string(),
+        "Top-level workspace paths only.".to_string(),
+        "".to_string(),
+        "## Non-goals".to_string(),
+        "- Replacing detailed per-subtree architecture docs.".to_string(),
+        "".to_string(),
+        "## Contracts".to_string(),
+        "- Ownership for config paths is sourced from `configs/OWNERS.toml`.".to_string(),
+        "- Script subtree intent is sourced from README `Purpose:` lines.".to_string(),
+        "".to_string(),
+        "| Path | Kind | Owner | Purpose |".to_string(),
+        "|---|---|---|---|".to_string(),
+    ];
+    for entry in fs::read_dir(&workspace.root)?.filter_map(Result::ok) {
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        if name.starts_with('.') {
+            continue;
+        }
+        let rel = name.to_string();
+        let kind = if path.is_dir() { "dir" } else { "file" };
+        let purpose = path
+            .join("README.md")
+            .is_file()
+            .then(|| read_purpose_line(&path.join("README.md")))
+            .transpose()?
+            .flatten()
+            .unwrap_or_else(|| "-".to_string());
+        let owner = owner_for(&rules, if kind == "dir" { format!("{rel}/") } else { rel.clone() });
+        lines.push(format!("| `{rel}` | `{kind}` | `{owner}` | {purpose} |"));
+    }
+    lines.extend([
+        "".to_string(),
+        "## Script Intent".to_string(),
+        "| Script Path | Purpose |".to_string(),
+        "|---|---|".to_string(),
+    ]);
+    let scripts_root = workspace.path("scripts");
+    if scripts_root.is_dir() {
+        for entry in fs::read_dir(&scripts_root)?.filter_map(Result::ok) {
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let rel = workspace.rel(&path).display().to_string();
+            let purpose = read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
+            lines.push(format!("| `{rel}` | {purpose} |"));
+        }
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()> {
+    let catalog = read_utf8(&workspace.path("crates/bijux-dna-core/src/id_catalog.rs"))?;
+    let profile_re = Regex::new(r#"pub const PIPELINE_[A-Z0-9_]+: &str = "([^"]+)";"#)?;
+    let profiles = profile_re
+        .captures_iter(&catalog)
+        .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
+        .collect::<Vec<_>>();
+    let mut tool_count = 0usize;
+    for rel in [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    ] {
+        tool_count += read_utf8(&workspace.path(rel))?
+            .lines()
+            .filter(|line| line.trim() == "[[tools]]")
+            .count();
+    }
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs -->".to_string(),
+        "".to_string(),
+        "# COMPATIBILITY_MATRIX".to_string(),
+        "".to_string(),
+        "## Purpose".to_string(),
+        "Generated compatibility matrix derived from pipeline profile IDs and tool registry inventory.".to_string(),
+        "".to_string(),
+        "## Scope".to_string(),
+        format!(
+            "Profiles sourced from `crates/bijux-dna-core/src/id_catalog.rs`; registries include {tool_count} tool entries."
+        ),
+        "".to_string(),
+        "## Non-goals".to_string(),
+        "- Replacing detailed per-domain migration guides.".to_string(),
+        "".to_string(),
+        "## Contracts".to_string(),
+        "- Matrix is generated-only and must not be manually edited.".to_string(),
+        "- Breaking contract changes require version/schema updates and matrix regeneration.".to_string(),
+        "".to_string(),
+        "| Pipeline Profile | Domain | Stability | Plan Contract | Report Contract | Compatibility Rule |".to_string(),
+        "|---|---|---|---|---|---|".to_string(),
+    ];
+    let mut rows = profiles
+        .into_iter()
+        .map(|profile| {
+            let domain = profile.split("-to-").next().unwrap_or("unknown").to_string();
+            let stability = if profile.contains("reference") || profile.contains("default") {
+                "stable"
+            } else {
+                "experimental"
+            };
+            (profile, domain, stability.to_string())
+        })
+        .collect::<Vec<_>>();
+    rows.sort();
+    for (profile, domain, stability) in rows {
+        lines.push(format!(
+            "| `{profile}` | `{domain}` | `{stability}` | `v1` | `v1` | compatible if stage/tool contracts unchanged |"
+        ));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
+    let docs_root = workspace.path("docs");
+    let mut lines = vec![
+        "# GENERATED FILE - DO NOT EDIT".to_string(),
+        "# Regenerate with: cargo run -p bijux-dev-dna -- docs run check-generated-docs".to_string(),
+        "".to_string(),
+    ];
+    let mut dirs = vec![docs_root.clone()];
+    dirs.extend(
+        WalkDir::new(&docs_root)
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_type().is_dir())
+            .map(|entry| entry.path().to_path_buf()),
+    );
+    dirs.sort();
+    for dir in dirs {
+        let index = dir.join("index.md");
+        if !index.is_file() {
+            continue;
+        }
+        let from = workspace.rel(&index).display().to_string();
+        let mut children = Vec::new();
+        for entry in fs::read_dir(&dir)?.filter_map(Result::ok) {
+            let path = entry.path();
+            if path.is_file()
+                && path.extension().and_then(|ext| ext.to_str()) == Some("md")
+                && path.file_name().and_then(|value| value.to_str()) != Some("index.md")
+            {
+                children.push(workspace.rel(&path).display().to_string());
+            }
+            if path.is_dir() && path.join("index.md").is_file() {
+                children.push(workspace.rel(&path.join("index.md")).display().to_string());
+            }
+        }
+        children.sort();
+        lines.push("[[edge]]".to_string());
+        lines.push(format!("from = \"{from}\""));
+        lines.push("children = [".to_string());
+        for child in children {
+            lines.push(format!("  \"{child}\","));
+        }
+        lines.push("]".to_string());
+        lines.push("".to_string());
+    }
+    write_utf8(out, &lines.join("\n"))
+}
+
+fn count_schema_filtered(dir: PathBuf) -> Result<usize> {
+    if !dir.is_dir() {
+        return Ok(0);
+    }
+    Ok(fs::read_dir(dir)?
+        .filter_map(Result::ok)
+        .filter(|entry| {
+            entry.path().extension().and_then(|ext| ext.to_str()) == Some("yaml")
+                && entry.file_name().to_string_lossy() != "_schema.yaml"
+        })
+        .count())
+}
+
+fn glob_count(dir: PathBuf, suffix: &str) -> Result<usize> {
+    if !dir.is_dir() {
+        return Ok(0);
+    }
+    let wanted = suffix.trim_start_matches('*');
+    Ok(WalkDir::new(dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| {
+            entry
+                .path()
+                .file_name()
+                .and_then(|value| value.to_str())
+                .map(|name| name.ends_with(wanted))
+                .unwrap_or(false)
+        })
+        .count())
+}
+
+fn read_purpose_line(path: &Path) -> Result<Option<String>> {
+    if !path.is_file() {
+        return Ok(None);
+    }
+    Ok(read_utf8(path)?
+        .lines()
+        .find_map(|line| line.strip_prefix("Purpose:").map(|value| value.trim().to_string())))
+}
+
+fn owner_for(rules: &[TomlValue], rel: String) -> String {
+    let hits = rules
+        .iter()
+        .filter_map(|rule| {
+            let prefix = rule.get("prefix").and_then(TomlValue::as_str)?;
+            rel.starts_with(prefix)
+                .then(|| rule.get("owner").and_then(TomlValue::as_str).unwrap_or("-").to_string())
+        })
+        .collect::<Vec<_>>();
+    if hits.len() == 1 {
+        hits[0].clone()
+    } else {
+        "-".to_string()
+    }
+}
+
+fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
+    let path = PathBuf::from(env_or_default("CONFIG_PATH", "configs/lab/config.toml"));
+    let resolved = if path.is_absolute() { path } else { workspace.path(path.to_string_lossy().as_ref()) };
+    if !resolved.is_file() {
+        return Err(anyhow!(
+            "config not found: {}\ncopy configs/lab/config_example.toml to configs/lab/config.toml",
+            resolved.display()
+        ));
+    }
+    toml::from_str(&read_utf8(&resolved)?).context("parse lab config")
+}
+
+fn env_or_override(key: &str, config: &TomlValue, field: &str) -> Result<String> {
+    if let Ok(value) = std::env::var(key) {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    config
+        .get(field)
+        .and_then(TomlValue::as_str)
+        .map(ToOwned::to_owned)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow!("{key} is required"))
+}
+
+fn free_space_gb(path: &Path) -> Result<u64> {
+    let outcome = run_program(
+        &Workspace {
+            root: path
+                .canonicalize()
+                .unwrap_or_else(|_| path.to_path_buf()),
+        },
+        "df",
+        &["-Pk".to_string(), path.display().to_string()],
+    )?;
+    let line = outcome
+        .stdout
+        .lines()
+        .nth(1)
+        .context("parse df output row")?;
+    let available_kb = line
+        .split_whitespace()
+        .nth(3)
+        .context("parse df available column")?
+        .parse::<u64>()
+        .context("parse df available kilobytes")?;
+    Ok(available_kb / 1024 / 1024)
+}
+
+fn command_exists(workspace: &Workspace, program: &str) -> Result<bool> {
+    let outcome = run_program(workspace, "which", &[program.to_string()])?;
+    Ok(outcome.is_success())
+}
+
+fn hostname(workspace: &Workspace) -> Result<String> {
+    let fqdn = run_program(workspace, "hostname", &["-f".to_string()])?;
+    if fqdn.is_success() && !fqdn.stdout.trim().is_empty() {
+        return Ok(trim_newline(&fqdn.stdout));
+    }
+    let fallback = run_program(workspace, "hostname", &[])?;
+    Ok(trim_newline(&fallback.stdout))
+}
+
+fn host_matches_policy(host: &str, pattern: &str) -> Result<bool> {
+    if pattern.trim().is_empty() {
+        return Ok(false);
+    }
+    Ok(Regex::new(pattern)?.is_match(host))
+}
+
+fn trim_newline(raw: &str) -> String {
+    raw.trim().to_string()
+}
+
+fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option<String>> {
+    let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
+    let profiles = value
+        .get("profiles")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    Ok(profiles.into_iter().find_map(|row| {
+        (row.get("name").and_then(TomlValue::as_str) == Some(profile))
+            .then(|| row.get(field).and_then(TomlValue::as_str).map(ToOwned::to_owned))
+            .flatten()
+    }))
+}
+
+fn env_or_default(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn env_or_empty(key: &str) -> String {
+    std::env::var(key).unwrap_or_default()
+}
+
+fn sha256_hex(path: &Path) -> Result<String> {
+    use sha2::{Digest, Sha256};
+    let bytes = fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    Ok(format!("{:x}", Sha256::digest(bytes)))
+}
