@@ -25,14 +25,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "check_config_paths"
-path = "scripts/tooling/check-config-paths.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "ci_audit"
 path = "scripts/tooling/ci-audit.sh"
 purpose = "tooling script"
@@ -89,24 +81,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "clean_docs"
-path = "scripts/tooling/clean-docs.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "docs_build"
 path = "scripts/tooling/docs-build.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "config_inventory"
-path = "scripts/tooling/config-inventory.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -129,32 +105,8 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "generate_policy_index"
-path = "scripts/tooling/generate-policy-index.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "inventory"
-path = "scripts/tooling/inventory.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "setup_docs_venv"
 path = "scripts/tooling/setup-docs-venv.sh"
-purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "repo_doctor"
-path = "scripts/tooling/repo-doctor.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -201,14 +153,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "simulate_coverage_regime"
-path = "scripts/tooling/simulate-coverage-regime.sh"
-purpose = "tooling script"
-inputs = ["configs/runtime/coverage_regimes.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "acquire_panels"
 path = "scripts/tooling/acquire-panels.sh"
 purpose = "tooling script"
@@ -231,22 +175,6 @@ purpose = "tooling script"
 inputs = ["configs/runtime/reference_bank.toml"]
 outputs = ["configs/runtime/references/locks/", "artifacts/", "$ISO_ROOT/"]
 network_allowed = true
-ci_allowed = true
-
-[[script]]
-id = "generate_panel_compatibility_matrix"
-path = "scripts/tooling/generate-panel-compatibility-matrix.sh"
-purpose = "tooling script"
-inputs = ["configs/vcf/panels/panels.toml", "configs/vcf/maps/maps.toml"]
-outputs = ["docs/50-reference/", "artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "make_help"
-path = "scripts/tooling/make-help.sh"
-purpose = "tooling script"
-inputs = ["makes/README.md", "makes/cargo.mk"]
-outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
