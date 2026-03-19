@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 160
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -64,10 +63,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
-            "name": "fastqc_dir",
+            "name": "adapter_report",
             "optional": false,
-            "path": "out/detect_adapters/fastqc/fastqc",
-            "role": "index"
+            "path": "out/detect_adapters/fastqc/adapter_report.json",
+            "role": "report_json"
           }
         ]
       },
@@ -291,7 +290,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
-            "name": "reads",
+            "name": "reads_r1",
             "optional": false,
             "path": "reads_R1.fastq.gz",
             "role": "reads"
