@@ -130,6 +130,8 @@ mod mod_contracts_tooling_profiles_runtime_policy_rs;
 mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 #[path = "contracts/tooling/registry/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
+#[path = "contracts/tooling/registry/stage_catalog_registry_parity_policy.rs"]
+mod mod_contracts_tooling_stage_catalog_registry_parity_policy_rs;
 #[path = "contracts/tooling/root/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/root/root_migration_guard_policy.rs"]

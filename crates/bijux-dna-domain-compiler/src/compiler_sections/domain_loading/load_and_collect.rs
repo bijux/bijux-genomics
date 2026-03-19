@@ -65,18 +65,6 @@ fn load_domain_tools(
         {
             return Err(anyhow!("{} missing required tool fields", path.display()));
         }
-        for stage in &tool.stage_ids {
-            stage_to_tools
-                .entry(stage.clone())
-                .or_default()
-                .insert(tool.tool_id.clone());
-        }
-        let tool_id = tool.tool_id.clone();
-        if tools.contains_key(&tool_id) {
-            continue;
-        }
-        let version_rule = tool.versioning_strategy.clone();
-        let help_cmd_value = tool.help_cmd.clone();
         let resolved_domain = path
             .parent()
             .and_then(Path::parent)
@@ -84,6 +72,20 @@ fn load_domain_tools(
             .and_then(|v| v.to_str())
             .unwrap_or(domain)
             .to_string();
+        for stage in &tool.stage_ids {
+            if stage.split('.').next() == Some(resolved_domain.as_str()) {
+                stage_to_tools
+                    .entry(stage.clone())
+                    .or_default()
+                    .insert(tool.tool_id.clone());
+            }
+        }
+        let tool_id = tool.tool_id.clone();
+        if tools.contains_key(&tool_id) {
+            continue;
+        }
+        let version_rule = tool.versioning_strategy.clone();
+        let help_cmd_value = tool.help_cmd.clone();
         let mut domains = tool
             .stage_ids
             .iter()
@@ -539,4 +541,3 @@ fn collect_domain_data(
         stage_output_kinds,
     ))
 }
-

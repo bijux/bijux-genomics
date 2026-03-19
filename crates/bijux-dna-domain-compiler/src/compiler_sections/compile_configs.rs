@@ -80,6 +80,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
 
     let stages_path = ci_stages_dir.join("stages.toml");
     let stages_toml = build_stages_toml(
+        &tools,
         &stage_to_tools,
         &stage_statuses,
         &stage_output_kinds,
