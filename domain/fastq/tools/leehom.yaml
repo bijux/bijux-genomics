@@ -13,9 +13,9 @@ stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- trimmed_fastq_r1
-- merged_fastq
-- merge_report
+- trimmed_reads
+- merged_reads
+- report_json
 metrics_schema_id: bijux.fastq.merge_pairs.v1
 metrics_schema: bijux.fastq.merge_pairs.v1
 version_cmd: leehom --version

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: aaef19bd933e89f3660ec0a95808a94a9d28883d
+# source_commit: 74877d659651622004bbf00640675129cd873a70
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -172,7 +172,7 @@ smoke_help_cmd = "bbmerge --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bbmerge --help"
 expected_bin = "bbmerge"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["merged_reads", "report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
@@ -308,7 +308,7 @@ smoke_help_cmd = "flash2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "flash2 --help"
 expected_bin = "flash2"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["merged_reads", "report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.flash2"
@@ -376,7 +376,7 @@ smoke_help_cmd = "leehom --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "leehom --help"
 expected_bin = "leehom"
-expected_artifacts = ["trimmed_fastq_r1", "merged_fastq", "merge_report"]
+expected_artifacts = ["trimmed_reads", "merged_reads", "report_json"]
 metrics_schema = "bijux.fastq.merge_pairs.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.leehom"
