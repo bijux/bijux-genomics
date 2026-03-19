@@ -11,9 +11,6 @@ outputs:
   - name: "filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
-  - name: "trimmed_reads"
-    data_type: "fastq"
-    cardinality: "Many"
 parameters:
   - name: "min_quality"
     param_type: "int"
@@ -73,7 +70,6 @@ required_inputs:
   - reads
 required_outputs:
   - filtered_reads
-  - trimmed_reads
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
