@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 079ef67bc475af31d05330f6418615bf523016b6
+# source_commit: c7bed1c585349a95228c95eb802d146420df0573
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -648,7 +648,7 @@ smoke_help_cmd = "kraken2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "kraken2 --help"
 expected_bin = "kraken2"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.kraken2"
@@ -682,7 +682,7 @@ smoke_help_cmd = "krakenuniq --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "krakenuniq --help"
 expected_bin = "krakenuniq"
-expected_artifacts = ["screen_report", "screen_summary"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.krakenuniq"

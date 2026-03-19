@@ -12,8 +12,8 @@ stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- screen_report
-- screen_summary
+- classification_report_json
+- screen_report_tsv
 metrics_schema_id: bijux.fastq.classify.v1
 metrics_schema: bijux.fastq.classify.v1
 version_cmd: krakenuniq --version

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 079ef67bc475af31d05330f6418615bf523016b6
+# source_commit: c7bed1c585349a95228c95eb802d146420df0573
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -206,7 +206,7 @@ smoke_help_cmd = "centrifuge --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "centrifuge --help"
 expected_bin = "centrifuge"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
@@ -274,7 +274,7 @@ smoke_help_cmd = "fastq_screen --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastq_screen --help"
 expected_bin = "fastq_screen"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
@@ -342,7 +342,7 @@ smoke_help_cmd = "kaiju --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "kaiju --help"
 expected_bin = "kaiju"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
@@ -444,7 +444,7 @@ smoke_help_cmd = "metaphlan --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "metaphlan --help"
 expected_bin = "metaphlan"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
