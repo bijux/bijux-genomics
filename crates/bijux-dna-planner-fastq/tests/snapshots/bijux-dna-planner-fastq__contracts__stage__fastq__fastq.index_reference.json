@@ -1,0 +1,56 @@
+{
+  "stage_id": "fastq.index_reference",
+  "stage_version": 1,
+  "tool_id": "bowtie2_build",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reference_fasta",
+        "path": "reference.fa",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "reference_index",
+        "path": "out/reference_index",
+        "role": "index",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "out_dir": "out",
+    "reference_fasta": "reference.fa",
+    "reference_index": "out/reference_index",
+    "tool": "bowtie2_build"
+  },
+  "effective_params": {
+    "index_format": "bowtie2_build",
+    "output_artifact": "reference_index",
+    "schema_version": "bijux.fastq.params.index_reference.v1",
+    "threads": 1
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

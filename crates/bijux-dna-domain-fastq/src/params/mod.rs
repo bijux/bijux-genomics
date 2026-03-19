@@ -8,9 +8,9 @@ use crate::stages::ids::{
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS, STAGE_CORRECT_ERRORS,
     STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS,
     STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS,
-    STAGE_REPORT_QC, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA,
-    STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS,
-    STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
+    STAGE_REPORT_QC, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    STAGE_INDEX_REFERENCE, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS,
+    STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -27,6 +27,8 @@ pub mod filter;
 pub mod merge;
 #[path = "processing/preprocess.rs"]
 pub mod preprocess;
+#[path = "processing/reference_index.rs"]
+pub mod reference_index;
 #[path = "quality/qc_post.rs"]
 pub mod qc_post;
 #[path = "quality/screen.rs"]
@@ -113,6 +115,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
         return Some(StageParamDescriptor {
             param_type_id: "fastq.merge_pairs",
             schema_version: "bijux.fastq.params.merge_pairs.v1",
+        });
+    }
+    if stage_id == &STAGE_INDEX_REFERENCE {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.index_reference",
+            schema_version: reference_index::INDEX_REFERENCE_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_DEPLETE_HOST {
@@ -214,6 +222,7 @@ pub enum EffectiveParams {
     Trim(trim::TrimEffectiveParams),
     Filter(filter::FilterEffectiveParams),
     Merge(merge::MergeEffectiveParams),
+    ReferenceIndex(reference_index::ReferenceIndexEffectiveParams),
     HostDepletion(screen::HostDepletionEffectiveParams),
     ReferenceContaminantDepletion(screen::ReferenceContaminantEffectiveParams),
     Rrna(screen::RrnaEffectiveParams),
@@ -238,6 +247,7 @@ impl EffectiveParams {
             Self::Trim(params) => params.missing_required_fields(),
             Self::Filter(params) => params.missing_required_fields(),
             Self::Merge(params) => params.missing_required_fields(),
+            Self::ReferenceIndex(params) => params.missing_required_fields(),
             Self::HostDepletion(params) => params.missing_required_fields(),
             Self::ReferenceContaminantDepletion(params) => params.missing_required_fields(),
             Self::Rrna(params) => params.missing_required_fields(),
@@ -262,6 +272,7 @@ impl EffectiveParams {
             Self::Trim(params) => params.retention_conditions(),
             Self::Filter(params) => params.retention_conditions(),
             Self::Merge(params) => params.retention_conditions(),
+            Self::ReferenceIndex(params) => params.retention_conditions(),
             Self::HostDepletion(params) => params.retention_conditions(),
             Self::ReferenceContaminantDepletion(params) => params.retention_conditions(),
             Self::Rrna(params) => params.retention_conditions(),
@@ -339,6 +350,13 @@ pub fn parse_effective_params(
         return serde_json::from_value::<merge::MergeEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Merge);
+    }
+    if stage_id == &STAGE_INDEX_REFERENCE {
+        return serde_json::from_value::<reference_index::ReferenceIndexEffectiveParams>(
+            value.clone(),
+        )
+        .ok()
+        .map(EffectiveParams::ReferenceIndex);
     }
     if stage_id == &STAGE_DEPLETE_HOST {
         return serde_json::from_value::<screen::HostDepletionEffectiveParams>(value.clone())
