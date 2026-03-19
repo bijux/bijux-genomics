@@ -29,7 +29,6 @@ pub fn plan_screen(
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let report = out_dir.join("screen_report.tsv");
-    let bracken_report = out_dir.join("bracken_abundance.tsv");
     let effective_params = ScreenEffectiveParams {
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
@@ -63,28 +62,18 @@ pub fn plan_screen(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs,
-            outputs: {
-                let mut outputs = vec![
-                    ArtifactRef::required(
-                        ArtifactId::from_static("screen_report_tsv"),
-                        report.clone(),
-                        ArtifactRole::SummaryTsv,
-                    ),
-                    ArtifactRef::required(
-                        ArtifactId::from_static("classification_report_json"),
-                        out_dir.join("classification.report.json"),
-                        ArtifactRole::MetricsJson,
-                    ),
-                ];
-                if tool.tool_id.as_str() == "bracken" {
-                    outputs.push(ArtifactRef::required(
-                        ArtifactId::from_static("bracken_abundance_tsv"),
-                        bracken_report.clone(),
-                        ArtifactRole::SummaryTsv,
-                    ));
-                }
-                outputs
-            },
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("screen_report_tsv"),
+                    report.clone(),
+                    ArtifactRole::SummaryTsv,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("classification_report_json"),
+                    out_dir.join("classification.report.json"),
+                    ArtifactRole::MetricsJson,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -92,8 +81,7 @@ pub fn plan_screen(
             "input_r1": r1,
             "input_r2": r2,
             "out_dir": out_dir,
-            "report": report,
-            "bracken_report": bracken_report
+            "report": report
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,

@@ -37,7 +37,6 @@ tool_ids:
   - bbduk
   - bbmerge
   - bowtie2
-  - bracken
   - centrifuge
   - clumpify
   - cutadapt
@@ -149,7 +148,6 @@ stage_tool_compatibility:
   fastq.screen_taxonomy:
   - kraken2
   - krakenuniq
-  - bracken
   - diamond
   - centrifuge
   - metaphlan

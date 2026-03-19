@@ -61,7 +61,6 @@ allowed_missingness:
 compatible_tools:
   - kraken2
   - krakenuniq
-  - bracken
   - diamond
   - centrifuge
   - metaphlan
