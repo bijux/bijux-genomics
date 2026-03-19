@@ -89,6 +89,10 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingAcquireMaps => tooling_acquire_maps(workspace, args),
         NativeOpsCommandKey::ToolingAcquirePanels => tooling_acquire_panels(workspace, args),
         NativeOpsCommandKey::ToolingAcquireReference => tooling_acquire_reference(workspace, args),
+        NativeOpsCommandKey::ToolingBenchmarkIntegrityMini => {
+            tooling_benchmark_integrity_mini(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarks => tooling_benchmarks(workspace, args),
         NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
         NativeOpsCommandKey::ToolingCoverageSummary => tooling_coverage_summary(workspace, args),
         NativeOpsCommandKey::ToolingCrashTriage => tooling_crash_triage(workspace, args),
@@ -127,6 +131,9 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingSetupDocsVenv => tooling_setup_docs_venv(workspace, args),
         NativeOpsCommandKey::ToolingSimulateCoverageRegime => {
             tooling_simulate_coverage_regime(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingValidateFrontendMiniDomainStacks => {
+            tooling_validate_frontend_mini_domain_stacks(workspace, args)
         }
     }
 }
@@ -2289,6 +2296,668 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     )?;
     stdout.push_str(&format!("wrote {}\n", workspace.rel(&run_log).display()));
     Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [flag] if flag == "--help" || flag == "-h") || args.is_empty() {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run benchmarks -- <fastq-stage|fastq-preprocess|fastq-all|fastq-status|bam-stage|bam-pipeline|bam-all>",
+        );
+    }
+    let mode = args[0].as_str();
+    let run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "manual".to_string());
+    let out_dir = std::env::var("OUT_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("benchmarks").join(run_id));
+    if out_dir.display().to_string().contains("/containers/smoke") {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "benchmark out dir must not overlap smoke logs: {}\n",
+            out_dir.display()
+        )));
+    }
+    let tools = std::env::var("TOOLS").ok().filter(|value| !value.is_empty());
+    let allow_experimental = env_flag("ALLOW_EXPERIMENTAL");
+    let sample_id = std::env::var("SAMPLE_ID").unwrap_or_default();
+    let r1 = std::env::var("R1").unwrap_or_default();
+    let r2 = std::env::var("R2").unwrap_or_default();
+    let bam = std::env::var("BAM").unwrap_or_default();
+    let bam_profile =
+        std::env::var("BAM_PROFILE").unwrap_or_else(|_| "bam-to-bam__default__v1".to_string());
+    let bam_stage = std::env::var("BAM_STAGE").unwrap_or_else(|_| "validate".to_string());
+    let bam_sample_id = std::env::var("BAM_SAMPLE_ID").unwrap_or_else(|_| "sample".to_string());
+
+    fn push_common_bench_args(
+        argv: &mut Vec<String>,
+        out_dir: &Path,
+        tools: &Option<String>,
+        allow_experimental: bool,
+        allow_experimental_for_mode: bool,
+    ) {
+        argv.push("--out".to_string());
+        argv.push(out_dir.display().to_string());
+        if let Some(tools) = tools {
+            argv.push("--tools".to_string());
+            argv.push(tools.clone());
+        }
+        if allow_experimental && allow_experimental_for_mode {
+            argv.push("--allow-experimental".to_string());
+        }
+    }
+
+    fn run_bijux_bench(
+        workspace: &Workspace,
+        argv: Vec<String>,
+    ) -> Result<OpsCommandOutcome> {
+        tooling_run_bijux(workspace, &argv)
+    }
+
+    let run_fastq_stage = |workspace: &Workspace, stage: &str| -> Result<OpsCommandOutcome> {
+        if stage.is_empty() || sample_id.is_empty() || r1.is_empty() {
+            return Ok(OpsCommandOutcome::failure(
+                "ERROR: set STAGE=<trim|validate|...> SAMPLE_ID=<id> R1=<path>\n",
+            ));
+        }
+        let mut argv = vec![
+            "bench".to_string(),
+            "fastq".to_string(),
+            stage.to_string(),
+            "--sample-id".to_string(),
+            sample_id.clone(),
+            "--r1".to_string(),
+            r1.clone(),
+        ];
+        if !r2.is_empty() {
+            argv.push("--r2".to_string());
+            argv.push(r2.clone());
+        }
+        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, true);
+        run_bijux_bench(workspace, argv)
+    };
+
+    let run_bam_stage = |workspace: &Workspace| -> Result<OpsCommandOutcome> {
+        if bam.is_empty() {
+            return Ok(OpsCommandOutcome::failure(
+                "ERROR: set BAM=<path/to/input.bam>\n",
+            ));
+        }
+        let mut argv = vec![
+            "bench".to_string(),
+            "bam".to_string(),
+            "stage".to_string(),
+            "--sample-id".to_string(),
+            bam_sample_id.clone(),
+            "--stage".to_string(),
+            bam_stage.clone(),
+            "--bam".to_string(),
+            bam.clone(),
+        ];
+        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, false);
+        run_bijux_bench(workspace, argv)
+    };
+
+    let run_bam_pipeline = |workspace: &Workspace| -> Result<OpsCommandOutcome> {
+        if bam.is_empty() {
+            return Ok(OpsCommandOutcome::failure(
+                "ERROR: set BAM=<path/to/input.bam>\n",
+            ));
+        }
+        let mut argv = vec![
+            "bench".to_string(),
+            "bam".to_string(),
+            "pipeline".to_string(),
+            "--sample-id".to_string(),
+            bam_sample_id.clone(),
+            "--profile".to_string(),
+            bam_profile.clone(),
+            "--bam".to_string(),
+            bam.clone(),
+        ];
+        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, false);
+        run_bijux_bench(workspace, argv)
+    };
+
+    match mode {
+        "fastq-stage" => run_fastq_stage(workspace, &std::env::var("STAGE").unwrap_or_default()),
+        "fastq-preprocess" => {
+            if sample_id.is_empty() || r1.is_empty() {
+                return Ok(OpsCommandOutcome::failure(
+                    "ERROR: set SAMPLE_ID=<id> R1=<path>\n",
+                ));
+            }
+            let mut argv = vec![
+                "bench".to_string(),
+                "fastq".to_string(),
+                "preprocess".to_string(),
+                "--sample-id".to_string(),
+                sample_id,
+                "--r1".to_string(),
+                r1,
+            ];
+            push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, true);
+            run_bijux_bench(workspace, argv)
+        }
+        "fastq-all" => {
+            let mut aggregate = OpsCommandOutcome::success(String::new());
+            for stage in ["validate", "trim", "filter", "stats", "qc-post", "screen"] {
+                aggregate = merge_outcomes(aggregate, run_fastq_stage(workspace, stage)?);
+                if !aggregate.is_success() {
+                    return Ok(aggregate);
+                }
+            }
+            aggregate = merge_outcomes(
+                aggregate,
+                tooling_benchmarks(workspace, &["fastq-preprocess".to_string()])?,
+            );
+            if !aggregate.is_success() {
+                return Ok(aggregate);
+            }
+            if !r2.is_empty() {
+                for stage in ["merge", "correct", "umi"] {
+                    aggregate = merge_outcomes(aggregate, run_fastq_stage(workspace, stage)?);
+                    if !aggregate.is_success() {
+                        return Ok(aggregate);
+                    }
+                }
+            }
+            Ok(aggregate)
+        }
+        "fastq-status" => run_bijux_bench(
+            workspace,
+            vec!["bench".to_string(), "status".to_string()],
+        ),
+        "bam-stage" => run_bam_stage(workspace),
+        "bam-pipeline" => run_bam_pipeline(workspace),
+        "bam-all" => {
+            let first = run_bam_stage(workspace)?;
+            if !first.is_success() {
+                return Ok(first);
+            }
+            Ok(merge_outcomes(first, run_bam_pipeline(workspace)?))
+        }
+        other => Ok(OpsCommandOutcome::failure(format!(
+            "unsupported mode: {other}\n"
+        ))),
+    }
+}
+
+fn tooling_benchmark_integrity_mini(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let mut sample_id = "mini_bench".to_string();
+    let mut r1 = workspace.path("assets/toy/core-v1/fastq/reads_1.fastq");
+    let mut base_out = artifact_root_path(workspace)?
+        .join("benchmarks/integrity-mini")
+        .join(std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "manual".to_string()));
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run benchmark-integrity-mini -- [--sample-id <id>] [--r1 <fastq>] [--out <dir>]",
+                )
+            }
+            "--sample-id" => {
+                sample_id = args
+                    .get(index + 1)
+                    .cloned()
+                    .context("missing value for --sample-id")?;
+                index += 2;
+            }
+            "--r1" => {
+                r1 = path_from_arg(
+                    workspace,
+                    args.get(index + 1).context("missing value for --r1")?,
+                );
+                index += 2;
+            }
+            "--out" => {
+                base_out = path_from_arg(
+                    workspace,
+                    args.get(index + 1).context("missing value for --out")?,
+                );
+                index += 2;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+    if sample_id.is_empty() {
+        return Ok(OpsCommandOutcome::failure("empty --sample-id\n"));
+    }
+    if !r1.is_file() {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "missing r1 fastq: {}\n",
+            r1.display()
+        )));
+    }
+    fs::create_dir_all(&base_out).with_context(|| format!("create {}", base_out.display()))?;
+    let run_a = base_out.join("run_a");
+    let run_b = base_out.join("run_b");
+    fs::create_dir_all(&run_a).with_context(|| format!("create {}", run_a.display()))?;
+    fs::create_dir_all(&run_b).with_context(|| format!("create {}", run_b.display()))?;
+    let first = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "-q".to_string(),
+            "-p".to_string(),
+            "bijux-dev-dna".to_string(),
+            "--".to_string(),
+            "tooling".to_string(),
+            "run".to_string(),
+            "benchmarks".to_string(),
+            "--".to_string(),
+            "fastq-stage".to_string(),
+        ],
+        &[
+            ("OUT_DIR".to_string(), run_a.display().to_string()),
+            ("SAMPLE_ID".to_string(), sample_id.clone()),
+            ("R1".to_string(), r1.display().to_string()),
+            ("STAGE".to_string(), "validate".to_string()),
+        ],
+    )?;
+    if !first.is_success() {
+        return Ok(first);
+    }
+    let second = run_program_with_env(
+        workspace,
+        "cargo",
+        &[
+            "run".to_string(),
+            "-q".to_string(),
+            "-p".to_string(),
+            "bijux-dev-dna".to_string(),
+            "--".to_string(),
+            "tooling".to_string(),
+            "run".to_string(),
+            "benchmarks".to_string(),
+            "--".to_string(),
+            "fastq-stage".to_string(),
+        ],
+        &[
+            ("OUT_DIR".to_string(), run_b.display().to_string()),
+            ("SAMPLE_ID".to_string(), sample_id.clone()),
+            ("R1".to_string(), r1.display().to_string()),
+            ("STAGE".to_string(), "validate".to_string()),
+        ],
+    )?;
+    if !second.is_success() {
+        return Ok(second);
+    }
+
+    let knobs = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/bench/knobs.toml"))?)?;
+    let variance = knobs
+        .get("variance")
+        .and_then(TomlValue::as_table)
+        .cloned()
+        .unwrap_or_default();
+    let runtime_rel_max = variance
+        .get("runtime_relative_max")
+        .and_then(TomlValue::as_float)
+        .unwrap_or(0.20);
+    let memory_rel_max = variance
+        .get("memory_relative_max")
+        .and_then(TomlValue::as_float)
+        .unwrap_or(0.25);
+    let mut errors = Vec::new();
+    for path in [&run_a, &run_b] {
+        if path.display().to_string().contains("containers/smoke") {
+            errors.push(format!("{}: benchmark output path overlaps smoke", path.display()));
+        }
+    }
+    let m_a = find_first_named_file(&run_a, "metrics.json");
+    let m_b = find_first_named_file(&run_b, "metrics.json");
+    let t_a = find_first_named_file(&run_a, "telemetry.jsonl");
+    let t_b = find_first_named_file(&run_b, "telemetry.jsonl");
+    let h_a = find_first_named_file(&run_a, "report.html");
+    let h_b = find_first_named_file(&run_b, "report.html");
+    for (tag, path) in [
+        ("run_a", &m_a),
+        ("run_b", &m_b),
+        ("run_a", &t_a),
+        ("run_b", &t_b),
+        ("run_a", &h_a),
+        ("run_b", &h_b),
+    ] {
+        if path.is_none() {
+            errors.push(format!("{tag}: missing required artifact (metrics.json/telemetry.jsonl/report.html)"));
+        }
+    }
+    let mut runtime_values = Vec::new();
+    let mut memory_values = Vec::new();
+    let number_re = Regex::new(r#""(?:runtime_s|runtime_ms|duration_ms)"\s*:\s*([0-9]+(?:\.[0-9]+)?)"#)?;
+    let memory_re = Regex::new(r#""memory_mb"\s*:\s*([0-9]+(?:\.[0-9]+)?)"#)?;
+    for (tag, path) in [("run_a", m_a.as_ref()), ("run_b", m_b.as_ref())] {
+        if let Some(path) = path {
+            let payload = read_json_value(path)?;
+            assert_no_excess_float_precision(&payload, tag, &mut errors);
+            let raw = read_utf8(path)?;
+            if let Some(found) = memory_re.captures(&raw).and_then(|caps| caps.get(1)) {
+                if let Ok(value) = found.as_str().parse::<f64>() {
+                    memory_values.push(value);
+                }
+            }
+            if let Some(found) = number_re.captures(&raw).and_then(|caps| caps.get(1)) {
+                if let Ok(value) = found.as_str().parse::<f64>() {
+                    runtime_values.push(value);
+                }
+            }
+        }
+    }
+    for (tag, path) in [("run_a", t_a.as_ref()), ("run_b", t_b.as_ref())] {
+        if let Some(path) = path {
+            let mut by_stage = BTreeMap::new();
+            for (line_number, line) in read_utf8(path)?.lines().enumerate() {
+                if line.trim().is_empty() {
+                    continue;
+                }
+                let row: Value = serde_json::from_str(line)
+                    .with_context(|| format!("parse {} line {}", path.display(), line_number + 1))?;
+                let stage = value_string(row.get("stage_id"));
+                let trace = value_string(row.get("trace_id"));
+                if stage.is_empty() || trace.is_empty() {
+                    errors.push(format!("{tag}:{}: missing stage_id/trace_id", line_number + 1));
+                    continue;
+                }
+                if let Some(previous) = by_stage.insert(stage.clone(), trace.clone()) {
+                    if previous != trace {
+                        errors.push(format!("{tag}:{}: trace_id drift within stage {stage}", line_number + 1));
+                    }
+                }
+                if Regex::new(r"/Users/|/home/|\btmp/")?.is_match(line) {
+                    errors.push(format!("{tag}:{}: telemetry leaks host path", line_number + 1));
+                }
+            }
+        }
+    }
+    if let (Some(h_a), Some(h_b)) = (h_a.as_ref(), h_b.as_ref()) {
+        if normalize_benchmark_html(&read_utf8(h_a)?) != normalize_benchmark_html(&read_utf8(h_b)?) {
+            errors.push("report.html normalized structure differs across consecutive mini benchmark runs".to_string());
+        }
+    }
+    if runtime_values.len() == 2 {
+        let diff = relative_diff(runtime_values[0], runtime_values[1]);
+        if diff > runtime_rel_max {
+            errors.push(format!(
+                "runtime variance {diff:.4} exceeds threshold {runtime_rel_max:.4}"
+            ));
+        }
+    }
+    if memory_values.len() == 2 {
+        let diff = relative_diff(memory_values[0], memory_values[1]);
+        if diff > memory_rel_max {
+            errors.push(format!(
+                "memory variance {diff:.4} exceeds threshold {memory_rel_max:.4}"
+            ));
+        }
+    }
+    let summary_path = base_out.join("integrity_summary.json");
+    write_json_pretty(
+        &summary_path,
+        &json!({
+            "schema_version": "bijux.benchmark.integrity.frontend-mini.v1",
+            "run_a": run_a.display().to_string(),
+            "run_b": run_b.display().to_string(),
+            "runtime_relative_max": runtime_rel_max,
+            "memory_relative_max": memory_rel_max,
+            "runtime_values": runtime_values,
+            "memory_values": memory_values,
+            "ok": errors.is_empty(),
+            "errors": errors,
+        }),
+    )?;
+    let mut stdout = format!("{}\n", summary_path.display());
+    if errors.is_empty() {
+        stdout.push_str("benchmark integrity mini: OK\n");
+        return Ok(OpsCommandOutcome::success(stdout));
+    }
+    let mut stderr = String::from("benchmark integrity mini: FAILED\n");
+    for error in &errors {
+        stderr.push_str(&format!("- {error}\n"));
+    }
+    Ok(OpsCommandOutcome {
+        exit_code: 1,
+        stdout,
+        stderr,
+    })
+}
+
+fn tooling_validate_frontend_mini_domain_stacks(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("validate-frontend-mini-domain-stacks", args)?;
+    let out_dir = std::env::var("OUT_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("domain/frontend-mini-validation"));
+    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let examples = [
+        ("fastq_edna_mini", workspace.path("examples/fastq/edna-mini")),
+        (
+            "vcf_damage_aware_genotype_mini",
+            workspace.path("examples/vcf/damage-aware-genotype-mini"),
+        ),
+        (
+            "vcf_downstream_vcf_full_mini",
+            workspace.path("examples/vcf/downstream-vcf-full-mini"),
+        ),
+        (
+            "vcf_downstream_demography_mini",
+            workspace.path("examples/vcf/downstream-demography-mini"),
+        ),
+        ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
+    ];
+    for (example_id, _) in &examples {
+        let outcome = examples_run(
+            workspace,
+            &["--allow-non-artifacts".to_string(), (*example_id).to_string()],
+        )?;
+        if !outcome.is_success() {
+            return Ok(outcome);
+        }
+    }
+    let mut errors = Vec::new();
+    let mut checks = Vec::new();
+    for (example_id, example_dir) in &examples {
+        let artifact_dir = workspace.path("artifacts/examples").join(example_id);
+        for name in [
+            "plan.json",
+            "explain.json",
+            "report.json",
+            "golden_report.json",
+            "run_report.json",
+            "metrics.json",
+            "logs.txt",
+        ] {
+            if !artifact_dir.join(name).exists() {
+                errors.push(format!("{example_id}: missing {name}"));
+            }
+        }
+        for json_file in ["plan.json", "explain.json", "report.json"] {
+            let artifact_path = artifact_dir.join(json_file);
+            let golden_path = example_dir.join("golden").join(json_file);
+            if artifact_path.is_file() && golden_path.is_file()
+                && read_utf8(&artifact_path)? != read_utf8(&golden_path)?
+            {
+                errors.push(format!("{example_id}: {json_file} differs from golden"));
+            }
+        }
+        let suite = toml::from_str::<TomlValue>(&read_utf8(&example_dir.join("bench-suite.toml"))?)?;
+        let stages = suite
+            .get("stages")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|value| toml_value_string(&value))
+            .collect::<Vec<_>>();
+        let plan = read_json_value(&artifact_dir.join("plan.json"))?;
+        let got_stages = plan
+            .get("stages")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|value| value_string(Some(&value)))
+            .collect::<Vec<_>>();
+        for stage in stages {
+            if !got_stages.contains(&stage) {
+                errors.push(format!("{example_id}: stage {stage} missing in plan.json stages"));
+            }
+        }
+        let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
+        for key in [
+            "example_id=",
+            "corpus_id=",
+            "mini_supported=",
+            "step1=",
+            "step2=",
+            "step3=",
+            "step4=",
+        ] {
+            if !logs.contains(key) {
+                errors.push(format!("{example_id}: logs.txt missing {key}"));
+            }
+        }
+        let metrics = read_json_value(&artifact_dir.join("metrics.json"))?;
+        for key in ["example_id", "collected_at", "status"] {
+            if metrics.get(key).is_none() {
+                errors.push(format!("{example_id}: metrics.json missing {key}"));
+            }
+        }
+        if example_id.starts_with("vcf_") {
+            for (doc_name, payload) in [
+                ("explain.json", read_json_value(&artifact_dir.join("explain.json"))?),
+                ("report.json", read_json_value(&artifact_dir.join("report.json"))?),
+            ] {
+                let coverage = payload.get("coverage_regime").cloned().unwrap_or(Value::Null);
+                let selected = value_string(coverage.get("selected"));
+                if !matches!(selected.as_str(), "gl" | "pseudohaploid" | "diploid") {
+                    errors.push(format!("{example_id}: {doc_name} coverage_regime.selected invalid"));
+                }
+                for key in ["thresholds_used", "observed_coverage_stats"] {
+                    if coverage.get(key).is_none() {
+                        errors.push(format!("{example_id}: {doc_name} coverage_regime missing {key}"));
+                    }
+                }
+            }
+        }
+        checks.push(json!({
+            "example_id": example_id,
+            "artifact_dir": artifact_dir.display().to_string(),
+            "plan_sha256": sha256_hex(&artifact_dir.join("plan.json"))?,
+            "explain_sha256": sha256_hex(&artifact_dir.join("explain.json"))?,
+            "report_sha256": sha256_hex(&artifact_dir.join("report.json"))?,
+        }));
+    }
+    for (profile, depth, want) in [
+        ("adna_lowcov_capture", "1", "gl"),
+        ("adna_lowcov_capture", "6", "pseudohaploid"),
+        ("modern_wgs_shotgun", "20", "diploid"),
+    ] {
+        let outcome = tooling_simulate_coverage_regime(
+            workspace,
+            &[depth.to_string(), "--profile".to_string(), profile.to_string()],
+        )?;
+        if !outcome.is_success() {
+            errors.push(format!("coverage_regime simulate failed: profile={profile} depth={depth}"));
+            continue;
+        }
+        let payload: Value = serde_json::from_str(&outcome.stdout)
+            .with_context(|| "parse simulate-coverage-regime output")?;
+        let got = value_string(payload.get("selected_regime"));
+        if got != want {
+            errors.push(format!(
+                "coverage_regime mismatch: profile={profile} depth={depth} expected={want} got={got}"
+            ));
+        }
+    }
+    let auth_text = read_utf8(&workspace.path("domain/bam/stages/authenticity.yaml"))?;
+    let mut tools = Vec::new();
+    let mut in_tools = false;
+    for line in auth_text.lines() {
+        let raw = line.trim_end();
+        if raw.trim_start().starts_with("compatible_tools:") {
+            in_tools = true;
+            continue;
+        }
+        if in_tools {
+            if raw.starts_with("  - ") {
+                tools.push(raw.split_once("- ").map(|(_, value)| value.trim().to_string()).unwrap_or_default());
+                continue;
+            }
+            if !raw.is_empty() && !raw.starts_with(' ') {
+                break;
+            }
+        }
+    }
+    tools.sort();
+    if tools != vec![
+        "authenticct".to_string(),
+        "damageprofiler".to_string(),
+        "pmdtools".to_string(),
+    ] {
+        errors.push(format!("bam.authenticity compatible_tools mismatch: {:?}", tools));
+    }
+    for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
+        {
+            continue;
+        }
+        let mut kv = BTreeMap::new();
+        for line in read_utf8(entry.path())?.lines() {
+            if let Some((key, value)) = line.split_once('=') {
+                kv.insert(key.trim().to_string(), value.trim().to_string());
+            }
+        }
+        if kv.get("stage").map(String::as_str) != Some("bam.authenticity") {
+            errors.push(format!("{}: stage must be bam.authenticity", entry.path().display()));
+        }
+        if kv.get("domain").map(String::as_str) != Some("bam") {
+            errors.push(format!("{}: domain must be bam", entry.path().display()));
+        }
+        if kv.get("expected_outputs").map(String::as_str) != Some("contract_artifacts") {
+            errors.push(format!(
+                "{}: expected_outputs must be contract_artifacts",
+                entry.path().display()
+            ));
+        }
+        if kv.get("expected_stdout_patterns").map(String::as_str) != Some("contract_ok") {
+            errors.push(format!(
+                "{}: expected_stdout_patterns must be contract_ok",
+                entry.path().display()
+            ));
+        }
+    }
+    let summary_path = out_dir.join("summary.json");
+    write_json_pretty(
+        &summary_path,
+        &json!({
+            "schema_version": "bijux.frontend.mini_domain_validation.v1",
+            "ok": errors.is_empty(),
+            "checks": checks,
+            "errors": errors,
+        }),
+    )?;
+    let mut stdout = format!("{}\n", summary_path.display());
+    if errors.is_empty() {
+        stdout.push_str("frontend mini domain validation: OK\n");
+        return Ok(OpsCommandOutcome::success(stdout));
+    }
+    let mut stderr = String::from("frontend mini domain validation: FAILED\n");
+    for error in &errors {
+        stderr.push_str(&format!("- {error}\n"));
+    }
+    Ok(OpsCommandOutcome {
+        exit_code: 1,
+        stdout,
+        stderr,
+    })
 }
 
 fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -5596,6 +6265,64 @@ fn sorted_unique(values: Vec<String>) -> Vec<String> {
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect()
+}
+
+fn find_first_named_file(base: &Path, name: &str) -> Option<PathBuf> {
+    let mut matches = WalkDir::new(base)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.file_name().to_string_lossy() == name)
+        .map(|entry| entry.into_path())
+        .collect::<Vec<_>>();
+    matches.sort();
+    matches.into_iter().next()
+}
+
+fn assert_no_excess_float_precision(value: &Value, tag: &str, errors: &mut Vec<String>) {
+    match value {
+        Value::Object(map) => {
+            for nested in map.values() {
+                assert_no_excess_float_precision(nested, tag, errors);
+            }
+        }
+        Value::Array(items) => {
+            for nested in items {
+                assert_no_excess_float_precision(nested, tag, errors);
+            }
+        }
+        Value::Number(number) => {
+            if let Some(value) = number.as_f64() {
+                let rendered = format!("{value:.12}");
+                let decimals = rendered
+                    .trim_end_matches('0')
+                    .split('.')
+                    .nth(1)
+                    .map_or(0, str::len);
+                if decimals > 6 {
+                    errors.push(format!("{tag}: excessive float precision in metrics ({value})"));
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+fn normalize_benchmark_html(raw: &str) -> String {
+    let timestamp_re =
+        Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z").expect("valid regex");
+    let user_re = Regex::new(r#"/Users/[^"'< ]+"#).expect("valid regex");
+    let home_re = Regex::new(r#"/home/[^"'< ]+"#).expect("valid regex");
+    let run_re = Regex::new(r#"run[_-]id[:=][^"'< ]+"#).expect("valid regex");
+    let text = timestamp_re.replace_all(raw, "<TS>");
+    let text = user_re.replace_all(&text, "<PATH>");
+    let text = home_re.replace_all(&text, "<PATH>");
+    run_re.replace_all(&text, "run_id=<RUN>").into_owned()
+}
+
+fn relative_diff(left: f64, right: f64) -> f64 {
+    let denominator = left.abs().max(right.abs()).max(1e-9);
+    (left - right).abs() / denominator
 }
 
 struct MaterializedFile {

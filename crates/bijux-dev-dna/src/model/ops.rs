@@ -67,6 +67,8 @@ pub enum NativeOpsCommandKey {
     ToolingAcquireMaps,
     ToolingAcquirePanels,
     ToolingAcquireReference,
+    ToolingBenchmarkIntegrityMini,
+    ToolingBenchmarks,
     ToolingConfigInventory,
     ToolingCoverageSummary,
     ToolingCrashTriage,
@@ -91,6 +93,7 @@ pub enum NativeOpsCommandKey {
     ToolingRunBijux,
     ToolingSetupDocsVenv,
     ToolingSimulateCoverageRegime,
+    ToolingValidateFrontendMiniDomainStacks,
 }
 
 #[derive(Debug, Clone)]
