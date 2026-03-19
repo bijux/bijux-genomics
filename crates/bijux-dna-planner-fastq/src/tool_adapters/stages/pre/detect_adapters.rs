@@ -11,14 +11,35 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
+pub fn plan(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+) -> Result<StagePlanV1> {
     let report = out_dir.join("adapter_report.json");
     let fastqc_dir = out_dir.join("fastqc");
     let effective_params = DetectAdaptersEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
         threads: tool.resources.threads,
         sample_reads: Some(100_000),
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -30,11 +51,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
+            inputs,
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("adapter_report"),
                 report.clone(),
@@ -44,7 +61,8 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<Sta
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
-            "input": r1,
+            "input_r1": r1,
+            "input_r2": r2,
             "out_dir": out_dir,
             "report_json": report,
             "fastqc_dir": fastqc_dir,
