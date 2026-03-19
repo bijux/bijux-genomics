@@ -137,6 +137,7 @@ where
                 let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();

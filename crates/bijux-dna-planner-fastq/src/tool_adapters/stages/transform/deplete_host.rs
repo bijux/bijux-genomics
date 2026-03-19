@@ -31,17 +31,68 @@ pub fn normalize_host_depletion_tool_list(tools: &[String]) -> Result<Vec<String
 pub fn plan_host_depletion(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_host_depletion_tool_list(std::slice::from_ref(&tool_id))?;
-    let output = out_dir.join("host_depleted.fastq.gz");
     let report = out_dir.join("host_depletion_report.json");
+    let paired_mode = if r2.is_some() {
+        PairedMode::PairedEnd
+    } else {
+        PairedMode::SingleEnd
+    };
     let effective_params = ScreenEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode,
         threads: tool.resources.threads,
         contaminant_db: Some("host_reference".to_string()),
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    let mut outputs = Vec::new();
+    let mut params = serde_json::json!({
+        "tool": tool.tool_id.0,
+        "input_r1": r1,
+        "report_json": report,
+    });
+    if let Some(r2) = r2 {
+        let output_r1 = out_dir.join("host_depleted_R1.fastq.gz");
+        let output_r2 = out_dir.join("host_depleted_R2.fastq.gz");
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("host_depleted_reads_r1"),
+            output_r1.clone(),
+            ArtifactRole::Reads,
+        ));
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("host_depleted_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+        params["input_r2"] = serde_json::json!(r2);
+        params["output_r1"] = serde_json::json!(output_r1);
+        params["output_r2"] = serde_json::json!(output_r2);
+    } else {
+        let output = out_dir.join("host_depleted.fastq.gz");
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("host_depleted_reads"),
+            output.clone(),
+            ArtifactRole::Reads,
+        ));
+        params["output"] = serde_json::json!(output);
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("host_depletion_report_json"),
+        report.clone(),
+        ArtifactRole::ReportJson,
+    ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -52,32 +103,9 @@ pub fn plan_host_depletion(
             template: tool.command.template.to_vec(),
         },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("host_depleted_reads"),
-                    output.clone(),
-                    ArtifactRole::Reads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("host_depletion_report_json"),
-                    report.clone(),
-                    ArtifactRole::ReportJson,
-                ),
-            ],
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input": r1,
-            "output": output,
-            "report_json": report,
-        }),
+        params,
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize host depletion effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
