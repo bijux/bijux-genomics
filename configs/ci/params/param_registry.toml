@@ -136,17 +136,17 @@ schema_version = "none"
 [[entries]]
 stage_id = "fastq.report_qc"
 param_type_id = "fastq.report_qc"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.report_qc.v1"
 
 [[entries]]
 stage_id = "fastq.deplete_rrna"
 param_type_id = "fastq.deplete_rrna"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.deplete_rrna.v1"
 
 [[entries]]
 stage_id = "fastq.screen_taxonomy"
 param_type_id = "fastq.screen_taxonomy"
-schema_version = "legacy.unversioned"
+schema_version = "bijux.fastq.params.screen_taxonomy.v1"
 
 [[entries]]
 stage_id = "fastq.profile_reads"
