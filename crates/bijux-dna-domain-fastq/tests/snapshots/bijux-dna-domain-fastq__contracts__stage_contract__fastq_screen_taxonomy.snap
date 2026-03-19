@@ -45,7 +45,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "tool_ids": [
     "kraken2",
     "krakenuniq",
-    "diamond",
     "centrifuge",
     "metaphlan",
     "kaiju",

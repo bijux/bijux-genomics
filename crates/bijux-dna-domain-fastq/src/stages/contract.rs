@@ -51,7 +51,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.screen_taxonomy" => vec![
             "kraken2",
             "krakenuniq",
-            "diamond",
             "centrifuge",
             "metaphlan",
             "kaiju",

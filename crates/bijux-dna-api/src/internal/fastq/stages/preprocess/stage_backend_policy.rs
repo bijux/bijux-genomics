@@ -151,7 +151,6 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
         "fastq.screen_taxonomy" => Some(&[
             "kraken2",
             "krakenuniq",
-            "diamond",
             "centrifuge",
             "metaphlan",
             "kaiju",
