@@ -130,7 +130,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
         "fastq.merge_pairs" => &["bbmerge", "flash2", "leehom", "pear"],
         "fastq.remove_duplicates" => &["clumpify", "fastuniq"],
-        "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
+        "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "bayeshammer"],
         "fastq.filter_reads" => &["bbduk", "fastp", "prinseq", "seqkit"],
         "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker", "fastp"],
         "fastq.trim_polyg_tails" => &["fastp", "bbduk"],
