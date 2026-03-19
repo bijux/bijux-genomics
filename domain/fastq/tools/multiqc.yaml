@@ -11,15 +11,17 @@ container:
 command_template:
   - "multiqc"
   - "-o"
-  - "{{qc_report_html}}"
+  - "{{multiqc_data}}"
+  - "-n"
+  - "multiqc_report.html"
   - "{{reads_r1}}"
 outputs:
-  - name: "qc_report_html"
+  - name: "multiqc_report"
     data_type: "html"
-    cardinality: "Many"
-  - name: "qc_report_json"
-    data_type: "json"
-    cardinality: "Many"
+    cardinality: "One"
+  - name: "multiqc_data"
+    data_type: "dir"
+    cardinality: "One"
 metrics_parser: "multiqc_v1"
 constraints:
   runtime: "local"

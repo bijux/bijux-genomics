@@ -29,7 +29,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 
 ### fastq.trim_polyg_tails {#fastq-trim-polyg}
 - Purpose: trim polyG/polyX sequencer tail artifacts.
-- Inputs/Outputs: reads -> trimmed_fastq, trim_report.
+- Inputs/Outputs: reads -> trimmed_reads, report_json.
 - Metrics: trimmed-read counts, tail prevalence before/after.
 - Tools: fastp, bbduk.
 
@@ -53,19 +53,19 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 
 ### fastq.profile_read_lengths {#fastq-read-lengths}
 - Purpose: compute neutral read-length summaries without mutating reads.
-- Inputs/Outputs: reads -> stats_json.
+- Inputs/Outputs: reads -> length_distribution_tsv, length_distribution_json.
 - Metrics: length distributions, read counts.
 - Tools: seqkit_stats, prinseq, fastp.
 
 ### fastq.profile_reads {#fastq-stats-neutral}
 - Purpose: compute neutral read-level summary statistics.
-- Inputs/Outputs: reads -> stats_json.
+- Inputs/Outputs: reads -> qc_json, qc_tsv, qc_plots_dir.
 - Metrics: read totals, base totals, quality summaries.
 - Tools: seqkit_stats.
 
 ### fastq.profile_overrepresented_sequences {#fastq-overrepresented}
 - Purpose: report overrepresented sequences and recurring contaminants.
-- Inputs/Outputs: reads -> report_json.
+- Inputs/Outputs: reads -> overrepresented_sequences_tsv, overrepresented_sequences_json.
 - Metrics: overrepresented sequence counts and flags.
 - Tools: fastqc, seqkit.
 
@@ -89,13 +89,13 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 
 ### fastq.deplete_reference_contaminants {#fastq-reference-contaminants}
 - Purpose: remove reads matching configured decoy or contaminant references.
-- Inputs/Outputs: reads + contaminant reference -> filtered_fastq, screen_report.
+- Inputs/Outputs: reads + contaminant reference -> contaminant_screened_reads, contaminant_screen_report_json.
 - Metrics: contaminant-screened retention.
 - Tools: bowtie2.
 
 ### fastq.deplete_rrna {#fastq-rrna}
 - Purpose: remove rRNA-derived reads from raw FASTQ.
-- Inputs/Outputs: reads -> rrna_filtered_reads, rrna_report.
+- Inputs/Outputs: reads -> rrna_filtered_reads_r1/rrna_filtered_reads_r2, rrna_report_tsv/rrna_report_json.
 - Metrics: rRNA hits, rRNA fraction, retained reads.
 - Tools: sortmerna.
 
@@ -119,42 +119,42 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 
 ### fastq.report_qc {#fastq-qc-post}
 - Purpose: aggregate QC outputs after read-level preprocessing.
-- Inputs/Outputs: stage reports -> qc_report_html/qc_report_json.
+- Inputs/Outputs: stage reports -> multiqc_report/multiqc_data.
 - Metrics: QC module summaries, warnings, failures.
 - Tools: multiqc.
 
 ### fastq.trim_terminal_damage {#fastq-damage-pretrim}
 - Purpose: trim or mask terminal damage signatures in aDNA-like libraries.
-- Inputs/Outputs: reads -> trimmed_fastq, report_json.
+- Inputs/Outputs: reads -> trimmed_reads, report_json.
 - Metrics: terminal asymmetry before/after trimming.
 - Tools: cutadapt, seqkit.
 
 ### fastq.normalize_primers {#fastq-primer-normalization}
 - Purpose: remove or normalize primer sequence with explicit orientation control.
-- Inputs/Outputs: reads -> primer_normalized_reads.
+- Inputs/Outputs: reads -> normalized_reads_r1/normalized_reads_r2, primer_orientation_report, primer_stats_json.
 - Metrics: primer-trimmed reads, retained reads.
 - Tools: cutadapt, seqkit.
 
 ### fastq.remove_chimeras {#fastq-remove-chimeras}
 - Purpose: remove chimeric sequences in amplicon-oriented workflows.
-- Inputs/Outputs: reads -> chimera_filtered_reads.
+- Inputs/Outputs: reads -> chimera_filtered_reads_r1/chimera_filtered_reads_r2, chimera_metrics_json, chimeras_fasta.
 - Metrics: chimera counts, retained reads.
 - Tools: vsearch.
 
 ### fastq.cluster_otus {#fastq-cluster-otus}
 - Purpose: cluster reads into operational taxonomic units for amplicon workflows.
-- Inputs/Outputs: reads -> otu_table, otu_representatives.
+- Inputs/Outputs: reads -> otu_table, otu_representatives, taxonomy_ready_fasta, taxonomy_ready_fastq.
 - Metrics: cluster counts, representative counts.
 - Tools: vsearch.
 
 ### fastq.infer_asvs {#fastq-infer-asvs}
 - Purpose: infer amplicon sequence variants.
-- Inputs/Outputs: reads -> asv_table, asv_sequences.
+- Inputs/Outputs: reads -> asv_table_tsv, asv_sequences_fasta, taxonomy_ready_fasta, taxonomy_ready_fastq.
 - Metrics: inferred variant counts.
 - Tools: no admitted backend yet.
 
 ### fastq.normalize_abundance {#fastq-normalize-abundance}
 - Purpose: normalize abundance summaries after amplicon inference.
-- Inputs/Outputs: feature table -> normalized_abundance_table.
+- Inputs/Outputs: feature table -> normalized_abundance_tsv.
 - Metrics: normalized abundance summaries.
 - Tools: seqkit.

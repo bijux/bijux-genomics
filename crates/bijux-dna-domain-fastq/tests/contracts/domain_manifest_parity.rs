@@ -9,6 +9,7 @@ use serde_yaml::Value;
 struct ToolManifestMeta {
     status: String,
     stage_ids: BTreeSet<String>,
+    expected_artifacts: BTreeSet<String>,
     comparability_refs: BTreeSet<String>,
 }
 
@@ -39,6 +40,21 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
         .collect()
 }
 
+fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
+    value.and_then(Value::as_sequence)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| match item {
+            Value::String(value) => Some(value.to_string()),
+            Value::Mapping(mapping) => mapping
+                .get(Value::String("name".to_string()))
+                .and_then(Value::as_str)
+                .map(str::to_string),
+            _ => None,
+        })
+        .collect()
+}
+
 fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
     let stages_dir = workspace_root()?.join("domain/fastq/stages");
     let mut out = BTreeMap::new();
@@ -57,6 +73,30 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
         out.insert(stage_id, compatible_tools);
     }
     Ok(out)
+}
+
+fn stage_manifest_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml = parse_yaml(&path)?;
+        let stage_id = yaml_string(yaml.get("stage_id"))
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        out.insert(stage_id, yaml_output_name_set(yaml.get("outputs")));
+    }
+    Ok(out)
+}
+
+fn artifact_vocabulary() -> Result<BTreeSet<String>> {
+    let yaml = parse_yaml(&workspace_root()?.join("domain/fastq/artifacts.yaml"))?;
+    Ok(yaml_string_set(yaml.get("artifact_ids")))
 }
 
 fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
@@ -96,6 +136,7 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
         let status = yaml_string(yaml.get("status"))
             .with_context(|| format!("status missing in {}", path.display()))?;
         let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert!(
             !stage_ids.is_empty(),
             "{} must declare non-empty stage_ids",
@@ -121,11 +162,62 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
             ToolManifestMeta {
                 status,
                 stage_ids,
+                expected_artifacts,
                 comparability_refs,
             },
         );
     }
     Ok(out)
+}
+
+#[test]
+fn supported_tool_expected_artifacts_match_stage_output_contracts() -> Result<()> {
+    let stage_outputs = stage_manifest_outputs()?;
+    for (tool_id, meta) in tool_manifest_meta()? {
+        if meta.status != "supported" {
+            continue;
+        }
+        let mut expected = BTreeSet::new();
+        for stage_id in &meta.stage_ids {
+            expected.extend(
+                stage_outputs
+                    .get(stage_id)
+                    .with_context(|| format!("missing stage outputs for {stage_id}"))?
+                    .iter()
+                    .cloned(),
+            );
+        }
+        assert_eq!(
+            meta.expected_artifacts, expected,
+            "tool {tool_id} expected_artifacts drifted from its supported stage output contract"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn fastq_artifact_vocabulary_covers_stage_outputs_and_supported_tool_artifacts() -> Result<()> {
+    let vocabulary = artifact_vocabulary()?;
+    for (stage_id, outputs) in stage_manifest_outputs()? {
+        for output in outputs {
+            assert!(
+                vocabulary.contains(&output),
+                "fastq artifact vocabulary missing stage output {output} for {stage_id}"
+            );
+        }
+    }
+    for (tool_id, meta) in tool_manifest_meta()? {
+        if meta.status != "supported" {
+            continue;
+        }
+        for artifact in meta.expected_artifacts {
+            assert!(
+                vocabulary.contains(&artifact),
+                "fastq artifact vocabulary missing supported tool artifact {artifact} for {tool_id}"
+            );
+        }
+    }
+    Ok(())
 }
 
 #[test]

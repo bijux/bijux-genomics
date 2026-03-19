@@ -59,7 +59,17 @@ stage_ids:
   - "fastq.merge_pairs"
   - "fastq.remove_chimeras"
   - "fastq.cluster_otus"
-expected_artifacts: ["report_json", "metrics.json", "otu_table", "otu_representatives"]
+expected_artifacts:
+  - "merged_reads"
+  - "report_json"
+  - "chimera_filtered_reads_r1"
+  - "chimera_filtered_reads_r2"
+  - "chimera_metrics_json"
+  - "chimeras_fasta"
+  - "otu_table"
+  - "otu_representatives"
+  - "taxonomy_ready_fasta"
+  - "taxonomy_ready_fastq"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "vsearch --version"

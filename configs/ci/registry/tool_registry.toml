@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 403ce95077d978b0c874154086f07bd6724305a8
+# source_commit: c1758d9d151d3e6bc34fe44d1ac54098cace86b8
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -172,7 +172,7 @@ smoke_help_cmd = "bbduk --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bbduk --help"
 expected_bin = "bbduk"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["trimmed_reads", "filtered_reads", "filtered_fastq", "filter_report_json", "report_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
@@ -376,7 +376,7 @@ smoke_help_cmd = "cutadapt --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "cutadapt --help"
 expected_bin = "cutadapt"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["trimmed_reads", "report_json", "normalized_reads_r1", "normalized_reads_r2", "primer_orientation_report", "primer_stats_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
@@ -410,7 +410,7 @@ smoke_help_cmd = "fastp --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastp --help"
 expected_bin = "fastp"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["trimmed_reads", "report_json", "filtered_reads", "filtered_fastq", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -1056,7 +1056,7 @@ smoke_help_cmd = "seqkit --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "seqkit --help"
 expected_bin = "seqkit"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["trimmed_reads", "report_json", "filtered_reads", "normalized_abundance_tsv", "normalized_reads_r1", "normalized_reads_r2", "primer_orientation_report", "primer_stats_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
@@ -1294,7 +1294,7 @@ smoke_help_cmd = "vsearch --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "vsearch --help"
 expected_bin = "vsearch"
-expected_artifacts = ["report_json", "metrics.json", "otu_table", "otu_representatives"]
+expected_artifacts = ["merged_reads", "report_json", "chimera_filtered_reads_r1", "chimera_filtered_reads_r2", "chimera_metrics_json", "chimeras_fasta", "otu_table", "otu_representatives", "taxonomy_ready_fasta", "taxonomy_ready_fastq"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.vsearch"

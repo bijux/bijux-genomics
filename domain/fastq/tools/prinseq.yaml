@@ -44,7 +44,14 @@ stage_ids:
   - "fastq.filter_reads"
   - "fastq.filter_low_complexity"
   - "fastq.profile_read_lengths"
-expected_artifacts: ["report_json"]
+expected_artifacts:
+  - "trimmed_reads"
+  - "report_json"
+  - "filtered_reads"
+  - "filtered_fastq"
+  - "filter_report_json"
+  - "length_distribution_tsv"
+  - "length_distribution_json"
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "prinseq++ --version"
