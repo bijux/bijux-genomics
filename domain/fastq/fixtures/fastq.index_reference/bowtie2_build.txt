@@ -1,9 +1,9 @@
-tool=samtools
+tool=bowtie2_build
 tool_version=pinned
 stage=fastq.index_reference
 domain=fastq
 fixture_kind=truth
-command=samtools
+command=bowtie2-build
 args=
 expected_outputs=contract_artifacts
 expected_stdout_patterns=contract_ok

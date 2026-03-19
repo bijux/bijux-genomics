@@ -22,7 +22,7 @@ metrics:
     meaning: "Number of emitted reference index files"
   - name: "index_bytes"
     meaning: "Total bytes written for the reference index"
-description: "Prepare FASTQ-stage shared reference assets."
+description: "Prepare mapper-ready reference indexes for FASTQ reference-guided stages."
 required_inputs:
   - reference_fasta
 required_outputs:
@@ -35,11 +35,11 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
+  - bowtie2_build
   - star
-  - samtools
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "selected index backend must match the downstream mapper or host-depletion backend that consumes the index."
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"

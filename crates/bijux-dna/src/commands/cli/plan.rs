@@ -78,7 +78,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::Align(common) => (
                 StageId::from_static("fastq.index_reference"),
-                ToolId::from_static("bowtie2-build"),
+                ToolId::from_static("bowtie2_build"),
                 common.clone(),
             ),
             FastqCommand::Preprocess(args) => (
