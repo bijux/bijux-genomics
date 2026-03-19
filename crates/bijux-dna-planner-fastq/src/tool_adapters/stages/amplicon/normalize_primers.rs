@@ -37,11 +37,7 @@ pub fn plan(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        if output_r2.is_some() {
-            ArtifactId::from_static("normalized_reads_r1")
-        } else {
-            ArtifactId::from_static("normalized_reads")
-        },
+        ArtifactId::from_static("normalized_reads_r1"),
         output_r1.clone(),
         ArtifactRole::Reads,
     )];
