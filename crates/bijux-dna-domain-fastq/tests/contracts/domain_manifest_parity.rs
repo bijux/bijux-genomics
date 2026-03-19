@@ -5,6 +5,13 @@ use anyhow::{Context, Result};
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
 use serde_yaml::Value;
 
+#[derive(Debug, Clone)]
+struct ToolManifestMeta {
+    status: String,
+    stage_ids: BTreeSet<String>,
+    comparability_refs: BTreeSet<String>,
+}
+
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -52,12 +59,15 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
     Ok(out)
 }
 
-fn tool_manifest_stages() -> Result<BTreeMap<String, BTreeSet<String>>> {
+fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
     let tools_dir = workspace_root()?.join("domain/fastq/tools");
     let mut out = BTreeMap::new();
     for entry in std::fs::read_dir(&tools_dir)? {
         let path = entry?.path();
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
         let yaml = parse_yaml(&path)?;
@@ -83,13 +93,37 @@ fn tool_manifest_stages() -> Result<BTreeMap<String, BTreeSet<String>>> {
         );
         let tool_id = yaml_string(yaml.get("tool_id"))
             .with_context(|| format!("tool_id missing in {}", path.display()))?;
+        let status = yaml_string(yaml.get("status"))
+            .with_context(|| format!("status missing in {}", path.display()))?;
         let stage_ids = yaml_string_set(yaml.get("stage_ids"));
         assert!(
             !stage_ids.is_empty(),
             "{} must declare non-empty stage_ids",
             path.display()
         );
-        out.insert(tool_id, stage_ids);
+        let comparability_refs = yaml
+            .get("comparability")
+            .and_then(|value| value.as_mapping())
+            .map(|mapping| {
+                ["comparable_with", "non_comparable_with"]
+                    .into_iter()
+                    .flat_map(|key| {
+                        mapping
+                            .get(&Value::String(key.to_string()))
+                            .into_iter()
+                            .flat_map(|value| yaml_string_set(Some(value)))
+                    })
+                    .collect::<BTreeSet<_>>()
+            })
+            .unwrap_or_default();
+        out.insert(
+            tool_id,
+            ToolManifestMeta {
+                status,
+                stage_ids,
+                comparability_refs,
+            },
+        );
     }
     Ok(out)
 }
@@ -114,8 +148,8 @@ fn tool_stage_ids_reference_known_fastq_stages() -> Result<()> {
         .iter()
         .map(|stage| stage.to_string())
         .collect::<BTreeSet<_>>();
-    for (tool_id, stage_ids) in tool_manifest_stages()? {
-        for stage_id in stage_ids {
+    for (tool_id, meta) in tool_manifest_meta()? {
+        for stage_id in meta.stage_ids {
             assert!(
                 known_stages.contains(&stage_id),
                 "tool {tool_id} declares unknown fastq stage {stage_id}"
@@ -128,22 +162,25 @@ fn tool_stage_ids_reference_known_fastq_stages() -> Result<()> {
 #[test]
 fn stage_compatible_tools_and_tool_stage_ids_are_symmetric() -> Result<()> {
     let stage_tools = stage_manifest_tools()?;
-    let tool_stages = tool_manifest_stages()?;
+    let tool_meta = tool_manifest_meta()?;
 
     for (stage_id, tools) in &stage_tools {
         for tool_id in tools {
-            let declared = tool_stages.get(tool_id).with_context(|| {
+            let declared = tool_meta.get(tool_id).with_context(|| {
                 format!("stage {stage_id} references missing tool manifest {tool_id}")
             })?;
             assert!(
-                declared.contains(stage_id),
+                declared.stage_ids.contains(stage_id),
                 "stage {stage_id} lists tool {tool_id}, but the tool manifest does not declare that stage"
             );
         }
     }
 
-    for (tool_id, stage_ids) in &tool_stages {
-        for stage_id in stage_ids {
+    for (tool_id, meta) in &tool_meta {
+        if meta.status != "supported" {
+            continue;
+        }
+        for stage_id in &meta.stage_ids {
             let compatible = stage_tools.get(stage_id).with_context(|| {
                 format!("tool {tool_id} references missing stage manifest {stage_id}")
             })?;
@@ -154,5 +191,20 @@ fn stage_compatible_tools_and_tool_stage_ids_are_symmetric() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+#[test]
+fn tool_comparability_refs_resolve_to_known_fastq_tools() -> Result<()> {
+    let tool_meta = tool_manifest_meta()?;
+    let known_tools = tool_meta.keys().cloned().collect::<BTreeSet<_>>();
+    for (tool_id, meta) in tool_meta {
+        for referenced_tool in meta.comparability_refs {
+            assert!(
+                known_tools.contains(&referenced_tool),
+                "tool {tool_id} comparability metadata references missing fastq tool {referenced_tool}"
+            );
+        }
+    }
     Ok(())
 }

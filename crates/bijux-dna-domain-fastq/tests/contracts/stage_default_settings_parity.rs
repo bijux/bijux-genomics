@@ -37,14 +37,14 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
     Ok(out)
 }
 
-fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>> {
+fn indexed_stage_tool_compatibility() -> Result<BTreeMap<String, BTreeSet<String>>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
         .context("read domain/fastq/index.yaml")?;
     let mut out = BTreeMap::<String, BTreeSet<String>>::new();
     let mut in_block = false;
     let mut current_stage = None::<String>;
     for line in raw.lines() {
-        if line == "stage_default_settings:" {
+        if line == "stage_tool_compatibility:" {
             in_block = true;
             continue;
         }
@@ -54,7 +54,7 @@ fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if line.starts_with("  ") && !line.starts_with("    ") {
+        if line.starts_with("  ") && !line.starts_with("  - ") {
             let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) else {
                 continue;
             };
@@ -63,7 +63,7 @@ fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>
             out.entry(stage).or_default();
             continue;
         }
-        if let Some(tool) = line.strip_prefix("    ").and_then(|rest| rest.strip_suffix(':')) {
+        if let Some(tool) = line.strip_prefix("  - ") {
             if let Some(stage) = &current_stage {
                 out.entry(stage.clone()).or_default().insert(tool.to_string());
             }
@@ -94,9 +94,9 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
 #[test]
 fn stage_default_settings_cover_current_supported_tools() -> Result<()> {
     assert_eq!(
-        indexed_stage_default_settings()?,
+        indexed_stage_tool_compatibility()?,
         stage_manifest_tools()?,
-        "domain/fastq/index.yaml stage_default_settings drifted from stage manifest compatible_tools"
+        "domain/fastq/index.yaml stage_tool_compatibility drifted from stage manifest compatible_tools"
     );
     Ok(())
 }
