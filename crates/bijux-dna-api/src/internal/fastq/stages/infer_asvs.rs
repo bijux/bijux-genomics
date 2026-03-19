@@ -10,8 +10,10 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
-use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::RawFailure;
+use bijux_dna_planner_fastq::stage_api::{
+    bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
+    RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -35,7 +37,23 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_infer_asvs_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_hash = hash_file_sha256(&args.r1).context("hash infer asvs input")?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash infer asvs input r1")?,
+            hash_file_sha256(r2).context("hash infer asvs input r2")?
+        )
+    } else {
+        hash_file_sha256(&args.r1).context("hash infer asvs input")?
+    };
     let bench_dir_name = bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS)
         .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
     let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
@@ -65,6 +83,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
             &tool_spec,
             &args.r1,
+            args.r2.as_deref(),
             &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -113,7 +132,8 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             "schema_version": "bijux.fastq.infer_asvs.report.v1",
             "stage_id": STAGE_ID,
             "tool_id": tool,
-            "input_fastq": args.r1,
+            "input_fastq_r1": args.r1,
+            "input_fastq_r2": args.r2,
             "asv_table_tsv": plan.io.outputs[0].path,
             "asv_sequences_fasta": plan.io.outputs[1].path,
             "taxonomy_ready_fasta": plan.io.outputs[2].path,

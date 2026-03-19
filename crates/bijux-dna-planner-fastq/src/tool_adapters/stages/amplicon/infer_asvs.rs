@@ -12,7 +12,24 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_INFER_ASVS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<StagePlanV1> {
+pub fn plan(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+) -> Result<StagePlanV1> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -24,11 +41,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads"),
-                reads.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
+            inputs,
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("asv_table_tsv"),
@@ -57,6 +70,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, reads: &Path, out_dir: &Path) -> Result<
         effective_params: serde_json::json!({
             "requires_r_runtime": true,
             "output_table_kind": "asv_abundance_table",
+            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "runtime_constraints": {
                 "requires_r": true,
                 "min_r_major": 4
