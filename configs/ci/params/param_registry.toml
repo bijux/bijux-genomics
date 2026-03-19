@@ -150,7 +150,7 @@ schema_version = "bijux.fastq.params.screen_taxonomy.v1"
 
 [[entries]]
 stage_id = "fastq.profile_reads"
-param_type_id = "fastq.stats"
+param_type_id = "fastq.profile_reads"
 schema_version = "bijux.fastq.params.stats.v1"
 
 [[entries]]
@@ -165,7 +165,7 @@ schema_version = "bijux.fastq.params.umi.v1"
 
 [[entries]]
 stage_id = "fastq.validate_reads"
-param_type_id = "fastq.validate"
+param_type_id = "fastq.validate_reads"
 schema_version = "bijux.fastq.params.validate_reads.v1"
 
 [[entries]]
@@ -191,4 +191,4 @@ schema_version = "bijux.fastq.params.v1"
 [[entries]]
 stage_id = "fastq.trim_terminal_damage"
 param_type_id = "fastq.trim_terminal_damage"
-schema_version = "bijux.fastq.params.v1"
+schema_version = "bijux.fastq.params.trim_terminal_damage.v1"
