@@ -15,7 +15,9 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::RawFailure;
+use bijux_dna_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -37,9 +39,26 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
     let runner = ensure_bench_runner(platform, runner_override)?;
     let input_stats = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let input_hash = hash_file_sha256(&args.r1)?;
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
+    } else {
+        None
+    };
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?)
+    } else {
+        hash_file_sha256(&args.r1)?
+    };
     let bench_dir_name =
         bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES)
             .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
@@ -70,6 +89,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
             &tool_spec,
             &args.r1,
+            args.r2.as_deref(),
             &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -113,15 +133,26 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             std::fs::copy(&args.r1, &plan.io.outputs[0].path)?;
         }
         let output_stats = observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
-        let duplicate_reads = input_stats.reads.saturating_sub(output_stats.reads);
+        let output_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+            let output_r2 = &plan.io.outputs[1].path;
+            if !output_r2.exists() {
+                std::fs::copy(r2, output_r2)?;
+            }
+            Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
+        } else {
+            None
+        };
+        let reads_in = input_stats.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out = output_stats.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let duplicate_reads = reads_in.saturating_sub(reads_out);
         let metrics = FastqDuplicateMetrics {
-            reads_in: input_stats.reads,
-            reads_out: output_stats.reads,
+            reads_in,
+            reads_out,
             duplicate_reads,
-            dedup_rate: if input_stats.reads == 0 {
+            dedup_rate: if reads_in == 0 {
                 0.0
             } else {
-                duplicate_reads as f64 / input_stats.reads as f64
+                duplicate_reads as f64 / reads_in as f64
             },
         };
         let metric_set = metric_set(metrics);
@@ -129,9 +160,15 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             "schema_version": "bijux.fastq.remove_duplicates.report.v1",
             "stage_id": STAGE_ID,
             "tool_id": tool,
-            "input_fastq": args.r1,
+            "input_fastq_r1": args.r1,
+            "input_fastq_r2": args.r2,
             "dedup_reads_r1": plan.io.outputs[0].path,
-            "report_json": plan.io.outputs[1].path,
+            "dedup_reads_r2": output_stats_r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
+            "report_json": if output_stats_r2.is_some() {
+                plan.io.outputs[2].path.clone()
+            } else {
+                plan.io.outputs[1].path.clone()
+            },
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
