@@ -115,7 +115,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: classify reads for taxonomic screening and contamination assessment.
 - Inputs/Outputs: reads -> screen_report_tsv, classification_report_json.
 - Metrics: classified/unclassified reads, contamination summaries.
-- Tools: kraken2, krakenuniq, diamond, centrifuge, metaphlan, kaiju, fastq_screen.
+- Tools: kraken2, krakenuniq, centrifuge, metaphlan, kaiju, fastq_screen.
 
 ### fastq.report_qc {#fastq-qc-post}
 - Purpose: aggregate QC outputs after read-level preprocessing.

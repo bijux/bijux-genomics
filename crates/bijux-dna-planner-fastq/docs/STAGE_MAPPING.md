@@ -16,7 +16,7 @@ Authority for planner-stage bindings lives in `src/tool_adapters/stages/catalog.
 | fastq.deplete_rrna | sortmerna | rRNA-filtered FASTQ, rRNA report | rrna_fraction |
 | fastq.correct_errors | rcorrector, musket, lighter, bayeshammer | corrected FASTQ | correction_rate |
 | fastq.extract_umis | umi_tools | UMI-tagged FASTQ | umi_stats |
-| fastq.screen_taxonomy | kraken2, krakenuniq, diamond, centrifuge, metaphlan, kaiju, fastq_screen | screening report, classification report | contaminant_rate |
+| fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, metaphlan, kaiju, fastq_screen | screening report, classification report | contaminant_rate |
 | fastq.profile_reads | seqkit_stats | stats report | read_count, base_count |
 | fastq.profile_read_lengths | seqkit_stats, seqfu, prinseq, fastp | length report | length histogram |
 | fastq.profile_overrepresented_sequences | fastqc, seqkit | overrepresented-sequence report | flagged sequence counts |
