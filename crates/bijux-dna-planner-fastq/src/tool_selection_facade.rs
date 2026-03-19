@@ -115,6 +115,20 @@ pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_deplete_host_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST,
+    );
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
+pub fn select_deplete_reference_contaminants_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    );
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_PROFILE_READS);
