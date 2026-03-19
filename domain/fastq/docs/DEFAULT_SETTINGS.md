@@ -20,7 +20,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.index_reference`: default `star`.
 - `fastq.validate_reads`: default `fastqvalidator`.
 - `fastq.profile_read_lengths`: default `seqkit_stats`.
-- `fastq.detect_adapters`: default `fastp`.
+- `fastq.detect_adapters`: default `fastqc`.
 - `fastq.trim_polyg_tails`: default `fastp`.
 - `fastq.trim_reads`: default `fastp`.
 - `fastq.filter_reads`: default `fastp`.

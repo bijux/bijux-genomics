@@ -118,7 +118,7 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
 fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
     let allowed: &[&str] = match stage_id {
         "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk"],
-        "fastq.detect_adapters" => &["fastp", "fastqc"],
+        "fastq.detect_adapters" => &["fastqc"],
         "fastq.trim_reads" => &[
             "alientrimmer",
             "bbduk",
