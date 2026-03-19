@@ -3,6 +3,8 @@
 mod mod_contracts_contract_docs_rs;
 #[path = "contracts/contract_harness.rs"]
 mod mod_contracts_contract_harness_rs;
+#[path = "contracts/index_parity.rs"]
+mod mod_contracts_index_parity_rs;
 #[path = "contracts/preflight_inputs.rs"]
 mod mod_contracts_preflight_inputs_rs;
 #[path = "contracts/public_surface.rs"]
