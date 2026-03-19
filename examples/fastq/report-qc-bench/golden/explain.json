@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_report_qc_bench",
+  "explain": "Deterministic report-qc benchmark with persisted stage evidence and report-only contract."
+}
