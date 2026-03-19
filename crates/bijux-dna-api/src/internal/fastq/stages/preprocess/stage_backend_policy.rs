@@ -115,60 +115,26 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     }
 }
 
-fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
-    match stage_id {
-        "fastq.index_reference" => Some(&["bowtie2_build", "star"]),
-        "fastq.validate_reads" => Some(&["fastqvalidator", "seqtk", "fqtools"]),
-        "fastq.detect_adapters" => Some(&["fastqc"]),
-        "fastq.trim_reads" => Some(&[
-            "fastp",
-            "cutadapt",
-            "atropos",
-            "bbduk",
-            "adapterremoval",
-            "trimmomatic",
-            "trim_galore",
-            "prinseq",
-            "seqkit",
-            "skewer",
-            "leehom",
-            "alientrimmer",
-            "fastx_clipper",
-        ]),
-        "fastq.trim_terminal_damage" => Some(&["cutadapt", "seqkit"]),
-        "fastq.merge_pairs" => Some(&["pear", "vsearch", "bbmerge", "flash2", "leehom"]),
-        "fastq.remove_duplicates" => Some(&["fastuniq", "clumpify"]),
-        "fastq.correct_errors" => Some(&["rcorrector", "musket", "lighter", "bayeshammer"]),
-        "fastq.extract_umis" => Some(&["umi_tools"]),
-        "fastq.filter_reads" => Some(&["fastp", "seqkit", "prinseq", "bbduk"]),
-        "fastq.filter_low_complexity" => Some(&["prinseq", "bbduk", "fastp"]),
-        "fastq.profile_reads" => Some(&["seqkit_stats"]),
-        "fastq.profile_read_lengths" => Some(&["seqkit_stats", "prinseq", "fastp"]),
-        "fastq.profile_overrepresented_sequences" => Some(&["fastqc", "seqkit"]),
-        "fastq.report_qc" => Some(&["multiqc"]),
-        "fastq.trim_polyg_tails" => Some(&["fastp", "bbduk"]),
-        "fastq.screen_taxonomy" => Some(&[
-            "kraken2",
-            "krakenuniq",
-            "centrifuge",
-            "kaiju",
-        ]),
-        "fastq.deplete_reference_contaminants" => Some(&["bowtie2"]),
-        "fastq.deplete_rrna" => Some(&["sortmerna"]),
-        "fastq.deplete_host" => Some(&["bowtie2"]),
-        "fastq.normalize_primers" => Some(&["cutadapt", "seqkit"]),
-        "fastq.remove_chimeras" | "fastq.cluster_otus" => Some(&["vsearch"]),
-        "fastq.infer_asvs" => Some(&[]),
-        "fastq.normalize_abundance" => Some(&["seqkit"]),
-        _ => None,
+fn fastq_backend_allowlist(stage_id: &str) -> Option<Vec<String>> {
+    if !stage_id.starts_with("fastq.") {
+        return None;
     }
+    let tools = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(
+        &bijux_dna_core::ids::StageId::new(stage_id.to_string()),
+    );
+    Some(
+        tools
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect::<Vec<_>>(),
+    )
 }
 
 fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
     let Some(allowed) = fastq_backend_allowlist(stage_id) else {
         return Ok(());
     };
-    if allowed.contains(&tool_id) {
+    if allowed.iter().any(|allowed_tool| allowed_tool == tool_id) {
         return Ok(());
     }
     Err(anyhow!(
@@ -179,31 +145,49 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Mutex, OnceLock};
+
     use anyhow::Result;
 
     use super::{fastq_backend_allowlist, workspace_root_path};
 
-    fn block_list(raw: &str, key: &str) -> Vec<String> {
-        let mut out = Vec::new();
-        let mut in_block = false;
-        for line in raw.lines() {
-            if line == format!("{key}:") {
-                in_block = true;
-                continue;
+    fn env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    struct EnvGuard {
+        key: &'static str,
+        value: Option<String>,
+    }
+
+    impl EnvGuard {
+        fn capture(key: &'static str) -> Self {
+            Self {
+                key,
+                value: std::env::var(key).ok(),
             }
-            if !in_block {
-                continue;
-            }
-            if !line.starts_with("  - ") {
-                break;
-            }
-            out.push(line.trim_start_matches("  - ").to_string());
         }
-        out
+    }
+
+    impl Drop for EnvGuard {
+        fn drop(&mut self) {
+            if let Some(value) = self.value.take() {
+                std::env::set_var(self.key, value);
+            } else {
+                std::env::remove_var(self.key);
+            }
+        }
     }
 
     #[test]
-    fn fastq_backend_allowlist_matches_stage_manifests() -> Result<()> {
+    fn fastq_backend_allowlist_matches_planner_registry_selection() -> Result<()> {
+        let _lock = env_lock().lock().expect("lock env mutation tests");
+        let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+        let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
+        std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+
         let stages_dir = workspace_root_path().join("domain/fastq/stages");
         for entry in std::fs::read_dir(&stages_dir)? {
             let path = entry?.path();
@@ -221,16 +205,42 @@ mod tests {
             else {
                 continue;
             };
-            let expected = block_list(&raw, "compatible_tools");
+            let expected = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(
+                &bijux_dna_core::ids::StageId::new(stage_id.clone()),
+            )
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect::<Vec<_>>();
             let actual = fastq_backend_allowlist(&stage_id)
-                .map(|tools| tools.iter().map(|tool| (*tool).to_string()).collect::<Vec<_>>())
                 .unwrap_or_default();
             assert_eq!(
                 actual, expected,
-                "fastq API backend allowlist drifted from stage manifest compatible_tools for {stage_id}"
+                "fastq API backend allowlist drifted from planner registry selection for {stage_id}"
             );
         }
         Ok(())
+    }
+
+    #[test]
+    fn fastq_backend_allowlist_loads_experimental_registry_with_env_toggle() {
+        let _lock = env_lock().lock().expect("lock env mutation tests");
+        let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+        let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
+        std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+
+        let governed = fastq_backend_allowlist("fastq.trim_reads").unwrap_or_default();
+        assert!(
+            !governed.iter().any(|tool| tool == "prinseq"),
+            "experimental trim backend must stay out of governed API allowlists"
+        );
+
+        std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
+        let experimental = fastq_backend_allowlist("fastq.trim_reads").unwrap_or_default();
+        assert!(
+            experimental.iter().any(|tool| tool == "prinseq"),
+            "API allowlist must include experimental trim backends when the registry toggle is enabled"
+        );
     }
 }
 
