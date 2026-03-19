@@ -4,7 +4,6 @@ use anyhow::{Context, Result};
 use walkdir::WalkDir;
 
 use crate::runtime::process::ProcessRunner;
-pub(crate) use crate::runtime::legacy_catalog::load_supported_scripts;
 use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 

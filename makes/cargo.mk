@@ -154,7 +154,7 @@ doctor:
 _doctor:
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast
-	@cargo run -q -p bijux-dev-dna -- checks run check-supported-scripts
+	@cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-removed
 	@cargo run -q -p bijux-dev-dna -- checks run check-config-schema
 	@cargo run -q -p bijux-dev-dna -- checks run check-nextest-profile-contract
 	@cargo run -q -p bijux-dev-dna -- checks run check-runtime-profiles-contract
@@ -286,7 +286,7 @@ _check-generated-config-headers:
 
 _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
-	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-scripts
+	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-automation
 
 flake-hunt: ## Run repeated flake hunt for an expression (EXPR required, RUNS optional).
 	@$(ensure_artifact_env)

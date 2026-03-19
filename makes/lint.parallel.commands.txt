@@ -1,6 +1,6 @@
 make _domain-validate
 make _examples-validate
-cargo run -q -p bijux-dev-dna -- checks run check-supported-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-removed
 cargo run -q -p bijux-dev-dna -- checks run check-config-layout
 cargo run -q -p bijux-dev-dna -- checks run check-config-index-discipline
 cargo run -q -p bijux-dev-dna -- checks run check-config-filenames
@@ -60,7 +60,7 @@ cargo run -q -p bijux-dev-dna -- checks run check-root-layout
 cargo run -q -p bijux-dev-dna -- checks run check-artifacts-tracked
 cargo run -q -p bijux-dev-dna -- checks run check-no-target-paths-in-tests
 cargo run -q -p bijux-dev-dna -- checks run check-no-user-path-literals
-cargo run -q -p bijux-dev-dna -- checks run check-script-writes
+cargo run -q -p bijux-dev-dna -- checks run check-automation-writes
 cargo run -q -p bijux-dev-dna -- checks run check-assets-drift
 cargo run -q -p bijux-dev-dna -- checks run check-assets-contracts
 cargo run -q -p bijux-dev-dna -- checks run check-asset-manifests
@@ -68,18 +68,18 @@ cargo run -q -p bijux-dev-dna -- checks run check-asset-checksums
 cargo run -q -p bijux-dev-dna -- checks run check-assets-large-file-allowlist
 cargo run -q -p bijux-dev-dna -- checks run check-golden-artifact-schema
 cargo run -q -p bijux-dev-dna -- checks run check-assets-reference-schema
-cargo run -q -p bijux-dev-dna -- checks run tree-intent
+cargo run -q -p bijux-dev-dna -- checks run check-automation-intent
 cargo run -q -p bijux-dev-dna -- checks run check-readme-links
-cargo run -q -p bijux-dev-dna -- checks run check-ci-shell-scripts
-cargo run -q -p bijux-dev-dna -- checks run check-lib-api
-cargo run -q -p bijux-dev-dna -- checks run check-exit-codes
-cargo run -q -p bijux-dev-dna -- checks run check-script-deps
-cargo run -q -p bijux-dev-dna -- checks run check-script-help
-cargo run -q -p bijux-dev-dna -- checks run check-script-interface
+cargo run -q -p bijux-dev-dna -- checks run check-ci-automation-surface
+cargo run -q -p bijux-dev-dna -- checks run check-automation-boundary
+cargo run -q -p bijux-dev-dna -- checks run check-automation-exit-codes
+cargo run -q -p bijux-dev-dna -- checks run check-automation-deps
+cargo run -q -p bijux-dev-dna -- checks run check-automation-help
+cargo run -q -p bijux-dev-dna -- checks run check-automation-interface
 cargo run -q -p bijux-dev-dna -- checks run check-artifact-env-contract
-cargo run -q -p bijux-dev-dna -- checks run check-shell-portability
-cargo run -q -p bijux-dev-dna -- checks run check-network-usage
-cargo run -q -p bijux-dev-dna -- checks run check-no-temp-leaks
+cargo run -q -p bijux-dev-dna -- checks run check-automation-portability
+cargo run -q -p bijux-dev-dna -- checks run check-automation-network-usage
+cargo run -q -p bijux-dev-dna -- checks run check-automation-temp-discipline
 cargo run -q -p bijux-dev-dna -- checks run check-hidden-tmp-usage
 cargo run -q -p bijux-dev-dna -- checks run check-executor-no-unwrap
 cargo run -q -p bijux-dev-dna -- checks run check-clippy-allowlist-expiry
@@ -90,15 +90,15 @@ cargo run -q -p bijux-dev-dna -- checks run check-no-parallel-accidental
 cargo run -q -p bijux-dev-dna -- checks run check-hpc-safety
 cargo run -q -p bijux-dev-dna -- checks run check-output-roots
 cargo run -q -p bijux-dev-dna -- checks run check-artifacts-layout
-cargo run -q -p bijux-dev-dna -- checks run check-script-arg-style
-cargo run -q -p bijux-dev-dna -- checks run check-script-entrypoint
+cargo run -q -p bijux-dev-dna -- checks run check-automation-arg-style
+cargo run -q -p bijux-dev-dna -- checks run check-automation-entrypoints
 cargo run -q -p bijux-dev-dna -- checks run check-make-help-sync
 cargo run -q -p bijux-dev-dna -- checks run check-gitignore-contract
 cargo run -q -p bijux-dev-dna -- checks run check-cargo-config-policy
 cargo run -q -p bijux-dev-dna -- checks run check-audit-allowlist
-cargo run -q -p bijux-dev-dna -- checks run check-no-orphan-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-references
 cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
-cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-scripts
+cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-automation
 cargo run -q -p bijux-dev-dna -- checks run check-domain-realization
 cargo run -q -p bijux-dev-dna -- containers run lint
-cargo run -q -p bijux-dev-dna -- test run test-scripts-smoke
+cargo run -q -p bijux-dev-dna -- test run test-control-plane-smoke

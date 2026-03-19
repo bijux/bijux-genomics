@@ -170,9 +170,9 @@ pub fn smoke_registry() -> Vec<OpsCommandDefinition> {
 pub fn test_registry() -> Vec<OpsCommandDefinition> {
     vec![
         native(
-            "test-scripts-smoke",
+            "test-control-plane-smoke",
             "Probe the native control-plane command surface.",
-            NativeOpsCommandKey::TestScriptsSmoke,
+            NativeOpsCommandKey::TestControlPlaneSmoke,
         ),
         native(
             "test-triage",
