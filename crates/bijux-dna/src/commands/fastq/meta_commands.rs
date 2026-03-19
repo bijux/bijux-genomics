@@ -30,6 +30,7 @@ use crate::commands::command_prelude::{
     write_index_reference_report, write_infer_asvs_report, write_merge_report,
     write_normalize_abundance_report, write_normalize_primers_report,
     write_overrepresented_report, write_qc_post_report, write_read_lengths_report,
+    write_screen_report,
     write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
     write_stats_report, write_trim_polyg_report, write_trim_report,
     write_trim_terminal_damage_report, write_umi_report, write_validate_report, AnalyzeCommand,
@@ -1041,7 +1042,16 @@ pub(crate) fn handle_meta_commands(
                     BenchFastqCommand::Screen(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_screen(args)?;
-                        bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
+                        let outcome = bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
+                        write_screen_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Preprocess(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);

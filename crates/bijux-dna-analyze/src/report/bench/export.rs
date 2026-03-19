@@ -2,7 +2,7 @@ use crate::{
     FastqChimeraMetrics, FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
     FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
     FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics,
-    FastqReadLengthMetrics,
+    FastqReadLengthMetrics, FastqScreenMetrics,
 };
 
 /// Write the validate benchmark report.
@@ -217,6 +217,49 @@ pub fn write_qc_post_report(
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.report_qc", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the screen-taxonomy benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_screen_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqScreenMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| {
+            serde_json::json!({
+                "contamination_rate": record.metrics.metrics.contamination_rate,
+                "has_summary_entries": record
+                    .metrics
+                    .metrics
+                    .contamination_summary
+                    .as_value()
+                    .get("entries")
+                    .and_then(serde_json::Value::as_array)
+                    .map_or(false, |entries| !entries.is_empty()),
+            })
+        })
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.screen_taxonomy", &BTreeMap::new());
     }
     Ok(())
 }
