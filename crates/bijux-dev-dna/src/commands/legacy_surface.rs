@@ -4,9 +4,9 @@ use anyhow::Result;
 use regex::Regex;
 use walkdir::WalkDir;
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome};
-use crate::native::support::{fail, make_files, pass, read};
+use crate::commands::command_support::{fail, make_files, pass, read};
 
 pub(crate) fn check_supported_scripts(
     workspace: &Workspace,
@@ -185,7 +185,7 @@ fn repo_script_references(workspace: &Workspace, roots: &[std::path::PathBuf]) -
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(root).into_iter().filter_map(Result::ok) {
+        for entry in WalkDir::new(root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }

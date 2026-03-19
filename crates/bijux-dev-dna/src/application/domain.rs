@@ -1,11 +1,11 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::domain::{
     DomainCommandDefinition, DomainCommandOutcome, DomainCommandSpec,
 };
-use crate::native::run_native_domain_command;
-use crate::registry::domain::domain_registry;
+use crate::commands::run_native_domain_command;
+use crate::catalog::domain::domain_registry;
 
 #[derive(Debug)]
 pub struct DomainApplication {

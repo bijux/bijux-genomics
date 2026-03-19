@@ -1,7 +1,15 @@
 # bijux-dev-dna Boundary Contract
 
 ## Why this crate exists
-Provides versioned control-plane automation for repository checks, domain automation, and other developer workflows.
+Provides versioned control-plane automation for repository checks, domain automation, container governance, and other developer workflows.
+
+## Internal architecture
+- `cli`: command-line parsing and user-facing control-plane entrypoint.
+- `application`: group-level orchestration over catalogs, commands, and runtime context.
+- `catalog`: versioned command and check catalogs.
+- `commands`: native command execution and repository contract enforcement.
+- `model`: typed command, check, and outcome definitions.
+- `runtime`: workspace, filesystem, and process adapters.
 
 ## Allowed dependencies
 - Workspace crates required to model and execute developer automation.
@@ -14,4 +22,4 @@ Provides versioned control-plane automation for repository checks, domain automa
 - No implicit network access unless a specific automation command owns that responsibility.
 
 ## Notes
-This crate owns the durable registry and execution surface for repository checks, domain automation, and the migrated developer control-plane commands.
+This crate owns the durable command catalog and execution surface for repository automation.

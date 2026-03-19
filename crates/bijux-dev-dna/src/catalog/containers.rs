@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 use crate::model::container::{ContainerCommandDefinition, ContainerCommandSpec, NativeContainerCommandKey};
 
 pub fn container_registry(_workspace: &Workspace) -> Result<Vec<ContainerCommandDefinition>> {

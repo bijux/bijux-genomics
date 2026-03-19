@@ -49,7 +49,7 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
 fn policy__contracts__generated_configs_policy__single_generator_command_is_canonical() {
     let root = support::workspace_root();
     let makefile = root.join("makes/cargo.mk");
-    let native_source = root.join("crates/bijux-dev-dna/src/native/ops.rs");
+    let native_source = root.join("crates/bijux-dev-dna/src/commands/ops.rs");
     let make_raw = std::fs::read_to_string(&makefile)
         .unwrap_or_else(|_| panic!("read {}", makefile.display()));
     let native_raw = std::fs::read_to_string(&native_source)

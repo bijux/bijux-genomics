@@ -10,9 +10,9 @@ use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
 use crate::application::ops::OpsApplication;
-use crate::infrastructure::workspace::Workspace;
-use crate::model::check::{CheckSelection, CheckStatus};
-use crate::registry::ops::{
+use crate::runtime::workspace::Workspace;
+use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
+use crate::catalog::ops::{
     assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry,
     smoke_registry, test_registry, tooling_registry,
 };
@@ -139,7 +139,7 @@ fn run_checks(command: ChecksCommand) -> Result<()> {
     match command.command {
         ChecksSubcommand::List => {
             for check in app.registry() {
-                println!("{}", check.id);
+                println!("{}\tv{}\t{}", check.id, check.version, check.summary);
             }
             Ok(())
         }
@@ -160,20 +160,10 @@ fn run_checks(command: ChecksCommand) -> Result<()> {
                 let outcomes = app.run_selection(selection)?;
                 let mut failed = false;
                 for outcome in outcomes {
-                    println!(
-                        "{}: {}",
-                        outcome.id,
-                        match outcome.status {
-                            CheckStatus::Passed => "passed",
-                            CheckStatus::Failed => {
-                                failed = true;
-                                "failed"
-                            }
-                        }
-                    );
-                    if outcome.status == CheckStatus::Failed && !outcome.detail.trim().is_empty() {
-                        println!("{}", outcome.detail.trim());
+                    if outcome.status == CheckStatus::Failed {
+                        failed = true;
                     }
+                    print_check_outcome(&outcome, 0);
                 }
                 if failed {
                     anyhow::bail!("one or more checks failed");
@@ -189,7 +179,7 @@ fn run_containers(command: ContainersCommand) -> Result<()> {
     match command.command {
         ContainersSubcommand::List => {
             for command in app.registry()? {
-                println!("{}", command.id);
+                println!("{}\t{}", command.id, command.summary);
             }
             Ok(())
         }
@@ -217,7 +207,7 @@ fn run_domain(command: DomainCommand) -> Result<()> {
     match command.command {
         DomainSubcommand::List => {
             for command in app.registry() {
-                println!("{}", command.id);
+                println!("{}\t{}", command.id, command.summary);
             }
             Ok(())
         }
@@ -249,7 +239,7 @@ fn run_ops(
     match command.command {
         OpsSubcommand::List => {
             for command in app.registry() {
-                println!("{}", command.id);
+                println!("{}\t{}", command.id, command.summary);
             }
             Ok(())
         }
@@ -273,6 +263,21 @@ fn run_ops(
             }
             Ok(())
         }),
+    }
+}
+
+fn print_check_outcome(outcome: &CheckOutcome, depth: usize) {
+    let indent = "  ".repeat(depth);
+    let status = match outcome.status {
+        CheckStatus::Passed => "passed",
+        CheckStatus::Failed => "failed",
+    };
+    println!("{indent}{}: {}", outcome.id, status);
+    if outcome.status == CheckStatus::Failed && !outcome.detail.trim().is_empty() {
+        println!("{indent}{}", outcome.detail.trim());
+    }
+    for child in &outcome.children {
+        print_check_outcome(child, depth + 1);
     }
 }
 

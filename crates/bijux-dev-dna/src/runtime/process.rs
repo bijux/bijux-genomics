@@ -2,7 +2,7 @@ use std::process::Output;
 
 use anyhow::{Context, Result};
 
-use crate::infrastructure::workspace::Workspace;
+use crate::runtime::workspace::Workspace;
 
 #[derive(Debug)]
 pub struct ProcessRunner<'a> {
