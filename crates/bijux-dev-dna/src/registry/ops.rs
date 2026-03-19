@@ -201,9 +201,19 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
 pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
     vec![
         native(
+            "check-config-snapshot",
+            "Validate configs/schema/config_tree.snapshot against the governed config tree.",
+            NativeOpsCommandKey::ToolingCheckConfigSnapshot,
+        ),
+        native(
             "generate-compatibility-matrix",
             "Generate docs/50-reference/COMPATIBILITY_MATRIX.md from governed registries.",
             NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix,
+        ),
+        native(
+            "generate-config-tree-snapshot",
+            "Generate configs/schema/config_tree.snapshot and its marker contract.",
+            NativeOpsCommandKey::ToolingGenerateConfigTreeSnapshot,
         ),
         native(
             "generate-docs",

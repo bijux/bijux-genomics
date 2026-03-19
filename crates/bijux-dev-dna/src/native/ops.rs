@@ -57,8 +57,14 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::TestReproduceFailure => test_reproduce_failure(workspace, args),
         NativeOpsCommandKey::TestFastqGoldRepro => test_fastq_gold_repro(workspace, args),
         NativeOpsCommandKey::TestToyRuns => test_toy_runs(workspace, args),
+        NativeOpsCommandKey::ToolingCheckConfigSnapshot => {
+            tooling_check_config_snapshot(workspace, args)
+        }
         NativeOpsCommandKey::ToolingGenerateCompatibilityMatrix => {
             tooling_generate_compatibility_matrix(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGenerateConfigTreeSnapshot => {
+            tooling_generate_config_tree_snapshot(workspace, args)
         }
         NativeOpsCommandKey::ToolingGenerateDocs => tooling_generate_docs(workspace, args),
         NativeOpsCommandKey::ToolingGenerateDocsGraph => tooling_generate_docs_graph(workspace, args),
@@ -397,6 +403,97 @@ fn tooling_generate_tool_index(workspace: &Workspace, args: &[String]) -> Result
         "docs/20-science/TOOL_INDEX.md",
     )?;
     generate_tool_index(workspace, &out)?;
+    success_line(format!("generated {}", workspace.rel(&out).display()))
+}
+
+fn tooling_check_config_snapshot(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let only_if_changed = match args {
+        [] => false,
+        [flag] if flag == "--if-config-changed" => true,
+        [flag] if flag == "--help" || flag == "-h" => {
+            return success_line(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run check-config-snapshot -- [--if-config-changed]",
+            )
+        }
+        _ => {
+            return Ok(OpsCommandOutcome::failure(
+                "Usage: cargo run -p bijux-dev-dna -- tooling run check-config-snapshot -- [--if-config-changed]\n",
+            ))
+        }
+    };
+
+    if only_if_changed && !config_snapshot_inputs_changed(workspace)? {
+        return success_line("config snapshot: SKIP (no config or generator changes)");
+    }
+
+    let baseline = workspace.path("configs/schema/config_tree.snapshot");
+    let actual = workspace.path("artifacts/tmp/config_tree.snapshot.actual");
+    let marker_file = workspace.path("artifacts/configs/config_tree_snapshot.marker");
+    if let Some(parent) = actual.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    write_utf8(&actual, &config_tree_snapshot_text(workspace)?)?;
+
+    if read_utf8(&baseline)? != read_utf8(&actual)? {
+        return Ok(OpsCommandOutcome::failure(
+            "config snapshot drift detected; regenerate via cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+        ));
+    }
+    if !read_utf8(&baseline)?
+        .lines()
+        .any(|line| {
+            line.trim()
+                == "# generator = cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot"
+        })
+    {
+        return Ok(OpsCommandOutcome::failure(
+            "config snapshot header missing generator contract\n",
+        ));
+    }
+    if !marker_file.is_file() {
+        return Ok(OpsCommandOutcome::failure(
+            "config snapshot marker missing: run cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+        ));
+    }
+    let marker = read_utf8(&marker_file)?;
+    let marker_sha = marker
+        .lines()
+        .find_map(|line| line.strip_prefix("snapshot_sha256="))
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    let actual_sha = sha256_hex(&baseline)?;
+    if marker_sha.is_empty() || marker_sha != actual_sha {
+        return Ok(OpsCommandOutcome::failure(
+            "config snapshot marker is stale: run cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+        ));
+    }
+    success_line("config snapshot: OK")
+}
+
+fn tooling_generate_config_tree_snapshot(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("generate-config-tree-snapshot", args)?;
+    let out = workspace.path("configs/schema/config_tree.snapshot");
+    let marker_dir = workspace.path("artifacts/configs");
+    let marker_file = marker_dir.join("config_tree_snapshot.marker");
+    fs::create_dir_all(&marker_dir).with_context(|| format!("create {}", marker_dir.display()))?;
+    if let Some(parent) = out.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    write_utf8(&out, &config_tree_snapshot_text(workspace)?)?;
+    write_utf8(
+        &marker_file,
+        &format!(
+            "generator=cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\nsnapshot_sha256={}\n",
+            sha256_hex(&out)?
+        ),
+    )?;
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
@@ -3060,6 +3157,59 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn config_tree_snapshot_text(workspace: &Workspace) -> Result<String> {
+    let configs_root = workspace.path("configs");
+    let mut files = WalkDir::new(&configs_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
+        .collect::<Vec<_>>();
+    files.sort();
+    let mut lines = vec![
+        "# GENERATED - DO NOT EDIT".to_string(),
+        "# generator = cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot"
+            .to_string(),
+        "# schema_version = 1".to_string(),
+        "# owner = bijux-dna-infra".to_string(),
+    ];
+    lines.extend(files);
+    Ok(format!("{}\n", lines.join("\n")))
+}
+
+fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
+    let in_repo = run_program(
+        workspace,
+        "git",
+        &["rev-parse".to_string(), "--is-inside-work-tree".to_string()],
+    )?;
+    if !in_repo.is_success() {
+        return Ok(true);
+    }
+    let watched = [
+        "configs/",
+        "crates/bijux-dev-dna/src/model/ops.rs",
+        "crates/bijux-dev-dna/src/native/ops.rs",
+        "crates/bijux-dev-dna/src/registry/ops.rs",
+    ];
+    let mut staged_args = vec![
+        "diff".to_string(),
+        "--name-only".to_string(),
+        "--cached".to_string(),
+        "--".to_string(),
+    ];
+    staged_args.extend(watched.iter().map(|item| item.to_string()));
+    let staged = run_program(workspace, "git", &staged_args)?;
+    if staged.is_success() && !staged.stdout.trim().is_empty() {
+        return Ok(true);
+    }
+
+    let mut working_args = vec!["diff".to_string(), "--name-only".to_string(), "--".to_string()];
+    working_args.extend(watched.iter().map(|item| item.to_string()));
+    let working = run_program(workspace, "git", &working_args)?;
+    Ok(!working.is_success() || !working.stdout.trim().is_empty())
 }
 
 fn count_schema_filtered(dir: PathBuf) -> Result<usize> {

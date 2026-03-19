@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT
-# generator = scripts/tooling/generate-config-tree-snapshot.sh
+# generator = cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot
 # schema_version = 1
 # owner = bijux-dna-infra
 configs/OWNERS.toml
