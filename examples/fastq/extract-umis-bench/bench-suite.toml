@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-extract-umis-01"
+domain = "fastq"
+stages = ["fastq.extract_umis"]

@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-filter-low-complexity-01"
+domain = "fastq"
+stages = ["fastq.filter_low_complexity"]
