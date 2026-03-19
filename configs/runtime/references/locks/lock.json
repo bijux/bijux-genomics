@@ -2,7 +2,7 @@
   "generated_at_utc": "1970-01-01T00:00:00Z",
   "references": [
     {
-      "action": "write-synthetic",
+      "action": "reuse",
       "build_id": "CanFam4",
       "fasta_sha256": "7e7de52c4354606d6edd2890321f8604899feb1003f91c90f05afa5a985a9623",
       "fasta_url": "https://example.org/ref/canis/CanFam4.fa.gz",
@@ -22,7 +22,7 @@
       "species_id": "Canis lupus"
     },
     {
-      "action": "write-synthetic",
+      "action": "reuse",
       "build_id": "GRCh38",
       "fasta_sha256": "1bf72215ccb7db7c6b67f1485fed289890c09a810cbb8822a0d098c22b5b6976",
       "fasta_url": "https://example.org/ref/human/GRCh38.primary_assembly.genome.fa.gz",
