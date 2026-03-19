@@ -642,10 +642,10 @@ fn script_container_commands(workspace: &Workspace) -> Result<Vec<ContainerComma
         .map(|command| command.id)
         .collect::<std::collections::BTreeSet<_>>();
     for entry in load_supported_scripts(workspace)? {
-        if !entry.path.starts_with("scripts/containers/") || !entry.path.ends_with(".sh") {
+        if !entry.path.starts_with("bijux-dev-dna/containers/") || !entry.path.ends_with(".sh") {
             continue;
         }
-        if entry.path == "scripts/containers/make.sh" {
+        if entry.path == "bijux-dev-dna/containers/make.sh" {
             continue;
         }
         let id = entry

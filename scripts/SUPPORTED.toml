@@ -34,7 +34,7 @@ ci_allowed = true
 
 [[script]]
 id = "build_apptainer_all"
-path = "scripts/containers/build-apptainer-all.sh"
+path = "bijux-dev-dna/containers/build-apptainer-all.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -42,7 +42,7 @@ ci_allowed = true
 
 [[script]]
 id = "ensure_images"
-path = "scripts/containers/ensure-images.sh"
+path = "bijux-dev-dna/containers/ensure-images.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -50,7 +50,7 @@ ci_allowed = true
 
 [[script]]
 id = "lint"
-path = "scripts/containers/lint.sh"
+path = "bijux-dev-dna/containers/lint.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -58,7 +58,7 @@ ci_allowed = true
 
 [[script]]
 id = "make"
-path = "scripts/containers/make.sh"
+path = "bijux-dev-dna/containers/make.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -66,7 +66,7 @@ ci_allowed = true
 
 [[script]]
 id = "registry_tools"
-path = "scripts/containers/registry-tools.sh"
+path = "bijux-dev-dna/containers/registry-tools.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -74,7 +74,7 @@ ci_allowed = true
 
 [[script]]
 id = "smoke_apptainer"
-path = "scripts/containers/smoke-apptainer.sh"
+path = "bijux-dev-dna/containers/smoke-apptainer.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -82,7 +82,7 @@ ci_allowed = true
 
 [[script]]
 id = "smoke_docker_amd64"
-path = "scripts/containers/smoke-docker-amd64.sh"
+path = "bijux-dev-dna/containers/smoke-docker-amd64.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -90,7 +90,7 @@ ci_allowed = true
 
 [[script]]
 id = "run_apptainer_frontend_smoke"
-path = "scripts/containers/run-apptainer-frontend-smoke.sh"
+path = "bijux-dev-dna/containers/run-apptainer-frontend-smoke.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -98,7 +98,7 @@ ci_allowed = true
 
 [[script]]
 id = "smoke_docker_arm64"
-path = "scripts/containers/smoke-docker-arm64.sh"
+path = "bijux-dev-dna/containers/smoke-docker-arm64.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -458,7 +458,7 @@ ci_allowed = true
 
 [[script]]
 id = "build_apptainer_hpc_frontend"
-path = "scripts/containers/build-apptainer-hpc-frontend.sh"
+path = "bijux-dev-dna/containers/build-apptainer-hpc-frontend.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -634,7 +634,7 @@ ci_allowed = true
 
 [[script]]
 id = "containers_vuln_scan_hook"
-path = "scripts/containers/vuln-scan-hook.sh"
+path = "bijux-dev-dna/containers/vuln-scan-hook.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -642,7 +642,7 @@ ci_allowed = true
 
 [[script]]
 id = "containers_container_doctor"
-path = "scripts/containers/container-doctor.sh"
+path = "bijux-dev-dna/containers/container-doctor.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -650,7 +650,7 @@ ci_allowed = true
 
 [[script]]
 id = "containers_release_gate"
-path = "scripts/containers/release-gate.sh"
+path = "bijux-dev-dna/containers/release-gate.sh"
 purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
@@ -739,7 +739,7 @@ ci_allowed = true
 
 [[script]]
 id = "run_apptainer_frontend_reproducibility"
-path = "scripts/containers/run-apptainer-frontend-reproducibility.sh"
+path = "bijux-dev-dna/containers/run-apptainer-frontend-reproducibility.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/apptainer_cache_policy.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
@@ -747,7 +747,7 @@ ci_allowed = true
 
 [[script]]
 id = "run_apptainer_frontend_security"
-path = "scripts/containers/run-apptainer-frontend-security.sh"
+path = "bijux-dev-dna/containers/run-apptainer-frontend-security.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/apptainer_security_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/vuln_allowlist.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
@@ -755,7 +755,7 @@ ci_allowed = true
 
 [[script]]
 id = "apptainer_build_all"
-path = "scripts/containers/apptainer-build-all.sh"
+path = "bijux-dev-dna/containers/apptainer-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
@@ -763,7 +763,7 @@ ci_allowed = true
 
 [[script]]
 id = "docker_build_all"
-path = "scripts/containers/docker-build-all.sh"
+path = "bijux-dev-dna/containers/docker-build-all.sh"
 purpose = "containers script"
 inputs = ["configs/ci/registry/tool_registry.toml"]
 outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]

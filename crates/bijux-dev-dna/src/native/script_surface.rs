@@ -202,7 +202,7 @@ pub(crate) fn check_script_arg_style(
         "scripts/smoke/run.sh",
         "scripts/tooling/benchmarks.sh",
         "scripts/tooling/cargo-targets.sh",
-        "scripts/containers/make.sh",
+        "bijux-dev-dna/containers/make.sh",
         "scripts/assets/make.sh",
         "scripts/docs/make.sh",
         "scripts/examples/make.sh",
@@ -211,8 +211,8 @@ pub(crate) fn check_script_arg_style(
         "scripts/smoke/make.sh",
         "scripts/test/make.sh",
         "scripts/tooling/make.sh",
-        "scripts/containers/lint.sh",
-        "scripts/containers/smoke-docker-amd64.sh",
+        "bijux-dev-dna/containers/lint.sh",
+        "bijux-dev-dna/containers/smoke-docker-amd64.sh",
         "scripts/test/toy_runs.sh",
         "scripts/tooling/coverage_summary.sh",
     ];
@@ -450,8 +450,8 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let allowlist = [
-        "scripts/containers/registry-tools.sh",
-        "scripts/containers/smoke-apptainer.sh",
+        "bijux-dev-dna/containers/registry-tools.sh",
+        "bijux-dev-dna/containers/smoke-apptainer.sh",
         "scripts/lab/run_bench.sh",
         "scripts/lab/run_pipelines.sh",
         "scripts/run.sh",
@@ -493,7 +493,7 @@ pub(crate) fn check_no_raw_cargo_in_scripts(
             {
                 violations.push(format!("{rel}:{}:{line}", index + 1));
             }
-            if !rel.starts_with("scripts/containers/") && container_re.is_match(line) {
+            if !rel.starts_with("bijux-dev-dna/containers/") && container_re.is_match(line) {
                 violations.push(format!("{rel}:{}:{line}", index + 1));
             }
         }
