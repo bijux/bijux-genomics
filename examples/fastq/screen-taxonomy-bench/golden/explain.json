@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_screen_taxonomy_bench",
+  "explain": "Deterministic taxonomic screening benchmark with report-only contamination assessment."
+}

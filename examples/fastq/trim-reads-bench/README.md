@@ -23,5 +23,5 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_t
 
 ## HPC Run
 - Preferred command:
-  `cargo run -q -p bijux-dna -- bench fastq trim --sample-id trim-reads-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --adapter-bank-preset illumina-default --polyx-preset illumina_twocolor --contaminant-preset illumina_default`
+  `cargo run -q -p bijux-dna -- bench fastq trim-reads --sample-id trim-reads-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --adapter-bank-preset illumina-default --polyx-preset illumina_twocolor --contaminant-preset illumina_default`
 - Increase `--replicates` and `--jobs` at the scheduler layer rather than changing the example contract.

@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-screen-taxonomy-01"
+domain = "fastq"
+stages = ["fastq.screen_taxonomy"]
