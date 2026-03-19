@@ -68,7 +68,7 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 6] = [
     },
 ];
 
-pub const STAGES: [StageDefinition; 17] = [
+pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.validate_pre"),
         kind: FastqStageKind::Core,
@@ -78,6 +78,17 @@ pub const STAGES: [StageDefinition; 17] = [
             consumes_pairs: false,
             produces_reports_only: true,
             affects_metrics: &[MetricClass::Integrity],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.length_distribution_pre"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: true,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Composition],
         },
     },
     StageDefinition {
@@ -106,6 +117,17 @@ pub const STAGES: [StageDefinition; 17] = [
         stage_id: StageId::from_static("fastq.primer_normalization"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.polyg_tailing"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -155,6 +177,17 @@ pub const STAGES: [StageDefinition; 17] = [
         },
     },
     StageDefinition {
+        stage_id: StageId::from_static("fastq.rrna"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Contamination, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
         stage_id: StageId::from_static("fastq.merge"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
@@ -166,6 +199,58 @@ pub const STAGES: [StageDefinition; 17] = [
         },
     },
     StageDefinition {
+        stage_id: StageId::from_static("fastq.deduplicate"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[
+                MetricClass::Integrity,
+                MetricClass::Retention,
+                MetricClass::QualityShift,
+            ],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.low_complexity"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[
+                MetricClass::Integrity,
+                MetricClass::Retention,
+                MetricClass::QualityShift,
+            ],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.host_depletion"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Contamination, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.contaminant_screen"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Contamination, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
         stage_id: StageId::from_static("fastq.correct"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
@@ -174,6 +259,28 @@ pub const STAGES: [StageDefinition; 17] = [
             consumes_pairs: true,
             produces_reports_only: false,
             affects_metrics: &[MetricClass::Integrity, MetricClass::QualityShift],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.umi"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: true,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
+        },
+    },
+    StageDefinition {
+        stage_id: StageId::from_static("fastq.overrepresented_sequences"),
+        kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: true,
+            affects_metrics: &[MetricClass::Composition],
         },
     },
     StageDefinition {
@@ -221,17 +328,6 @@ pub const STAGES: [StageDefinition; 17] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.umi"),
-        kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Optional,
-        semantics: StageSemantics {
-            mutates_fastq: true,
-            consumes_pairs: true,
-            produces_reports_only: false,
-            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
-        },
-    },
-    StageDefinition {
         stage_id: StageId::from_static("fastq.screen"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Experimental,
@@ -254,14 +350,14 @@ pub const STAGES: [StageDefinition; 17] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.preprocess"),
+        stage_id: StageId::from_static("fastq.prepare_reference"),
         kind: FastqStageKind::Meta,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: false,
-            consumes_pairs: true,
+            consumes_pairs: false,
             produces_reports_only: false,
-            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
+            affects_metrics: &[],
         },
     },
 ];

@@ -3,8 +3,16 @@ fn legacy_manifests_still_load() {
     // Domain crate must remain pure; manifest loading is owned by bijux-dna-runtime.
     // This test now asserts core domain registries are accessible instead.
     for stage in bijux_dna_domain_fastq::STAGES {
-        let _ = bijux_dna_domain_fastq::stage_semantics(&stage);
-        let _ = bijux_dna_domain_fastq::contract_for_stage(stage.as_str());
+        assert!(
+            bijux_dna_domain_fastq::stage_semantics(&stage).is_some(),
+            "missing semantics for {}",
+            stage.as_str()
+        );
+        assert!(
+            bijux_dna_domain_fastq::contract_for_stage(stage.as_str()).is_some(),
+            "missing contract for {}",
+            stage.as_str()
+        );
     }
 }
 
