@@ -68,5 +68,8 @@ required_inputs:
 required_outputs:
   - "otu_table"
   - "otu_representatives"
+  - "merged_reads"
+  - "unmerged_reads_r1"
+  - "unmerged_reads_r2"
 allowed_missingness:
   - "none"
