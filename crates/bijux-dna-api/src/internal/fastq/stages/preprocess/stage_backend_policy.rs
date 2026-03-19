@@ -143,7 +143,7 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
         "fastq.filter_reads" => Some(&["fastp", "seqkit", "prinseq", "bbduk"]),
         "fastq.filter_low_complexity" => Some(&["prinseq", "bbduk", "fastp"]),
         "fastq.profile_reads" => Some(&["seqkit_stats"]),
-        "fastq.profile_read_lengths" => Some(&["seqkit_stats", "seqfu", "prinseq", "fastp"]),
+        "fastq.profile_read_lengths" => Some(&["seqkit_stats", "prinseq", "fastp"]),
         "fastq.profile_overrepresented_sequences" => Some(&["fastqc", "seqkit"]),
         "fastq.report_qc" => Some(&["multiqc"]),
         "fastq.trim_polyg_tails" => Some(&["fastp", "bbduk"]),
@@ -161,7 +161,7 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
         "fastq.normalize_primers" => Some(&["cutadapt", "seqkit"]),
         "fastq.remove_chimeras" | "fastq.cluster_otus" => Some(&["vsearch"]),
         "fastq.infer_asvs" => Some(&[]),
-        "fastq.normalize_abundance" => Some(&["seqfu", "seqkit"]),
+        "fastq.normalize_abundance" => Some(&["seqkit"]),
         _ => None,
     }
 }

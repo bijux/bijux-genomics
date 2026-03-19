@@ -115,7 +115,6 @@ stage_tool_compatibility:
   - flash2
   - leehom
   fastq.normalize_abundance:
-  - seqfu
   - seqkit
   fastq.normalize_primers:
   - cutadapt
@@ -125,7 +124,6 @@ stage_tool_compatibility:
   - seqkit
   fastq.profile_read_lengths:
   - seqkit_stats
-  - seqfu
   - prinseq
   - fastp
   fastq.profile_reads:
