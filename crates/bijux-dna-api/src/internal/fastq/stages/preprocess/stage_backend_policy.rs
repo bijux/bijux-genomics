@@ -119,7 +119,14 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
     let allowed: &[&str] = match stage_id {
         "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk", "fastq_scan"],
         "fastq.detect_adapters" => &["fastp", "fastqc"],
-        "fastq.trim_reads" => &["adapterremoval", "cutadapt", "atropos", "fastp", "bbduk", "trimmomatic"],
+        "fastq.trim_reads" => &[
+            "alientrimmer",
+            "bbduk",
+            "cutadapt",
+            "fastp",
+            "fastx_clipper",
+            "seqkit",
+        ],
         "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
         "fastq.merge_pairs" => &["bbmerge", "flash2", "leehom", "pear"],
         "fastq.remove_duplicates" => &["clumpify", "fastuniq", "prinseq"],
