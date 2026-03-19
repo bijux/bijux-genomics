@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1f61e3c735dd2ed5b43758187ab59aa44f8d225d
+# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -276,23 +276,12 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
-id = "fastq.deplete_reference_contaminants"
+id = "fastq.cluster_otus"
 status = "supported"
-output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.deplete_host"]
-prerequisites = ["fastq.deplete_host"]
-resource_memory_gb = 10
-resource_time_minutes = 30
-resource_threads = 6
-sanity_metrics = ["reads_removed_contaminant_kmer"]
-output_size_estimates_mb = ["filtered_fastq:900", "screen_report:10"]
-qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.8|fail=>0.95"]
-contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "bowtie2"]
+output_kinds = ["fasta", "fastq", "table"]
+ordering_after = []
+prerequisites = []
+tools = ["vsearch"]
 
 [[stages]]
 id = "fastq.correct_errors"
@@ -314,23 +303,61 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 
 [[stages]]
-id = "fastq.trim_terminal_damage"
+id = "fastq.deplete_host"
 status = "supported"
-output_kinds = ["fastq"]
-ordering_after = ["fastq.validate_reads"]
-prerequisites = ["fastq.validate_reads"]
-resource_memory_gb = 4
-resource_time_minutes = 20
-resource_threads = 4
-sanity_metrics = ["reads_in", "reads_out"]
-output_size_estimates_mb = ["pretrim_report:4", "trimmed_fastq:1800"]
-qc_thresholds = ["reads_out|warn=<100|fail=<=0"]
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.merge_pairs"]
+prerequisites = ["fastq.merge_pairs"]
+resource_memory_gb = 16
+resource_time_minutes = 50
+resource_threads = 8
+sanity_metrics = ["contamination_rate"]
+output_size_estimates_mb = ["filtered_fastq:950", "screen_report:12"]
+qc_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bowtie2", "samtools"]
+
+[[stages]]
+id = "fastq.deplete_reference_contaminants"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.deplete_host"]
+prerequisites = ["fastq.deplete_host"]
+resource_memory_gb = 10
+resource_time_minutes = 30
+resource_threads = 6
+sanity_metrics = ["reads_removed_contaminant_kmer"]
+output_size_estimates_mb = ["filtered_fastq:900", "screen_report:10"]
+qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.8|fail=>0.95"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bbduk", "bowtie2"]
+
+[[stages]]
+id = "fastq.deplete_rrna"
+status = "supported"
+output_kinds = ["fastq", "json", "tsv"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
+resource_memory_gb = 8
+resource_time_minutes = 30
+resource_threads = 6
+sanity_metrics = ["rrna_removed_fraction"]
+output_size_estimates_mb = ["rrna_filtered_reads:1700"]
+qc_thresholds = ["rrna_removed_fraction|warn=<0.05|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["cutadapt", "seqkit"]
+tools = ["sortmerna"]
 
 [[stages]]
 id = "fastq.detect_adapters"
@@ -352,6 +379,44 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastp"]
 
 [[stages]]
+id = "fastq.extract_umis"
+status = "supported"
+output_kinds = ["fastq"]
+ordering_after = ["fastq.trim_reads"]
+prerequisites = ["fastq.trim_reads"]
+resource_memory_gb = 4
+resource_time_minutes = 20
+resource_threads = 4
+sanity_metrics = ["umi_dedup_fraction"]
+output_size_estimates_mb = ["dedup_reads_r1:700", "dedup_reads_r2:700"]
+qc_thresholds = ["umi_dedup_fraction|warn=<0.05|fail=<0.01"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["umi_tools"]
+
+[[stages]]
+id = "fastq.filter_low_complexity"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.remove_duplicates"]
+prerequisites = ["fastq.remove_duplicates"]
+resource_memory_gb = 6
+resource_time_minutes = 20
+resource_threads = 4
+sanity_metrics = ["reads_removed_low_complexity"]
+output_size_estimates_mb = ["filter_report_json:8", "filtered_fastq:1100"]
+qc_thresholds = ["reads_removed_low_complexity|warn=>0.5|fail=>0.8"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bbduk", "prinseq"]
+
+[[stages]]
 id = "fastq.filter_reads"
 status = "supported"
 output_kinds = ["fastq"]
@@ -369,101 +434,6 @@ duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbduk", "fastp", "prinseq", "seqkit"]
-
-[[stages]]
-id = "fastq.deplete_host"
-status = "supported"
-output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.merge_pairs"]
-prerequisites = ["fastq.merge_pairs"]
-resource_memory_gb = 16
-resource_time_minutes = 50
-resource_threads = 8
-sanity_metrics = ["contamination_rate"]
-output_size_estimates_mb = ["filtered_fastq:950", "screen_report:12"]
-qc_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bowtie2", "samtools"]
-
-[[stages]]
-id = "fastq.profile_read_lengths"
-status = "supported"
-output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.validate_reads"]
-prerequisites = ["fastq.validate_reads"]
-resource_memory_gb = 2
-resource_time_minutes = 10
-resource_threads = 2
-sanity_metrics = ["mean_read_length"]
-output_size_estimates_mb = ["stats_json:2", "stats_report:1"]
-qc_thresholds = ["mean_read_length|warn=<30|fail=<20"]
-contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
-authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "prinseq", "seqkit_stats"]
-
-[[stages]]
-id = "fastq.merge_pairs"
-status = "supported"
-output_kinds = ["fastq"]
-ordering_after = ["fastq.filter_reads"]
-prerequisites = ["fastq.filter_reads"]
-resource_memory_gb = 8
-resource_time_minutes = 25
-resource_threads = 6
-sanity_metrics = ["merge_rate"]
-output_size_estimates_mb = ["merge_report:8", "merged_reads:1400"]
-qc_thresholds = ["merge_rate|warn=<0.15|fail=<0.05"]
-contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
-
-[[stages]]
-id = "fastq.profile_overrepresented_sequences"
-status = "supported"
-output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.report_qc"]
-prerequisites = ["fastq.report_qc"]
-resource_memory_gb = 4
-resource_time_minutes = 15
-resource_threads = 2
-sanity_metrics = ["reads_total"]
-output_size_estimates_mb = ["report_json:2", "screen_report_tsv:4"]
-qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.2|fail=>0.5"]
-contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqc", "seqkit"]
-
-[[stages]]
-id = "fastq.trim_polyg_tails"
-status = "supported"
-output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.detect_adapters"]
-prerequisites = ["fastq.detect_adapters"]
-resource_memory_gb = 4
-resource_time_minutes = 15
-resource_threads = 4
-sanity_metrics = ["trimmed_read_fraction"]
-output_size_estimates_mb = ["trim_report:6", "trimmed_fastq:1900"]
-qc_thresholds = ["trimmed_read_fraction|warn=<0.01|fail=<0.001"]
-contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
-authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp"]
 
 [[stages]]
 id = "fastq.index_reference"
@@ -485,66 +455,90 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["samtools", "star"]
 
 [[stages]]
-id = "fastq.report_qc"
+id = "fastq.infer_asvs"
 status = "supported"
-output_kinds = ["html", "json"]
-ordering_after = ["fastq.profile_reads"]
-prerequisites = ["fastq.profile_reads"]
-resource_memory_gb = 4
-resource_time_minutes = 15
-resource_threads = 2
-sanity_metrics = ["qc_warn_count", "qc_fail_count"]
-output_size_estimates_mb = ["qc_report_html:30", "qc_report_json:15"]
-qc_thresholds = ["qc_fail_count|warn=>0|fail=>5"]
-contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
-duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
-coverage_sufficiency = ["not_applicable"]
-sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqc", "multiqc", "qualimap", "samtools"]
+output_kinds = ["fasta", "fastq", "tsv"]
+ordering_after = []
+prerequisites = []
+tools = []
 
 [[stages]]
-id = "fastq.deplete_rrna"
+id = "fastq.merge_pairs"
 status = "supported"
-output_kinds = ["fastq"]
+output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.filter_reads"]
 prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 8
-resource_time_minutes = 30
+resource_time_minutes = 25
 resource_threads = 6
-sanity_metrics = ["rrna_removed_fraction"]
-output_size_estimates_mb = ["rrna_filtered_reads:1700"]
-qc_thresholds = ["rrna_removed_fraction|warn=<0.05|fail=<0.01"]
+sanity_metrics = ["merge_rate"]
+output_size_estimates_mb = ["merge_report:8", "merged_reads:1400"]
+qc_thresholds = ["merge_rate|warn=<0.15|fail=<0.05"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["sortmerna"]
+tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
-id = "fastq.screen_taxonomy"
+id = "fastq.normalize_abundance"
 status = "supported"
 output_kinds = ["tsv"]
+ordering_after = []
+prerequisites = []
+tools = []
+
+[[stages]]
+id = "fastq.normalize_primers"
+status = "supported"
+output_kinds = ["fastq", "json", "tsv"]
+ordering_after = []
+prerequisites = []
+tools = ["cutadapt", "seqkit"]
+
+[[stages]]
+id = "fastq.profile_overrepresented_sequences"
+status = "supported"
+output_kinds = ["json", "tsv"]
 ordering_after = ["fastq.report_qc"]
 prerequisites = ["fastq.report_qc"]
-resource_memory_gb = 16
-resource_time_minutes = 60
-resource_threads = 8
-sanity_metrics = ["classified_read_fraction"]
-output_size_estimates_mb = ["abundance_report:5", "screen_report_tsv:25"]
-qc_thresholds = ["classified_read_fraction|warn=<0.1|fail=<0.01"]
+resource_memory_gb = 4
+resource_time_minutes = 15
+resource_threads = 2
+sanity_metrics = ["reads_total"]
+output_size_estimates_mb = ["report_json:2", "screen_report_tsv:4"]
+qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.2|fail=>0.5"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+tools = ["fastqc", "seqkit"]
+
+[[stages]]
+id = "fastq.profile_read_lengths"
+status = "supported"
+output_kinds = ["json", "tsv"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
+resource_memory_gb = 2
+resource_time_minutes = 10
+resource_threads = 2
+sanity_metrics = ["mean_read_length"]
+output_size_estimates_mb = ["stats_json:2", "stats_report:1"]
+qc_thresholds = ["mean_read_length|warn=<30|fail=<20"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["fastp", "prinseq", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["dir", "json", "tsv"]
 ordering_after = ["fastq.deplete_reference_contaminants"]
 prerequisites = ["fastq.deplete_reference_contaminants"]
 resource_memory_gb = 2
@@ -561,9 +555,93 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["seqkit", "seqkit_stats"]
 
 [[stages]]
+id = "fastq.remove_chimeras"
+status = "supported"
+output_kinds = ["fasta", "fastq", "json"]
+ordering_after = []
+prerequisites = []
+tools = ["vsearch"]
+
+[[stages]]
+id = "fastq.remove_duplicates"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.merge_pairs"]
+prerequisites = ["fastq.merge_pairs"]
+resource_memory_gb = 6
+resource_time_minutes = 25
+resource_threads = 4
+sanity_metrics = ["dedup_rate"]
+output_size_estimates_mb = ["dedup_reads_r1:1200", "dedup_reads_r2:1200", "report_json:6"]
+qc_thresholds = ["dedup_rate|warn=<0.02|fail=<0.005"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["clumpify", "fastuniq", "prinseq"]
+
+[[stages]]
+id = "fastq.report_qc"
+status = "supported"
+output_kinds = ["dir", "html"]
+ordering_after = ["fastq.profile_reads"]
+prerequisites = ["fastq.profile_reads"]
+resource_memory_gb = 4
+resource_time_minutes = 15
+resource_threads = 2
+sanity_metrics = ["qc_warn_count", "qc_fail_count"]
+output_size_estimates_mb = ["qc_report_html:30", "qc_report_json:15"]
+qc_thresholds = ["qc_fail_count|warn=>0|fail=>5"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["fastqc", "multiqc", "qualimap", "samtools"]
+
+[[stages]]
+id = "fastq.screen_taxonomy"
+status = "supported"
+output_kinds = ["json", "tsv"]
+ordering_after = ["fastq.report_qc"]
+prerequisites = ["fastq.report_qc"]
+resource_memory_gb = 16
+resource_time_minutes = 60
+resource_threads = 8
+sanity_metrics = ["classified_read_fraction"]
+output_size_estimates_mb = ["abundance_report:5", "screen_report_tsv:25"]
+qc_thresholds = ["classified_read_fraction|warn=<0.1|fail=<0.01"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+
+[[stages]]
+id = "fastq.trim_polyg_tails"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.detect_adapters"]
+prerequisites = ["fastq.detect_adapters"]
+resource_memory_gb = 4
+resource_time_minutes = 15
+resource_threads = 4
+sanity_metrics = ["trimmed_read_fraction"]
+output_size_estimates_mb = ["trim_report:6", "trimmed_fastq:1900"]
+qc_thresholds = ["trimmed_read_fraction|warn=<0.01|fail=<0.001"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bbduk", "fastp"]
+
+[[stages]]
 id = "fastq.trim_reads"
 status = "supported"
-output_kinds = ["fastq"]
+output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.trim_polyg_tails"]
 prerequisites = ["fastq.trim_polyg_tails"]
 resource_memory_gb = 6
@@ -580,23 +658,23 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
-id = "fastq.extract_umis"
+id = "fastq.trim_terminal_damage"
 status = "supported"
-output_kinds = ["fastq"]
-ordering_after = ["fastq.trim_reads"]
-prerequisites = ["fastq.trim_reads"]
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
-sanity_metrics = ["umi_dedup_fraction"]
-output_size_estimates_mb = ["dedup_reads_r1:700", "dedup_reads_r2:700"]
-qc_thresholds = ["umi_dedup_fraction|warn=<0.05|fail=<0.01"]
+sanity_metrics = ["reads_in", "reads_out"]
+output_size_estimates_mb = ["pretrim_report:4", "trimmed_fastq:1800"]
+qc_thresholds = ["reads_out|warn=<100|fail=<=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["umi_tools"]
+tools = ["cutadapt", "seqkit"]
 
 [[stages]]
 id = "fastq.validate_reads"
@@ -615,7 +693,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqvalidator", "fqtools", "seqtk"]
+tools = ["fastqc", "fastqvalidator", "fqtools", "seqtk"]
 
 [[pipelines]]
 id = "bam.pre_hpc_best"
@@ -638,19 +716,14 @@ description = "Compare damage tools on identical BAM inputs and identical prepro
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
 
 [[benchmark_scenarios]]
-id = "fastq.validate_reads_fairness"
-stage_id = "fastq.validate_reads"
-description = "Compare validators on identical raw FASTQ inputs and the same strict-mode policy."
-fairness_rules = ["same_input_hash", "same_stage_defaults", "same_validator_policy"]
-
-[[benchmark_scenarios]]
-id = "fastq.screen_taxonomy_fairness"
+id = "fastq.screen_fairness"
 stage_id = "fastq.screen_taxonomy"
 description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
 
 [[benchmark_scenarios]]
-id = "fastq.trim_reads_fairness"
+id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
+

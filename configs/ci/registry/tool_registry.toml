@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1f61e3c735dd2ed5b43758187ab59aa44f8d225d
+# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -151,9 +151,9 @@ tool_id = "bbduk"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.trim_reads", "fastq.filter_low_complexity"]
-bindings = ["fastq.filter_low_complexity", "fastq.trim_reads"]
-tool_role = "transform"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.filter_low_complexity", "fastq.trim_polyg_tails"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.trim_polyg_tails", "fastq.trim_reads"]
+tool_role = "filter"
 version = "39.08"
 default_version = "39.08"
 upstream = "https://sourceforge.net/projects/bbmap/"
@@ -172,7 +172,7 @@ smoke_help_cmd = "bbduk --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bbduk --help"
 expected_bin = "bbduk"
-expected_artifacts = ["validation_report"]
+expected_artifacts = ["report_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
@@ -220,8 +220,8 @@ domain = "fastq"
 domains = ["fastq"]
 status = "production"
 stage_ids = ["fastq.deplete_host", "fastq.deplete_reference_contaminants"]
-bindings = ["fastq.deplete_reference_contaminants", "fastq.deplete_host"]
-tool_role = "screen"
+bindings = ["fastq.deplete_host", "fastq.deplete_reference_contaminants"]
+tool_role = "transform"
 version = "2.5.4"
 default_version = "2.5.4"
 upstream = "https://github.com/BenLangmead/bowtie2"
@@ -240,8 +240,8 @@ smoke_help_cmd = "bowtie2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bowtie2 --help"
 expected_bin = "bowtie2"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.tool.metrics.v1"
+expected_artifacts = ["host_depleted_reads", "contaminant_screened_reads", "report_json"]
+metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
 apptainer_def = "containers/apptainer/lunarc/bowtie2.def"
@@ -316,6 +316,40 @@ apptainer_def = "containers/apptainer/lunarc/bwa.def"
 require_labels = true
 
 [[tools]]
+id = "clumpify"
+tool_id = "clumpify"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.remove_duplicates"]
+bindings = ["fastq.remove_duplicates"]
+tool_role = "transform"
+version = "39.08"
+default_version = "39.08"
+upstream = "https://jgi.doe.gov/data-and-tools/software-tools/bbtools/"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://jgi.doe.gov/data-and-tools/software-tools/bbtools/"
+pinned_commit = "release:39.08"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/clumpify:39.08"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "clumpify.sh --version"
+help_cmd = "clumpify.sh --help"
+smoke_version_cmd = "clumpify.sh --version"
+smoke_help_cmd = "clumpify.sh --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "clumpify.sh --help"
+expected_bin = "clumpify.sh"
+expected_artifacts = ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable when duplicate model and optical-duplicate handling are harmonized."
+dockerfile = "containers/docker/arm64/Dockerfile.clumpify"
+apptainer_def = "containers/apptainer/lunarc/clumpify.def"
+require_labels = true
+
+[[tools]]
 id = "contammix"
 tool_id = "contammix"
 domain = "bam"
@@ -356,8 +390,8 @@ domain = "fastq"
 domains = ["fastq"]
 status = "production"
 stage_ids = ["fastq.trim_reads", "fastq.normalize_primers", "fastq.trim_terminal_damage"]
-bindings = ["fastq.trim_terminal_damage", "fastq.normalize_primers", "fastq.trim_reads"]
-tool_role = "trimmer"
+bindings = ["fastq.normalize_primers", "fastq.trim_reads", "fastq.trim_terminal_damage"]
+tool_role = "transform"
 version = "4.9"
 default_version = "4.9"
 upstream = "https://github.com/cutadapt/cutadapt"
@@ -389,9 +423,9 @@ tool_id = "fastp"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.trim_reads", "fastq.filter_reads"]
-bindings = ["fastq.filter_reads", "fastq.trim_reads"]
-tool_role = "filter"
+stage_ids = ["fastq.detect_adapters", "fastq.trim_reads", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails"]
+bindings = ["fastq.detect_adapters", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
+tool_role = "trimmer"
 version = "0.23.4"
 default_version = "0.23.4"
 upstream = "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz"
@@ -423,8 +457,8 @@ tool_id = "fastqc"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.detect_adapters"]
-bindings = ["fastq.detect_adapters"]
+stage_ids = ["fastq.detect_adapters", "fastq.report_qc", "fastq.profile_overrepresented_sequences"]
+bindings = ["fastq.detect_adapters", "fastq.profile_overrepresented_sequences", "fastq.report_qc"]
 tool_role = "trimmer"
 version = "0.12.1"
 default_version = "0.12.1"
@@ -478,11 +512,45 @@ smoke_help_cmd = "fastqvalidator --help"
 expected_version_regex = "fastqvalidator|v?[0-9]+[.][0-9]+"
 healthcheck_cmd = "fastqvalidator --help"
 expected_bin = "fastqvalidator"
-expected_artifacts = ["report_json"]
-metrics_schema = "bijux.tool.metrics.v1"
+expected_artifacts = ["validation_report"]
+metrics_schema = "bijux.fastq.validate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
 apptainer_def = "containers/apptainer/lunarc/fastqvalidator.def"
+require_labels = true
+
+[[tools]]
+id = "fastuniq"
+tool_id = "fastuniq"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.remove_duplicates"]
+bindings = ["fastq.remove_duplicates"]
+tool_role = "transform"
+version = "1.1"
+default_version = "1.1"
+upstream = "https://sourceforge.net/projects/fastuniq/"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://sourceforge.net/projects/fastuniq/"
+pinned_commit = "release:1.1"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/fastuniq:1.1"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastuniq -h"
+help_cmd = "fastuniq -h"
+smoke_version_cmd = "fastuniq -h"
+smoke_help_cmd = "fastuniq -h"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "fastuniq -h"
+expected_bin = "fastuniq"
+expected_artifacts = ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable when duplicate definition and pair-handling parameters are aligned."
+dockerfile = "containers/docker/arm64/Dockerfile.fastuniq"
+apptainer_def = "containers/apptainer/lunarc/fastuniq.def"
 require_labels = true
 
 [[tools]]
@@ -517,6 +585,40 @@ metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.fastx_clipper"
 apptainer_def = "containers/apptainer/lunarc/fastx_clipper.def"
+require_labels = true
+
+[[tools]]
+id = "fqtools"
+tool_id = "fqtools"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.validate_reads"]
+bindings = ["fastq.validate_reads"]
+tool_role = "validator"
+version = "v2.3"
+default_version = "v2.3"
+upstream = "https://github.com/alastair-droop/fqtools"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/alastair-droop/fqtools"
+pinned_commit = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/fqtools@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fqtools --version"
+help_cmd = "fqtools --help"
+smoke_version_cmd = "fqtools --version"
+smoke_help_cmd = "fqtools --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "fqtools --help"
+expected_bin = "fqtools"
+expected_artifacts = ["validation_report"]
+metrics_schema = "bijux.fastq.validate.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
+apptainer_def = "containers/apptainer/lunarc/fqtools.def"
 require_labels = true
 
 [[tools]]
@@ -792,6 +894,40 @@ apptainer_def = "containers/apptainer/lunarc/pmdtools.def"
 require_labels = true
 
 [[tools]]
+id = "prinseq"
+tool_id = "prinseq"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_read_lengths"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.remove_duplicates", "fastq.trim_reads"]
+tool_role = "filter"
+version = "1.2.4"
+default_version = "1.2.4"
+upstream = "https://github.com/uwb-linux/prinseq"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/uwb-linux/prinseq"
+pinned_commit = "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "prinseq++ --version"
+help_cmd = "prinseq++ --help"
+smoke_version_cmd = "prinseq++ --version"
+smoke_help_cmd = "prinseq++ --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "prinseq++ --help"
+expected_bin = "prinseq++"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.tool.metrics.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
+apptainer_def = "containers/apptainer/lunarc/prinseq.def"
+require_labels = true
+
+[[tools]]
 id = "pydamage"
 tool_id = "pydamage"
 domain = "bam"
@@ -899,9 +1035,9 @@ tool_id = "samtools"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.index_reference", "fastq.deplete_host"]
-bindings = ["fastq.deplete_host", "fastq.index_reference"]
-tool_role = "aligner"
+stage_ids = ["fastq.index_reference", "fastq.deplete_host", "fastq.report_qc"]
+bindings = ["fastq.deplete_host", "fastq.index_reference", "fastq.report_qc"]
+tool_role = "transform"
 version = "1.21"
 default_version = "1.21"
 upstream = "https://github.com/samtools/samtools"
@@ -967,9 +1103,9 @@ tool_id = "seqkit"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.filter_reads", "fastq.normalize_primers", "fastq.trim_terminal_damage"]
-bindings = ["fastq.trim_terminal_damage", "fastq.filter_reads", "fastq.normalize_primers"]
-tool_role = "trimmer"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.normalize_primers", "fastq.trim_terminal_damage", "fastq.profile_overrepresented_sequences"]
+bindings = ["fastq.filter_reads", "fastq.normalize_primers", "fastq.profile_overrepresented_sequences", "fastq.trim_reads", "fastq.trim_terminal_damage"]
+tool_role = "filter"
 version = "2.8.2"
 default_version = "2.8.2"
 upstream = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
@@ -1001,9 +1137,9 @@ tool_id = "seqkit_stats"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.profile_reads"]
-bindings = ["fastq.profile_reads"]
-tool_role = "qc"
+stage_ids = ["fastq.profile_reads", "fastq.profile_read_lengths"]
+bindings = ["fastq.profile_read_lengths", "fastq.profile_reads"]
+tool_role = "transform"
 version = "2.7.0"
 default_version = "2.7.0"
 upstream = "https://github.com/seqkit_stats/seqkit_stats"
@@ -1027,6 +1163,40 @@ metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
 apptainer_def = "containers/apptainer/lunarc/seqkit_stats.def"
+require_labels = true
+
+[[tools]]
+id = "seqtk"
+tool_id = "seqtk"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.validate_reads"]
+bindings = ["fastq.validate_reads"]
+tool_role = "validator"
+version = "1.5-r133"
+default_version = "1.5-r133"
+upstream = "https://github.com/lh3/seqtk.git"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/lh3/seqtk.git"
+pinned_commit = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqtk --version"
+help_cmd = "seqtk --help"
+smoke_version_cmd = "seqtk --version"
+smoke_help_cmd = "seqtk --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "seqtk --help"
+expected_bin = "seqtk"
+expected_artifacts = ["validation_report"]
+metrics_schema = "bijux.fastq.validate.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
+apptainer_def = "containers/apptainer/lunarc/seqtk.def"
 require_labels = true
 
 [[tools]]
@@ -1056,8 +1226,8 @@ smoke_help_cmd = "sortmerna --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "sortmerna --help"
 expected_bin = "sortmerna"
-expected_artifacts = ["rrna_filtered_reads", "rrna_report_json"]
-metrics_schema = "bijux.fastq.deplete_rrna.v1"
+expected_artifacts = ["rrna_filtered_reads", "rrna_report_tsv", "rrna_report_json"]
+metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.sortmerna"
 apptainer_def = "containers/apptainer/lunarc/sortmerna.def"
@@ -1172,7 +1342,7 @@ domain = "fastq"
 domains = ["fastq"]
 status = "production"
 stage_ids = ["fastq.merge_pairs", "fastq.remove_chimeras", "fastq.cluster_otus"]
-bindings = ["fastq.remove_chimeras", "fastq.merge_pairs", "fastq.cluster_otus"]
+bindings = ["fastq.cluster_otus", "fastq.merge_pairs", "fastq.remove_chimeras"]
 tool_role = "transform"
 version = "2.28.1"
 default_version = "2.28.1"
@@ -1416,7 +1586,7 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.remove_chimeras"
+id = "fastq.cluster_otus"
 required_tool_roles = ["transform"]
 primary_tools = ["vsearch"]
 optional_alternatives = []
@@ -1424,18 +1594,6 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = ""
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "fastq.deplete_reference_contaminants"
-required_tool_roles = ["screen"]
-primary_tools = ["bbduk"]
-optional_alternatives = ["bowtie2"]
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "Default contaminant screen uses k-mer depletion against configured decoy references."
 requires_validation = false
 requires_reporting = false
 
@@ -1452,14 +1610,38 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.trim_terminal_damage"
-required_tool_roles = ["trimmer"]
-primary_tools = ["cutadapt"]
-optional_alternatives = ["seqkit"]
+id = "fastq.deplete_host"
+required_tool_roles = ["transform"]
+primary_tools = ["bowtie2"]
+optional_alternatives = ["samtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Damage-aware pretrim default uses deterministic terminal mask/trim policy for aDNA damage-aware pretrim."
+default_rationale = "Default host depletion uses deterministic mapping and unmapped extraction."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.deplete_reference_contaminants"
+required_tool_roles = ["screen"]
+primary_tools = ["bbduk"]
+optional_alternatives = ["bowtie2"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default contaminant screen uses k-mer depletion against configured decoy references."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.deplete_rrna"
+required_tool_roles = ["transform"]
+primary_tools = ["sortmerna"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default rRNA filter is established for pre-HPC screening."
 requires_validation = false
 requires_reporting = false
 
@@ -1476,10 +1658,34 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.extract_umis"
+required_tool_roles = ["transform"]
+primary_tools = ["umi_tools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default UMI handler preserves compatibility with stage contract."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.filter_low_complexity"
+required_tool_roles = ["filter"]
+primary_tools = ["bbduk"]
+optional_alternatives = ["prinseq"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default complexity filtering uses deterministic entropy/polyX thresholds."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.filter_reads"
 required_tool_roles = ["filter"]
 primary_tools = ["fastp"]
-optional_alternatives = ["fastp", "seqkit"]
+optional_alternatives = ["fastp", "prinseq", "seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1488,38 +1694,26 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.deplete_host"
-required_tool_roles = ["aligner"]
-primary_tools = ["bowtie2"]
-optional_alternatives = ["samtools"]
+id = "fastq.index_reference"
+required_tool_roles = ["transform"]
+primary_tools = ["star"]
+optional_alternatives = ["star"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default host depletion uses deterministic mapping and unmapped extraction."
+default_rationale = "Stable index generation baseline for pre-HPC runs."
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.profile_read_lengths"
+id = "fastq.infer_asvs"
 required_tool_roles = ["transform"]
-primary_tools = ["seqkit_stats"]
-optional_alternatives = ["seqkit_stats"]
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "Default length histogram baseline provides deterministic pre-trim size distribution."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "fastq.filter_low_complexity"
-required_tool_roles = ["transform"]
-primary_tools = ["bbduk"]
+primary_tools = ["fastp"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default complexity filtering uses deterministic entropy/polyX thresholds."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -1536,10 +1730,22 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.cluster_otus"
+id = "fastq.normalize_abundance"
 required_tool_roles = ["transform"]
-primary_tools = ["vsearch"]
+primary_tools = ["fastp"]
 optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.normalize_primers"
+required_tool_roles = ["transform"]
+primary_tools = ["cutadapt"]
+optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1560,34 +1766,34 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.trim_polyg_tails"
+id = "fastq.profile_read_lengths"
 required_tool_roles = ["transform"]
-primary_tools = ["fastp"]
-optional_alternatives = ["fastp"]
+primary_tools = ["seqkit_stats"]
+optional_alternatives = ["prinseq", "seqkit_stats"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default polyG trimmer uses fastp polyG-tail handling for common sequencer artifacts."
+default_rationale = "Default length histogram baseline provides deterministic pre-trim size distribution."
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.index_reference"
+id = "fastq.profile_reads"
 required_tool_roles = ["transform"]
-primary_tools = ["star"]
-optional_alternatives = ["star"]
+primary_tools = ["seqkit_stats"]
+optional_alternatives = ["seqkit_stats"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Stable index generation baseline for pre-HPC runs."
+default_rationale = "Neutral stats baseline is lightweight and deterministic."
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.normalize_primers"
+id = "fastq.remove_chimeras"
 required_tool_roles = ["transform"]
-primary_tools = ["cutadapt"]
-optional_alternatives = ["seqkit"]
+primary_tools = ["vsearch"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1596,28 +1802,28 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.remove_duplicates"
+required_tool_roles = ["transform"]
+primary_tools = ["prinseq"]
+optional_alternatives = ["fastuniq", "prinseq"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default deduplication uses pair-aware duplicate removal with stable ordering."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.report_qc"
 required_tool_roles = ["qc"]
 primary_tools = ["multiqc"]
-optional_alternatives = ["multiqc"]
+optional_alternatives = ["multiqc", "samtools"]
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
 default_rationale = "QC aggregation default provides operator-first summary output."
 requires_validation = false
 requires_reporting = true
-
-[[stages]]
-id = "fastq.deplete_rrna"
-required_tool_roles = ["transform"]
-primary_tools = ["sortmerna"]
-optional_alternatives = []
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "Default rRNA filter is established for pre-HPC screening."
-requires_validation = false
-requires_reporting = false
 
 [[stages]]
 id = "fastq.screen_taxonomy"
@@ -1632,14 +1838,14 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.profile_reads"
-required_tool_roles = ["qc"]
-primary_tools = ["seqkit_stats"]
-optional_alternatives = ["seqkit_stats"]
+id = "fastq.trim_polyg_tails"
+required_tool_roles = ["trimmer"]
+primary_tools = ["fastp"]
+optional_alternatives = ["fastp"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Neutral stats baseline is lightweight and deterministic."
+default_rationale = "Default polyG trimmer uses fastp polyG-tail handling for common sequencer artifacts."
 requires_validation = false
 requires_reporting = false
 
@@ -1647,7 +1853,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["bbduk", "cutadapt", "fastp", "fastx_clipper", "seqkit"]
+optional_alternatives = ["bbduk", "cutadapt", "fastp", "fastx_clipper", "prinseq", "seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1656,14 +1862,14 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.extract_umis"
-required_tool_roles = ["transform"]
-primary_tools = ["umi_tools"]
-optional_alternatives = []
+id = "fastq.trim_terminal_damage"
+required_tool_roles = ["trimmer"]
+primary_tools = ["cutadapt"]
+optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default UMI handler preserves compatibility with stage contract."
+default_rationale = "Damage-aware pretrim default uses deterministic terminal mask/trim policy for aDNA damage-aware pretrim."
 requires_validation = false
 requires_reporting = false
 
@@ -1671,10 +1877,11 @@ requires_reporting = false
 id = "fastq.validate_reads"
 required_tool_roles = ["validator"]
 primary_tools = ["fastqvalidator"]
-optional_alternatives = ["fastqvalidator"]
+optional_alternatives = ["fastqvalidator", "fqtools", "seqtk"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+
