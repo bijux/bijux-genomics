@@ -63,7 +63,7 @@ pub fn plan_stats_neutral(
                 ArtifactRef::required(
                     ArtifactId::from_static("qc_tsv"),
                     out_dir.join("qc.tsv"),
-                    ArtifactRole::ReportJson,
+                    ArtifactRole::SummaryTsv,
                 ),
                 ArtifactRef::optional(
                     ArtifactId::from_static("qc_plots_dir"),
