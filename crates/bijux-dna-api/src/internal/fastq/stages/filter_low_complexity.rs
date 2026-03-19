@@ -10,16 +10,15 @@ use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqLowComplexityMetrics,
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
-use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::{
     plan_low_complexity, LowComplexityPlanOptions,
 };
-use bijux_dna_planner_fastq::stage_api::FastqArtifact;
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
@@ -42,9 +41,13 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
 ) -> Result<BenchOutcome<FastqLowComplexityMetrics>> {
     let tools = select_filter_low_complexity_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_FILTER_LOW_COMPLEXITY.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
+    let artifact_kind = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    preflight_stage(STAGE_FILTER_LOW_COMPLEXITY.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -59,6 +62,20 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         &args.r1,
         &STAGE_FILTER_LOW_COMPLEXITY,
     )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!(
+            "{}+{}",
+            bench_inputs.input_hash,
+            bijux_dna_infra::hash_file_sha256(r2)?
+        )
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
 
     if args.explain {
         write_explain_md(
@@ -101,7 +118,8 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_low_complexity(&tool_spec, &bench_inputs.r1, &out_dir, &options)?;
+        let plan =
+            plan_low_complexity(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir, &options)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -116,7 +134,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             &image_digest,
             &bench_inputs.runner.to_string(),
             &platform.name,
-            &bench_inputs.input_hash,
+            &input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -134,10 +152,13 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
             &bench_inputs,
+            input_stats_r2.as_ref(),
             tool,
             &tool_spec,
+            &input_hash,
             &plan.params,
             &plan.io.outputs[0].path,
+            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -165,30 +186,46 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
+    input_stats_r2: Option<&SeqkitMetrics>,
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    input_hash: &str,
     params: &serde_json::Value,
     output_reads: &std::path::Path,
+    output_reads_r2: Option<&std::path::Path>,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqLowComplexityMetrics>> {
-    let output_stats = if execution.exit_code == 0 && output_reads.exists() {
+    let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
     } else {
         bench_inputs.input_stats.clone()
     };
-    let reads_removed = bench_inputs
-        .input_stats
-        .reads
-        .saturating_sub(output_stats.reads);
+    let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
+        if execution.exit_code == 0 && output_reads_r2.exists() {
+            Some(observe_fastq_stats(
+                catalog,
+                platform,
+                bench_inputs.runner,
+                output_reads_r2,
+            )?)
+        } else {
+            input_stats_r2.cloned()
+        }
+    } else {
+        None
+    };
+    let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2);
+    let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+    let reads_removed = before_stats.reads.saturating_sub(after_stats.reads);
     let metrics = FastqLowComplexityMetrics {
-        reads_in: bench_inputs.input_stats.reads,
-        reads_out: output_stats.reads,
-        bases_in: bench_inputs.input_stats.bases,
-        bases_out: output_stats.bases,
+        reads_in: before_stats.reads,
+        reads_out: after_stats.reads,
+        bases_in: before_stats.bases,
+        bases_out: after_stats.bases,
         reads_removed_low_complexity: reads_removed,
-        mean_q_before: bench_inputs.input_stats.mean_q,
-        mean_q_after: output_stats.mean_q,
-        delta_metrics: derive_trim_delta(&bench_inputs.input_stats, &output_stats),
+        mean_q_before: before_stats.mean_q,
+        mean_q_after: after_stats.mean_q,
+        delta_metrics: derive_trim_delta(&before_stats, &after_stats),
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -199,6 +236,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         "tool_id": tool,
         "input_fastq": bench_inputs.r1,
         "output_fastq": output_reads,
+        "output_fastq_r2": output_reads_r2,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "reads_removed_low_complexity": metrics.reads_removed_low_complexity,
@@ -225,7 +263,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
             .unwrap_or_else(|| "unknown".to_string()),
         bench_inputs.runner,
         platform,
-        bench_inputs.input_hash.clone(),
+        input_hash.to_string(),
         params.clone(),
     );
     let record = BenchmarkRecord {
@@ -239,4 +277,30 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> SeqkitMetrics {
+    let secondary_reads = secondary.map_or(0, |stats| stats.reads);
+    let secondary_bases = secondary.map_or(0, |stats| stats.bases);
+    let total_bases = primary.bases + secondary_bases;
+    let weighted_mean_q = if total_bases == 0 {
+        0.0
+    } else {
+        ((primary.mean_q * primary.bases as f64)
+            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
+            / total_bases as f64
+    };
+    let weighted_gc = if total_bases == 0 {
+        0.0
+    } else {
+        ((primary.gc_percent * primary.bases as f64)
+            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
+            / total_bases as f64
+    };
+    SeqkitMetrics {
+        reads: primary.reads + secondary_reads,
+        bases: total_bases,
+        mean_q: weighted_mean_q,
+        gc_percent: weighted_gc,
+    }
 }

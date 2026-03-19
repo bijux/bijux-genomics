@@ -183,11 +183,17 @@ where
                 let plan = crate::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                     &low_complexity_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None, current_feature_table.clone())
+                let next_r2 = if current_r2.is_some() {
+                    Some(plan.io.outputs[1].path.clone())
+                } else {
+                    None
+                };
+                (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(

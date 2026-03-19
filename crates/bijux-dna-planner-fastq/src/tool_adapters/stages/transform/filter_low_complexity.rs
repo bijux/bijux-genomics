@@ -45,13 +45,52 @@ fn low_complexity_output_name(tool: &str) -> Option<&'static str> {
 pub fn plan_low_complexity(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
     options: &LowComplexityPlanOptions,
 ) -> Result<StagePlanV1> {
     let output_name = low_complexity_output_name(&tool.tool_id.0)
         .ok_or_else(|| anyhow!("unsupported low-complexity tool"))?;
-    let output = out_dir.join(output_name);
+    let output_r1 = if r2.is_some() {
+        out_dir.join(format!("R1.{output_name}"))
+    } else {
+        out_dir.join(output_name)
+    };
+    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
     let report = out_dir.join("low_complexity_report.json");
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    let mut outputs = vec![ArtifactRef::required(
+        if output_r2.is_some() {
+            ArtifactId::from_static("filtered_fastq_r1")
+        } else {
+            ArtifactId::from_static("filtered_fastq")
+        },
+        output_r1.clone(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(output_r2) = &output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("filtered_fastq_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("filter_report_json"),
+        report.clone(),
+        ArtifactRole::ReportJson,
+    ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -62,35 +101,20 @@ pub fn plan_low_complexity(
             template: tool.command.template.to_vec(),
         },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("filtered_fastq"),
-                    output.clone(),
-                    ArtifactRole::Reads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("filter_report_json"),
-                    report.clone(),
-                    ArtifactRole::ReportJson,
-                ),
-            ],
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
-            "input": r1,
-            "output": output,
+            "input_r1": r1,
+            "input_r2": r2,
+            "output_r1": output_r1,
+            "output_r2": output_r2,
             "report_json": report,
             "entropy_threshold": options.entropy_threshold,
             "polyx_threshold": options.polyx_threshold,
         }),
         effective_params: serde_json::json!({
+            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "threads": tool.resources.threads,
             "entropy_threshold": options.entropy_threshold,
             "polyx_threshold": options.polyx_threshold,
