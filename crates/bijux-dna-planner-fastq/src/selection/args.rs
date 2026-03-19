@@ -30,6 +30,34 @@ pub struct BenchFastqTrimArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqTrimPolygArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+    pub polyx_preset: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BenchFastqTrimTerminalDamageArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+    pub damage_mode: Option<String>,
+    pub trim_5p_bases: Option<u32>,
+    pub trim_3p_bases: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqValidateArgs {
     pub sample_id: String,
     pub r1: PathBuf,

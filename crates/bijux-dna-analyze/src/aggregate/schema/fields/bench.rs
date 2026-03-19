@@ -173,6 +173,8 @@ pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent 
 pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
     match stage_id {
         "fastq.trim_reads" => Some(StageMetricKind::FastqTrim),
+        "fastq.trim_polyg_tails" => Some(StageMetricKind::FastqTrimPolyg),
+        "fastq.trim_terminal_damage" => Some(StageMetricKind::FastqTrimTerminalDamage),
         "fastq.validate_reads" => Some(StageMetricKind::FastqValidate),
         "fastq.filter_reads" => Some(StageMetricKind::FastqFilter),
         "fastq.merge_pairs" => Some(StageMetricKind::FastqMerge),

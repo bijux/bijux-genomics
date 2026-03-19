@@ -222,6 +222,40 @@
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::TrimPolygTails(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_trim_polyg(args)?;
+                        let outcome =
+                            bench_fastq_trim_polyg_tails(&catalog, &platform, None, &bench_args)?;
+                        write_trim_polyg_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::TrimTerminalDamage(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_trim_terminal_damage(args)?;
+                        let outcome = bench_fastq_trim_terminal_damage(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_trim_terminal_damage_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::Validate(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_validate(args)?;

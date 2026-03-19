@@ -8,8 +8,8 @@ pub(crate) mod summary;
 
 pub(crate) use crate::internal::fastq::stage_catalog::{
     STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_PREPROCESS_SUMMARY,
-    STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS,
-    STAGE_VALIDATE_READS,
+    STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS,
+    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use stages::correct_errors::bench_fastq_correct;
@@ -19,7 +19,9 @@ pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
 pub use stages::profile_reads::bench_fastq_stats_neutral;
 pub use stages::report_qc::bench_fastq_qc_post;
 pub use stages::screen_taxonomy::bench_fastq_screen;
+pub use stages::trim_polyg_tails::bench_fastq_trim_polyg_tails;
 pub use stages::trim_reads::bench_fastq_trim;
+pub use stages::trim_terminal_damage::bench_fastq_trim_terminal_damage;
 pub use stages::extract_umis::bench_fastq_umi;
 pub use stages::validate_reads::bench_fastq_validate_reads;
 pub use stages::validate_reads::bench_fastq_validate_reads as bench_fastq_validate_pre;

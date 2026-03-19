@@ -86,11 +86,32 @@ pub fn rank_umi_tools(
     build_rankings(&inputs)
 }
 
+#[allow(dead_code)]
 pub fn sanity_flags_trim(records: &[BenchmarkRecord<FastqTrimMetrics>]) -> Vec<serde_json::Value> {
+    sanity_flags_trim_like(records)
+}
+
+#[allow(dead_code)]
+pub fn sanity_flags_trim_polyg(
+    records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
+) -> Vec<serde_json::Value> {
+    sanity_flags_trim_like(records)
+}
+
+#[allow(dead_code)]
+pub fn sanity_flags_trim_terminal_damage(
+    records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
+) -> Vec<serde_json::Value> {
+    sanity_flags_trim_like(records)
+}
+
+fn sanity_flags_trim_like<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
+    records: &[BenchmarkRecord<T>],
+) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
     let retention = records
         .iter()
-        .map(|record| record.metrics.metrics.delta_metrics.read_retention)
+        .map(|record| record.metrics.metrics.delta_metrics().read_retention)
         .collect::<Vec<_>>();
     let median_retention = median(retention);
     if median_retention < 0.85 {
@@ -244,8 +265,29 @@ pub fn sanity_flags_qc_post(
     flags
 }
 
+#[allow(dead_code)]
 pub fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_json::Value {
-    let delta = &record.metrics.metrics.delta_metrics;
+    derived_trim_like_metrics(record)
+}
+
+#[allow(dead_code)]
+pub fn derived_trim_polyg_metrics(
+    record: &BenchmarkRecord<FastqTrimPolygMetrics>,
+) -> serde_json::Value {
+    derived_trim_like_metrics(record)
+}
+
+#[allow(dead_code)]
+pub fn derived_trim_terminal_damage_metrics(
+    record: &BenchmarkRecord<FastqTrimTerminalDamageMetrics>,
+) -> serde_json::Value {
+    derived_trim_like_metrics(record)
+}
+
+fn derived_trim_like_metrics<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
+    record: &BenchmarkRecord<T>,
+) -> serde_json::Value {
+    let delta = record.metrics.metrics.delta_metrics();
     serde_json::json!({
         "read_retention": delta.read_retention,
         "base_retention": delta.base_retention,
@@ -401,6 +443,42 @@ pub fn write_trim_report(
     failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
+    write_trim_like_report(base_dir, "fastq.trim_reads", records, failures, explain)
+}
+
+pub fn write_trim_polyg_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    write_trim_like_report(base_dir, "fastq.trim_polyg_tails", records, failures, explain)
+}
+
+pub fn write_trim_terminal_damage_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    write_trim_like_report(
+        base_dir,
+        "fastq.trim_terminal_damage",
+        records,
+        failures,
+        explain,
+    )
+}
+
+fn write_trim_like_report<
+    T: TrimLikeMetricView + crate::aggregate::StageMetricSchema + serde::Serialize,
+>(
+    base_dir: &Path,
+    stage_id: &str,
+    records: &[BenchmarkRecord<T>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
@@ -409,23 +487,23 @@ pub fn write_trim_report(
     report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
-        serde_json::to_value(sanity_flags_trim(records))?,
+        serde_json::to_value(sanity_flags_trim_like(records))?,
     );
-    let derived: Vec<_> = records.iter().map(derived_trim_metrics).collect();
+    let derived: Vec<_> = records.iter().map(derived_trim_like_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
     let semantic: Vec<_> = records
         .iter()
-        .map(|record| semantic_trim(&record.metrics.metrics))
+        .map(|record| semantic_trim_like(&record.metrics.metrics))
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
-    let rankings = rank_trim_tools(records)?;
+    let rankings = rank_trim_like_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes())
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.trim_reads", &rankings);
+        crate::decision::score::print_rank_explain(stage_id, &rankings);
     }
     Ok(())
 }

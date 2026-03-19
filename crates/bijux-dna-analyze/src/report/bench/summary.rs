@@ -10,8 +10,8 @@ use bijux_dna_infra::atomic_write_bytes;
 use crate::aggregate::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
     stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
-    FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
-    FastqValidateMetrics,
+    FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics,
+    FastqTrimPolygMetrics, FastqTrimTerminalDamageMetrics, FastqUmiMetrics, FastqValidateMetrics,
 };
 use crate::decision::score::{build_rankings, RankInput, RankingEntry};
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
@@ -57,6 +57,46 @@ pub fn ratio_u64(num: u64, denom: u64) -> f64 {
     } else {
         u64_to_f64(num) / u64_to_f64(denom)
     }
+}
+
+trait TrimLikeMetricView {
+    fn reads_in(&self) -> u64;
+    fn reads_out(&self) -> u64;
+    fn bases_in(&self) -> u64;
+    fn bases_out(&self) -> u64;
+    fn mean_q_before(&self) -> f64;
+    fn mean_q_after(&self) -> f64;
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics;
+}
+
+impl TrimLikeMetricView for FastqTrimMetrics {
+    fn reads_in(&self) -> u64 { self.reads_in }
+    fn reads_out(&self) -> u64 { self.reads_out }
+    fn bases_in(&self) -> u64 { self.bases_in }
+    fn bases_out(&self) -> u64 { self.bases_out }
+    fn mean_q_before(&self) -> f64 { self.mean_q_before }
+    fn mean_q_after(&self) -> f64 { self.mean_q_after }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
+}
+
+impl TrimLikeMetricView for FastqTrimPolygMetrics {
+    fn reads_in(&self) -> u64 { self.reads_in }
+    fn reads_out(&self) -> u64 { self.reads_out }
+    fn bases_in(&self) -> u64 { self.bases_in }
+    fn bases_out(&self) -> u64 { self.bases_out }
+    fn mean_q_before(&self) -> f64 { self.mean_q_before }
+    fn mean_q_after(&self) -> f64 { self.mean_q_after }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
+}
+
+impl TrimLikeMetricView for FastqTrimTerminalDamageMetrics {
+    fn reads_in(&self) -> u64 { self.reads_in }
+    fn reads_out(&self) -> u64 { self.reads_out }
+    fn bases_in(&self) -> u64 { self.bases_in }
+    fn bases_out(&self) -> u64 { self.bases_out }
+    fn mean_q_before(&self) -> f64 { self.mean_q_before }
+    fn mean_q_after(&self) -> f64 { self.mean_q_after }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -139,8 +179,8 @@ fn metric_f64(
     }
 }
 
-fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
-    let delta = &metrics.delta_metrics;
+fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> SemanticMetrics {
+    let delta = metrics.delta_metrics();
     let interpretation = if delta.read_retention < 0.8 {
         "Trim removed a substantial fraction of reads; likely adapter/low-quality trimming."
     } else if delta.mean_q_delta > 0.5 {
@@ -151,20 +191,20 @@ fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(
-                metrics.reads_in,
+                metrics.reads_in(),
                 "Input reads",
                 ">= 0",
                 "Raw input read count.",
             ),
             reads_out: metric_u64(
-                metrics.reads_out,
+                metrics.reads_out(),
                 "Output reads",
                 ">= 0",
                 "Reads after trimming.",
             ),
-            bases_in: metric_u64(metrics.bases_in, "Input bases", ">= 0", "Raw input bases."),
+            bases_in: metric_u64(metrics.bases_in(), "Input bases", ">= 0", "Raw input bases."),
             bases_out: metric_u64(
-                metrics.bases_out,
+                metrics.bases_out(),
                 "Output bases",
                 ">= 0",
                 "Bases after trimming.",
@@ -186,13 +226,13 @@ fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
         },
         quality_shift: Some(QualityShiftMetrics {
             mean_q_before: metric_f64(
-                metrics.mean_q_before,
+                metrics.mean_q_before(),
                 "Mean Q before",
                 "[0,45]",
                 "Mean quality before trimming.",
             ),
             mean_q_after: metric_f64(
-                metrics.mean_q_after,
+                metrics.mean_q_after(),
                 "Mean Q after",
                 "[0,45]",
                 "Mean quality after trimming.",
@@ -207,6 +247,11 @@ fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
         contamination: None,
         interpretation,
     }
+}
+
+#[allow(dead_code)]
+fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
+    semantic_trim_like(metrics)
 }
 
 fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
@@ -389,14 +434,34 @@ fn semantic_stats(metrics: &FastqStatsMetrics) -> SemanticMetrics {
 pub fn rank_trim_tools(
     records: &[BenchmarkRecord<FastqTrimMetrics>],
 ) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
+    rank_trim_like_tools(records)
+}
+
+#[allow(dead_code)]
+pub fn rank_trim_polyg_tools(
+    records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
+) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
+    rank_trim_like_tools(records)
+}
+
+#[allow(dead_code)]
+pub fn rank_trim_terminal_damage_tools(
+    records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
+) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
+    rank_trim_like_tools(records)
+}
+
+fn rank_trim_like_tools<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
+    records: &[BenchmarkRecord<T>],
+) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
     let inputs = records
         .iter()
         .map(|record| RankInput {
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(record.metrics.metrics.delta_metrics.read_retention),
-            base_retention: Some(record.metrics.metrics.delta_metrics.base_retention),
+            read_retention: Some(record.metrics.metrics.delta_metrics().read_retention),
+            base_retention: Some(record.metrics.metrics.delta_metrics().base_retention),
             error_reduction_proxy: None,
         })
         .collect::<Vec<_>>();

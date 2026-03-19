@@ -27,6 +27,10 @@ pub struct BenchRunArgs {
 #[derive(Debug, Subcommand)]
 pub enum BenchFastqCommand {
     Trim(BenchFastqTrimArgs),
+    #[command(name = "trim-polyg-tails")]
+    TrimPolygTails(BenchFastqTrimPolygArgs),
+    #[command(name = "trim-terminal-damage")]
+    TrimTerminalDamage(BenchFastqTrimTerminalDamageArgs),
     Validate(BenchFastqValidateArgs),
     Filter(BenchFastqFilterArgs),
     Merge(BenchFastqMergeArgs),
@@ -76,6 +80,58 @@ pub struct BenchFastqTrimArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqTrimPolygArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
+    pub polyx_preset: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqTrimTerminalDamageArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
+    #[arg(long)]
+    pub damage_mode: Option<String>,
+    #[arg(long)]
+    pub trim_5p_bases: Option<u32>,
+    #[arg(long)]
+    pub trim_3p_bases: Option<u32>,
 }
 
 #[derive(Debug, Args)]

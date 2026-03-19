@@ -109,6 +109,87 @@ impl StageMetricSchema for FastqTrimMetrics {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqTrimPolygMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
+    pub mean_q_before: f64,
+    pub mean_q_after: f64,
+    #[serde(default)]
+    pub delta_metrics: FastqDeltaMetrics,
+}
+
+impl StageMetricSchema for FastqTrimPolygMetrics {
+    const STAGE: &'static str = "fastq.trim_polyg_tails";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
+        }
+        if self.mean_q_after < self.mean_q_before {
+            warn!(
+                mean_q_before = self.mean_q_before,
+                mean_q_after = self.mean_q_after,
+                "mean_q_after is lower than mean_q_before"
+            );
+        }
+        self.delta_metrics.validate()?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqTrimTerminalDamageMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
+    pub mean_q_before: f64,
+    pub mean_q_after: f64,
+    #[serde(default)]
+    pub delta_metrics: FastqDeltaMetrics,
+}
+
+impl StageMetricSchema for FastqTrimTerminalDamageMetrics {
+    const STAGE: &'static str = "fastq.trim_terminal_damage";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
+        }
+        self.delta_metrics.validate()?;
+        Ok(())
+    }
+}
+
 #[must_use]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
