@@ -13,6 +13,17 @@ pub enum ContainerCommandSpec {
 
 #[derive(Debug, Clone, Copy)]
 pub enum NativeContainerCommandKey {
+    Lint,
+    RegistryTools,
+    EnsureImages,
+    ContainerDoctor,
+    ReleaseGate,
+    VulnScanHook,
+    ApptainerBuildAll,
+    DockerBuildAll,
+    SmokeApptainer,
+    SmokeDockerAmd64,
+    SmokeDockerArm64,
     ContainerRuntimeCheck,
     GenerateToolIds,
     CheckToolIdManifest,
