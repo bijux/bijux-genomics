@@ -11,6 +11,8 @@ mod mod_contracts_detect_adapters_manifest_rs;
 mod mod_contracts_index_parity_rs;
 #[path = "contracts/index_dependencies.rs"]
 mod mod_contracts_index_dependencies_rs;
+#[path = "contracts/pipeline_ordering.rs"]
+mod mod_contracts_pipeline_ordering_rs;
 #[path = "contracts/preflight_inputs.rs"]
 mod mod_contracts_preflight_inputs_rs;
 #[path = "contracts/public_surface.rs"]

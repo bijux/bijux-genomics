@@ -731,10 +731,10 @@ pipeline_compositions:
   - fastq.trim_polyg_tails
   - fastq.trim_reads
   - fastq.filter_reads
-  - fastq.merge_pairs
   - fastq.index_reference
   - fastq.deplete_host
   - fastq.deplete_reference_contaminants
+  - fastq.merge_pairs
   - fastq.profile_reads
   - fastq.report_qc
   - fastq.profile_overrepresented_sequences
@@ -749,14 +749,14 @@ stage_ordering_constraints:
   fastq.filter_reads:
   - fastq.trim_reads
   fastq.merge_pairs:
-  - fastq.filter_reads
+  - fastq.deplete_reference_contaminants
   fastq.remove_duplicates:
   - fastq.merge_pairs
   fastq.filter_low_complexity:
   - fastq.remove_duplicates
   fastq.deplete_host:
   - fastq.index_reference
-  - fastq.merge_pairs
+  - fastq.filter_reads
   fastq.profile_reads:
   - fastq.deplete_reference_contaminants
   fastq.report_qc:
@@ -790,14 +790,14 @@ stage_prerequisites:
   fastq.filter_reads:
   - fastq.trim_reads
   fastq.merge_pairs:
-  - fastq.filter_reads
+  - fastq.deplete_reference_contaminants
   fastq.remove_duplicates:
   - fastq.merge_pairs
   fastq.filter_low_complexity:
   - fastq.remove_duplicates
   fastq.deplete_host:
   - fastq.index_reference
-  - fastq.merge_pairs
+  - fastq.filter_reads
   fastq.profile_reads:
   - fastq.deplete_reference_contaminants
   fastq.report_qc:
