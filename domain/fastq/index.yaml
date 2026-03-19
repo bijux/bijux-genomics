@@ -81,11 +81,85 @@ tool_ids:
   - umi_tools
   - vsearch
 stage_tool_compatibility:
+  fastq.cluster_otus:
+  - vsearch
+  fastq.correct_errors:
+  - rcorrector
+  - musket
+  - lighter
+  - bayeshammer
+  - spades
+  fastq.deplete_host:
+  - bowtie2
+  fastq.deplete_reference_contaminants:
+  - bowtie2
+  fastq.deplete_rrna:
+  - sortmerna
+  fastq.detect_adapters:
+  - fastp
+  - fastqc
+  fastq.extract_umis:
+  - umi_tools
+  fastq.filter_low_complexity:
+  - dustmasker
+  - prinseq
+  - bbduk
+  fastq.filter_reads:
+  - fastp
+  - seqkit
+  - prinseq
+  - bbduk
   fastq.index_reference:
   - star
   - samtools
-  fastq.detect_adapters:
+  - bwa-mem2
+  - bowtie2-build
+  - minimap2
+  - hisat2-build
+  fastq.infer_asvs:
+  - dada2
+  fastq.merge_pairs:
+  - pear
+  - vsearch
+  - bbmerge
+  - flash2
+  - leehom
+  - seqprep
+  fastq.normalize_abundance:
+  - seqfu
+  - seqkit
+  fastq.normalize_primers:
+  - cutadapt
+  - seqkit
+  fastq.profile_overrepresented_sequences:
+  - fastqc
+  - seqkit
+  fastq.profile_read_lengths:
+  - seqkit_stats
+  - seqfu
+  - prinseq
   - fastp
+  fastq.profile_reads:
+  - seqkit_stats
+  fastq.remove_chimeras:
+  - vsearch
+  fastq.remove_duplicates:
+  - fastuniq
+  - clumpify
+  fastq.report_qc:
+  - multiqc
+  fastq.screen_taxonomy:
+  - kraken2
+  - krakenuniq
+  - bracken
+  - diamond
+  - centrifuge
+  - metaphlan
+  - kaiju
+  - fastq_screen
+  fastq.trim_polyg_tails:
+  - fastp
+  - bbduk
   fastq.trim_reads:
   - fastp
   - cutadapt
@@ -101,79 +175,13 @@ stage_tool_compatibility:
   - leehom
   - alientrimmer
   - fastx_clipper
-  fastq.filter_reads:
-  - fastp
-  - seqkit
-  - prinseq
-  - bbduk
-  fastq.validate_reads:
-  - fastqvalidator
-  - fastqvalidator
-  - fastq_scan
-  - seqtk
-  - fqtools
-  - fastqc
-  fastq.profile_reads:
-  - seqkit_stats
-  - seqkit
-  - seqfu
-  fastq.deplete_rrna:
-  - sortmerna
-  fastq.report_qc:
-  - multiqc
-  fastq.screen_taxonomy:
-  - kraken2
-  - krakenuniq
-  - bracken
-  - diamond
-  - centrifuge
-  - metaphlan
-  - kaiju
-  - fastq_screen
-  fastq.merge_pairs:
-  - pear
-  - vsearch
-  - bbmerge
-  - flash2
-  - leehom
-  - seqprep
-  fastq.remove_duplicates:
-  - fastuniq
-  - clumpify
-  - prinseq
-  fastq.filter_low_complexity:
-  - dustmasker
-  - prinseq
-  - bbduk
-  fastq.deplete_host:
-  - bowtie2
-  - samtools
-  fastq.correct_errors:
-  - rcorrector
-  - lighter
-  - musket
-  - bayeshammer
-  - spades
-  fastq.extract_umis:
-  - umi_tools
-  fastq.profile_read_lengths:
-  - seqkit_stats
-  - seqfu
-  - prinseq
-  - fastp
-  fastq.trim_polyg_tails:
-  - fastp
-  - bbduk
-  fastq.deplete_reference_contaminants:
-  - bbduk
-  - bowtie2
   fastq.trim_terminal_damage:
   - cutadapt
   - seqkit
-  fastq.profile_overrepresented_sequences:
-  - fastqc
-  - fastq_scan
-  - seqkit
+  fastq.validate_reads:
+  - fastqvalidator
+  - seqtk
+  - fqtools
 active_defaults:
   fastq.index_reference: star
   fastq.detect_adapters: fastp

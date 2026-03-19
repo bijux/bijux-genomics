@@ -345,6 +345,11 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
             .map(|tool_id| format!("  - {tool_id}"))
             .collect(),
     )?;
+    replace_block(
+        &mut body_lines,
+        "stage_tool_compatibility",
+        render_stage_tool_compatibility_block(&dom_dir)?,
+    )?;
 
     if !body_lines
         .iter()
@@ -363,6 +368,35 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         String::new(),
     ];
     Ok(format!("{}\n", header.into_iter().chain(body_lines).collect::<Vec<_>>().join("\n")))
+}
+
+fn render_stage_tool_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> {
+    let mut rendered = Vec::new();
+    let mut stage_map = BTreeMap::<String, Vec<String>>::new();
+    for stage_file in yaml_files(&dom_dir.join("stages"))? {
+        if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let text = read_utf8(&stage_file)?;
+        let Some(stage_id) = scalar_from_text(&text, "stage_id")? else {
+            continue;
+        };
+        let compatible = {
+            let block = list_block(&text, "compatible_tools")?;
+            if block.is_empty() {
+                inline_list(&text, "compatible_tools")?
+            } else {
+                block
+            }
+        };
+        stage_map.insert(stage_id, compatible);
+    }
+
+    for (stage_id, tools) in stage_map {
+        rendered.push(format!("  {stage_id}:"));
+        rendered.extend(tools.into_iter().map(|tool_id| format!("  - {tool_id}")));
+    }
+    Ok(rendered)
 }
 
 fn replace_block(lines: &mut Vec<String>, key: &str, items: Vec<String>) -> Result<()> {
