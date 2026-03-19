@@ -316,6 +316,16 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingAcquireReference,
         ),
         native(
+            "benchmark-integrity-mini",
+            "Run the governed frontend mini benchmark integrity check.",
+            NativeOpsCommandKey::ToolingBenchmarkIntegrityMini,
+        ),
+        native(
+            "benchmarks",
+            "Run governed benchmark workflows through the native control plane.",
+            NativeOpsCommandKey::ToolingBenchmarks,
+        ),
+        native(
             "config-inventory",
             "Generate governed config inventory artifacts under artifacts/.",
             NativeOpsCommandKey::ToolingConfigInventory,
@@ -439,6 +449,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "simulate-coverage-regime",
             "Simulate deterministic VCF coverage regime selection from configured thresholds.",
             NativeOpsCommandKey::ToolingSimulateCoverageRegime,
+        ),
+        native(
+            "validate-frontend-mini-domain-stacks",
+            "Validate governed mini frontend stacks and their artifact contracts.",
+            NativeOpsCommandKey::ToolingValidateFrontendMiniDomainStacks,
         ),
     ]
 }
