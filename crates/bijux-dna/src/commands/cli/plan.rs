@@ -262,6 +262,7 @@ pub fn bench_args_filter_low_complexity(
     Ok(engine_args::BenchFastqFilterLowComplexityArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.filter_low_complexity", &args.tools)?,
         explain: args.explain,
