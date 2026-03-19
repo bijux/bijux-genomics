@@ -17,9 +17,22 @@ pub fn select_validate_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_detect_adapters_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER_READS);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
+pub fn select_filter_low_complexity_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::STAGE_FILTER_LOW_COMPLEXITY,
+    );
     select_tools_with_allowlist(tools, &allowlist)
 }
 
@@ -45,6 +58,13 @@ pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
 
 pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
+pub fn select_index_reference_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist = crate::selection::allowed_tools_for_stage(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE,
+    );
     select_tools_with_allowlist(tools, &allowlist)
 }
 

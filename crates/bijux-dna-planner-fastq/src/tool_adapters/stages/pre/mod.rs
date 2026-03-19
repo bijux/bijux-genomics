@@ -1,4 +1,5 @@
 pub mod detect_adapters;
+pub mod index_reference;
 pub mod plan_preprocess;
 pub mod profile_overrepresented_sequences;
 pub mod profile_read_lengths;

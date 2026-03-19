@@ -229,6 +229,50 @@ impl StageMetricSchema for FastqValidateMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqDetectAdaptersMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub mean_q: f64,
+    pub candidate_adapter_count: u64,
+    #[serde(default)]
+    pub adapter_trimmed_fraction: Option<f64>,
+}
+
+impl StageMetricSchema for FastqDetectAdaptersMetrics {
+    const STAGE: &'static str = "fastq.detect_adapters";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out != self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must equal reads_in".to_string(),
+            ));
+        }
+        if self.bases_out != self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must equal bases_in".to_string(),
+            ));
+        }
+        if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
+            return Err(BenchError::Validation(
+                "mean_q must be within [0, 45]".to_string(),
+            ));
+        }
+        if let Some(fraction) = self.adapter_trimmed_fraction {
+            if !fraction.is_finite() || !(0.0..=1.0).contains(&fraction) {
+                return Err(BenchError::Validation(
+                    "adapter_trimmed_fraction must be within [0, 1]".to_string(),
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqFilterMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
@@ -284,6 +328,40 @@ impl StageMetricSchema for FastqFilterMetrics {
                 mean_q_after = self.mean_q_after,
                 "mean_q_after is lower than mean_q_before"
             );
+        }
+        self.delta_metrics.validate()?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqLowComplexityMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub reads_removed_low_complexity: u64,
+    pub mean_q_before: f64,
+    pub mean_q_after: f64,
+    #[serde(default)]
+    pub delta_metrics: FastqDeltaMetrics,
+}
+
+impl StageMetricSchema for FastqLowComplexityMetrics {
+    const STAGE: &'static str = "fastq.filter_low_complexity";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reads_out + self.reads_removed_low_complexity != self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out + reads_removed_low_complexity must equal reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
         }
         self.delta_metrics.validate()?;
         Ok(())
@@ -538,12 +616,42 @@ impl StageMetricSchema for FastqStatsMetrics {
         Ok(())
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqIndexReferenceMetrics {
+    pub reference_bytes: u64,
+    pub index_bytes: u64,
+    pub index_file_count: u64,
+}
+
+impl StageMetricSchema for FastqIndexReferenceMetrics {
+    const STAGE: &'static str = "fastq.index_reference";
+    const VERSION: i32 = 1;
+
+    fn validate(&self) -> Result<()> {
+        if self.reference_bytes == 0 {
+            return Err(BenchError::Validation(
+                "reference_bytes must be > 0".to_string(),
+            ));
+        }
+        if self.index_file_count == 0 {
+            return Err(BenchError::Validation(
+                "index_file_count must be > 0".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
 pub const FASTQ_TRIM_SCHEMA_VERSION: i32 = 2;
 pub const FASTQ_VALIDATE_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_DETECT_ADAPTERS_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_FILTER_SCHEMA_VERSION: i32 = 2;
+pub const FASTQ_LOW_COMPLEXITY_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_MERGE_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_CORRECT_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_QC_POST_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_UMI_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_SCREEN_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_STATS_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_INDEX_REFERENCE_SCHEMA_VERSION: i32 = 1;

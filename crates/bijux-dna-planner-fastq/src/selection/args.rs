@@ -71,6 +71,18 @@ pub struct BenchFastqValidateArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqDetectAdaptersArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqFilterArgs {
     pub sample_id: String,
     pub r1: PathBuf,
@@ -86,10 +98,36 @@ pub struct BenchFastqFilterArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqFilterLowComplexityArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+    pub entropy_threshold: Option<f64>,
+    pub polyx_threshold: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqMergeArgs {
     pub sample_id: String,
     pub r1: PathBuf,
     pub r2: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BenchFastqIndexReferenceArgs {
+    pub sample_id: String,
+    pub reference_fasta: PathBuf,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,

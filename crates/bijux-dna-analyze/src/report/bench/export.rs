@@ -1,3 +1,7 @@
+use crate::{
+    FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqLowComplexityMetrics,
+};
+
 /// Write the validate benchmark report.
 ///
 /// # Errors
@@ -37,6 +41,30 @@ pub fn write_validate_report(
     Ok(())
 }
 
+/// Write the detect-adapters benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_detect_adapters_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqDetectAdaptersMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.detect_adapters", &BTreeMap::new());
+    }
+    Ok(())
+}
+
 /// Write the filter benchmark report.
 ///
 /// # Errors
@@ -70,6 +98,30 @@ pub fn write_filter_report(
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.filter_reads", &rankings);
+    }
+    Ok(())
+}
+
+/// Write the low-complexity benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_filter_low_complexity_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqLowComplexityMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.filter_low_complexity", &BTreeMap::new());
     }
     Ok(())
 }
@@ -194,6 +246,30 @@ pub fn write_umi_report(
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.extract_umis", &rankings);
+    }
+    Ok(())
+}
+
+/// Write the index-reference benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_index_reference_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqIndexReferenceMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain("fastq.index_reference", &BTreeMap::new());
     }
     Ok(())
 }
