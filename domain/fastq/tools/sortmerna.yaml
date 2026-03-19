@@ -8,23 +8,20 @@ install_kind: container
 license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
-- fastq.filter
+- fastq.rrna
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- filtered_fastq
-metrics_schema_id: bijux.fastq.filter.v1
-metrics_schema: bijux.fastq.filter.v1
+- rrna_filtered_reads
+metrics_schema_id: bijux.stage.metrics.v1
+metrics_schema: bijux.stage.metrics.v1
 version_cmd: sortmerna --version
 help_cmd: sortmerna --help
 comparability:
-  comparable_with:
-  - bbduk
-  - prinseq
+  comparable_with: []
   non_comparable_with: []
 comparability_notes: Comparable only within same stage contract and input constraints.
 capabilities:
 - SE
 - PE
-- contaminant_filter
 - rrna_classification
