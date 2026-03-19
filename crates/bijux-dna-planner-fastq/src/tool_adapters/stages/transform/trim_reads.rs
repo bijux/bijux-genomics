@@ -60,6 +60,7 @@ pub fn resolve_config(user: TrimUserConfig) -> TrimEffectiveConfig {
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
@@ -67,11 +68,18 @@ pub fn plan(
 ) -> Result<StagePlanV1> {
     let output_name =
         trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
-    let output = out_dir.join(output_name);
+    let output_r1 = if r2.is_some() {
+        out_dir.join(format!("R1.{output_name}"))
+    } else {
+        out_dir.join(output_name)
+    };
+    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
-        "input": r1,
-        "output": output
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2
     });
     if let Some(adapter_bank) = adapter_bank {
         if let Some(map) = params.as_object_mut() {
@@ -89,7 +97,11 @@ pub fn plan(
         }
     }
     let effective_params = TrimEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
         threads: tool.resources.threads,
         min_len: 0,
         q_cutoff: None,
@@ -103,6 +115,44 @@ pub fn plan(
         n_policy: None,
         contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    let mut outputs = vec![ArtifactRef::required(
+        if output_r2.is_some() {
+            ArtifactId::from_static("trimmed_reads_r1")
+        } else {
+            ArtifactId::from_static("trimmed_reads")
+        },
+        output_r1.clone(),
+        ArtifactRole::TrimmedReads,
+    )];
+    if let Some(output_r2) = &output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("trimmed_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::TrimmedReads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("trim_report"),
+        out_dir.join("trim.report.json"),
+        ArtifactRole::ReportJson,
+    ));
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("stage_metrics"),
+        out_dir.join("stage.metrics.json"),
+        ArtifactRole::MetricsJson,
+    ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -113,30 +163,7 @@ pub fn plan(
             template: tool.command.template.to_vec(),
         },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("trimmed_reads"),
-                    output.clone(),
-                    ArtifactRole::TrimmedReads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("trim_report"),
-                    out_dir.join("trim.report.json"),
-                    ArtifactRole::ReportJson,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("stage_metrics"),
-                    out_dir.join("stage.metrics.json"),
-                    ArtifactRole::MetricsJson,
-                ),
-            ],
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params,
         effective_params: serde_json::to_value(&effective_params)
@@ -154,5 +181,5 @@ pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &TrimEffectiveConfig,
 ) -> Result<StagePlanV1> {
-    plan(tool, &config.r1, &config.out_dir, None, None, None)
+    plan(tool, &config.r1, None, &config.out_dir, None, None, None)
 }
