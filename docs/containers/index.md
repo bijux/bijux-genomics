@@ -14,7 +14,8 @@ Every container definition must declare:
 Use one container per tool identity. Mode differences must be expressed via CLI arguments, not separate container names.
 
 ## Build Script Layout
-All container build/smoke/lint scripts must live under `scripts/containers/`.
+Canonical container build/smoke/lint scripts live under `bijux-dev-dna/containers/`.
+Compatibility wrappers remain in `scripts/containers/` for legacy entrypoints.
 
 ## Contract
 - Container metadata must satisfy the policy tests.

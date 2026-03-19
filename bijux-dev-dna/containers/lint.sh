@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "${SCRIPT_DIR}/../../" && pwd)
+source "${ROOT_DIR}/scripts/_lib/common.sh"
+require_stable_env
+LC_ALL=C
+export LC_ALL
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+DOCKER_ROOT="$ROOT_DIR/containers/docker"
+APPTAINER_ROOT="$ROOT_DIR/containers/apptainer"
+
+usage() {
+  cat <<'USAGE'
+Usage: bijux-dev-dna/containers/lint.sh
+USAGE
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  echo "unknown argument: $1" >&2
+  usage >&2
+  exit 2
+fi
+
+TMP_ROOT="${ISO_ROOT:-$ROOT_DIR/artifacts/tmp}"
+ensure_artifacts_dir "$TMP_ROOT"
+mkdir -p "$TMP_ROOT"
+tmp=$(mktemp "$TMP_ROOT/tmp-containers-lint.XXXXXX")
+trap 'rm -f "$tmp"' EXIT INT TERM
+
+record() {
+  printf '%s\n' "$1" >> "$tmp"
+}
+
+check_header() {
+  file="$1"
+  if ! head -n 6 "$file" | grep -q 'SPDX-License-Identifier:'; then
+    record "$file: missing SPDX header"
+  fi
+  if ! grep -q 'Container definition license:' "$file"; then
+    record "$file: missing container license notice"
+  fi
+}
+
+check_docker() {
+  file="$1"
+  base=$(basename "$file")
+  case "$base" in
+    Dockerfile.*) ;;
+    *) record "$file: docker filename must match Dockerfile.<tool>" ;;
+  esac
+
+  check_header "$file"
+
+  for key in \
+    'org.opencontainers.image.title' \
+    'org.opencontainers.image.source' \
+    'org.opencontainers.image.revision' \
+    'org.opencontainers.image.created' \
+    'org.opencontainers.image.licenses' \
+    'org.opencontainers.image.version' \
+    'org.opencontainers.image.tool' \
+    'org.opencontainers.image.base.name' \
+    'org.opencontainers.image.base.digest'; do
+    if ! grep -q "$key" "$file"; then
+      record "$file: missing OCI label $key"
+    fi
+  done
+
+  if ! grep -q 'org.opencontainers.image.licenses=' "$file"; then
+    record "$file: license label must be present"
+  fi
+
+  if grep -qE 'FROM[[:space:]]+[^[:space:]]+:latest([[:space:]]|$)' "$file"; then
+    record "$file: floating base tag latest is not allowed"
+  fi
+  from_image="$(awk '/^FROM /{print $2; exit}' "$file")"
+  if ! printf '%s\n' "$from_image" | grep -q '@sha256:'; then
+    record "$file: docker base image must be digest-pinned"
+  fi
+  base_repo="$(printf '%s\n' "$from_image" | sed -E 's/@sha256:.*$//' | sed -E 's/:.*$//')"
+  case "$base_repo" in
+    ubuntu|python|quay.io/biocontainers/bcftools) ;;
+    *) record "$file: base image '$base_repo' is not allowed by containers/docs/STYLE.md" ;;
+  esac
+}
+
+check_apptainer() {
+  file="$1"
+  base=$(basename "$file")
+  case "$base" in
+    *.def) ;;
+    *) record "$file: apptainer filename must match <tool>.def" ;;
+  esac
+
+  for key in \
+    'org.opencontainers.image.source' \
+    'org.opencontainers.image.revision' \
+    'org.opencontainers.image.created' \
+    'org.opencontainers.image.licenses' \
+    'org.opencontainers.image.version' \
+    'org.opencontainers.image.tool'; do
+    if ! grep -q "$key" "$file"; then
+      record "$file: missing %labels key $key"
+    fi
+  done
+
+  if grep -qiE 'apt(-get)?[[:space:]]+purge|apt(-get)?[[:space:]]+autoremove|apt-mark[[:space:]]+auto' "$file"; then
+    record "$file: apptainer defs must not use purge/autoremove/apt-mark auto"
+  fi
+
+  if grep -qiE -- '-march=|-mavx|-mcpu=|-mtune=' "$file"; then
+    if ! grep -q 'APPTAINER_CPU_FLAG_JUSTIFIED' "$file"; then
+      record "$file: apptainer defs must not inject architecture flags"
+    fi
+  fi
+
+  labels_line=$(grep -n '^%labels' "$file" | head -n1 | cut -d: -f1 || true)
+  env_line=$(grep -n '^%environment' "$file" | head -n1 | cut -d: -f1 || true)
+  post_line=$(grep -n '^%post' "$file" | head -n1 | cut -d: -f1 || true)
+  run_line=$(grep -n '^%runscript' "$file" | head -n1 | cut -d: -f1 || true)
+  help_line=$(grep -n '^%help' "$file" | head -n1 | cut -d: -f1 || true)
+  if [ -z "$labels_line" ] || [ -z "$env_line" ] || [ -z "$post_line" ] || [ -z "$run_line" ] || [ -z "$help_line" ]; then
+    record "$file: required sections missing (need %labels, %environment, %post, %runscript, %help)"
+  else
+    if [ "$labels_line" -gt "$env_line" ] || [ "$env_line" -gt "$post_line" ] || [ "$post_line" -gt "$run_line" ] || [ "$run_line" -gt "$help_line" ]; then
+      record "$file: section order must be %labels -> %environment -> %post -> %runscript -> %help"
+    fi
+  fi
+
+  run_chunk=$(awk 'BEGIN{inside=0} /^%runscript/{inside=1; next} /^%[a-z]/{if(inside){exit}} {if(inside) print}' "$file")
+  if ! printf '%s\n' "$run_chunk" | grep -q 'exec '; then
+    if ! grep -q 'RUNSCRIPT_WRAPPER_JUSTIFIED' "$file"; then
+      record "$file: %runscript must use exec"
+    fi
+  fi
+  if ! printf '%s\n' "$run_chunk" | grep -Fq '"$@"'; then
+    if ! grep -q 'RUNSCRIPT_WRAPPER_JUSTIFIED' "$file"; then
+      record "$file: %runscript must exec tool with \"\$@\" passthrough"
+    fi
+  fi
+}
+
+find "$ROOT_DIR/containers" -type f -name '*.Dockerfile' | while IFS= read -r file; do
+  record "$file: forbidden legacy docker naming (*.Dockerfile)"
+done
+
+find "$DOCKER_ROOT" -type f -name 'Dockerfile.*' | while IFS= read -r file; do
+  check_docker "$file"
+done
+
+find "$APPTAINER_ROOT" -type f -name '*.def' | while IFS= read -r file; do
+  check_apptainer "$file"
+done
+
+if [ -s "$tmp" ]; then
+  echo "container lint violations:" >&2
+  cat "$tmp" >&2
+  exit 1
+fi
+
+cargo run -q -p bijux-dev-dna -- containers run check-missing-images
+cargo run -q -p bijux-dev-dna -- containers run check-index
+cargo run -q -p bijux-dev-dna -- containers run check-non-bijux-sources
+cargo run -q -p bijux-dev-dna -- containers run check-owners
+cargo run -q -p bijux-dev-dna -- containers run check-promotion-policy
+cargo run -q -p bijux-dev-dna -- containers run check-version-completeness
+cargo run -q -p bijux-dev-dna -- containers run check-version-authority
+cargo run -q -p bijux-dev-dna -- containers run check-lock-schema
+cargo run -q -p bijux-dev-dna -- containers run check-version-hash-pin
+cargo run -q -p bijux-dev-dna -- containers run check-version-lock
+cargo run -q -p bijux-dev-dna -- containers run check-lock-drift
+cargo run -q -p bijux-dev-dna -- containers run check-lock-change-discipline
+cargo run -q -p bijux-dev-dna -- containers run check-versions-index-sha
+cargo run -q -p bijux-dev-dna -- containers run check-version-immutability
+cargo run -q -p bijux-dev-dna -- containers run check-image-size-regression
+cargo run -q -p bijux-dev-dna -- containers run check-version-deprecations
+cargo run -q -p bijux-dev-dna -- containers run check-promotion-lock-integrity
+cargo run -q -p bijux-dev-dna -- containers run check-lock-matches-built-output
+cargo run -q -p bijux-dev-dna -- containers run check-tool-id-manifest
+cargo run -q -p bijux-dev-dna -- containers run check-tool-id-contract
+cargo run -q -p bijux-dev-dna -- containers run check-registry-vs-defs
+cargo run -q -p bijux-dev-dna -- containers run check-tool-name-collision
+cargo run -q -p bijux-dev-dna -- containers run check-toolkit-bundles
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-image-naming
+cargo run -q -p bijux-dev-dna -- containers run check-hpc-frontend-policy-enforcement
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-cache-policy
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-bijux-header
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-hardening
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-version-label-sync
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-post-pins
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock
+cargo run -q -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof
+cargo run -q -p bijux-dev-dna -- containers run check-bijux-apptainer-built
+cargo run -q -p bijux-dev-dna -- containers run check-docker-labels
+cargo run -q -p bijux-dev-dna -- containers run check-docker-hardening
+cargo run -q -p bijux-dev-dna -- containers run check-docker-version-sync
+cargo run -q -p bijux-dev-dna -- containers run check-digest-changes-on-version-change
+cargo run -q -p bijux-dev-dna -- containers run check-dockerfiles-built
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-failure-classification
+cargo run -q -p bijux-dev-dna -- containers run check-docker-unpinned-apt
+cargo run -q -p bijux-dev-dna -- containers run check-docker-context
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-inputs-policy
+cargo run -q -p bijux-dev-dna -- containers run check-tool-invocation-normalization
+cargo run -q -p bijux-dev-dna -- containers run check-smoke-contract-lock
+cargo run -q -p bijux-dev-dna -- containers run check-qa-matrix-generated
+cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-smoke
+cargo run -q -p bijux-dev-dna -- containers run check-vcf-imputation-toolchain
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-runtime-constraints
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-network-policy
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-hardening
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-tool-digest-recording
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-release-smoke
+cargo run -q -p bijux-dev-dna -- containers run check-imputation-cross-runtime-parity
+cargo run -q -p bijux-dev-dna -- containers run check-cross-runtime-representative
+cargo run -q -p bijux-dev-dna -- containers run check-no-secrets
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-allowlist
+cargo run -q -p bijux-dev-dna -- containers run check-network-disclosure
+cargo run -q -p bijux-dev-dna -- containers run check-runtime-downloads
+cargo run -q -p bijux-dev-dna -- containers run check-vuln-hook
+cargo run -q -p bijux-dev-dna -- containers run check-sbom-artifacts
+cargo run -q -p bijux-dev-dna -- containers run check-build-provenance
+cargo run -q -p bijux-dev-dna -- containers run check-tool-docs-generated
+cargo run -q -p bijux-dev-dna -- containers run check-bijux-template-markers
+cargo run -q -p bijux-dev-dna -- containers run check-license-index-generated
+cargo run -q -p bijux-dev-dna -- containers run check-license-metadata
+cargo run -q -p bijux-dev-dna -- containers run check-docker-arch-policy
+cargo run -q -p bijux-dev-dna -- containers run check-docker-arm64-completeness
+cargo run -q -p bijux-dev-dna -- containers run check-time-locale-determinism
+cargo run -q -p bijux-dev-dna -- containers run check-digest-output-policy
+cargo run -q -p bijux-dev-dna -- containers run check-release-checklist
+
+echo "containers lint: ok"

@@ -3,7 +3,7 @@
 Purpose: strict index of supported script areas and allowed usage.
 
 Allowed subdirectories:
-- `scripts/containers`: Docker/Apptainer build, lint, and smoke operations.
+- `scripts/containers`: compatibility wrappers for container operations (delegating to `bijux-dev-dna/containers`).
 - `scripts/docs`: docs validation/generation entrypoints.
 - `scripts/examples`: examples index, checks, and runner entrypoints.
 - `scripts/hpc`: cluster-specific operational helpers.
@@ -20,7 +20,8 @@ Internal-only:
 The checks control plane is `cargo run -p bijux-dev-dna -- checks ...`.
 The compatibility entrypoint remains `./scripts/run.sh checks <check-id>`.
 The containers control plane is `cargo run -p bijux-dev-dna -- containers ...`.
-The compatibility entrypoints remain `./scripts/run.sh containers <command>` and `./scripts/containers/make.sh <command>`.
+The canonical entrypoints are `./bijux-dev-dna/containers`.
+Compatibility entrypoints remain `./scripts/run.sh containers <command>` and `./scripts/containers/make.sh <command>`.
 The domain control plane is `cargo run -p bijux-dev-dna -- domain ...`.
 The compatibility entrypoint remains `./scripts/run.sh domain <command>`.
 
