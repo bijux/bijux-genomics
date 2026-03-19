@@ -7,10 +7,9 @@ use bijux_dna_domain_fastq::params::preprocess::{
 };
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::FastqPipelineMode;
-use bijux_dna_domain_fastq::STAGE_PREPROCESS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: StageId = STAGE_PREPROCESS;
+pub const STAGE_ID: StageId = StageId::from_static("fastq.preprocess");
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone)]
