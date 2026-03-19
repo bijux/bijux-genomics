@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 648fd046f8d1c8f90b22b368c8de087b7ed0c588
+# source_commit: 167a7148751fe784f33f4d4678c8f73572448323
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -784,7 +784,7 @@ smoke_help_cmd = "multiqc --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "multiqc --help"
 expected_bin = "multiqc"
-expected_artifacts = ["report_json"]
+expected_artifacts = ["multiqc_report", "multiqc_data"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.multiqc"
