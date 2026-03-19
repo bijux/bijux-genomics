@@ -162,7 +162,7 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<&'static [&'static str]> {
         "fastq.deplete_host" => Some(&["bowtie2"]),
         "fastq.normalize_primers" => Some(&["cutadapt", "seqkit"]),
         "fastq.remove_chimeras" | "fastq.cluster_otus" => Some(&["vsearch"]),
-        "fastq.infer_asvs" => Some(&["dada2"]),
+        "fastq.infer_asvs" => Some(&[]),
         "fastq.normalize_abundance" => Some(&["seqfu", "seqkit"]),
         _ => None,
     }

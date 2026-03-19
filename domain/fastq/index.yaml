@@ -109,7 +109,6 @@ stage_tool_compatibility:
   - star
   - samtools
   fastq.infer_asvs:
-  - dada2
   fastq.merge_pairs:
   - pear
   - vsearch

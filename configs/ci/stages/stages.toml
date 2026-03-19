@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c1f8cc053d25fe22f4fbcbeb2976924616af93cb
+# source_commit: 0333d0a8f7fdd6463896a5b54e7670db8b3e7822
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -454,15 +454,6 @@ duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["samtools", "star"]
-
-[[stages]]
-id = "fastq.infer_asvs"
-status = "supported"
-output_kinds = ["fasta", "fastq", "tsv"]
-ordering_after = []
-prerequisites = []
-output_size_estimates_mb = ["asv_sequences_fasta:3", "asv_table_tsv:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
-tools = []
 
 [[stages]]
 id = "fastq.merge_pairs"

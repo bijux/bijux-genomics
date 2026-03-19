@@ -55,7 +55,6 @@ single_tool_justification: fastq.extract_umis
 single_tool_justification: fastq.normalize_primers
 single_tool_justification: fastq.remove_chimeras
 single_tool_justification: fastq.cluster_otus
-single_tool_justification: fastq.infer_asvs
 single_tool_justification: fastq.normalize_abundance
 
 single_tool_justification: fastq.trim_terminal_damage
