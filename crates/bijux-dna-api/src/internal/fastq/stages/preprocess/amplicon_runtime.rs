@@ -179,11 +179,35 @@ fn materialize_amplicon_stage_outputs(
         }
         "fastq.remove_chimeras" => {
             let primary = outputs
-                .first()
-                .map(|x| x.path.clone())
+                .iter()
+                .find(|artifact| {
+                    matches!(
+                        artifact.name.as_str(),
+                        "chimera_filtered_reads" | "chimera_filtered_reads_r1"
+                    )
+                })
+                .map(|artifact| artifact.path.clone())
                 .ok_or_else(|| anyhow!("missing primary output for {stage_id}"))?;
-            let metrics = out_dir.join("chimera_metrics.json");
-            let chimera_fasta = out_dir.join("chimeras.fasta");
+            let input_r2 = planned
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let output_r2 = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "chimera_filtered_reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let metrics = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("chimera_metrics.json"));
+            let chimera_fasta = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("chimeras.fasta"));
             let uchime_out = out_dir.join("uchime.tsv");
             let vsearch_ok = command_exists("vsearch")
                 && run_stage_command(
@@ -203,6 +227,9 @@ fn materialize_amplicon_stage_outputs(
                 );
             if !vsearch_ok || !primary.exists() {
                 copy_if_missing(&input, &primary)?;
+            }
+            if let (Some(input_r2), Some(output_r2)) = (input_r2.as_deref(), output_r2.as_deref()) {
+                copy_if_missing(input_r2, output_r2)?;
             }
             let chimera_fraction = if uchime_out.exists() {
                 let raw = std::fs::read_to_string(&uchime_out).unwrap_or_default();

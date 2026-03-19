@@ -369,19 +369,19 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = plan_amplicon_stage(
-                    stage,
+                let plan = crate::tool_adapters::fastq::remove_chimeras::plan(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
-                    serde_json::json!({
-                        "method": "vsearch_denovo",
-                        "chimera_removed_definition": "exclude flagged reads from downstream feature tables",
-                        "metrics": ["chimera_fraction", "non_chimera_reads", "chimera_reads"]
-                    }),
-                );
+                )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None, current_feature_table.clone())
+                let next_r2 = if current_r2.is_some() {
+                    Some(plan.io.outputs[1].path.clone())
+                } else {
+                    None
+                };
+                (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_INFER_ASVS.as_str() => {
                 if tool.tool_id.as_str() != "dada2" {
@@ -495,118 +495,6 @@ fn plan_fastq_transform_stage(
         reason: PlanDecisionReason::new(
             PlanReasonKind::Fallback,
             "fastq transform stage contract default".to_string(),
-        ),
-    }
-}
-
-fn plan_amplicon_stage(
-    stage_id: &str,
-    tool: &ToolExecutionSpecV1,
-    input: &std::path::Path,
-    out_dir: &std::path::Path,
-    effective_params: serde_json::Value,
-) -> StagePlanV1 {
-    let outputs = match stage_id {
-        "fastq.normalize_primers" => vec![
-            (
-                "normalized_reads",
-                out_dir.join("primer_normalized.fastq.gz"),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            ),
-            (
-                "primer_orientation_report",
-                out_dir.join("primer_orientation.tsv"),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            ),
-        ],
-        "fastq.remove_chimeras" => vec![
-            (
-                "chimera_filtered_reads",
-                out_dir.join("chimera_filtered.fastq.gz"),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            ),
-            (
-                "chimera_metrics_json",
-                out_dir.join("chimera_metrics.json"),
-                bijux_dna_core::prelude::ArtifactRole::MetricsJson,
-            ),
-        ],
-        "fastq.infer_asvs" => vec![
-            (
-                "asv_table_tsv",
-                out_dir.join("asv_abundance.tsv"),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            ),
-            (
-                "asv_sequences_fasta",
-                out_dir.join("asv_sequences.fasta"),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            ),
-        ],
-        "fastq.cluster_otus" => vec![
-            (
-                "otu_table_tsv",
-                out_dir.join("otu_abundance.tsv"),
-                bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-            ),
-            (
-                "otu_sequences_fasta",
-                out_dir.join("otu_representatives.fasta"),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            ),
-        ],
-        "fastq.normalize_abundance" => vec![(
-            "normalized_abundance_tsv",
-            out_dir.join("abundance_normalized.tsv"),
-            bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-        )],
-        _ => vec![(
-            "stage_output",
-            out_dir.join(format!(
-                "{}.out",
-                stage_id
-                    .split_once('.')
-                    .map(|(_, suffix)| suffix)
-                    .unwrap_or(stage_id)
-                    .replace('.', "_")
-            )),
-            bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
-        )],
-    };
-    StagePlanV1 {
-        stage_id: StageId::new(stage_id),
-        stage_version: bijux_dna_core::prelude::StageVersion(1),
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
-        },
-        resources: tool.resources.clone(),
-        io: bijux_dna_stage_contract::StageIO {
-            inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                bijux_dna_core::prelude::ArtifactId::from_static("reads"),
-                input.to_path_buf(),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            )],
-            outputs: outputs
-                .into_iter()
-                .map(|(name, path, role)| {
-                    bijux_dna_stage_contract::ArtifactRef::required(
-                        bijux_dna_core::prelude::ArtifactId::new(name.to_string()),
-                        path,
-                        role,
-                    )
-                })
-                .collect(),
-        },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({}),
-        effective_params,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Fallback,
-            "amplicon stage contract default".to_string(),
         ),
     }
 }

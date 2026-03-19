@@ -4,11 +4,17 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "reads_r2"
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "chimera_filtered_reads"
+  - name: "chimera_filtered_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "chimera_filtered_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "chimera_metrics_json"
@@ -42,9 +48,11 @@ bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs:
-  - "reads"
+  - "reads_r1"
 required_outputs:
-  - "chimera_filtered_reads"
+  - "chimera_filtered_reads_r1"
   - "chimera_metrics_json"
 allowed_missingness:
+  - "reads_r2"
+  - "chimera_filtered_reads_r2"
   - "chimeras_fasta"

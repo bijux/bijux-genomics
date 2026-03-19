@@ -318,6 +318,7 @@ pub fn bench_args_remove_chimeras(
     Ok(engine_args::BenchFastqRemoveChimerasArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
+        r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.remove_chimeras", &args.tools)?,
         explain: args.explain,
