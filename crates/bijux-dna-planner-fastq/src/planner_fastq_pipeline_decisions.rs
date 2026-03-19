@@ -226,7 +226,7 @@ pub fn plan_fastq_to_bam__default__v1(
 pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
     match profile_id {
         "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
-            STAGE_PREPROCESS.as_str().to_string(),
+            STAGE_PREPROCESS_SUMMARY.as_str().to_string(),
             STAGE_CORE_PREPARE_REFERENCE.to_string(),
             BamStage::Align.as_str().to_string(),
             BamStage::QcPre.as_str().to_string(),

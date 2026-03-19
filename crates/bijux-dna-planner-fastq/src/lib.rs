@@ -15,7 +15,7 @@ use bijux_dna_domain_fastq::{
     FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
     STAGE_CORRECT, STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
     STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
-    STAGE_PREPROCESS, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
+    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
     STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
@@ -26,6 +26,7 @@ use bijux_dna_stage_contract::{
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-fastq.v1";
 pub const TOOL_SEQKIT: &str = "seqkit";
 pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggregate");
+pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.preprocess");
 
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
 
