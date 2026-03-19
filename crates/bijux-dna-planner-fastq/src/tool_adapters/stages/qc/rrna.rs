@@ -31,6 +31,7 @@ pub fn normalize_rrna_tool_list(tools: &[String]) -> Result<Vec<String>> {
 pub fn plan_rrna(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_rrna_tool_list(std::slice::from_ref(&tool_id))?;
+    let filtered_reads = out_dir.join("rrna_filtered.fastq.gz");
     let report = out_dir.join("rrna_report.tsv");
     let metrics = out_dir.join("rrna_report.json");
     let effective_params = RrnaEffectiveParams {
@@ -56,6 +57,11 @@ pub fn plan_rrna(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Resul
             )],
             outputs: vec![
                 ArtifactRef::required(
+                    ArtifactId::from_static("rrna_filtered_reads"),
+                    filtered_reads.clone(),
+                    ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
                     ArtifactId::from_static("rrna_report_tsv"),
                     report.clone(),
                     ArtifactRole::ReportJson,
@@ -71,6 +77,7 @@ pub fn plan_rrna(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Resul
         params: serde_json::json!({
             "tool": tool.tool_id.0,
             "input": r1,
+            "filtered_reads": filtered_reads,
             "report_tsv": report,
             "report_json": metrics
         }),
