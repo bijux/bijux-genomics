@@ -76,7 +76,7 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_DETECT_ADAPTERS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.detect_adapters",
-            schema_version: "bijux.fastq.params.detect_adapters.v1",
+            schema_version: detect_adapters::DETECT_ADAPTERS_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_TRIM_READS {

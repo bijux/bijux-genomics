@@ -54,6 +54,14 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let r2 = Path::new("reads_R2.fastq.gz");
     let out_dir = Path::new("out");
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters::plan(
+        &dummy_tool("fastqc"),
+        r1,
+        Some(r2),
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("fastp"),
         r1,
