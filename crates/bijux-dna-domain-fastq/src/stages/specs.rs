@@ -164,6 +164,8 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
 pub struct FastqStageContract {
     pub input_kind: FastqArtifactKind,
     pub output_kind: FastqArtifactKind,
+    pub accepted_input_kinds: &'static [FastqArtifactKind],
+    pub possible_output_kinds: &'static [FastqArtifactKind],
     pub may_drop_reads: bool,
     pub must_preserve_pairing: bool,
     pub emits_fastq: bool,

@@ -11,12 +11,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ]
   },
   "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd"
+    ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Retention"
+    ],
+    "invariants": [
+      "reads_out <= reads_in",
+      "primer_trimmed_fraction in [0, 1]",
+      "orientation_forward_fraction in [0, 1]"
+    ],
+    "notes": "Primer normalization re-orients amplicon reads and may trim primer bases while preserving deterministic ordering."
+  },
   "outputs": {
     "emits_fastq": true,
-    "kind": "SingleEnd"
+    "kind": "SingleEnd",
+    "possible_kinds": [
+      "SingleEnd",
+      "PairedEnd"
+    ]
   },
   "retention": {
     "definition": "reads_out / reads_in; bases_out / bases_in",

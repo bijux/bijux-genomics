@@ -7,12 +7,32 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
   },
   "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd",
+      "Merged"
+    ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Composition"
+    ],
+    "invariants": [
+      "reads_in >= 0",
+      "otu_count >= 0",
+      "representative_count >= 0"
+    ],
+    "notes": "OTU clustering emits deterministic centroid and abundance artifacts for amplicon workflows."
+  },
   "outputs": {
     "emits_fastq": false,
-    "kind": "StatsOnly"
+    "kind": "AmpliconTable",
+    "possible_kinds": [
+      "AmpliconTable",
+      "RepresentativeFasta"
+    ]
   },
   "retention": {
     "definition": "non-empty table rows and stable sample identifiers",
