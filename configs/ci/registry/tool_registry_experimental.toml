@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 5dea525ce2e11773ae290e5690f0f69dcec51953
+# source_commit: 4e0f77825a0093fa3d955eaabb9f2dd5b23bc784
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -491,8 +491,8 @@ tool_id = "prinseq"
 domain = "fastq"
 domains = ["fastq"]
 status = "experimental"
-stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_read_lengths"]
-bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.remove_duplicates", "fastq.trim_reads"]
+stage_ids = ["fastq.filter_reads", "fastq.filter_low_complexity", "fastq.profile_read_lengths"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths"]
 tool_role = "filter"
 version = "1.2.4"
 default_version = "1.2.4"

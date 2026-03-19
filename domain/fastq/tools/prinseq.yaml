@@ -40,9 +40,7 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
-  - "fastq.trim_reads"
   - "fastq.filter_reads"
-  - "fastq.remove_duplicates"
   - "fastq.filter_low_complexity"
   - "fastq.profile_read_lengths"
 expected_artifacts: ["report_json"]
