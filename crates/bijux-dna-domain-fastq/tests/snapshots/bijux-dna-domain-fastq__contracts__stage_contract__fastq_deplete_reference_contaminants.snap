@@ -36,7 +36,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "fastq.deplete_reference_contaminants",
   "tool_ids": [
-    "bbduk",
     "bowtie2"
   ]
 }

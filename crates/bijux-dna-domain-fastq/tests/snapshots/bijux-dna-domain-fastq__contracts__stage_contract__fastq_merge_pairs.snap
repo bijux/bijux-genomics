@@ -49,6 +49,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "pear",
     "vsearch",
     "bbmerge",
-    "flash2"
+    "flash2",
+    "leehom"
   ]
 }

@@ -46,9 +46,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.correct_errors",
   "tool_ids": [
     "rcorrector",
-    "spades",
-    "bayeshammer",
+    "musket",
     "lighter",
-    "musket"
+    "bayeshammer"
   ]
 }
