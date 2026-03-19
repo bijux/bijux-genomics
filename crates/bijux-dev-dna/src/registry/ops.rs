@@ -306,6 +306,26 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingConfigInventory,
         ),
         native(
+            "coverage-summary",
+            "Summarize llvm-cov JSON output with optional baseline and threshold checks.",
+            NativeOpsCommandKey::ToolingCoverageSummary,
+        ),
+        native(
+            "crash-triage",
+            "Print likely crash causes from a crash provenance JSON artifact.",
+            NativeOpsCommandKey::ToolingCrashTriage,
+        ),
+        native(
+            "deprecate-vcf-knob",
+            "Append a governed VCF knob deprecation entry.",
+            NativeOpsCommandKey::ToolingDeprecateVcfKnob,
+        ),
+        native(
+            "deprecate-vcf-panel",
+            "Append a governed VCF panel deprecation entry.",
+            NativeOpsCommandKey::ToolingDeprecateVcfPanel,
+        ),
+        native(
             "docs-build",
             "Build, lint, or serve the governed MkDocs site using the native control plane.",
             NativeOpsCommandKey::ToolingDocsBuild,
