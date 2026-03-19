@@ -350,6 +350,25 @@
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
+                    BenchFastqCommand::ProfileOverrepresentedSequences(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_profile_overrepresented(args)?;
+                        let outcome = bench_fastq_profile_overrepresented(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args,
+                        )?;
+                        write_overrepresented_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
                     BenchFastqCommand::Correct(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_correct(args)?;

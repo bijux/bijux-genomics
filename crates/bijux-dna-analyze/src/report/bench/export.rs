@@ -1,5 +1,6 @@
 use crate::{
     FastqDetectAdaptersMetrics, FastqIndexReferenceMetrics, FastqLowComplexityMetrics,
+    FastqOverrepresentedMetrics,
 };
 
 /// Write the validate benchmark report.
@@ -303,6 +304,33 @@ pub fn write_stats_report(
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.profile_reads", &BTreeMap::new());
+    }
+    Ok(())
+}
+
+/// Write the overrepresented-sequence benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_overrepresented_report(
+    base_dir: &Path,
+    records: &[BenchmarkRecord<FastqOverrepresentedMetrics>],
+    failures: &[RawFailure],
+    explain: bool,
+) -> Result<()> {
+    let path = base_dir.join("report.json");
+    let mut report = BTreeMap::new();
+    report.insert("records", serde_json::to_value(records)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
+    let json = serde_json::to_string_pretty(&report)?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    if explain {
+        crate::decision::score::print_rank_explain(
+            "fastq.profile_overrepresented_sequences",
+            &BTreeMap::new(),
+        );
     }
     Ok(())
 }
