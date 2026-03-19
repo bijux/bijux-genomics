@@ -28,7 +28,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.deplete_rrna`: default `sortmerna`.
 - `fastq.report_qc`: default `multiqc`.
 - `fastq.merge_pairs`: default `pear`.
-- `fastq.remove_duplicates`: default `prinseq`.
+- `fastq.remove_duplicates`: default `fastuniq`.
 - `fastq.filter_low_complexity`: default `bbduk`.
 - `fastq.deplete_host`: default `bowtie2`.
 - `fastq.deplete_reference_contaminants`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
