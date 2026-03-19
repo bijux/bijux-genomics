@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
 use regex::Regex;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
+use walkdir::WalkDir;
 
 use crate::infrastructure::process::ProcessRunner;
 use crate::infrastructure::workspace::Workspace;
@@ -4772,15 +4773,7 @@ fn check_hpc_image_naming(
     if !args.is_empty() {
         return Err(anyhow!(usage.to_string()));
     }
-    let plan = run_program_with_env(
-        workspace,
-        "./bijux-dev-dna/containers/ensure-images.sh",
-        &["--plan".to_string()],
-        &artifact_env(workspace)?,
-    )?;
-    if !plan.is_success() {
-        return Ok(plan);
-    }
+    write_ensure_images_plan_report(workspace)?;
     let cfg = workspace.path("configs/ci/tools/hpc_image_naming.toml");
     let report = workspace.path("artifacts/containers/ensure-images/report.json");
     if !cfg.exists() {
@@ -5811,27 +5804,13 @@ fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     if !allowlist.is_success() {
         return Ok(allowlist);
     }
-    let hook = run_program_with_env(
+    write_vuln_hook_report(
         workspace,
-        "./bijux-dev-dna/containers/vuln-scan-hook.sh",
-        &[
-            workspace.path("artifacts/containers/sbom").display().to_string(),
-            out.display().to_string(),
-        ],
-        &[
-            (
-                "TOOLKIT".to_string(),
-                env_or_default("TOOLKIT", "fastq_core"),
-            ),
-            (
-                "PROMOTED_ONLY".to_string(),
-                env_or_default("PROMOTED_ONLY", "1"),
-            ),
-        ],
+        &workspace.path("artifacts/containers/sbom"),
+        &out,
+        &env_or_default("TOOLKIT", "fastq_core"),
+        env_or_default("PROMOTED_ONLY", "1") == "1",
     )?;
-    if !hook.is_success() {
-        return Ok(hook);
-    }
     if !out.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
             "vuln hook: missing report {}\n",
@@ -8974,6 +8953,246 @@ fn pythonpath_with_tooling(prefix: &str) -> String {
         Ok(existing) if !existing.is_empty() => format!("{prefix}:{existing}"),
         _ => prefix.to_string(),
     }
+}
+
+fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
+    let images_toml = workspace.path("configs/ci/tools/images.toml");
+    let lock_sha_file = workspace.path("configs/ci/registry/tool_registry_lock.sha256");
+    let hpc_naming_toml = workspace.path("configs/ci/tools/hpc_image_naming.toml");
+    let out_dir = workspace.path("artifacts/containers/ensure-images");
+    let report = out_dir.join("report.json");
+    if !images_toml.is_file() || !lock_sha_file.is_file() || !hpc_naming_toml.is_file() {
+        return Err(anyhow!(
+            "ensure-images plan requires configs/ci/tools/images.toml, configs/ci/registry/tool_registry_lock.sha256, and configs/ci/tools/hpc_image_naming.toml"
+        ));
+    }
+    std::fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    let images_sha = sha256_file_hex(&images_toml)?;
+    let lock_sha = std::fs::read_to_string(&lock_sha_file)
+        .with_context(|| format!("read {}", lock_sha_file.display()))?
+        .trim()
+        .to_string();
+    let combined_sha = {
+        use sha2::{Digest, Sha256};
+        format!("{:x}", Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes()))
+    };
+    let images: toml::Value = toml::from_str(&std::fs::read_to_string(&images_toml)?)?;
+    let naming: toml::Value = toml::from_str(&std::fs::read_to_string(&hpc_naming_toml)?)?;
+    let prefix = naming
+        .get("registry_prefix")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default()
+        .trim_end_matches('/')
+        .to_string();
+    let tag_format = naming
+        .get("tag_format")
+        .and_then(toml::Value::as_str)
+        .unwrap_or_default()
+        .to_string();
+    let tool_re = Regex::new(
+        naming
+            .get("tool_regex")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default(),
+    )?;
+    let version_re = Regex::new(
+        naming
+            .get("version_regex")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default(),
+    )?;
+    let hpc_refs = images
+        .as_table()
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|(tool, meta)| {
+            let version = meta
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            (!version.is_empty() && tool_re.is_match(&tool) && version_re.is_match(&version))
+                .then(|| {
+                    let tag = tag_format
+                        .replace("{tool}", &tool)
+                        .replace("{version}", &version);
+                    serde_json::json!({
+                        "tool": tool,
+                        "version": version,
+                        "hpc_image_ref": format!("{prefix}/{tool}:{tag}"),
+                    })
+                })
+        })
+        .collect::<Vec<_>>();
+    write_utf8(
+        &report,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.containers.ensure_images.v3",
+                "action": "plan",
+                "reason": "native-control-plane",
+                "images_toml": "configs/ci/tools/images.toml",
+                "hpc_naming_toml": "configs/ci/tools/hpc_image_naming.toml",
+                "tool_registry_lock": "configs/ci/registry/tool_registry_lock.sha256",
+                "images_sha": images_sha,
+                "lock_sha": lock_sha,
+                "combined_sha": combined_sha,
+                "selected_tools": [],
+                "hpc_image_refs": hpc_refs,
+            }))?
+        ),
+    )?;
+    Ok(())
+}
+
+fn write_vuln_hook_report(
+    workspace: &Workspace,
+    sbom_root: &Path,
+    out: &Path,
+    toolkit: &str,
+    promoted_only: bool,
+) -> Result<()> {
+    let scanner = if command_exists("grype") {
+        Some("grype")
+    } else if command_exists("trivy") {
+        Some("trivy")
+    } else {
+        None
+    };
+    let mut allowed_tools = BTreeSet::new();
+    if promoted_only {
+        for (tool, row) in lock_items_by_tool(workspace)? {
+            if row.get("status").and_then(serde_json::Value::as_str) == Some("production") {
+                allowed_tools.insert(tool);
+            }
+        }
+    }
+    if !toolkit.trim().is_empty() {
+        let bundle_tools = resolve_toolkit_tools(workspace, toolkit)?
+            .split(',')
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<BTreeSet<_>>();
+        if allowed_tools.is_empty() {
+            allowed_tools = bundle_tools;
+        } else {
+            allowed_tools = allowed_tools
+                .intersection(&bundle_tools)
+                .cloned()
+                .collect::<BTreeSet<_>>();
+        }
+    }
+    let per_tool_dir = workspace.path("artifacts/containers/vuln");
+    std::fs::create_dir_all(&per_tool_dir)
+        .with_context(|| format!("create {}", per_tool_dir.display()))?;
+    let mut rows = Vec::new();
+    for entry in WalkDir::new(sbom_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
+            || !entry
+                .path()
+                .file_name()
+                .and_then(|value| value.to_str())
+                .map(|name| name.ends_with(".packages.txt"))
+                .unwrap_or(false)
+        {
+            continue;
+        }
+        let tool = entry
+            .path()
+            .parent()
+            .and_then(|parent| parent.file_name())
+            .and_then(|value| value.to_str())
+            .unwrap_or_default()
+            .to_string();
+        if !allowed_tools.is_empty() && !allowed_tools.contains(&tool) {
+            continue;
+        }
+        let mut row = serde_json::json!({
+            "sbom": entry.path().display().to_string(),
+            "scanner": scanner.unwrap_or("none"),
+            "status": "not_scanned",
+            "summary": "",
+            "tool": tool,
+        });
+        if let Some(scanner) = scanner {
+            let output = if scanner == "grype" {
+                std::process::Command::new("grype")
+                    .args([format!("sbom:{}", entry.path().display()), "-o".to_string(), "json".to_string()])
+                    .current_dir(&workspace.root)
+                    .output()
+            } else {
+                std::process::Command::new("trivy")
+                    .args([
+                        "sbom".to_string(),
+                        "--format".to_string(),
+                        "json".to_string(),
+                        entry.path().display().to_string(),
+                    ])
+                    .current_dir(&workspace.root)
+                    .output()
+            }
+            .with_context(|| format!("run {scanner} for {}", entry.path().display()))?;
+            let summary = if !output.stdout.is_empty() {
+                String::from_utf8_lossy(&output.stdout)
+                    .chars()
+                    .take(2000)
+                    .collect::<String>()
+            } else {
+                String::from_utf8_lossy(&output.stderr)
+                    .chars()
+                    .take(500)
+                    .collect::<String>()
+            };
+            row["status"] = serde_json::Value::String(if output.status.success() {
+                "ok".to_string()
+            } else {
+                "error".to_string()
+            });
+            row["summary"] = serde_json::Value::String(summary);
+        }
+        let tool_name = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown");
+        write_utf8(
+            &per_tool_dir.join(format!("{tool_name}.json")),
+            &format!("{}\n", serde_json::to_string_pretty(&row)?),
+        )?;
+        rows.push(row);
+    }
+    write_utf8(
+        out,
+        &format!(
+            "{}\n",
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema_version": "bijux.container.vuln_hook.v1",
+                "scanner": scanner.unwrap_or("none"),
+                "toolkit": if toolkit.trim().is_empty() { "all" } else { toolkit },
+                "promoted_only": promoted_only,
+                "items": rows,
+            }))?
+        ),
+    )?;
+    Ok(())
+}
+
+fn command_exists(program: &str) -> bool {
+    std::process::Command::new(program)
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
+}
+
+fn sha256_file_hex(path: &Path) -> Result<String> {
+    Ok(sha256_hex(
+        &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
+    ))
 }
 
 fn merge_outcomes(
