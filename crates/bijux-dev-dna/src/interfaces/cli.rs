@@ -7,7 +7,8 @@ use crate::application::domain::DomainApplication;
 use crate::application::ops::OpsApplication;
 use crate::model::check::{CheckSelection, CheckStatus};
 use crate::registry::ops::{
-    docs_registry, examples_registry, hpc_registry, lab_registry, smoke_registry, test_registry,
+    assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry,
+    smoke_registry, test_registry,
 };
 
 #[derive(Parser, Debug)]
@@ -22,6 +23,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Command {
+    Assets(OpsCommand),
     Checks(ChecksCommand),
     Containers(ContainersCommand),
     Domain(DomainCommand),
@@ -102,6 +104,7 @@ enum OpsSubcommand {
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
+        Command::Assets(command) => run_ops(command, assets_registry),
         Command::Checks(command) => run_checks(command),
         Command::Containers(command) => run_containers(command),
         Command::Domain(command) => run_domain(command),

@@ -12,6 +12,9 @@ pub enum OpsCommandSpec {
 
 #[derive(Debug, Clone, Copy)]
 pub enum NativeOpsCommandKey {
+    AssetsRefreshGolden,
+    AssetsRefreshToy,
+    AssetsValidateReference,
     DocsCheckDocAssets,
     DocsCheckDocDepth,
     DocsCheckDocLinks,

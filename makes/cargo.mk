@@ -356,10 +356,10 @@ _examples-validate:
 	./scripts/run.sh checks check-examples-policy
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@./scripts/run.sh assets refresh-toy
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-toy
 
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@./scripts/run.sh assets refresh-golden
+	@cargo run -q -p bijux-dev-dna -- assets run refresh-golden
 
 .PHONY: fmt lint lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-scripts test test-fast audit coverage ci doctor _check _verify-artifact-env \
 		_clean-artifact-scratch \

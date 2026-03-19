@@ -201,7 +201,6 @@ pub(crate) fn check_script_arg_style(
         "scripts/run.sh",
         "scripts/tooling/benchmarks.sh",
         "scripts/tooling/cargo-targets.sh",
-        "scripts/assets/make.sh",
         "scripts/tooling/make.sh",
         "scripts/tooling/coverage_summary.sh",
     ];

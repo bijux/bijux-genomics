@@ -1,6 +1,27 @@
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandDefinition, OpsCommandSpec};
 
 #[must_use]
+pub fn assets_registry() -> Vec<OpsCommandDefinition> {
+    vec![
+        native(
+            "refresh-golden",
+            "Regenerate deterministic toy-run golden bundles under assets/golden.",
+            NativeOpsCommandKey::AssetsRefreshGolden,
+        ),
+        native(
+            "refresh-toy",
+            "Regenerate deterministic toy fixtures under assets/toy.",
+            NativeOpsCommandKey::AssetsRefreshToy,
+        ),
+        native(
+            "validate-reference",
+            "Validate governed reference bank schema contracts under assets/reference.",
+            NativeOpsCommandKey::AssetsValidateReference,
+        ),
+    ]
+}
+
+#[must_use]
 pub fn docs_registry() -> Vec<OpsCommandDefinition> {
     vec![
         native(
