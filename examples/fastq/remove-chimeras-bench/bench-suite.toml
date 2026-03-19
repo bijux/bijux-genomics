@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-remove-chimeras-01"
+domain = "fastq"
+stages = ["fastq.remove_chimeras"]

@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-remove-duplicates-01"
+domain = "fastq"
+stages = ["fastq.remove_duplicates"]
