@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: b9d1314d81496edeffc5ddf1ea6f7527406d4a78
+# source_commit: 295cab84ffed1361d219c4fb19c716cf53135a64
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -186,9 +186,6 @@ version = "latest-pinned"
 
 [pydamage]
 version = "1.0.0"
-
-[qualimap]
-version = "latest-pinned"
 
 [rcorrector]
 version = "latest-pinned"
