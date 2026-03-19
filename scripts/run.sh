@@ -133,7 +133,7 @@ elif [[ "$group" == "assets" ]]; then
   cargo run -p bijux-dev-dna -- assets run "$command" -- "$@" || rc=$?
 elif [[ "$group" == "tooling" ]]; then
   case "$command" in
-    acquire-maps|acquire-panels|acquire-reference|benchmark-integrity-mini|benchmarks|check-config-paths|check-config-snapshot|clean-docs|config-inventory|coverage-summary|crash-triage|deprecate-vcf-knob|deprecate-vcf-panel|generate-compatibility-matrix|generate-config-tree-snapshot|generate-docs|generate-docs-graph|generate-domain-coverage-doc|generate-panel-compatibility-matrix|generate-policy-index|generate-repo-root-map|generate-tool-index|inventory|make-help|repo-doctor|simulate-coverage-regime|validate-frontend-mini-domain-stacks)
+    acquire-maps|acquire-panels|acquire-reference|benchmark-integrity-mini|benchmarks|bijux|cargo-targets|certification-gate|certify-all|certify-bam|certify-domains|certify-fastq|certify-vcf|check-config-paths|check-config-snapshot|ci-audit|ci-clippy|ci-clippy-executors|ci-coverage|ci-fast|ci-fmt|ci-install-tools|ci-slow|ci-test|ci-test-slow|clean-docs|config-inventory|coverage-summary|crash-triage|deprecate-vcf-knob|deprecate-vcf-panel|docs-build|flake-hunt|generate-compatibility-matrix|generate-config-tree-snapshot|generate-configs|generate-docs|generate-docs-graph|generate-domain-coverage-doc|generate-panel-compatibility-matrix|generate-policy-index|generate-repo-root-map|generate-tool-index|image-qa|inventory|lint-fast|make-help|repo-doctor|setup-docs-venv|simulate-coverage-regime|validate-frontend-mini-domain-stacks)
       cargo run -p bijux-dev-dna -- tooling run "$command" -- "$@" || rc=$?
       ;;
     *)
