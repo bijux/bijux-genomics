@@ -640,6 +640,74 @@ pub fn bench_args_preprocess(
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::resolve_stage_tool;
+    use crate::commands::cli::parse::{CommonArgs, DnaCommand, FastqCommand};
+
+    #[test]
+    fn fastq_command_routing_uses_canonical_stage_ids() {
+        let cases = [
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Filter(crate::commands::cli::parse::FastqFilterArgs {
+                        common: CommonArgs::default(),
+                        sample_id: None,
+                        r1: None,
+                        out: None,
+                        tools: Vec::new(),
+                        max_n: None,
+                        low_complexity_threshold: None,
+                        kmer_ref: None,
+                    }),
+                },
+                "fastq.filter_reads",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Merge(CommonArgs::default()),
+                },
+                "fastq.merge_pairs",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Contam(CommonArgs::default()),
+                },
+                "fastq.deplete_reference_contaminants",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Umi(CommonArgs::default()),
+                },
+                "fastq.extract_umis",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::ErrorCorrect(CommonArgs::default()),
+                },
+                "fastq.correct_errors",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Qc(CommonArgs::default()),
+                },
+                "fastq.report_qc",
+            ),
+            (
+                DnaCommand::Fastq {
+                    command: FastqCommand::Align(CommonArgs::default()),
+                },
+                "fastq.index_reference",
+            ),
+        ];
+
+        for (command, expected_stage) in cases {
+            let (stage, _tool, _common) = resolve_stage_tool(&command);
+            assert_eq!(stage.as_str(), expected_stage);
+        }
+    }
+}
+
 /// # Errors
 /// Returns an error if CLI arguments are invalid for benchmarking.
 pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFastqTrimArgs> {
