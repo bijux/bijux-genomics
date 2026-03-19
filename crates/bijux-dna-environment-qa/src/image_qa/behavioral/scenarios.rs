@@ -6,7 +6,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::ImageQaOutcome;
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
+    STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
 };
 use uuid::Uuid;
 
@@ -271,7 +271,7 @@ fn qa_merge_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_MERGE.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_MERGE_PAIRS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -338,7 +338,7 @@ fn qa_correct_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_CORRECT.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_CORRECT_ERRORS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;

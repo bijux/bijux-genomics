@@ -102,14 +102,14 @@ fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     match stage_id {
         "fastq.validate_reads"
         | "fastq.detect_adapters"
-        | "fastq.damage_aware_pretrim"
+        | "fastq.trim_terminal_damage"
         | "fastq.trim_reads"
-        | "fastq.merge"
-        | "fastq.deduplicate"
-        | "fastq.correct"
+        | "fastq.merge_pairs"
+        | "fastq.remove_duplicates"
+        | "fastq.correct_errors"
         | "fastq.filter_reads"
-        | "fastq.low_complexity"
-        | "fastq.polyg_tailing"
+        | "fastq.filter_low_complexity"
+        | "fastq.trim_polyg_tails"
         | "fastq.screen_taxonomy" => NetworkPolicy::Forbid,
         _ => NetworkPolicy::Allow,
     }
@@ -120,17 +120,17 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.validate_reads" => &["fastqvalidator", "fqtools", "seqtk", "seqkit"],
         "fastq.detect_adapters" => &["fastp", "fastqc"],
         "fastq.trim_reads" => &["adapterremoval", "cutadapt", "atropos", "fastp", "bbduk", "trimmomatic"],
-        "fastq.damage_aware_pretrim" => &["cutadapt", "seqkit"],
-        "fastq.merge" => &["bbmerge", "flash2", "leehom", "pear"],
-        "fastq.deduplicate" => &["clumpify", "fastuniq", "prinseq"],
-        "fastq.correct" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
+        "fastq.trim_terminal_damage" => &["cutadapt", "seqkit"],
+        "fastq.merge_pairs" => &["bbmerge", "flash2", "leehom", "pear"],
+        "fastq.remove_duplicates" => &["clumpify", "fastuniq", "prinseq"],
+        "fastq.correct_errors" => &["lighter", "rcorrector", "musket", "spades", "bayeshammer"],
         "fastq.filter_reads" => &["bbduk", "fastp", "prinseq", "seqkit"],
-        "fastq.low_complexity" => &["bbduk", "prinseq", "dustmasker"],
-        "fastq.polyg_tailing" => &["fastp", "bbduk"],
+        "fastq.filter_low_complexity" => &["bbduk", "prinseq", "dustmasker"],
+        "fastq.trim_polyg_tails" => &["fastp", "bbduk"],
         "fastq.screen_taxonomy" => &["kraken2", "bracken", "centrifuge", "kaiju", "metaphlan", "krakenuniq", "fastq_screen"],
-        "fastq.contaminant_screen" => &["bbduk", "bowtie2"],
-        "fastq.rrna" => &["sortmerna"],
-        "fastq.host_depletion" => &["bowtie2", "samtools"],
+        "fastq.deplete_reference_contaminants" => &["bbduk", "bowtie2"],
+        "fastq.deplete_rrna" => &["sortmerna"],
+        "fastq.deplete_host" => &["bowtie2", "samtools"],
         "fastq.primer_normalization" => &["cutadapt"],
         "fastq.chimera_detection" | "fastq.otu_clustering" => &["vsearch"],
         "fastq.asv_inference" => &["dada2"],
@@ -175,7 +175,7 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
     let stage = planned.step_id.as_str();
     if !matches!(
         stage,
-        "fastq.screen_taxonomy" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
+        "fastq.screen_taxonomy" | "fastq.deplete_rrna" | "fastq.deplete_host" | "fastq.deplete_reference_contaminants"
     ) {
         return Ok(());
     }
@@ -198,22 +198,22 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.validate_reads" => &["schema_version", "stage", "strict_pass"],
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
         "fastq.trim_reads" => &["schema_version", "stage", "tool", "input_reads", "output_reads"],
-        "fastq.damage_aware_pretrim" => &[
+        "fastq.trim_terminal_damage" => &[
             "schema_version",
             "stage",
             "udg_classification",
             "ct_ga_asymmetry_pre",
             "ct_ga_asymmetry_post",
         ],
-        "fastq.merge" => &["schema_version", "stage", "tool", "paired_input", "merged_output"],
-        "fastq.deduplicate" => &["schema_version", "stage", "tool", "duplicates_removed"],
-        "fastq.correct" => &["schema_version", "stage", "tool", "corrected_reads"],
+        "fastq.merge_pairs" => &["schema_version", "stage", "tool", "paired_input", "merged_output"],
+        "fastq.remove_duplicates" => &["schema_version", "stage", "tool", "duplicates_removed"],
+        "fastq.correct_errors" => &["schema_version", "stage", "tool", "corrected_reads"],
         "fastq.filter_reads" => &["schema_version", "stage", "tool", "filtered_reads"],
-        "fastq.low_complexity" => &["schema_version", "stage", "tool", "low_complexity_removed"],
-        "fastq.polyg_tailing" => &["schema_version", "stage", "tool", "trimmed_reads"],
+        "fastq.filter_low_complexity" => &["schema_version", "stage", "tool", "low_complexity_removed"],
+        "fastq.trim_polyg_tails" => &["schema_version", "stage", "tool", "trimmed_reads"],
         "fastq.screen_taxonomy" => &["schema_version", "stage", "tool", "taxonomy_profile"],
-        "fastq.contaminant_screen" => &["schema_version", "stage", "tool", "screening_results"],
-        "fastq.host_depletion" => &["schema_version", "stage", "tool", "host_removed_fraction"],
+        "fastq.deplete_reference_contaminants" => &["schema_version", "stage", "tool", "screening_results"],
+        "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
         _ => &["schema_version", "stage"],
     }
 }

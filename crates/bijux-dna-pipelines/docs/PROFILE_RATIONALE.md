@@ -27,7 +27,7 @@ This document defines what the FASTQ profile layer guarantees and how
 ## aDNA guarantees (`invariants_preset = "adna"`)
 
 - Includes all base FASTQ stages.
-- Includes `fastq.merge` for paired-end short-fragment overlap handling.
+- Includes `fastq.merge_pairs` for paired-end short-fragment overlap handling.
 - Uses aDNA-safe trimming defaults:
   - `trim.min_len > 0`
   - `trim.adapter_policy != "none"`
@@ -38,7 +38,7 @@ This document defines what the FASTQ profile layer guarantees and how
   - `merge.merge_overlap` set
 - Tool compatibility constraints:
   - `fastq.trim_reads` tool must be one of `{adapterremoval, leehom}`
-  - `fastq.merge` tool must be `leehom`
+  - `fastq.merge_pairs` tool must be `leehom`
 
 ## Validation API
 
@@ -99,7 +99,7 @@ Use `validate_bam_profile(profile)` to get a structured `BamProfileValidationRep
 Profile: `fastq-to-fastq__reference_adna__v1`
 
 Guarantees:
-- Required stages: `fastq.validate_reads`, `fastq.detect_adapters`, `fastq.trim_reads`, `fastq.low_complexity`, `fastq.merge`, `fastq.filter_reads`, `fastq.profile_reads`, `fastq.report_qc`.
+- Required stages: `fastq.validate_reads`, `fastq.detect_adapters`, `fastq.trim_reads`, `fastq.filter_low_complexity`, `fastq.merge_pairs`, `fastq.filter_reads`, `fastq.profile_reads`, `fastq.report_qc`.
 - aDNA trimming invariants: `trim.min_len > 0`, `trim.adapter_policy != none`, quality trimming enabled, poly-X trimming enabled.
 - Pairing/library declaration: preprocess params must declare paired library mode; paired libraries require merge unless explicitly disabled.
 - Optional contamination screen hook: if `fastq.screen_taxonomy` is enabled, `contaminant_db` must be declared.
@@ -107,7 +107,7 @@ Guarantees:
 Metrics expectations:
 - `fastq.profile_reads` includes read-length and GC distributions.
 - `fastq.detect_adapters` and `fastq.report_qc` include overrepresented-sequence counts derived from FastQC data.
-- `fastq.low_complexity` is used as a pre-alignment complexity/duplication proxy estimate stage.
+- `fastq.filter_low_complexity` is used as a pre-alignment complexity/duplication proxy estimate stage.
 
 ## Scientific rigor additions
 

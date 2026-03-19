@@ -121,18 +121,18 @@ fn fastq_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json:
         if id == "fastq.report_qc" {
             post_qc_stages += 1;
         }
-        if id == "fastq.screen_taxonomy" || id == "fastq.contaminant_screen" || id == "fastq.rrna" {
+        if id == "fastq.screen_taxonomy" || id == "fastq.deplete_reference_contaminants" || id == "fastq.deplete_rrna" {
             classification_stages += 1;
         }
         if matches!(
             id,
             "fastq.trim_reads"
                 | "fastq.filter_reads"
-                | "fastq.correct"
-                | "fastq.merge"
-                | "fastq.deduplicate"
-                | "fastq.umi"
-                | "fastq.host_depletion"
+                | "fastq.correct_errors"
+                | "fastq.merge_pairs"
+                | "fastq.remove_duplicates"
+                | "fastq.extract_umis"
+                | "fastq.deplete_host"
                 | "fastq.primer_normalization"
                 | "fastq.chimera_detection"
                 | "fastq.asv_inference"

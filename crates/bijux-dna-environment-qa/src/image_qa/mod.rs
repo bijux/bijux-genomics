@@ -20,8 +20,8 @@ pub use validation::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use std::path::PathBuf;
 
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS,
-    STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
+    STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS,
+    STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,10 +43,10 @@ impl QaStage {
             QaStage::Trim => STAGE_TRIM_READS.clone(),
             QaStage::Validate => STAGE_VALIDATE_READS.clone(),
             QaStage::Filter => STAGE_FILTER_READS.clone(),
-            QaStage::Merge => STAGE_MERGE.clone(),
-            QaStage::Correct => STAGE_CORRECT.clone(),
+            QaStage::Merge => STAGE_MERGE_PAIRS.clone(),
+            QaStage::Correct => STAGE_CORRECT_ERRORS.clone(),
             QaStage::ReportQc => STAGE_REPORT_QC.clone(),
-            QaStage::Umi => STAGE_UMI.clone(),
+            QaStage::Umi => STAGE_EXTRACT_UMIS.clone(),
             QaStage::Stats => STAGE_PROFILE_READS.clone(),
             QaStage::Screen => STAGE_SCREEN_TAXONOMY.clone(),
         }

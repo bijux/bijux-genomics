@@ -42,13 +42,13 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_filter_v2")
     } else if stage == &bijux_dna_domain_fastq::STAGE_PROFILE_READS {
         Some("bench_fastq_stats_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_MERGE {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_MERGE_PAIRS {
         Some("bench_fastq_merge_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_CORRECT {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS {
         Some("bench_fastq_correct_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_REPORT_QC {
         Some("bench_fastq_qc_post_v1")
-    } else if stage == &bijux_dna_domain_fastq::STAGE_UMI {
+    } else if stage == &bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS {
         Some("bench_fastq_umi_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY {
         Some("bench_fastq_screen_v1")

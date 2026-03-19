@@ -16,16 +16,16 @@ fn stage_output_bank_has_all_fastq_stage_files() {
         "fastq.trim_reads.fastp.txt",
         "fastq.validate_reads.seqkit.tsv",
         "fastq.filter_reads.prinseq.txt",
-        "fastq.merge.flash2.txt",
-        "fastq.deduplicate.clumpify.txt",
-        "fastq.deduplicate.fastuniq.txt",
-        "fastq.deduplicate.prinseq.txt",
-        "fastq.low_complexity.bbduk.txt",
-        "fastq.low_complexity.dustmasker.txt",
-        "fastq.low_complexity.prinseq.txt",
-        "fastq.correct.rcorrector.txt",
+        "fastq.merge_pairs.flash2.txt",
+        "fastq.remove_duplicates.clumpify.txt",
+        "fastq.remove_duplicates.fastuniq.txt",
+        "fastq.remove_duplicates.prinseq.txt",
+        "fastq.filter_low_complexity.bbduk.txt",
+        "fastq.filter_low_complexity.dustmasker.txt",
+        "fastq.filter_low_complexity.prinseq.txt",
+        "fastq.correct_errors.rcorrector.txt",
         "fastq.report_qc.multiqc.txt",
-        "fastq.umi.umi_tools.txt",
+        "fastq.extract_umis.umi_tools.txt",
         "fastq.profile_reads.seqkit.txt",
         "fastq.screen_taxonomy.fastq_screen.tsv",
     ];
@@ -44,9 +44,9 @@ fn stage_output_bank_has_all_fastq_stage_files() {
 #[test]
 fn deduplicate_fixture_invariants_parse_metrics() -> Result<()> {
     let fixtures = [
-        include_str!("../../fixtures/stage_output_bank/default/fastq.deduplicate.fastuniq.txt"),
-        include_str!("../../fixtures/stage_output_bank/default/fastq.deduplicate.clumpify.txt"),
-        include_str!("../../fixtures/stage_output_bank/default/fastq.deduplicate.prinseq.txt"),
+        include_str!("../../fixtures/stage_output_bank/default/fastq.remove_duplicates.fastuniq.txt"),
+        include_str!("../../fixtures/stage_output_bank/default/fastq.remove_duplicates.clumpify.txt"),
+        include_str!("../../fixtures/stage_output_bank/default/fastq.remove_duplicates.prinseq.txt"),
     ];
     for raw in fixtures {
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
@@ -60,11 +60,11 @@ fn deduplicate_fixture_invariants_parse_metrics() -> Result<()> {
 #[test]
 fn low_complexity_fixture_invariants_parse_metrics() -> Result<()> {
     let fixtures = [
-        include_str!("../../fixtures/stage_output_bank/default/fastq.low_complexity.bbduk.txt"),
+        include_str!("../../fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"),
         include_str!(
-            "../../fixtures/stage_output_bank/default/fastq.low_complexity.dustmasker.txt"
+            "../../fixtures/stage_output_bank/default/fastq.filter_low_complexity.dustmasker.txt"
         ),
-        include_str!("../../fixtures/stage_output_bank/default/fastq.low_complexity.prinseq.txt"),
+        include_str!("../../fixtures/stage_output_bank/default/fastq.filter_low_complexity.prinseq.txt"),
     ];
     for raw in fixtures {
         let removed = parse_low_complexity_report(raw)?;

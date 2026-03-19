@@ -98,7 +98,7 @@ pub(crate) fn qa_umi_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, STAGE_UMI.as_str(), tool)?;
+    let contract = tool_contract(registry, STAGE_EXTRACT_UMIS.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -255,7 +255,7 @@ use anyhow::{anyhow, Context, Result};
 use uuid::Uuid;
 
 use bijux_dna_core::contract::ToolRegistry;
-use bijux_dna_domain_fastq::{STAGE_REPORT_QC, STAGE_PROFILE_READS, STAGE_UMI};
+use bijux_dna_domain_fastq::{STAGE_REPORT_QC, STAGE_PROFILE_READS, STAGE_EXTRACT_UMIS};
 
 use crate::api::{PlatformSpec, ToolImageSpec};
 use crate::image_qa::fs::temp_out_dir;

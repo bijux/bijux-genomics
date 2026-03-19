@@ -355,7 +355,7 @@ fn golden_run_report_snapshot_tool_failure() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-2".to_string(),
-        stage_id: "fastq.merge".to_string(),
+        stage_id: "fastq.merge_pairs".to_string(),
         tool_id: "pear".to_string(),
         tool_version: "0.9".to_string(),
         image_digest: Some("sha256:img2".to_string()),

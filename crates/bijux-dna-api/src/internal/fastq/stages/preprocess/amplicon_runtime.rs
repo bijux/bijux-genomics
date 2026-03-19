@@ -14,13 +14,13 @@ fn materialize_amplicon_stage_outputs(
     bijux_dna_infra::ensure_dir(out_dir)?;
     let mut payload = serde_json::json!({});
     match stage_id {
-        "fastq.damage_aware_pretrim" => {
+        "fastq.trim_terminal_damage" => {
             if std::env::var("BIJUX_ALIGNER_EXPECTS_UNTRIMMED")
                 .ok()
                 .is_some_and(|v| v == "1")
             {
                 return Err(anyhow!(
-                    "fastq.damage_aware_pretrim refusal: downstream aligner expects untrimmed reads; set BIJUX_ALIGNER_EXPECTS_UNTRIMMED=0 or disable stage"
+                    "fastq.trim_terminal_damage refusal: downstream aligner expects untrimmed reads; set BIJUX_ALIGNER_EXPECTS_UNTRIMMED=0 or disable stage"
                 ));
             }
             let primary = outputs
@@ -71,7 +71,7 @@ fn materialize_amplicon_stage_outputs(
             bijux_dna_infra::atomic_write_json(
                 &stage_root.join("refusal_cases.json"),
                 &serde_json::json!({
-                    "schema_version": "bijux.fastq.damage_aware_pretrim.refusals.v1",
+                    "schema_version": "bijux.fastq.trim_terminal_damage.refusals.v1",
                     "stage_id": stage_id,
                     "cases": [
                         {
@@ -361,7 +361,7 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
     }
     if matches!(
         stage_id,
-        "fastq.damage_aware_pretrim"
+        "fastq.trim_terminal_damage"
             | "fastq.primer_normalization"
             | "fastq.chimera_detection"
             | "fastq.otu_clustering"

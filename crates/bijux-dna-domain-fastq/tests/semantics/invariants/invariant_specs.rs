@@ -189,7 +189,7 @@ fn fixture_for_invariant(id: &str) -> (String, serde_json::Value, serde_json::Va
             effective_params_trim(),
         ),
         "merge_rate_range" => (
-            "fastq.merge".to_string(),
+            "fastq.merge_pairs".to_string(),
             serde_json::to_value(merge_metrics(1.5)).unwrap(),
             effective_params_merge(),
         ),

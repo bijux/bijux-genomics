@@ -22,7 +22,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.damage_aware_pretrim",
+        stage_id: "fastq.trim_terminal_damage",
         schema: "fastq_trim_v2",
         version: 2,
     },
@@ -32,22 +32,22 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 2,
     },
     MetricsSchemaId {
-        stage_id: "fastq.deduplicate",
+        stage_id: "fastq.remove_duplicates",
         schema: "fastq_deduplicate_v1",
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.low_complexity",
+        stage_id: "fastq.filter_low_complexity",
         schema: "fastq_low_complexity_v1",
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.merge",
+        stage_id: "fastq.merge_pairs",
         schema: "fastq_merge_v1",
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.correct",
+        stage_id: "fastq.correct_errors",
         schema: "fastq_correct_v1",
         version: 1,
     },
@@ -57,7 +57,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.umi",
+        stage_id: "fastq.extract_umis",
         schema: "fastq_umi_v1",
         version: 1,
     },
@@ -67,7 +67,7 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.rrna",
+        stage_id: "fastq.deplete_rrna",
         schema: "fastq_filter_v2",
         version: 2,
     },

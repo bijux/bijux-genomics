@@ -6,4 +6,4 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `fastq.merge` via `pear` (0.9)
+- `fastq.merge_pairs` via `pear` (0.9)

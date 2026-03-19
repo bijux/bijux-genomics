@@ -133,8 +133,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_DETECT_INVARIANTS,
             notes: "Adapter detection inspects reads and reports adapter signals.",
         }),
-        "fastq.damage_aware_pretrim" => Some(StageMetricSpec {
-            stage: "fastq.damage_aware_pretrim",
+        "fastq.trim_terminal_damage" => Some(StageMetricSpec {
+            stage: "fastq.trim_terminal_damage",
             classes: &FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES,
             invariants: &FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS,
             notes: "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order.",
@@ -151,26 +151,26 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_FILTER_INVARIANTS,
             notes: "Filter drops reads and should improve quality.",
         }),
-        "fastq.deduplicate" => Some(StageMetricSpec {
-            stage: "fastq.deduplicate",
+        "fastq.remove_duplicates" => Some(StageMetricSpec {
+            stage: "fastq.remove_duplicates",
             classes: &FASTQ_DEDUPLICATE_CLASSES,
             invariants: &FASTQ_DEDUPLICATE_INVARIANTS,
             notes: "Deduplication removes duplicate reads while preserving pair semantics.",
         }),
-        "fastq.low_complexity" => Some(StageMetricSpec {
-            stage: "fastq.low_complexity",
+        "fastq.filter_low_complexity" => Some(StageMetricSpec {
+            stage: "fastq.filter_low_complexity",
             classes: &FASTQ_FILTER_CLASSES,
             invariants: &FASTQ_FILTER_INVARIANTS,
             notes: "Low-complexity filtering drops reads based on entropy/polyN/polyX signals.",
         }),
-        "fastq.merge" => Some(StageMetricSpec {
-            stage: "fastq.merge",
+        "fastq.merge_pairs" => Some(StageMetricSpec {
+            stage: "fastq.merge_pairs",
             classes: &FASTQ_MERGE_CLASSES,
             invariants: &FASTQ_MERGE_INVARIANTS,
             notes: "Merge produces merged/unmerged reads from pairs.",
         }),
-        "fastq.correct" => Some(StageMetricSpec {
-            stage: "fastq.correct",
+        "fastq.correct_errors" => Some(StageMetricSpec {
+            stage: "fastq.correct_errors",
             classes: &FASTQ_CORRECT_CLASSES,
             invariants: &FASTQ_CORRECT_INVARIANTS,
             notes: "Correct should preserve reads while improving quality.",
@@ -181,8 +181,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_QC_POST_INVARIANTS,
             notes: "Post-QC reports quality and contamination signals.",
         }),
-        "fastq.umi" => Some(StageMetricSpec {
-            stage: "fastq.umi",
+        "fastq.extract_umis" => Some(StageMetricSpec {
+            stage: "fastq.extract_umis",
             classes: &FASTQ_UMI_CLASSES,
             invariants: &FASTQ_UMI_INVARIANTS,
             notes: "UMI processing may drop reads during deduplication.",
@@ -193,8 +193,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_SCREEN_INVARIANTS,
             notes: "Screening reports contamination only.",
         }),
-        "fastq.rrna" => Some(StageMetricSpec {
-            stage: "fastq.rrna",
+        "fastq.deplete_rrna" => Some(StageMetricSpec {
+            stage: "fastq.deplete_rrna",
             classes: &FASTQ_RRNA_CLASSES,
             invariants: &FASTQ_RRNA_INVARIANTS,
             notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",

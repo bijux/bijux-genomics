@@ -21,15 +21,15 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "trim_galore",
             "seqpurge",
         ],
-        "fastq.damage_aware_pretrim" | "fastq.primer_normalization" => {
+        "fastq.trim_terminal_damage" | "fastq.primer_normalization" => {
             vec!["cutadapt", "seqkit"]
         }
         "fastq.filter_reads" => vec!["prinseq", "seqkit", "fastp"],
-        "fastq.deduplicate" => vec!["fastuniq", "clumpify", "prinseq"],
-        "fastq.low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
-        "fastq.polyg_tailing" => vec!["fastp", "bbduk"],
-        "fastq.host_depletion" => vec!["bowtie2", "samtools"],
-        "fastq.contaminant_screen" => vec!["bbduk", "bowtie2"],
+        "fastq.remove_duplicates" => vec!["fastuniq", "clumpify", "prinseq"],
+        "fastq.filter_low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
+        "fastq.trim_polyg_tails" => vec!["fastp", "bbduk"],
+        "fastq.deplete_host" => vec!["bowtie2", "samtools"],
+        "fastq.deplete_reference_contaminants" => vec!["bbduk", "bowtie2"],
         "fastq.profile_read_lengths" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
         "fastq.profile_overrepresented_sequences" => vec!["fastqc", "fastq_scan", "seqkit"],
         "fastq.chimera_detection" | "fastq.otu_clustering" => vec!["vsearch"],
@@ -43,9 +43,9 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "fqtools",
         ],
         "fastq.detect_adapters" => vec!["fastp"],
-        "fastq.merge" => vec!["pear", "vsearch", "bbmerge", "flash2"],
-        "fastq.correct" => vec!["rcorrector", "spades", "bayeshammer", "lighter", "musket"],
-        "fastq.umi" => vec!["umi_tools"],
+        "fastq.merge_pairs" => vec!["pear", "vsearch", "bbmerge", "flash2"],
+        "fastq.correct_errors" => vec!["rcorrector", "spades", "bayeshammer", "lighter", "musket"],
+        "fastq.extract_umis" => vec!["umi_tools"],
         "fastq.profile_reads" => vec!["seqkit_stats"],
         "fastq.report_qc" => vec!["multiqc"],
         "fastq.screen_taxonomy" => vec![
@@ -56,7 +56,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "fastq_screen",
         ],
         "fastq.prepare_reference" => vec!["star", "samtools"],
-        "fastq.rrna" => vec!["sortmerna"],
+        "fastq.deplete_rrna" => vec!["sortmerna"],
         _ => Vec::new(),
     }
 }
@@ -99,7 +99,7 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
             "orientation_policy": "normalize_to_primer_forward_orientation",
             "primer_assumptions": ["primer_set_declared", "primer_match_confidence>=0.9"],
         })),
-        "fastq.damage_aware_pretrim" => Some(serde_json::json!({
+        "fastq.trim_terminal_damage" => Some(serde_json::json!({
             "damage_policy": "terminal_mask_or_trim",
             "udg_classification": "configured_or_inferred",
             "aligner_compatibility": "refuse_if_requested_output_breaks_downstream_expectations",
@@ -145,16 +145,16 @@ pub struct NormalizedOutputs {
 pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     match stage_id {
         "fastq.trim_reads"
-        | "fastq.damage_aware_pretrim"
+        | "fastq.trim_terminal_damage"
         | "fastq.filter_reads"
         | "fastq.primer_normalization"
         | "fastq.chimera_detection"
-        | "fastq.deduplicate"
-        | "fastq.low_complexity"
-        | "fastq.polyg_tailing"
-        | "fastq.host_depletion"
-        | "fastq.contaminant_screen"
-        | "fastq.rrna" => Some(FastqStageContract {
+        | "fastq.remove_duplicates"
+        | "fastq.filter_low_complexity"
+        | "fastq.trim_polyg_tails"
+        | "fastq.deplete_host"
+        | "fastq.deplete_reference_contaminants"
+        | "fastq.deplete_rrna" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::SingleEnd,
             may_drop_reads: true,
@@ -165,7 +165,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out / reads_in; bases_out / bases_in",
             retention_units: "reads,bases",
         }),
-        "fastq.merge" => Some(FastqStageContract {
+        "fastq.merge_pairs" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::Merged,
             may_drop_reads: true,
@@ -176,7 +176,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_merged + reads_unmerged <= min(reads_r1, reads_r2)",
             retention_units: "reads,pairs,bases",
         }),
-        "fastq.correct" => Some(FastqStageContract {
+        "fastq.correct_errors" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::PairedEnd,
             may_drop_reads: false,
@@ -187,7 +187,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_definition: "reads_out == reads_in; bases_out <= bases_in",
             retention_units: "reads,bases",
         }),
-        "fastq.umi" => Some(FastqStageContract {
+        "fastq.extract_umis" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::PairedEnd,
             may_drop_reads: true,

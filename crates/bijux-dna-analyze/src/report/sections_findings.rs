@@ -349,7 +349,7 @@ fn fastq_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
                 }));
             }
         }
-        if row.stage_id == "fastq.merge" {
+        if row.stage_id == "fastq.merge_pairs" {
             let merge_rate = row.metrics.get("merge_rate").and_then(serde_json::Value::as_f64);
             if let Some(value) = merge_rate.filter(|v| *v < 0.05) {
                 claims.push(serde_json::json!({

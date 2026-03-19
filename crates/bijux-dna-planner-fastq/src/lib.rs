@@ -11,12 +11,12 @@ use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutio
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_dna_domain_fastq::{
-    stages::ids::{STAGE_CONTAMINANT_SCREEN, STAGE_HOST_DEPLETION},
+    stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
     FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
-    STAGE_CORRECT, STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
-    STAGE_FILTER_READS, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
-    STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_RRNA, STAGE_SCREEN_TAXONOMY,
-    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
+    STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES, STAGE_DETECT_ADAPTERS,
+    STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
+    STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
+    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -89,7 +89,7 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
         vec![
             STAGE_VALIDATE_READS.as_str().to_string(),
             STAGE_DETECT_ADAPTERS.as_str().to_string(),
-            STAGE_DAMAGE_AWARE_PRETRIM.as_str().to_string(),
+            STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string(),
             STAGE_PRIMER_NORMALIZATION.as_str().to_string(),
             STAGE_TRIM_READS.as_str().to_string(),
             STAGE_FILTER_READS.as_str().to_string(),
@@ -102,10 +102,10 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
         required_id_catalog()
     };
     if options.paired && options.enable_correct {
-        stages.push(STAGE_CORRECT.as_str().to_string());
+        stages.push(STAGE_CORRECT_ERRORS.as_str().to_string());
     }
     if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
-        stages.push(STAGE_MERGE.as_str().to_string());
+        stages.push(STAGE_MERGE_PAIRS.as_str().to_string());
     }
     if options.mode == FastqPipelineMode::Amplicon
         && !stages
@@ -369,13 +369,13 @@ pub fn resolve_preprocess_pipeline(
                 let mut stages: Vec<String> = fastq_pipeline_id_catalog(profile.id.as_str());
                 stages = apply_layout_branching(stages, args.r2.is_some());
                 if !shotgun_mode {
-                    stages.retain(|stage| stage != "fastq.polyg_tailing");
+                    stages.retain(|stage| stage != "fastq.trim_polyg_tails");
                 }
                 if !enable_merge {
-                    stages.retain(|stage| stage != STAGE_MERGE.as_str());
+                    stages.retain(|stage| stage != STAGE_MERGE_PAIRS.as_str());
                 }
                 if !enable_correct {
-                    stages.retain(|stage| stage != STAGE_CORRECT.as_str());
+                    stages.retain(|stage| stage != STAGE_CORRECT_ERRORS.as_str());
                 }
                 if !enable_qc_post {
                     stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
@@ -404,7 +404,7 @@ pub fn resolve_preprocess_pipeline(
                 });
                 spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
                 if !shotgun_mode {
-                    spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
+                    spec.stages.retain(|stage| stage != "fastq.trim_polyg_tails");
                 }
                 if shotgun_mode {
                     spec.stages
@@ -428,7 +428,7 @@ pub fn resolve_preprocess_pipeline(
         });
         spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
         if !shotgun_mode {
-            spec.stages.retain(|stage| stage != "fastq.polyg_tailing");
+            spec.stages.retain(|stage| stage != "fastq.trim_polyg_tails");
         }
         if shotgun_mode {
             spec.stages

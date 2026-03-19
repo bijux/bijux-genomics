@@ -47,8 +47,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.validate_reads",
       "fastq.detect_adapters",
       "fastq.trim_reads",
-      "fastq.low_complexity",
-      "fastq.merge",
+      "fastq.filter_low_complexity",
+      "fastq.merge_pairs",
       "fastq.filter_reads",
       "fastq.profile_reads",
       "fastq.report_qc"
@@ -57,7 +57,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "defaults": {
     "params": {
-      "fastq.correct": {
+      "fastq.correct_errors": {
         "kmer_size": null,
         "paired_mode": "paired_end",
         "schema_version": "bijux.fastq.params.correct.v1",
@@ -81,7 +81,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "polyx_policy": "trim",
         "threads": 1
       },
-      "fastq.low_complexity": {
+      "fastq.filter_low_complexity": {
         "contaminant_db": null,
         "entropy_threshold": null,
         "low_complexity_threshold": null,
@@ -93,7 +93,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "polyx_policy": null,
         "threads": 1
       },
-      "fastq.merge": {
+      "fastq.merge_pairs": {
         "merge_overlap": 11,
         "min_len": 20,
         "paired_mode": "paired_end",
@@ -140,7 +140,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "q_cutoff": 20,
         "threads": 1
       },
-      "fastq.umi": {
+      "fastq.extract_umis": {
         "paired_mode": "paired_end",
         "schema_version": "bijux.fastq.params.umi.v1",
         "threads": 1,
@@ -153,31 +153,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       }
     },
     "rationales": {
-      "fastq.correct": "pipeline default",
+      "fastq.correct_errors": "pipeline default",
       "fastq.detect_adapters": "aDNA preset: stricter adapter detection depth for short fragments",
       "fastq.filter_reads": "pipeline default",
-      "fastq.low_complexity": "reference-grade aDNA: pre-alignment low-complexity/duplication proxy estimate stage",
-      "fastq.merge": "reference-grade gate: production-pinned merge tool with explicit overlap/min-length defaults",
+      "fastq.filter_low_complexity": "reference-grade aDNA: pre-alignment low-complexity/duplication proxy estimate stage",
+      "fastq.merge_pairs": "reference-grade gate: production-pinned merge tool with explicit overlap/min-length defaults",
       "fastq.preprocess": "pipeline default",
       "fastq.report_qc": "pipeline default",
       "fastq.screen_taxonomy": "reference-grade aDNA: contamination/host depletion hook with declared reference DB",
       "fastq.profile_reads": "pipeline default",
       "fastq.trim_reads": "reference-grade gate: production-pinned trim tool with aDNA-safe parameters",
-      "fastq.umi": "pipeline default",
+      "fastq.extract_umis": "pipeline default",
       "fastq.validate_reads": "pipeline default"
     },
     "tools": {
-      "fastq.correct": "rcorrector",
+      "fastq.correct_errors": "rcorrector",
       "fastq.detect_adapters": "fastqc",
       "fastq.filter_reads": "seqkit",
-      "fastq.low_complexity": "bbduk",
-      "fastq.merge": "vsearch",
+      "fastq.filter_low_complexity": "bbduk",
+      "fastq.merge_pairs": "vsearch",
       "fastq.preprocess": "planner",
       "fastq.report_qc": "multiqc",
       "fastq.screen_taxonomy": "kraken2",
       "fastq.profile_reads": "seqkit_stats",
       "fastq.trim_reads": "fastp",
-      "fastq.umi": "umi_tools",
+      "fastq.extract_umis": "umi_tools",
       "fastq.validate_reads": "fastqvalidator"
     }
   },

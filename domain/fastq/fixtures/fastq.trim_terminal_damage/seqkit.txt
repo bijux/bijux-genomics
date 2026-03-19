@@ -1,0 +1,9 @@
+tool=seqkit
+tool_version=pinned
+stage=fastq.trim_terminal_damage
+domain=fastq
+fixture_kind=truth
+command=seqkit
+args=stats -a pretrim.fastq.gz
+expected_outputs=terminal_base_composition.tsv
+expected_stdout_patterns=contract_ok,terminal_base_composition_pre,terminal_base_composition_post

@@ -24,13 +24,13 @@ pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
 }
 
 pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE);
+    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE_PAIRS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let mut allowlist =
-        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT);
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS);
     if !allow_experimental {
         allowlist.retain(|tool| tool.as_str() == "rcorrector");
     }
@@ -44,7 +44,7 @@ pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
 }
 
 pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_UMI);
+    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 

@@ -7,7 +7,7 @@ default_version: "1.1"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
-stage_ids: ["fastq.deduplicate"]
+stage_ids: ["fastq.remove_duplicates"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]

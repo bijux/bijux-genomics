@@ -58,7 +58,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: stats defaults.
 - References: SeqKit.
 
-### fastq.merge {#fastq-merge}
+### fastq.merge_pairs {#fastq-merge}
 - Purpose: merge paired‑end reads.
 - Inputs/Outputs: paired reads → merged_reads.
 - Metrics: merge rate, overlap stats.
@@ -66,7 +66,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: merge defaults.
 - References: PEAR, FLASH2, VSEARCH.
 
-### fastq.correct {#fastq-correct}
+### fastq.correct_errors {#fastq-correct}
 - Purpose: correct sequencing errors.
 - Inputs/Outputs: reads → corrected_reads.
 - Metrics: correction rates.
@@ -74,7 +74,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: correction defaults.
 - References: RCorrector, SPAdes.
 
-### fastq.umi {#fastq-umi}
+### fastq.extract_umis {#fastq-umi}
 - Purpose: handle UMI‑tagged reads.
 - Inputs/Outputs: reads → umi_reads.
 - Metrics: UMI grouping, consensus stats.

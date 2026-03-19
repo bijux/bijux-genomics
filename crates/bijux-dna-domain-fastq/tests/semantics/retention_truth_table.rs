@@ -50,7 +50,7 @@ fn fastq_retention_truth_table() {
             expected_pairs: None,
         },
         RetentionCase {
-            stage_id: "fastq.merge",
+            stage_id: "fastq.merge_pairs",
             reads_in: 100,
             reads_out: 90,
             bases_in: 1000,
@@ -62,7 +62,7 @@ fn fastq_retention_truth_table() {
             expected_pairs: Some(0.9),
         },
         RetentionCase {
-            stage_id: "fastq.correct",
+            stage_id: "fastq.correct_errors",
             reads_in: 100,
             reads_out: 100,
             bases_in: 1000,

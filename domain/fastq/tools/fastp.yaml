@@ -46,7 +46,7 @@ stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.profile_read_lengths"
-  - "fastq.polyg_tailing"
+  - "fastq.trim_polyg_tails"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"

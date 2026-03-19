@@ -8,14 +8,14 @@ install_kind: container
 license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
-- fastq.merge
+- fastq.merge_pairs
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - merged_fastq
 - merge_report
-metrics_schema_id: bijux.fastq.merge.v1
-metrics_schema: bijux.fastq.merge.v1
+metrics_schema_id: bijux.fastq.merge_pairs.v1
+metrics_schema: bijux.fastq.merge_pairs.v1
 version_cmd: seqprep --version
 help_cmd: seqprep --help
 comparability:

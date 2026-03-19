@@ -9,13 +9,13 @@ Source of truth remains `domain/fastq/stages/*.yaml` (`assumptions` field).
 - `fastq.detect_adapters`: adapter bank captures dominant library prep adapters.
 - `fastq.trim_reads`: adapter/quality trimming improves downstream signal-to-noise.
 - `fastq.filter_reads`: filtering thresholds remove low-information reads without biasing core signal.
-- `fastq.merge`: overlapping pairs represent the same original molecule when merged.
+- `fastq.merge_pairs`: overlapping pairs represent the same original molecule when merged.
 - `fastq.profile_reads`: summary statistics are diagnostic, not inferential.
 - `fastq.report_qc`: QC aggregates are interpretable only in context of upstream parameters.
 - `fastq.screen_taxonomy`: taxonomy/classification metrics depend on database coverage/composition.
-- `fastq.rrna`: rRNA database is appropriate for the studied material.
-- `fastq.correct`: error correction model assumptions match observed read error profile.
-- `fastq.umi`: UMI schema/pattern reflects library design.
+- `fastq.deplete_rrna`: rRNA database is appropriate for the studied material.
+- `fastq.correct_errors`: error correction model assumptions match observed read error profile.
+- `fastq.extract_umis`: UMI schema/pattern reflects library design.
 
 ## Contract note
 Assumptions are validated for presence by domain validation; semantic interpretation remains operator responsibility.

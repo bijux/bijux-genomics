@@ -37,11 +37,11 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
         ),
         (
-            StageId::from_static("fastq.correct"),
+            StageId::from_static("fastq.correct_errors"),
             ToolId::from_static(id_catalog::TOOL_RCORRECTOR),
         ),
         (
-            StageId::from_static("fastq.umi"),
+            StageId::from_static("fastq.extract_umis"),
             ToolId::from_static(id_catalog::TOOL_UMI_TOOLS),
         ),
         (
@@ -65,7 +65,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             ToolId::from_static(id_catalog::TOOL_PLANNER),
         ),
         (
-            StageId::from_static("fastq.merge"),
+            StageId::from_static("fastq.merge_pairs"),
             ToolId::from_static(id_catalog::TOOL_VSEARCH),
         ),
         (
@@ -83,11 +83,11 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         DefaultParams::FastqStats(stats_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.correct"),
+        StageId::from_static("fastq.correct_errors"),
         DefaultParams::FastqCorrect(correct_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.umi"),
+        StageId::from_static("fastq.extract_umis"),
         DefaultParams::FastqUmi(umi_defaults(paired)),
     );
     params.insert(
@@ -111,7 +111,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         DefaultParams::FastqPreprocess(preprocess_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.merge"),
+        StageId::from_static("fastq.merge_pairs"),
         DefaultParams::FastqMerge(merge_defaults(paired)),
     );
     params.insert(
@@ -139,7 +139,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         ToolId::from_static(id_catalog::TOOL_ADAPTERREMOVAL),
     );
     defaults.tools.insert(
-        StageId::from_static("fastq.merge"),
+        StageId::from_static("fastq.merge_pairs"),
         ToolId::from_static(id_catalog::TOOL_LEEHOM),
     );
 
@@ -204,14 +204,14 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
 
     if let Some(DefaultParams::FastqMerge(mut params)) = defaults
         .params
-        .get(&StageId::from_static("fastq.merge"))
+        .get(&StageId::from_static("fastq.merge_pairs"))
         .cloned()
     {
         params.paired_mode = PairedMode::PairedEnd;
         params.min_len = Some(20);
         params.merge_overlap = Some(11);
         defaults.params.insert(
-            StageId::from_static("fastq.merge"),
+            StageId::from_static("fastq.merge_pairs"),
             DefaultParams::FastqMerge(params),
         );
     }
@@ -221,7 +221,7 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         "aDNA preset: short-read preserving trim with strict adapter handling".to_string(),
     );
     defaults.rationales.insert(
-        StageId::from_static("fastq.merge"),
+        StageId::from_static("fastq.merge_pairs"),
         "aDNA preset: aggressive overlap merge/collapse for fragmented paired-end reads"
             .to_string(),
     );
@@ -421,7 +421,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
                 "fastq.detect_adapters",
                 "fastq.trim_reads",
                 "fastq.filter_reads",
-                "fastq.merge",
+                "fastq.merge_pairs",
                 "fastq.profile_reads",
                 "fastq.report_qc",
             ],

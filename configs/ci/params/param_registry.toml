@@ -84,13 +84,13 @@ param_type_id = "bam.qc_pre"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
-stage_id = "fastq.contaminant_screen"
+stage_id = "fastq.deplete_reference_contaminants"
 param_type_id = "paramless"
 schema_version = "none"
 
 [[entries]]
-stage_id = "fastq.correct"
-param_type_id = "fastq.correct"
+stage_id = "fastq.correct_errors"
+param_type_id = "fastq.correct_errors"
 schema_version = "bijux.fastq.params.correct.v1"
 
 [[entries]]
@@ -104,7 +104,7 @@ param_type_id = "fastq.filter_reads"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.host_depletion"
+stage_id = "fastq.deplete_host"
 param_type_id = "paramless"
 schema_version = "none"
 
@@ -114,8 +114,8 @@ param_type_id = "paramless"
 schema_version = "none"
 
 [[entries]]
-stage_id = "fastq.merge"
-param_type_id = "fastq.merge"
+stage_id = "fastq.merge_pairs"
+param_type_id = "fastq.merge_pairs"
 schema_version = "legacy.unversioned"
 
 [[entries]]
@@ -124,7 +124,7 @@ param_type_id = "paramless"
 schema_version = "none"
 
 [[entries]]
-stage_id = "fastq.polyg_tailing"
+stage_id = "fastq.trim_polyg_tails"
 param_type_id = "paramless"
 schema_version = "none"
 
@@ -139,8 +139,8 @@ param_type_id = "fastq.report_qc"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.rrna"
-param_type_id = "fastq.rrna"
+stage_id = "fastq.deplete_rrna"
+param_type_id = "fastq.deplete_rrna"
 schema_version = "legacy.unversioned"
 
 [[entries]]
@@ -159,8 +159,8 @@ param_type_id = "fastq.trim_reads"
 schema_version = "legacy.unversioned"
 
 [[entries]]
-stage_id = "fastq.umi"
-param_type_id = "fastq.umi"
+stage_id = "fastq.extract_umis"
+param_type_id = "fastq.extract_umis"
 schema_version = "bijux.fastq.params.umi.v1"
 
 [[entries]]
@@ -189,6 +189,6 @@ param_type_id = "fastq.abundance_normalization"
 schema_version = "bijux.fastq.params.v1"
 
 [[entries]]
-stage_id = "fastq.damage_aware_pretrim"
-param_type_id = "fastq.damage_aware_pretrim"
+stage_id = "fastq.trim_terminal_damage"
+param_type_id = "fastq.trim_terminal_damage"
 schema_version = "bijux.fastq.params.v1"

@@ -9,7 +9,7 @@ license: "MIT"
 citation: "upstream:https://github.com/samtools/samtools"
 stage_ids:
   - "fastq.prepare_reference"
-  - "fastq.host_depletion"
+  - "fastq.deplete_host"
   - "fastq.report_qc"
 status: "supported"
 scope: "pre_hpc_pre_vcf"

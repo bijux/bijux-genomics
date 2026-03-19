@@ -231,7 +231,7 @@ pub struct FastqMergeMetrics {
 }
 
 impl StageMetricSchema for FastqMergeMetrics {
-    const STAGE: &'static str = "fastq.merge";
+    const STAGE: &'static str = "fastq.merge_pairs";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -267,7 +267,7 @@ pub struct FastqCorrectMetrics {
 }
 
 impl StageMetricSchema for FastqCorrectMetrics {
-    const STAGE: &'static str = "fastq.correct";
+    const STAGE: &'static str = "fastq.correct_errors";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -366,7 +366,7 @@ pub struct FastqUmiMetrics {
 }
 
 impl StageMetricSchema for FastqUmiMetrics {
-    const STAGE: &'static str = "fastq.umi";
+    const STAGE: &'static str = "fastq.extract_umis";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {

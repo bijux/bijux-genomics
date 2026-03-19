@@ -56,7 +56,7 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
-  - "fastq.merge"
+  - "fastq.merge_pairs"
   - "fastq.chimera_detection"
   - "fastq.otu_clustering"
 expected_artifacts: ["report_json", "metrics.json", "otu_table", "otu_representatives"]

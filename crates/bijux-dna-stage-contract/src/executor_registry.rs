@@ -53,25 +53,25 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.contaminant_screen",
+        stage_id: "fastq.deplete_reference_contaminants",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.correct",
+        stage_id: "fastq.correct_errors",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.damage_aware_pretrim",
+        stage_id: "fastq.trim_terminal_damage",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.deduplicate",
+        stage_id: "fastq.remove_duplicates",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -89,7 +89,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.host_depletion",
+        stage_id: "fastq.deplete_host",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -101,13 +101,13 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.low_complexity",
+        stage_id: "fastq.filter_low_complexity",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.merge",
+        stage_id: "fastq.merge_pairs",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -125,7 +125,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.polyg_tailing",
+        stage_id: "fastq.trim_polyg_tails",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -149,7 +149,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.rrna",
+        stage_id: "fastq.deplete_rrna",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -173,7 +173,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.umi",
+        stage_id: "fastq.extract_umis",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
