@@ -17,6 +17,14 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/qc-pre-bench
+  - id: fastq_validate_reads_bench
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/validate-reads-bench
   - id: vcf_damage_aware_genotype_mini
     domain: vcf
     corpus_required: corpus-01-mini

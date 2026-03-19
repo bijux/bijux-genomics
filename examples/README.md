@@ -3,6 +3,7 @@
 Canonical example index: `examples/index.yaml` (generated).
 
 - `fastq_qc_pre_bench`: `examples/fastq/qc-pre-bench/`
+- `fastq_validate_reads_bench`: `examples/fastq/validate-reads-bench/`
 - `fastq_edna_mini`: `examples/fastq/edna-mini/`
 - `vcf_imputation_mini`: `examples/vcf/imputation-mini/`
 - `vcf_downstream_demography_mini`: `examples/vcf/downstream-demography-mini/`
