@@ -42,16 +42,16 @@ expression: fastq_to_bam_adna_profile()
       "bam.sex": "rxy",
       "bam.validate": "samtools",
       "cross.align_stub": "placeholder",
-      "fastq.correct": "rcorrector",
+      "fastq.correct_errors": "rcorrector",
       "fastq.detect_adapters": "fastqc",
       "fastq.filter_reads": "fastp",
-      "fastq.merge": "vsearch",
+      "fastq.merge_pairs": "vsearch",
       "fastq.preprocess": "planner",
       "fastq.report_qc": "multiqc",
       "fastq.screen_taxonomy": "kraken2",
       "fastq.profile_reads": "seqkit_stats",
       "fastq.trim_reads": "fastp",
-      "fastq.umi": "umi_tools",
+      "fastq.extract_umis": "umi_tools",
       "fastq.validate_reads": "fastqvalidator"
     },
     "params": {
@@ -115,7 +115,7 @@ expression: fastq_to_bam_adna_profile()
         "strict": true
       },
       "cross.align_stub": {},
-      "fastq.correct": {
+      "fastq.correct_errors": {
         "paired_mode": "paired_end",
         "q_cutoff": null,
         "threads": 1
@@ -137,7 +137,7 @@ expression: fastq_to_bam_adna_profile()
         "polyx_policy": null,
         "threads": 1
       },
-      "fastq.merge": {
+      "fastq.merge_pairs": {
         "merge_overlap": null,
         "min_len": null,
         "paired_mode": "paired_end",
@@ -180,7 +180,7 @@ expression: fastq_to_bam_adna_profile()
         "q_cutoff": null,
         "threads": 1
       },
-      "fastq.umi": {
+      "fastq.extract_umis": {
         "paired_mode": "paired_end",
         "q_cutoff": null,
         "threads": 1

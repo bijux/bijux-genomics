@@ -7,7 +7,7 @@ default_version: "2.15.0"
 install_kind: "container"
 license: "Public-Domain"
 citation: "pending:tool-publication"
-stage_ids: ["fastq.low_complexity"]
+stage_ids: ["fastq.filter_low_complexity"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["filtered_fastq", "filter_report_json"]

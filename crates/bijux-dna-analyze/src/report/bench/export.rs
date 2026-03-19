@@ -101,7 +101,7 @@ pub fn write_merge_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.merge", &rankings);
+        crate::decision::score::print_rank_explain("fastq.merge_pairs", &rankings);
     }
     Ok(())
 }
@@ -133,7 +133,7 @@ pub fn write_correct_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.correct", &rankings);
+        crate::decision::score::print_rank_explain("fastq.correct_errors", &rankings);
     }
     Ok(())
 }
@@ -193,7 +193,7 @@ pub fn write_umi_report(
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.umi", &rankings);
+        crate::decision::score::print_rank_explain("fastq.extract_umis", &rankings);
     }
     Ok(())
 }

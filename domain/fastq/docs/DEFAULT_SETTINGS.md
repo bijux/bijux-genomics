@@ -21,22 +21,22 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.validate_reads`: default `fastqvalidator`.
 - `fastq.profile_read_lengths`: default `seqkit_stats`.
 - `fastq.detect_adapters`: default `fastp`.
-- `fastq.polyg_tailing`: default `fastp`.
+- `fastq.trim_polyg_tails`: default `fastp`.
 - `fastq.trim_reads`: default `fastp`.
 - `fastq.filter_reads`: default `fastp`.
 - `fastq.profile_reads`: default `seqkit_stats`.
-- `fastq.rrna`: default `sortmerna`.
+- `fastq.deplete_rrna`: default `sortmerna`.
 - `fastq.report_qc`: default `multiqc`.
-- `fastq.merge`: default `pear`.
-- `fastq.deduplicate`: default `prinseq`.
-- `fastq.low_complexity`: default `bbduk`.
-- `fastq.host_depletion`: default `bowtie2`.
-- `fastq.contaminant_screen`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
-- `fastq.correct`: default `rcorrector`.
-- `fastq.umi`: default `umi_tools`.
+- `fastq.merge_pairs`: default `pear`.
+- `fastq.remove_duplicates`: default `prinseq`.
+- `fastq.filter_low_complexity`: default `bbduk`.
+- `fastq.deplete_host`: default `bowtie2`.
+- `fastq.deplete_reference_contaminants`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
+- `fastq.correct_errors`: default `rcorrector`.
+- `fastq.extract_umis`: default `umi_tools`.
 - `fastq.profile_overrepresented_sequences`: default `fastqc`.
 - `fastq.screen_taxonomy`: default `kraken2`.
-- `fastq.damage_aware_pretrim`: default `cutadapt`. rationale: deterministic terminal mask/trim policy for aDNA damage-aware pretrim.
+- `fastq.trim_terminal_damage`: default `cutadapt`. rationale: deterministic terminal mask/trim policy for aDNA damage-aware pretrim.
 - `fastq.primer_normalization`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
 - `fastq.chimera_detection`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
 - `fastq.otu_clustering`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
@@ -45,12 +45,12 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 
 single_tool_justification: fastq.prepare_reference
 single_tool_justification: fastq.detect_adapters
-single_tool_justification: fastq.rrna
-single_tool_justification: fastq.umi
+single_tool_justification: fastq.deplete_rrna
+single_tool_justification: fastq.extract_umis
 single_tool_justification: fastq.primer_normalization
 single_tool_justification: fastq.chimera_detection
 single_tool_justification: fastq.otu_clustering
 single_tool_justification: fastq.asv_inference
 single_tool_justification: fastq.abundance_normalization
 
-single_tool_justification: fastq.damage_aware_pretrim
+single_tool_justification: fastq.trim_terminal_damage

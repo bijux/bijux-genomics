@@ -7,27 +7,27 @@ stage_ids:
   - fastq.abundance_normalization
   - fastq.asv_inference
   - fastq.chimera_detection
-  - fastq.contaminant_screen
-  - fastq.correct
-  - fastq.damage_aware_pretrim
-  - fastq.deduplicate
+  - fastq.correct_errors
+  - fastq.deplete_host
+  - fastq.deplete_reference_contaminants
+  - fastq.deplete_rrna
   - fastq.detect_adapters
+  - fastq.extract_umis
+  - fastq.filter_low_complexity
   - fastq.filter_reads
-  - fastq.host_depletion
-  - fastq.low_complexity
-  - fastq.merge
+  - fastq.merge_pairs
   - fastq.otu_clustering
-  - fastq.polyg_tailing
   - fastq.prepare_reference
   - fastq.primer_normalization
   - fastq.profile_overrepresented_sequences
   - fastq.profile_read_lengths
   - fastq.profile_reads
+  - fastq.remove_duplicates
   - fastq.report_qc
-  - fastq.rrna
   - fastq.screen_taxonomy
+  - fastq.trim_polyg_tails
   - fastq.trim_reads
-  - fastq.umi
+  - fastq.trim_terminal_damage
   - fastq.validate_reads
 tool_ids:
   - adapterremoval
@@ -117,7 +117,7 @@ stage_tool_compatibility:
   - seqkit_stats
   - seqkit
   - seqfu
-  fastq.rrna:
+  fastq.deplete_rrna:
   - sortmerna
   fastq.report_qc:
   - multiqc
@@ -133,44 +133,44 @@ stage_tool_compatibility:
   - metaphlan
   - kaiju
   - fastq_screen
-  fastq.merge:
+  fastq.merge_pairs:
   - pear
   - vsearch
   - bbmerge
   - flash2
   - leehom
   - seqprep
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - fastuniq
   - clumpify
   - prinseq
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - dustmasker
   - prinseq
   - bbduk
-  fastq.host_depletion:
+  fastq.deplete_host:
   - bowtie2
   - samtools
-  fastq.correct:
+  fastq.correct_errors:
   - rcorrector
   - lighter
   - musket
   - bayeshammer
   - spades
-  fastq.umi:
+  fastq.extract_umis:
   - umi_tools
   fastq.profile_read_lengths:
   - seqkit_stats
   - seqfu
   - prinseq
   - fastp
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - fastp
   - bbduk
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - bbduk
   - bowtie2
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - cutadapt
   - seqkit
   fastq.profile_overrepresented_sequences:
@@ -184,19 +184,19 @@ active_defaults:
   fastq.filter_reads: fastp
   fastq.validate_reads: fastqvalidator
   fastq.profile_reads: seqkit_stats
-  fastq.rrna: sortmerna
+  fastq.deplete_rrna: sortmerna
   fastq.report_qc: multiqc
   fastq.screen_taxonomy: kraken2
-  fastq.merge: pear
-  fastq.deduplicate: prinseq
-  fastq.low_complexity: bbduk
-  fastq.host_depletion: bowtie2
-  fastq.correct: rcorrector
-  fastq.umi: umi_tools
+  fastq.merge_pairs: pear
+  fastq.remove_duplicates: prinseq
+  fastq.filter_low_complexity: bbduk
+  fastq.deplete_host: bowtie2
+  fastq.correct_errors: rcorrector
+  fastq.extract_umis: umi_tools
   fastq.profile_read_lengths: seqkit_stats
-  fastq.polyg_tailing: fastp
-  fastq.contaminant_screen: bbduk
-  fastq.damage_aware_pretrim: cutadapt
+  fastq.trim_polyg_tails: fastp
+  fastq.deplete_reference_contaminants: bbduk
+  fastq.trim_terminal_damage: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
 active_default_rationale:
   fastq.prepare_reference: Stable index generation baseline for pre-HPC runs.
@@ -205,25 +205,25 @@ active_default_rationale:
   fastq.filter_reads: Default filter preserves compatibility with downstream metrics.
   fastq.validate_reads: Validation default has broad FASTQ format coverage.
   fastq.profile_reads: Neutral stats baseline is lightweight and deterministic.
-  fastq.rrna: Default rRNA filter is established for pre-HPC screening.
+  fastq.deplete_rrna: Default rRNA filter is established for pre-HPC screening.
   fastq.report_qc: QC aggregation default provides operator-first summary output.
   fastq.screen_taxonomy: Default classifier maximizes comparability with existing reports.
-  fastq.merge: Default merger is stable for paired-end overlap handling.
-  fastq.deduplicate: Default deduplication uses pair-aware duplicate removal with stable
+  fastq.merge_pairs: Default merger is stable for paired-end overlap handling.
+  fastq.remove_duplicates: Default deduplication uses pair-aware duplicate removal with stable
     ordering.
-  fastq.low_complexity: Default complexity filtering uses deterministic entropy/polyX
+  fastq.filter_low_complexity: Default complexity filtering uses deterministic entropy/polyX
     thresholds.
-  fastq.host_depletion: Default host depletion uses deterministic mapping and unmapped
+  fastq.deplete_host: Default host depletion uses deterministic mapping and unmapped
     extraction.
-  fastq.correct: Default corrector chosen for robust error-correction baseline.
-  fastq.umi: Default UMI handler preserves compatibility with stage contract.
+  fastq.correct_errors: Default corrector chosen for robust error-correction baseline.
+  fastq.extract_umis: Default UMI handler preserves compatibility with stage contract.
   fastq.profile_read_lengths: Default length histogram baseline provides deterministic
     pre-trim size distribution.
-  fastq.polyg_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
+  fastq.trim_polyg_tails: Default polyG trimmer uses fastp polyG-tail handling for common
     sequencer artifacts.
-  fastq.contaminant_screen: Default contaminant screen uses k-mer depletion against
+  fastq.deplete_reference_contaminants: Default contaminant screen uses k-mer depletion against
     configured decoy references.
-  fastq.damage_aware_pretrim: Damage-aware pretrim default uses deterministic terminal mask/trim
+  fastq.trim_terminal_damage: Damage-aware pretrim default uses deterministic terminal mask/trim
     policy for aDNA damage-aware pretrim.
   fastq.primer_normalization: Deterministic primer trimming with explicit mismatch/orientation
     controls.
@@ -266,7 +266,7 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.rrna:
+  fastq.deplete_rrna:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -284,37 +284,37 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.merge:
+  fastq.merge_pairs:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.host_depletion:
+  fastq.deplete_host:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.correct:
+  fastq.correct_errors:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.umi:
+  fastq.extract_umis:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -326,19 +326,19 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -447,7 +447,7 @@ stage_default_settings:
     seqfu:
       profile: adna_sane_default
       notes: supplementary neutral stats preset
-  fastq.rrna:
+  fastq.deplete_rrna:
     sortmerna:
       profile: adna_sane_default
       notes: rRNA depletion screening preset
@@ -489,7 +489,7 @@ stage_default_settings:
     fastq_screen:
       profile: adna_sane_default
       notes: alignment-screen preset
-  fastq.merge:
+  fastq.merge_pairs:
     pear:
       profile: adna_sane_default
       notes: overlap merge baseline preset
@@ -508,7 +508,7 @@ stage_default_settings:
     seqprep:
       profile: adna_sane_default
       notes: classic overlap merge preset
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     fastuniq:
       profile: adna_sane_default
       notes: pair-aware deduplication baseline preset
@@ -518,7 +518,7 @@ stage_default_settings:
     prinseq:
       profile: adna_sane_default
       notes: sequence-based deduplication preset
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     dustmasker:
       profile: adna_sane_default
       notes: DUST complexity masking preset
@@ -528,14 +528,14 @@ stage_default_settings:
     bbduk:
       profile: adna_sane_default
       notes: entropy/polyX complexity filter preset
-  fastq.host_depletion:
+  fastq.deplete_host:
     bowtie2:
       profile: adna_sane_default
       notes: host mapping depletion baseline preset
     samtools:
       profile: adna_sane_default
       notes: unmapped read extraction preset
-  fastq.correct:
+  fastq.correct_errors:
     rcorrector:
       profile: adna_sane_default
       notes: kmer correction baseline preset
@@ -551,7 +551,7 @@ stage_default_settings:
     spades:
       profile: adna_sane_default
       notes: spades correction mode preset
-  fastq.umi:
+  fastq.extract_umis:
     umi_tools:
       profile: adna_sane_default
       notes: umi extraction/dedup preset
@@ -568,21 +568,21 @@ stage_default_settings:
     fastp:
       profile: adna_sane_default
       notes: fastp stats-only length summary preset
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     fastp:
       profile: adna_sane_default
       notes: polyG-tail trimming preset
     bbduk:
       profile: adna_sane_default
       notes: polyX/polyG trimming preset
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     bbduk:
       profile: adna_sane_default
       notes: k-mer contaminant screen baseline preset
     bowtie2:
       profile: adna_sane_default
       notes: mapping-based decoy contamination screen preset
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     cutadapt:
       profile: adna_sane_default
       notes: terminal trim/mask baseline for aDNA damage-aware preprocessing
@@ -617,7 +617,7 @@ stage_comparability_mapping:
   - base_count
   - mean_read_length
   - q30_fraction
-  fastq.rrna:
+  fastq.deplete_rrna:
   - rrna_removed_fraction
   fastq.report_qc:
   - qc_warn_count
@@ -625,33 +625,33 @@ stage_comparability_mapping:
   fastq.screen_taxonomy:
   - taxonomy_abundance_fraction
   - classified_read_fraction
-  fastq.merge:
+  fastq.merge_pairs:
   - merge_rate
   - merged_read_length_mean
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - dedup_rate
   - read_retention
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - reads_removed_low_complexity
   - read_retention
-  fastq.host_depletion:
+  fastq.deplete_host:
   - contamination_rate
   - read_retention
-  fastq.correct:
+  fastq.correct_errors:
   - error_corrected_fraction
-  fastq.umi:
+  fastq.extract_umis:
   - umi_extracted_count
   - umi_dedup_fraction
   fastq.profile_read_lengths:
   - length_histogram
   - mean_read_length
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - trimmed_read_fraction
   - post_trim_read_length_mean
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - contamination_rate
   - reads_removed_contaminant_kmer
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - reads_in
   - reads_out
   fastq.profile_overrepresented_sequences:
@@ -671,31 +671,31 @@ stage_min_quality_gates:
   fastq.profile_reads:
   - read_count>0
   - q30_fraction>=0.0
-  fastq.rrna:
+  fastq.deplete_rrna:
   - rrna_removed_fraction>=0.0
   fastq.report_qc:
   - qc_report_present=true
   fastq.screen_taxonomy:
   - classified_read_fraction>=0.0
-  fastq.merge:
+  fastq.merge_pairs:
   - merge_rate>=0.0
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - dedup_rate>=0.0
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - reads_removed_low_complexity>=0.0
-  fastq.host_depletion:
+  fastq.deplete_host:
   - read_retention>=0.0
-  fastq.correct:
+  fastq.correct_errors:
   - post_correct_read_count>0
-  fastq.umi:
+  fastq.extract_umis:
   - umi_report_present=true
   fastq.profile_read_lengths:
   - read_count>0
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - post_trim_read_count>0
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - reads_removed_contaminant_kmer>=0.0
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - reads_out>0
   fastq.profile_overrepresented_sequences:
   - reads_total>0
@@ -712,31 +712,31 @@ stage_failure_diagnosis_hints:
   - inspect malformed FASTQ records and line wrapping
   fastq.profile_reads:
   - verify parser input paths and gzip integrity
-  fastq.rrna:
+  fastq.deplete_rrna:
   - check rRNA database path and memory allocation
   fastq.report_qc:
   - inspect upstream qc tool outputs required by aggregator
   fastq.screen_taxonomy:
   - check classifier DB path/version/hash and kmer DB integrity
-  fastq.merge:
+  fastq.merge_pairs:
   - review overlap thresholds and paired-end orientation
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - inspect duplicate criteria and pair-preservation settings
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - review entropy/polyX thresholds for over-filtering
-  fastq.host_depletion:
+  fastq.deplete_host:
   - verify host reference index and unmapped extraction flags
-  fastq.correct:
+  fastq.correct_errors:
   - verify kmer/cov parameters and read depth assumptions
-  fastq.umi:
+  fastq.extract_umis:
   - confirm UMI pattern configuration and read naming conventions
   fastq.profile_read_lengths:
   - inspect FASTQ parsing and gzip integrity for histogram generation
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - review polyG/polyX thresholds and platform-specific tailing patterns
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - check contaminant bank/decoy reference selection and k-mer thresholds
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - review terminal trim/mask parameters and UDG classification inputs
   fastq.profile_overrepresented_sequences:
   - inspect overrepresented table and adapter/contaminant sequence banks
@@ -746,12 +746,12 @@ pipeline_compositions:
   - fastq.validate_reads
   - fastq.profile_read_lengths
   - fastq.detect_adapters
-  - fastq.polyg_tailing
+  - fastq.trim_polyg_tails
   - fastq.trim_reads
   - fastq.filter_reads
-  - fastq.merge
-  - fastq.host_depletion
-  - fastq.contaminant_screen
+  - fastq.merge_pairs
+  - fastq.deplete_host
+  - fastq.deplete_reference_contaminants
   - fastq.profile_reads
   - fastq.report_qc
   - fastq.profile_overrepresented_sequences
@@ -763,36 +763,36 @@ stage_ordering_constraints:
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
-  - fastq.polyg_tailing
+  - fastq.trim_polyg_tails
   fastq.filter_reads:
   - fastq.trim_reads
-  fastq.merge:
+  fastq.merge_pairs:
   - fastq.filter_reads
-  fastq.deduplicate:
-  - fastq.merge
-  fastq.low_complexity:
-  - fastq.deduplicate
-  fastq.host_depletion:
-  - fastq.merge
+  fastq.remove_duplicates:
+  - fastq.merge_pairs
+  fastq.filter_low_complexity:
+  - fastq.remove_duplicates
+  fastq.deplete_host:
+  - fastq.merge_pairs
   fastq.profile_reads:
-  - fastq.contaminant_screen
+  - fastq.deplete_reference_contaminants
   fastq.report_qc:
   - fastq.profile_reads
   fastq.screen_taxonomy:
   - fastq.report_qc
-  fastq.rrna:
+  fastq.deplete_rrna:
   - fastq.filter_reads
-  fastq.correct:
+  fastq.correct_errors:
   - fastq.filter_reads
-  fastq.umi:
+  fastq.extract_umis:
   - fastq.trim_reads
   fastq.profile_read_lengths:
   - fastq.validate_reads
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - fastq.detect_adapters
-  fastq.contaminant_screen:
-  - fastq.host_depletion
-  fastq.damage_aware_pretrim:
+  fastq.deplete_reference_contaminants:
+  - fastq.deplete_host
+  fastq.trim_terminal_damage:
   - fastq.validate_reads
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
@@ -803,36 +803,36 @@ stage_prerequisites:
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
-  - fastq.polyg_tailing
+  - fastq.trim_polyg_tails
   fastq.filter_reads:
   - fastq.trim_reads
-  fastq.merge:
+  fastq.merge_pairs:
   - fastq.filter_reads
-  fastq.deduplicate:
-  - fastq.merge
-  fastq.low_complexity:
-  - fastq.deduplicate
-  fastq.host_depletion:
-  - fastq.merge
+  fastq.remove_duplicates:
+  - fastq.merge_pairs
+  fastq.filter_low_complexity:
+  - fastq.remove_duplicates
+  fastq.deplete_host:
+  - fastq.merge_pairs
   fastq.profile_reads:
-  - fastq.contaminant_screen
+  - fastq.deplete_reference_contaminants
   fastq.report_qc:
   - fastq.profile_reads
   fastq.screen_taxonomy:
   - fastq.report_qc
-  fastq.rrna:
+  fastq.deplete_rrna:
   - fastq.filter_reads
-  fastq.correct:
+  fastq.correct_errors:
   - fastq.filter_reads
-  fastq.umi:
+  fastq.extract_umis:
   - fastq.trim_reads
   fastq.profile_read_lengths:
   - fastq.validate_reads
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - fastq.detect_adapters
-  fastq.contaminant_screen:
-  - fastq.host_depletion
-  fastq.damage_aware_pretrim:
+  fastq.deplete_reference_contaminants:
+  - fastq.deplete_host
+  fastq.trim_terminal_damage:
   - fastq.validate_reads
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
@@ -861,7 +861,7 @@ stage_resource_hints:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
-  fastq.rrna:
+  fastq.deplete_rrna:
     memory_gb: 8.0
     time_minutes: 30
     threads: 6
@@ -873,27 +873,27 @@ stage_resource_hints:
     memory_gb: 16.0
     time_minutes: 60
     threads: 8
-  fastq.merge:
+  fastq.merge_pairs:
     memory_gb: 8.0
     time_minutes: 25
     threads: 6
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     memory_gb: 6.0
     time_minutes: 25
     threads: 4
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     memory_gb: 6.0
     time_minutes: 20
     threads: 4
-  fastq.host_depletion:
+  fastq.deplete_host:
     memory_gb: 16.0
     time_minutes: 50
     threads: 8
-  fastq.correct:
+  fastq.correct_errors:
     memory_gb: 12.0
     time_minutes: 45
     threads: 8
-  fastq.umi:
+  fastq.extract_umis:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
@@ -901,15 +901,15 @@ stage_resource_hints:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     memory_gb: 4.0
     time_minutes: 15
     threads: 4
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     memory_gb: 10.0
     time_minutes: 30
     threads: 6
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
@@ -932,7 +932,7 @@ stage_output_size_estimates_mb:
     scan_report: 5.0
   fastq.profile_reads:
     stats_json: 2.0
-  fastq.rrna:
+  fastq.deplete_rrna:
     rrna_filtered_reads: 1700.0
   fastq.report_qc:
     qc_report_json: 15.0
@@ -940,35 +940,35 @@ stage_output_size_estimates_mb:
   fastq.screen_taxonomy:
     screen_report_tsv: 25.0
     abundance_report: 5.0
-  fastq.merge:
+  fastq.merge_pairs:
     merged_reads: 1400.0
     merge_report: 8.0
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     dedup_reads_r1: 1200.0
     dedup_reads_r2: 1200.0
     report_json: 6.0
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     filtered_fastq: 1100.0
     filter_report_json: 8.0
-  fastq.host_depletion:
+  fastq.deplete_host:
     filtered_fastq: 950.0
     screen_report: 12.0
-  fastq.correct:
+  fastq.correct_errors:
     corrected_reads_r1: 900.0
     corrected_reads_r2: 900.0
-  fastq.umi:
+  fastq.extract_umis:
     dedup_reads_r1: 700.0
     dedup_reads_r2: 700.0
   fastq.profile_read_lengths:
     stats_json: 2.0
     stats_report: 1.0
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     trim_report: 6.0
     trimmed_fastq: 1900.0
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     filtered_fastq: 900.0
     screen_report: 10.0
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     trimmed_fastq: 1800.0
     pretrim_report: 4.0
   fastq.profile_overrepresented_sequences:
@@ -989,32 +989,32 @@ stage_sanity_metrics:
   fastq.profile_reads:
   - read_count
   - q30_fraction
-  fastq.rrna:
+  fastq.deplete_rrna:
   - rrna_removed_fraction
   fastq.report_qc:
   - qc_warn_count
   - qc_fail_count
   fastq.screen_taxonomy:
   - classified_read_fraction
-  fastq.merge:
+  fastq.merge_pairs:
   - merge_rate
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - dedup_rate
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - reads_removed_low_complexity
-  fastq.host_depletion:
+  fastq.deplete_host:
   - contamination_rate
-  fastq.correct:
+  fastq.correct_errors:
   - error_corrected_fraction
-  fastq.umi:
+  fastq.extract_umis:
   - umi_dedup_fraction
   fastq.profile_read_lengths:
   - mean_read_length
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - trimmed_read_fraction
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - reads_removed_contaminant_kmer
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - reads_in
   - reads_out
   fastq.profile_overrepresented_sequences:
@@ -1044,7 +1044,7 @@ stage_qc_thresholds:
     q30_fraction:
       warn: <0.6
       fail: <0.4
-  fastq.rrna:
+  fastq.deplete_rrna:
     rrna_removed_fraction:
       warn: <0.05
       fail: <0.01
@@ -1056,27 +1056,27 @@ stage_qc_thresholds:
     classified_read_fraction:
       warn: <0.1
       fail: <0.01
-  fastq.merge:
+  fastq.merge_pairs:
     merge_rate:
       warn: <0.15
       fail: <0.05
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     dedup_rate:
       warn: <0.02
       fail: <0.005
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     reads_removed_low_complexity:
       warn: '>0.5'
       fail: '>0.8'
-  fastq.host_depletion:
+  fastq.deplete_host:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.correct:
+  fastq.correct_errors:
     error_corrected_fraction:
       warn: <0.01
       fail: <0.001
-  fastq.umi:
+  fastq.extract_umis:
     umi_dedup_fraction:
       warn: <0.05
       fail: <0.01
@@ -1084,15 +1084,15 @@ stage_qc_thresholds:
     mean_read_length:
       warn: <30
       fail: <20
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     trimmed_read_fraction:
       warn: <0.01
       fail: <0.001
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     reads_removed_contaminant_kmer:
       warn: '>0.8'
       fail: '>0.95'
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     reads_out:
       warn: <100
       fail: <=0
@@ -1125,7 +1125,7 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.rrna:
+  fastq.deplete_rrna:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
@@ -1137,27 +1137,27 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.merge:
+  fastq.merge_pairs:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.host_depletion:
+  fastq.deplete_host:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.correct:
+  fastq.correct_errors:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.umi:
+  fastq.extract_umis:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
@@ -1165,15 +1165,15 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     contamination_rate:
       warn: ">=0.05"
       fail: ">=0.2"
@@ -1206,7 +1206,7 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.rrna:
+  fastq.deplete_rrna:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1218,27 +1218,27 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <0.2
       fail: <0.1
-  fastq.merge:
+  fastq.merge_pairs:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.host_depletion:
+  fastq.deplete_host:
     authenticity_score:
       warn: <0.2
       fail: <0.1
-  fastq.correct:
+  fastq.correct_errors:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.umi:
+  fastq.extract_umis:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1246,15 +1246,15 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     authenticity_score:
       warn: <0.2
       fail: <0.1
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1287,7 +1287,7 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.rrna:
+  fastq.deplete_rrna:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1299,27 +1299,27 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.merge:
+  fastq.merge_pairs:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.deduplicate:
+  fastq.remove_duplicates:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.host_depletion:
+  fastq.deplete_host:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.correct:
+  fastq.correct_errors:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.umi:
+  fastq.extract_umis:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1327,15 +1327,15 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
     duplication_rate:
       warn: ">=0.7"
       fail: ">=0.9"
@@ -1356,31 +1356,31 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.profile_reads:
   - not_applicable
-  fastq.rrna:
+  fastq.deplete_rrna:
   - not_applicable
   fastq.report_qc:
   - not_applicable
   fastq.screen_taxonomy:
   - not_applicable
-  fastq.merge:
+  fastq.merge_pairs:
   - not_applicable
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - not_applicable
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - not_applicable
-  fastq.host_depletion:
+  fastq.deplete_host:
   - not_applicable
-  fastq.correct:
+  fastq.correct_errors:
   - not_applicable
-  fastq.umi:
+  fastq.extract_umis:
   - not_applicable
   fastq.profile_read_lengths:
   - not_applicable
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - not_applicable
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - not_applicable
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - not_applicable
   fastq.profile_overrepresented_sequences:
   - not_applicable
@@ -1397,31 +1397,31 @@ stage_sex_kinship_sufficiency:
   - not_applicable
   fastq.profile_reads:
   - not_applicable
-  fastq.rrna:
+  fastq.deplete_rrna:
   - not_applicable
   fastq.report_qc:
   - not_applicable
   fastq.screen_taxonomy:
   - not_applicable
-  fastq.merge:
+  fastq.merge_pairs:
   - not_applicable
-  fastq.deduplicate:
+  fastq.remove_duplicates:
   - not_applicable
-  fastq.low_complexity:
+  fastq.filter_low_complexity:
   - not_applicable
-  fastq.host_depletion:
+  fastq.deplete_host:
   - not_applicable
-  fastq.correct:
+  fastq.correct_errors:
   - not_applicable
-  fastq.umi:
+  fastq.extract_umis:
   - not_applicable
   fastq.profile_read_lengths:
   - not_applicable
-  fastq.polyg_tailing:
+  fastq.trim_polyg_tails:
   - not_applicable
-  fastq.contaminant_screen:
+  fastq.deplete_reference_contaminants:
   - not_applicable
-  fastq.damage_aware_pretrim:
+  fastq.trim_terminal_damage:
   - not_applicable
   fastq.profile_overrepresented_sequences:
   - not_applicable

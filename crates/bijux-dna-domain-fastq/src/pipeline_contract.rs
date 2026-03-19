@@ -33,7 +33,7 @@ pub fn canonical_stage_order() -> Vec<StageId> {
     vec![
         StageId::from_static("fastq.validate_reads"),
         StageId::from_static("fastq.detect_adapters"),
-        StageId::from_static("fastq.damage_aware_pretrim"),
+        StageId::from_static("fastq.trim_terminal_damage"),
         StageId::from_static("fastq.trim_reads"),
         StageId::from_static("fastq.filter_reads"),
         StageId::from_static("fastq.profile_reads"),
@@ -45,7 +45,7 @@ pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
     vec![
         StageId::from_static("fastq.validate_reads"),
         StageId::from_static("fastq.detect_adapters"),
-        StageId::from_static("fastq.damage_aware_pretrim"),
+        StageId::from_static("fastq.trim_terminal_damage"),
         StageId::from_static("fastq.primer_normalization"),
         StageId::from_static("fastq.trim_reads"),
         StageId::from_static("fastq.filter_reads"),
@@ -60,18 +60,18 @@ pub fn canonical_amplicon_stage_order() -> Vec<StageId> {
 pub fn optional_branches() -> Vec<(StageId, Vec<StageId>)> {
     vec![
         (
-            StageId::from_static("fastq.merge"),
+            StageId::from_static("fastq.merge_pairs"),
             vec![
                 StageId::from_static("fastq.trim_reads"),
                 StageId::from_static("fastq.filter_reads"),
             ],
         ),
         (
-            StageId::from_static("fastq.correct"),
+            StageId::from_static("fastq.correct_errors"),
             vec![StageId::from_static("fastq.trim_reads")],
         ),
         (
-            StageId::from_static("fastq.umi"),
+            StageId::from_static("fastq.extract_umis"),
             vec![StageId::from_static("fastq.trim_reads")],
         ),
         (
@@ -90,7 +90,7 @@ pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
     vec![
         (
             StageId::from_static("fastq.validate_reads"),
-            StageId::from_static("fastq.merge"),
+            StageId::from_static("fastq.merge_pairs"),
         ),
         (
             StageId::from_static("fastq.profile_reads"),
@@ -102,7 +102,7 @@ pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
         ),
         (
             StageId::from_static("fastq.profile_reads"),
-            StageId::from_static("fastq.merge"),
+            StageId::from_static("fastq.merge_pairs"),
         ),
         (
             StageId::from_static("fastq.asv_inference"),
@@ -120,10 +120,10 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
     match stage_id.as_str() {
         "fastq.validate_reads"
         | "fastq.detect_adapters"
-        | "fastq.damage_aware_pretrim"
+        | "fastq.trim_terminal_damage"
         | "fastq.trim_reads"
-        | "fastq.merge"
-        | "fastq.correct"
+        | "fastq.merge_pairs"
+        | "fastq.correct_errors"
         | "fastq.filter_reads"
         | "fastq.profile_reads"
         | "fastq.primer_normalization"
@@ -132,7 +132,7 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         "fastq.asv_inference"
         | "fastq.otu_clustering"
         | "fastq.report_qc"
-        | "fastq.umi"
+        | "fastq.extract_umis"
         => Some(StageCriticality::Optional),
         "fastq.screen_taxonomy" => Some(StageCriticality::Experimental),
         _ => None,

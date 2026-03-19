@@ -6,7 +6,7 @@ This record captures tools whose binding shape spans multiple domains or differs
 - bowtie2:
   - decision: keep canonical role as `aligner` and allow use in FASTQ host depletion and BAM alignment.
   - reason: host depletion in FASTQ is alignment-driven; contaminant screening remains screen-tool based.
-  - affected bindings: `bam.align`, `fastq.host_depletion`.
+  - affected bindings: `bam.align`, `fastq.deplete_host`.
   - date: 2026-02-11.
 - angsd:
   - decision: keep binding in BAM authenticity/contamination analysis only.

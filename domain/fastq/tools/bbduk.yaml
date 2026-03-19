@@ -41,9 +41,9 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
-  - "fastq.low_complexity"
-  - "fastq.contaminant_screen"
-  - "fastq.polyg_tailing"
+  - "fastq.filter_low_complexity"
+  - "fastq.deplete_reference_contaminants"
+  - "fastq.trim_polyg_tails"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"

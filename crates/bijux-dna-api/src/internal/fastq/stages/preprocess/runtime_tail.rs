@@ -66,8 +66,8 @@ fn write_merge_join_contract(
         Some("required merge artifacts missing".to_string())
     };
     let payload = serde_json::json!({
-        "schema_version": "bijux.fastq.merge_join_contract.v1",
-        "stage_id": "fastq.merge",
+        "schema_version": "bijux.fastq.merge_pairs_join_contract.v1",
+        "stage_id": "fastq.merge_pairs",
         "success": success,
         "criteria": {
             "exit_code_zero": execution.exit_code == 0,
@@ -268,12 +268,12 @@ fn enforce_stage_applicability(
     contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<()> {
     let stage = planned.step_id.as_str();
-    if stage == "fastq.merge" && args.r2.is_none() {
+    if stage == "fastq.merge_pairs" && args.r2.is_none() {
         return Err(anyhow!(
-            "stage fastq.merge requires paired-end input (missing R2)"
+            "stage fastq.merge_pairs requires paired-end input (missing R2)"
         ));
     }
-    if stage == "fastq.correct"
+    if stage == "fastq.correct_errors"
         && matches!(
             args.mode,
             bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
@@ -281,7 +281,7 @@ fn enforce_stage_applicability(
         )
     {
         return Err(anyhow!(
-            "stage fastq.correct refused for amplicon mode; unsupported library type"
+            "stage fastq.correct_errors refused for amplicon mode; unsupported library type"
         ));
     }
     if matches!(
@@ -300,16 +300,16 @@ fn enforce_stage_applicability(
             "stage {stage} is only applicable in eDNA/pollen amplicon modes"
         ));
     }
-    if stage == "fastq.contaminant_screen" {
+    if stage == "fastq.deplete_reference_contaminants" {
         let template = planned.command.template.join(" ");
         if !template.contains("assets/reference/contaminants/") {
             return Err(anyhow!(
-                "fastq.contaminant_screen requires contaminant assets under assets/reference/contaminants"
+                "fastq.deplete_reference_contaminants requires contaminant assets under assets/reference/contaminants"
             ));
         }
         if contaminant_bank.is_none() {
             return Err(anyhow!(
-                "fastq.contaminant_screen requires contaminant bank context"
+                "fastq.deplete_reference_contaminants requires contaminant bank context"
             ));
         }
     }
@@ -324,7 +324,7 @@ fn write_stage_governance_artifacts(
     let stage = planned.step_id.as_str();
     if !matches!(
         stage,
-        "fastq.screen_taxonomy" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
+        "fastq.screen_taxonomy" | "fastq.deplete_rrna" | "fastq.deplete_host" | "fastq.deplete_reference_contaminants"
     ) {
         return Ok(());
     }
@@ -346,7 +346,7 @@ fn write_stage_governance_artifacts(
         "stage_id": stage,
         "db_flags_present": db_flags_present,
         "command_template": planned.command.template,
-        "contaminant_bank": if stage == "fastq.contaminant_screen" { contaminant_bank.cloned() } else { None::<serde_json::Value> },
+        "contaminant_bank": if stage == "fastq.deplete_reference_contaminants" { contaminant_bank.cloned() } else { None::<serde_json::Value> },
     });
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.governance.json"), &payload)
         .context("write stage.governance.json")
@@ -375,7 +375,7 @@ fn write_fastq_output_contract(
         .map(|path| serde_json::json!({ "path": path }))
         .collect::<Vec<_>>();
     let expected_ecological_outputs = match planned.stage_id.as_str() {
-        "fastq.damage_aware_pretrim" => vec!["trimmed_reads"],
+        "fastq.trim_terminal_damage" => vec!["trimmed_reads"],
         "fastq.primer_normalization" => vec!["primer_orientation_report"],
         "fastq.chimera_detection" => vec!["chimera_metrics_json"],
         "fastq.asv_inference" => vec!["asv_table_tsv", "asv_sequences_fasta"],

@@ -4,9 +4,9 @@ fn apply_layout_branching(mut stages: Vec<String>, paired: bool) -> Vec<String> 
     }
     // Single-end runs must not schedule paired-only stages.
     stages.retain(|stage| {
-        stage != STAGE_MERGE.as_str()
-            && stage != STAGE_CORRECT.as_str()
-            && stage != STAGE_UMI.as_str()
+        stage != STAGE_MERGE_PAIRS.as_str()
+            && stage != STAGE_CORRECT_ERRORS.as_str()
+            && stage != STAGE_EXTRACT_UMIS.as_str()
     });
     stages
 }

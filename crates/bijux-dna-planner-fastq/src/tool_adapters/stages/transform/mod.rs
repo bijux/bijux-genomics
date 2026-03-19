@@ -1,23 +1,23 @@
-pub mod contaminant_screen;
-pub mod correct;
-pub mod deduplicate;
+pub mod correct_errors;
+pub mod deplete_host;
+pub mod deplete_reference_contaminants;
 pub mod filter_reads;
-pub mod host_depletion;
-pub mod low_complexity;
-pub mod merge;
+pub mod filter_low_complexity;
+pub mod merge_pairs;
+pub mod remove_duplicates;
 pub mod trim_reads;
-pub mod umi;
-pub mod polyg_tailing {
+pub mod extract_umis;
+pub mod trim_polyg_tails {
     use std::path::Path;
 
     use anyhow::{anyhow, Result};
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
     };
-    use bijux_dna_domain_fastq::stages::ids::STAGE_POLYG_TAILING;
+    use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
     use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-    pub const STAGE_ID: StageId = STAGE_POLYG_TAILING;
+    pub const STAGE_ID: StageId = STAGE_TRIM_POLYG_TAILS;
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
     fn output_name(tool_id: &str) -> Option<&'static str> {
@@ -32,15 +32,15 @@ pub mod polyg_tailing {
     ///
     /// # Errors
     /// Returns an error if the tool is unsupported for this stage.
-    pub fn plan_polyg_tailing(
+    pub fn plan_trim_polyg_tails(
         tool: &ToolExecutionSpecV1,
         r1: &Path,
         out_dir: &Path,
     ) -> Result<StagePlanV1> {
         let out_name = output_name(tool.tool_id.as_str())
-            .ok_or_else(|| anyhow!("unsupported polyg_tailing tool {}", tool.tool_id))?;
+            .ok_or_else(|| anyhow!("unsupported trim_polyg_tails tool {}", tool.tool_id))?;
         let output = out_dir.join(out_name);
-        let report = out_dir.join("polyg_tailing_report.json");
+        let report = out_dir.join("trim_polyg_tails_report.json");
         Ok(StagePlanV1 {
             stage_id: STAGE_ID.clone(),
             stage_version: STAGE_VERSION,

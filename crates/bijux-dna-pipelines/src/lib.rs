@@ -132,8 +132,8 @@ impl DefaultParams {
         match self {
             DefaultParams::FastqValidate(value) => Self::encode(value, "fastq.validate"),
             DefaultParams::FastqStats(value) => Self::encode(value, "fastq.profile_reads"),
-            DefaultParams::FastqCorrect(value) => Self::encode(value, "fastq.correct"),
-            DefaultParams::FastqUmi(value) => Self::encode(value, "fastq.umi"),
+            DefaultParams::FastqCorrect(value) => Self::encode(value, "fastq.correct_errors"),
+            DefaultParams::FastqUmi(value) => Self::encode(value, "fastq.extract_umis"),
             DefaultParams::FastqDetectAdapters(value) => {
                 Self::encode(value, "fastq.detect_adapters")
             }
@@ -141,7 +141,7 @@ impl DefaultParams {
             DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter_reads"),
             DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.report_qc"),
             DefaultParams::FastqPreprocess(value) => Self::encode(value, "fastq.preprocess"),
-            DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge"),
+            DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge_pairs"),
             DefaultParams::FastqScreen(value) => Self::encode(value, "fastq.screen_taxonomy"),
             DefaultParams::Bam(value) => match value {
                 BamEffectiveParams::Align(inner) => Self::encode(inner, "bam.align"),

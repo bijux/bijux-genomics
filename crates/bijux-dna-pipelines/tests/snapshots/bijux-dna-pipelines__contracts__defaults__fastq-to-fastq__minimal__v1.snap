@@ -6,7 +6,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "assumptions": [],
   "citations": {},
   "param_provenance": {
-    "fastq.correct": {
+    "fastq.correct_errors": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -42,7 +42,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.merge": {
+    "fastq.merge_pairs": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -114,7 +114,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.umi": {
+    "fastq.extract_umis": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -140,7 +140,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     }
   },
   "params": {
-    "fastq.correct": {
+    "fastq.correct_errors": {
       "kmer_size": null,
       "paired_mode": "single_end",
       "schema_version": "bijux.fastq.params.correct.v1",
@@ -163,7 +163,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "polyx_policy": null,
       "threads": 1
     },
-    "fastq.merge": {
+    "fastq.merge_pairs": {
       "merge_overlap": null,
       "min_len": null,
       "paired_mode": "single_end",
@@ -209,7 +209,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "q_cutoff": null,
       "threads": 1
     },
-    "fastq.umi": {
+    "fastq.extract_umis": {
       "paired_mode": "single_end",
       "schema_version": "bijux.fastq.params.umi.v1",
       "threads": 1,
@@ -224,7 +224,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "pipeline_id": "fastq-to-fastq__minimal__v1",
   "thresholds": {},
   "tool_provenance": {
-    "fastq.correct": {
+    "fastq.correct_errors": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -260,7 +260,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.merge": {
+    "fastq.merge_pairs": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -332,7 +332,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.umi": {
+    "fastq.extract_umis": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -358,16 +358,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     }
   },
   "tools": {
-    "fastq.correct": "rcorrector",
+    "fastq.correct_errors": "rcorrector",
     "fastq.detect_adapters": "fastqc",
     "fastq.filter_reads": "seqkit",
-    "fastq.merge": "vsearch",
+    "fastq.merge_pairs": "vsearch",
     "fastq.preprocess": "planner",
     "fastq.report_qc": "multiqc",
     "fastq.screen_taxonomy": "kraken2",
     "fastq.profile_reads": "seqkit_stats",
     "fastq.trim_reads": "fastp",
-    "fastq.umi": "umi_tools",
+    "fastq.extract_umis": "umi_tools",
     "fastq.validate_reads": "fastqvalidator"
   }
 }

@@ -5,10 +5,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
-    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT,
-    STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_LOW_COMPLEXITY,
-    STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC,
-    STAGE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
+    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT_ERRORS,
+    STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY,
+    STAGE_MERGE_PAIRS, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC,
+    STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -59,15 +59,15 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: stats::STATS_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_CORRECT {
+    if stage_id == &STAGE_CORRECT_ERRORS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.correct",
+            param_type_id: "fastq.correct_errors",
             schema_version: correct::CORRECT_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_UMI {
+    if stage_id == &STAGE_EXTRACT_UMIS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.umi",
+            param_type_id: "fastq.extract_umis",
             schema_version: umi::UMI_SCHEMA_VERSION,
         });
     }
@@ -83,9 +83,9 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_DAMAGE_AWARE_PRETRIM {
+    if stage_id == &STAGE_TRIM_TERMINAL_DAMAGE {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.damage_aware_pretrim",
+            param_type_id: "fastq.trim_terminal_damage",
             schema_version: "legacy.unversioned",
         });
     }
@@ -95,15 +95,15 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_MERGE {
+    if stage_id == &STAGE_MERGE_PAIRS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.merge",
+            param_type_id: "fastq.merge_pairs",
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_RRNA {
+    if stage_id == &STAGE_DEPLETE_RRNA {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.rrna",
+            param_type_id: "fastq.deplete_rrna",
             schema_version: "legacy.unversioned",
         });
     }
@@ -261,12 +261,12 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Stats);
     }
-    if stage_id == &STAGE_CORRECT {
+    if stage_id == &STAGE_CORRECT_ERRORS {
         return serde_json::from_value::<correct::FastqCorrectParams>(value.clone())
             .ok()
             .map(EffectiveParams::Correct);
     }
-    if stage_id == &STAGE_UMI {
+    if stage_id == &STAGE_EXTRACT_UMIS {
         return serde_json::from_value::<umi::FastqUmiParams>(value.clone())
             .ok()
             .map(EffectiveParams::Umi);
@@ -283,7 +283,7 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Trim);
     }
-    if stage_id == &STAGE_DAMAGE_AWARE_PRETRIM {
+    if stage_id == &STAGE_TRIM_TERMINAL_DAMAGE {
         return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Trim);
@@ -293,17 +293,17 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Filter);
     }
-    if stage_id == &STAGE_LOW_COMPLEXITY {
+    if stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
         return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Filter);
     }
-    if stage_id == &STAGE_MERGE {
+    if stage_id == &STAGE_MERGE_PAIRS {
         return serde_json::from_value::<merge::MergeEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Merge);
     }
-    if stage_id == &STAGE_RRNA {
+    if stage_id == &STAGE_DEPLETE_RRNA {
         return serde_json::from_value::<screen::RrnaEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Rrna);

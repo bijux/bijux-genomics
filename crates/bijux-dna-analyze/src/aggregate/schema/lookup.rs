@@ -28,13 +28,13 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             invariants: &fields::FASTQ_FILTER_INVARIANTS,
         },
         defs::StageMetricKind::FastqMerge => defs::StageMetricSpec {
-            stage: "fastq.merge",
+            stage: "fastq.merge_pairs",
             version: 1,
             metrics: &fields::FASTQ_MERGE_METRICS,
             invariants: &fields::FASTQ_MERGE_INVARIANTS,
         },
         defs::StageMetricKind::FastqCorrect => defs::StageMetricSpec {
-            stage: "fastq.correct",
+            stage: "fastq.correct_errors",
             version: 1,
             metrics: &fields::FASTQ_CORRECT_METRICS,
             invariants: &fields::FASTQ_CORRECT_INVARIANTS,
@@ -46,7 +46,7 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             invariants: &fields::FASTQ_QC_POST_INVARIANTS,
         },
         defs::StageMetricKind::FastqUmi => defs::StageMetricSpec {
-            stage: "fastq.umi",
+            stage: "fastq.extract_umis",
             version: 1,
             metrics: &fields::FASTQ_UMI_METRICS,
             invariants: &fields::FASTQ_UMI_INVARIANTS,

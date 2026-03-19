@@ -276,11 +276,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
-id = "fastq.contaminant_screen"
+id = "fastq.deplete_reference_contaminants"
 status = "supported"
 output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.host_depletion"]
-prerequisites = ["fastq.host_depletion"]
+ordering_after = ["fastq.deplete_host"]
+prerequisites = ["fastq.deplete_host"]
 resource_memory_gb = 10
 resource_time_minutes = 30
 resource_threads = 6
@@ -295,7 +295,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbduk", "bowtie2"]
 
 [[stages]]
-id = "fastq.correct"
+id = "fastq.correct_errors"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.filter_reads"]
@@ -314,7 +314,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 
 [[stages]]
-id = "fastq.damage_aware_pretrim"
+id = "fastq.trim_terminal_damage"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.validate_reads"]
@@ -371,11 +371,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 
 [[stages]]
-id = "fastq.host_depletion"
+id = "fastq.deplete_host"
 status = "supported"
 output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.merge"]
-prerequisites = ["fastq.merge"]
+ordering_after = ["fastq.merge_pairs"]
+prerequisites = ["fastq.merge_pairs"]
 resource_memory_gb = 16
 resource_time_minutes = 50
 resource_threads = 8
@@ -409,7 +409,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastp", "prinseq", "seqkit_stats"]
 
 [[stages]]
-id = "fastq.merge"
+id = "fastq.merge_pairs"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.filter_reads"]
@@ -447,7 +447,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastqc", "seqkit"]
 
 [[stages]]
-id = "fastq.polyg_tailing"
+id = "fastq.trim_polyg_tails"
 status = "supported"
 output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.detect_adapters"]
@@ -504,7 +504,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastqc", "multiqc", "qualimap", "samtools"]
 
 [[stages]]
-id = "fastq.rrna"
+id = "fastq.deplete_rrna"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.filter_reads"]
@@ -545,8 +545,8 @@ tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuni
 id = "fastq.profile_reads"
 status = "supported"
 output_kinds = ["json"]
-ordering_after = ["fastq.contaminant_screen"]
-prerequisites = ["fastq.contaminant_screen"]
+ordering_after = ["fastq.deplete_reference_contaminants"]
+prerequisites = ["fastq.deplete_reference_contaminants"]
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
@@ -564,8 +564,8 @@ tools = ["seqkit", "seqkit_stats"]
 id = "fastq.trim_reads"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.polyg_tailing"]
-prerequisites = ["fastq.polyg_tailing"]
+ordering_after = ["fastq.trim_polyg_tails"]
+prerequisites = ["fastq.trim_polyg_tails"]
 resource_memory_gb = 6
 resource_time_minutes = 30
 resource_threads = 6
@@ -580,7 +580,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
-id = "fastq.umi"
+id = "fastq.extract_umis"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.trim_reads"]
@@ -623,7 +623,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.prepare_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.polyg_tailing", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
+stages = ["fastq.prepare_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge_pairs", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"

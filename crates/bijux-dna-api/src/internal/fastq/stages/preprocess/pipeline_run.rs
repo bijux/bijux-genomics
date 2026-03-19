@@ -447,7 +447,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         write_stage_resume_contract(&stage_root, &stage_id, &execution, resume_hit)?;
         if matches!(
             stage_id.as_str(),
-            "fastq.damage_aware_pretrim"
+            "fastq.trim_terminal_damage"
                 | "fastq.primer_normalization"
                 | "fastq.chimera_detection"
                 | "fastq.otu_clustering"
@@ -457,7 +457,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             let stage_metrics = materialize_amplicon_stage_outputs(&stage_root, planned)?;
             enforce_amplicon_qc_thresholds(&stage_root, &stage_id, &stage_metrics)?;
         }
-        if stage_id == "fastq.merge" {
+        if stage_id == "fastq.merge_pairs" {
             write_merge_join_contract(&stage_root, &execution, entry_invariants.paired_consistent)?;
             enforce_amplicon_merge_determinism(&stage_root, args.mode, &execution)?;
         }

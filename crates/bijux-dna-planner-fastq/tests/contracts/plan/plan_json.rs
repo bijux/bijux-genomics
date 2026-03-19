@@ -72,13 +72,13 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.filter_reads", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::merge::plan_merge(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::plan_merge(
         &dummy_tool("pear"),
         r1,
         r2,
         out_dir,
     )?;
-    assert_snapshot("stage__fastq__fastq.merge", &plan)?;
+    assert_snapshot("stage__fastq__fastq.merge_pairs", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
         &dummy_tool("fastqvalidator"),
@@ -94,28 +94,28 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.screen_taxonomy", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::rrna::plan_rrna(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_rrna::plan_rrna(
         &dummy_tool("sortmerna"),
         r1,
         out_dir,
     )?;
-    assert_snapshot("stage__fastq__fastq.rrna", &plan)?;
+    assert_snapshot("stage__fastq__fastq.deplete_rrna", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::umi::plan_umi(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
         &dummy_tool("umi_tools"),
         r1,
         r2,
         out_dir,
     )?;
-    assert_snapshot("stage__fastq__fastq.umi", &plan)?;
+    assert_snapshot("stage__fastq__fastq.extract_umis", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct::plan_correct(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
         &dummy_tool("rcorrector"),
         r1,
         r2,
         out_dir,
     )?;
-    assert_snapshot("stage__fastq__fastq.correct", &plan)?;
+    assert_snapshot("stage__fastq__fastq.correct_errors", &plan)?;
 
     let preprocess_plan =
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::PreprocessPlan {

@@ -2,7 +2,7 @@
   "pipeline_id": "fastq-to-fastq__default__v1",
   "tools": {},
   "params": {
-    "fastq.correct": {
+    "fastq.correct_errors": {
       "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
@@ -24,7 +24,7 @@
       "polyx_policy": null,
       "threads": 1
     },
-    "fastq.merge": {
+    "fastq.merge_pairs": {
       "merge_overlap": null,
       "min_len": null,
       "paired_mode": "single_end",
@@ -67,7 +67,7 @@
       "q_cutoff": null,
       "threads": 1
     },
-    "fastq.umi": {
+    "fastq.extract_umis": {
       "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
@@ -81,7 +81,7 @@
   "thresholds": {},
   "tool_provenance": {},
   "param_provenance": {
-    "fastq.correct": {
+    "fastq.correct_errors": {
       "rationale": "pipeline default",
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -117,7 +117,7 @@
         "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
       ]
     },
-    "fastq.merge": {
+    "fastq.merge_pairs": {
       "rationale": "pipeline default",
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -189,7 +189,7 @@
         "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
       ]
     },
-    "fastq.umi": {
+    "fastq.extract_umis": {
       "rationale": "pipeline default",
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"

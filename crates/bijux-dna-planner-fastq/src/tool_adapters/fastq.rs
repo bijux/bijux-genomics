@@ -25,36 +25,36 @@ pub mod filter_reads {
     pub use crate::tool_adapters::stages::transform::filter_reads::*;
 }
 
-pub mod deduplicate {
-    pub use crate::tool_adapters::stages::transform::deduplicate::*;
+pub mod remove_duplicates {
+    pub use crate::tool_adapters::stages::transform::remove_duplicates::*;
 }
 
-pub mod host_depletion {
-    pub use crate::tool_adapters::stages::transform::host_depletion::*;
+pub mod deplete_host {
+    pub use crate::tool_adapters::stages::transform::deplete_host::*;
 }
 
-pub mod contaminant_screen {
-    pub use crate::tool_adapters::stages::transform::contaminant_screen::*;
+pub mod deplete_reference_contaminants {
+    pub use crate::tool_adapters::stages::transform::deplete_reference_contaminants::*;
 }
 
-pub mod low_complexity {
-    pub use crate::tool_adapters::stages::transform::low_complexity::*;
+pub mod filter_low_complexity {
+    pub use crate::tool_adapters::stages::transform::filter_low_complexity::*;
 }
 
-pub mod merge {
-    pub use crate::tool_adapters::stages::transform::merge::*;
+pub mod merge_pairs {
+    pub use crate::tool_adapters::stages::transform::merge_pairs::*;
 }
 
-pub mod polyg_tailing {
-    pub use crate::tool_adapters::stages::transform::polyg_tailing::*;
+pub mod trim_polyg_tails {
+    pub use crate::tool_adapters::stages::transform::trim_polyg_tails::*;
 }
 
-pub mod correct {
-    pub use crate::tool_adapters::stages::transform::correct::*;
+pub mod correct_errors {
+    pub use crate::tool_adapters::stages::transform::correct_errors::*;
 }
 
-pub mod umi {
-    pub use crate::tool_adapters::stages::transform::umi::*;
+pub mod extract_umis {
+    pub use crate::tool_adapters::stages::transform::extract_umis::*;
 }
 
 pub mod profile_reads {
@@ -65,8 +65,8 @@ pub mod report_qc {
     pub use crate::tool_adapters::stages::qc::report_qc::*;
 }
 
-pub mod rrna {
-    pub use crate::tool_adapters::stages::qc::rrna::*;
+pub mod deplete_rrna {
+    pub use crate::tool_adapters::stages::qc::deplete_rrna::*;
 }
 
 pub mod screen_taxonomy {
@@ -83,8 +83,8 @@ pub struct StageInfo {
 pub fn registry() -> Vec<StageInfo> {
     vec![
         StageInfo {
-            id: crate::tool_adapters::stages::transform::correct::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::correct::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::correct_errors::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::correct_errors::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
@@ -118,38 +118,38 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::deduplicate::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::deduplicate::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::remove_duplicates::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::remove_duplicates::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::host_depletion::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::host_depletion::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::deplete_host::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::deplete_host::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::contaminant_screen::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::contaminant_screen::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::deplete_reference_contaminants::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::deplete_reference_contaminants::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::low_complexity::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::low_complexity::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::filter_low_complexity::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::filter_low_complexity::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::merge::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::merge::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::merge_pairs::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::merge_pairs::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::polyg_tailing::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::polyg_tailing::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::trim_polyg_tails::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::trim_polyg_tails::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::transform::umi::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::transform::umi::STAGE_VERSION,
+            id: crate::tool_adapters::stages::transform::extract_umis::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::extract_umis::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
@@ -168,7 +168,7 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: fastq_ids::STAGE_DAMAGE_AWARE_PRETRIM,
+            id: fastq_ids::STAGE_TRIM_TERMINAL_DAMAGE,
             version: StageVersion(1),
             affects_read_counts: true,
         },
@@ -198,8 +198,8 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::qc::rrna::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::qc::rrna::STAGE_VERSION,
+            id: crate::tool_adapters::stages::qc::deplete_rrna::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::qc::deplete_rrna::STAGE_VERSION,
             affects_read_counts: true,
         },
     ]

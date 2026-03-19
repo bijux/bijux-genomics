@@ -55,7 +55,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "defaults": {
     "params": {
-      "fastq.correct": {
+      "fastq.correct_errors": {
         "kmer_size": null,
         "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.correct.v1",
@@ -78,7 +78,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "polyx_policy": null,
         "threads": 1
       },
-      "fastq.merge": {
+      "fastq.merge_pairs": {
         "merge_overlap": null,
         "min_len": null,
         "paired_mode": "single_end",
@@ -124,7 +124,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "q_cutoff": null,
         "threads": 1
       },
-      "fastq.umi": {
+      "fastq.extract_umis": {
         "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.umi.v1",
         "threads": 1,
@@ -137,29 +137,29 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       }
     },
     "rationales": {
-      "fastq.correct": "pipeline default",
+      "fastq.correct_errors": "pipeline default",
       "fastq.detect_adapters": "pipeline default",
       "fastq.filter_reads": "pipeline default",
-      "fastq.merge": "pipeline default",
+      "fastq.merge_pairs": "pipeline default",
       "fastq.preprocess": "pipeline default",
       "fastq.report_qc": "pipeline default",
       "fastq.screen_taxonomy": "pipeline default",
       "fastq.profile_reads": "pipeline default",
       "fastq.trim_reads": "pipeline default",
-      "fastq.umi": "pipeline default",
+      "fastq.extract_umis": "pipeline default",
       "fastq.validate_reads": "pipeline default"
     },
     "tools": {
-      "fastq.correct": "rcorrector",
+      "fastq.correct_errors": "rcorrector",
       "fastq.detect_adapters": "fastqc",
       "fastq.filter_reads": "seqkit",
-      "fastq.merge": "vsearch",
+      "fastq.merge_pairs": "vsearch",
       "fastq.preprocess": "planner",
       "fastq.report_qc": "multiqc",
       "fastq.screen_taxonomy": "kraken2",
       "fastq.profile_reads": "seqkit_stats",
       "fastq.trim_reads": "fastp",
-      "fastq.umi": "umi_tools",
+      "fastq.extract_umis": "umi_tools",
       "fastq.validate_reads": "fastqvalidator"
     }
   },

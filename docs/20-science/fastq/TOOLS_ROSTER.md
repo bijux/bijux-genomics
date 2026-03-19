@@ -25,8 +25,8 @@ Clarifies tool coverage and rationale.
 | fastq.trim_reads | fastp, cutadapt, trimmomatic | Standard trimming tools |
 | fastq.filter_reads | seqkit, prinseq, fastp | Quality/length filtering |
 | fastq.profile_reads | seqkit_stats | Fast statistics |
-| fastq.merge | pear, flash2, bbmerge, vsearch | Merge alternatives |
-| fastq.correct | rcorrector, spades/bayeshammer, lighter, musket | Error correction options |
-| fastq.umi | umi_tools | UMI handling |
+| fastq.merge_pairs | pear, flash2, bbmerge, vsearch | Merge alternatives |
+| fastq.correct_errors | rcorrector, spades/bayeshammer, lighter, musket | Error correction options |
+| fastq.extract_umis | umi_tools | UMI handling |
 | fastq.report_qc | multiqc | QC aggregation |
 | fastq.screen_taxonomy | kraken2, centrifuge | Contamination screening |

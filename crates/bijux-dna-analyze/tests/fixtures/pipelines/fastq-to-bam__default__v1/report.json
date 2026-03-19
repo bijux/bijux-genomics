@@ -1021,7 +1021,7 @@
             "comparability_implications": [],
             "rationale": "unspecified"
           },
-          "fastq.correct": {
+          "fastq.correct_errors": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1036,7 +1036,7 @@
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
-          "fastq.merge": {
+          "fastq.merge_pairs": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1066,7 +1066,7 @@
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
-          "fastq.umi": {
+          "fastq.extract_umis": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1154,7 +1154,7 @@
             "strict": true
           },
           "core.prepare_reference": {},
-          "fastq.correct": {
+          "fastq.correct_errors": {
             "paired_mode": "paired_end",
             "q_cutoff": null,
             "threads": 1
@@ -1176,7 +1176,7 @@
             "polyx_policy": null,
             "threads": 1
           },
-          "fastq.merge": {
+          "fastq.merge_pairs": {
             "merge_overlap": null,
             "min_len": null,
             "paired_mode": "paired_end",
@@ -1219,7 +1219,7 @@
             "q_cutoff": null,
             "threads": 1
           },
-          "fastq.umi": {
+          "fastq.extract_umis": {
             "paired_mode": "paired_end",
             "q_cutoff": null,
             "threads": 1
@@ -1298,7 +1298,7 @@
             "comparability_implications": [],
             "rationale": "unspecified"
           },
-          "fastq.correct": {
+          "fastq.correct_errors": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1313,7 +1313,7 @@
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
-          "fastq.merge": {
+          "fastq.merge_pairs": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1343,7 +1343,7 @@
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
-          "fastq.umi": {
+          "fastq.extract_umis": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -1368,16 +1368,16 @@
           "bam.sex": "rxy",
           "bam.validate": "samtools",
           "core.prepare_reference": "samtools",
-          "fastq.correct": "rcorrector",
+          "fastq.correct_errors": "rcorrector",
           "fastq.detect_adapters": "fastqc",
           "fastq.filter_reads": "fastp",
-          "fastq.merge": "vsearch",
+          "fastq.merge_pairs": "vsearch",
           "fastq.preprocess": "planner",
           "fastq.report_qc": "multiqc",
           "fastq.screen_taxonomy": "kraken2",
           "fastq.profile_reads": "seqkit_stats",
           "fastq.trim_reads": "fastp",
-          "fastq.umi": "umi_tools",
+          "fastq.extract_umis": "umi_tools",
           "fastq.validate_reads": "fastqvalidator"
         }
       },

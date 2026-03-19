@@ -235,7 +235,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             "paired_library_requires_merge",
             Some(id_catalog::FASTQ_MERGE),
             InvariantSeverity::Hard,
-            "paired library declaration requires fastq.merge unless explicitly disabled with justification",
+            "paired library declaration requires fastq.merge_pairs unless explicitly disabled with justification",
         ));
     }
 
@@ -282,7 +282,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 "adna_merge_stage_missing",
                 Some(id_catalog::FASTQ_MERGE),
                 InvariantSeverity::Hard,
-                "aDNA profiles must include fastq.merge for paired-end collapse/merge",
+                "aDNA profiles must include fastq.merge_pairs for paired-end collapse/merge",
             ));
         }
 
@@ -370,7 +370,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                     "paired_library_requires_merge",
                     Some(id_catalog::FASTQ_MERGE),
                     InvariantSeverity::Hard,
-                    "paired library declaration requires fastq.merge unless explicitly disabled with justification",
+                    "paired library declaration requires fastq.merge_pairs unless explicitly disabled with justification",
                 ));
             }
         } else {

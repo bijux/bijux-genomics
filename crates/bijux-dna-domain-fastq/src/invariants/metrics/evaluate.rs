@@ -253,7 +253,7 @@ pub fn evaluate_invariants(
                 Some("verify metrics schema for fastq.validate_reads".to_string()),
             ));
         }
-    } else if stage_id == &STAGE_MERGE {
+    } else if stage_id == &STAGE_MERGE_PAIRS {
         if let Ok(metrics) = serde_json::from_value::<FastqMergeMetricsV1>(metrics_json.clone()) {
             key_metrics.insert(
                 "merge_rate".to_string(),
@@ -295,7 +295,7 @@ pub fn evaluate_invariants(
                 "metrics_parse",
                 InvariantStatusV1::Fail,
                 "failed to parse merge metrics".to_string(),
-                Some("verify metrics schema for fastq.merge".to_string()),
+                Some("verify metrics schema for fastq.merge_pairs".to_string()),
             ));
         }
     }
@@ -326,14 +326,14 @@ pub fn evaluate_invariants(
 pub const CORE_STAGES: [StageId; 6] = [
     STAGE_VALIDATE_READS,
     STAGE_TRIM_READS,
-    STAGE_MERGE,
-    STAGE_CORRECT,
+    STAGE_MERGE_PAIRS,
+    STAGE_CORRECT_ERRORS,
     STAGE_FILTER_READS,
     STAGE_PROFILE_READS,
 ];
 
 #[allow(dead_code)]
-pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_REPORT_QC, STAGE_UMI, STAGE_SCREEN_TAXONOMY];
+pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_REPORT_QC, STAGE_EXTRACT_UMIS, STAGE_SCREEN_TAXONOMY];
 
 #[allow(dead_code)]
 pub const META_STAGES: [StageId; 0] = [];
@@ -341,10 +341,10 @@ pub const META_STAGES: [StageId; 0] = [];
 #[allow(dead_code)]
 pub const MUTATING_STAGES: [StageId; 5] = [
     STAGE_TRIM_READS,
-    STAGE_MERGE,
-    STAGE_CORRECT,
+    STAGE_MERGE_PAIRS,
+    STAGE_CORRECT_ERRORS,
     STAGE_FILTER_READS,
-    STAGE_UMI,
+    STAGE_EXTRACT_UMIS,
 ];
 
 #[allow(dead_code)]
