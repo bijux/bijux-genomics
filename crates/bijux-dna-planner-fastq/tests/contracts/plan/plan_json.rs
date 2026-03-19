@@ -90,6 +90,13 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.merge_pairs", &plan)?;
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::index_reference::plan(
+        &dummy_tool("bowtie2_build"),
+        Path::new("reference.fa"),
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.index_reference", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
         &dummy_tool("fastqvalidator"),
         r1,

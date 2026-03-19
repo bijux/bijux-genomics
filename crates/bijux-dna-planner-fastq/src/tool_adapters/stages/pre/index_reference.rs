@@ -4,6 +4,9 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::reference_index::{
+    ReferenceIndexEffectiveParams, INDEX_REFERENCE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -32,6 +35,12 @@ pub fn plan(
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let output = out_dir.join("reference_index");
+    let effective_params = ReferenceIndexEffectiveParams {
+        schema_version: INDEX_REFERENCE_SCHEMA_VERSION.to_string(),
+        threads: tool.resources.threads,
+        index_format: tool.tool_id.to_string(),
+        output_artifact: "reference_index".to_string(),
+    };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -61,9 +70,8 @@ pub fn plan(
             "out_dir": out_dir,
             "reference_index": output,
         }),
-        effective_params: serde_json::json!({
-            "threads": tool.resources.threads,
-        }),
+        effective_params: serde_json::to_value(&effective_params)
+            .map_err(|error| anyhow!("serialize index reference effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
