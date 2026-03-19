@@ -1,10 +1,7 @@
 use anyhow::{anyhow, Result};
 
-use crate::infrastructure::process::ProcessRunner;
 use crate::infrastructure::workspace::Workspace;
-use crate::model::container::{
-    ContainerCommandDefinition, ContainerCommandOutcome, ContainerCommandSpec,
-};
+use crate::model::container::{ContainerCommandDefinition, ContainerCommandOutcome, ContainerCommandSpec};
 use crate::native::run_native_container_command;
 use crate::registry::containers::container_registry;
 
@@ -37,17 +34,7 @@ impl ContainerApplication {
             .find(|candidate| candidate.id == id)
             .ok_or_else(|| anyhow!("unknown container command `{id}`"))?;
         match &command.command {
-            ContainerCommandSpec::Native { key } => {
-                run_native_container_command(key, &self.workspace, args)
-            }
-            ContainerCommandSpec::Script { rel_path } => self.run_script(rel_path, args),
+            ContainerCommandSpec::Native { key } => run_native_container_command(key, &self.workspace, args),
         }
-    }
-
-    fn run_script(&self, rel_path: &str, args: &[String]) -> Result<ContainerCommandOutcome> {
-        let runner = ProcessRunner::new(&self.workspace);
-        let program = format!("./{rel_path}");
-        let output = runner.run_owned(&program, args)?;
-        Ok(ContainerCommandOutcome::from_output(output))
     }
 }
