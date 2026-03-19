@@ -131,18 +131,18 @@ impl DefaultParams {
     pub fn to_json(&self) -> serde_json::Value {
         match self {
             DefaultParams::FastqValidate(value) => Self::encode(value, "fastq.validate"),
-            DefaultParams::FastqStats(value) => Self::encode(value, "fastq.stats_neutral"),
+            DefaultParams::FastqStats(value) => Self::encode(value, "fastq.profile_reads"),
             DefaultParams::FastqCorrect(value) => Self::encode(value, "fastq.correct"),
             DefaultParams::FastqUmi(value) => Self::encode(value, "fastq.umi"),
             DefaultParams::FastqDetectAdapters(value) => {
                 Self::encode(value, "fastq.detect_adapters")
             }
-            DefaultParams::FastqTrim(value) => Self::encode(value, "fastq.trim"),
-            DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter"),
-            DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.qc_post"),
+            DefaultParams::FastqTrim(value) => Self::encode(value, "fastq.trim_reads"),
+            DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter_reads"),
+            DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.report_qc"),
             DefaultParams::FastqPreprocess(value) => Self::encode(value, "fastq.preprocess"),
             DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge"),
-            DefaultParams::FastqScreen(value) => Self::encode(value, "fastq.screen"),
+            DefaultParams::FastqScreen(value) => Self::encode(value, "fastq.screen_taxonomy"),
             DefaultParams::Bam(value) => match value {
                 BamEffectiveParams::Align(inner) => Self::encode(inner, "bam.align"),
                 BamEffectiveParams::Validate(inner) => Self::encode(inner, "bam.validate"),

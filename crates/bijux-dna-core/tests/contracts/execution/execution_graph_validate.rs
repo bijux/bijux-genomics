@@ -10,7 +10,7 @@ use bijux_dna_core::prelude::{
 fn step(step_id: &str) -> ExecutionStep {
     ExecutionStep {
         step_id: StepId::new(step_id),
-        stage_id: StageId::new("fastq.trim"),
+        stage_id: StageId::new("fastq.trim_reads"),
         command: CommandSpecV1 {
             template: vec!["fastp".to_string()],
         },

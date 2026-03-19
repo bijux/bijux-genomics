@@ -9,8 +9,8 @@ use crate::invariants::evaluation::{
 };
 use crate::parse_effective_params;
 use crate::stages::ids::{
-    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_QC_POST, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
 };
 
 include!("metrics/evaluate.rs");

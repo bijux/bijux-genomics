@@ -11,7 +11,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
     let facts = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:img".to_string()),
@@ -66,7 +66,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
         "graph_hash": "sha256:graph",
         "dataset_fingerprints": ["sha256:input"],
         "stage_contracts": {
-            "fastq.trim": "sha256:contract"
+            "fastq.trim_reads": "sha256:contract"
         }
     });
     bijux_dna_infra::write_bytes(

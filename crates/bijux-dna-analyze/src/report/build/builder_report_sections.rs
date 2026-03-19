@@ -7,8 +7,8 @@ enum ToolTier {
 
 fn tool_tier_for(stage_id: &str, tool_id: &str) -> (ToolTier, &'static str) {
     match (stage_id, tool_id) {
-        ("fastq.trim" | "fastq.filter", "fastp") => (ToolTier::Gold, "curated_default"),
-        ("fastq.stats_neutral", "seqkit_stats") => (ToolTier::Silver, "diagnostic_stats"),
+        ("fastq.trim_reads" | "fastq.filter_reads", "fastp") => (ToolTier::Gold, "curated_default"),
+        ("fastq.profile_reads", "seqkit_stats") => (ToolTier::Silver, "diagnostic_stats"),
         _ => (ToolTier::Experimental, "unknown_tool"),
     }
 }

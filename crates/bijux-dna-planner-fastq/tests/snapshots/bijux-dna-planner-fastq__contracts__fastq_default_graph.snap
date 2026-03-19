@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
+assertion_line: 77
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -11,22 +12,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "edges": [
     {
       "from": "fastq.detect_adapters",
-      "to": "fastq.trim"
+      "to": "fastq.trim_reads"
     },
     {
-      "from": "fastq.filter",
-      "to": "fastq.stats_neutral"
+      "from": "fastq.filter_reads",
+      "to": "fastq.profile_reads"
     },
     {
-      "from": "fastq.stats_neutral",
-      "to": "fastq.qc_post"
+      "from": "fastq.profile_reads",
+      "to": "fastq.report_qc"
     },
     {
-      "from": "fastq.trim",
-      "to": "fastq.filter"
+      "from": "fastq.trim_reads",
+      "to": "fastq.filter_reads"
     },
     {
-      "from": "fastq.validate_pre",
+      "from": "fastq.validate_reads",
       "to": "fastq.detect_adapters"
     }
   ],
@@ -87,7 +88,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "command": {
         "template": [
           "echo",
-          "fastq.filter"
+          "fastq.filter_reads"
         ]
       },
       "expected_artifact_ids": [],
@@ -121,63 +122,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.filter",
-      "step_id": "fastq.filter"
+      "stage_id": "fastq.filter_reads",
+      "step_id": "fastq.filter_reads"
     },
     {
       "aux_images": {},
       "command": {
         "template": [
           "echo",
-          "fastq.qc_post"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "reads_r1",
-            "optional": false,
-            "path": "fastp.fastq.gz",
-            "role": "reads"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "multiqc_report",
-            "optional": true,
-            "path": "multiqc_report.html",
-            "role": "report_html"
-          },
-          {
-            "name": "multiqc_data",
-            "optional": true,
-            "path": "multiqc_data",
-            "role": "index"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "multiqc",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "fastq.qc_post",
-      "step_id": "fastq.qc_post"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "fastq.stats_neutral"
+          "fastq.profile_reads"
         ]
       },
       "expected_artifact_ids": [],
@@ -223,15 +176,63 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.stats_neutral",
-      "step_id": "fastq.stats_neutral"
+      "stage_id": "fastq.profile_reads",
+      "step_id": "fastq.profile_reads"
     },
     {
       "aux_images": {},
       "command": {
         "template": [
           "echo",
-          "fastq.trim"
+          "fastq.report_qc"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "fastp.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "multiqc_report",
+            "optional": true,
+            "path": "multiqc_report.html",
+            "role": "report_html"
+          },
+          {
+            "name": "multiqc_data",
+            "optional": true,
+            "path": "multiqc_data",
+            "role": "index"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "multiqc",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.report_qc",
+      "step_id": "fastq.report_qc"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.trim_reads"
         ]
       },
       "expected_artifact_ids": [],
@@ -277,15 +278,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.trim",
-      "step_id": "fastq.trim"
+      "stage_id": "fastq.trim_reads",
+      "step_id": "fastq.trim_reads"
     },
     {
       "aux_images": {},
       "command": {
         "template": [
           "echo",
-          "fastq.validate_pre"
+          "fastq.validate_reads"
         ]
       },
       "expected_artifact_ids": [],
@@ -319,8 +320,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.validate_pre",
-      "step_id": "fastq.validate_pre"
+      "stage_id": "fastq.validate_reads",
+      "step_id": "fastq.validate_reads"
     }
   ]
 }

@@ -12,23 +12,23 @@ stage_ids:
   - fastq.damage_aware_pretrim
   - fastq.deduplicate
   - fastq.detect_adapters
-  - fastq.filter
+  - fastq.filter_reads
   - fastq.host_depletion
-  - fastq.length_distribution_pre
   - fastq.low_complexity
   - fastq.merge
   - fastq.otu_clustering
-  - fastq.overrepresented_sequences
   - fastq.polyg_tailing
   - fastq.prepare_reference
   - fastq.primer_normalization
-  - fastq.qc_post
+  - fastq.profile_overrepresented_sequences
+  - fastq.profile_read_lengths
+  - fastq.profile_reads
+  - fastq.report_qc
   - fastq.rrna
-  - fastq.screen
-  - fastq.stats_neutral
-  - fastq.trim
+  - fastq.screen_taxonomy
+  - fastq.trim_reads
   - fastq.umi
-  - fastq.validate_pre
+  - fastq.validate_reads
 tool_ids:
   - adapterremoval
   - alientrimmer
@@ -86,7 +86,7 @@ stage_tool_compatibility:
   - samtools
   fastq.detect_adapters:
   - fastp
-  fastq.trim:
+  fastq.trim_reads:
   - fastp
   - cutadapt
   - atropos
@@ -101,30 +101,30 @@ stage_tool_compatibility:
   - leehom
   - alientrimmer
   - fastx_clipper
-  fastq.filter:
+  fastq.filter_reads:
   - fastp
   - seqkit
   - prinseq
   - bbduk
-  fastq.validate_pre:
+  fastq.validate_reads:
   - fastqvalidator
   - fastqvalidator
   - fastq_scan
   - seqtk
   - fqtools
   - fastqc
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - seqkit_stats
   - seqkit
   - seqfu
   fastq.rrna:
   - sortmerna
-  fastq.qc_post:
+  fastq.report_qc:
   - multiqc
   - fastqc
   - qualimap
   - samtools
-  fastq.screen:
+  fastq.screen_taxonomy:
   - kraken2
   - krakenuniq
   - bracken
@@ -159,7 +159,7 @@ stage_tool_compatibility:
   - spades
   fastq.umi:
   - umi_tools
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - seqkit_stats
   - seqfu
   - prinseq
@@ -173,41 +173,41 @@ stage_tool_compatibility:
   fastq.damage_aware_pretrim:
   - cutadapt
   - seqkit
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - fastqc
   - fastq_scan
   - seqkit
 active_defaults:
   fastq.prepare_reference: star
   fastq.detect_adapters: fastp
-  fastq.trim: fastp
-  fastq.filter: fastp
-  fastq.validate_pre: fastqvalidator
-  fastq.stats_neutral: seqkit_stats
+  fastq.trim_reads: fastp
+  fastq.filter_reads: fastp
+  fastq.validate_reads: fastqvalidator
+  fastq.profile_reads: seqkit_stats
   fastq.rrna: sortmerna
-  fastq.qc_post: multiqc
-  fastq.screen: kraken2
+  fastq.report_qc: multiqc
+  fastq.screen_taxonomy: kraken2
   fastq.merge: pear
   fastq.deduplicate: prinseq
   fastq.low_complexity: bbduk
   fastq.host_depletion: bowtie2
   fastq.correct: rcorrector
   fastq.umi: umi_tools
-  fastq.length_distribution_pre: seqkit_stats
+  fastq.profile_read_lengths: seqkit_stats
   fastq.polyg_tailing: fastp
   fastq.contaminant_screen: bbduk
   fastq.damage_aware_pretrim: cutadapt
-  fastq.overrepresented_sequences: fastqc
+  fastq.profile_overrepresented_sequences: fastqc
 active_default_rationale:
   fastq.prepare_reference: Stable index generation baseline for pre-HPC runs.
   fastq.detect_adapters: Default adapter detector aligned with trim defaults.
-  fastq.trim: Baseline trimmer for deterministic quality/throughput tradeoff.
-  fastq.filter: Default filter preserves compatibility with downstream metrics.
-  fastq.validate_pre: Validation default has broad FASTQ format coverage.
-  fastq.stats_neutral: Neutral stats baseline is lightweight and deterministic.
+  fastq.trim_reads: Baseline trimmer for deterministic quality/throughput tradeoff.
+  fastq.filter_reads: Default filter preserves compatibility with downstream metrics.
+  fastq.validate_reads: Validation default has broad FASTQ format coverage.
+  fastq.profile_reads: Neutral stats baseline is lightweight and deterministic.
   fastq.rrna: Default rRNA filter is established for pre-HPC screening.
-  fastq.qc_post: QC aggregation default provides operator-first summary output.
-  fastq.screen: Default classifier maximizes comparability with existing reports.
+  fastq.report_qc: QC aggregation default provides operator-first summary output.
+  fastq.screen_taxonomy: Default classifier maximizes comparability with existing reports.
   fastq.merge: Default merger is stable for paired-end overlap handling.
   fastq.deduplicate: Default deduplication uses pair-aware duplicate removal with stable
     ordering.
@@ -217,7 +217,7 @@ active_default_rationale:
     extraction.
   fastq.correct: Default corrector chosen for robust error-correction baseline.
   fastq.umi: Default UMI handler preserves compatibility with stage contract.
-  fastq.length_distribution_pre: Default length histogram baseline provides deterministic
+  fastq.profile_read_lengths: Default length histogram baseline provides deterministic
     pre-trim size distribution.
   fastq.polyg_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
     sequencer artifacts.
@@ -227,7 +227,7 @@ active_default_rationale:
     policy for aDNA damage-aware pretrim.
   fastq.primer_normalization: Deterministic primer trimming with explicit mismatch/orientation
     controls.
-  fastq.overrepresented_sequences: Default overrepresented-sequence detector uses
+  fastq.profile_overrepresented_sequences: Default overrepresented-sequence detector uses
     FastQC module output.
 stage_completeness_checklist:
   fastq.prepare_reference:
@@ -242,25 +242,25 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.trim:
+  fastq.trim_reads:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.filter:
+  fastq.filter_reads:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.validate_pre:
+  fastq.validate_reads:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -272,13 +272,13 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.qc_post:
+  fastq.report_qc:
   - inputs_defined
   - outputs_defined
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.screen:
+  fastq.screen_taxonomy:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -320,7 +320,7 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -344,7 +344,7 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -362,7 +362,7 @@ stage_default_settings:
     fastp:
       profile: adna_sane_default
       notes: adapter detection without irreversible filtering
-  fastq.trim:
+  fastq.trim_reads:
     fastp:
       profile: adna_sane_default
       notes: balanced trim preset
@@ -405,7 +405,7 @@ stage_default_settings:
     fastx_clipper:
       profile: adna_sane_default
       notes: legacy clipping preset
-  fastq.filter:
+  fastq.filter_reads:
     fastp:
       profile: adna_sane_default
       notes: quality/length filter preset
@@ -418,7 +418,7 @@ stage_default_settings:
     bbduk:
       profile: adna_sane_default
       notes: kmer filter preset
-  fastq.validate_pre:
+  fastq.validate_reads:
     fastqvalidator:
       profile: adna_sane_default
       notes: strict fastq validation preset
@@ -437,7 +437,7 @@ stage_default_settings:
     fastqc:
       profile: adna_sane_default
       notes: qc probe preset for validation stage
-  fastq.stats_neutral:
+  fastq.profile_reads:
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic stats preset
@@ -451,7 +451,7 @@ stage_default_settings:
     sortmerna:
       profile: adna_sane_default
       notes: rRNA depletion screening preset
-  fastq.qc_post:
+  fastq.report_qc:
     multiqc:
       profile: adna_sane_default
       notes: operator-facing aggregation preset
@@ -464,7 +464,7 @@ stage_default_settings:
     samtools:
       profile: adna_sane_default
       notes: basic qc metrics preset
-  fastq.screen:
+  fastq.screen_taxonomy:
     kraken2:
       profile: adna_sane_default
       notes: taxonomy baseline preset
@@ -555,7 +555,7 @@ stage_default_settings:
     umi_tools:
       profile: adna_sane_default
       notes: umi extraction/dedup preset
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic length histogram baseline preset
@@ -589,7 +589,7 @@ stage_default_settings:
     seqkit:
       profile: adna_sane_default
       notes: deterministic post-trim length and composition summary preset
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     fastqc:
       profile: adna_sane_default
       notes: FastQC overrepresented module preset
@@ -604,25 +604,25 @@ stage_comparability_mapping:
   - reference_index_build_metrics
   fastq.detect_adapters:
   - adapter_detection_rate
-  fastq.trim:
+  fastq.trim_reads:
   - trimmed_read_fraction
   - post_trim_read_length_mean
-  fastq.filter:
+  fastq.filter_reads:
   - reads_filtered_fraction
   - post_filter_read_count
-  fastq.validate_pre:
+  fastq.validate_reads:
   - format_validation_pass_rate
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - read_count
   - base_count
   - mean_read_length
   - q30_fraction
   fastq.rrna:
   - rrna_removed_fraction
-  fastq.qc_post:
+  fastq.report_qc:
   - qc_warn_count
   - qc_fail_count
-  fastq.screen:
+  fastq.screen_taxonomy:
   - taxonomy_abundance_fraction
   - classified_read_fraction
   fastq.merge:
@@ -642,7 +642,7 @@ stage_comparability_mapping:
   fastq.umi:
   - umi_extracted_count
   - umi_dedup_fraction
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - length_histogram
   - mean_read_length
   fastq.polyg_tailing:
@@ -654,7 +654,7 @@ stage_comparability_mapping:
   fastq.damage_aware_pretrim:
   - reads_in
   - reads_out
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - reads_total
   - reads_removed_contaminant_kmer
 stage_min_quality_gates:
@@ -662,20 +662,20 @@ stage_min_quality_gates:
   - index_build_exit_code=0
   fastq.detect_adapters:
   - adapter_detection_rate>=0.0
-  fastq.trim:
+  fastq.trim_reads:
   - post_trim_read_count>0
-  fastq.filter:
+  fastq.filter_reads:
   - post_filter_read_count>0
-  fastq.validate_pre:
+  fastq.validate_reads:
   - validation_pass=true
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - read_count>0
   - q30_fraction>=0.0
   fastq.rrna:
   - rrna_removed_fraction>=0.0
-  fastq.qc_post:
+  fastq.report_qc:
   - qc_report_present=true
-  fastq.screen:
+  fastq.screen_taxonomy:
   - classified_read_fraction>=0.0
   fastq.merge:
   - merge_rate>=0.0
@@ -689,7 +689,7 @@ stage_min_quality_gates:
   - post_correct_read_count>0
   fastq.umi:
   - umi_report_present=true
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - read_count>0
   fastq.polyg_tailing:
   - post_trim_read_count>0
@@ -697,26 +697,26 @@ stage_min_quality_gates:
   - reads_removed_contaminant_kmer>=0.0
   fastq.damage_aware_pretrim:
   - reads_out>0
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - reads_total>0
 stage_failure_diagnosis_hints:
   fastq.prepare_reference:
   - verify reference fasta path and index write permissions
   fastq.detect_adapters:
   - check input read quality and adapter bank selection
-  fastq.trim:
+  fastq.trim_reads:
   - inspect adapter parameters and minimum length thresholds
-  fastq.filter:
+  fastq.filter_reads:
   - review quality/complexity thresholds for over-filtering
-  fastq.validate_pre:
+  fastq.validate_reads:
   - inspect malformed FASTQ records and line wrapping
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - verify parser input paths and gzip integrity
   fastq.rrna:
   - check rRNA database path and memory allocation
-  fastq.qc_post:
+  fastq.report_qc:
   - inspect upstream qc tool outputs required by aggregator
-  fastq.screen:
+  fastq.screen_taxonomy:
   - check classifier DB path/version/hash and kmer DB integrity
   fastq.merge:
   - review overlap thresholds and paired-end orientation
@@ -730,7 +730,7 @@ stage_failure_diagnosis_hints:
   - verify kmer/cov parameters and read depth assumptions
   fastq.umi:
   - confirm UMI pattern configuration and read naming conventions
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - inspect FASTQ parsing and gzip integrity for histogram generation
   fastq.polyg_tailing:
   - review polyG/polyX thresholds and platform-specific tailing patterns
@@ -738,104 +738,104 @@ stage_failure_diagnosis_hints:
   - check contaminant bank/decoy reference selection and k-mer thresholds
   fastq.damage_aware_pretrim:
   - review terminal trim/mask parameters and UDG classification inputs
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - inspect overrepresented table and adapter/contaminant sequence banks
 pipeline_compositions:
   pre_hpc_best:
   - fastq.prepare_reference
-  - fastq.validate_pre
-  - fastq.length_distribution_pre
+  - fastq.validate_reads
+  - fastq.profile_read_lengths
   - fastq.detect_adapters
   - fastq.polyg_tailing
-  - fastq.trim
-  - fastq.filter
+  - fastq.trim_reads
+  - fastq.filter_reads
   - fastq.merge
   - fastq.host_depletion
   - fastq.contaminant_screen
-  - fastq.stats_neutral
-  - fastq.qc_post
-  - fastq.overrepresented_sequences
-  - fastq.screen
+  - fastq.profile_reads
+  - fastq.report_qc
+  - fastq.profile_overrepresented_sequences
+  - fastq.screen_taxonomy
 stage_ordering_constraints:
   fastq.prepare_reference: []
-  fastq.validate_pre:
+  fastq.validate_reads:
   - fastq.prepare_reference
   fastq.detect_adapters:
-  - fastq.validate_pre
-  fastq.trim:
+  - fastq.validate_reads
+  fastq.trim_reads:
   - fastq.polyg_tailing
-  fastq.filter:
-  - fastq.trim
+  fastq.filter_reads:
+  - fastq.trim_reads
   fastq.merge:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.deduplicate:
   - fastq.merge
   fastq.low_complexity:
   - fastq.deduplicate
   fastq.host_depletion:
   - fastq.merge
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - fastq.contaminant_screen
-  fastq.qc_post:
-  - fastq.stats_neutral
-  fastq.screen:
-  - fastq.qc_post
+  fastq.report_qc:
+  - fastq.profile_reads
+  fastq.screen_taxonomy:
+  - fastq.report_qc
   fastq.rrna:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.correct:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.umi:
-  - fastq.trim
-  fastq.length_distribution_pre:
-  - fastq.validate_pre
+  - fastq.trim_reads
+  fastq.profile_read_lengths:
+  - fastq.validate_reads
   fastq.polyg_tailing:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
   fastq.damage_aware_pretrim:
-  - fastq.validate_pre
-  fastq.overrepresented_sequences:
-  - fastq.qc_post
+  - fastq.validate_reads
+  fastq.profile_overrepresented_sequences:
+  - fastq.report_qc
 stage_prerequisites:
   fastq.prepare_reference: []
-  fastq.validate_pre:
+  fastq.validate_reads:
   - fastq.prepare_reference
   fastq.detect_adapters:
-  - fastq.validate_pre
-  fastq.trim:
+  - fastq.validate_reads
+  fastq.trim_reads:
   - fastq.polyg_tailing
-  fastq.filter:
-  - fastq.trim
+  fastq.filter_reads:
+  - fastq.trim_reads
   fastq.merge:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.deduplicate:
   - fastq.merge
   fastq.low_complexity:
   - fastq.deduplicate
   fastq.host_depletion:
   - fastq.merge
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - fastq.contaminant_screen
-  fastq.qc_post:
-  - fastq.stats_neutral
-  fastq.screen:
-  - fastq.qc_post
+  fastq.report_qc:
+  - fastq.profile_reads
+  fastq.screen_taxonomy:
+  - fastq.report_qc
   fastq.rrna:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.correct:
-  - fastq.filter
+  - fastq.filter_reads
   fastq.umi:
-  - fastq.trim
-  fastq.length_distribution_pre:
-  - fastq.validate_pre
+  - fastq.trim_reads
+  fastq.profile_read_lengths:
+  - fastq.validate_reads
   fastq.polyg_tailing:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
   fastq.damage_aware_pretrim:
-  - fastq.validate_pre
-  fastq.overrepresented_sequences:
-  - fastq.qc_post
+  - fastq.validate_reads
+  fastq.profile_overrepresented_sequences:
+  - fastq.report_qc
 stage_resource_hints:
   fastq.prepare_reference:
     memory_gb: 8.0
@@ -845,19 +845,19 @@ stage_resource_hints:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
-  fastq.trim:
+  fastq.trim_reads:
     memory_gb: 6.0
     time_minutes: 30
     threads: 6
-  fastq.filter:
+  fastq.filter_reads:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
-  fastq.validate_pre:
+  fastq.validate_reads:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
-  fastq.stats_neutral:
+  fastq.profile_reads:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
@@ -865,11 +865,11 @@ stage_resource_hints:
     memory_gb: 8.0
     time_minutes: 30
     threads: 6
-  fastq.qc_post:
+  fastq.report_qc:
     memory_gb: 4.0
     time_minutes: 15
     threads: 2
-  fastq.screen:
+  fastq.screen_taxonomy:
     memory_gb: 16.0
     time_minutes: 60
     threads: 8
@@ -897,7 +897,7 @@ stage_resource_hints:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
@@ -913,7 +913,7 @@ stage_resource_hints:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     memory_gb: 4.0
     time_minutes: 15
     threads: 2
@@ -922,22 +922,22 @@ stage_output_size_estimates_mb:
     reference_index: 5000.0
   fastq.detect_adapters:
     adapter_report: 5.0
-  fastq.trim:
+  fastq.trim_reads:
     trimmed_reads: 2000.0
     trim_report: 10.0
-  fastq.filter:
+  fastq.filter_reads:
     filtered_reads: 1800.0
     filter_report_json: 10.0
-  fastq.validate_pre:
+  fastq.validate_reads:
     scan_report: 5.0
-  fastq.stats_neutral:
+  fastq.profile_reads:
     stats_json: 2.0
   fastq.rrna:
     rrna_filtered_reads: 1700.0
-  fastq.qc_post:
+  fastq.report_qc:
     qc_report_json: 15.0
     qc_report_html: 30.0
-  fastq.screen:
+  fastq.screen_taxonomy:
     screen_report_tsv: 25.0
     abundance_report: 5.0
   fastq.merge:
@@ -959,7 +959,7 @@ stage_output_size_estimates_mb:
   fastq.umi:
     dedup_reads_r1: 700.0
     dedup_reads_r2: 700.0
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     stats_json: 2.0
     stats_report: 1.0
   fastq.polyg_tailing:
@@ -971,7 +971,7 @@ stage_output_size_estimates_mb:
   fastq.damage_aware_pretrim:
     trimmed_fastq: 1800.0
     pretrim_report: 4.0
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     screen_report_tsv: 4.0
     report_json: 2.0
 stage_sanity_metrics:
@@ -979,22 +979,22 @@ stage_sanity_metrics:
   - index_build_exit_code
   fastq.detect_adapters:
   - adapter_detection_rate
-  fastq.trim:
+  fastq.trim_reads:
   - trimmed_read_fraction
   - post_trim_read_length_mean
-  fastq.filter:
+  fastq.filter_reads:
   - reads_filtered_fraction
-  fastq.validate_pre:
+  fastq.validate_reads:
   - format_validation_pass_rate
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - read_count
   - q30_fraction
   fastq.rrna:
   - rrna_removed_fraction
-  fastq.qc_post:
+  fastq.report_qc:
   - qc_warn_count
   - qc_fail_count
-  fastq.screen:
+  fastq.screen_taxonomy:
   - classified_read_fraction
   fastq.merge:
   - merge_rate
@@ -1008,7 +1008,7 @@ stage_sanity_metrics:
   - error_corrected_fraction
   fastq.umi:
   - umi_dedup_fraction
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - mean_read_length
   fastq.polyg_tailing:
   - trimmed_read_fraction
@@ -1017,7 +1017,7 @@ stage_sanity_metrics:
   fastq.damage_aware_pretrim:
   - reads_in
   - reads_out
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - reads_total
 stage_qc_thresholds:
   fastq.prepare_reference:
@@ -1028,19 +1028,19 @@ stage_qc_thresholds:
     adapter_detection_rate:
       warn: <0.01
       fail: <0.001
-  fastq.trim:
+  fastq.trim_reads:
     trimmed_read_fraction:
       warn: <0.4
       fail: <0.2
-  fastq.filter:
+  fastq.filter_reads:
     reads_filtered_fraction:
       warn: '>0.8'
       fail: '>0.9'
-  fastq.validate_pre:
+  fastq.validate_reads:
     format_validation_pass_rate:
       warn: <1.0
       fail: <0.99
-  fastq.stats_neutral:
+  fastq.profile_reads:
     q30_fraction:
       warn: <0.6
       fail: <0.4
@@ -1048,11 +1048,11 @@ stage_qc_thresholds:
     rrna_removed_fraction:
       warn: <0.05
       fail: <0.01
-  fastq.qc_post:
+  fastq.report_qc:
     qc_fail_count:
       warn: '>0'
       fail: '>5'
-  fastq.screen:
+  fastq.screen_taxonomy:
     classified_read_fraction:
       warn: <0.1
       fail: <0.01
@@ -1080,7 +1080,7 @@ stage_qc_thresholds:
     umi_dedup_fraction:
       warn: <0.05
       fail: <0.01
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     mean_read_length:
       warn: <30
       fail: <20
@@ -1096,7 +1096,7 @@ stage_qc_thresholds:
     reads_out:
       warn: <100
       fail: <=0
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     reads_removed_contaminant_kmer:
       warn: '>0.2'
       fail: '>0.5'
@@ -1109,19 +1109,19 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
-  fastq.trim:
+  fastq.trim_reads:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.filter:
+  fastq.filter_reads:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.validate_pre:
+  fastq.validate_reads:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.stats_neutral:
+  fastq.profile_reads:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
@@ -1129,11 +1129,11 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.qc_post:
+  fastq.report_qc:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.screen:
+  fastq.screen_taxonomy:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
@@ -1161,7 +1161,7 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
@@ -1177,7 +1177,7 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: ">=0.05"
       fail: ">=0.2"
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
@@ -1190,19 +1190,19 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.trim:
+  fastq.trim_reads:
     authenticity_score:
       warn: <0.2
       fail: <0.1
-  fastq.filter:
+  fastq.filter_reads:
     authenticity_score:
       warn: <0.2
       fail: <0.1
-  fastq.validate_pre:
+  fastq.validate_reads:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.stats_neutral:
+  fastq.profile_reads:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1210,11 +1210,11 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.qc_post:
+  fastq.report_qc:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.screen:
+  fastq.screen_taxonomy:
     authenticity_score:
       warn: <0.2
       fail: <0.1
@@ -1242,7 +1242,7 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1258,7 +1258,7 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1271,19 +1271,19 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.trim:
+  fastq.trim_reads:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.filter:
+  fastq.filter_reads:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.validate_pre:
+  fastq.validate_reads:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.stats_neutral:
+  fastq.profile_reads:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1291,11 +1291,11 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.qc_post:
+  fastq.report_qc:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.screen:
+  fastq.screen_taxonomy:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1323,7 +1323,7 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1339,7 +1339,7 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: ">=0.7"
       fail: ">=0.9"
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1348,19 +1348,19 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.detect_adapters:
   - not_applicable
-  fastq.trim:
+  fastq.trim_reads:
   - not_applicable
-  fastq.filter:
+  fastq.filter_reads:
   - not_applicable
-  fastq.validate_pre:
+  fastq.validate_reads:
   - not_applicable
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - not_applicable
   fastq.rrna:
   - not_applicable
-  fastq.qc_post:
+  fastq.report_qc:
   - not_applicable
-  fastq.screen:
+  fastq.screen_taxonomy:
   - not_applicable
   fastq.merge:
   - not_applicable
@@ -1374,7 +1374,7 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.umi:
   - not_applicable
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - not_applicable
   fastq.polyg_tailing:
   - not_applicable
@@ -1382,26 +1382,26 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.damage_aware_pretrim:
   - not_applicable
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - not_applicable
 stage_sex_kinship_sufficiency:
   fastq.prepare_reference:
   - not_applicable
   fastq.detect_adapters:
   - not_applicable
-  fastq.trim:
+  fastq.trim_reads:
   - not_applicable
-  fastq.filter:
+  fastq.filter_reads:
   - not_applicable
-  fastq.validate_pre:
+  fastq.validate_reads:
   - not_applicable
-  fastq.stats_neutral:
+  fastq.profile_reads:
   - not_applicable
   fastq.rrna:
   - not_applicable
-  fastq.qc_post:
+  fastq.report_qc:
   - not_applicable
-  fastq.screen:
+  fastq.screen_taxonomy:
   - not_applicable
   fastq.merge:
   - not_applicable
@@ -1415,7 +1415,7 @@ stage_sex_kinship_sufficiency:
   - not_applicable
   fastq.umi:
   - not_applicable
-  fastq.length_distribution_pre:
+  fastq.profile_read_lengths:
   - not_applicable
   fastq.polyg_tailing:
   - not_applicable
@@ -1423,11 +1423,11 @@ stage_sex_kinship_sufficiency:
   - not_applicable
   fastq.damage_aware_pretrim:
   - not_applicable
-  fastq.overrepresented_sequences:
+  fastq.profile_overrepresented_sequences:
   - not_applicable
 benchmark_scenarios:
   trim_fairness:
-    stage_id: fastq.trim
+    stage_id: fastq.trim_reads
     description: Compare trim tools on identical raw FASTQ pairs and identical adapter
       bank.
     fairness_rules:
@@ -1435,7 +1435,7 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
   screen_fairness:
-    stage_id: fastq.screen
+    stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
     fairness_rules:
     - same_input_hash

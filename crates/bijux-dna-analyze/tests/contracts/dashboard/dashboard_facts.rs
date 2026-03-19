@@ -42,8 +42,8 @@ fn dashboard_facts_snapshot_is_stable() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let path = dir.path().join("facts.jsonl");
     let rows = vec![
-        facts_row("run-2", "fastq.trim", "fastp", "b"),
-        facts_row("run-1", "fastq.validate_pre", "fastqvalidator", "a"),
+        facts_row("run-2", "fastq.trim_reads", "fastp", "b"),
+        facts_row("run-1", "fastq.validate_reads", "fastqvalidator", "a"),
     ];
     write_dashboard_facts_jsonl(&path, &rows)?;
     let rendered = fs::read_to_string(&path)?;

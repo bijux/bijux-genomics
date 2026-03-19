@@ -4,8 +4,8 @@ fn emit_fastq_stage_extra_artifacts(
     execution: &StageResultV1,
 ) -> Result<()> {
     let payload = match stage_id {
-        "fastq.filter" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.filter_reasons.v1",
+        "fastq.filter_reads" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.filter_reads_reasons.v1",
             "stage": stage_id,
             "reasons": {
                 "low_quality": parse_first_u64_after_key(&execution.stderr, "low quality"),
@@ -90,20 +90,20 @@ fn write_stage_standardized_metrics(
     execution: &StageResultV1,
 ) -> Result<()> {
     let metrics = match stage_id {
-        "fastq.validate_pre" => parse_validate_pre_metrics(execution),
+        "fastq.validate_reads" => parse_validate_pre_metrics(execution),
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
         }),
-        "fastq.length_distribution_pre" => serde_json::json!({
+        "fastq.profile_read_lengths" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["sample_id", "read_length", "count"],
             "tsv_path": out_dir.join("length_distribution.tsv"),
             "json_path": out_dir.join("length_distribution.json"),
         }),
-        "fastq.overrepresented_sequences" => serde_json::json!({
+        "fastq.profile_overrepresented_sequences" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["sequence", "count", "fraction", "flag"],
@@ -126,13 +126,13 @@ fn write_stage_standardized_metrics(
             },
             "report_json": out_dir.join("low_complexity_report.json"),
         }),
-        "fastq.trim" => serde_json::json!({
+        "fastq.trim_reads" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "bases_in", "bases_out"],
             "report_json": out_dir.join("trim_report.json"),
         }),
-        "fastq.filter" => serde_json::json!({
+        "fastq.filter_reads" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "filtered_low_quality", "filtered_too_short", "filtered_n_content"],
@@ -181,14 +181,14 @@ fn write_stage_standardized_metrics(
             "report_tsv": out_dir.join("rrna_report.tsv"),
             "report_json": out_dir.join("rrna_report.json"),
         }),
-        "fastq.screen" => serde_json::json!({
+        "fastq.screen_taxonomy" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["classified_reads", "unclassified_reads", "top_taxa"],
             "report_tsv": out_dir.join("screen_report.tsv"),
             "report_json": out_dir.join("classification.report.json"),
         }),
-        "fastq.qc_post" => serde_json::json!({
+        "fastq.report_qc" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["qc_modules", "warnings", "failures"],

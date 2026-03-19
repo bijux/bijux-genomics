@@ -7,6 +7,6 @@ expression: json
   "hints": [],
   "kind": "data_invalid",
   "reason": "invalid fastq records",
-  "stage": "fastq.validate_pre",
+  "stage": "fastq.validate_reads",
   "tool": "fastqvalidator"
 }

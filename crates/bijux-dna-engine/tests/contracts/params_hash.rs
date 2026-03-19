@@ -32,7 +32,7 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
     let invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
         contract_version: ContractVersion::v1(),
-        stage_id: StageId::from_static("fastq.trim"),
+        stage_id: StageId::from_static("fastq.trim_reads"),
         tool_id: ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
         resolved_tool_version: Some("0.23.4".to_string()),

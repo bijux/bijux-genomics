@@ -121,8 +121,8 @@ pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent 
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
     match stage_id {
-        "fastq.validate_pre" => Some(StageMetricSpec {
-            stage: "fastq.validate_pre",
+        "fastq.validate_reads" => Some(StageMetricSpec {
+            stage: "fastq.validate_reads",
             classes: &FASTQ_VALIDATE_CLASSES,
             invariants: &FASTQ_VALIDATE_INVARIANTS,
             notes: "Validation reports counts; no data is modified.",
@@ -139,14 +139,14 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS,
             notes: "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order.",
         }),
-        "fastq.trim" => Some(StageMetricSpec {
-            stage: "fastq.trim",
+        "fastq.trim_reads" => Some(StageMetricSpec {
+            stage: "fastq.trim_reads",
             classes: &FASTQ_TRIM_CLASSES,
             invariants: &FASTQ_TRIM_INVARIANTS,
             notes: "Trim can reduce reads/bases and improve quality.",
         }),
-        "fastq.filter" => Some(StageMetricSpec {
-            stage: "fastq.filter",
+        "fastq.filter_reads" => Some(StageMetricSpec {
+            stage: "fastq.filter_reads",
             classes: &FASTQ_FILTER_CLASSES,
             invariants: &FASTQ_FILTER_INVARIANTS,
             notes: "Filter drops reads and should improve quality.",
@@ -175,8 +175,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_CORRECT_INVARIANTS,
             notes: "Correct should preserve reads while improving quality.",
         }),
-        "fastq.qc_post" => Some(StageMetricSpec {
-            stage: "fastq.qc_post",
+        "fastq.report_qc" => Some(StageMetricSpec {
+            stage: "fastq.report_qc",
             classes: &FASTQ_QC_POST_CLASSES,
             invariants: &FASTQ_QC_POST_INVARIANTS,
             notes: "Post-QC reports quality and contamination signals.",
@@ -187,8 +187,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_UMI_INVARIANTS,
             notes: "UMI processing may drop reads during deduplication.",
         }),
-        "fastq.screen" => Some(StageMetricSpec {
-            stage: "fastq.screen",
+        "fastq.screen_taxonomy" => Some(StageMetricSpec {
+            stage: "fastq.screen_taxonomy",
             classes: &FASTQ_SCREEN_CLASSES,
             invariants: &FASTQ_SCREEN_INVARIANTS,
             notes: "Screening reports contamination only.",
@@ -199,8 +199,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_RRNA_INVARIANTS,
             notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",
         }),
-        "fastq.stats_neutral" => Some(StageMetricSpec {
-            stage: "fastq.stats_neutral",
+        "fastq.profile_reads" => Some(StageMetricSpec {
+            stage: "fastq.profile_reads",
             classes: &FASTQ_STATS_CLASSES,
             invariants: &FASTQ_STATS_INVARIANTS,
             notes: "Stats is report-only and must not mutate reads.",

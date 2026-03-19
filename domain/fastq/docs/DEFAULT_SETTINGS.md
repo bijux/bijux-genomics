@@ -18,15 +18,15 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 
 ## Stage Coverage
 - `fastq.prepare_reference`: default `star`.
-- `fastq.validate_pre`: default `fastqvalidator`.
-- `fastq.length_distribution_pre`: default `seqkit_stats`.
+- `fastq.validate_reads`: default `fastqvalidator`.
+- `fastq.profile_read_lengths`: default `seqkit_stats`.
 - `fastq.detect_adapters`: default `fastp`.
 - `fastq.polyg_tailing`: default `fastp`.
-- `fastq.trim`: default `fastp`.
-- `fastq.filter`: default `fastp`.
-- `fastq.stats_neutral`: default `seqkit_stats`.
+- `fastq.trim_reads`: default `fastp`.
+- `fastq.filter_reads`: default `fastp`.
+- `fastq.profile_reads`: default `seqkit_stats`.
 - `fastq.rrna`: default `sortmerna`.
-- `fastq.qc_post`: default `multiqc`.
+- `fastq.report_qc`: default `multiqc`.
 - `fastq.merge`: default `pear`.
 - `fastq.deduplicate`: default `prinseq`.
 - `fastq.low_complexity`: default `bbduk`.
@@ -34,8 +34,8 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.contaminant_screen`: default `bbduk`. rationale: deterministic k-mer depletion against configured decoy references.
 - `fastq.correct`: default `rcorrector`.
 - `fastq.umi`: default `umi_tools`.
-- `fastq.overrepresented_sequences`: default `fastqc`.
-- `fastq.screen`: default `kraken2`.
+- `fastq.profile_overrepresented_sequences`: default `fastqc`.
+- `fastq.screen_taxonomy`: default `kraken2`.
 - `fastq.damage_aware_pretrim`: default `cutadapt`. rationale: deterministic terminal mask/trim policy for aDNA damage-aware pretrim.
 - `fastq.primer_normalization`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
 - `fastq.chimera_detection`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.

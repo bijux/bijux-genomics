@@ -46,8 +46,8 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     let run = RunIndexEntry {
         run_id: RunId("run-1".to_string()),
         domain: "fastq".to_string(),
-        pipeline: PipelineId::new("fastq.trim"),
-        stages: vec![StageId::new("fastq.trim")],
+        pipeline: PipelineId::new("fastq.trim_reads"),
+        stages: vec![StageId::new("fastq.trim_reads")],
         tools: vec![ToolId::new("fastp")],
         objective: None,
         platform: "local".to_string(),
@@ -57,7 +57,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
 
     let row = StageIndexRow {
         run_id: RunId("run-1".to_string()),
-        stage_id: StageId::new("fastq.trim"),
+        stage_id: StageId::new("fastq.trim_reads"),
         tool_id: ToolId::new("fastp"),
         params_hash: "hash".to_string(),
         input_hash: "input".to_string(),
@@ -77,7 +77,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     let found = query_run(&index_path, "run-1")?;
     assert!(found.is_some());
 
-    let stage_rows = query_stage_rows(&index_path, Some("fastq.trim"), Some("fastp"))?;
+    let stage_rows = query_stage_rows(&index_path, Some("fastq.trim_reads"), Some("fastp"))?;
     assert_eq!(stage_rows.len(), 1);
 
     let contents = fs::read_to_string(&index_path)?;
@@ -97,8 +97,8 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
             &RunIndexEntry {
                 run_id: RunId(run_id.to_string()),
                 domain: "fastq".to_string(),
-                pipeline: PipelineId::new("fastq.trim"),
-                stages: vec![StageId::new("fastq.trim")],
+                pipeline: PipelineId::new("fastq.trim_reads"),
+                stages: vec![StageId::new("fastq.trim_reads")],
                 tools: vec![ToolId::new("fastp")],
                 objective: None,
                 platform: "local".to_string(),
@@ -123,7 +123,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
         &index_path,
         &StageIndexRow {
             run_id: RunId("run-1".to_string()),
-            stage_id: StageId::new("fastq.trim"),
+            stage_id: StageId::new("fastq.trim_reads"),
             tool_id: ToolId::new("fastp"),
             params_hash: "hash".to_string(),
             input_hash: "input".to_string(),
@@ -135,7 +135,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
         &index_path,
         &StageIndexRow {
             run_id: RunId("run-2".to_string()),
-            stage_id: StageId::new("fastq.validate_pre"),
+            stage_id: StageId::new("fastq.validate_reads"),
             tool_id: ToolId::new("fastqvalidator"),
             params_hash: "hash2".to_string(),
             input_hash: "input2".to_string(),
@@ -144,7 +144,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
         },
     )?;
 
-    let rows = query_stage_rows(&index_path, Some("fastq.trim"), Some("fastp"))?;
+    let rows = query_stage_rows(&index_path, Some("fastq.trim_reads"), Some("fastp"))?;
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].run_id.as_str(), "run-1");
     Ok(())

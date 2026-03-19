@@ -8,15 +8,15 @@ install_kind: container
 license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
-- fastq.trim
+- fastq.trim_reads
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - trimmed_fastq_r1
 - trimmed_fastq_r2
 - trim_report
-metrics_schema_id: bijux.fastq.trim.v1
-metrics_schema: bijux.fastq.trim.v1
+metrics_schema_id: bijux.fastq.trim_reads.v1
+metrics_schema: bijux.fastq.trim_reads.v1
 version_cmd: alientrimmer --version
 help_cmd: alientrimmer --help
 comparability:

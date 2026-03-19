@@ -8,39 +8,39 @@ use bijux_dna_core::ids::{
 
 #[test]
 fn id_new_from_static_display_and_as_str_cover_all_types() {
-    let stage = StageId::from_static("fastq.trim");
-    let step = StepId::from_static("fastq.trim");
+    let stage = StageId::from_static("fastq.trim_reads");
+    let step = StepId::from_static("fastq.trim_reads");
     let tool = ToolId::from_static("fastp");
     let artifact = ArtifactId::from_static("reads_out");
     let profile = ProfileId::from_static("default");
     let pipeline = PipelineId::from_static("fastq-to-fastq__default__v1");
     let run = RunId("run-001".to_string());
 
-    assert_eq!(stage.as_str(), "fastq.trim");
-    assert_eq!(step.as_str(), "fastq.trim");
+    assert_eq!(stage.as_str(), "fastq.trim_reads");
+    assert_eq!(step.as_str(), "fastq.trim_reads");
     assert_eq!(tool.as_str(), "fastp");
     assert_eq!(artifact.as_str(), "reads_out");
     assert_eq!(profile.as_str(), "default");
     assert_eq!(pipeline.as_str(), "fastq-to-fastq__default__v1");
     assert_eq!(run.as_str(), "run-001");
 
-    assert_eq!(stage.to_string(), "fastq.trim");
-    assert_eq!(step.to_string(), "fastq.trim");
+    assert_eq!(stage.to_string(), "fastq.trim_reads");
+    assert_eq!(step.to_string(), "fastq.trim_reads");
     assert_eq!(tool.to_string(), "fastp");
     assert_eq!(artifact.to_string(), "reads_out");
     assert_eq!(profile.to_string(), "default");
     assert_eq!(pipeline.to_string(), "fastq-to-fastq__default__v1");
     assert_eq!(run.to_string(), "run-001");
 
-    let stage_owned = StageId::new("fastq.qc_post");
-    let step_owned = StepId::new("fastq.qc_post");
+    let stage_owned = StageId::new("fastq.report_qc");
+    let step_owned = StepId::new("fastq.report_qc");
     let tool_owned = ToolId::new("fastqc");
     let artifact_owned = ArtifactId::new("qc_report");
     let profile_owned = ProfileId::new("strict");
     let pipeline_owned = PipelineId::new("fastq-to-fastq__strict__v2");
 
-    assert_eq!(stage_owned.as_str(), "fastq.qc_post");
-    assert_eq!(step_owned.as_str(), "fastq.qc_post");
+    assert_eq!(stage_owned.as_str(), "fastq.report_qc");
+    assert_eq!(step_owned.as_str(), "fastq.report_qc");
     assert_eq!(tool_owned.as_str(), "fastqc");
     assert_eq!(artifact_owned.as_str(), "qc_report");
     assert_eq!(profile_owned.as_str(), "strict");
@@ -49,8 +49,8 @@ fn id_new_from_static_display_and_as_str_cover_all_types() {
 
 #[test]
 fn id_try_from_and_parse_validate_paths_cover_success_and_failures() {
-    let stage = StageId::try_from("fastq.trim");
-    let step = StepId::try_from("fastq.trim");
+    let stage = StageId::try_from("fastq.trim_reads");
+    let step = StepId::try_from("fastq.trim_reads");
     let tool = ToolId::try_from("fastp");
     let artifact = ArtifactId::try_from("reads_out");
     let profile = ProfileId::try_from("default");
@@ -71,7 +71,7 @@ fn id_try_from_and_parse_validate_paths_cover_success_and_failures() {
         .as_ref()
         .is_ok_and(|id| validate_pipeline_id(id).is_ok()));
 
-    assert!(parse_stage_id("fastq.trim").is_ok());
+    assert!(parse_stage_id("fastq.trim_reads").is_ok());
     assert!(parse_tool_id("fastp").is_ok());
     assert!(parse_pipeline_id("fastq-to-fastq__default__v1").is_ok());
 

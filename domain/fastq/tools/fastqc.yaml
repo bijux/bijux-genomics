@@ -33,10 +33,10 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
-  - "fastq.validate_pre"
+  - "fastq.validate_reads"
   - "fastq.detect_adapters"
-  - "fastq.qc_post"
-  - "fastq.overrepresented_sequences"
+  - "fastq.report_qc"
+  - "fastq.profile_overrepresented_sequences"
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"

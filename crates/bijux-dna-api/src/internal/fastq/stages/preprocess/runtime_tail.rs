@@ -324,7 +324,7 @@ fn write_stage_governance_artifacts(
     let stage = planned.step_id.as_str();
     if !matches!(
         stage,
-        "fastq.screen" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
+        "fastq.screen_taxonomy" | "fastq.rrna" | "fastq.host_depletion" | "fastq.contaminant_screen"
     ) {
         return Ok(());
     }

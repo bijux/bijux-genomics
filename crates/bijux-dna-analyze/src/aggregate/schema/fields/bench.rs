@@ -172,15 +172,15 @@ pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent 
 #[must_use]
 pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
     match stage_id {
-        "fastq.trim" => Some(StageMetricKind::FastqTrim),
-        "fastq.validate_pre" => Some(StageMetricKind::FastqValidate),
-        "fastq.filter" => Some(StageMetricKind::FastqFilter),
+        "fastq.trim_reads" => Some(StageMetricKind::FastqTrim),
+        "fastq.validate_reads" => Some(StageMetricKind::FastqValidate),
+        "fastq.filter_reads" => Some(StageMetricKind::FastqFilter),
         "fastq.merge" => Some(StageMetricKind::FastqMerge),
         "fastq.correct" => Some(StageMetricKind::FastqCorrect),
-        "fastq.qc_post" => Some(StageMetricKind::FastqQcPost),
+        "fastq.report_qc" => Some(StageMetricKind::FastqQcPost),
         "fastq.umi" => Some(StageMetricKind::FastqUmi),
-        "fastq.screen" => Some(StageMetricKind::FastqScreen),
-        "fastq.stats_neutral" => Some(StageMetricKind::FastqStats),
+        "fastq.screen_taxonomy" => Some(StageMetricKind::FastqScreen),
+        "fastq.profile_reads" => Some(StageMetricKind::FastqStats),
         _ => None,
     }
 }

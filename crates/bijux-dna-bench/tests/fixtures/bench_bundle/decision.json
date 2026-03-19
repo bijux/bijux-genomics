@@ -6,7 +6,7 @@
   "passes": true,
   "rationale_trace": [],
   "schema_version": "bijux.bench.gate.v1",
-  "stage_id": "fastq.trim",
+  "stage_id": "fastq.trim_reads",
   "tool_id": "fastp",
   "violations": []
 }

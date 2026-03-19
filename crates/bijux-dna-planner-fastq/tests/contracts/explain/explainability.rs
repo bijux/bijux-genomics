@@ -33,7 +33,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         },
     };
 
-    let stage = bijux_dna_domain_fastq::STAGE_VALIDATE_PRE
+    let stage = bijux_dna_domain_fastq::STAGE_VALIDATE_READS
         .as_str()
         .to_string();
     let contract_hash = bijux_dna_domain_fastq::stage_contract_hash(&stage)
@@ -102,11 +102,11 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
     };
 
     let stages = vec![
-        bijux_dna_domain_fastq::STAGE_TRIM.as_str().to_string(),
-        bijux_dna_domain_fastq::STAGE_STATS_NEUTRAL
+        bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(),
+        bijux_dna_domain_fastq::STAGE_PROFILE_READS
             .as_str()
             .to_string(),
-        bijux_dna_domain_fastq::STAGE_SCREEN.as_str().to_string(),
+        bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(),
     ];
     let tool_reasons: Vec<PlanDecisionReason> = stages
         .iter()

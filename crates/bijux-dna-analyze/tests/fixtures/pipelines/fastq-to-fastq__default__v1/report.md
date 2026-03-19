@@ -7,8 +7,8 @@
 
 ## Stage Summary
 - `fastq.detect_adapters` via `fastqc` (99.99.99+fixture)
-- `fastq.filter` via `fastp` (99.99.99+fixture)
-- `fastq.qc_post` via `multiqc` (99.99.99+fixture)
-- `fastq.stats_neutral` via `seqkit_stats` (99.99.99+fixture)
-- `fastq.trim` via `fastp` (99.99.99+fixture)
-- `fastq.validate_pre` via `fastqvalidator` (99.99.99+fixture)
+- `fastq.filter_reads` via `fastp` (99.99.99+fixture)
+- `fastq.report_qc` via `multiqc` (99.99.99+fixture)
+- `fastq.profile_reads` via `seqkit_stats` (99.99.99+fixture)
+- `fastq.trim_reads` via `fastp` (99.99.99+fixture)
+- `fastq.validate_reads` via `fastqvalidator` (99.99.99+fixture)

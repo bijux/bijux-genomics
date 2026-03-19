@@ -10,18 +10,18 @@ pub const REPORT_AGGREGATE_STAGE: &str = "report.aggregate";
 pub const REPORT_AGGREGATE_STEP: &str = "report.aggregate";
 
 pub const FASTQ_PREPROCESS: &str = "fastq.preprocess";
-pub const FASTQ_VALIDATE_PRE: &str = "fastq.validate_pre";
+pub const FASTQ_VALIDATE_PRE: &str = "fastq.validate_reads";
 pub const FASTQ_DETECT_ADAPTERS: &str = "fastq.detect_adapters";
-pub const FASTQ_TRIM: &str = "fastq.trim";
-pub const FASTQ_FILTER: &str = "fastq.filter";
+pub const FASTQ_TRIM: &str = "fastq.trim_reads";
+pub const FASTQ_FILTER: &str = "fastq.filter_reads";
 pub const FASTQ_DEDUPLICATE: &str = "fastq.deduplicate";
 pub const FASTQ_LOW_COMPLEXITY: &str = "fastq.low_complexity";
 pub const FASTQ_MERGE: &str = "fastq.merge";
 pub const FASTQ_CORRECT: &str = "fastq.correct";
-pub const FASTQ_QC_POST: &str = "fastq.qc_post";
+pub const FASTQ_QC_POST: &str = "fastq.report_qc";
 pub const FASTQ_UMI: &str = "fastq.umi";
-pub const FASTQ_SCREEN: &str = "fastq.screen";
-pub const FASTQ_STATS_NEUTRAL: &str = "fastq.stats_neutral";
+pub const FASTQ_SCREEN: &str = "fastq.screen_taxonomy";
+pub const FASTQ_STATS_NEUTRAL: &str = "fastq.profile_reads";
 
 pub const BAM_ALIGN: &str = "bam.align";
 pub const BAM_VALIDATE: &str = "bam.validate";

@@ -1,5 +1,5 @@
 {
-  "stage": "fastq.trim",
+  "stage": "fastq.trim_reads",
   "tool": "fastp",
   "kind": "contract_violation",
   "reason": "adapter preset missing",

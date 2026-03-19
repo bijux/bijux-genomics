@@ -28,7 +28,7 @@ fn analyze_accepts_runtime_manifest_and_matches_report_schema() -> Result<()> {
             "graph_hash": "sha256:graph",
             "dataset_fingerprints": ["sha256:input"],
             "stage_contracts": {
-                "fastq.trim": "sha256:contract"
+                "fastq.trim_reads": "sha256:contract"
             }
         });
         bijux_dna_infra::write_bytes(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;

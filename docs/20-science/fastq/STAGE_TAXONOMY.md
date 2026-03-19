@@ -17,13 +17,13 @@ Stage classification controls completeness checks and pipeline guarantees.
 ## Examples
 | Stage | Class | Support |
 | --- | --- | --- |
-| validate_pre | Essential | supported |
-| trim | Essential | supported |
+| validate_reads | Essential | supported |
+| trim_reads | Essential | supported |
 | merge | Recommended | supported |
-| filter | Recommended | supported |
-| screen | Optional | supported |
-| qc_post | Optional | supported |
-| stats_neutral | Optional | supported |
+| filter_reads | Recommended | supported |
+| screen_taxonomy | Optional | supported |
+| report_qc | Optional | supported |
+| profile_reads | Optional | supported |
 | correct | Optional | supported |
 | umi | Optional | supported |
 | damage_profile | Optional | not supported yet |

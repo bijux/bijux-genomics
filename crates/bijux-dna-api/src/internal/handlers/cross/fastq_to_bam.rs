@@ -32,7 +32,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,
 ) -> Result<()> {
-    let bench_dir_name = bench_dir_name(&bijux_dna_planner_fastq::stage_api::STAGE_PREPROCESS)
+    let bench_dir_name = bench_dir_name(&bijux_dna_planner_fastq::STAGE_PREPROCESS_SUMMARY)
         .ok_or_else(|| anyhow!("bench dir missing for fastq.preprocess"))?;
     let out_dir = bench_base_dir(
         &preprocess_args.out,

@@ -176,7 +176,7 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
         "fastq-to-fastq__default__v1",
         "planner-v2",
         policy,
-        vec![mk_step("b", "fastq.trim"), mk_step("a", "fastq.qc_post")],
+        vec![mk_step("b", "fastq.trim_reads"), mk_step("a", "fastq.report_qc")],
         vec![edge],
     );
     assert!(graph.is_ok());

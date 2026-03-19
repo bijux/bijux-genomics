@@ -14,11 +14,11 @@ This document defines what the FASTQ profile layer guarantees and how
 ## Base FASTQ guarantees
 
 - Required processing stages include:
-  - `fastq.validate_pre`
+  - `fastq.validate_reads`
   - `fastq.detect_adapters`
-  - `fastq.trim`
-  - `fastq.filter`
-  - `fastq.qc_post`
+  - `fastq.trim_reads`
+  - `fastq.filter_reads`
+  - `fastq.report_qc`
 - Required parameter payloads are present and parseable for:
   - detect adapters
   - trim
@@ -37,7 +37,7 @@ This document defines what the FASTQ profile layer guarantees and how
   - `merge.min_len > 0`
   - `merge.merge_overlap` set
 - Tool compatibility constraints:
-  - `fastq.trim` tool must be one of `{adapterremoval, leehom}`
+  - `fastq.trim_reads` tool must be one of `{adapterremoval, leehom}`
   - `fastq.merge` tool must be `leehom`
 
 ## Validation API
@@ -99,14 +99,14 @@ Use `validate_bam_profile(profile)` to get a structured `BamProfileValidationRep
 Profile: `fastq-to-fastq__reference_adna__v1`
 
 Guarantees:
-- Required stages: `fastq.validate_pre`, `fastq.detect_adapters`, `fastq.trim`, `fastq.low_complexity`, `fastq.merge`, `fastq.filter`, `fastq.stats_neutral`, `fastq.qc_post`.
+- Required stages: `fastq.validate_reads`, `fastq.detect_adapters`, `fastq.trim_reads`, `fastq.low_complexity`, `fastq.merge`, `fastq.filter_reads`, `fastq.profile_reads`, `fastq.report_qc`.
 - aDNA trimming invariants: `trim.min_len > 0`, `trim.adapter_policy != none`, quality trimming enabled, poly-X trimming enabled.
 - Pairing/library declaration: preprocess params must declare paired library mode; paired libraries require merge unless explicitly disabled.
-- Optional contamination screen hook: if `fastq.screen` is enabled, `contaminant_db` must be declared.
+- Optional contamination screen hook: if `fastq.screen_taxonomy` is enabled, `contaminant_db` must be declared.
 
 Metrics expectations:
-- `fastq.stats_neutral` includes read-length and GC distributions.
-- `fastq.detect_adapters` and `fastq.qc_post` include overrepresented-sequence counts derived from FastQC data.
+- `fastq.profile_reads` includes read-length and GC distributions.
+- `fastq.detect_adapters` and `fastq.report_qc` include overrepresented-sequence counts derived from FastQC data.
 - `fastq.low_complexity` is used as a pre-alignment complexity/duplication proxy estimate stage.
 
 ## Scientific rigor additions

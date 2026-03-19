@@ -5,14 +5,14 @@ fn telemetry_jsonl_golden_for_toy_run_is_stable() -> anyhow::Result<()> {
     let start = TelemetryEventV1 {
         schema_version: "bijux.telemetry.v1".to_string(),
         run_id: "toy-run".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         event_name: TelemetryEventName::StageStart,
         timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")?
             .with_timezone(&chrono::Utc),
         duration_ms: None,
         status: "running".to_string(),
-        trace_id: "trace-fastq.trim".to_string(),
+        trace_id: "trace-fastq.trim_reads".to_string(),
         span_id: "span-fastp".to_string(),
         attrs: std::collections::BTreeMap::new(),
         failure_code: None,
@@ -20,14 +20,14 @@ fn telemetry_jsonl_golden_for_toy_run_is_stable() -> anyhow::Result<()> {
     let end = TelemetryEventV1 {
         schema_version: "bijux.telemetry.v1".to_string(),
         run_id: "toy-run".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         event_name: TelemetryEventName::StageEnd,
         timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:05Z")?
             .with_timezone(&chrono::Utc),
         duration_ms: Some(5000),
         status: "ok".to_string(),
-        trace_id: "trace-fastq.trim".to_string(),
+        trace_id: "trace-fastq.trim_reads".to_string(),
         span_id: "span-fastp".to_string(),
         attrs: std::collections::BTreeMap::from([(
             "bytes_written".to_string(),

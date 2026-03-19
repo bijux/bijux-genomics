@@ -717,7 +717,7 @@ pub(crate) fn handle_meta_commands(
                         let bench_args = bench_args_validate(args)?;
                         let outcome =
                             bench_fastq_validate_pre(&catalog, &platform, None, &bench_args)?;
-                        let qc_class = qc_class_label("fastq.validate_pre");
+                        let qc_class = qc_class_label("fastq.validate_reads");
                         write_validate_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -786,7 +786,7 @@ pub(crate) fn handle_meta_commands(
                             return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
                         }
                     }
-                    BenchFastqCommand::QcPost(args) => {
+                    BenchFastqCommand::ReportQc(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_qc_post(args)?;
                         let outcome = bench_fastq_qc_post(&catalog, &platform, None, &bench_args)?;

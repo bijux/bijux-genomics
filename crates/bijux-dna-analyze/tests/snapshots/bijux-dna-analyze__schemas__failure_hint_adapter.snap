@@ -16,6 +16,6 @@ expression: json
   ],
   "kind": "contract_violation",
   "reason": "adapter preset missing",
-  "stage": "fastq.trim",
+  "stage": "fastq.trim_reads",
   "tool": "fastp"
 }

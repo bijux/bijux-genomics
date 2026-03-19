@@ -1,6 +1,6 @@
 {
   "run_id": "run-a",
-  "stage": "fastq.trim",
+  "stage": "fastq.trim_reads",
   "tool": "fastp",
   "tool_version": "0.23.4",
   "image_digest": "sha256:abc",

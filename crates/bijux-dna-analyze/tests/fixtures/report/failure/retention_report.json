@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.retention_report.v1",
-  "stage_id": "fastq.trim",
+  "stage_id": "fastq.trim_reads",
   "tool_id": "fastp",
   "tool_version": "0.23.4",
   "boundary": "pre/post",

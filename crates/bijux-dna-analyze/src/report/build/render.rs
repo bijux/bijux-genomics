@@ -2,13 +2,13 @@ fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut validate_mean_q = None;
     let mut qc_post_mean_q = None;
     for row in rows {
-        if row.stage_id == "fastq.validate_pre" {
+        if row.stage_id == "fastq.validate_reads" {
             validate_mean_q = row
                 .metrics
                 .get("mean_q")
                 .and_then(serde_json::Value::as_f64);
         }
-        if row.stage_id == "fastq.qc_post" {
+        if row.stage_id == "fastq.report_qc" {
             qc_post_mean_q = row
                 .metrics
                 .get("mean_q")
@@ -33,8 +33,8 @@ fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut kmer_removed = None;
     let mut kmer_percent = None;
     for row in rows {
-        if row.stage_id != "fastq.screen" {
-            if row.stage_id == "fastq.filter" {
+        if row.stage_id != "fastq.screen_taxonomy" {
+            if row.stage_id == "fastq.filter_reads" {
                 if let Some(path) = report_path_for(&row.reports, "filter_report") {
                     if let Some(report) = read_json_value(Path::new(&path))
                         .and_then(|value| serde_json::from_value::<FilterReportV1>(value).ok())

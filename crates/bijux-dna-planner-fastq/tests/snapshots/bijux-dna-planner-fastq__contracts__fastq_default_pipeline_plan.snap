@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 159
+assertion_line: 160
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -12,22 +12,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "edges": [
     {
       "from": "fastq.detect_adapters",
-      "to": "fastq.trim"
+      "to": "fastq.trim_reads"
     },
     {
-      "from": "fastq.filter",
-      "to": "fastq.stats_neutral"
+      "from": "fastq.filter_reads",
+      "to": "fastq.profile_reads"
     },
     {
-      "from": "fastq.stats_neutral",
-      "to": "fastq.qc_post"
+      "from": "fastq.profile_reads",
+      "to": "fastq.report_qc"
     },
     {
-      "from": "fastq.trim",
-      "to": "fastq.filter"
+      "from": "fastq.trim_reads",
+      "to": "fastq.filter_reads"
     },
     {
-      "from": "fastq.validate_pre",
+      "from": "fastq.validate_reads",
       "to": "fastq.detect_adapters"
     }
   ],
@@ -99,7 +99,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "out/trim/fastp/fastp.fastq.gz",
+            "path": "out/trim_reads/fastp/fastp.fastq.gz",
             "role": "reads"
           }
         ],
@@ -107,21 +107,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "filtered_reads",
             "optional": false,
-            "path": "out/filter/fastp/fastp.fastq.gz",
+            "path": "out/filter_reads/fastp/fastp.fastq.gz",
             "role": "reads"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/filter/fastp",
+      "out_dir": "out/filter_reads/fastp",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.filter",
-      "step_id": "fastq.filter"
+      "stage_id": "fastq.filter_reads",
+      "step_id": "fastq.filter_reads"
     },
     {
       "aux_images": {},
@@ -140,54 +140,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "out/filter/fastp/fastp.fastq.gz",
-            "role": "reads"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "multiqc_report",
-            "optional": true,
-            "path": "out/qc_post/multiqc/multiqc_report.html",
-            "role": "report_html"
-          },
-          {
-            "name": "multiqc_data",
-            "optional": true,
-            "path": "out/qc_post/multiqc/multiqc_data",
-            "role": "index"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "out/qc_post/multiqc",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "fastq.qc_post",
-      "step_id": "fastq.qc_post"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": "sha256:plan",
-        "image": "bijux/test"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "reads_r1",
-            "optional": false,
-            "path": "out/filter/fastp/fastp.fastq.gz",
+            "path": "out/filter_reads/fastp/fastp.fastq.gz",
             "role": "reads"
           }
         ],
@@ -195,33 +148,80 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "qc_json",
             "optional": false,
-            "path": "out/stats_neutral/seqkit_stats/qc.json",
+            "path": "out/profile_reads/seqkit_stats/qc.json",
             "role": "metrics_json"
           },
           {
             "name": "qc_tsv",
             "optional": false,
-            "path": "out/stats_neutral/seqkit_stats/qc.tsv",
+            "path": "out/profile_reads/seqkit_stats/qc.tsv",
             "role": "report_json"
           },
           {
             "name": "qc_plots_dir",
             "optional": true,
-            "path": "out/stats_neutral/seqkit_stats/plots",
+            "path": "out/profile_reads/seqkit_stats/plots",
             "role": "index"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/stats_neutral/seqkit_stats",
+      "out_dir": "out/profile_reads/seqkit_stats",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.stats_neutral",
-      "step_id": "fastq.stats_neutral"
+      "stage_id": "fastq.profile_reads",
+      "step_id": "fastq.profile_reads"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:plan",
+        "image": "bijux/test"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "out/filter_reads/fastp/fastp.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "multiqc_report",
+            "optional": true,
+            "path": "out/report_qc/multiqc/multiqc_report.html",
+            "role": "report_html"
+          },
+          {
+            "name": "multiqc_data",
+            "optional": true,
+            "path": "out/report_qc/multiqc/multiqc_data",
+            "role": "index"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out/report_qc/multiqc",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.report_qc",
+      "step_id": "fastq.report_qc"
     },
     {
       "aux_images": {},
@@ -248,33 +248,33 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "trimmed_reads",
             "optional": false,
-            "path": "out/trim/fastp/fastp.fastq.gz",
+            "path": "out/trim_reads/fastp/fastp.fastq.gz",
             "role": "trimmed_reads"
           },
           {
             "name": "trim_report",
             "optional": false,
-            "path": "out/trim/fastp/trim.report.json",
+            "path": "out/trim_reads/fastp/trim.report.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "out/trim/fastp/stage.metrics.json",
+            "path": "out/trim_reads/fastp/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/trim/fastp",
+      "out_dir": "out/trim_reads/fastp",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.trim",
-      "step_id": "fastq.trim"
+      "stage_id": "fastq.trim_reads",
+      "step_id": "fastq.trim_reads"
     },
     {
       "aux_images": {},
@@ -301,21 +301,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "validation_report",
             "optional": false,
-            "path": "out/validate_pre/fastqvalidator/validation.json",
+            "path": "out/validate_reads/fastqvalidator/validation.json",
             "role": "report_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/validate_pre/fastqvalidator",
+      "out_dir": "out/validate_reads/fastqvalidator",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "fastq.validate_pre",
-      "step_id": "fastq.validate_pre"
+      "stage_id": "fastq.validate_reads",
+      "step_id": "fastq.validate_reads"
     }
   ]
 }

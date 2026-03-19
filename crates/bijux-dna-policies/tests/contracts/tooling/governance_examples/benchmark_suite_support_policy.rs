@@ -68,11 +68,11 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
         .collect::<BTreeMap<_, _>>();
 
     let benchmark_stages = [
-        "fastq.validate_pre",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post",
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc",
     ]
     .into_iter()
     .collect::<BTreeSet<_>>();

@@ -7,20 +7,21 @@ use crate::internal::fastq::stages;
 pub(crate) mod summary;
 
 pub(crate) use crate::internal::fastq::stage_catalog::{
-    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_FILTER_READS, STAGE_MERGE, STAGE_PREPROCESS_SUMMARY,
+    STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_UMI,
+    STAGE_VALIDATE_READS,
 };
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use stages::correct::bench_fastq_correct;
-pub use stages::filter::bench_fastq_filter;
+pub use stages::filter_reads::bench_fastq_filter;
 pub use stages::merge::bench_fastq_merge;
 pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
-pub use stages::qc_post::bench_fastq_qc_post;
-pub use stages::screen::bench_fastq_screen;
-pub use stages::stats_neutral::bench_fastq_stats_neutral;
-pub use stages::trim::bench_fastq_trim;
+pub use stages::profile_reads::bench_fastq_stats_neutral;
+pub use stages::report_qc::bench_fastq_qc_post;
+pub use stages::screen_taxonomy::bench_fastq_screen;
+pub use stages::trim_reads::bench_fastq_trim;
 pub use stages::umi::bench_fastq_umi;
-pub use stages::validate_pre::bench_fastq_validate_pre;
+pub use stages::validate_reads::bench_fastq_validate_pre;
 pub(crate) use summary::StageExecutionSummary;
 /// Benchmarking result for a FASTQ stage.
 ///
@@ -35,7 +36,7 @@ pub struct BenchOutcome<M: bijux_dna_analyze::StageMetricSchema> {
 
 #[cfg(test)]
 mod plan_tests {
-    use bijux_dna_planner_fastq::stage_api::{polyx_unsupported_warning, STAGE_TRIM};
+    use bijux_dna_planner_fastq::stage_api::{polyx_unsupported_warning, STAGE_TRIM_READS};
 
     #[test]
     fn polyx_warning_emits_for_unsupported_tools() {
@@ -57,6 +58,6 @@ mod plan_tests {
     fn pipeline_id_catalog_are_stable_for_default_fastq() {
         let stages =
             bijux_dna_planner_fastq::fastq_pipeline_id_catalog("fastq-to-fastq__default__v1");
-        assert!(stages.contains(&STAGE_TRIM.as_str().to_string()));
+        assert!(stages.contains(&STAGE_TRIM_READS.as_str().to_string()));
     }
 }

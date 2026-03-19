@@ -13,12 +13,12 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Each stage must declare purpose, inputs/outputs, metrics, tools, defaults, references.
 
 ## Examples
-- fastq.trim uses trimming tools and outputs trimmed reads.
+- fastq.trim_reads uses trimming tools and outputs trimmed reads.
 
 ## Failure modes
 - Missing metrics or outputs fail contract validation.
 
-### fastq.validate_pre {#fastq-validate-pre}
+### fastq.validate_reads {#fastq-validate-pre}
 - Purpose: validate FASTQ format and counts.
 - Inputs/Outputs: reads → validation_report.
 - Metrics: read counts, format errors.
@@ -34,7 +34,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: pipeline defaults for adapter detection.
 - References: fastp.
 
-### fastq.trim {#fastq-trim}
+### fastq.trim_reads {#fastq-trim}
 - Purpose: trim adapters/low‑quality bases.
 - Inputs/Outputs: reads → trimmed_reads.
 - Metrics: trimming counts, retention.
@@ -42,7 +42,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: trimming thresholds from pipeline defaults.
 - References: fastp, Cutadapt, Trimmomatic.
 
-### fastq.filter {#fastq-filter}
+### fastq.filter_reads {#fastq-filter}
 - Purpose: remove low‑quality reads.
 - Inputs/Outputs: reads → filtered_reads.
 - Metrics: read loss reasons, retention.
@@ -50,7 +50,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: filter thresholds from pipeline defaults.
 - References: SeqKit, PRINSEQ.
 
-### fastq.stats_neutral {#fastq-stats-neutral}
+### fastq.profile_reads {#fastq-stats-neutral}
 - Purpose: compute baseline read stats.
 - Inputs/Outputs: reads → metrics_json.
 - Metrics: length/quality summary.
@@ -82,7 +82,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: umi defaults.
 - References: UMI‑tools.
 
-### fastq.qc_post {#fastq-qc-post}
+### fastq.report_qc {#fastq-qc-post}
 - Purpose: post‑processing QC aggregation.
 - Inputs/Outputs: reads → report_html.
 - Metrics: QC summary artifacts.
@@ -90,7 +90,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Defaults: qc defaults.
 - References: MultiQC.
 
-### fastq.screen {#fastq-screen}
+### fastq.screen_taxonomy {#fastq-screen}
 - Purpose: contamination screening.
 - Inputs/Outputs: reads → screen report.
 - Metrics: classification summary.

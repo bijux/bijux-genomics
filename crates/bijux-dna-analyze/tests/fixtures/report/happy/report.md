@@ -6,4 +6,4 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `fastq.trim` via `fastp` (0.23.4)
+- `fastq.trim_reads` via `fastp` (0.23.4)

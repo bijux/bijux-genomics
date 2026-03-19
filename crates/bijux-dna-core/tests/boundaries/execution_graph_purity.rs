@@ -5,8 +5,8 @@ use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, St
 #[test]
 fn execution_graph_serialization_is_stage_plan_free() {
     let step = ExecutionStep {
-        step_id: StepId::new("fastq.validate_pre"),
-        stage_id: StageId::new("fastq.validate_pre"),
+        step_id: StepId::new("fastq.validate_reads"),
+        stage_id: StageId::new("fastq.validate_reads"),
         command: CommandSpecV1 {
             template: vec!["tool".to_string()],
         },

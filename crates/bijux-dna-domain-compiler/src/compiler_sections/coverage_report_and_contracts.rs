@@ -129,12 +129,12 @@ outputs:
   - name: rogue_output
 ";
         let stage = r"
-stage_id: fastq.trim
+stage_id: fastq.trim_reads
 outputs:
   - name: trimmed_reads
 ";
         let Err(err) =
-            validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim")
+            validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim_reads")
         else {
             panic!("must reject unknown output");
         };

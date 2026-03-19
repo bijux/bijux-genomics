@@ -2,7 +2,7 @@
 
 ## StagePlanV1
 ```json
-{"schema_version":"bijux.stage_plan.v1","stage_id":"fastq.trim"}
+{"schema_version":"bijux.stage_plan.v1","stage_id":"fastq.trim_reads"}
 ```
 
 ## ExecutionPlanV1

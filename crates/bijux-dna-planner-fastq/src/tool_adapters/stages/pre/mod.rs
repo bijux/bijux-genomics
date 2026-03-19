@@ -1,8 +1,8 @@
 pub mod detect_adapters;
-pub mod length_distribution_pre;
-pub mod overrepresented_sequences;
 pub mod plan_preprocess;
+pub mod profile_overrepresented_sequences;
+pub mod profile_read_lengths;
 pub mod preprocess;
-pub mod validate_pre;
+pub mod validate_reads;
 
 pub const MODULE: &str = "stages/pre";

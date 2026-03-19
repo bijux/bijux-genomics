@@ -80,7 +80,7 @@ pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
         || msg.contains("must equal")
     {
         FailureKind::ContractViolation
-    } else if (raw.stage == "fastq.validate_pre" && msg.contains("strict validation failed"))
+    } else if (raw.stage == "fastq.validate_reads" && msg.contains("strict validation failed"))
         || msg.contains("invalid fastq")
         || (msg.contains("fastq") && msg.contains("invalid"))
     {
@@ -124,7 +124,7 @@ fn remediation_hints_for_failure(raw: &RawFailure) -> Vec<ErrorHintV1> {
             docs_link_key: Some("polyg".to_string()),
         });
     }
-    if raw.stage == "fastq.screen" || msg.contains("contaminant") {
+    if raw.stage == "fastq.screen_taxonomy" || msg.contains("contaminant") {
         hints.push(ErrorHintV1 {
             id: "contamination_screen".to_string(),
             category: ErrorCategory::ContractError,
@@ -156,7 +156,7 @@ mod tests {
     #[test]
     fn classify_failure_detects_data_errors() {
         let raw = RawFailure {
-            stage: "fastq.validate_pre".to_string(),
+            stage: "fastq.validate_reads".to_string(),
             tool: "fastqvalidator".to_string(),
             reason: "strict validation failed for fastqvalidator".to_string(),
             category: ErrorCategory::ContractError,
@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn classify_failure_detects_invariants() {
         let raw = RawFailure {
-            stage: "fastq.trim".to_string(),
+            stage: "fastq.trim_reads".to_string(),
             tool: "fastp".to_string(),
             reason: "invariant failed: reads_out must be <= reads_in".to_string(),
             category: ErrorCategory::ContractError,
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn classify_failure_defaults_to_tool_exit() {
         let raw = RawFailure {
-            stage: "fastq.trim".to_string(),
+            stage: "fastq.trim_reads".to_string(),
             tool: "fastp".to_string(),
             reason: "unexpected crash".to_string(),
             category: ErrorCategory::ToolError,
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn classify_failure_includes_remediation_hints() {
         let raw = RawFailure {
-            stage: "fastq.trim".to_string(),
+            stage: "fastq.trim_reads".to_string(),
             tool: "fastp".to_string(),
             reason: "adapter preset missing".to_string(),
             category: ErrorCategory::ContractError,

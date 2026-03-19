@@ -19,8 +19,8 @@ fn step_emits_truth_set() -> Result<()> {
     let output_path = out_dir.join("output.txt");
 
     let step = bijux_dna_core::contract::ExecutionStep {
-        step_id: StepId::new("fastq.trim"),
-        stage_id: StageId::new("fastq.trim"),
+        step_id: StepId::new("fastq.trim_reads"),
+        stage_id: StageId::new("fastq.trim_reads"),
         image: ContainerImageRefV1 {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),

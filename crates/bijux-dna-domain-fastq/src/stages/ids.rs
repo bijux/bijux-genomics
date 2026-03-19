@@ -1,25 +1,25 @@
 use bijux_dna_core::ids::StageId;
 
-pub const STAGE_VALIDATE_PRE: StageId = StageId::from_static("fastq.validate_pre");
-pub const STAGE_LENGTH_DISTRIBUTION_PRE: StageId =
-    StageId::from_static("fastq.length_distribution_pre");
+pub const STAGE_VALIDATE_READS: StageId = StageId::from_static("fastq.validate_reads");
+pub const STAGE_PROFILE_READ_LENGTHS: StageId =
+    StageId::from_static("fastq.profile_read_lengths");
 pub const STAGE_DETECT_ADAPTERS: StageId = StageId::from_static("fastq.detect_adapters");
 pub const STAGE_DAMAGE_AWARE_PRETRIM: StageId = StageId::from_static("fastq.damage_aware_pretrim");
 pub const STAGE_POLYG_TAILING: StageId = StageId::from_static("fastq.polyg_tailing");
-pub const STAGE_TRIM: StageId = StageId::from_static("fastq.trim");
-pub const STAGE_FILTER: StageId = StageId::from_static("fastq.filter");
-pub const STAGE_STATS_NEUTRAL: StageId = StageId::from_static("fastq.stats_neutral");
+pub const STAGE_TRIM_READS: StageId = StageId::from_static("fastq.trim_reads");
+pub const STAGE_FILTER_READS: StageId = StageId::from_static("fastq.filter_reads");
+pub const STAGE_PROFILE_READS: StageId = StageId::from_static("fastq.profile_reads");
 pub const STAGE_MERGE: StageId = StageId::from_static("fastq.merge");
 pub const STAGE_DEDUPLICATE: StageId = StageId::from_static("fastq.deduplicate");
 pub const STAGE_LOW_COMPLEXITY: StageId = StageId::from_static("fastq.low_complexity");
 pub const STAGE_HOST_DEPLETION: StageId = StageId::from_static("fastq.host_depletion");
 pub const STAGE_CONTAMINANT_SCREEN: StageId = StageId::from_static("fastq.contaminant_screen");
 pub const STAGE_CORRECT: StageId = StageId::from_static("fastq.correct");
-pub const STAGE_QC_POST: StageId = StageId::from_static("fastq.qc_post");
+pub const STAGE_REPORT_QC: StageId = StageId::from_static("fastq.report_qc");
 pub const STAGE_UMI: StageId = StageId::from_static("fastq.umi");
-pub const STAGE_OVERREPRESENTED_SEQUENCES: StageId =
-    StageId::from_static("fastq.overrepresented_sequences");
-pub const STAGE_SCREEN: StageId = StageId::from_static("fastq.screen");
+pub const STAGE_PROFILE_OVERREPRESENTED_SEQUENCES: StageId =
+    StageId::from_static("fastq.profile_overrepresented_sequences");
+pub const STAGE_SCREEN_TAXONOMY: StageId = StageId::from_static("fastq.screen_taxonomy");
 pub const STAGE_PREPARE_REFERENCE: StageId = StageId::from_static("fastq.prepare_reference");
 pub const STAGE_RRNA: StageId = StageId::from_static("fastq.rrna");
 pub const STAGE_PRIMER_NORMALIZATION: StageId = StageId::from_static("fastq.primer_normalization");
@@ -33,15 +33,15 @@ pub const STAGE_PREFIX: &str = "fastq.";
 
 pub const STAGES: [StageId; 25] = [
     STAGE_PREPARE_REFERENCE,
-    STAGE_VALIDATE_PRE,
-    STAGE_LENGTH_DISTRIBUTION_PRE,
+    STAGE_VALIDATE_READS,
+    STAGE_PROFILE_READ_LENGTHS,
     STAGE_DETECT_ADAPTERS,
     STAGE_DAMAGE_AWARE_PRETRIM,
     STAGE_PRIMER_NORMALIZATION,
     STAGE_POLYG_TAILING,
-    STAGE_TRIM,
-    STAGE_FILTER,
-    STAGE_STATS_NEUTRAL,
+    STAGE_TRIM_READS,
+    STAGE_FILTER_READS,
+    STAGE_PROFILE_READS,
     STAGE_RRNA,
     STAGE_MERGE,
     STAGE_DEDUPLICATE,
@@ -50,33 +50,33 @@ pub const STAGES: [StageId; 25] = [
     STAGE_CONTAMINANT_SCREEN,
     STAGE_CORRECT,
     STAGE_UMI,
-    STAGE_OVERREPRESENTED_SEQUENCES,
+    STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
     STAGE_CHIMERA_DETECTION,
     STAGE_ASV_INFERENCE,
     STAGE_OTU_CLUSTERING,
     STAGE_ABUNDANCE_NORMALIZATION,
-    STAGE_SCREEN,
-    STAGE_QC_POST,
+    STAGE_SCREEN_TAXONOMY,
+    STAGE_REPORT_QC,
 ];
 
 #[must_use]
 pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
-    if stage == &STAGE_VALIDATE_PRE {
-        Some("validate_pre")
-    } else if stage == &STAGE_LENGTH_DISTRIBUTION_PRE {
-        Some("length_distribution_pre")
+    if stage == &STAGE_VALIDATE_READS {
+        Some("validate_reads")
+    } else if stage == &STAGE_PROFILE_READ_LENGTHS {
+        Some("profile_read_lengths")
     } else if stage == &STAGE_DETECT_ADAPTERS {
         Some("detect_adapters")
     } else if stage == &STAGE_DAMAGE_AWARE_PRETRIM {
         Some("damage_aware_pretrim")
     } else if stage == &STAGE_POLYG_TAILING {
         Some("polyg_tailing")
-    } else if stage == &STAGE_TRIM {
-        Some("trim")
-    } else if stage == &STAGE_FILTER {
-        Some("filter")
-    } else if stage == &STAGE_STATS_NEUTRAL {
-        Some("stats")
+    } else if stage == &STAGE_TRIM_READS {
+        Some("trim_reads")
+    } else if stage == &STAGE_FILTER_READS {
+        Some("filter_reads")
+    } else if stage == &STAGE_PROFILE_READS {
+        Some("profile_reads")
     } else if stage == &STAGE_RRNA {
         Some("rrna")
     } else if stage == &STAGE_MERGE {
@@ -91,12 +91,12 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("contaminant_screen")
     } else if stage == &STAGE_CORRECT {
         Some("correct")
-    } else if stage == &STAGE_QC_POST {
-        Some("qc_post")
+    } else if stage == &STAGE_REPORT_QC {
+        Some("report_qc")
     } else if stage == &STAGE_UMI {
         Some("umi")
-    } else if stage == &STAGE_OVERREPRESENTED_SEQUENCES {
-        Some("overrepresented_sequences")
+    } else if stage == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
+        Some("profile_overrepresented_sequences")
     } else if stage == &STAGE_PRIMER_NORMALIZATION {
         Some("primer_normalization")
     } else if stage == &STAGE_CHIMERA_DETECTION {
@@ -107,8 +107,8 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("otu_clustering")
     } else if stage == &STAGE_ABUNDANCE_NORMALIZATION {
         Some("abundance_normalization")
-    } else if stage == &STAGE_SCREEN {
-        Some("screen")
+    } else if stage == &STAGE_SCREEN_TAXONOMY {
+        Some("screen_taxonomy")
     } else if stage == &STAGE_PREPARE_REFERENCE {
         Some("prepare_reference")
     } else {

@@ -4,16 +4,16 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
 use bijux_dna_domain_fastq::stages::ids::{
-    STAGE_LENGTH_DISTRIBUTION_PRE, STAGE_OVERREPRESENTED_SEQUENCES, STAGE_POLYG_TAILING,
+    STAGE_PROFILE_READ_LENGTHS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_POLYG_TAILING,
 };
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
     STAGE_CONTAMINANT_SCREEN, STAGE_CORRECT, STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DEDUPLICATE,
-    STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
-    STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_HOST_DEPLETION, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
+    STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_RRNA, STAGE_SCREEN_TAXONOMY,
+    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
 };
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -61,24 +61,24 @@ where
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_LENGTH_DISTRIBUTION_PRE.as_str() => {
-                let plan = crate::tool_adapters::fastq::length_distribution_pre::plan(
+            stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
+                let plan = crate::tool_adapters::fastq::profile_read_lengths::plan(
                     tool,
                     &current_r1,
                     &out_dir,
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_OVERREPRESENTED_SEQUENCES.as_str() => {
-                let plan = crate::tool_adapters::fastq::overrepresented_sequences::plan(
+            stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
+                let plan = crate::tool_adapters::fastq::profile_overrepresented_sequences::plan(
                     tool,
                     &current_r1,
                     &out_dir,
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_TRIM.as_str() => {
-                let plan = crate::tool_adapters::fastq::trim::plan(
+            stage if stage == STAGE_TRIM_READS.as_str() => {
+                let plan = crate::tool_adapters::fastq::trim_reads::plan(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -116,9 +116,9 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            stage if stage == STAGE_FILTER.as_str() => {
+            stage if stage == STAGE_FILTER_READS.as_str() => {
                 let mut filter_options =
-                    crate::tool_adapters::fastq::filter::FilterPlanOptions::default();
+                    crate::tool_adapters::fastq::filter_reads::FilterPlanOptions::default();
                 if adapter_bank.is_some() {
                     filter_options.redundant_filters.push("adapter".to_string());
                 }
@@ -127,9 +127,9 @@ where
                 }
                 if enable_contaminant_removal && contaminant_bank.is_some() {
                     filter_options.kmer_ref =
-                        crate::tool_adapters::fastq::filter::default_kmer_ref();
+                        crate::tool_adapters::fastq::filter_reads::default_kmer_ref();
                 }
-                let plan = crate::tool_adapters::fastq::filter::plan_filter(
+                let plan = crate::tool_adapters::fastq::filter_reads::plan_filter(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -184,16 +184,16 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            stage if stage == STAGE_VALIDATE_PRE.as_str() => {
+            stage if stage == STAGE_VALIDATE_READS.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "fastqvalidator" | "seqkit") {
                     return Err(anyhow!(
                         "{} requires a canonical validator tool (fastqvalidator/seqkit); got {}",
-                        STAGE_VALIDATE_PRE.as_str(),
+                        STAGE_VALIDATE_READS.as_str(),
                         tool.tool_id
                     ));
                 }
                 let plan =
-                    crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir)?;
+                    crate::tool_adapters::fastq::validate_reads::plan(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_MERGE.as_str() => {
@@ -233,16 +233,16 @@ where
                 let next_r2 = plan.io.outputs[1].path.clone();
                 (plan, next_r1, Some(next_r2))
             }
-            stage if stage == STAGE_QC_POST.as_str() => {
+            stage if stage == STAGE_REPORT_QC.as_str() => {
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
-                    for aux_tool in crate::tool_adapters::fastq::qc_post::aux_tool_ids() {
+                    for aux_tool in crate::tool_adapters::fastq::report_qc::aux_tool_ids() {
                         if let Some(image) = aux_images.get(*aux_tool) {
                             stage_aux_images.insert(aux_tool.to_string(), image.clone());
                         }
                     }
                 }
-                let plan = crate::tool_adapters::fastq::qc_post::plan_qc_post(
+                let plan = crate::tool_adapters::fastq::report_qc::plan_qc_post(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -257,13 +257,16 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            stage if stage == STAGE_SCREEN.as_str() => {
-                let plan =
-                    crate::tool_adapters::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
+            stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
+                let plan = crate::tool_adapters::fastq::screen_taxonomy::plan_screen(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_STATS_NEUTRAL.as_str() => {
-                let plan = crate::tool_adapters::fastq::stats_neutral::plan_stats_neutral(
+            stage if stage == STAGE_PROFILE_READS.as_str() => {
+                let plan = crate::tool_adapters::fastq::profile_reads::plan_stats_neutral(
                     tool,
                     &current_r1,
                     &out_dir,

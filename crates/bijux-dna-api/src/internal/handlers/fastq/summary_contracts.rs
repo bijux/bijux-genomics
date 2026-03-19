@@ -5,7 +5,7 @@ mod tests {
     use bijux_dna_core::prelude::{
         ArtifactId, CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId,
     };
-    use bijux_dna_planner_fastq::stage_api::STAGE_TRIM;
+    use bijux_dna_planner_fastq::stage_api::STAGE_TRIM_READS;
     use bijux_dna_runner::step_runner::StageResultV1;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
     use insta::Settings;
@@ -38,7 +38,7 @@ mod tests {
         let stage_out = out_dir.join("stage");
         bijux_dna_infra::ensure_dir(&stage_out)?;
         let plan = StagePlanV1 {
-            stage_id: STAGE_TRIM.clone(),
+            stage_id: STAGE_TRIM_READS.clone(),
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),
@@ -113,7 +113,7 @@ mod tests {
         let invocations = artifacts.join("invocations");
         bijux_dna_infra::ensure_dir(&invocations)?;
         let plan = StagePlanV1 {
-            stage_id: STAGE_TRIM.clone(),
+            stage_id: STAGE_TRIM_READS.clone(),
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),

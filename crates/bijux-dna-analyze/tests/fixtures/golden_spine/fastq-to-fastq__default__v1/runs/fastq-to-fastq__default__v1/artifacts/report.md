@@ -7,8 +7,8 @@
 
 ## Stage Summary
 - `fastq.detect_adapters` via `unknown` (99.99.99+fixture)
-- `fastq.filter` via `unknown` (99.99.99+fixture)
-- `fastq.qc_post` via `unknown` (99.99.99+fixture)
-- `fastq.stats_neutral` via `unknown` (99.99.99+fixture)
-- `fastq.trim` via `unknown` (99.99.99+fixture)
-- `fastq.validate_pre` via `unknown` (99.99.99+fixture)
+- `fastq.filter_reads` via `unknown` (99.99.99+fixture)
+- `fastq.report_qc` via `unknown` (99.99.99+fixture)
+- `fastq.profile_reads` via `unknown` (99.99.99+fixture)
+- `fastq.trim_reads` via `unknown` (99.99.99+fixture)
+- `fastq.validate_reads` via `unknown` (99.99.99+fixture)

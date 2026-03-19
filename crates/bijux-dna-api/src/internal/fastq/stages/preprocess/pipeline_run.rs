@@ -22,8 +22,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let normalized_sample_id = canonical_sample_identity(&args.sample_id);
-    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS)
-        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS.as_str()))?;
+    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS_SUMMARY)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS_SUMMARY.as_str()))?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
     let run_root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
@@ -116,14 +116,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     write_explain_plan_json(
         &out_dir,
-        STAGE_PREPROCESS.as_str(),
+        STAGE_PREPROCESS_SUMMARY.as_str(),
         &tool_ids,
         &registry,
         None,
     )?;
 
-    ensure_image_qa_passed(STAGE_PREPROCESS.as_str(), &tool_ids, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_PREPROCESS.as_str(), &tool_ids, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
@@ -164,7 +164,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let spec =
             build_tool_execution_spec(stage.as_str(), tool.as_str(), &registry, catalog, platform)?;
         let spec = scale_tool_spec_for_jobs(&spec, jobs);
-        if stage == &STAGE_TRIM {
+        if stage == &STAGE_TRIM_READS {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
                 polyx_bank.as_ref(),
@@ -179,9 +179,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     if policy
         .pipeline_stages
         .iter()
-        .any(|stage| stage == &STAGE_QC_POST)
+        .any(|stage| stage == &STAGE_REPORT_QC)
     {
-        for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::qc_post::aux_tool_ids() {
+        for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::report_qc::aux_tool_ids() {
             let spec = catalog
                 .get(*aux_tool)
                 .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
@@ -316,7 +316,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         });
         let decision_trace = serde_json::json!({
             "schema_version": "bijux.decision_trace.v1",
-            "stage": STAGE_PREPROCESS.as_str(),
+            "stage": STAGE_PREPROCESS_SUMMARY.as_str(),
             "selections": selected_tools
                 .iter()
                 .map(|selection| serde_json::json!({
@@ -367,9 +367,10 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     pipeline_attrs.insert("sample_id".to_string(), normalized_sample_id.clone());
     pipeline_attrs.insert(
         "pipeline".to_string(),
-        STAGE_PREPROCESS.as_str().to_string(),
+        STAGE_PREPROCESS_SUMMARY.as_str().to_string(),
     );
-    let pipeline_span = telemetry.start_pipeline(STAGE_PREPROCESS.as_str(), &pipeline_attrs);
+    let pipeline_span =
+        telemetry.start_pipeline(STAGE_PREPROCESS_SUMMARY.as_str(), &pipeline_attrs);
 
     let mut stage_runs = Vec::new();
     let mut fail_fast_triggered = false;
@@ -473,9 +474,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     "exit_code": execution.exit_code,
                 }),
             )?;
-            if stage_id == "fastq.validate_pre" {
+            if stage_id == "fastq.validate_reads" {
                 return Err(anyhow!(
-                    "strict validation failed in fastq.validate_pre; refusing pipeline execution"
+                    "strict validation failed in fastq.validate_reads; refusing pipeline execution"
                 ));
             }
             failures.push(RawFailure {
@@ -555,7 +556,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .context("write identity_normalization.json")?;
     let decision_trace = serde_json::json!({
         "schema_version": "bijux.decision_trace.v1",
-        "stage": STAGE_PREPROCESS.as_str(),
+        "stage": STAGE_PREPROCESS_SUMMARY.as_str(),
         "merge_decision": decisions.merge_decision.as_ref(),
         "correct_decision": decisions.correct_decision.as_ref(),
         "adapter_inference": policy.adapter_inference.as_ref(),
@@ -596,7 +597,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let event = TelemetryEventV1 {
             schema_version: "bijux.telemetry.v1".to_string(),
             run_id,
-            stage_id: STAGE_PREPROCESS.as_str().to_string(),
+            stage_id: STAGE_PREPROCESS_SUMMARY.as_str().to_string(),
             tool_id: "planner".to_string(),
             event_name: TelemetryEventName::MergeDecision,
             timestamp: chrono::Utc::now(),

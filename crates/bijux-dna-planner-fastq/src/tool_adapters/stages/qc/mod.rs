@@ -1,6 +1,6 @@
-pub mod qc_post;
+pub mod profile_reads;
+pub mod report_qc;
 pub mod rrna;
-pub mod screen;
-pub mod stats_neutral;
+pub mod screen_taxonomy;
 
 pub const MODULE: &str = "stages/qc";

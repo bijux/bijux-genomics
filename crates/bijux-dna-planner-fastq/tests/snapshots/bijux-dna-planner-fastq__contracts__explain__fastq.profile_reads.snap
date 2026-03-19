@@ -1,0 +1,13 @@
+---
+source: crates/bijux-dna-planner-fastq/tests/contracts/explain/explainability.rs
+assertion_line: 166
+expression: reason_json
+---
+{
+  "details": {
+    "contract_hash": "3b6aa9d981a51acbe59f65f15ea175649c2d046ee70d443fa7689bd45afc057c",
+    "defaults_diff": {}
+  },
+  "kind": "default",
+  "summary": "default selection for fastq.profile_reads"
+}

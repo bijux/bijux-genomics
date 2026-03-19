@@ -172,7 +172,7 @@ fn pipeline_profiles_are_complete() {
 fn default_fastq_pipeline_declares_required_metrics_objects() {
     let profile = fastq_default_profile();
     let required_stages = &profile.capabilities.required_stages;
-    for required in ["fastq.trim", "fastq.filter", "fastq.qc_post"] {
+    for required in ["fastq.trim_reads", "fastq.filter_reads", "fastq.report_qc"] {
         assert!(
             required_stages.contains(&required),
             "default FASTQ profile missing metrics-critical stage {required}"

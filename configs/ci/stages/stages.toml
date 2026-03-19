@@ -298,8 +298,8 @@ tools = ["bbduk", "bowtie2"]
 id = "fastq.correct"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.filter"]
-prerequisites = ["fastq.filter"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 12
 resource_time_minutes = 45
 resource_threads = 8
@@ -317,8 +317,8 @@ tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 id = "fastq.damage_aware_pretrim"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.validate_pre"]
-prerequisites = ["fastq.validate_pre"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
@@ -336,8 +336,8 @@ tools = ["cutadapt", "seqkit"]
 id = "fastq.detect_adapters"
 status = "supported"
 output_kinds = ["json"]
-ordering_after = ["fastq.validate_pre"]
-prerequisites = ["fastq.validate_pre"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
@@ -352,11 +352,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastp"]
 
 [[stages]]
-id = "fastq.filter"
+id = "fastq.filter_reads"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.trim"]
-prerequisites = ["fastq.trim"]
+ordering_after = ["fastq.trim_reads"]
+prerequisites = ["fastq.trim_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
@@ -390,11 +390,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bowtie2", "samtools"]
 
 [[stages]]
-id = "fastq.length_distribution_pre"
+id = "fastq.profile_read_lengths"
 status = "supported"
 output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.validate_pre"]
-prerequisites = ["fastq.validate_pre"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
@@ -412,8 +412,8 @@ tools = ["fastp", "prinseq", "seqkit_stats"]
 id = "fastq.merge"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.filter"]
-prerequisites = ["fastq.filter"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 8
 resource_time_minutes = 25
 resource_threads = 6
@@ -428,11 +428,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
-id = "fastq.overrepresented_sequences"
+id = "fastq.profile_overrepresented_sequences"
 status = "supported"
 output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.qc_post"]
-prerequisites = ["fastq.qc_post"]
+ordering_after = ["fastq.report_qc"]
+prerequisites = ["fastq.report_qc"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
@@ -485,11 +485,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["samtools", "star"]
 
 [[stages]]
-id = "fastq.qc_post"
+id = "fastq.report_qc"
 status = "supported"
 output_kinds = ["html", "json"]
-ordering_after = ["fastq.stats_neutral"]
-prerequisites = ["fastq.stats_neutral"]
+ordering_after = ["fastq.profile_reads"]
+prerequisites = ["fastq.profile_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
@@ -507,8 +507,8 @@ tools = ["fastqc", "multiqc", "qualimap", "samtools"]
 id = "fastq.rrna"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.filter"]
-prerequisites = ["fastq.filter"]
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 8
 resource_time_minutes = 30
 resource_threads = 6
@@ -523,11 +523,11 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["sortmerna"]
 
 [[stages]]
-id = "fastq.screen"
+id = "fastq.screen_taxonomy"
 status = "supported"
 output_kinds = ["tsv"]
-ordering_after = ["fastq.qc_post"]
-prerequisites = ["fastq.qc_post"]
+ordering_after = ["fastq.report_qc"]
+prerequisites = ["fastq.report_qc"]
 resource_memory_gb = 16
 resource_time_minutes = 60
 resource_threads = 8
@@ -542,7 +542,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 
 [[stages]]
-id = "fastq.stats_neutral"
+id = "fastq.profile_reads"
 status = "supported"
 output_kinds = ["json"]
 ordering_after = ["fastq.contaminant_screen"]
@@ -561,7 +561,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["seqkit", "seqkit_stats"]
 
 [[stages]]
-id = "fastq.trim"
+id = "fastq.trim_reads"
 status = "supported"
 output_kinds = ["fastq"]
 ordering_after = ["fastq.polyg_tailing"]
@@ -583,8 +583,8 @@ tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fast
 id = "fastq.umi"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.trim"]
-prerequisites = ["fastq.trim"]
+ordering_after = ["fastq.trim_reads"]
+prerequisites = ["fastq.trim_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
@@ -599,7 +599,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["umi_tools"]
 
 [[stages]]
-id = "fastq.validate_pre"
+id = "fastq.validate_reads"
 status = "supported"
 output_kinds = ["json"]
 ordering_after = ["fastq.prepare_reference"]
@@ -623,7 +623,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.length_distribution_pre", "fastq.detect_adapters", "fastq.polyg_tailing", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.stats_neutral", "fastq.qc_post", "fastq.overrepresented_sequences", "fastq.screen"]
+stages = ["fastq.prepare_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.polyg_tailing", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"
@@ -638,14 +638,14 @@ description = "Compare damage tools on identical BAM inputs and identical prepro
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
 
 [[benchmark_scenarios]]
-id = "fastq.screen_fairness"
-stage_id = "fastq.screen"
+id = "fastq.screen_taxonomy_fairness"
+stage_id = "fastq.screen_taxonomy"
 description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
 
 [[benchmark_scenarios]]
-id = "fastq.trim_fairness"
-stage_id = "fastq.trim"
+id = "fastq.trim_reads_fairness"
+stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
 

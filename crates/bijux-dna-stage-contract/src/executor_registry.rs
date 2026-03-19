@@ -83,7 +83,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.filter",
+        stage_id: "fastq.filter_reads",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -95,7 +95,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.length_distribution_pre",
+        stage_id: "fastq.profile_read_lengths",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -119,7 +119,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.overrepresented_sequences",
+        stage_id: "fastq.profile_overrepresented_sequences",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -143,7 +143,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.qc_post",
+        stage_id: "fastq.report_qc",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -155,19 +155,19 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.screen",
+        stage_id: "fastq.screen_taxonomy",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.stats_neutral",
+        stage_id: "fastq.profile_reads",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.trim",
+        stage_id: "fastq.trim_reads",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -179,7 +179,7 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
-        stage_id: "fastq.validate_pre",
+        stage_id: "fastq.validate_reads",
         executor: FASTQ_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
@@ -415,9 +415,9 @@ mod tests {
     fn stage_executor_registry_surfaces_lookup_helpers() {
         let _ = ReadinessBadge::Certified;
 
-        assert!(has_executor("fastq.filter"));
+        assert!(has_executor("fastq.filter_reads"));
         assert_eq!(
-            entry("fastq.filter").map(|value| value.executor),
+            entry("fastq.filter_reads").map(|value| value.executor),
             Some(FASTQ_EXECUTOR)
         );
     }

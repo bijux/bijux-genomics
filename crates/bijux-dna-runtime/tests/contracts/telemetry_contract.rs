@@ -100,7 +100,7 @@ fn telemetry_contract_requires_stage_start_end_and_artifact_refs() -> anyhow::Re
     let base = TelemetryEventV1 {
         schema_version: "bijux.telemetry.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         event_name: TelemetryEventName::StageStart,
         timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")?

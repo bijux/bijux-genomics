@@ -5,7 +5,7 @@ fn row(runtime: f64, memory: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
     FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: None,

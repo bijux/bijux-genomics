@@ -98,7 +98,7 @@ fn run_image_qa_with(
         QaStage::Filter,
         QaStage::Merge,
         QaStage::Correct,
-        QaStage::QcPost,
+        QaStage::ReportQc,
         QaStage::Umi,
         QaStage::Stats,
     ];

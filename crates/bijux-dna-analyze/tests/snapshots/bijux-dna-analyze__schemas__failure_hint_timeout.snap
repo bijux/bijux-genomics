@@ -7,6 +7,6 @@ expression: json
   "hints": [],
   "kind": "resource_exhaustion",
   "reason": "timeout while running tool",
-  "stage": "fastq.trim",
+  "stage": "fastq.trim_reads",
   "tool": "fastp"
 }

@@ -14,9 +14,9 @@ use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_CONTAMINANT_SCREEN, STAGE_HOST_DEPLETION},
     FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
     STAGE_CORRECT, STAGE_DAMAGE_AWARE_PRETRIM, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
-    STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
-    STAGE_PRIMER_NORMALIZATION, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN,
-    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    STAGE_FILTER_READS, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
+    STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_RRNA, STAGE_SCREEN_TAXONOMY,
+    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_UMI, STAGE_VALIDATE_READS,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -53,8 +53,8 @@ fn required_id_catalog() -> Vec<String> {
         .map(|stage| stage.as_str().to_string())
         .collect::<Vec<_>>();
     stages.retain(|stage| canonical.contains(stage));
-    if !stages.iter().any(|stage| stage == STAGE_QC_POST.as_str()) {
-        stages.push(STAGE_QC_POST.as_str().to_string());
+    if !stages.iter().any(|stage| stage == STAGE_REPORT_QC.as_str()) {
+        stages.push(STAGE_REPORT_QC.as_str().to_string());
     }
     stages
 }
@@ -87,16 +87,16 @@ impl Default for DefaultPipelineOptions {
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     let mut stages = if options.mode == FastqPipelineMode::Amplicon {
         vec![
-            STAGE_VALIDATE_PRE.as_str().to_string(),
+            STAGE_VALIDATE_READS.as_str().to_string(),
             STAGE_DETECT_ADAPTERS.as_str().to_string(),
             STAGE_DAMAGE_AWARE_PRETRIM.as_str().to_string(),
             STAGE_PRIMER_NORMALIZATION.as_str().to_string(),
-            STAGE_TRIM.as_str().to_string(),
-            STAGE_FILTER.as_str().to_string(),
+            STAGE_TRIM_READS.as_str().to_string(),
+            STAGE_FILTER_READS.as_str().to_string(),
             STAGE_CHIMERA_DETECTION.as_str().to_string(),
             STAGE_ASV_INFERENCE.as_str().to_string(),
             STAGE_ABUNDANCE_NORMALIZATION.as_str().to_string(),
-            STAGE_STATS_NEUTRAL.as_str().to_string(),
+            STAGE_PROFILE_READS.as_str().to_string(),
         ]
     } else {
         required_id_catalog()
@@ -114,11 +114,11 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     {
         stages.push(STAGE_OTU_CLUSTERING.as_str().to_string());
     }
-    if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN.as_str()) {
-        stages.push(STAGE_SCREEN.as_str().to_string());
+    if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()) {
+        stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
     }
-    if options.enable_qc_post && !stages.iter().any(|stage| stage == STAGE_QC_POST.as_str()) {
-        stages.push(STAGE_QC_POST.as_str().to_string());
+    if options.enable_qc_post && !stages.iter().any(|stage| stage == STAGE_REPORT_QC.as_str()) {
+        stages.push(STAGE_REPORT_QC.as_str().to_string());
     }
     PipelineSpec { stages }
 }
@@ -144,10 +144,10 @@ pub fn apply_preprocess_policy(
     if let (Some(trim_idx), Some(filter_idx)) = (
         pipeline_stages
             .iter()
-            .position(|stage| stage == &STAGE_TRIM),
+            .position(|stage| stage == &STAGE_TRIM_READS),
         pipeline_stages
             .iter()
-            .position(|stage| stage == &STAGE_FILTER),
+            .position(|stage| stage == &STAGE_FILTER_READS),
     ) {
         let trim_tool = pipeline_tools.get(trim_idx).map(|tool| tool.as_str());
         let filter_tool = pipeline_tools.get(filter_idx).map(|tool| tool.as_str());
@@ -378,10 +378,10 @@ pub fn resolve_preprocess_pipeline(
                     stages.retain(|stage| stage != STAGE_CORRECT.as_str());
                 }
                 if !enable_qc_post {
-                    stages.retain(|stage| stage != STAGE_QC_POST.as_str());
+                    stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
                 }
                 if !enable_screen {
-                    stages.retain(|stage| stage != STAGE_SCREEN.as_str());
+                    stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
                 }
                 if shotgun_mode {
                     stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));

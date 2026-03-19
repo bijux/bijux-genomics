@@ -6,7 +6,7 @@
   },
   "stages": [
     {
-      "stage_id": "fastq.trim",
+      "stage_id": "fastq.trim_reads",
       "attempt": 1,
       "success": true,
       "cached": false

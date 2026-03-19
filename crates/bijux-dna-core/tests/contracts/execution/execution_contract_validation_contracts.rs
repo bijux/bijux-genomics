@@ -97,8 +97,8 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "planner-v1",
         PlanPolicy::default(),
         vec![
-            mk_step("dup", "fastq.trim"),
-            mk_step("dup", "fastq.qc_post"),
+            mk_step("dup", "fastq.trim_reads"),
+            mk_step("dup", "fastq.report_qc"),
         ],
         Vec::new(),
     );
@@ -121,7 +121,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
             command: CommandSpecV1 {
                 template: Vec::new(),
             },
-            ..mk_step("a", "fastq.trim")
+            ..mk_step("a", "fastq.trim_reads")
         }],
         Vec::new(),
     );
@@ -136,7 +136,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
                 image: String::new(),
                 digest: None,
             },
-            ..mk_step("a", "fastq.trim")
+            ..mk_step("a", "fastq.trim_reads")
         }],
         Vec::new(),
     );
@@ -166,7 +166,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
                     ArtifactRole::Reads,
                 )],
             },
-            ..mk_step("a", "fastq.trim")
+            ..mk_step("a", "fastq.trim_reads")
         }],
         Vec::new(),
     );
@@ -176,7 +176,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "fastq-to-fastq__default__v1",
         "planner-v1",
         PlanPolicy::default(),
-        vec![mk_step("a", "fastq.trim")],
+        vec![mk_step("a", "fastq.trim_reads")],
         vec![ExecutionEdge::new(StepId::new("a"), StepId::new("missing"))],
     );
     assert!(unknown_edge.is_err());
@@ -193,7 +193,7 @@ fn derived_metric_validation_and_tool_invocation_constructor_paths() {
     let invocation = ToolInvocationV1::new(ToolInvocationSpecV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
         contract_version: ContractVersion::v1(),
-        stage_id: StageId::new("fastq.trim"),
+        stage_id: StageId::new("fastq.trim_reads"),
         tool_id: ToolId::new("fastp"),
         tool_version: "0.23.4".to_string(),
         resolved_tool_version: Some("0.23.4+patched".to_string()),
@@ -214,7 +214,7 @@ fn derived_metric_validation_and_tool_invocation_constructor_paths() {
     });
 
     assert_eq!(invocation.schema_version, "bijux.tool_invocation.v1");
-    assert_eq!(invocation.stage_id.as_str(), "fastq.trim");
+    assert_eq!(invocation.stage_id.as_str(), "fastq.trim_reads");
     assert_eq!(invocation.tool_id.as_str(), "fastp");
     assert_eq!(invocation.runner_kind, "container");
     assert_eq!(invocation.platform, "linux/arm64");

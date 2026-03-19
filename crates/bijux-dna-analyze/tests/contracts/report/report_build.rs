@@ -11,15 +11,15 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 
 #[test]
 fn bench_schema_table_has_metrics() -> Result<()> {
-    let json = bench_schema_json("fastq.trim")?;
-    assert_eq!(json["stage"], "fastq.trim");
+    let json = bench_schema_json("fastq.trim_reads")?;
+    assert_eq!(json["stage"], "fastq.trim_reads");
     assert!(!json["metrics"].as_array().unwrap_or(&Vec::new()).is_empty());
     Ok(())
 }
 
 #[test]
 fn bench_schema_table_ordering_matches_registry() -> Result<()> {
-    let json = bench_schema_json("fastq.trim")?;
+    let json = bench_schema_json("fastq.trim_reads")?;
     let observed: Vec<_> = json["metrics"]
         .as_array()
         .unwrap_or(&Vec::new())
@@ -27,7 +27,7 @@ fn bench_schema_table_ordering_matches_registry() -> Result<()> {
         .filter_map(|entry| entry["name"].as_str())
         .map(ToString::to_string)
         .collect();
-    let kind = metric_kind_for_stage("fastq.trim").ok_or_else(|| anyhow!("stage kind"))?;
+    let kind = metric_kind_for_stage("fastq.trim_reads").ok_or_else(|| anyhow!("stage kind"))?;
     let spec = stage_metric_spec(kind);
     let expected: Vec<_> = spec
         .metrics
@@ -40,7 +40,7 @@ fn bench_schema_table_ordering_matches_registry() -> Result<()> {
 
 #[test]
 fn bench_schema_table_omits_range_when_missing() -> Result<()> {
-    let json = bench_schema_json("fastq.trim")?;
+    let json = bench_schema_json("fastq.trim_reads")?;
     let empty = Vec::new();
     let entry = json["metrics"]
         .as_array()
@@ -59,7 +59,7 @@ fn run_summary_aggregation_works() -> Result<()> {
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: Some("sha256:abc".to_string()),

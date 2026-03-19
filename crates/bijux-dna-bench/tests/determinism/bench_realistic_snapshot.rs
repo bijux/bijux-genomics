@@ -22,7 +22,7 @@ fn observation(
         dataset_id: dataset_id.to_string(),
         dataset_class: dataset_class.to_string(),
         read_layout: read_layout.to_string(),
-        stage_id: "fastq.trim".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
         tool_id: tool_id.to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: "sha256:abc".to_string(),
@@ -34,7 +34,7 @@ fn observation(
         exit_code: 0,
         failure_kind: None,
         metrics: MetricsEnvelope {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
             schema_version: "metrics.v1".to_string(),
             values: BTreeMap::new(),
         },
@@ -72,7 +72,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
                 read_layout: "paired".to_string(),
             },
         ],
-        vec!["fastq.trim".to_string()],
+        vec!["fastq.trim_reads".to_string()],
         vec!["fastp".to_string(), "cutadapt".to_string()],
         vec!["params-a".to_string()],
         ReplicatePolicy {
@@ -204,7 +204,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
               "trimmed_mean": 1.4000000000000001
             }
           },
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "cutadapt"
         },
         {
@@ -251,7 +251,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
               "trimmed_mean": 1.0
             }
           },
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         },
         {
@@ -298,7 +298,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
               "trimmed_mean": 1.4000000000000001
             }
           },
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "cutadapt"
         },
         {
@@ -345,7 +345,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
               "trimmed_mean": 1.0
             }
           },
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
         }
       ],
@@ -356,13 +356,13 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
           "dataset_class": "nextera",
           "low_power_count": 0,
           "row_count": 2,
-          "stage_id": "fastq.trim"
+          "stage_id": "fastq.trim_reads"
         },
         {
           "dataset_class": "trueseq",
           "low_power_count": 0,
           "row_count": 2,
-          "stage_id": "fastq.trim"
+          "stage_id": "fastq.trim_reads"
         }
       ],
       "suite_id": "suite-elite",

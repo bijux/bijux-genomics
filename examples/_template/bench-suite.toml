@@ -1,7 +1,7 @@
 schema_version = "bijux.example.bench-suite.v1"
 example_id = "example-XYZ"
 stage_catalog_index = 1
-stage_id = "fastq.validate_pre"
+stage_id = "fastq.validate_reads"
 
 [pinning]
 source_of_truth = "configs/tool_registry.toml"

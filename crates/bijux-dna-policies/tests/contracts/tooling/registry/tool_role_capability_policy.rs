@@ -95,11 +95,11 @@ fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabi
         std::fs::read_to_string(root.join("domain/fastq/index.yaml")).expect("read fastq index");
 
     let benchmark_stages = [
-        "fastq.validate_pre",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post",
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc",
     ]
     .into_iter()
     .collect::<BTreeSet<_>>();

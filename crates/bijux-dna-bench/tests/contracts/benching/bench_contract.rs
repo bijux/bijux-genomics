@@ -16,7 +16,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["fastq.trim".to_string()],
+        vec!["fastq.trim_reads".to_string()],
         vec!["tool-a".to_string()],
         vec!["params-a".to_string()],
         ReplicatePolicy {
@@ -81,7 +81,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         },
         "schema_version": "bijux.bench.suite.v1",
         "stages": [
-          "fastq.trim"
+          "fastq.trim_reads"
         ],
         "stratifications": [
           {
@@ -122,7 +122,7 @@ fn suite_requires_stratification_metadata() {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["fastq.trim".to_string()],
+        vec!["fastq.trim_reads".to_string()],
         vec!["tool-a".to_string()],
         vec!["params-a".to_string()],
         ReplicatePolicy {

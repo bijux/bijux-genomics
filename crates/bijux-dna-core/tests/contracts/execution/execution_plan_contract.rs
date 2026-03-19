@@ -44,10 +44,10 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
-        vec![mk_step("fastq.trim", "fastq.trim", "sha256:abc")],
+        vec![mk_step("fastq.trim_reads", "fastq.trim_reads", "sha256:abc")],
         vec![ExecutionEdge::new(
-            StepId::from_static("fastq.trim"),
-            StepId::from_static("fastq.trim"),
+            StepId::from_static("fastq.trim_reads"),
+            StepId::from_static("fastq.trim_reads"),
         )],
     );
     assert!(plan.is_err(), "self-loop should be rejected");
@@ -57,12 +57,12 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
         vec![
-            mk_step("fastq.filter", "fastq.filter", "sha256:abc"),
-            mk_step("fastq.trim", "fastq.trim", "sha256:def"),
+            mk_step("fastq.filter_reads", "fastq.filter_reads", "sha256:abc"),
+            mk_step("fastq.trim_reads", "fastq.trim_reads", "sha256:def"),
         ],
         vec![ExecutionEdge::new(
-            StepId::from_static("fastq.trim"),
-            StepId::from_static("fastq.filter"),
+            StepId::from_static("fastq.trim_reads"),
+            StepId::from_static("fastq.filter_reads"),
         )],
     )?;
 

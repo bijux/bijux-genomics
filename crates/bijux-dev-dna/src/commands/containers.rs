@@ -8515,7 +8515,7 @@ fn run_test_images_stage(
         return Ok(ContainerCommandOutcome {
             exit_code: 2,
             stdout: String::new(),
-            stderr: "ERROR: set STAGE=<domain.stage|stage> (example: STAGE=fastq.trim)\n"
+            stderr: "ERROR: set STAGE=<domain.stage|stage> (example: STAGE=fastq.trim_reads)\n"
                 .to_string(),
         });
     }

@@ -4,7 +4,7 @@ use bijux_dna_core::prelude::params_hash;
 use std::fs;
 use std::path::Path;
 
-use super::STAGE_QC_POST;
+use super::STAGE_REPORT_QC;
 use anyhow::{Context, Result};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
