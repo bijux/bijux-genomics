@@ -48,7 +48,6 @@
   },
   "out_dir": "out",
   "params": {
-    "bracken_report": "out/bracken_abundance.tsv",
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": "reads_R2.fastq.gz",
     "out_dir": "out",
