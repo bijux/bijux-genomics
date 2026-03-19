@@ -65,3 +65,19 @@ fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
         "experimental registry should still load with the runtime toggle"
     );
 }
+
+#[test]
+fn prinseq_trim_reads_binding_is_present_when_experimental_registry_is_enabled() {
+    let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+    let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
+    std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
+    std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
+
+    let registry = load_manifests(&registry_path()).expect("load registry with api alias");
+    let stage_id = StageId::from_static("fastq.trim_reads");
+    let tool_id = ToolId::from_static("prinseq");
+    assert!(
+        registry.tool_by_id(&stage_id, &tool_id).is_some(),
+        "prinseq must be registered for fastq.trim_reads when the stage contract advertises it"
+    );
+}
