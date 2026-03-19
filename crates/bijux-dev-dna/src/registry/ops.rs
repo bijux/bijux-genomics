@@ -301,6 +301,21 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCertifyVcf,
         ),
         native(
+            "acquire-maps",
+            "Materialize or lock governed recombination map assets.",
+            NativeOpsCommandKey::ToolingAcquireMaps,
+        ),
+        native(
+            "acquire-panels",
+            "Materialize or lock governed panel assets.",
+            NativeOpsCommandKey::ToolingAcquirePanels,
+        ),
+        native(
+            "acquire-reference",
+            "Materialize or lock governed reference assets.",
+            NativeOpsCommandKey::ToolingAcquireReference,
+        ),
+        native(
             "config-inventory",
             "Generate governed config inventory artifacts under artifacts/.",
             NativeOpsCommandKey::ToolingConfigInventory,

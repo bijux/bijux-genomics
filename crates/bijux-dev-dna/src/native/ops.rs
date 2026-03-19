@@ -86,6 +86,9 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingCertifyDomains => tooling_certify_domains(workspace, args),
         NativeOpsCommandKey::ToolingCertifyFastq => tooling_certify_fastq(workspace, args),
         NativeOpsCommandKey::ToolingCertifyVcf => tooling_certify_vcf(workspace, args),
+        NativeOpsCommandKey::ToolingAcquireMaps => tooling_acquire_maps(workspace, args),
+        NativeOpsCommandKey::ToolingAcquirePanels => tooling_acquire_panels(workspace, args),
+        NativeOpsCommandKey::ToolingAcquireReference => tooling_acquire_reference(workspace, args),
         NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
         NativeOpsCommandKey::ToolingCoverageSummary => tooling_coverage_summary(workspace, args),
         NativeOpsCommandKey::ToolingCrashTriage => tooling_crash_triage(workspace, args),
@@ -1776,6 +1779,516 @@ fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         fs::remove_dir_all(&docs_root).with_context(|| format!("remove {}", docs_root.display()))?;
     }
     success_line(format!("removed {}", docs_root.display()))
+}
+
+fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut download = false;
+    let mut verbose = false;
+    let mut species_filter = String::new();
+    let mut build_filter = String::new();
+    let mut cache_root = workspace.path("artifacts/reference_store");
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-reference -- [--download] [--species <species-id>] [--build <build-id>] [--cache-root <dir>] [--verbose]",
+                )
+            }
+            "--download" => {
+                download = true;
+                index += 1;
+            }
+            "--species" => {
+                species_filter = args
+                    .get(index + 1)
+                    .cloned()
+                    .context("missing value for --species")?;
+                index += 2;
+            }
+            "--build" => {
+                build_filter = args
+                    .get(index + 1)
+                    .cloned()
+                    .context("missing value for --build")?;
+                index += 2;
+            }
+            "--cache-root" => {
+                cache_root = path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .context("missing value for --cache-root")?,
+                );
+                index += 2;
+            }
+            "--verbose" => {
+                verbose = true;
+                index += 1;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+
+    let cfg =
+        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/runtime/reference_bank.toml"))?)?;
+    let references = cfg
+        .get("reference")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let acquire_log_root = workspace.path("artifacts/containers/smoke/reference-acquire");
+    fs::create_dir_all(&acquire_log_root)
+        .with_context(|| format!("create {}", acquire_log_root.display()))?;
+    let lock_json = workspace.path("configs/runtime/references/locks/lock.json");
+    let lock_sha = workspace.path("configs/runtime/references/locks/lock.json.sha256");
+    let mut stdout = String::new();
+    let mut rows = Vec::new();
+    let mut log_rows = Vec::new();
+
+    for row in references {
+        let species = toml_string(row.get("species_id"))?;
+        let build = toml_string(row.get("build_id"))?;
+        if !species_filter.is_empty() && species_filter != species {
+            continue;
+        }
+        if !build_filter.is_empty() && build_filter != build {
+            continue;
+        }
+        let url = toml_string(row.get("fasta_url"))?;
+        let expected = toml_string(row.get("fasta_sha256"))?;
+        let license_id = toml_string(row.get("license_id"))?;
+        let license_url = toml_string(row.get("license_url"))?;
+        let required_indexes = row
+            .get("required_indexes")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|value| toml_value_string(&value))
+            .collect::<Vec<_>>();
+        let root_dir = cache_root.join(&species).join(&build);
+        let raw_dir = root_dir.join("refs/raw");
+        let normalized_dir = root_dir.join("refs/normalized");
+        let derived_dir = root_dir.join("refs/derived");
+        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        fs::create_dir_all(&normalized_dir)
+            .with_context(|| format!("create {}", normalized_dir.display()))?;
+        fs::create_dir_all(&derived_dir)
+            .with_context(|| format!("create {}", derived_dir.display()))?;
+        let raw_fasta = raw_dir.join("reference.fa.gz");
+        let filename = raw_fasta
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("reference.fa.gz")
+            .to_string();
+        let synthetic = format!("synthetic reference payload for {species}/{build}\n").into_bytes();
+        let materialized = materialize_controlled_file(
+            &raw_fasta,
+            &url,
+            &expected,
+            &synthetic,
+            download,
+            verbose,
+            &format!("{species}:{build}"),
+            &mut stdout,
+        )?;
+        let mut index_outputs = Vec::new();
+        for tool in &required_indexes {
+            let output = match tool.as_str() {
+                "samtools_faidx" => {
+                    let path = normalized_dir.join(format!("{filename}.fai"));
+                    write_utf8(&path, &format!("{filename}\t0\t0\t0\t0\n"))?;
+                    path
+                }
+                "bwa_index" => {
+                    let path = normalized_dir.join(format!("{filename}.bwt"));
+                    write_utf8(&path, "synthetic-bwa-index\n")?;
+                    path
+                }
+                "bowtie2_index" => {
+                    let path = normalized_dir.join(format!("{filename}.1.bt2"));
+                    write_utf8(&path, "synthetic-bowtie2-index\n")?;
+                    path
+                }
+                "star_genome_generate" => {
+                    let path = normalized_dir.join("star/genomeParameters.txt");
+                    write_utf8(&path, "synthetic-star-index\n")?;
+                    path
+                }
+                other => return Err(anyhow!("unsupported required index tool: {other}")),
+            };
+            index_outputs.push(json!({
+                "tool": tool,
+                "status": "synthetic",
+                "output": output.display().to_string(),
+            }));
+        }
+        write_json_pretty(
+            &derived_dir.join("materialization.json"),
+            &json!({
+                "species_id": species,
+                "build_id": build,
+                "license_id": license_id,
+                "license_url": license_url,
+                "required_indexes": required_indexes,
+                "index_outputs": index_outputs,
+            }),
+        )?;
+        rows.push(json!({
+            "species_id": species,
+            "build_id": build,
+            "fasta_url": url,
+            "fasta_sha256": expected,
+            "observed_sha256": materialized.observed_sha256,
+            "license_id": license_id,
+            "license_url": license_url,
+            "required_indexes": required_indexes,
+            "layout": {
+                "raw": raw_dir.strip_prefix(&cache_root).unwrap_or(&raw_dir).display().to_string(),
+                "normalized": normalized_dir.strip_prefix(&cache_root).unwrap_or(&normalized_dir).display().to_string(),
+                "derived": derived_dir.strip_prefix(&cache_root).unwrap_or(&derived_dir).display().to_string(),
+            },
+            "action": materialized.action,
+        }));
+        log_rows.push(json!({
+            "species_id": species,
+            "build_id": build,
+            "download": download,
+            "action": materialized.action,
+        }));
+    }
+    rows.sort_by(|left, right| {
+        value_string(left.get("species_id"))
+            .cmp(&value_string(right.get("species_id")))
+            .then_with(|| value_string(left.get("build_id")).cmp(&value_string(right.get("build_id"))))
+    });
+    let payload = json!({
+        "schema_version": 1,
+        "generated_at_utc": stable_now_utc_string(),
+        "source": "configs/runtime/reference_bank.toml",
+        "references": rows,
+    });
+    let raw = format!("{}\n", serde_json::to_string_pretty(&payload)?);
+    write_utf8(&lock_json, &raw)?;
+    write_utf8(
+        &lock_sha,
+        &format!(
+            "{}  configs/runtime/references/locks/lock.json\n",
+            sha256_hex_bytes(raw.as_bytes())
+        ),
+    )?;
+    let run_log = acquire_log_root.join(format!(
+        "reference-acquire-{}.json",
+        stable_now_utc_compact()
+    ));
+    write_json_pretty(
+        &run_log,
+        &json!({
+            "rows": log_rows,
+            "cache_root": cache_root.display().to_string(),
+        }),
+    )?;
+    stdout.push_str(&format!(
+        "wrote {}\nwrote {}\nwrote {}\n",
+        workspace.rel(&lock_json).display(),
+        workspace.rel(&lock_sha).display(),
+        workspace.rel(&run_log).display()
+    ));
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut download = false;
+    let mut verbose = false;
+    let mut panel_filter = String::new();
+    let mut cache_root = workspace.path("artifacts/vcf/reference_store/panels");
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-panels -- [--download] [--panel <panel-id>] [--cache-root <dir>] [--verbose]",
+                )
+            }
+            "--download" => {
+                download = true;
+                index += 1;
+            }
+            "--panel" => {
+                panel_filter = args
+                    .get(index + 1)
+                    .cloned()
+                    .context("missing value for --panel")?;
+                index += 2;
+            }
+            "--cache-root" => {
+                cache_root = path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .context("missing value for --cache-root")?,
+                );
+                index += 2;
+            }
+            "--verbose" => {
+                verbose = true;
+                index += 1;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+
+    let cfg =
+        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/panels/panels.toml"))?)?;
+    let panels = cfg
+        .get("panel")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let acquire_log_root = workspace.path("artifacts/containers/smoke/panel-acquire");
+    fs::create_dir_all(&acquire_log_root)
+        .with_context(|| format!("create {}", acquire_log_root.display()))?;
+    let lock_json = workspace.path("configs/vcf/panels/locks/lock.json");
+    let lock_sha = workspace.path("configs/vcf/panels/locks/lock.json.sha256");
+    let mut stdout = String::new();
+    let mut lock_rows = Vec::new();
+    let mut log_rows = Vec::new();
+
+    for panel in panels {
+        let panel_id = toml_string(panel.get("id"))?;
+        if !panel_filter.is_empty() && panel_filter != panel_id {
+            continue;
+        }
+        let species = toml_string(panel.get("species_id"))?;
+        let build = toml_string(panel.get("build_id"))?;
+        let version = toml_string(panel.get("version"))?;
+        let license = toml_string(panel.get("license"))?;
+        let citation = toml_string(panel.get("citation"))?;
+        let files = panel
+            .get("files")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let panel_root = cache_root.join(&species).join(&build).join(&panel_id);
+        let raw_dir = panel_root.join("raw");
+        let normalized_dir = panel_root.join("normalized");
+        let derived_dir = panel_root.join("derived");
+        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        fs::create_dir_all(&normalized_dir)
+            .with_context(|| format!("create {}", normalized_dir.display()))?;
+        fs::create_dir_all(&derived_dir)
+            .with_context(|| format!("create {}", derived_dir.display()))?;
+        let mut manifest_files = Vec::new();
+        for file in files {
+            let name = toml_string(file.get("name"))?;
+            let rel_path = toml_string(file.get("path"))?;
+            let url = toml_string(file.get("url"))?;
+            let expected = toml_string(file.get("checksum_sha256"))?;
+            let format_name = toml_string(file.get("format"))?;
+            let dest = raw_dir.join(&rel_path);
+            let synthetic = format!("synthetic payload for {panel_id}/{name}\n").into_bytes();
+            let materialized = materialize_controlled_file(
+                &dest,
+                &url,
+                &expected,
+                &synthetic,
+                download,
+                verbose,
+                &format!("{panel_id}:{name}"),
+                &mut stdout,
+            )?;
+            manifest_files.push(json!({
+                "name": name,
+                "path": rel_path,
+                "materialized_path": dest.strip_prefix(&cache_root).unwrap_or(&dest).display().to_string(),
+                "url": url,
+                "checksum_sha256": expected,
+                "observed_sha256": materialized.observed_sha256,
+                "format": format_name,
+                "action": materialized.action,
+            }));
+        }
+        write_utf8(
+            &derived_dir.join("overlap.tsv"),
+            "chr\toverlap_sites\toverlap_fraction\nall\t0\t0.0\n",
+        )?;
+        let index_stub = normalized_dir.join("panel.vcf.gz.tbi");
+        if !index_stub.exists() {
+            write_utf8(&index_stub, "tabix-index-placeholder\n")?;
+        }
+        let file_count = manifest_files.len();
+        lock_rows.push(json!({
+            "id": panel_id,
+            "species_id": species,
+            "build_id": build,
+            "version": version,
+            "license": license,
+            "citation": citation,
+            "files": manifest_files,
+            "storage_layout": {
+                "raw": raw_dir.strip_prefix(&cache_root).unwrap_or(&raw_dir).display().to_string(),
+                "normalized": normalized_dir.strip_prefix(&cache_root).unwrap_or(&normalized_dir).display().to_string(),
+                "derived": derived_dir.strip_prefix(&cache_root).unwrap_or(&derived_dir).display().to_string(),
+            },
+        }));
+        log_rows.push(json!({
+            "panel_id": panel_id,
+            "species_id": species,
+            "build_id": build,
+            "download": download,
+            "file_count": file_count,
+        }));
+    }
+    lock_rows.sort_by(|left, right| value_string(left.get("id")).cmp(&value_string(right.get("id"))));
+    let payload = json!({
+        "schema_version": 2,
+        "generated_at_utc": stable_now_utc_string(),
+        "source": "configs/vcf/panels/panels.toml",
+        "panels": lock_rows,
+    });
+    let raw = format!("{}\n", serde_json::to_string_pretty(&payload)?);
+    write_utf8(&lock_json, &raw)?;
+    write_utf8(
+        &lock_sha,
+        &format!(
+            "{}  configs/vcf/panels/locks/lock.json\n",
+            sha256_hex_bytes(raw.as_bytes())
+        ),
+    )?;
+    let run_log = acquire_log_root.join(format!("panel-acquire-{}.json", stable_now_utc_compact()));
+    write_json_pretty(
+        &run_log,
+        &json!({
+            "rows": log_rows,
+            "cache_root": cache_root.display().to_string(),
+        }),
+    )?;
+    stdout.push_str(&format!(
+        "wrote {}\nwrote {}\nwrote {}\n",
+        workspace.rel(&lock_json).display(),
+        workspace.rel(&lock_sha).display(),
+        workspace.rel(&run_log).display()
+    ));
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let mut download = false;
+    let mut verbose = false;
+    let mut map_filter = String::new();
+    let mut cache_root = workspace.path("artifacts/vcf/reference_store/maps");
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-maps -- [--download] [--map <map-id>] [--cache-root <dir>] [--verbose]",
+                )
+            }
+            "--download" => {
+                download = true;
+                index += 1;
+            }
+            "--map" => {
+                map_filter = args
+                    .get(index + 1)
+                    .cloned()
+                    .context("missing value for --map")?;
+                index += 2;
+            }
+            "--cache-root" => {
+                cache_root = path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .context("missing value for --cache-root")?,
+                );
+                index += 2;
+            }
+            "--verbose" => {
+                verbose = true;
+                index += 1;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+
+    let cfg = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
+    let maps = cfg
+        .get("map")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let acquire_log_root = workspace.path("artifacts/containers/smoke/map-acquire");
+    fs::create_dir_all(&acquire_log_root)
+        .with_context(|| format!("create {}", acquire_log_root.display()))?;
+    let mut stdout = String::new();
+    let mut rows = Vec::new();
+
+    for map in maps {
+        let map_id = toml_string(map.get("id"))?;
+        if !map_filter.is_empty() && map_filter != map_id {
+            continue;
+        }
+        let species = toml_string(map.get("species_id"))?;
+        let build = toml_string(map.get("build_id"))?;
+        let files = map
+            .get("files")
+            .and_then(TomlValue::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let base = cache_root.join(&species).join(&build).join(&map_id);
+        let raw_dir = base.join("raw");
+        let normalized_dir = base.join("normalized");
+        let derived_dir = base.join("derived");
+        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        fs::create_dir_all(&normalized_dir)
+            .with_context(|| format!("create {}", normalized_dir.display()))?;
+        fs::create_dir_all(&derived_dir)
+            .with_context(|| format!("create {}", derived_dir.display()))?;
+        let mut observed = Vec::new();
+        for file in files {
+            let name = toml_string(file.get("name"))?;
+            let rel_path = toml_string(file.get("path"))?;
+            let url = toml_string(file.get("url"))?;
+            let expected = toml_string(file.get("checksum_sha256"))?;
+            let target = raw_dir.join(&rel_path);
+            let synthetic = format!("synthetic payload for {map_id}/{name}\n").into_bytes();
+            let materialized = materialize_controlled_file(
+                &target,
+                &url,
+                &expected,
+                &synthetic,
+                download,
+                verbose,
+                &format!("{map_id}:{name}"),
+                &mut stdout,
+            )?;
+            observed.push(json!({
+                "name": name,
+                "checksum_sha256": expected,
+                "observed_sha256": materialized.observed_sha256,
+                "path": target.strip_prefix(&cache_root).unwrap_or(&target).display().to_string(),
+                "action": materialized.action,
+            }));
+        }
+        write_utf8(&derived_dir.join("chunk_index.tsv"), "chunk\tregion\n0\tall\n")?;
+        rows.push(json!({
+            "map_id": map_id,
+            "species_id": species,
+            "build_id": build,
+            "files": observed,
+        }));
+    }
+
+    let run_log = acquire_log_root.join(format!("map-acquire-{}.json", stable_now_utc_compact()));
+    write_json_pretty(
+        &run_log,
+        &json!({
+            "rows": rows,
+            "cache_root": cache_root.display().to_string(),
+        }),
+    )?;
+    stdout.push_str(&format!("wrote {}\n", workspace.rel(&run_log).display()));
+    Ok(OpsCommandOutcome::success(stdout))
 }
 
 fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -5085,6 +5598,11 @@ fn sorted_unique(values: Vec<String>) -> Vec<String> {
         .collect()
 }
 
+struct MaterializedFile {
+    action: String,
+    observed_sha256: String,
+}
+
 fn json_u64(value: Option<&Value>) -> u64 {
     value.and_then(Value::as_u64).unwrap_or(0)
 }
@@ -5108,6 +5626,108 @@ fn toml_to_json_value(value: TomlValue) -> Value {
                 .collect(),
         ),
     }
+}
+
+fn toml_string(value: Option<&TomlValue>) -> Result<String> {
+    value
+        .map(toml_value_string)
+        .filter(|value| !value.is_empty())
+        .context("missing required toml string")
+}
+
+fn toml_value_string(value: &TomlValue) -> String {
+    match value {
+        TomlValue::String(value) => value.clone(),
+        TomlValue::Integer(value) => value.to_string(),
+        TomlValue::Float(value) => value.to_string(),
+        TomlValue::Boolean(value) => value.to_string(),
+        TomlValue::Datetime(value) => value.to_string(),
+        _ => String::new(),
+    }
+}
+
+fn stable_now_utc_string() -> String {
+    std::env::var("SOURCE_DATE_EPOCH")
+        .ok()
+        .and_then(|value| value.parse::<i64>().ok())
+        .and_then(|epoch| chrono::DateTime::<Utc>::from_timestamp(epoch, 0))
+        .map(|value| value.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
+        .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
+}
+
+fn stable_now_utc_compact() -> String {
+    stable_now_utc_string()
+        .replace(':', "")
+        .replace('-', "")
+}
+
+fn materialize_controlled_file(
+    path: &Path,
+    url: &str,
+    expected_sha256: &str,
+    synthetic_bytes: &[u8],
+    download: bool,
+    verbose: bool,
+    label: &str,
+    stdout: &mut String,
+) -> Result<MaterializedFile> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    let mut action = "reuse".to_string();
+    let mut observed = if path.exists() {
+        sha256_hex(path)?
+    } else {
+        String::new()
+    };
+    if path.exists() {
+        if observed != expected_sha256 && download {
+            action = "redownload".to_string();
+            if verbose {
+                stdout.push_str(&format!("[download] {label} <- {url}\n"));
+            }
+            fs::write(path, download_bytes(url)?)
+                .with_context(|| format!("write {}", path.display()))?;
+            observed = sha256_hex(path)?;
+        } else if observed != expected_sha256 {
+            action = "rewrite-synthetic".to_string();
+            fs::write(path, synthetic_bytes).with_context(|| format!("write {}", path.display()))?;
+            observed = sha256_hex(path)?;
+        }
+    } else if download {
+        action = "download".to_string();
+        if verbose {
+            stdout.push_str(&format!("[download] {label} <- {url}\n"));
+        }
+        fs::write(path, download_bytes(url)?).with_context(|| format!("write {}", path.display()))?;
+        observed = sha256_hex(path)?;
+    } else {
+        action = "write-synthetic".to_string();
+        fs::write(path, synthetic_bytes).with_context(|| format!("write {}", path.display()))?;
+        observed = sha256_hex(path)?;
+    }
+    if observed != expected_sha256 {
+        return Err(anyhow!(
+            "checksum mismatch for {label}: expected {expected_sha256}, got {observed}"
+        ));
+    }
+    Ok(MaterializedFile {
+        action,
+        observed_sha256: observed,
+    })
+}
+
+fn download_bytes(url: &str) -> Result<Vec<u8>> {
+    let response = reqwest::blocking::get(url)
+        .with_context(|| format!("download {url}"))?
+        .error_for_status()
+        .with_context(|| format!("download {url}"))?;
+    Ok(response.bytes()?.to_vec())
+}
+
+fn sha256_hex_bytes(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
