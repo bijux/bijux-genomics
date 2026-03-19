@@ -48,18 +48,19 @@ where
     let mut current_r1 = r1.to_path_buf();
     let raw_r1 = r1.to_path_buf();
     let mut current_r2 = r2.map(|path| path.to_path_buf());
+    let mut current_feature_table: Option<PathBuf> = None;
     let mut plans = Vec::new();
     for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
         let stage_id: &str = stage;
-        let (plan, next_r1, next_r2) = match stage_id {
+        let (plan, next_r1, next_r2, next_feature_table) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan = crate::tool_adapters::fastq::detect_adapters::plan(
                     tool,
                     &current_r1,
                     &out_dir,
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_read_lengths::plan(
@@ -67,7 +68,7 @@ where
                     &current_r1,
                     &out_dir,
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_overrepresented_sequences::plan(
@@ -75,7 +76,7 @@ where
                     &current_r1,
                     &out_dir,
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_TRIM_READS.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_reads::plan(
@@ -87,7 +88,7 @@ where
                     contaminant_bank,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
@@ -99,7 +100,7 @@ where
                     2,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_FILTER_READS.as_str() => {
                 let mut filter_options =
@@ -121,7 +122,7 @@ where
                     &filter_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => {
                 let plan = crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
@@ -130,7 +131,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_HOST.as_str() => {
                 let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion(
@@ -139,7 +140,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
@@ -148,7 +149,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => {
                 let low_complexity_options =
@@ -160,7 +161,7 @@ where
                     &low_complexity_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
@@ -169,7 +170,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_VALIDATE_READS.as_str() => {
                 if crate::tool_adapters::fastq::validate_reads::normalize_validate_tool_list(&[
@@ -185,7 +186,7 @@ where
                 }
                 let plan =
                     crate::tool_adapters::fastq::validate_reads::plan(tool, &current_r1, &out_dir)?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_MERGE_PAIRS.as_str() => {
                 let r2 = current_r2
@@ -198,7 +199,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_CORRECT_ERRORS.as_str() => {
                 let r2 = current_r2
@@ -212,7 +213,7 @@ where
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
-                (plan, next_r1, Some(next_r2))
+                (plan, next_r1, Some(next_r2), current_feature_table.clone())
             }
             stage if stage == STAGE_EXTRACT_UMIS.as_str() => {
                 let r2 = current_r2
@@ -226,7 +227,7 @@ where
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
-                (plan, next_r1, Some(next_r2))
+                (plan, next_r1, Some(next_r2), current_feature_table.clone())
             }
             stage if stage == STAGE_REPORT_QC.as_str() => {
                 let mut stage_aux_images = std::collections::BTreeMap::new();
@@ -244,13 +245,13 @@ where
                     stage_aux_images,
                     Some(raw_r1.as_path()),
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_RRNA.as_str() => {
                 let plan =
                     crate::tool_adapters::fastq::deplete_rrna::plan_rrna(tool, &current_r1, &out_dir)?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
                 let plan = crate::tool_adapters::fastq::screen_taxonomy::plan_screen(
@@ -258,7 +259,7 @@ where
                     &current_r1,
                     &out_dir,
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_READS.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_reads::plan_stats_neutral(
@@ -266,7 +267,7 @@ where
                     &current_r1,
                     &out_dir,
                 )?;
-                (plan, current_r1.clone(), current_r2.clone())
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_NORMALIZE_PRIMERS.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
@@ -276,23 +277,13 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = plan_amplicon_stage(
-                    stage,
+                let plan = crate::tool_adapters::fastq::normalize_primers::plan(
                     tool,
                     &current_r1,
                     &out_dir,
-                    serde_json::json!({
-                        "orientation_policy": "normalize_to_forward_primer",
-                        "primer_set_id": "default",
-                        "mismatch_policy": {
-                            "max_mismatches": 2,
-                            "allow_iupac_codes": true,
-                            "strict_5p_anchor": true
-                        }
-                    }),
-                );
+                )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_CHIMERAS.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
@@ -314,7 +305,7 @@ where
                     }),
                 );
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None)
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_INFER_ASVS.as_str() => {
                 if tool.tool_id.as_str() != "dada2" {
@@ -324,21 +315,13 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = plan_amplicon_stage(
-                    stage,
+                let plan = crate::tool_adapters::fastq::infer_asvs::plan(
                     tool,
                     &current_r1,
                     &out_dir,
-                    serde_json::json!({
-                        "requires_r_runtime": true,
-                        "output_table_kind": "asv_abundance_table",
-                        "runtime_constraints": {
-                            "requires_r": true,
-                            "min_r_major": 4
-                        }
-                    }),
-                );
-                (plan, current_r1.clone(), current_r2.clone())
+                )?;
+                let next_feature_table = Some(plan.io.outputs[0].path.clone());
+                (plan, current_r1.clone(), current_r2.clone(), next_feature_table)
             }
             stage if stage == STAGE_CLUSTER_OTUS.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
@@ -359,7 +342,8 @@ where
                         "output_naming": "deterministic"
                     }),
                 );
-                (plan, current_r1.clone(), current_r2.clone())
+                let next_feature_table = Some(plan.io.outputs[0].path.clone());
+                (plan, current_r1.clone(), current_r2.clone(), next_feature_table)
             }
             stage if stage == STAGE_NORMALIZE_ABUNDANCE.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "seqfu" | "seqkit") {
@@ -369,18 +353,16 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = plan_amplicon_stage(
-                    stage,
+                let abundance_table = current_feature_table.as_ref().ok_or_else(|| {
+                    anyhow!("fastq.normalize_abundance requires an upstream feature table")
+                })?;
+                let plan = crate::tool_adapters::fastq::normalize_abundance::plan(
                     tool,
-                    &current_r1,
+                    abundance_table,
                     &out_dir,
-                    serde_json::json!({
-                        "method": "relative_abundance",
-                        "expected_columns": ["sample_id", "feature_id", "abundance"],
-                        "compositional_rule": "per_sample_sum_to_one"
-                    }),
-                );
-                (plan, current_r1.clone(), current_r2.clone())
+                )?;
+                let next_feature_table = Some(plan.io.outputs[0].path.clone());
+                (plan, current_r1.clone(), current_r2.clone(), next_feature_table)
             }
             _ => {
                 return Err(anyhow!("unsupported stage in fastq pipeline: {stage}"));
@@ -400,6 +382,7 @@ where
         plans.push(plan);
         current_r1 = next_r1;
         current_r2 = next_r2;
+        current_feature_table = next_feature_table;
     }
     Ok(plans)
 }

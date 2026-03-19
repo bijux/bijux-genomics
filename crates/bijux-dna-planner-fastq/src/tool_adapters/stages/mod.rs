@@ -1,6 +1,7 @@
 //! Stage adapter groupings for FASTQ planning.
 
 pub mod catalog;
+pub mod amplicon;
 pub mod pre;
 pub mod qc;
 pub mod transform;
