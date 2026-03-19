@@ -44,6 +44,7 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("fastp"),
         std::path::Path::new("reads.fastq.gz"),
+        None,
         std::path::Path::new("out"),
         None,
         None,
@@ -61,6 +62,7 @@ fn plan_trim_rejects_unknown_tool() {
     match bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("mystery"),
         std::path::Path::new("reads.fastq.gz"),
+        None,
         std::path::Path::new("out"),
         None,
         None,

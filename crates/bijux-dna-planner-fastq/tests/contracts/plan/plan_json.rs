@@ -57,6 +57,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("fastp"),
         r1,
+        None,
         out_dir,
         None,
         None,
@@ -67,6 +68,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
         &dummy_tool("seqkit"),
         r1,
+        None,
         out_dir,
         &bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::FilterPlanOptions::default(),
     )?;
@@ -83,6 +85,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
         &dummy_tool("fastqvalidator"),
         r1,
+        None,
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.validate_reads", &plan)?;
@@ -98,6 +101,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_rrna::plan_rrna(
         &dummy_tool("sortmerna"),
         r1,
+        None,
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.deplete_rrna", &plan)?;
@@ -150,6 +154,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads::plan_stats_neutral(
         &dummy_tool("seqkit_stats"),
         r1,
+        None,
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.profile_reads", &plan)?;

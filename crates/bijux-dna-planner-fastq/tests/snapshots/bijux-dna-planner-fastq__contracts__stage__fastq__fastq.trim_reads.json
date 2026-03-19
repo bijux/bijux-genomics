@@ -48,8 +48,10 @@
   },
   "out_dir": "out",
   "params": {
-    "input": "reads_R1.fastq.gz",
-    "output": "out/fastp.fastq.gz",
+    "input_r1": "reads_R1.fastq.gz",
+    "input_r2": null,
+    "output_r1": "out/fastp.fastq.gz",
+    "output_r2": null,
     "tool": "fastp"
   },
   "effective_params": {

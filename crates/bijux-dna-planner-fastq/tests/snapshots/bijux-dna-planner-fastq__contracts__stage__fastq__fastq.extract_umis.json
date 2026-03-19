@@ -57,8 +57,9 @@
   },
   "effective_params": {
     "paired_mode": "paired_end",
-    "q_cutoff": null,
-    "threads": 1
+    "schema_version": "bijux.fastq.params.umi.v1",
+    "threads": 1,
+    "umi_pattern": null
   },
   "aux_images": {},
   "reason": {
