@@ -104,7 +104,7 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
 
 fn stage_aliases(stage: &str) -> Vec<String> {
     match stage {
-        "core.prepare_reference" => vec!["fastq.prepare_reference".to_string()],
+        "core.prepare_reference" => vec!["fastq.index_reference".to_string()],
         "bam.contamination" => vec!["bam.authenticity".to_string()],
         _ => Vec::new(),
     }

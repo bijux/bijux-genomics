@@ -1,6 +1,6 @@
 tool=seqkit
 tool_version=pinned
-stage=fastq.abundance_normalization
+stage=fastq.normalize_abundance
 domain=fastq
 fixture_kind=truth
 command=seqkit

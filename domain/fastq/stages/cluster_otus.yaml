@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.primer_normalization"
+stage_id: "fastq.cluster_otus"
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
@@ -8,13 +8,19 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "primer_normalized_reads"
+  - name: "otu_table"
+    data_type: "table"
+    cardinality: "One"
+  - name: "otu_representatives"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "merged_reads"
     data_type: "fastq"
     cardinality: "Many"
-  - name: "filtered_reads"
+  - name: "unmerged_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
-  - name: "trimmed_reads"
+  - name: "unmerged_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
 metrics:
@@ -26,16 +32,13 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 compatible_tools:
-  - cutadapt
-  - seqkit
+  - vsearch
 assumptions:
-  - "Marker-specific primer references are curated before execution."
-  - "Ambiguous primer matches are retained with explicit tags."
-  - "Primer mismatch tolerance and orientation mode are explicit per run."
-  - "Marker metadata (marker_id, region, primer_set_version) is carried in example/runtime manifests."
+  - "OTU identity threshold is declared in the run configuration."
+  - "OTU clustering uses reproducible parameters and deterministic centroid ordering."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
-  - "adapter_bank"
+  - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs: []
 required_outputs: []

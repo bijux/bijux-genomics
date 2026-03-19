@@ -114,7 +114,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.primer_normalization"),
+        stage_id: StageId::from_static("fastq.normalize_primers"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -284,7 +284,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.chimera_detection"),
+        stage_id: StageId::from_static("fastq.remove_chimeras"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -295,7 +295,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.asv_inference"),
+        stage_id: StageId::from_static("fastq.infer_asvs"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -306,7 +306,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.otu_clustering"),
+        stage_id: StageId::from_static("fastq.cluster_otus"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -317,7 +317,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.abundance_normalization"),
+        stage_id: StageId::from_static("fastq.normalize_abundance"),
         kind: FastqStageKind::Amplicon,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -350,7 +350,7 @@ pub const STAGES: [StageDefinition; 25] = [
         },
     },
     StageDefinition {
-        stage_id: StageId::from_static("fastq.prepare_reference"),
+        stage_id: StageId::from_static("fastq.index_reference"),
         kind: FastqStageKind::Meta,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {

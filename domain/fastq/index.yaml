@@ -4,9 +4,7 @@
 domain: fastq
 domain_version: v1
 stage_ids:
-  - fastq.abundance_normalization
-  - fastq.asv_inference
-  - fastq.chimera_detection
+  - fastq.cluster_otus
   - fastq.correct_errors
   - fastq.deplete_host
   - fastq.deplete_reference_contaminants
@@ -15,13 +13,15 @@ stage_ids:
   - fastq.extract_umis
   - fastq.filter_low_complexity
   - fastq.filter_reads
+  - fastq.index_reference
+  - fastq.infer_asvs
   - fastq.merge_pairs
-  - fastq.otu_clustering
-  - fastq.prepare_reference
-  - fastq.primer_normalization
+  - fastq.normalize_abundance
+  - fastq.normalize_primers
   - fastq.profile_overrepresented_sequences
   - fastq.profile_read_lengths
   - fastq.profile_reads
+  - fastq.remove_chimeras
   - fastq.remove_duplicates
   - fastq.report_qc
   - fastq.screen_taxonomy
@@ -81,7 +81,7 @@ tool_ids:
   - umi_tools
   - vsearch
 stage_tool_compatibility:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - star
   - samtools
   fastq.detect_adapters:
@@ -178,7 +178,7 @@ stage_tool_compatibility:
   - fastq_scan
   - seqkit
 active_defaults:
-  fastq.prepare_reference: star
+  fastq.index_reference: star
   fastq.detect_adapters: fastp
   fastq.trim_reads: fastp
   fastq.filter_reads: fastp
@@ -199,7 +199,7 @@ active_defaults:
   fastq.trim_terminal_damage: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
 active_default_rationale:
-  fastq.prepare_reference: Stable index generation baseline for pre-HPC runs.
+  fastq.index_reference: Stable index generation baseline for pre-HPC runs.
   fastq.detect_adapters: Default adapter detector aligned with trim defaults.
   fastq.trim_reads: Baseline trimmer for deterministic quality/throughput tradeoff.
   fastq.filter_reads: Default filter preserves compatibility with downstream metrics.
@@ -225,12 +225,12 @@ active_default_rationale:
     configured decoy references.
   fastq.trim_terminal_damage: Damage-aware pretrim default uses deterministic terminal mask/trim
     policy for aDNA damage-aware pretrim.
-  fastq.primer_normalization: Deterministic primer trimming with explicit mismatch/orientation
+  fastq.normalize_primers: Deterministic primer trimming with explicit mismatch/orientation
     controls.
   fastq.profile_overrepresented_sequences: Default overrepresented-sequence detector uses
     FastQC module output.
 stage_completeness_checklist:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -351,7 +351,7 @@ stage_completeness_checklist:
   - fixtures_present
   - compatible_tools_declared
 stage_default_settings:
-  fastq.prepare_reference:
+  fastq.index_reference:
     star:
       profile: adna_sane_default
       notes: high-specificity reference indexing preset
@@ -600,7 +600,7 @@ stage_default_settings:
       profile: adna_sane_default
       notes: seqkit k-mer overrepresentation heuristic preset
 stage_comparability_mapping:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - reference_index_build_metrics
   fastq.detect_adapters:
   - adapter_detection_rate
@@ -658,7 +658,7 @@ stage_comparability_mapping:
   - reads_total
   - reads_removed_contaminant_kmer
 stage_min_quality_gates:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - index_build_exit_code=0
   fastq.detect_adapters:
   - adapter_detection_rate>=0.0
@@ -700,7 +700,7 @@ stage_min_quality_gates:
   fastq.profile_overrepresented_sequences:
   - reads_total>0
 stage_failure_diagnosis_hints:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - verify reference fasta path and index write permissions
   fastq.detect_adapters:
   - check input read quality and adapter bank selection
@@ -742,7 +742,7 @@ stage_failure_diagnosis_hints:
   - inspect overrepresented table and adapter/contaminant sequence banks
 pipeline_compositions:
   pre_hpc_best:
-  - fastq.prepare_reference
+  - fastq.index_reference
   - fastq.validate_reads
   - fastq.profile_read_lengths
   - fastq.detect_adapters
@@ -757,9 +757,9 @@ pipeline_compositions:
   - fastq.profile_overrepresented_sequences
   - fastq.screen_taxonomy
 stage_ordering_constraints:
-  fastq.prepare_reference: []
+  fastq.index_reference: []
   fastq.validate_reads:
-  - fastq.prepare_reference
+  - fastq.index_reference
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
@@ -797,9 +797,9 @@ stage_ordering_constraints:
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
 stage_prerequisites:
-  fastq.prepare_reference: []
+  fastq.index_reference: []
   fastq.validate_reads:
-  - fastq.prepare_reference
+  - fastq.index_reference
   fastq.detect_adapters:
   - fastq.validate_reads
   fastq.trim_reads:
@@ -837,7 +837,7 @@ stage_prerequisites:
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
 stage_resource_hints:
-  fastq.prepare_reference:
+  fastq.index_reference:
     memory_gb: 8.0
     time_minutes: 30
     threads: 4
@@ -918,7 +918,7 @@ stage_resource_hints:
     time_minutes: 15
     threads: 2
 stage_output_size_estimates_mb:
-  fastq.prepare_reference:
+  fastq.index_reference:
     reference_index: 5000.0
   fastq.detect_adapters:
     adapter_report: 5.0
@@ -975,7 +975,7 @@ stage_output_size_estimates_mb:
     screen_report_tsv: 4.0
     report_json: 2.0
 stage_sanity_metrics:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - index_build_exit_code
   fastq.detect_adapters:
   - adapter_detection_rate
@@ -1020,7 +1020,7 @@ stage_sanity_metrics:
   fastq.profile_overrepresented_sequences:
   - reads_total
 stage_qc_thresholds:
-  fastq.prepare_reference:
+  fastq.index_reference:
     index_build_exit_code:
       warn: '!=0'
       fail: '!=0'
@@ -1101,7 +1101,7 @@ stage_qc_thresholds:
       warn: '>0.2'
       fail: '>0.5'
 stage_contamination_thresholds:
-  fastq.prepare_reference:
+  fastq.index_reference:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
@@ -1182,7 +1182,7 @@ stage_contamination_thresholds:
       warn: '>=0.05'
       fail: '>=0.2'
 stage_authenticity_thresholds:
-  fastq.prepare_reference:
+  fastq.index_reference:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1263,7 +1263,7 @@ stage_authenticity_thresholds:
       warn: <=1.0
       fail: <=0.0
 stage_duplication_thresholds:
-  fastq.prepare_reference:
+  fastq.index_reference:
     duplication_rate:
       warn: '>=0.0'
       fail: '>=1.0'
@@ -1344,7 +1344,7 @@ stage_duplication_thresholds:
       warn: '>=0.7'
       fail: '>=0.9'
 stage_coverage_sufficiency:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - not_applicable
   fastq.detect_adapters:
   - not_applicable
@@ -1385,7 +1385,7 @@ stage_coverage_sufficiency:
   fastq.profile_overrepresented_sequences:
   - not_applicable
 stage_sex_kinship_sufficiency:
-  fastq.prepare_reference:
+  fastq.index_reference:
   - not_applicable
   fastq.detect_adapters:
   - not_applicable

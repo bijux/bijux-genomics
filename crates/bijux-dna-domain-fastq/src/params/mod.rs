@@ -5,9 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
-    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION, STAGE_CORRECT_ERRORS,
+    STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS, STAGE_CORRECT_ERRORS,
     STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY,
-    STAGE_MERGE_PAIRS, STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC,
+    STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC,
     STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
@@ -119,33 +119,33 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id == &STAGE_PRIMER_NORMALIZATION {
+    if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.primer_normalization",
+            param_type_id: "fastq.normalize_primers",
             schema_version: edna::EDNA_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_CHIMERA_DETECTION {
+    if stage_id == &STAGE_REMOVE_CHIMERAS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.chimera_detection",
+            param_type_id: "fastq.remove_chimeras",
             schema_version: edna::EDNA_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_ASV_INFERENCE {
+    if stage_id == &STAGE_INFER_ASVS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.asv_inference",
+            param_type_id: "fastq.infer_asvs",
             schema_version: edna::EDNA_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_OTU_CLUSTERING {
+    if stage_id == &STAGE_CLUSTER_OTUS {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.otu_clustering",
+            param_type_id: "fastq.cluster_otus",
             schema_version: edna::EDNA_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_ABUNDANCE_NORMALIZATION {
+    if stage_id == &STAGE_NORMALIZE_ABUNDANCE {
         return Some(StageParamDescriptor {
-            param_type_id: "fastq.abundance_normalization",
+            param_type_id: "fastq.normalize_abundance",
             schema_version: edna::EDNA_SCHEMA_VERSION,
         });
     }
@@ -318,27 +318,27 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::ReportQc);
     }
-    if stage_id == &STAGE_PRIMER_NORMALIZATION {
+    if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::PrimerNormalization);
     }
-    if stage_id == &STAGE_CHIMERA_DETECTION {
+    if stage_id == &STAGE_REMOVE_CHIMERAS {
         return serde_json::from_value::<edna::ChimeraDetectionEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::ChimeraDetection);
     }
-    if stage_id == &STAGE_ASV_INFERENCE {
+    if stage_id == &STAGE_INFER_ASVS {
         return serde_json::from_value::<edna::AsvInferenceEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::AsvInference);
     }
-    if stage_id == &STAGE_OTU_CLUSTERING {
+    if stage_id == &STAGE_CLUSTER_OTUS {
         return serde_json::from_value::<edna::OtuClusteringEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::OtuClustering);
     }
-    if stage_id == &STAGE_ABUNDANCE_NORMALIZATION {
+    if stage_id == &STAGE_NORMALIZE_ABUNDANCE {
         return serde_json::from_value::<edna::AbundanceNormalizationEffectiveParams>(
             value.clone(),
         )

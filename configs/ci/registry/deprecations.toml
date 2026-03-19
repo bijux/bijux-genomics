@@ -15,7 +15,7 @@ replacement = "samtools"
 
 [[deprecations]]
 tool_id = "dada2"
-stage = "fastq.asv_inference"
+stage = "fastq.infer_asvs"
 deprecated_since = "2026-03-18"
 removal_after = "2026-09-18"
 rationale = "ASV inference remains out of scope until deterministic container and execution contracts are admitted."

@@ -8,7 +8,7 @@ install_kind: "container"
 license: "MIT"
 citation: "upstream:https://github.com/samtools/samtools"
 stage_ids:
-  - "fastq.prepare_reference"
+  - "fastq.index_reference"
   - "fastq.deplete_host"
   - "fastq.report_qc"
 status: "supported"

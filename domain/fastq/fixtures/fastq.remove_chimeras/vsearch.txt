@@ -1,6 +1,6 @@
 tool=vsearch
 tool_version=pinned
-stage=fastq.chimera_detection
+stage=fastq.remove_chimeras
 domain=fastq
 fixture_kind=truth
 command=vsearch

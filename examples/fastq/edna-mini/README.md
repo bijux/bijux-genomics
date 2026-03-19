@@ -17,10 +17,10 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_e
 
 ## Step 3 Bench
 - Execute ecology-oriented stages:
-  - `fastq.primer_normalization`
-  - `fastq.chimera_detection`
-  - `fastq.otu_clustering`
-  - `fastq.abundance_normalization`
+  - `fastq.normalize_primers`
+  - `fastq.remove_chimeras`
+  - `fastq.cluster_otus`
+  - `fastq.normalize_abundance`
 
 ## Step 4 Collect/Report
 - Collect outputs under `artifacts/examples/fastq_edna_mini/`.

@@ -4,7 +4,7 @@
 Define assumptions for primer normalization in ecology-first FASTQ workflows.
 
 ## Scope
-`fastq.primer_normalization` stage behavior and interpretation limits.
+`fastq.normalize_primers` stage behavior and interpretation limits.
 
 ## Non-goals
 - Defining primer sets for every marker gene.

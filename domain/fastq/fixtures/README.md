@@ -12,9 +12,9 @@ Each fixture file under `domain/fastq/fixtures/<stage>/*.txt` must define:
 - `expected_stdout_patterns=<token list or placeholder>`
 
 ## Fixture Directories
-- `fastq.abundance_normalization`: intent = stage-specific command contract coverage for `fastq.abundance_normalization`.
-- `fastq.asv_inference`: intent = stage-specific command contract coverage for `fastq.asv_inference`.
-- `fastq.chimera_detection`: intent = stage-specific command contract coverage for `fastq.chimera_detection`.
+- `fastq.normalize_abundance`: intent = stage-specific command contract coverage for `fastq.normalize_abundance`.
+- `fastq.infer_asvs`: intent = stage-specific command contract coverage for `fastq.infer_asvs`.
+- `fastq.remove_chimeras`: intent = stage-specific command contract coverage for `fastq.remove_chimeras`.
 - `fastq.deplete_reference_contaminants`: intent = stage-specific command contract coverage for `fastq.deplete_reference_contaminants`.
 - `fastq.correct_errors`: intent = stage-specific command contract coverage for `fastq.correct_errors`.
 - `fastq.remove_duplicates`: intent = stage-specific command contract coverage for `fastq.remove_duplicates`.
@@ -24,11 +24,11 @@ Each fixture file under `domain/fastq/fixtures/<stage>/*.txt` must define:
 - `fastq.profile_read_lengths`: intent = stage-specific command contract coverage for `fastq.profile_read_lengths`.
 - `fastq.filter_low_complexity`: intent = stage-specific command contract coverage for `fastq.filter_low_complexity`.
 - `fastq.merge_pairs`: intent = stage-specific command contract coverage for `fastq.merge_pairs`.
-- `fastq.otu_clustering`: intent = stage-specific command contract coverage for `fastq.otu_clustering`.
+- `fastq.cluster_otus`: intent = stage-specific command contract coverage for `fastq.cluster_otus`.
 - `fastq.profile_overrepresented_sequences`: intent = stage-specific command contract coverage for `fastq.profile_overrepresented_sequences`.
 - `fastq.trim_polyg_tails`: intent = stage-specific command contract coverage for `fastq.trim_polyg_tails`.
-- `fastq.prepare_reference`: intent = stage-specific command contract coverage for `fastq.prepare_reference`.
-- `fastq.primer_normalization`: intent = stage-specific command contract coverage for `fastq.primer_normalization`.
+- `fastq.index_reference`: intent = stage-specific command contract coverage for `fastq.index_reference`.
+- `fastq.normalize_primers`: intent = stage-specific command contract coverage for `fastq.normalize_primers`.
 - `fastq.report_qc`: intent = stage-specific command contract coverage for `fastq.report_qc`.
 - `fastq.deplete_rrna`: intent = stage-specific command contract coverage for `fastq.deplete_rrna`.
 - `fastq.screen_taxonomy`: intent = stage-specific command contract coverage for `fastq.screen_taxonomy`.

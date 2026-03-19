@@ -8,7 +8,7 @@ install_kind: external
 license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
-  - fastq.asv_inference
+  - fastq.infer_asvs
 status: out_of_scope
 scope: pre_hpc_pre_vcf
 expected_artifacts:

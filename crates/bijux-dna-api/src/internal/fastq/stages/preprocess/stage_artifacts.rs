@@ -41,8 +41,8 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "reference_resolution": "explicit host reference required via planned command inputs",
         })),
-        "fastq.primer_normalization" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.primer_normalization.v1",
+        "fastq.normalize_primers" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.normalize_primers.v1",
             "stage": stage_id,
             "orientation_policy": "enforced_by_tool_backend",
             "mismatch_policy": "configured_in_stage_params",
@@ -53,24 +53,24 @@ fn emit_fastq_stage_extra_artifacts(
             "policy": "mask_or_trim_terminal_bases",
             "udg_classification_source": "configured_or_inferred",
         })),
-        "fastq.chimera_detection" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.chimera_detection.v1",
+        "fastq.remove_chimeras" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.remove_chimeras.v1",
             "stage": stage_id,
             "chimera_removed": parse_first_u64_after_key(&execution.stderr, "chimera"),
         })),
-        "fastq.otu_clustering" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.otu_clustering.v1",
+        "fastq.cluster_otus" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.cluster_otus.v1",
             "stage": stage_id,
             "applicability": "edna_pollen_only",
         })),
-        "fastq.asv_inference" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.asv_inference.v1",
+        "fastq.infer_asvs" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.infer_asvs.v1",
             "stage": stage_id,
             "runtime_contract": "R_runtime_required",
             "applicability": "edna_pollen_only",
         })),
-        "fastq.abundance_normalization" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.abundance_normalization.v1",
+        "fastq.normalize_abundance" => Some(serde_json::json!({
+            "schema_version": "bijux.fastq.normalize_abundance.v1",
             "stage": stage_id,
             "normalized_table_emitted": true,
         })),
@@ -195,7 +195,7 @@ fn write_stage_standardized_metrics(
             "report_html": out_dir.join("multiqc").join("multiqc_report.html"),
             "report_data_dir": out_dir.join("multiqc").join("multiqc_data"),
         }),
-        "fastq.primer_normalization" => serde_json::json!({
+        "fastq.normalize_primers" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
@@ -211,22 +211,22 @@ fn write_stage_standardized_metrics(
                 "ct_ga_asymmetry_post"
             ],
         }),
-        "fastq.chimera_detection" => serde_json::json!({
+        "fastq.remove_chimeras" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "chimeras_removed"],
         }),
-        "fastq.asv_inference" => serde_json::json!({
+        "fastq.infer_asvs" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["asv_count", "nonchimera_reads", "sample_count"],
         }),
-        "fastq.otu_clustering" => serde_json::json!({
+        "fastq.cluster_otus" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["otu_count", "cluster_radius", "sample_count"],
         }),
-        "fastq.abundance_normalization" => serde_json::json!({
+        "fastq.normalize_abundance" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["table_rows", "sample_count", "normalization_method"],

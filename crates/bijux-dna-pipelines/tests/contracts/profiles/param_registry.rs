@@ -47,11 +47,11 @@ fn expected_registry(stage_id: &str) -> (String, String) {
         }
         if matches!(
             stage_id,
-            "fastq.abundance_normalization"
-                | "fastq.asv_inference"
-                | "fastq.chimera_detection"
-                | "fastq.otu_clustering"
-                | "fastq.primer_normalization"
+            "fastq.normalize_abundance"
+                | "fastq.infer_asvs"
+                | "fastq.remove_chimeras"
+                | "fastq.cluster_otus"
+                | "fastq.normalize_primers"
         ) {
             return (stage_id.to_string(), "bijux.fastq.params.v1".to_string());
         }

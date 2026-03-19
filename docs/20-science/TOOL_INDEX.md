@@ -59,7 +59,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `bwa` | `aligner` | `bam.align` | `bijuxdna/bwa:0.7.17` | `0.7.17` | upstream:https://github.com/lh3/bwa | `production` |
 | `centrifuge` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/centrifuge@sha256:pending` | `1.0.4` | upstream:https://github.com/DaehwanKimLab/centrifuge | `experimental` |
 | `contammix` | `transform` | `bam.contamination` | `bijuxdna/contammix:1.0.11` | `1.0.11` | upstream:https://bioconductor.org/packages/contamMix | `production` |
-| `cutadapt` | `trimmer` | `fastq.trim_reads, fastq.primer_normalization, fastq.trim_terminal_damage` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | upstream:https://github.com/cutadapt/cutadapt | `production` |
+| `cutadapt` | `trimmer` | `fastq.trim_reads, fastq.normalize_primers, fastq.trim_terminal_damage` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | upstream:https://github.com/cutadapt/cutadapt | `production` |
 | `damageprofiler` | `transform` | `bam.damage, bam.authenticity` | `bijuxdna/damageprofiler:latest-pinned` | `latest-pinned` | upstream:https://github.com/Integrative-Transcriptomics/DamageProfiler | `experimental` |
 | `eagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `eigensoft` | `population_structure` | `vcf.pca, vcf.population_structure` | `registry_lock` | `8.0.0` | planned | `experimental` |
@@ -97,9 +97,9 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `qualimap` | `qc` | `fastq.report_qc` | `bijuxdna/qualimap@sha256:pending` | `2.3` | upstream:http://qualimap.conesalab.org/ | `experimental` |
 | `rcorrector` | `corrector` | `fastq.correct_errors` | `bijuxdna/rcorrector@sha256:pending` | `1.0.7` | upstream:https://github.com/mourisl/Rcorrector | `production` |
 | `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-dna | `production` |
-| `samtools` | `aligner` | `fastq.prepare_reference, fastq.deplete_host, fastq.report_qc` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
+| `samtools` | `aligner` | `fastq.index_reference, fastq.deplete_host, fastq.report_qc` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
 | `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | upstream:https://github.com/grenaud/schmutzi | `production` |
-| `seqkit` | `trimmer` | `fastq.filter_reads, fastq.primer_normalization, fastq.trim_terminal_damage` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
+| `seqkit` | `trimmer` | `fastq.filter_reads, fastq.normalize_primers, fastq.trim_terminal_damage` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz | `production` |
 | `seqkit_stats` | `qc` | `fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | upstream:https://github.com/seqkit_stats/seqkit_stats | `production` |
 | `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:0000000000000000000000000000000000000000000000000000000000000000` | `1.5-r133` | upstream:https://github.com/lh3/seqtk.git | `experimental` |
 | `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
@@ -107,10 +107,10 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:latest-pinned` | `latest-pinned` | upstream:https://github.com/relipmoc/skewer | `experimental` |
 | `sortmerna` | `filter` | `fastq.filter_reads` | `bijuxdna/sortmerna:4.3.7` | `4.3.7` | upstream:https://github.com/biocore/sortmerna | `production` |
 | `spades` | `corrector` | `fastq.correct_errors` | `bijuxdna/spades@sha256:pending` | `latest-pinned` | upstream:https://github.com/ablab/spades | `experimental` |
-| `star` | `transform` | `fastq.prepare_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | upstream:https://github.com/alexdobin/STAR | `production` |
+| `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | upstream:https://github.com/alexdobin/STAR | `production` |
 | `trim_galore` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trim_galore@sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61` | `0.6.10` | upstream:https://github.com/FelixKrueger/TrimGalore | `experimental` |
 | `trimmomatic` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4` | `0.39` | upstream:http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip | `experimental` |
 | `umi_tools` | `transform` | `fastq.extract_umis` | `bijuxdna/umi_tools@sha256:pending` | `1.1.6` | upstream:https://github.com/umi_tools/umi_tools | `production` |
 | `verifybamid2` | `transform` | `bam.contamination` | `bijuxdna/verifybamid2:2.0.1` | `2.0.1` | upstream:https://github.com/Griffan/VerifyBamID | `production` |
-| `vsearch` | `transform` | `fastq.merge_pairs, fastq.chimera_detection, fastq.otu_clustering` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | upstream:https://github.com/vsearch/vsearch | `production` |
+| `vsearch` | `transform` | `fastq.merge_pairs, fastq.remove_chimeras, fastq.cluster_otus` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | upstream:https://github.com/vsearch/vsearch | `production` |
 | `yleaf` | `transform` | `bam.sex, bam.haplogroups` | `bijuxdna/yleaf:latest-pinned` | `latest-pinned` | upstream:https://github.com/genid/Yleaf | `experimental` |

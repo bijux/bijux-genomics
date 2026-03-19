@@ -131,10 +131,10 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
         "fastq.deplete_reference_contaminants" => &["bbduk", "bowtie2"],
         "fastq.deplete_rrna" => &["sortmerna"],
         "fastq.deplete_host" => &["bowtie2", "samtools"],
-        "fastq.primer_normalization" => &["cutadapt"],
-        "fastq.chimera_detection" | "fastq.otu_clustering" => &["vsearch"],
-        "fastq.asv_inference" => &["dada2"],
-        "fastq.abundance_normalization" => &["seqfu", "seqkit"],
+        "fastq.normalize_primers" => &["cutadapt"],
+        "fastq.remove_chimeras" | "fastq.cluster_otus" => &["vsearch"],
+        "fastq.infer_asvs" => &["dada2"],
+        "fastq.normalize_abundance" => &["seqfu", "seqkit"],
         _ => return Ok(()),
     };
     if allowed.contains(&tool_id) {

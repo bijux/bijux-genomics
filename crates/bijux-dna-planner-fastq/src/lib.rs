@@ -12,10 +12,10 @@ use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
-    FastqPipelineMode, STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
+    FastqPipelineMode, STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES, STAGE_DETECT_ADAPTERS,
-    STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_OTU_CLUSTERING, STAGE_PREFIX,
-    STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
+    STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_PREFIX,
+    STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
     STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
@@ -90,12 +90,12 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
             STAGE_VALIDATE_READS.as_str().to_string(),
             STAGE_DETECT_ADAPTERS.as_str().to_string(),
             STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string(),
-            STAGE_PRIMER_NORMALIZATION.as_str().to_string(),
+            STAGE_NORMALIZE_PRIMERS.as_str().to_string(),
             STAGE_TRIM_READS.as_str().to_string(),
             STAGE_FILTER_READS.as_str().to_string(),
-            STAGE_CHIMERA_DETECTION.as_str().to_string(),
-            STAGE_ASV_INFERENCE.as_str().to_string(),
-            STAGE_ABUNDANCE_NORMALIZATION.as_str().to_string(),
+            STAGE_REMOVE_CHIMERAS.as_str().to_string(),
+            STAGE_INFER_ASVS.as_str().to_string(),
+            STAGE_NORMALIZE_ABUNDANCE.as_str().to_string(),
             STAGE_PROFILE_READS.as_str().to_string(),
         ]
     } else {
@@ -110,9 +110,9 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     if options.mode == FastqPipelineMode::Amplicon
         && !stages
             .iter()
-            .any(|stage| stage == STAGE_ASV_INFERENCE.as_str())
+            .any(|stage| stage == STAGE_INFER_ASVS.as_str())
     {
-        stages.push(STAGE_OTU_CLUSTERING.as_str().to_string());
+        stages.push(STAGE_CLUSTER_OTUS.as_str().to_string());
     }
     if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()) {
         stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
@@ -349,11 +349,11 @@ pub fn resolve_preprocess_pipeline(
     decisions: &PreprocessDecisions,
 ) -> PipelineSpec {
     let amplicon_only = [
-        "fastq.primer_normalization",
-        "fastq.chimera_detection",
-        "fastq.asv_inference",
-        "fastq.otu_clustering",
-        "fastq.abundance_normalization",
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras",
+        "fastq.infer_asvs",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance",
     ];
     let shotgun_mode = args.mode == crate::selection::args::FastqPlannerMode::Shotgun;
     let enable_merge = decisions.enable_merge;

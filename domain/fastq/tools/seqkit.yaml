@@ -46,7 +46,7 @@ stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.profile_reads"
-  - "fastq.primer_normalization"
+  - "fastq.normalize_primers"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
 expected_artifacts: ["report_json"]

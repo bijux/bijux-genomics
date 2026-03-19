@@ -4,7 +4,7 @@
 Define chimera detection semantics for ecological FASTQ analysis.
 
 ## Scope
-`fastq.chimera_detection` in de-novo and reference-assisted modes.
+`fastq.remove_chimeras` in de-novo and reference-assisted modes.
 
 ## Non-goals
 - Claiming complete chimera removal.

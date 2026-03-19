@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.abundance_normalization"
+stage_id: "fastq.normalize_abundance"
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"

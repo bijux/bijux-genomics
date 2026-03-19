@@ -9,10 +9,10 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    STAGE_ABUNDANCE_NORMALIZATION, STAGE_ASV_INFERENCE, STAGE_CHIMERA_DETECTION,
+    STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
-    STAGE_OTU_CLUSTERING, STAGE_PRIMER_NORMALIZATION, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
+    STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
     STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 
@@ -276,11 +276,11 @@ where
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_PRIMER_NORMALIZATION.as_str() => {
+            stage if stage == STAGE_NORMALIZE_PRIMERS.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
                     return Err(anyhow!(
                         "{} requires cutadapt/seqkit; got {}",
-                        STAGE_PRIMER_NORMALIZATION.as_str(),
+                        STAGE_NORMALIZE_PRIMERS.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -302,11 +302,11 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            stage if stage == STAGE_CHIMERA_DETECTION.as_str() => {
+            stage if stage == STAGE_REMOVE_CHIMERAS.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
                     return Err(anyhow!(
                         "{} requires vsearch; got {}",
-                        STAGE_CHIMERA_DETECTION.as_str(),
+                        STAGE_REMOVE_CHIMERAS.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -324,11 +324,11 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            stage if stage == STAGE_ASV_INFERENCE.as_str() => {
+            stage if stage == STAGE_INFER_ASVS.as_str() => {
                 if tool.tool_id.as_str() != "dada2" {
                     return Err(anyhow!(
                         "{} requires dada2 tool binding; got {}",
-                        STAGE_ASV_INFERENCE.as_str(),
+                        STAGE_INFER_ASVS.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -348,11 +348,11 @@ where
                 );
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_OTU_CLUSTERING.as_str() => {
+            stage if stage == STAGE_CLUSTER_OTUS.as_str() => {
                 if tool.tool_id.as_str() != "vsearch" {
                     return Err(anyhow!(
                         "{} requires vsearch; got {}",
-                        STAGE_OTU_CLUSTERING.as_str(),
+                        STAGE_CLUSTER_OTUS.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -369,11 +369,11 @@ where
                 );
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            stage if stage == STAGE_ABUNDANCE_NORMALIZATION.as_str() => {
+            stage if stage == STAGE_NORMALIZE_ABUNDANCE.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "seqfu" | "seqkit") {
                     return Err(anyhow!(
                         "{} requires seqfu/seqkit; got {}",
-                        STAGE_ABUNDANCE_NORMALIZATION.as_str(),
+                        STAGE_NORMALIZE_ABUNDANCE.as_str(),
                         tool.tool_id
                     ));
                 }
@@ -461,7 +461,7 @@ fn plan_amplicon_stage(
     effective_params: serde_json::Value,
 ) -> StagePlanV1 {
     let outputs = match stage_id {
-        "fastq.primer_normalization" => vec![
+        "fastq.normalize_primers" => vec![
             (
                 "normalized_reads",
                 out_dir.join("primer_normalized.fastq.gz"),
@@ -473,7 +473,7 @@ fn plan_amplicon_stage(
                 bijux_dna_core::prelude::ArtifactRole::SummaryTsv,
             ),
         ],
-        "fastq.chimera_detection" => vec![
+        "fastq.remove_chimeras" => vec![
             (
                 "chimera_filtered_reads",
                 out_dir.join("chimera_filtered.fastq.gz"),
@@ -485,7 +485,7 @@ fn plan_amplicon_stage(
                 bijux_dna_core::prelude::ArtifactRole::MetricsJson,
             ),
         ],
-        "fastq.asv_inference" => vec![
+        "fastq.infer_asvs" => vec![
             (
                 "asv_table_tsv",
                 out_dir.join("asv_abundance.tsv"),
@@ -497,7 +497,7 @@ fn plan_amplicon_stage(
                 bijux_dna_core::prelude::ArtifactRole::Reads,
             ),
         ],
-        "fastq.otu_clustering" => vec![
+        "fastq.cluster_otus" => vec![
             (
                 "otu_table_tsv",
                 out_dir.join("otu_abundance.tsv"),
@@ -509,7 +509,7 @@ fn plan_amplicon_stage(
                 bijux_dna_core::prelude::ArtifactRole::Reads,
             ),
         ],
-        "fastq.abundance_normalization" => vec![(
+        "fastq.normalize_abundance" => vec![(
             "normalized_abundance_tsv",
             out_dir.join("abundance_normalized.tsv"),
             bijux_dna_core::prelude::ArtifactRole::SummaryTsv,

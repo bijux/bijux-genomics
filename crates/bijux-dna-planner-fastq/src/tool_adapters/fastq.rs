@@ -163,7 +163,7 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_PRIMER_NORMALIZATION,
+            id: fastq_ids::STAGE_NORMALIZE_PRIMERS,
             version: StageVersion(1),
             affects_read_counts: true,
         },
@@ -173,22 +173,22 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: fastq_ids::STAGE_CHIMERA_DETECTION,
+            id: fastq_ids::STAGE_REMOVE_CHIMERAS,
             version: StageVersion(1),
             affects_read_counts: true,
         },
         StageInfo {
-            id: fastq_ids::STAGE_ASV_INFERENCE,
+            id: fastq_ids::STAGE_INFER_ASVS,
             version: StageVersion(1),
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_OTU_CLUSTERING,
+            id: fastq_ids::STAGE_CLUSTER_OTUS,
             version: StageVersion(1),
             affects_read_counts: false,
         },
         StageInfo {
-            id: fastq_ids::STAGE_ABUNDANCE_NORMALIZATION,
+            id: fastq_ids::STAGE_NORMALIZE_ABUNDANCE,
             version: StageVersion(1),
             affects_read_counts: false,
         },

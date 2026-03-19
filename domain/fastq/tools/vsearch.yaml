@@ -57,8 +57,8 @@ license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
   - "fastq.merge_pairs"
-  - "fastq.chimera_detection"
-  - "fastq.otu_clustering"
+  - "fastq.remove_chimeras"
+  - "fastq.cluster_otus"
 expected_artifacts: ["report_json", "metrics.json", "otu_table", "otu_representatives"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"

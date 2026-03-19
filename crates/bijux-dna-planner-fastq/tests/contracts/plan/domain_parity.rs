@@ -60,11 +60,11 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
     );
     for required in [
         "fastq.trim_terminal_damage",
-        "fastq.primer_normalization",
-        "fastq.chimera_detection",
-        "fastq.asv_inference",
-        "fastq.otu_clustering",
-        "fastq.abundance_normalization",
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras",
+        "fastq.infer_asvs",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance",
     ] {
         assert!(
             stages.contains(required),
@@ -85,9 +85,9 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
     });
     for required in [
         "fastq.trim_terminal_damage",
-        "fastq.primer_normalization",
-        "fastq.chimera_detection",
-        "fastq.abundance_normalization",
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras",
+        "fastq.normalize_abundance",
     ] {
         assert!(
             spec.stages.iter().any(|stage| stage == required),

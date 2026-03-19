@@ -4,7 +4,7 @@
 Define abundance normalization semantics for eDNA and pollen FASTQ analyses.
 
 ## Scope
-`fastq.abundance_normalization` outputs and interpretation boundaries.
+`fastq.normalize_abundance` outputs and interpretation boundaries.
 
 ## Non-goals
 - Claiming absolute abundance from compositional data.
