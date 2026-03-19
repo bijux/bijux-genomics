@@ -106,6 +106,14 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.deplete_rrna", &plan)?;
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_host::plan_host_depletion(
+        &dummy_tool("bowtie2"),
+        r1,
+        Some(r2),
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.deplete_host", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
         &dummy_tool("umi_tools"),
         r1,

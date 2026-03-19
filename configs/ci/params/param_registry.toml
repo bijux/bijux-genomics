@@ -105,8 +105,8 @@ schema_version = "legacy.unversioned"
 
 [[entries]]
 stage_id = "fastq.deplete_host"
-param_type_id = "paramless"
-schema_version = "none"
+param_type_id = "fastq.deplete_host"
+schema_version = "bijux.fastq.params.deplete_host.v1"
 
 [[entries]]
 stage_id = "fastq.profile_read_lengths"
