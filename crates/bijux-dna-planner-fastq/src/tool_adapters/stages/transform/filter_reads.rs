@@ -35,18 +35,28 @@ pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
 pub fn plan_filter(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
+    r2: Option<&Path>,
     out_dir: &Path,
     options: &FilterPlanOptions,
 ) -> Result<StagePlanV1> {
     let output_name =
         filter_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported filter tool"))?;
-    let output = out_dir.join(output_name);
+    let output_r1 = if r2.is_some() {
+        out_dir.join(format!("R1.{output_name}"))
+    } else {
+        out_dir.join(output_name)
+    };
+    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
     let kmer_ref = options
         .kmer_ref
         .clone()
         .map(|path| path.display().to_string());
     let effective_params = FilterEffectiveParams {
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
         threads: tool.resources.threads,
         max_n: options.max_n,
         max_n_fraction: options.max_n_fraction,
@@ -58,6 +68,34 @@ pub fn plan_filter(
         polyx_policy: options.polyx_policy.clone(),
         damage_mode: None,
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    let mut outputs = vec![ArtifactRef::required(
+        if output_r2.is_some() {
+            ArtifactId::from_static("filtered_reads_r1")
+        } else {
+            ArtifactId::from_static("filtered_reads")
+        },
+        output_r1.clone(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(output_r2) = &output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("filtered_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -68,23 +106,14 @@ pub fn plan_filter(
             template: tool.command.template.to_vec(),
         },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads_r1"),
-                r1.to_path_buf(),
-                ArtifactRole::Reads,
-            )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("filtered_reads"),
-                output.clone(),
-                ArtifactRole::Reads,
-            )],
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
-            "input": r1,
-            "output": output,
+            "input_r1": r1,
+            "input_r2": r2,
+            "output_r1": output_r1,
+            "output_r2": output_r2,
             "max_n": options.max_n,
             "max_n_fraction": options.max_n_fraction,
             "max_n_count": options.max_n_count,

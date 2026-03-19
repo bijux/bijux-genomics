@@ -118,11 +118,17 @@ where
                 let plan = crate::tool_adapters::fastq::filter_reads::plan_filter(
                     tool,
                     &current_r1,
+                    current_r2.as_deref(),
                     &out_dir,
                     &filter_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                (plan, next_r1, None, current_feature_table.clone())
+                let next_r2 = if current_r2.is_some() {
+                    Some(plan.io.outputs[1].path.clone())
+                } else {
+                    None
+                };
+                (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => {
                 let plan = crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
