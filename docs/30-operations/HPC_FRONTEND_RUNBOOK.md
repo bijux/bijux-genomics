@@ -33,7 +33,7 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 
 ## Validation Commands
 1. `./scripts/run.sh hpc validate-frontend-constraints --confirm`
-2. `./bijux-dev-dna/containers/apptainer-build-all.sh`
+2. `cargo run -p bijux-dev-dna -- containers run apptainer-build-all`
 3. `./scripts/run.sh hpc run-frontend-mini-e2e --confirm`
 4. `./scripts/run.sh checks check-frontend-mini-artifacts`
 5. `./scripts/run.sh checks check-frontend-observability-proof`

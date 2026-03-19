@@ -25,78 +25,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "build_apptainer_all"
-path = "bijux-dev-dna/containers/build-apptainer-all.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "ensure_images"
-path = "bijux-dev-dna/containers/ensure-images.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "lint"
-path = "bijux-dev-dna/containers/lint.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "make"
-path = "bijux-dev-dna/containers/make.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "registry_tools"
-path = "bijux-dev-dna/containers/registry-tools.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_apptainer"
-path = "bijux-dev-dna/containers/smoke-apptainer.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_docker_amd64"
-path = "bijux-dev-dna/containers/smoke-docker-amd64.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "run_apptainer_frontend_smoke"
-path = "bijux-dev-dna/containers/run-apptainer-frontend-smoke.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "smoke_docker_arm64"
-path = "bijux-dev-dna/containers/smoke-docker-arm64.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "run"
 path = "scripts/run.sh"
 purpose = "run.sh script"
@@ -289,14 +217,6 @@ outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
 
 [[script]]
-id = "build_apptainer_hpc_frontend"
-path = "bijux-dev-dna/containers/build-apptainer-hpc-frontend.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
 id = "inventory"
 path = "scripts/tooling/inventory.sh"
 purpose = "tooling script"
@@ -372,30 +292,6 @@ ci_allowed = true
 id = "tooling_image_qa"
 path = "scripts/tooling/image-qa.sh"
 purpose = "tooling script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_vuln_scan_hook"
-path = "bijux-dev-dna/containers/vuln-scan-hook.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_container_doctor"
-path = "bijux-dev-dna/containers/container-doctor.sh"
-purpose = "containers script"
-inputs = []
-outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "containers_release_gate"
-path = "bijux-dev-dna/containers/release-gate.sh"
-purpose = "containers script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
 ci_allowed = true
@@ -479,38 +375,6 @@ path = "scripts/tooling/validate-frontend-mini-domain-stacks.sh"
 purpose = "tooling script"
 inputs = []
 outputs = ["artifacts/", "$ISO_ROOT/"]
-ci_allowed = true
-
-[[script]]
-id = "run_apptainer_frontend_reproducibility"
-path = "bijux-dev-dna/containers/run-apptainer-frontend-reproducibility.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/apptainer_reproducibility_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/apptainer_cache_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
-ci_allowed = true
-
-[[script]]
-id = "run_apptainer_frontend_security"
-path = "bijux-dev-dna/containers/run-apptainer-frontend-security.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/apptainer_security_policy.toml", "configs/ci/tools/hpc_frontend_build_policy.toml", "configs/ci/tools/vuln_allowlist.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/docs/"]
-ci_allowed = true
-
-[[script]]
-id = "apptainer_build_all"
-path = "bijux-dev-dna/containers/apptainer-build-all.sh"
-purpose = "containers script"
-inputs = ["configs/ci/tools/hpc_frontend_build_policy.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
-ci_allowed = true
-
-[[script]]
-id = "docker_build_all"
-path = "bijux-dev-dna/containers/docker-build-all.sh"
-purpose = "containers script"
-inputs = ["configs/ci/registry/tool_registry.toml"]
-outputs = ["artifacts/", "$ISO_ROOT/", "containers/versions/"]
 ci_allowed = true
 
 [[script]]

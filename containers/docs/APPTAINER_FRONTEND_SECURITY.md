@@ -4,7 +4,7 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 
 ## Workflow
 - Run:
-  - `./bijux-dev-dna/containers/run-apptainer-frontend-security.sh`
+  - `cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-security`
 - Validate gate:
   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-security`
 

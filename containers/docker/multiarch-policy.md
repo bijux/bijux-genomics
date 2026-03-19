@@ -9,7 +9,7 @@ Contracts:
 - `containers/docker/amd64/` may exist only as an empty placeholder unless policy is changed.
 - Any multiarch expansion requires:
   - updates to this policy,
-  - updates to `bijux-dev-dna/containers/check-docker-arch-policy.sh`,
+  - updates to `cargo run -p bijux-dev-dna -- containers run check-docker-arch-policy`,
   - corresponding CI smoke coverage additions.
 
 Cross-build story (amd64 plan while arm64-only):
