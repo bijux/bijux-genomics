@@ -51,9 +51,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "kraken2",
             "krakenuniq",
             "centrifuge",
-            "metaphlan",
             "kaiju",
-            "fastq_screen",
         ],
         "fastq.index_reference" => vec![
             "bowtie2_build",

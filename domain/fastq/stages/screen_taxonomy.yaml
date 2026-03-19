@@ -38,7 +38,7 @@ metrics:
     meaning: "Fraction of reads classified as contaminants"
   - name: "contamination_summary"
     meaning: "Structured contamination summary from screen reports"
-description: "FASTQ stage for taxonomic screening/contamination assessment."
+description: "FASTQ stage for read-level taxonomic screening and contamination classification."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
@@ -62,12 +62,10 @@ compatible_tools:
   - kraken2
   - krakenuniq
   - centrifuge
-  - metaphlan
   - kaiju
-  - fastq_screen
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "supported tools must emit read-level taxonomic classifications from the screened FASTQ input."
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"

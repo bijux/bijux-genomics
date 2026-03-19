@@ -46,7 +46,6 @@ tool_ids:
   - dustmasker
   - fastp
   - fastq_scan
-  - fastq_screen
   - fastqc
   - fastqvalidator
   - fastuniq
@@ -58,7 +57,6 @@ tool_ids:
   - krakenuniq
   - leehom
   - lighter
-  - metaphlan
   - multiqc
   - musket
   - pear
@@ -139,9 +137,7 @@ stage_tool_compatibility:
   - kraken2
   - krakenuniq
   - centrifuge
-  - metaphlan
   - kaiju
-  - fastq_screen
   fastq.trim_polyg_tails:
   - fastp
   - bbduk
