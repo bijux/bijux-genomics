@@ -226,7 +226,7 @@
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_validate(args)?;
                         let outcome =
-                            bench_fastq_validate_pre(&catalog, &platform, None, &bench_args)?;
+                            bench_fastq_validate_reads(&catalog, &platform, None, &bench_args)?;
                         let qc_class = qc_class_label("fastq.validate_reads");
                         write_validate_report(
                             &outcome.bench_dir,

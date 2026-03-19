@@ -1,6 +1,6 @@
 use crate::commands::command_prelude::{
     anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
-    bench_fastq_trim, bench_fastq_validate_pre, cli, compare_runs, compare_runs_with_baseline,
+    bench_fastq_trim, bench_fastq_validate_reads, cli, compare_runs, compare_runs_with_baseline,
     env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
     load_image_catalog, load_platform, normalize_fastq_stage_id, objective_spec,
     preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
@@ -61,7 +61,7 @@ pub(crate) fn handle_fastq_bench(
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             let runner = None;
             let bench_args = bench_args_from_validate(args)?;
-            let outcome = bench_fastq_validate_pre(&catalog, &platform, runner, &bench_args)?;
+            let outcome = bench_fastq_validate_reads(&catalog, &platform, runner, &bench_args)?;
             let qc_class = qc_class_label("fastq.validate_reads");
             write_validate_report(
                 &outcome.bench_dir,

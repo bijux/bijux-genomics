@@ -1,0 +1,5 @@
+{
+  "example_id": "fastq_validate_reads_bench",
+  "domain": "fastq",
+  "stages": ["fastq.validate_reads"]
+}

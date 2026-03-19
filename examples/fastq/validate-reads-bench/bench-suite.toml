@@ -1,0 +1,3 @@
+suite_id = "bench-fastq-validate-reads-01"
+domain = "fastq"
+stages = ["fastq.validate_reads"]

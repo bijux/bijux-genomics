@@ -8,7 +8,7 @@ use crate::commands::command_prelude::{
     bench_args_preprocess, bench_args_qc_post, bench_args_screen, bench_args_stats,
     bench_args_trim, bench_args_umi, bench_args_validate, bench_fastq_correct, bench_fastq_filter,
     bench_fastq_merge, bench_fastq_preprocess, bench_fastq_qc_post, bench_fastq_screen,
-    bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_umi, bench_fastq_validate_pre, cli,
+    bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_umi, bench_fastq_validate_reads, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
     load_manifests, load_platform, load_run_summary, objective_spec, print_bench_schema,
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
@@ -716,7 +716,7 @@ pub(crate) fn handle_meta_commands(
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_validate(args)?;
                         let outcome =
-                            bench_fastq_validate_pre(&catalog, &platform, None, &bench_args)?;
+                            bench_fastq_validate_reads(&catalog, &platform, None, &bench_args)?;
                         let qc_class = qc_class_label("fastq.validate_reads");
                         write_validate_report(
                             &outcome.bench_dir,
