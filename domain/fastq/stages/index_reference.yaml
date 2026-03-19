@@ -11,10 +11,17 @@ outputs:
   - name: "reference_index"
     data_type: "directory"
     cardinality: "One"
-parameters: []
+parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "2"
 metrics:
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
+  - name: "index_file_count"
+    meaning: "Number of emitted reference index files"
+  - name: "index_bytes"
+    meaning: "Total bytes written for the reference index"
 description: "Prepare FASTQ-stage shared reference assets."
 required_inputs:
   - reference_fasta
@@ -30,6 +37,10 @@ allowed_missingness:
 compatible_tools:
   - star
   - samtools
+  - bwa-mem2
+  - bowtie2-build
+  - minimap2
+  - hisat2-build
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
