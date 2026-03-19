@@ -283,6 +283,18 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
 }
 
 #[derive(Debug, Clone)]
+pub struct BenchFastqDepleteRrnaArgs {
+    pub sample_id: String,
+    pub r1: PathBuf,
+    pub out: PathBuf,
+    pub tools: Vec<String>,
+    pub explain: bool,
+    pub replicates: u32,
+    pub jobs: u32,
+    pub ci_bootstrap: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
 pub struct BenchFastqStatsArgs {
     pub sample_id: String,
     pub r1: PathBuf,

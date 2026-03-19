@@ -129,6 +129,12 @@ pub fn select_deplete_reference_contaminants_tools(tools: &[String]) -> Result<V
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+pub fn select_deplete_rrna_tools(tools: &[String]) -> Result<Vec<String>> {
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA);
+    select_tools_with_allowlist(tools, &allowlist)
+}
+
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_PROFILE_READS);

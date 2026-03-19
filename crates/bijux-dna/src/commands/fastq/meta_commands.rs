@@ -5,7 +5,8 @@ use super::debug_commands::handle_debug_command;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
     anyhow, atomic_write_bytes, bench_args_correct, bench_args_deplete_host,
-    bench_args_deplete_reference_contaminants, bench_args_detect_adapters,
+    bench_args_deplete_reference_contaminants, bench_args_deplete_rrna,
+    bench_args_detect_adapters,
     bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
     bench_args_infer_asvs, bench_args_merge, bench_args_normalize_abundance,
     bench_args_normalize_primers, bench_args_preprocess, bench_args_profile_overrepresented,
@@ -13,7 +14,8 @@ use crate::commands::command_prelude::{
     bench_args_remove_duplicates, bench_args_screen, bench_args_stats, bench_args_trim,
     bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
     bench_args_validate, bench_fastq_correct, bench_fastq_deplete_host,
-    bench_fastq_deplete_reference_contaminants, bench_fastq_detect_adapters, bench_fastq_filter,
+    bench_fastq_deplete_reference_contaminants, bench_fastq_deplete_rrna,
+    bench_fastq_detect_adapters, bench_fastq_filter,
     bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
     bench_fastq_merge, bench_fastq_normalize_abundance, bench_fastq_normalize_primers,
     bench_fastq_preprocess, bench_fastq_profile_overrepresented,
@@ -28,7 +30,8 @@ use crate::commands::command_prelude::{
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
     write_chimeras_report, write_correct_report, write_deplete_host_report,
-    write_deplete_reference_contaminants_report, write_detect_adapters_report,
+    write_deplete_reference_contaminants_report, write_deplete_rrna_report,
+    write_detect_adapters_report,
     write_duplicates_report, write_filter_low_complexity_report, write_filter_report,
     write_index_reference_report, write_infer_asvs_report, write_merge_report,
     write_normalize_abundance_report, write_normalize_primers_report,
@@ -1081,6 +1084,21 @@ pub(crate) fn handle_meta_commands(
                             &bench_args,
                         )?;
                         write_deplete_reference_contaminants_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
+                    }
+                    BenchFastqCommand::DepleteRrna(args) => {
+                        set_tool_tier_policy(false, args.allow_experimental);
+                        let bench_args = bench_args_deplete_rrna(args)?;
+                        let outcome =
+                            bench_fastq_deplete_rrna(&catalog, &platform, None, &bench_args)?;
+                        write_deplete_rrna_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,

@@ -5,7 +5,7 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
-    BenchFastqDepleteHostArgs, BenchFastqDepleteReferenceContaminantsArgs,
+    BenchFastqDepleteHostArgs, BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
     BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs,
     BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs,
     BenchFastqPreprocessArgs, BenchFastqProfileOverrepresentedArgs,
@@ -486,6 +486,23 @@ pub fn bench_args_deplete_reference_contaminants(
             ci_bootstrap: args.ci_bootstrap,
         },
     )
+}
+
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_deplete_rrna(
+    args: &BenchFastqDepleteRrnaArgs,
+) -> Result<engine_args::BenchFastqDepleteRrnaArgs> {
+    Ok(engine_args::BenchFastqDepleteRrnaArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.deplete_rrna", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
 }
 
 /// # Errors
