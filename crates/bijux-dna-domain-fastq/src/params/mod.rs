@@ -119,12 +119,6 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: "legacy.unversioned",
         });
     }
-    if stage_id.as_str() == "fastq.preprocess" {
-        return Some(StageParamDescriptor {
-            param_type_id: "fastq.preprocess",
-            schema_version: "legacy.unversioned",
-        });
-    }
     if stage_id == &STAGE_PRIMER_NORMALIZATION {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.primer_normalization",
@@ -197,7 +191,6 @@ pub enum EffectiveParams {
     Rrna(screen::RrnaEffectiveParams),
     Screen(screen::ScreenEffectiveParams),
     QcPost(qc_post::QcPostEffectiveParams),
-    Preprocess(preprocess::PreprocessEffectiveParams),
     PrimerNormalization(edna::PrimerNormalizationEffectiveParams),
     ChimeraDetection(edna::ChimeraDetectionEffectiveParams),
     AsvInference(edna::AsvInferenceEffectiveParams),
@@ -220,7 +213,6 @@ impl EffectiveParams {
             Self::Rrna(params) => params.missing_required_fields(),
             Self::Screen(params) => params.missing_required_fields(),
             Self::QcPost(params) => params.missing_required_fields(),
-            Self::Preprocess(params) => params.missing_required_fields(),
             Self::PrimerNormalization(_)
             | Self::ChimeraDetection(_)
             | Self::AsvInference(_)
@@ -243,7 +235,6 @@ impl EffectiveParams {
             Self::Rrna(params) => params.retention_conditions(),
             Self::Screen(params) => params.retention_conditions(),
             Self::QcPost(params) => params.retention_conditions(),
-            Self::Preprocess(params) => params.retention_conditions(),
             Self::PrimerNormalization(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::ChimeraDetection(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::AsvInference(params) => serde_json::to_value(params).unwrap_or_default(),
@@ -326,11 +317,6 @@ pub fn parse_effective_params(
         return serde_json::from_value::<qc_post::QcPostEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::QcPost);
-    }
-    if stage_id.as_str() == "fastq.preprocess" {
-        return serde_json::from_value::<preprocess::PreprocessEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Preprocess);
     }
     if stage_id == &STAGE_PRIMER_NORMALIZATION {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())
