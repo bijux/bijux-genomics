@@ -108,10 +108,6 @@ stage_tool_compatibility:
   fastq.index_reference:
   - star
   - samtools
-  - bwa-mem2
-  - bowtie2-build
-  - minimap2
-  - hisat2-build
   fastq.infer_asvs:
   - dada2
   fastq.merge_pairs:
