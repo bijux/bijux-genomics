@@ -87,6 +87,12 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingCertifyFastq => tooling_certify_fastq(workspace, args),
         NativeOpsCommandKey::ToolingCertifyVcf => tooling_certify_vcf(workspace, args),
         NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
+        NativeOpsCommandKey::ToolingCoverageSummary => tooling_coverage_summary(workspace, args),
+        NativeOpsCommandKey::ToolingCrashTriage => tooling_crash_triage(workspace, args),
+        NativeOpsCommandKey::ToolingDeprecateVcfKnob => tooling_deprecate_vcf_knob(workspace, args),
+        NativeOpsCommandKey::ToolingDeprecateVcfPanel => {
+            tooling_deprecate_vcf_panel(workspace, args)
+        }
         NativeOpsCommandKey::ToolingDocsBuild => tooling_docs_build(workspace, args),
         NativeOpsCommandKey::ToolingFlakeHunt => tooling_flake_hunt(workspace, args),
         NativeOpsCommandKey::ToolingGenerateConfigs => tooling_generate_configs(workspace, args),
@@ -1817,6 +1823,489 @@ fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<Op
         out_txt.display(),
         out_md.display()
     ))
+}
+
+fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    #[derive(Default, Clone)]
+    struct CoverageEntry {
+        lines_hit: u64,
+        lines_total: u64,
+        funcs_hit: u64,
+        funcs_total: u64,
+        regions_hit: u64,
+        regions_total: u64,
+        files: Vec<(String, u64)>,
+    }
+
+    let mut report = None;
+    let mut baseline = None;
+    let mut thresholds = None;
+    let mut show_uncovered = false;
+    let mut show_worst = false;
+    let mut worst_count = 20usize;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run coverage-summary -- <report> [--baseline <path>] [--check-thresholds <path>] [--show-uncovered|--verbose] [--show-worst] [--worst-count N]",
+                )
+            }
+            "--baseline" => {
+                baseline = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --baseline")?,
+                );
+                index += 2;
+            }
+            "--check-thresholds" => {
+                thresholds = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --check-thresholds")?,
+                );
+                index += 2;
+            }
+            "--show-uncovered" | "--verbose" => {
+                show_uncovered = true;
+                index += 1;
+            }
+            "--show-worst" => {
+                show_worst = true;
+                index += 1;
+            }
+            "--worst-count" => {
+                worst_count = args
+                    .get(index + 1)
+                    .context("missing value for --worst-count")?
+                    .parse::<usize>()
+                    .context("parse --worst-count")?;
+                index += 2;
+            }
+            value if report.is_none() => {
+                report = Some(value.to_string());
+                index += 1;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+    let report = report.context("coverage-summary requires <report>")?;
+    let show_uncovered = show_uncovered
+        || std::env::var("COVERAGE_SHOW_UNCOVERED").ok().as_deref() == Some("1");
+    let show_worst =
+        show_worst || std::env::var("COVERAGE_SHOW_WORST").ok().as_deref() == Some("1");
+
+    fn percent(hit: u64, total: u64) -> f64 {
+        if total == 0 {
+            100.0
+        } else {
+            100.0 * hit as f64 / total as f64
+        }
+    }
+
+    fn crate_name_for(filename: &str) -> String {
+        let path = Path::new(filename);
+        let parts = path
+            .components()
+            .map(|component| component.as_os_str().to_string_lossy().to_string())
+            .collect::<Vec<_>>();
+        let Some(index) = parts.iter().position(|part| part == "crates") else {
+            return "workspace".to_string();
+        };
+        let Some(crate_dir) = parts.get(index + 1) else {
+            return "workspace".to_string();
+        };
+        let manifest = Path::new("crates").join(crate_dir).join("Cargo.toml");
+        if let Ok(raw) = read_utf8(&manifest) {
+            for line in raw.lines() {
+                let trimmed = line.trim();
+                if let Some(value) = trimmed.strip_prefix("name =") {
+                    return trim_quoted(value);
+                }
+            }
+        }
+        crate_dir.to_string()
+    }
+
+    fn load_coverage_report(path: &Path) -> Result<BTreeMap<String, CoverageEntry>> {
+        let payload = read_json_value(path)?;
+        let files = payload["data"]
+            .as_array()
+            .and_then(|items| items.first())
+            .and_then(|root| root.get("files"))
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let mut crates = BTreeMap::<String, CoverageEntry>::new();
+        for file in files {
+            let filename = value_string(file.get("filename"));
+            let crate_name = crate_name_for(&filename);
+            let lines = file.get("summary").and_then(|v| v.get("lines"));
+            let funcs = file.get("summary").and_then(|v| v.get("functions"));
+            let regions = file.get("summary").and_then(|v| v.get("regions"));
+            let lines_total = json_u64(lines.and_then(|v| v.get("count")));
+            let lines_hit = json_u64(lines.and_then(|v| v.get("covered")));
+            let lines_miss_raw = json_u64(lines.and_then(|v| v.get("notcovered")));
+            let lines_miss = if lines_total > 0 && lines_hit == 0 && lines_miss_raw == 0 {
+                lines_total.saturating_sub(lines_hit)
+            } else {
+                lines_miss_raw
+            };
+            let funcs_total = json_u64(funcs.and_then(|v| v.get("count")));
+            let mut funcs_hit = json_u64(funcs.and_then(|v| v.get("covered")));
+            let funcs_miss_raw = json_u64(funcs.and_then(|v| v.get("notcovered")));
+            if funcs_total > 0 && funcs_hit == 0 && funcs_miss_raw == 0 {
+                funcs_hit = funcs_total;
+            }
+            let regions_total = json_u64(regions.and_then(|v| v.get("count")));
+            let mut regions_hit = json_u64(regions.and_then(|v| v.get("covered")));
+            let regions_miss_raw = json_u64(regions.and_then(|v| v.get("notcovered")));
+            if regions_total > 0 && regions_hit == 0 && regions_miss_raw == 0 {
+                regions_hit = regions_total;
+            }
+
+            let entry = crates.entry(crate_name).or_default();
+            entry.lines_hit += lines_hit;
+            entry.lines_total += lines_total;
+            entry.funcs_hit += funcs_hit;
+            entry.funcs_total += funcs_total;
+            entry.regions_hit += regions_hit;
+            entry.regions_total += regions_total;
+            entry.files.push((filename, lines_miss));
+        }
+        Ok(crates)
+    }
+
+    let data = load_coverage_report(&PathBuf::from(&report))?;
+    let baseline_data = match baseline {
+        Some(path) => Some(load_coverage_report(&PathBuf::from(path))?),
+        None => None,
+    };
+
+    let mut stdout = String::new();
+    let header = if baseline_data.is_some() {
+        "crate | lines | covered | lines % | funcs % | regions % | lines Δ | uncovered top files"
+    } else {
+        "crate | lines | covered | lines % | funcs % | regions % | uncovered top files"
+    };
+    stdout.push_str(header);
+    stdout.push('\n');
+    stdout.push_str(if baseline_data.is_some() {
+        "----- | ----- | ------- | ------- | ------- | --------- | ------- | -------------------"
+    } else {
+        "----- | ----- | ------- | ------- | ------- | --------- | -------------------"
+    });
+    stdout.push('\n');
+
+    let mut rows = Vec::new();
+    for (crate_name, entry) in &data {
+        let lines_pct = percent(entry.lines_hit, entry.lines_total);
+        let funcs_pct = percent(entry.funcs_hit, entry.funcs_total);
+        let regions_pct = percent(entry.regions_hit, entry.regions_total);
+        let mut top_files = entry.files.clone();
+        top_files.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+        let top = top_files
+            .iter()
+            .filter(|(_, misses)| *misses > 0)
+            .take(5)
+            .map(|(path, misses)| {
+                format!(
+                    "{}({misses})",
+                    Path::new(path)
+                        .file_name()
+                        .and_then(|value| value.to_str())
+                        .unwrap_or(path)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let delta = baseline_data
+            .as_ref()
+            .and_then(|baseline| baseline.get(crate_name))
+            .map(|baseline| percent(entry.lines_hit, entry.lines_total) - percent(baseline.lines_hit, baseline.lines_total));
+        rows.push((crate_name.clone(), lines_pct, funcs_pct, regions_pct, delta, top, entry.clone()));
+    }
+
+    for (crate_name, lines_pct, funcs_pct, regions_pct, delta, top, entry) in &rows {
+        if let Some(delta) = delta {
+            stdout.push_str(&format!(
+                "{crate_name} | {:>5} | {:>7} | {:>6.2}% | {:>6.2}% | {:>7.2}% | {delta:+7.2}% | {top}\n",
+                entry.lines_total, entry.lines_hit, lines_pct, funcs_pct, regions_pct
+            ));
+        } else {
+            stdout.push_str(&format!(
+                "{crate_name} | {:>5} | {:>7} | {:>6.2}% | {:>6.2}% | {:>7.2}% | {top}\n",
+                entry.lines_total, entry.lines_hit, lines_pct, funcs_pct, regions_pct
+            ));
+        }
+        if show_uncovered {
+            let mut files = entry.files.clone();
+            files.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+            for (path, misses) in files {
+                if misses > 0 {
+                    stdout.push_str(&format!("  - {path} ({misses} lines)\n"));
+                }
+            }
+        }
+    }
+
+    if show_worst {
+        let mut worst = rows.clone();
+        worst.sort_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
+        stdout.push_str("\nworst coverage (lines %):\n");
+        for (crate_name, lines_pct, ..) in worst.into_iter().take(worst_count) {
+            stdout.push_str(&format!("{crate_name}: {lines_pct:6.2}%\n"));
+        }
+    }
+
+    if let Some(path) = thresholds {
+        let thresholds_path = PathBuf::from(path);
+        let raw = read_utf8(&thresholds_path)?;
+        let value = if thresholds_path.extension().and_then(|ext| ext.to_str()) == Some("toml") {
+            toml_to_json_value(toml::from_str::<TomlValue>(&raw)?)
+        } else {
+            serde_json::from_str::<Value>(&raw)?
+        };
+        let default_threshold = value["default"].as_f64().unwrap_or(0.0);
+        let class_thresholds = value["classes"].as_object().cloned().unwrap_or_default();
+        let class_map = value["crate_class"].as_object().cloned().unwrap_or_default();
+        let overrides = value["overrides"].as_object().cloned().unwrap_or_default();
+        let mut failures = Vec::new();
+        for (crate_name, entry) in &data {
+            let lines_pct = percent(entry.lines_hit, entry.lines_total);
+            let minimum = if let Some(value) = overrides.get(crate_name).and_then(Value::as_f64) {
+                value
+            } else if let Some(class_name) = class_map.get(crate_name).and_then(Value::as_str) {
+                class_thresholds
+                    .get(class_name)
+                    .and_then(Value::as_f64)
+                    .unwrap_or(default_threshold)
+            } else {
+                default_threshold
+            };
+            if lines_pct < minimum {
+                failures.push((crate_name.clone(), lines_pct, minimum));
+            }
+        }
+        if !failures.is_empty() {
+            stdout.push_str("\ncoverage thresholds failed:\n");
+            for (crate_name, actual, minimum) in failures {
+                stdout.push_str(&format!("{crate_name}: {actual:.2}% < {minimum:.2}%\n"));
+            }
+            return Ok(OpsCommandOutcome {
+                exit_code: 1,
+                stdout,
+                stderr: String::new(),
+            });
+        }
+    }
+
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if matches!(args, [single] if single == "--help" || single == "-h") || args.is_empty() {
+        return success_line(
+            "Usage: cargo run -p bijux-dev-dna -- tooling run crash-triage -- <crash_provenance.json>",
+        );
+    }
+    let path = PathBuf::from(&args[0]);
+    if !path.is_file() {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "crash-triage: missing file {}\n",
+            path.display()
+        )));
+    }
+    let payload = read_json_value(&path)?;
+    let stderr = payload["stderr_last_lines"]
+        .as_array()
+        .map(|items| {
+            items.iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join("\n")
+                .to_lowercase()
+        })
+        .unwrap_or_default();
+    let command = value_string(payload.get("command")).to_lowercase();
+    let exit_code = payload.get("exit_code").and_then(Value::as_i64);
+    let mut causes = Vec::<(i32, &str, &str)>::new();
+    if stderr.contains("no such file") || stderr.contains("cannot open") {
+        causes.push((100, "input_missing", "Input file missing/unreadable."));
+    }
+    if stderr.contains("index") && (stderr.contains("missing") || stderr.contains("failed")) {
+        causes.push((95, "index_missing", "Index missing or invalid."));
+    }
+    if stderr.contains("out of memory")
+        || stderr.contains("cannot allocate memory")
+        || stderr.contains("killed")
+    {
+        causes.push((90, "resource_exhausted", "Process likely hit memory limit."));
+    }
+    if stderr.contains("header") || stderr.contains("contig") || stderr.contains("chromosome") {
+        causes.push((85, "reference_mismatch", "Header/contig/reference mismatch."));
+    }
+    if stderr.contains("not compressed")
+        && (command.contains("tabix") || command.contains("bgzip"))
+    {
+        causes.push((
+            80,
+            "compression_contract",
+            "Expected bgzip-compressed input for indexing.",
+        ));
+    }
+    if matches!(exit_code, Some(126 | 127)) {
+        causes.push((
+            75,
+            "runner_contract",
+            "Command/image contract issue (missing binary or exec failure).",
+        ));
+    }
+    if causes.is_empty() {
+        causes.push((10, "unknown", "No high-confidence pattern found; inspect full logs."));
+    }
+    causes.sort_by(|left, right| right.0.cmp(&left.0));
+    let mut stdout = String::from("crash-triage: top causes\n");
+    for (_, code, message) in causes.into_iter().take(5) {
+        stdout.push_str(&format!("- {code}: {message}\n"));
+    }
+    Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- tooling run deprecate-vcf-knob -- --stage <stage_id> --knob <name> --phase <warn|fail|remove> --replacement <name> --rationale <text>";
+    let mut stage = None;
+    let mut knob = None;
+    let mut phase = None;
+    let mut replacement = None;
+    let mut rationale = None;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => return success_line(usage),
+            "--stage" => {
+                stage = Some(args.get(index + 1).cloned().context("missing value for --stage")?);
+                index += 2;
+            }
+            "--knob" => {
+                knob = Some(args.get(index + 1).cloned().context("missing value for --knob")?);
+                index += 2;
+            }
+            "--phase" => {
+                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
+                index += 2;
+            }
+            "--replacement" => {
+                replacement = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --replacement")?,
+                );
+                index += 2;
+            }
+            "--rationale" => {
+                rationale = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --rationale")?,
+                );
+                index += 2;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n"))),
+        }
+    }
+    let stage = stage.context(usage)?;
+    let knob = knob.context(usage)?;
+    let phase = phase.context(usage)?;
+    let replacement = replacement.context(usage)?;
+    let rationale = rationale.context(usage)?;
+    if !matches!(phase.as_str(), "warn" | "fail" | "remove") {
+        return Ok(OpsCommandOutcome::failure(
+            "phase must be warn|fail|remove\n".to_string(),
+        ));
+    }
+    let path = workspace.path("configs/vcf/deprecations/knobs.toml");
+    let mut text = read_utf8(&path)?;
+    let needle = format!("stage_id = \"{stage}\"\nknob = \"{knob}\"");
+    if text.contains(&needle) {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "deprecation already exists for {stage}:{knob}\n"
+        )));
+    }
+    let entry = format!(
+        "\n[[deprecation]]\nstage_id = \"{stage}\"\nknob = \"{knob}\"\nphase = \"{phase}\"\nreplacement = \"{replacement}\"\nrationale = \"{}\"\n",
+        rationale.replace('"', "\\\"")
+    );
+    text = format!("{}{}\n", text.trim_end(), entry);
+    write_utf8(&path, &text)?;
+    success_line(format!("added knob deprecation {stage}:{knob} ({phase})"))
+}
+
+fn tooling_deprecate_vcf_panel(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dev-dna -- tooling run deprecate-vcf-panel -- --panel <panel_id> --phase <warn|fail|remove> --replacement <panel_id> --rationale <text>";
+    let mut panel = None;
+    let mut phase = None;
+    let mut replacement = None;
+    let mut rationale = None;
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => return success_line(usage),
+            "--panel" => {
+                panel = Some(args.get(index + 1).cloned().context("missing value for --panel")?);
+                index += 2;
+            }
+            "--phase" => {
+                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
+                index += 2;
+            }
+            "--replacement" => {
+                replacement = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --replacement")?,
+                );
+                index += 2;
+            }
+            "--rationale" => {
+                rationale = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --rationale")?,
+                );
+                index += 2;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n"))),
+        }
+    }
+    let panel = panel.context(usage)?;
+    let phase = phase.context(usage)?;
+    let replacement = replacement.context(usage)?;
+    let rationale = rationale.context(usage)?;
+    if !matches!(phase.as_str(), "warn" | "fail" | "remove") {
+        return Ok(OpsCommandOutcome::failure(
+            "phase must be warn|fail|remove\n".to_string(),
+        ));
+    }
+    let path = workspace.path("configs/vcf/deprecations/panels.toml");
+    let mut text = read_utf8(&path)?;
+    let needle = format!("panel_id = \"{panel}\"");
+    if text.contains(&needle) {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "deprecation already exists for panel {panel}\n"
+        )));
+    }
+    let entry = format!(
+        "\n[[deprecation]]\npanel_id = \"{panel}\"\nphase = \"{phase}\"\nreplacement = \"{replacement}\"\nrationale = \"{}\"\n",
+        rationale.replace('"', "\\\"")
+    );
+    text = format!("{}{}\n", text.trim_end(), entry);
+    write_utf8(&path, &text)?;
+    success_line(format!("added panel deprecation {panel} ({phase})"))
 }
 
 fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -4594,6 +5083,31 @@ fn sorted_unique(values: Vec<String>) -> Vec<String> {
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect()
+}
+
+fn json_u64(value: Option<&Value>) -> u64 {
+    value.and_then(Value::as_u64).unwrap_or(0)
+}
+
+fn toml_to_json_value(value: TomlValue) -> Value {
+    match value {
+        TomlValue::String(value) => Value::String(value),
+        TomlValue::Integer(value) => Value::Number(value.into()),
+        TomlValue::Float(value) => {
+            Value::Number(serde_json::Number::from_f64(value).unwrap_or_else(|| 0.into()))
+        }
+        TomlValue::Boolean(value) => Value::Bool(value),
+        TomlValue::Datetime(value) => Value::String(value.to_string()),
+        TomlValue::Array(values) => {
+            Value::Array(values.into_iter().map(toml_to_json_value).collect())
+        }
+        TomlValue::Table(values) => Value::Object(
+            values
+                .into_iter()
+                .map(|(key, value)| (key, toml_to_json_value(value)))
+                .collect(),
+        ),
+    }
 }
 
 fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
