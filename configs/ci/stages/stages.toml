@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 3f92cf458efb7a408fe1b9e51bb0e376989631df
+# source_commit: 98f520f9ab02ae6a1406f76948e338f58753ff67
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -307,8 +307,8 @@ tools = ["rcorrector"]
 id = "fastq.deplete_host"
 status = "supported"
 output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.merge_pairs"]
-prerequisites = ["fastq.merge_pairs"]
+ordering_after = ["fastq.index_reference", "fastq.merge_pairs"]
+prerequisites = ["fastq.index_reference", "fastq.merge_pairs"]
 resource_memory_gb = 16
 resource_time_minutes = 50
 resource_threads = 8
@@ -326,8 +326,8 @@ tools = ["bowtie2"]
 id = "fastq.deplete_reference_contaminants"
 status = "supported"
 output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.deplete_host"]
-prerequisites = ["fastq.deplete_host"]
+ordering_after = ["fastq.index_reference", "fastq.deplete_host"]
+prerequisites = ["fastq.index_reference", "fastq.deplete_host"]
 resource_memory_gb = 10
 resource_time_minutes = 30
 resource_threads = 6
@@ -676,8 +676,8 @@ tools = ["cutadapt", "seqkit"]
 id = "fastq.validate_reads"
 status = "supported"
 output_kinds = ["json"]
-ordering_after = ["fastq.index_reference"]
-prerequisites = ["fastq.index_reference"]
+ordering_after = []
+prerequisites = []
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
@@ -697,7 +697,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.index_reference", "fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge_pairs", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
+stages = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_reads", "fastq.filter_reads", "fastq.merge_pairs", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.profile_reads", "fastq.report_qc", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"
