@@ -25,7 +25,8 @@ use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
-    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
+    governed_qc_producer_stage_ids, inspect_headers, log_header_warnings, preflight_stage,
+    FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -433,22 +434,29 @@ fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
     bench_inputs: &QcPostBenchInputs,
     out_dir: &Path,
 ) -> Result<GovernedQcInputs> {
-    let contributors = [
-        ("fastq.validate_reads", "fastqvalidator"),
-        ("fastq.detect_adapters", "fastqc"),
-        ("fastq.profile_reads", "seqkit_stats"),
-    ];
+    let contributors = governed_qc_producer_stage_ids()
+        .into_iter()
+        .filter_map(|stage_id| {
+            bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&stage_id)
+                .map(|tool_id| (stage_id, tool_id))
+        })
+        .collect::<Vec<_>>();
     let mut plans = Vec::with_capacity(contributors.len());
     for (stage_id, tool_id) in contributors {
-        let tool_spec = build_tool_execution_spec(stage_id, tool_id, registry, catalog, platform)?;
+        let stage_id_str = stage_id.as_str();
+        let tool_id_str = tool_id.as_str();
+        let tool_spec =
+            build_tool_execution_spec(stage_id_str, tool_id_str, registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let stage_out_dir = out_dir
             .join("governed_qc_inputs")
-            .join(stage_id.trim_start_matches("fastq."))
-            .join(tool_id);
+            .join(stage_id_str.trim_start_matches("fastq."))
+            .join(tool_id_str);
         bijux_dna_infra::ensure_dir(&stage_out_dir)
-            .with_context(|| format!("create governed qc input dir for {stage_id}/{tool_id}"))?;
-        let plan = match stage_id {
+            .with_context(|| {
+                format!("create governed qc input dir for {stage_id_str}/{tool_id_str}")
+            })?;
+        let plan = match stage_id_str {
             "fastq.validate_reads" => {
                 bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
                     &tool_spec,
@@ -473,7 +481,7 @@ fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
                     &stage_out_dir,
                 )?
             }
-            _ => unreachable!("governed qc contributor set is fixed"),
+            _ => continue,
         };
         plans.push(plan);
     }
@@ -546,12 +554,7 @@ fn governed_qc_artifacts_for_plan(plan: &StagePlanV1) -> Vec<ArtifactRef> {
 }
 
 fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
-    match stage_id {
-        "fastq.validate_reads" => &["validation_report"],
-        "fastq.detect_adapters" => &["adapter_report", "adapter_evidence_dir"],
-        "fastq.profile_reads" => &["qc_json", "qc_tsv", "qc_plots_dir"],
-        _ => &[],
-    }
+    bijux_dna_planner_fastq::stage_api::governed_qc_output_ids_for_stage(stage_id)
 }
 
 #[cfg(test)]

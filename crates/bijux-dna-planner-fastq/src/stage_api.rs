@@ -6,6 +6,9 @@ pub use crate::tool_adapters::fastq;
 pub use crate::tool_adapters::fastq::StageInfo;
 pub use crate::STAGE_REPORT_AGGREGATE;
 pub use crate::TOOL_SEQKIT;
+pub use crate::qc_contract::{
+    governed_qc_default_tool_ids, governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
+};
 pub use bijux_dna_core::prelude::RawFailure;
 pub use bijux_dna_domain_fastq::banks;
 pub use bijux_dna_domain_fastq::banks::{
