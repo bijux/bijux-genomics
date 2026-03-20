@@ -1,5 +1,6 @@
 use super::*;
 use bijux_dna_core::ids::ToolId;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 
 #[test]
 fn select_trim_tools_dedup_and_sort() {
@@ -159,4 +160,60 @@ fn host_depletion_surfaces_benchmark_cohort_from_manifest_support() {
     assert_eq!(cohorts.len(), 1);
     assert_eq!(cohorts[0].scenario_id, "host_depletion_fairness");
     assert_eq!(cohorts[0].tool_ids, vec![ToolId::from_static("bowtie2")]);
+}
+
+#[test]
+fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
+    let error = FastqPlanner::plan(
+        &FastqPlanConfig {
+            pipeline_id: "fastq-to-fastq__host_depletion__v1".to_string(),
+            policy: bijux_dna_core::contract::PlanPolicy::default(),
+            pipeline_spec: None,
+            stage_bindings: Vec::new(),
+            stages: vec![
+                "fastq.index_reference".to_string(),
+                "fastq.deplete_host".to_string(),
+            ],
+            tools: vec![
+                ToolExecutionSpecV1 {
+                    tool_id: ToolId::from_static("star"),
+                    tool_version: "test".to_string(),
+                    image: bijux_dna_core::prelude::ContainerImageRefV1 {
+                        image: "bijux/test".to_string(),
+                        digest: None,
+                    },
+                    command: bijux_dna_core::prelude::CommandSpecV1 {
+                        template: vec!["star".to_string()],
+                    },
+                    resources: bijux_dna_core::contract::ToolConstraints::default(),
+                },
+                ToolExecutionSpecV1 {
+                    tool_id: ToolId::from_static("bowtie2"),
+                    tool_version: "test".to_string(),
+                    image: bijux_dna_core::prelude::ContainerImageRefV1 {
+                        image: "bijux/test".to_string(),
+                        digest: None,
+                    },
+                    command: bijux_dna_core::prelude::CommandSpecV1 {
+                        template: vec!["bowtie2".to_string()],
+                    },
+                    resources: bijux_dna_core::contract::ToolConstraints::default(),
+                },
+            ],
+            aux_images: std::collections::BTreeMap::new(),
+            adapter_bank: None,
+            polyx_bank: None,
+            contaminant_bank: None,
+            enable_contaminant_removal: false,
+            r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+            r2: None,
+            reference_fasta: Some(std::path::PathBuf::from("reference.fa")),
+            out_dir: std::path::PathBuf::from("out"),
+            tool_reasons: None,
+            allow_planned: false,
+        },
+    )
+    .expect_err("incompatible reference backends should fail before stage composition");
+
+    assert!(error.to_string().contains("requires one of [bowtie2_build]"));
 }

@@ -156,6 +156,7 @@ impl FastqPlanner {
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
         let stage_bindings = normalize_stage_bindings(config)?;
+        validate_reference_index_bindings(&stage_bindings)?;
         for binding in &stage_bindings {
             enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
@@ -449,6 +450,45 @@ fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBi
         .collect::<Vec<_>>();
     ensure_unique_stage_binding_nodes(&bindings)?;
     Ok(bindings)
+}
+
+fn validate_reference_index_bindings(bindings: &[FastqStageBinding]) -> Result<()> {
+    let mut current_index_backend: Option<&str> = None;
+    for binding in bindings {
+        match binding.stage_id.as_str() {
+            "fastq.index_reference" => {
+                current_index_backend = Some(binding.tool.tool_id.as_str());
+            }
+            "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
+                let Some(index_backend) = current_index_backend else {
+                    continue;
+                };
+                let depletion_tool_id =
+                    bijux_dna_core::ids::ToolId::new(binding.tool.tool_id.as_str().to_string());
+                let index_backend_id = bijux_dna_core::ids::ToolId::new(index_backend.to_string());
+                if bijux_dna_domain_fastq::is_reference_index_backend_compatible(
+                    &depletion_tool_id,
+                    &index_backend_id,
+                ) {
+                    continue;
+                }
+                let compatible_backends =
+                    bijux_dna_domain_fastq::reference_index_backends_for_tool(&depletion_tool_id);
+                return Err(anyhow!(
+                    "{} requires one of [{}] as reference index backend, but upstream fastq.index_reference selected {}",
+                    binding.stage_id,
+                    compatible_backends
+                        .iter()
+                        .map(|tool_id| tool_id.as_str().to_string())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    index_backend
+                ));
+            }
+            _ => {}
+        }
+    }
+    Ok(())
 }
 
 fn execution_edges_for_stage_plans(
