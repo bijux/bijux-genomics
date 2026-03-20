@@ -131,9 +131,13 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
         reference_scope: ReferenceScope::Host,
         reference_catalog_id: "host_reference".to_string(),
         reference_index_artifact_id: "reference_index".to_string(),
+        reference_index_backend: "bowtie2_build".to_string(),
         reference_build_id: Some("grch38_no_alt".to_string()),
+        reference_digest: Some("sha256:host-ref".to_string()),
         masking_policy: ReferenceMaskingPolicy::HardMasked,
         decoy_policy: ReferenceDecoyPolicy::Included,
+        decoy_catalog_id: Some("host_decoys".to_string()),
+        identity_threshold: 0.95,
         retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
         report_format: MappingReportFormat::Bowtie2MetricsFile,
@@ -144,9 +148,13 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
     assert_eq!(decoded.reference_scope, ReferenceScope::Host);
     assert_eq!(decoded.reference_catalog_id, "host_reference");
     assert_eq!(decoded.reference_index_artifact_id, "reference_index");
+    assert_eq!(decoded.reference_index_backend, "bowtie2_build");
     assert_eq!(decoded.reference_build_id.as_deref(), Some("grch38_no_alt"));
+    assert_eq!(decoded.reference_digest.as_deref(), Some("sha256:host-ref"));
     assert_eq!(decoded.masking_policy, ReferenceMaskingPolicy::HardMasked);
     assert_eq!(decoded.decoy_policy, ReferenceDecoyPolicy::Included);
+    assert_eq!(decoded.decoy_catalog_id.as_deref(), Some("host_decoys"));
+    assert_eq!(decoded.identity_threshold, 0.95);
     assert_eq!(
         decoded.retained_read_policy,
         ReadRetentionPolicy::KeepNonHostReads,

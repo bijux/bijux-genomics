@@ -104,13 +104,17 @@
     "tool": "bowtie2"
   },
   "effective_params": {
+    "decoy_catalog_id": null,
     "decoy_policy": "none",
     "emit_removed_reads": true,
+    "identity_threshold": 0.95,
     "masking_policy": "unmasked",
     "paired_mode": "paired_end",
     "reference_build_id": null,
     "reference_catalog_id": "host_reference",
+    "reference_digest": null,
     "reference_index_artifact_id": "reference_index",
+    "reference_index_backend": "bowtie2_build",
     "reference_scope": "host",
     "report_format": "bowtie2_metrics_file",
     "retain_unmapped_pairs": true,
