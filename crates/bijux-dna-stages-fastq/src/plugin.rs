@@ -1,5 +1,8 @@
 use anyhow::Result;
 use bijux_dna_core::id_catalog;
+use bijux_dna_core::prelude::invariants::{
+    InvariantResultV1, InvariantStatusV1, StageVerdictV1,
+};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{
     StageEventHintV1, StageInvocationV1, StagePlugin, StagePluginOutputV1, StageReportPartV1,
@@ -28,6 +31,12 @@ impl StagePlugin for FastqStagePlugin {
         plan: &StagePlanV1,
         outputs: &[ArtifactRef],
     ) -> Result<StagePluginOutputV1> {
+        let invariant = |id: &str, status: InvariantStatusV1, message: String| InvariantResultV1 {
+            id: id.to_string(),
+            status,
+            message,
+            remediation: None,
+        };
         let input_paths: Vec<std::path::PathBuf> = plan
             .io
             .inputs
@@ -49,6 +58,85 @@ impl StagePlugin for FastqStagePlugin {
         } else {
             outputs.to_vec()
         };
+        let expected_artifact_names = plan
+            .io
+            .outputs
+            .iter()
+            .map(|artifact| artifact.name.as_str().to_string())
+            .collect::<std::collections::BTreeSet<_>>();
+        let actual_artifact_names = artifacts
+            .iter()
+            .map(|artifact| artifact.name.as_str().to_string())
+            .collect::<std::collections::BTreeSet<_>>();
+        let missing_expected = expected_artifact_names
+            .difference(&actual_artifact_names)
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut invariants = vec![if missing_expected.is_empty() {
+            invariant(
+                "stage_output_contract_complete",
+                InvariantStatusV1::Pass,
+                "all declared stage outputs are represented".to_string(),
+            )
+        } else {
+            invariant(
+                "stage_output_contract_complete",
+                InvariantStatusV1::Warn,
+                format!(
+                    "missing declared output artifacts: {}",
+                    missing_expected.join(", ")
+                ),
+            )
+        }];
+        invariants.push(if observer_covered {
+            invariant(
+                "observer_parser_coverage",
+                InvariantStatusV1::Pass,
+                "stage has observer-specialized runtime interpretation".to_string(),
+            )
+        } else {
+            invariant(
+                "observer_parser_coverage",
+                InvariantStatusV1::Warn,
+                "stage uses generic runtime interpretation only".to_string(),
+            )
+        });
+        let declared_metric_invariants =
+            bijux_dna_domain_fastq::stage_metric_invariants(&plan.stage_id).unwrap_or(&[]);
+        invariants.push(if declared_metric_invariants.is_empty() {
+            invariant(
+                "declared_metric_invariants_visible",
+                InvariantStatusV1::Warn,
+                "stage has no declared metric invariants in the FASTQ domain contract".to_string(),
+            )
+        } else {
+            invariant(
+                "declared_metric_invariants_visible",
+                InvariantStatusV1::Pass,
+                format!(
+                    "stage declares metric invariants: {}",
+                    declared_metric_invariants.join(", ")
+                ),
+            )
+        });
+        let verdict = invariants.iter().fold(
+            StageVerdictV1 {
+                stage_id: plan.stage_id.as_str().to_string(),
+                verdict: InvariantStatusV1::Pass,
+                reasons: Vec::new(),
+                key_metrics: serde_json::json!({
+                    "artifact_count": artifacts.len(),
+                    "observer_coverage": observer_covered,
+                    "used_observed_outputs": !outputs.is_empty(),
+                    "declared_metric_invariants": declared_metric_invariants,
+                }),
+            },
+            |mut verdict, item| {
+                verdict.verdict = std::cmp::max(verdict.verdict, item.status.clone());
+                verdict.reasons.push(item.message.clone());
+                verdict
+            },
+        );
         let report_parts = vec![StageReportPartV1 {
             name: "stage_outputs".to_string(),
             file_name: "stage_outputs.json".to_string(),
@@ -56,6 +144,7 @@ impl StagePlugin for FastqStagePlugin {
                 "stage_id": plan.stage_id,
                 "observer_coverage": observer_covered,
                 "artifact_count": artifacts.len(),
+                "declared_metric_invariants": declared_metric_invariants,
                 "artifact_ids": artifacts
                     .iter()
                     .map(|artifact| artifact.name.as_str().to_string())
@@ -89,8 +178,8 @@ impl StagePlugin for FastqStagePlugin {
             artifacts,
             report_parts,
             warnings,
-            invariants: Vec::new(),
-            verdict: None,
+            invariants,
+            verdict: Some(verdict),
             event_hints,
         })
     }
@@ -153,6 +242,11 @@ mod tests {
         assert_eq!(output.report_parts.len(), 1);
         assert_eq!(output.event_hints.len(), 1);
         assert!(output.warnings.is_empty());
+        assert_eq!(output.invariants.len(), 3);
+        assert_eq!(
+            output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
+        );
     }
 
     #[test]
@@ -165,5 +259,10 @@ mod tests {
         assert_eq!(output.artifacts.len(), 1);
         assert_eq!(output.warnings.len(), 1);
         assert!(output.warnings[0].contains("fastq.trim_reads"));
+        assert_eq!(output.invariants.len(), 3);
+        assert_eq!(
+            output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Warn)
+        );
     }
 }
