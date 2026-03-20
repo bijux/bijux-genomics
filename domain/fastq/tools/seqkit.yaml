@@ -15,12 +15,18 @@ command_template:
   - "-m"
   - "1"
   - "-o"
-  - "{{filtered_reads}}"
-  - "{{reads}}"
+  - "{{filtered_reads_r1}}"
+  - "{{reads_r1}}"
 outputs:
-  - name: "filtered_reads"
+  - name: "filtered_reads_r1"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
+  - name: "filtered_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "seqkit_v1"
 constraints:
   runtime: "local"
@@ -29,9 +35,11 @@ constraints:
   threads: 2
 execution_contract:
   required_inputs:
-    - "reads"
+    - "reads_r1"
   expected_outputs:
-    - "seqkit.fastq.gz"
+    - "filtered_reads_r1"
+    - "filtered_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -108,11 +116,17 @@ expected_artifacts:
   - "primer_stats_json"
   - "overrepresented_sequences_tsv"
   - "overrepresented_sequences_json"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "seqkit --version"
 help_cmd: "seqkit --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "bbduk"
+    - "cutadapt"
+    - "fastp"
+    - "prinseq"
+    - "seqfu"
+    - "trimmomatic"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed read filtering, primer normalization, and abundance normalization backends only inside the same stage contract and lineage."
