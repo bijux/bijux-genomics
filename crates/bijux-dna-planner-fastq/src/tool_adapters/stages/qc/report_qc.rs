@@ -23,8 +23,22 @@ pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
 }
 
 #[must_use]
-pub fn aux_tool_ids() -> &'static [&'static str] {
-    &["fastqc"]
+pub fn aux_tool_ids() -> Vec<String> {
+    let qc_contributor_stages = [
+        bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
+        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
+        bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS,
+        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+        bijux_dna_domain_fastq::STAGE_PROFILE_READS,
+    ];
+    let mut tool_ids = bijux_dna_stages_fastq::observer_stage_tool_bindings()
+        .into_iter()
+        .filter(|(stage_id, _)| qc_contributor_stages.contains(stage_id))
+        .map(|(_, tool_id)| tool_id.to_string())
+        .collect::<Vec<_>>();
+    tool_ids.sort();
+    tool_ids.dedup();
+    tool_ids
 }
 
 /// Build a QC reporting plan from FASTQ inputs for synthetic QC aggregation helpers.

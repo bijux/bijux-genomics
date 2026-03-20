@@ -22,8 +22,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let normalized_sample_id = canonical_sample_identity(&args.sample_id);
-    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS_SUMMARY)
-        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS_SUMMARY.as_str()))?;
+    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS_SUMMARY).ok_or_else(|| {
+        anyhow!(
+            "bench dir missing for {}",
+            STAGE_PREPROCESS_SUMMARY.as_str()
+        )
+    })?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
     let run_root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
@@ -45,8 +49,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     ensure_bench_runner(platform, runner_override)?;
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
     if args.mode == bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::Shotgun {
@@ -122,8 +126,18 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         None,
     )?;
 
-    ensure_image_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
+    ensure_image_qa_passed(
+        STAGE_PREPROCESS_SUMMARY.as_str(),
+        &tool_ids,
+        platform,
+        catalog,
+    )?;
+    ensure_tool_qa_passed(
+        STAGE_PREPROCESS_SUMMARY.as_str(),
+        &tool_ids,
+        platform,
+        catalog,
+    )?;
 
     let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
@@ -183,11 +197,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     {
         for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::report_qc::aux_tool_ids() {
             let spec = catalog
-                .get(*aux_tool)
+                .get(aux_tool.as_str())
                 .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
             let image = resolve_image_for_run(spec, platform)?;
             aux_tools.insert(
-                (*aux_tool).to_string(),
+                aux_tool,
                 ContainerImageRefV1 {
                     image: image.full_name,
                     digest: spec.digest.clone(),

@@ -97,11 +97,11 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     let mut aux_tools = std::collections::BTreeMap::new();
     for aux_tool in aux_tool_ids() {
         let spec = catalog
-            .get(*aux_tool)
+            .get(aux_tool.as_str())
             .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
         let image = resolve_image_for_run(spec, platform)?;
         aux_tools.insert(
-            (*aux_tool).to_string(),
+            aux_tool,
             ContainerImageRefV1 {
                 image: image.full_name,
                 digest: spec.digest.clone(),
