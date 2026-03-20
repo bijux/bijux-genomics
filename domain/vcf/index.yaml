@@ -180,6 +180,7 @@ stage_tool_integration:
     plink2: governed_contract
   vcf.stats:
     bcftools: governed_contract
+reference_index_compatibility:
 stage_intent:
   vcf.call_gl: "Emit genotype-likelihood-first outputs for low-coverage and aDNA-aware workflows."
   vcf.call_diploid: "Emit diploid genotype calls for modern high-coverage cohorts."

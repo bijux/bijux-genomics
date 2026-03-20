@@ -50,6 +50,8 @@ comparability:
   comparable_with: []
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
+reference_index_backends:
+  - "bowtie2_build"
 capabilities:
   - "SE"
   - "PE"

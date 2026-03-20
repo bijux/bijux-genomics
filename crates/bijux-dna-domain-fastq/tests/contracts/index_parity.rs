@@ -104,6 +104,40 @@ fn indexed_stage_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, 
     Ok(out)
 }
 
+fn indexed_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    let mut out = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut in_block = false;
+    let mut current_tool = None::<String>;
+    for line in raw.lines() {
+        if line == "reference_index_compatibility:" {
+            in_block = true;
+            continue;
+        }
+        if !in_block {
+            continue;
+        }
+        if !line.starts_with(' ') && line.contains(':') {
+            break;
+        }
+        if let Some(tool_id) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+            let tool_id = tool_id.to_string();
+            out.entry(tool_id.clone()).or_default();
+            current_tool = Some(tool_id);
+            continue;
+        }
+        if let Some(backend) = line.strip_prefix("  - ") {
+            if let Some(tool_id) = &current_tool {
+                out.entry(tool_id.clone())
+                    .or_default()
+                    .insert(backend.to_string());
+            }
+        }
+    }
+    Ok(out)
+}
+
 fn indexed_tool_ids() -> Result<BTreeSet<String>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
         .context("read domain/fastq/index.yaml")?;
@@ -265,6 +299,42 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
     Ok(out)
 }
 
+fn tool_manifest_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let tools_dir = workspace_root()?.join("domain/fastq/tools");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&tools_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml: serde_yaml::Value = serde_yaml::from_str(
+            &std::fs::read_to_string(&path)
+                .with_context(|| format!("read {}", path.display()))?,
+        )
+        .with_context(|| format!("parse {}", path.display()))?;
+        let tool_id = yaml
+            .get("tool_id")
+            .and_then(serde_yaml::Value::as_str)
+            .map(str::to_string)
+            .with_context(|| format!("tool_id missing in {}", path.display()))?;
+        let backends = yaml
+            .get("reference_index_backends")
+            .and_then(serde_yaml::Value::as_sequence)
+            .into_iter()
+            .flatten()
+            .filter_map(serde_yaml::Value::as_str)
+            .map(str::to_string)
+            .collect::<BTreeSet<_>>();
+        if !backends.is_empty() {
+            out.insert(tool_id, backends);
+        }
+    }
+    Ok(out)
+}
+
 #[test]
 fn generated_index_stage_tool_compatibility_matches_stage_manifests() -> Result<()> {
     assert_eq!(
@@ -281,6 +351,16 @@ fn generated_index_stage_tool_integration_matches_stage_manifests() -> Result<()
         indexed_stage_tool_integration()?,
         stage_manifest_tool_integration()?,
         "domain/fastq/index.yaml stage_tool_integration drifted from stage manifest compatibility and planned bindings"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_index_reference_index_compatibility_matches_tool_manifests() -> Result<()> {
+    assert_eq!(
+        indexed_reference_index_compatibility()?,
+        tool_manifest_reference_index_compatibility()?,
+        "domain/fastq/index.yaml reference_index_compatibility drifted from tool manifest compatibility"
     );
     Ok(())
 }
