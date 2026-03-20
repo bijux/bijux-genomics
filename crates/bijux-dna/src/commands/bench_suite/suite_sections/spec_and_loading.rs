@@ -206,6 +206,13 @@ fn default_repetitions() -> u32 {
     1
 }
 
+pub(super) fn supported_suite_schema_version(schema_version: &str) -> bool {
+    matches!(
+        schema_version,
+        "bijux.bench.suite.v1" | "bijux.bench-suite.fastq.v1"
+    )
+}
+
 #[derive(Debug, Clone, Default)]
 struct BenchKnobs {
     repetitions: Option<u32>,
@@ -281,7 +288,7 @@ pub fn load_suite(cwd: &Path, suite: &str) -> Result<SuiteSpec> {
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let parsed: SuiteSpec =
         toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    if parsed.schema_version != "bijux.bench-suite.fastq.v1" {
+    if !supported_suite_schema_version(&parsed.schema_version) {
         return Err(anyhow!(
             "unsupported suite schema `{}` in {}",
             parsed.schema_version,
@@ -321,3 +328,14 @@ pub fn load_suite(cwd: &Path, suite: &str) -> Result<SuiteSpec> {
     Ok(effective)
 }
 
+#[cfg(test)]
+mod schema_tests {
+    use super::supported_suite_schema_version;
+
+    #[test]
+    fn governed_suite_schema_ids_are_accepted() {
+        assert!(supported_suite_schema_version("bijux.bench.suite.v1"));
+        assert!(supported_suite_schema_version("bijux.bench-suite.fastq.v1"));
+        assert!(!supported_suite_schema_version("bijux.bench.suite.v0"));
+    }
+}
