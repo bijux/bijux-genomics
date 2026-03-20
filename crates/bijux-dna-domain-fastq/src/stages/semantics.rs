@@ -83,7 +83,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.profile_read_lengths"),
         kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -127,7 +127,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.trim_polyg_tails"),
         kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -190,7 +190,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.merge_pairs"),
         kind: FastqStageKind::Core,
-        criticality: StageCriticality::Essential,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -253,7 +253,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.correct_errors"),
         kind: FastqStageKind::Core,
-        criticality: StageCriticality::Essential,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -275,7 +275,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.profile_overrepresented_sequences"),
         kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -297,7 +297,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.infer_asvs"),
         kind: FastqStageKind::Amplicon,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Experimental,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -308,7 +308,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.cluster_otus"),
         kind: FastqStageKind::Amplicon,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -341,7 +341,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.report_qc"),
         kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Optional,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
