@@ -11,6 +11,8 @@ mod mod_contracts_explain_rs;
 mod mod_contracts_graph_rs;
 #[path = "contracts/plan.rs"]
 mod mod_contracts_plan_rs;
+#[path = "contracts/stage_instance_ids.rs"]
+mod mod_contracts_stage_instance_ids_rs;
 #[path = "contracts/tool_selection.rs"]
 mod mod_contracts_tool_selection_rs;
 #[path = "contracts/tool_maturity.rs"]
