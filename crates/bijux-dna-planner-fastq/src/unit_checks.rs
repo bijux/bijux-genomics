@@ -91,7 +91,8 @@ fn stage_tool_capability_uses_manifest_normalization_modes() {
     )
     .expect("fastqc detect-adapters capability must exist");
     assert!(detect_adapters.parse_normalized);
-    assert!(!detect_adapters.benchmark_normalized);
+    assert!(detect_adapters.benchmark_normalized);
+    assert!(detect_adapters.comparable);
 
     let trim_reads = crate::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.trim_reads"),
