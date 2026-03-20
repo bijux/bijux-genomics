@@ -1,0 +1,64 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_taxonomy_screen_cohort"
+
+[[datasets]]
+id = "synthetic_fastq_taxonomy_screen_01"
+hash = "fixture-fastq-taxonomy-screen-01"
+size = 1
+origin = "synthetic"
+class_label = "mixed_microbiome"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [551, 552]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["mixed_microbiome"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.screen_taxonomy"
+stage_instance_id = "fastq.screen_taxonomy.classifier_cohort"
+tools = ["kraken2", "krakenuniq", "centrifuge", "kaiju"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages.param_bindings]]
+tool = "kraken2"
+[stages.param_bindings.values]
+confidence = 0.1
+database_release = "benchmark_2026_q1"
+
+[[stages.param_bindings]]
+tool = "krakenuniq"
+[stages.param_bindings.values]
+min_unique_kmers = 2
+database_release = "benchmark_2026_q1"
+
+[[stages.param_bindings]]
+tool = "centrifuge"
+[stages.param_bindings.values]
+min_hitlen = 22
+database_release = "benchmark_2026_q1"
+
+[[stages.param_bindings]]
+tool = "kaiju"
+[stages.param_bindings.values]
+min_match_score = 65
+database_release = "benchmark_2026_q1"

@@ -1,0 +1,40 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_merge_pairs_cohort"
+
+[[datasets]]
+id = "synthetic_fastq_overlap_merge_01"
+hash = "fixture-fastq-overlap-merge-01"
+size = 1
+origin = "synthetic"
+class_label = "overlap_pairs"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [561, 562]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["overlap_pairs"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.merge_pairs"
+stage_instance_id = "fastq.merge_pairs.merge_cohort"
+tools = ["pear", "vsearch", "bbmerge", "flash2", "leehom"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
