@@ -96,7 +96,10 @@ pub fn plan_filter(
         filter_command_template(tool, r1, r2, &output_r1, output_r2.as_deref(), options)?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
-        stage_instance_id: None,
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

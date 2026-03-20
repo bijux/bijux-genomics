@@ -58,3 +58,45 @@ fn preprocess_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Resul
 
     Ok(())
 }
+
+#[test]
+fn transform_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-transform-stage-instance-ids")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&r2, b"@r2\nT\n+\n#\n")?;
+
+    let trim_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &tool("fastp"),
+        &r1,
+        Some(&r2),
+        temp.path(),
+        None,
+        None,
+        None,
+    )?;
+    assert_eq!(
+        trim_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.trim_reads.tool.fastp")
+    );
+
+    let merge_plan = bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::plan_merge(
+        &tool("pear"),
+        &r1,
+        &r2,
+        temp.path(),
+    )?;
+    assert_eq!(
+        merge_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.merge_pairs.tool.pear")
+    );
+
+    Ok(())
+}
