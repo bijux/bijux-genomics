@@ -64,6 +64,36 @@ fn correct_errors_planning_accepts_closed_backends() {
 }
 
 #[test]
+fn correct_errors_planning_rejects_single_end_inputs() {
+    let tool = ToolExecutionSpecV1 {
+        tool_id: ToolId::new("musket"),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["musket".to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    };
+
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
+        &tool,
+        std::path::Path::new("reads_R1.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+    )
+    .expect_err("paired-only correction stage must reject single-end planning");
+    assert!(error.to_string().contains("paired-end reads"));
+}
+
+#[test]
 fn correct_errors_planning_rejects_tools_outside_execution_support() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("seqpurge"),

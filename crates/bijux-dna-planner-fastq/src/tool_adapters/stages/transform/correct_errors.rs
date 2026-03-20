@@ -31,12 +31,13 @@ pub fn plan_correct(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
+    let r2 = r2.ok_or_else(|| anyhow!("fastq.correct_errors requires paired-end reads"))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
+    let output_r2 = out_dir.join("reads_r2.fastq.gz");
     let report_json = out_dir.join("correct_report.json");
     let effective_params = FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
         correction_engine: correction_engine_for_tool(&tool.tool_id.0)?,
         quality_encoding: QualityEncoding::Phred33,
@@ -61,12 +62,9 @@ pub fn plan_correct(
                 &[
                     ("reads", Some(r1.display().to_string())),
                     ("reads_r1", Some(r1.display().to_string())),
-                    ("reads_r2", r2.map(|path| path.display().to_string())),
+                    ("reads_r2", Some(r2.display().to_string())),
                     ("corrected_reads_r1", Some(output_r1.display().to_string())),
-                    (
-                        "corrected_reads_r2",
-                        output_r2.as_ref().map(|path| path.display().to_string()),
-                    ),
+                    ("corrected_reads_r2", Some(output_r2.display().to_string())),
                     ("report_json", Some(report_json.display().to_string())),
                     ("threads", Some(tool.resources.threads.to_string())),
                 ],
@@ -75,56 +73,49 @@ pub fn plan_correct(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: {
-                let mut inputs = vec![ArtifactRef::required(
+                vec![
+                    ArtifactRef::required(
                     ArtifactId::from_static("reads_r1"),
                     r1.to_path_buf(),
                     ArtifactRole::Reads,
-                )];
-                if let Some(r2) = r2 {
-                    inputs.push(ArtifactRef::required(
+                ),
+                    ArtifactRef::required(
                         ArtifactId::from_static("reads_r2"),
                         r2.to_path_buf(),
                         ArtifactRole::Reads,
-                    ));
-                }
-                inputs
+                    ),
+                ]
             },
             outputs: {
-                let mut outputs = vec![ArtifactRef::required(
+                vec![
+                    ArtifactRef::required(
                     ArtifactId::from_static("corrected_reads_r1"),
                     output_r1.clone(),
                     ArtifactRole::Reads,
-                )];
-                if let Some(output_r2) = &output_r2 {
-                    outputs.push(ArtifactRef::required(
+                ),
+                    ArtifactRef::required(
                         ArtifactId::from_static("corrected_reads_r2"),
                         output_r2.clone(),
                         ArtifactRole::Reads,
-                    ));
-                }
-                outputs.push(ArtifactRef::required(
+                    ),
+                    ArtifactRef::required(
                     ArtifactId::from_static("report_json"),
                     report_json.clone(),
                     ArtifactRole::ReportJson,
-                ));
-                outputs
+                ),
+                ]
             },
         },
         out_dir: out_dir.to_path_buf(),
-        params: {
-            let mut params = serde_json::json!({
-                "tool": tool.tool_id.0,
-                "r1": r1,
-                "out_dir": out_dir,
-                "output_r1": output_r1,
-                "report_json": report_json,
-            });
-            if let Some((r2, output_r2)) = r2.zip(output_r2.as_ref()) {
-                params["r2"] = serde_json::json!(r2);
-                params["output_r2"] = serde_json::json!(output_r2);
-            }
-            params
-        },
+        params: serde_json::json!({
+            "tool": tool.tool_id.0,
+            "r1": r1,
+            "r2": r2,
+            "out_dir": out_dir,
+            "output_r1": output_r1,
+            "output_r2": output_r2,
+            "report_json": report_json,
+        }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize correct effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
