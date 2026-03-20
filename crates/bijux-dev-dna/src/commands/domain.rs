@@ -388,6 +388,12 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         render_stage_tool_integration_block(&dom_dir)?,
         Some("stage_tool_compatibility"),
     )?;
+    replace_or_insert_block(
+        &mut body_lines,
+        "reference_index_compatibility",
+        render_reference_index_compatibility_block(&dom_dir)?,
+        Some("stage_tool_integration"),
+    )?;
 
     if !body_lines
         .iter()
@@ -479,6 +485,37 @@ fn render_stage_tool_integration_block(dom_dir: &Path) -> Result<Vec<String>> {
         for (tool_id, level) in tool_map {
             rendered.push(format!("    {tool_id}: {level}"));
         }
+    }
+    Ok(rendered)
+}
+
+fn render_reference_index_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> {
+    let mut rendered = Vec::new();
+    let mut tool_map = BTreeMap::<String, Vec<String>>::new();
+    for tool_file in yaml_files(&dom_dir.join("tools"))? {
+        if tool_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let text = read_utf8(&tool_file)?;
+        let Some(tool_id) = scalar_from_text(&text, "tool_id")? else {
+            continue;
+        };
+        let backends = {
+            let block = list_block(&text, "reference_index_backends")?;
+            if block.is_empty() {
+                inline_list(&text, "reference_index_backends")?
+            } else {
+                block
+            }
+        };
+        if !backends.is_empty() {
+            tool_map.insert(tool_id, backends);
+        }
+    }
+
+    for (tool_id, backends) in tool_map {
+        rendered.push(format!("  {tool_id}:"));
+        rendered.extend(backends.into_iter().map(|backend| format!("  - {backend}")));
     }
     Ok(rendered)
 }

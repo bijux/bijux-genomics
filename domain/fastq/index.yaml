@@ -319,6 +319,9 @@ stage_tool_integration:
     fastqvalidator: governed_contract
     fqtools: governed_contract
     seqtk: governed_contract
+reference_index_compatibility:
+  bowtie2:
+  - bowtie2_build
 active_defaults:
   fastq.cluster_otus: vsearch
   fastq.index_reference: bowtie2_build

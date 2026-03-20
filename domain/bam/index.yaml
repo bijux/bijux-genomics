@@ -230,6 +230,7 @@ stage_tool_integration:
     bamtools: governed_contract
     bedtools: governed_contract
     samtools: governed_contract
+reference_index_compatibility:
 active_defaults:
   bam.align: bwa
   bam.validate: samtools
