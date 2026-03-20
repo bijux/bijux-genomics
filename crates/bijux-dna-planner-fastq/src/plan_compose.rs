@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
+use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
+use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_READ_LENGTHS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
     STAGE_TRIM_POLYG_TAILS,
@@ -102,6 +103,7 @@ where
     let raw_r2 = r2.map(|path| path.to_path_buf());
     let mut current_feature_table: Option<PathBuf> = None;
     let mut current_reference_index: Option<ReferenceIndexState> = None;
+    let mut current_qc_inputs: Vec<ArtifactRef> = Vec::new();
     let mut plans = Vec::new();
     for binding in stage_bindings {
         let out_dir = out_dir_for_stage(binding, &current_r1, current_r2.as_deref())?;
@@ -384,15 +386,33 @@ where
                         }
                     }
                 }
-                let plan = crate::tool_adapters::fastq::report_qc::plan_qc_post(
-                    tool,
-                    &current_r1,
-                    current_r2.as_deref(),
-                    &out_dir,
-                    stage_aux_images,
-                    Some(raw_r1.as_path()),
-                    raw_r2.as_deref(),
-                )?;
+                let paired_mode = if current_r2.is_some() {
+                    PairedMode::PairedEnd
+                } else {
+                    PairedMode::SingleEnd
+                };
+                let plan = if current_qc_inputs.is_empty() {
+                    crate::tool_adapters::fastq::report_qc::plan_qc_post(
+                        tool,
+                        &current_r1,
+                        current_r2.as_deref(),
+                        &out_dir,
+                        stage_aux_images,
+                        Some(raw_r1.as_path()),
+                        raw_r2.as_deref(),
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
+                        tool,
+                        &current_qc_inputs,
+                        &out_dir,
+                        stage_aux_images,
+                        paired_mode,
+                        QcAggregationScope::GovernedQcArtifacts,
+                        None,
+                        None,
+                    )?
+                };
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_RRNA.as_str() => {
@@ -542,6 +562,7 @@ where
         if let Some(stage_instance_id) = binding.stage_instance_id.as_ref() {
             plan.stage_instance_id = Some(StepId::new(stage_instance_id.clone()));
         }
+        current_qc_inputs.extend(qc_input_artifacts_for_stage(stage_id, &plan));
         plans.push(plan);
         if stage_id == STAGE_INDEX_REFERENCE.as_str() {
             let plan = plans.last().expect("stage just pushed");
@@ -555,6 +576,18 @@ where
         current_feature_table = next_feature_table;
     }
     Ok(plans)
+}
+
+fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<ArtifactRef> {
+    match stage_id {
+        "fastq.validate_reads"
+        | "fastq.detect_adapters"
+        | "fastq.profile_read_lengths"
+        | "fastq.profile_reads"
+        | "fastq.profile_overrepresented_sequences"
+        | "fastq.deplete_rrna" => plan.io.outputs.clone(),
+        _ => Vec::new(),
+    }
 }
 
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
