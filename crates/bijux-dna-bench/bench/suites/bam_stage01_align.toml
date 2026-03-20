@@ -1,15 +1,34 @@
 schema_version = "bijux.bench.suite.v1"
 suite_id = "bam_stage01_align"
-corpus = "example-201"
-repetitions = 2
 
-[fairness]
-threads = 16
-mem_gb = 64
-tmp_policy = "unique-per-run-id"
-cold_runs = 1
-warm_runs = 1
+[[datasets]]
+id = "synthetic_bam_align_01"
+hash = "fixture-bam-align-01"
+size = 1
+origin = "synthetic"
+class_label = "ancient"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [401, 402]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["ancient"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
 
 [[stages]]
 stage = "bam.align"
+stage_instance_id = "bam.align.aligner"
 tools = ["bwa", "bowtie2"]

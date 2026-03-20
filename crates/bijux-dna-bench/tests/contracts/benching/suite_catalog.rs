@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
 
 fn suite_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bench/suites")
@@ -42,6 +43,23 @@ fn checked_in_suite_catalog_uses_governed_schema_and_stage_ids() -> Result<()> {
                 path.display()
             );
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_suite_catalog_deserializes_and_validates() -> Result<()> {
+    for entry in fs::read_dir(suite_dir()).context("read suite dir")? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("toml") {
+            continue;
+        }
+        let raw = fs::read_to_string(&path)
+            .with_context(|| format!("read {}", path.display()))?;
+        let suite: BenchmarkSuiteSpec = toml::from_str(&raw)
+            .with_context(|| format!("parse {}", path.display()))?;
+        validate_suite(&suite)
+            .with_context(|| format!("validate {}", path.display()))?;
     }
     Ok(())
 }

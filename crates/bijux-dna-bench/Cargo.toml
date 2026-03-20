@@ -23,3 +23,4 @@ walkdir.workspace = true
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+toml = { workspace = true }

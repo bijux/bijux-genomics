@@ -380,6 +380,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
+ "toml",
  "walkdir",
 ]
 
