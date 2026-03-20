@@ -15,5 +15,7 @@ mod mod_contracts_plan_rs;
 mod mod_contracts_tool_selection_rs;
 #[path = "contracts/tool_maturity.rs"]
 mod mod_contracts_tool_maturity_rs;
+#[path = "contracts/toolset_selection.rs"]
+mod mod_contracts_toolset_selection_rs;
 #[path = "contracts/toolset_modes.rs"]
 mod mod_contracts_toolset_modes_rs;
