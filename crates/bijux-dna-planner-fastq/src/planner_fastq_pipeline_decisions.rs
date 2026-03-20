@@ -378,6 +378,53 @@ pub struct ToolSelection {
     pub reason: PlanDecisionReason,
 }
 
+#[derive(Debug, Clone)]
+pub struct ToolsetSelection {
+    pub stage_id: String,
+    pub tool_ids: Vec<String>,
+    pub reason: PlanDecisionReason,
+}
+
+/// # Errors
+/// Returns an error if toolset selection fails.
+pub fn select_preprocess_toolsets(
+    pipeline: &PipelineSpec,
+    mode: crate::stage_api::ToolsetExecutionMode,
+    allow_planned: bool,
+) -> Result<Vec<ToolsetSelection>> {
+    let mut selections = Vec::new();
+    for stage in &pipeline.stages {
+        enforce_stage_status(stage, allow_planned)?;
+        let stage_id = StageId::new(stage.clone());
+        let tool_ids = crate::stage_api::toolset_for_stage(&stage_id, mode)
+            .into_iter()
+            .map(|tool_id| tool_id.to_string())
+            .collect::<Vec<_>>();
+        selections.push(ToolsetSelection {
+            stage_id: stage.clone(),
+            tool_ids,
+            reason: PlanDecisionReason::new(
+                PlanReasonKind::Default,
+                match mode {
+                    crate::stage_api::ToolsetExecutionMode::DefaultChoice => {
+                        "selected default toolset"
+                    }
+                    crate::stage_api::ToolsetExecutionMode::GovernedExecution => {
+                        "selected governed execution toolset"
+                    }
+                    crate::stage_api::ToolsetExecutionMode::BenchmarkCohort => {
+                        "selected benchmark cohort toolset"
+                    }
+                    crate::stage_api::ToolsetExecutionMode::AllBindings => {
+                        "selected declared binding toolset"
+                    }
+                },
+            ),
+        });
+    }
+    Ok(selections)
+}
+
 /// # Errors
 /// Returns an error if tool selection fails.
 pub fn select_preprocess_tools(
