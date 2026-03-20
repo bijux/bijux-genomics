@@ -42,5 +42,3 @@ upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 [[edges]]
 from = "fastq.validate_reads.validation"
 to = "fastq.deplete_rrna.sortmerna_screen"
-from_output_id = "validated_reads_r1"
-to_input_id = "reads_r1"
