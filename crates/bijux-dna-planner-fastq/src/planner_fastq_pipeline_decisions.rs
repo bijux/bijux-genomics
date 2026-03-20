@@ -52,6 +52,24 @@ pub struct FastqPlanConfig {
     pub allow_planned: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct FastqStageBenchmarkConfig {
+    pub pipeline_id: String,
+    pub policy: PlanPolicy,
+    pub stage_id: String,
+    pub tools: Vec<ToolExecutionSpecV1>,
+    pub aux_images: BTreeMap<String, ContainerImageRefV1>,
+    pub adapter_bank: Option<serde_json::Value>,
+    pub polyx_bank: Option<serde_json::Value>,
+    pub contaminant_bank: Option<serde_json::Value>,
+    pub enable_contaminant_removal: bool,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
+    pub reference_fasta: Option<PathBuf>,
+    pub out_dir: PathBuf,
+    pub allow_planned: bool,
+}
+
 pub struct FastqPlanner;
 
 impl FastqPlanner {
@@ -113,6 +131,88 @@ impl FastqPlanner {
             "planned fastq execution graph"
         );
         Ok(graph)
+    }
+
+    /// # Errors
+    /// Returns an error if benchmark fan-out planning fails.
+    pub fn plan_stage_benchmark_cohort(config: &FastqStageBenchmarkConfig) -> Result<ExecutionGraph> {
+        let stage_id = StageId::new(config.stage_id.clone());
+        enforce_stage_status(stage_id.as_str(), config.allow_planned)?;
+        if config.tools.is_empty() {
+            return Err(anyhow!(
+                "benchmark stage planning requires at least one tool for {}",
+                stage_id.as_str()
+            ));
+        }
+
+        let declared_bindings = crate::stage_api::toolset_for_stage(
+            &stage_id,
+            crate::stage_api::ToolsetExecutionMode::AllBindings,
+        );
+        let mut steps = Vec::new();
+        for tool in &config.tools {
+            if !declared_bindings
+                .iter()
+                .any(|declared| declared == &tool.tool_id)
+            {
+                return Err(anyhow!(
+                    "{} is not a declared binding for {}",
+                    tool.tool_id.as_str(),
+                    stage_id.as_str()
+                ));
+            }
+            let maturity = crate::stage_api::stage_tool_maturity(&stage_id, &tool.tool_id)
+                .ok_or_else(|| anyhow!(
+                    "missing stage-tool maturity for {} / {}",
+                    stage_id.as_str(),
+                    tool.tool_id.as_str()
+                ))?;
+            if maturity == crate::stage_api::StageToolMaturityLevel::PlannedBinding
+                && !config.allow_planned
+            {
+                return Err(anyhow!(
+                    "{} is a planned-only binding for {}; rerun with allow_planned to fan out planned tools",
+                    tool.tool_id.as_str(),
+                    stage_id.as_str()
+                ));
+            }
+            let stage_plans = compose_fastq_pipeline_steps(
+                &[config.stage_id.clone()],
+                std::slice::from_ref(tool),
+                &config.aux_images,
+                None,
+                config.adapter_bank.as_ref(),
+                config.polyx_bank.as_ref(),
+                config.contaminant_bank.as_ref(),
+                config.enable_contaminant_removal,
+                &config.r1,
+                config.r2.as_deref(),
+                config.reference_fasta.as_deref(),
+                |stage, tool, _r1, _r2| {
+                    let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
+                    Ok(config.out_dir.join(stage_dir).join(tool.tool_id.as_str()))
+                },
+            )?;
+            let Some(plan) = stage_plans.into_iter().next() else {
+                return Err(anyhow!(
+                    "benchmark stage planner produced no stage plan for {} / {}",
+                    stage_id.as_str(),
+                    tool.tool_id.as_str()
+                ));
+            };
+            steps.push(bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
+                &plan,
+                StepId::new(format!("{}.tool.{}", stage_id.as_str(), tool.tool_id.as_str())),
+            ));
+        }
+
+        Ok(ExecutionGraph::new(
+            config.pipeline_id.clone(),
+            PLANNER_VERSION,
+            config.policy,
+            steps,
+            Vec::new(),
+        )?)
     }
 }
 

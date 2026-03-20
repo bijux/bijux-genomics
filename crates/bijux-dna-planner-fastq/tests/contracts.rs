@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/benchmark_profiles.rs"]
 mod mod_contracts_benchmark_profiles_rs;
+#[path = "contracts/benchmark_fanout.rs"]
+mod mod_contracts_benchmark_fanout_rs;
 #[path = "contracts/docs.rs"]
 mod mod_contracts_docs_rs;
 #[path = "contracts/explain.rs"]
