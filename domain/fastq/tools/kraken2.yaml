@@ -27,7 +27,8 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "*"
+    - "classification_report_json"
+    - "screen_report_tsv"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -45,6 +46,9 @@ metrics_schema: "bijux.fastq.classify.v1"
 version_cmd: "kraken2 --version"
 help_cmd: "kraken2 --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "centrifuge"
+    - "kaiju"
+    - "krakenuniq"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed taxonomy classifiers only when database lineage, rank collapsing, and normalized report artifacts are equivalent."

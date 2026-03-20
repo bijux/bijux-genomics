@@ -28,7 +28,8 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "*"
+    - "classification_report_json"
+    - "screen_report_tsv"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -46,6 +47,9 @@ metrics_schema: "bijux.fastq.classify.v1"
 version_cmd: "kaiju --version"
 help_cmd: "kaiju --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "centrifuge"
+    - "kraken2"
+    - "krakenuniq"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed taxonomy classifiers only when the benchmark uses the same database release and normalized taxonomy report contract."
