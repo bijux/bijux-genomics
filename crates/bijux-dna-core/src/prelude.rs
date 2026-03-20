@@ -4,13 +4,14 @@ pub use crate::contract::{
     ArtifactRole, ArtifactSpec, BenchResultRecord, BenchResultStatus, Cardinality,
     ContractVersion, Disqualification, ExecutionContract, ExecutionEdge, ExecutionGraph,
     ExecutionManifest, ExecutionStep, ImageDigest, ImageRequirements, MetricProvenanceV1,
-    Objective, ObjectiveSpec, ObjectiveWeights, PathSpec, PipelineDomain, PipelineId, PipelineSpec,
-    PlanPolicy, PortSpec, Profile, ProfileId, RetryPolicy, RunId, RunIndexEntry, RunIndexLine,
-    RunMetadataV1, RunQuery, RunRecordV1, RunSpec, RuntimeScale, ScientificProvenanceV1,
-    StageExecutionRecordV1, StageIO, StageId, StageMetadataV1, StageParameterSpec,
-    StageSelection, StageSemanticKind, StageSpec, StageVersion, StepId, ToolConstraints,
-    ToolExecutionMetadataV1, ToolExecutionSpecV1, ToolId, ToolInvocationMetadataV1, ToolManifest,
-    ToolProvenanceV1, ToolRegistry, ToolRole, ToolScore, ToolVersion,
+    Objective, ObjectiveSpec, ObjectiveWeights, PathSpec, PipelineDomain, PipelineEdgeSpec,
+    PipelineId, PipelineNodeSpec, PipelineSpec, PlanPolicy, PortSpec, Profile, ProfileId,
+    RetryPolicy, RunId, RunIndexEntry, RunIndexLine, RunMetadataV1, RunQuery, RunRecordV1,
+    RunSpec, RuntimeScale, ScientificProvenanceV1, StageExecutionRecordV1, StageIO, StageId,
+    StageMetadataV1, StageParameterSpec, StageSelection, StageSemanticKind, StageSpec,
+    StageVersion, StepId, ToolConstraints, ToolExecutionMetadataV1, ToolExecutionSpecV1, ToolId,
+    ToolInvocationMetadataV1, ToolManifest, ToolProvenanceV1, ToolRegistry, ToolRole, ToolScore,
+    ToolVersion,
 };
 pub use crate::contract::tooling;
 pub use crate::foundation::{

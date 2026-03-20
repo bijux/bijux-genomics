@@ -2,9 +2,7 @@ use bijux_dna_core::contract::PipelineSpec;
 
 #[test]
 fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> anyhow::Result<()> {
-    let pipeline = PipelineSpec {
-        stages: vec!["fastq.trim_reads".to_string()],
-    };
+    let pipeline = PipelineSpec::linear(vec!["fastq.trim_reads".to_string()]);
 
     let default = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &pipeline,
@@ -37,9 +35,7 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
 #[test]
 fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit() -> anyhow::Result<()>
 {
-    let trim_pipeline = PipelineSpec {
-        stages: vec!["fastq.trim_reads".to_string()],
-    };
+    let trim_pipeline = PipelineSpec::linear(vec!["fastq.trim_reads".to_string()]);
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &trim_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
@@ -47,9 +43,7 @@ fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit()
     )?;
     assert!(all_bindings[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
 
-    let infer_pipeline = PipelineSpec {
-        stages: vec!["fastq.infer_asvs".to_string()],
-    };
+    let infer_pipeline = PipelineSpec::linear(vec!["fastq.infer_asvs".to_string()]);
     let declared_only_error = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &infer_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
