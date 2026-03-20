@@ -35,152 +35,156 @@ pub struct StageExecutorEntry {
     pub readiness: ReadinessBadge,
 }
 
-const FASTQ_EXECUTOR: &str = "api.fastq.preprocess";
+const FASTQ_PREPROCESS_EXECUTOR: &str = "api.fastq.preprocess";
+const FASTQ_QC_EXECUTOR: &str = "api.fastq.qc";
+const FASTQ_REFERENCE_EXECUTOR: &str = "api.fastq.reference";
+const FASTQ_AMPLICON_EXECUTOR: &str = "api.fastq.amplicon";
+const FASTQ_CLASSIFY_EXECUTOR: &str = "api.fastq.classify";
 const BAM_EXECUTOR: &str = "api.bam.exec";
 const VCF_EXECUTOR: &str = "stages-vcf.pipeline";
 
 const ENTRIES: &[StageExecutorEntry] = &[
     StageExecutorEntry {
         stage_id: "fastq.normalize_abundance",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.remove_chimeras",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.deplete_reference_contaminants",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_REFERENCE_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.correct_errors",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.trim_terminal_damage",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.remove_duplicates",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.detect_adapters",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.filter_reads",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.deplete_host",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.profile_read_lengths",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.filter_low_complexity",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.merge_pairs",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.cluster_otus",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.profile_overrepresented_sequences",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.trim_polyg_tails",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.index_reference",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.normalize_primers",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.report_qc",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.deplete_rrna",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.screen_taxonomy",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_CLASSIFY_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.profile_reads",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.trim_reads",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.extract_umis",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
         stage_id: "fastq.validate_reads",
-        executor: FASTQ_EXECUTOR,
+        executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
         readiness: ReadinessBadge::Supported,
     },
@@ -418,7 +422,11 @@ mod tests {
         assert!(has_executor("fastq.filter_reads"));
         assert_eq!(
             entry("fastq.filter_reads").map(|value| value.executor),
-            Some(FASTQ_EXECUTOR)
+            Some(FASTQ_PREPROCESS_EXECUTOR)
+        );
+        assert_eq!(
+            entry("fastq.report_qc").map(|value| value.executor),
+            Some(FASTQ_QC_EXECUTOR)
         );
     }
 }
