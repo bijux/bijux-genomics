@@ -12,12 +12,18 @@ container:
 command_template:
   - "trim_galore"
   - "--output_dir"
-  - "{{trimmed_reads}}"
-  - "{{reads}}"
+  - "{{trimmed_reads_dir}}"
+  - "{{reads_r1}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_trim_v1"
 constraints:
   runtime: "local"
@@ -28,9 +34,11 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "*trimmed.fq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "report_json"
   forbidden_outputs: []
-  forbid_unexpected_outputs: false
+  forbid_unexpected_outputs: true
 upstream: "https://github.com/FelixKrueger/TrimGalore"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
@@ -47,7 +55,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "Trim execution emits governed trimmed-read artifacts together with the normalized stage report."
+    notes: "Trim Galore stages backend output directories into governed trimmed-read artifacts and a normalized trim report."
 expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
 metrics_schema: "bijux.fastq.trim_reads.v1"
