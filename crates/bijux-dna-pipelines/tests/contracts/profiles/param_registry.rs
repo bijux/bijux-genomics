@@ -79,6 +79,8 @@ fn profile_param_kind(params: &DefaultParams) -> &'static str {
         DefaultParams::FastqUmi(_) => "fastq.extract_umis",
         DefaultParams::FastqDetectAdapters(_) => "fastq.detect_adapters",
         DefaultParams::FastqTrim(_) => "fastq.trim_reads",
+        DefaultParams::FastqTrimTerminalDamage(_) => "fastq.trim_terminal_damage",
+        DefaultParams::FastqTrimPolygTails(_) => "fastq.trim_polyg_tails",
         DefaultParams::FastqFilter(_) => "fastq.filter_reads",
         DefaultParams::FastqQcPost(_) => "fastq.report_qc",
         DefaultParams::FastqPreprocess(_) => "fastq.preprocess",

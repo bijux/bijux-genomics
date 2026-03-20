@@ -14,7 +14,9 @@ use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::stats::FastqStatsParams;
-use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
+use bijux_dna_domain_fastq::params::trim::{
+    TrimEffectiveParams, TrimPolygTailsParams, TrimTerminalDamageParams,
+};
 use bijux_dna_domain_fastq::params::umi::FastqUmiParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
 use bijux_dna_domain_vcf::params::VcfEffectiveParams;
@@ -111,6 +113,8 @@ pub enum DefaultParams {
     FastqUmi(FastqUmiParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
     FastqTrim(TrimEffectiveParams),
+    FastqTrimTerminalDamage(TrimTerminalDamageParams),
+    FastqTrimPolygTails(TrimPolygTailsParams),
     FastqFilter(FilterEffectiveParams),
     FastqQcPost(QcPostEffectiveParams),
     FastqPreprocess(PreprocessEffectiveParams),
@@ -138,6 +142,12 @@ impl DefaultParams {
                 Self::encode(value, "fastq.detect_adapters")
             }
             DefaultParams::FastqTrim(value) => Self::encode(value, "fastq.trim_reads"),
+            DefaultParams::FastqTrimTerminalDamage(value) => {
+                Self::encode(value, "fastq.trim_terminal_damage")
+            }
+            DefaultParams::FastqTrimPolygTails(value) => {
+                Self::encode(value, "fastq.trim_polyg_tails")
+            }
             DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter_reads"),
             DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.report_qc"),
             DefaultParams::FastqPreprocess(value) => Self::encode(value, "fastq.preprocess"),
@@ -228,6 +238,12 @@ impl<'de> Deserialize<'de> for DefaultParams {
         }
         if let Ok(parsed) = serde_json::from_value::<DetectAdaptersEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqDetectAdapters(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<TrimTerminalDamageParams>(value.clone()) {
+            return Ok(DefaultParams::FastqTrimTerminalDamage(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<TrimPolygTailsParams>(value.clone()) {
+            return Ok(DefaultParams::FastqTrimPolygTails(parsed));
         }
         if let Ok(parsed) = serde_json::from_value::<TrimEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqTrim(parsed));
