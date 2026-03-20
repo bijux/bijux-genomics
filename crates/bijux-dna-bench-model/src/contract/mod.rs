@@ -210,9 +210,14 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 edge.to
             )));
         }
-        if !seen_edges.insert((edge.from.as_str(), edge.to.as_str())) {
+        if !seen_edges.insert((
+            edge.from.as_str(),
+            edge.to.as_str(),
+            edge.from_output_id.as_deref(),
+            edge.to_input_id.as_deref(),
+        )) {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite must not repeat edge {} -> {}",
+                "suite must not repeat edge {} -> {} with identical artifact bindings",
                 edge.from, edge.to
             )));
         }
@@ -743,6 +748,74 @@ mod tests {
         ];
         let error = validate_suite(&suite).expect_err("duplicate explicit edges must fail");
         assert!(error.to_string().contains("must not repeat edge"));
+    }
+
+    #[test]
+    fn suite_validation_allows_parallel_artifact_edges_between_same_nodes() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    tools: vec!["multiqc".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![
+            BenchmarkStageEdge {
+                from: "fastq.validate_reads.validator".to_string(),
+                to: "fastq.report_qc.aggregate".to_string(),
+                from_output_id: Some("validation_report".to_string()),
+                to_input_id: Some("qc_artifacts".to_string()),
+            },
+            BenchmarkStageEdge {
+                from: "fastq.validate_reads.validator".to_string(),
+                to: "fastq.report_qc.aggregate".to_string(),
+                from_output_id: Some("validated_reads_r1".to_string()),
+                to_input_id: Some("reads_r1".to_string()),
+            },
+        ];
+        validate_suite(&suite)
+            .expect("distinct artifact bindings between the same nodes should validate");
     }
 
     #[test]
