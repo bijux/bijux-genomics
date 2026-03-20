@@ -304,6 +304,12 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
 
     let mut seen = BTreeSet::new();
     for stage in &suite.stages {
+        if !stage.stage.contains('.') {
+            return Err(anyhow!(
+                "stage {} must use canonical stage ids like fastq.trim_reads",
+                stage.stage
+            ));
+        }
         if stage.tools.is_empty() {
             return Err(anyhow!(
                 "stage {} must include at least one tool",
@@ -314,6 +320,8 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
             return Err(anyhow!("duplicate stage in suite: {}", stage.stage));
         }
     }
+
+    validate_governed_stage_tool_bindings(suite)?;
 
     let stage_set = suite
         .stages
@@ -340,6 +348,87 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn validate_governed_stage_tool_bindings(suite: &SuiteSpec) -> Result<()> {
+    let registry_path =
+        bijux_dna_infra::configs_file(&workspace_root(), "ci/registry/tool_registry.toml");
+    let registry = bijux_dna_runtime::manifests::load_manifests(&registry_path)
+        .with_context(|| format!("load {}", registry_path.display()))?;
+    for stage in &suite.stages {
+        let stage_id = bijux_dna_api::v1::api::run::StageId::try_from(stage.stage.as_str())
+            .map_err(|err| anyhow!("invalid suite stage {}: {err}", stage.stage))?;
+        let governed_tools = registry
+            .tools_for_stage(&stage_id)
+            .iter()
+            .map(|tool| tool.tool_id.as_str())
+            .collect::<BTreeSet<_>>();
+        if governed_tools.is_empty() {
+            return Err(anyhow!(
+                "stage {} is not admitted in governed registry {}",
+                stage.stage,
+                registry_path.display()
+            ));
+        }
+        for tool in &stage.tools {
+            let tool_id = bijux_dna_api::v1::api::run::ToolId::try_from(tool.as_str())
+                .map_err(|err| anyhow!("invalid tool id {} for stage {}: {err}", tool, stage.stage))?;
+            if !governed_tools.contains(tool_id.as_str()) {
+                return Err(anyhow!(
+                    "stage {} tool {} is not admitted in governed registry",
+                    stage.stage, tool
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod suite_contract_tests {
+    use super::{validate_suite_contracts, FairnessSpec, SuiteSpec, SuiteStage};
+
+    fn governed_suite(stage: &str, tools: &[&str]) -> SuiteSpec {
+        SuiteSpec {
+            schema_version: "bijux.bench.suite.v1".to_string(),
+            suite_id: "fastq_stage02_trim".to_string(),
+            corpus: "example-102".to_string(),
+            stages: vec![SuiteStage {
+                stage: stage.to_string(),
+                tools: tools.iter().map(|tool| (*tool).to_string()).collect(),
+            }],
+            repetitions: 2,
+            resource_hints: None,
+            fairness: Some(FairnessSpec {
+                threads: 16,
+                mem_gb: 64,
+                tmp_policy: "unique-per-run-id".to_string(),
+                cold_runs: 1,
+                warm_runs: 1,
+            }),
+        }
+    }
+
+    #[test]
+    fn suite_validation_rejects_noncanonical_stage_ids() {
+        let suite = governed_suite("trim", &["fastp"]);
+        let error = validate_suite_contracts(&suite).expect_err("legacy stage ids must fail");
+        assert!(error.to_string().contains("canonical stage ids"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_unguarded_stage_tools() {
+        let suite = governed_suite("fastq.trim_reads", &["seqpurge"]);
+        let error = validate_suite_contracts(&suite)
+            .expect_err("planned or missing registry tool must fail");
+        assert!(error.to_string().contains("not admitted in governed registry"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_governed_fastq_bindings() {
+        let suite = governed_suite("fastq.trim_reads", &["fastp", "bbduk"]);
+        validate_suite_contracts(&suite).expect("governed bindings must validate");
+    }
 }
 
 fn suite_signature(cwd: &Path, suite_id: &str, hpc: bool) -> Result<String> {
