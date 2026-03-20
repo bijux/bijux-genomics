@@ -57,9 +57,11 @@
   },
   "out_dir": "out",
   "params": {
-    "input_r1": "reads_R1.fastq.gz",
-    "input_r2": "reads_R2.fastq.gz",
     "out_dir": "out",
+    "qc_inputs": [
+      "reads_R1.fastq.gz",
+      "reads_R2.fastq.gz"
+    ],
     "tool": "multiqc"
   },
   "effective_params": {

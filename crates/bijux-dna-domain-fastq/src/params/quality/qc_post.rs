@@ -15,6 +15,7 @@ pub enum QcAggregationEngine {
 #[serde(rename_all = "snake_case")]
 pub enum QcAggregationScope {
     FastqQcInputs,
+    GovernedQcArtifacts,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
