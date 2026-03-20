@@ -55,7 +55,7 @@ pub fn plan(
             ArtifactRole::Reads,
         ));
     }
-    let command_template = validation_command(&tool.tool_id.0, r1, r2, &report_path, out_dir)?;
+    let command_template = validation_command(tool, r1, r2, &report_path, out_dir)?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -115,27 +115,25 @@ pub fn plan_from_config(
 }
 
 fn validation_command(
-    tool_id: &str,
+    tool: &ToolExecutionSpecV1,
     r1: &Path,
     r2: Option<&Path>,
     report_path: &Path,
     out_dir: &Path,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path| -> Result<String> {
-        let quoted_reads = shell_quote(reads);
-        let command = match tool_id {
-            "fastqvalidator" => format!(
-                "fastqvalidator --file {quoted_reads} > {} 2>&1",
-                shell_quote(log_path)
-            ),
-            "seqtk" => format!("seqtk seq {quoted_reads} > {} 2>&1", shell_quote(log_path)),
-            "fqtools" => format!(
-                "fqtools validate {quoted_reads} > {} 2>&1",
-                shell_quote(log_path)
-            ),
-            _ => return Err(anyhow!("unsupported validation tool: {tool_id}")),
-        };
-        Ok(command)
+        let rendered = crate::tool_adapters::template_render::render_command_template(
+            &tool.command.template,
+            &[
+                ("reads", Some(reads.display().to_string())),
+                ("reads_r1", Some(reads.display().to_string())),
+            ],
+        )?;
+        Ok(format!(
+            "{} > {} 2>&1",
+            shell_join(&rendered),
+            shell_quote(log_path)
+        ))
     };
 
     let r1_log = out_dir.join("validation_r1.log");
@@ -152,7 +150,7 @@ fn validation_command(
     let report_payload = serde_json::json!({
         "schema_version": "bijux.fastq.validate.report.v1",
         "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
+        "tool_id": tool.tool_id.as_str(),
         "input_r1": r1,
         "input_r2": r2,
         "validation_log_r1": r1_log,
@@ -211,7 +209,26 @@ mod tests {
                 image: "bijux/test:latest".to_string(),
                 digest: None,
             },
-            command: CommandSpecV1 { template: vec![] },
+            command: CommandSpecV1 {
+                template: match tool_id {
+                    "fastqvalidator" => vec![
+                        "fastqvalidator".to_string(),
+                        "--file".to_string(),
+                        "{{reads_r1}}".to_string(),
+                    ],
+                    "seqtk" => vec![
+                        "seqtk".to_string(),
+                        "seq".to_string(),
+                        "{{reads_r1}}".to_string(),
+                    ],
+                    "fqtools" => vec![
+                        "fqtools".to_string(),
+                        "validate".to_string(),
+                        "{{reads_r1}}".to_string(),
+                    ],
+                    _ => vec![tool_id.to_string(), "{{reads_r1}}".to_string()],
+                },
+            },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -267,10 +284,18 @@ mod tests {
         assert_eq!(plan.command.template[0], "sh");
         assert_eq!(plan.command.template[1], "-lc");
         let script = &plan.command.template[2];
-        assert!(script.contains("seqtk seq 'reads.fastq.gz' > 'out/validation_r1.log' 2>&1"));
+        assert!(script.contains("'seqtk' 'seq' 'reads.fastq.gz' > 'out/validation_r1.log' 2>&1"));
         assert!(script.contains("out/validation.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
         Ok(())
     }
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
