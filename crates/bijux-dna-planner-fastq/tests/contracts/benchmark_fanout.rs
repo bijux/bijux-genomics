@@ -52,11 +52,8 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         },
     )?;
 
-    assert_eq!(graph.steps().len(), 2);
-    assert!(graph.edges().is_empty());
-    assert_eq!(graph.steps()[0].stage_id.as_str(), "fastq.trim_reads");
-    assert_eq!(graph.steps()[1].stage_id.as_str(), "fastq.trim_reads");
-    assert_ne!(graph.steps()[0].step_id.as_str(), graph.steps()[1].step_id.as_str());
+    assert_eq!(graph.steps().len(), 3);
+    assert_eq!(graph.edges().len(), 2);
     assert!(graph
         .steps()
         .iter()
@@ -65,6 +62,24 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .steps()
         .iter()
         .any(|step| step.step_id.as_str() == "fastq.trim_reads.tool.cutadapt"));
+    let compare_step = graph
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.compare")
+        .expect("benchmark fanout graph must include a comparison fan-in step");
+    assert_eq!(compare_step.stage_id.as_str(), "fastq.trim_reads");
+    assert!(compare_step
+        .expected_artifact_ids
+        .iter()
+        .any(|artifact_id| artifact_id.as_str() == "stage_tool_comparison_json"));
+    assert!(graph.edges().iter().any(|edge| {
+        edge.from().as_str() == "fastq.trim_reads.tool.fastp"
+            && edge.to().as_str() == "fastq.trim_reads.compare"
+    }));
+    assert!(graph.edges().iter().any(|edge| {
+        edge.from().as_str() == "fastq.trim_reads.tool.cutadapt"
+            && edge.to().as_str() == "fastq.trim_reads.compare"
+    }));
     Ok(())
 }
 

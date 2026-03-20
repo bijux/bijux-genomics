@@ -150,6 +150,7 @@ impl FastqPlanner {
             crate::stage_api::ToolsetExecutionMode::AllBindings,
         );
         let mut steps = Vec::new();
+        let mut comparison_inputs = Vec::new();
         for tool in &config.tools {
             if !declared_bindings
                 .iter()
@@ -200,18 +201,89 @@ impl FastqPlanner {
                     tool.tool_id.as_str()
                 ));
             };
+            for output in &plan.io.outputs {
+                comparison_inputs.push(ArtifactRef::required(
+                    ArtifactId::new(format!(
+                        "{}__{}",
+                        tool.tool_id.as_str(),
+                        output.name.as_str()
+                    )),
+                    output.path.clone(),
+                    output.role,
+                ));
+            }
             steps.push(bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
                 &plan,
                 StepId::new(format!("{}.tool.{}", stage_id.as_str(), tool.tool_id.as_str())),
             ));
         }
 
+        let comparison_artifact_ids =
+            bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
+        if !comparison_artifact_ids.is_empty() {
+            let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
+            let compare_out_dir = config.out_dir.join(stage_id.as_str().trim_start_matches(STAGE_PREFIX)).join("compare");
+            let comparison_outputs = comparison_artifact_ids
+                .iter()
+                .map(|artifact_id| {
+                    let file_name = match *artifact_id {
+                        "benchmark_cohort_json" => "benchmark_cohort.json",
+                        "stage_tool_comparison_json" => "stage_tool_comparison.json",
+                        "stage_tool_normalization_json" => "stage_tool_normalization.json",
+                        _ => "comparison.json",
+                    };
+                    ArtifactRef::required(
+                        ArtifactId::new((*artifact_id).to_string()),
+                        compare_out_dir.join(file_name),
+                        ArtifactRole::SummaryJson,
+                    )
+                })
+                .collect::<Vec<_>>();
+            steps.push(ExecutionStep {
+                step_id: compare_step_id,
+                stage_id: stage_id.clone(),
+                command: CommandSpecV1 {
+                    template: vec![
+                        "stage-tool-compare".to_string(),
+                        "--stage".to_string(),
+                        stage_id.as_str().to_string(),
+                    ],
+                },
+                image: ContainerImageRefV1 {
+                    image: "bijux-dna-compare".to_string(),
+                    digest: None,
+                },
+                resources: ToolConstraints::default(),
+                io: StageIO {
+                    inputs: comparison_inputs,
+                    outputs: comparison_outputs,
+                },
+                out_dir: compare_out_dir,
+                aux_images: BTreeMap::new(),
+                expected_artifact_ids: comparison_artifact_ids
+                    .iter()
+                    .map(|artifact_id| ArtifactId::new((*artifact_id).to_string()))
+                    .collect(),
+                metrics_schema_ids: Vec::new(),
+            });
+        }
+
+        let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
+        let edges = if steps.iter().any(|step| step.step_id == compare_step_id) {
+            steps.iter()
+                .filter(|step| step.step_id != compare_step_id)
+                .map(|step| ExecutionEdge::new(step.step_id.clone(), compare_step_id.clone()))
+                .collect()
+        } else {
+            Vec::new()
+        };
+
         Ok(ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
             steps,
-            Vec::new(),
+            edges,
         )?)
     }
 }
