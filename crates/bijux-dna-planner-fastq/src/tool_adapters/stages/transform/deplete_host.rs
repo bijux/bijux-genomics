@@ -102,7 +102,7 @@ pub fn plan_host_depletion(
             output_r2.clone(),
             ArtifactRole::Reads,
         ));
-        outputs.push(ArtifactRef::optional(
+        outputs.push(ArtifactRef::required(
             ArtifactId::from_static("removed_host_reads_r1"),
             removed_r1.clone(),
             ArtifactRole::Reads,
@@ -125,7 +125,7 @@ pub fn plan_host_depletion(
             output.clone(),
             ArtifactRole::Reads,
         ));
-        outputs.push(ArtifactRef::optional(
+        outputs.push(ArtifactRef::required(
             ArtifactId::from_static("removed_host_reads_r1"),
             removed.clone(),
             ArtifactRole::Reads,

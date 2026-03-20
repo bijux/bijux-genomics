@@ -72,7 +72,7 @@
         "name": "removed_host_reads_r1",
         "path": "out/removed_host_R1.fastq.gz",
         "role": "reads",
-        "optional": true
+        "optional": false
       },
       {
         "name": "removed_host_reads_r2",
