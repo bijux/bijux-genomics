@@ -59,6 +59,29 @@ pub struct FastqStageBinding {
     pub stage_instance_id: Option<String>,
     pub tool: ToolExecutionSpecV1,
     pub reason: Option<PlanDecisionReason>,
+    pub params: Option<FastqStageParameters>,
+}
+
+#[derive(Debug, Clone)]
+pub enum FastqStageParameters {
+    TrimTerminalDamage(TrimTerminalDamageStageParams),
+}
+
+#[derive(Debug, Clone)]
+pub struct TrimTerminalDamageStageParams {
+    pub damage_mode: String,
+    pub trim_5p_bases: u32,
+    pub trim_3p_bases: u32,
+}
+
+impl Default for TrimTerminalDamageStageParams {
+    fn default() -> Self {
+        Self {
+            damage_mode: "ancient".to_string(),
+            trim_5p_bases: 2,
+            trim_3p_bases: 2,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -330,6 +353,7 @@ fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBi
                 .tool_reasons
                 .as_ref()
                 .and_then(|reasons| reasons.get(idx).cloned()),
+            params: None,
         })
         .collect::<Vec<_>>();
     ensure_unique_stage_binding_nodes(&bindings)?;
@@ -510,6 +534,7 @@ where
             stage_instance_id: None,
             tool: tool.clone(),
             reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
+            params: None,
         })
         .collect::<Vec<_>>();
     compose_fastq_stage_bindings(

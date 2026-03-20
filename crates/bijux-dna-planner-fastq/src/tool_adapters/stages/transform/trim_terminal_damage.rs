@@ -10,6 +10,8 @@ use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, PlanReasonKind, 
 pub const STAGE_ID: StageId = STAGE_TRIM_TERMINAL_DAMAGE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+pub type TrimTerminalDamagePlanOptions = crate::TrimTerminalDamageStageParams;
+
 fn output_name(tool_id: &str) -> Option<&'static str> {
     match tool_id {
         "cutadapt" => Some("trim_terminal_damage.cutadapt.fastq.gz"),
@@ -29,6 +31,28 @@ pub fn plan_trim_terminal_damage(
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> Result<StagePlanV1> {
+    plan_trim_terminal_damage_with_options(
+        tool,
+        r1,
+        r2,
+        out_dir,
+        &TrimTerminalDamagePlanOptions {
+            damage_mode: damage_mode.to_string(),
+            trim_5p_bases,
+            trim_3p_bases,
+        },
+    )
+}
+
+/// # Errors
+/// Returns an error when the tool does not support `fastq.trim_terminal_damage`.
+pub fn plan_trim_terminal_damage_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &TrimTerminalDamagePlanOptions,
+) -> Result<StagePlanV1> {
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
     let output_r1 = if r2.is_some() {
@@ -45,8 +69,8 @@ pub fn plan_trim_terminal_damage(
         &output_r1,
         output_r2.as_deref(),
         &report,
-        trim_5p_bases,
-        trim_3p_bases,
+        options.trim_5p_bases,
+        options.trim_3p_bases,
     )?;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -102,9 +126,9 @@ pub fn plan_trim_terminal_damage(
             "report_json": report,
         }),
         effective_params: serde_json::json!({
-            "damage_mode": damage_mode,
-            "trim_5p_bases": trim_5p_bases,
-            "trim_3p_bases": trim_3p_bases,
+            "damage_mode": options.damage_mode,
+            "trim_5p_bases": options.trim_5p_bases,
+            "trim_3p_bases": options.trim_3p_bases,
             "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "transition_masking": "CT_GA_terminal_windows",
             "udg_classification_source": "config_or_inferred",

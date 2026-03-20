@@ -10,7 +10,7 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    FastqStageBinding,
+    FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams,
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
@@ -56,6 +56,7 @@ where
             stage_instance_id: None,
             tool: tool.clone(),
             reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
+            params: None,
         })
         .collect::<Vec<_>>();
     compose_fastq_stage_bindings(
@@ -162,14 +163,13 @@ where
                 (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => {
-                let plan = crate::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+                let params = trim_terminal_damage_params(binding);
+                let plan = crate::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage_with_options(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
                     &out_dir,
-                    "ancient",
-                    2,
-                    2,
+                    &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {
@@ -548,6 +548,13 @@ where
         current_feature_table = next_feature_table;
     }
     Ok(plans)
+}
+
+fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::TrimTerminalDamage(params)) => params.clone(),
+        None => TrimTerminalDamageStageParams::default(),
+    }
 }
 
 fn ensure_reference_index_backend(
