@@ -25,7 +25,11 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
+        out.push(
+            line.trim_start_matches("  - ")
+                .trim_matches('"')
+                .to_string(),
+        );
     }
     out
 }
@@ -71,8 +75,8 @@ fn stage_tool_expectations() -> Result<BTreeMap<String, BTreeSet<String>>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = quoted_scalar(&raw, "stage_id")
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
         let mut tools = yaml_list(&raw, "compatible_tools")
@@ -96,11 +100,15 @@ fn tool_stage_bindings_are_admitted_or_explicitly_planned() -> Result<()> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let tool_id = quoted_scalar(&raw, "tool_id")
             .with_context(|| format!("tool_id missing in {}", path.display()))?;
-        for stage_id in yaml_list(&raw, "stage_ids") {
+        let declared_stage_ids = yaml_list(&raw, "stage_ids")
+            .into_iter()
+            .chain(yaml_list(&raw, "planned_stage_ids"))
+            .collect::<Vec<_>>();
+        for stage_id in declared_stage_ids {
             if !stage_id.starts_with("fastq.") {
                 continue;
             }
