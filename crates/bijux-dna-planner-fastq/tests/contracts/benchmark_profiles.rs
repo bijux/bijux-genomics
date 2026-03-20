@@ -72,3 +72,43 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
         "closed taxonomy screening backends should surface the shared benchmark cohort",
     );
 }
+
+#[test]
+fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
+    let trim_stage = StageId::from_static("fastq.trim_reads");
+    let trim_cohorts = bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&trim_stage);
+    assert_eq!(trim_cohorts.len(), 1);
+    assert_eq!(trim_cohorts[0].scenario_id, "trim_fairness");
+    assert!(
+        trim_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastp")
+    );
+    assert!(
+        trim_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "seqpurge")
+    );
+    assert!(trim_cohorts[0].observer_specialized_tools.is_empty());
+    assert!(!trim_cohorts[0].generic_envelope_tools.is_empty());
+
+    let screen_stage = StageId::from_static("fastq.screen_taxonomy");
+    let screen_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&screen_stage);
+    assert_eq!(screen_cohorts.len(), 1);
+    assert_eq!(screen_cohorts[0].scenario_id, "screen_fairness");
+    assert!(
+        screen_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "kraken2")
+    );
+    assert!(
+        screen_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "diamond")
+    );
+}

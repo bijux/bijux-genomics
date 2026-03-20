@@ -43,6 +43,17 @@ pub struct StageToolBenchmarkProfile {
     pub readiness: BenchmarkReadinessLevel,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkCohort {
+    pub scenario_id: String,
+    pub stage_id: StageId,
+    pub description: String,
+    pub fairness_rules: Vec<String>,
+    pub tool_ids: Vec<ToolId>,
+    pub observer_specialized_tools: Vec<ToolId>,
+    pub generic_envelope_tools: Vec<ToolId>,
+}
+
 #[must_use]
 pub fn benchmark_profile_for_stage_tool(
     stage_id: &StageId,
@@ -90,6 +101,52 @@ pub fn benchmark_profiles_for_stage(stage_id: &StageId) -> Vec<StageToolBenchmar
     stage_tool_bindings_for_stage(stage_id)
         .into_iter()
         .filter_map(|binding| benchmark_profile_for_stage_tool(&binding.stage_id, &binding.tool_id))
+        .collect()
+}
+
+#[must_use]
+pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
+    let profiles = benchmark_profiles_for_stage(stage_id);
+    benchmark_scenarios_for_stage(stage_id)
+        .into_iter()
+        .map(|scenario| {
+            let cohort_profiles = profiles
+                .iter()
+                .filter(|profile| {
+                    profile
+                        .benchmark_scenarios
+                        .iter()
+                        .any(|scenario_id| scenario_id == &scenario.scenario_id)
+                        && profile.readiness != BenchmarkReadinessLevel::PlannedContract
+                })
+                .collect::<Vec<_>>();
+            let observer_specialized_tools = cohort_profiles
+                .iter()
+                .filter(|profile| {
+                    profile.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+                })
+                .map(|profile| profile.tool_id.clone())
+                .collect::<Vec<_>>();
+            let generic_envelope_tools = cohort_profiles
+                .iter()
+                .filter(|profile| {
+                    profile.runtime_interpretation == RuntimeInterpretationLevel::GenericEnvelope
+                })
+                .map(|profile| profile.tool_id.clone())
+                .collect::<Vec<_>>();
+            BenchmarkCohort {
+                scenario_id: scenario.scenario_id,
+                stage_id: scenario.stage_id,
+                description: scenario.description,
+                fairness_rules: scenario.fairness_rules,
+                tool_ids: cohort_profiles
+                    .iter()
+                    .map(|profile| profile.tool_id.clone())
+                    .collect(),
+                observer_specialized_tools,
+                generic_envelope_tools,
+            }
+        })
         .collect()
 }
 
