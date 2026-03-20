@@ -143,6 +143,40 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
+    let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            trim_polyg: true,
+            min_polyg_run: 14,
+        },
+    )?;
+    assert!(fastp_plan.command.template.iter().any(|part| part == "--poly_g_min_len"));
+    assert!(fastp_plan.command.template.iter().any(|part| part == "14"));
+    assert_eq!(fastp_plan.effective_params["min_polyg_run"], 14);
+
+    let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
+        &dummy_tool("bbduk"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            trim_polyg: true,
+            min_polyg_run: 14,
+        },
+    )?;
+    assert!(bbduk_plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "trimpolygright=14"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
         &dummy_tool("cutadapt"),

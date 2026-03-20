@@ -4,16 +4,16 @@ use bijux_dna_api::v1::api::run::{StageId, ToolId};
 
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
-    BamCommand, BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs,
-    BenchFastqDepleteHostArgs, BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
-    BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs,
-    BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs,
-    BenchFastqPreprocessArgs, BenchFastqProfileOverrepresentedArgs,
-    BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs, BenchFastqRemoveChimerasArgs,
-    BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
-    BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
-    BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand, FastqCommand,
-    FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
+    BamCommand, BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
+    BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
+    BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs,
+    BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs, BenchFastqMergeArgs,
+    BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
+    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs,
+    BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs,
+    BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+    BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs,
+    DnaCommand, FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
 #[must_use]
@@ -158,6 +158,7 @@ pub fn bench_args_trim_polyg(
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         polyx_preset: args.polyx_preset.clone(),
+        min_polyg_run: args.min_polyg_run,
     })
 }
 
@@ -509,20 +510,18 @@ pub fn bench_args_deplete_host(
 pub fn bench_args_deplete_reference_contaminants(
     args: &BenchFastqDepleteReferenceContaminantsArgs,
 ) -> Result<engine_args::BenchFastqDepleteReferenceContaminantsArgs> {
-    Ok(
-        engine_args::BenchFastqDepleteReferenceContaminantsArgs {
-            sample_id: args.sample_id.clone(),
-            r1: args.r1.clone(),
-            r2: args.r2.clone(),
-            reference_index: args.reference_index.clone(),
-            out: args.out.clone(),
-            tools: resolve_bench_tools("fastq.deplete_reference_contaminants", &args.tools)?,
-            explain: args.explain,
-            replicates: args.replicates,
-            jobs: args.jobs,
-            ci_bootstrap: args.ci_bootstrap,
-        },
-    )
+    Ok(engine_args::BenchFastqDepleteReferenceContaminantsArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        r2: args.r2.clone(),
+        reference_index: args.reference_index.clone(),
+        out: args.out.clone(),
+        tools: resolve_bench_tools("fastq.deplete_reference_contaminants", &args.tools)?,
+        explain: args.explain,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        ci_bootstrap: args.ci_bootstrap,
+    })
 }
 
 /// # Errors

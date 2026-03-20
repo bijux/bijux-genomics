@@ -140,6 +140,8 @@ pub struct BenchFastqTrimPolygArgs {
     pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
     pub polyx_preset: Option<String>,
+    #[arg(long)]
+    pub min_polyg_run: Option<u32>,
 }
 
 #[derive(Debug, Args)]

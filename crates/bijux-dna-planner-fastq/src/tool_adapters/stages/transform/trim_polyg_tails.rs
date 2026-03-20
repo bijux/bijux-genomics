@@ -16,6 +16,21 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_TRIM_POLYG_TAILS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TrimPolygPlanOptions {
+    pub trim_polyg: bool,
+    pub min_polyg_run: u32,
+}
+
+impl Default for TrimPolygPlanOptions {
+    fn default() -> Self {
+        Self {
+            trim_polyg: true,
+            min_polyg_run: 10,
+        }
+    }
+}
+
 fn output_name(tool_id: &str) -> Option<&'static str> {
     match tool_id {
         "fastp" => Some("polyg.fastp.fastq.gz"),
@@ -31,6 +46,18 @@ pub fn plan_trim_polyg_tails(
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
+) -> Result<StagePlanV1> {
+    plan_trim_polyg_tails_with_options(tool, r1, r2, out_dir, &TrimPolygPlanOptions::default())
+}
+
+/// # Errors
+/// Returns an error when the tool does not support `fastq.trim_polyg_tails`.
+pub fn plan_trim_polyg_tails_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &TrimPolygPlanOptions,
 ) -> Result<StagePlanV1> {
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_polyg_tails tool {}", tool.tool_id))?;
@@ -49,13 +76,14 @@ pub fn plan_trim_polyg_tails(
         output_r2.as_deref(),
         &report,
         tool.resources.threads,
+        options.min_polyg_run,
     )?;
     let effective_params = TrimPolygTailsParams {
         schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
         threads: tool.resources.threads,
-        trim_polyg: true,
-        min_polyg_run: 10,
+        trim_polyg: options.trim_polyg,
+        min_polyg_run: options.min_polyg_run,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -109,6 +137,7 @@ pub fn plan_trim_polyg_tails(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,
+            "min_polyg_run": options.min_polyg_run,
         }),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
@@ -124,12 +153,15 @@ fn trim_polyg_command(
     output_r2: Option<&Path>,
     report: &Path,
     threads: u32,
+    min_polyg_run: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
         "fastp" => {
             let mut command = vec![
                 "fastp".to_string(),
                 "--trim_poly_g".to_string(),
+                "--poly_g_min_len".to_string(),
+                min_polyg_run.to_string(),
                 "--json".to_string(),
                 report.display().to_string(),
                 "--thread".to_string(),
@@ -152,6 +184,7 @@ fn trim_polyg_command(
                 "bbduk.sh".to_string(),
                 format!("in={}", r1.display()),
                 format!("out={}", output_r1.display()),
+                format!("trimpolygright={min_polyg_run}"),
                 format!("stats={}", report.display()),
             ];
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
