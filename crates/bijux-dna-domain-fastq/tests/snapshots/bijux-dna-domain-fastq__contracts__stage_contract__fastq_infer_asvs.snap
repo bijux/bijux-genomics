@@ -30,7 +30,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "emits_fastq": false,
     "kind": "AmpliconTable",
     "possible_kinds": [
-      "AmpliconTable"
+      "AmpliconTable",
+      "RepresentativeFasta"
     ]
   },
   "retention": {
