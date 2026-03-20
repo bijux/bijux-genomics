@@ -40,3 +40,10 @@ fn select_tools_rejects_empty() {
         Err(err) => assert!(err.to_string().contains("no tools specified")),
     }
 }
+
+#[test]
+fn stage_status_comes_from_domain_execution_support() {
+    assert_eq!(stage_status("fastq.validate_reads").as_deref(), Some("supported"));
+    assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("planned"));
+    assert!(stage_status("fastq.unknown_stage").is_none());
+}
