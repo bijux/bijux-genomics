@@ -67,6 +67,17 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_filter_contract_hash")
     );
+
+    let merge_stage = StageId::from_static("fastq.merge_pairs");
+    let merge_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&merge_stage);
+    assert_eq!(merge_scenarios.len(), 1);
+    assert_eq!(merge_scenarios[0].scenario_id, "merge_fairness");
+    assert!(
+        merge_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_merge_policy")
+    );
 }
 
 #[test]

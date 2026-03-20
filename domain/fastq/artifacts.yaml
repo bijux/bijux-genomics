@@ -32,6 +32,9 @@ artifact_ids:
   - length_distribution_json
   - length_distribution_tsv
   - manifest_json
+  - merge_tool_benchmark_cohort_json
+  - merge_tool_comparison_json
+  - merge_tool_normalization_json
   - merged_reads
   - multiqc_data
   - multiqc_report
