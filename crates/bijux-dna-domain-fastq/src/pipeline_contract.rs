@@ -156,10 +156,10 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.remove_duplicates"
         | "fastq.filter_low_complexity"
         | "fastq.correct_errors"
-        | "fastq.extract_umis" => Some(StageCriticality::Optional),
+        | "fastq.extract_umis"
+        | "fastq.screen_taxonomy" => Some(StageCriticality::Optional),
         "fastq.infer_asvs"
         => Some(StageCriticality::Experimental),
-        "fastq.screen_taxonomy" => Some(StageCriticality::Experimental),
         _ => None,
     }
 }

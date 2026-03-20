@@ -330,7 +330,7 @@ pub const STAGES: [StageDefinition; 25] = [
     StageDefinition {
         stage_id: StageId::from_static("fastq.screen_taxonomy"),
         kind: FastqStageKind::Optional,
-        criticality: StageCriticality::Experimental,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
