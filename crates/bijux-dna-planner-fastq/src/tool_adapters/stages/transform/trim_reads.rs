@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
@@ -232,13 +232,20 @@ fn trim_command_template(
         }
         return Ok(command);
     }
-    crate::tool_adapters::template_render::render_command_template(
+    if tool.tool_id.as_str() == "trim_galore" {
+        return trim_galore_command_template(r1, r2, output_r1, output_r2, report_json);
+    }
+    let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
             ("reads", Some(r1.display().to_string())),
             ("reads_r1", Some(r1.display().to_string())),
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("trimmed_reads", Some(output_r1.display().to_string())),
+            (
+                "trimmed_reads_dir",
+                output_r1.parent().map(|path| path.display().to_string()),
+            ),
             ("trimmed_reads_r1", Some(output_r1.display().to_string())),
             (
                 "trimmed_reads_r2",
@@ -246,5 +253,138 @@ fn trim_command_template(
             ),
             ("report_json", Some(report_json.display().to_string())),
         ],
+    )?;
+    Ok(wrap_trim_command_with_report(
+        &tool.tool_id.0,
+        rendered,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
+fn trim_galore_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+) -> Result<Vec<String>> {
+    let output_dir = output_r1
+        .parent()
+        .ok_or_else(|| anyhow!("trim_galore output path must have a parent directory"))?;
+    let working_dir = output_dir.join("trim_galore_run");
+    let mut script = format!(
+        "set -euo pipefail\nmkdir -p {}\ntrim_galore --output_dir {}",
+        shell_quote_path(&working_dir),
+        shell_quote_path(&working_dir),
+    );
+    if r2.is_some() {
+        script.push_str(" --paired");
+    }
+    script.push(' ');
+    script.push_str(&shell_quote_path(r1));
+    if let Some(r2) = r2 {
+        script.push(' ');
+        script.push_str(&shell_quote_path(r2));
+    }
+    script.push('\n');
+    script.push_str(&format!(
+        "mv {} {}\n",
+        shell_quote_path(&trim_galore_output_path(&working_dir, r1)),
+        shell_quote_path(output_r1),
+    ));
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        script.push_str(&format!(
+            "mv {} {}\n",
+            shell_quote_path(&trim_galore_output_path(&working_dir, r2)),
+            shell_quote_path(output_r2),
+        ));
+    }
+    script.push_str(&write_trim_report_script(
+        "trim_galore",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ));
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn trim_galore_output_path(output_dir: &Path, reads: &Path) -> PathBuf {
+    let file_name = reads
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("reads.fastq.gz");
+    let trimmed_name = if let Some(stripped) = file_name.strip_suffix(".fastq.gz") {
+        format!("{stripped}_trimmed.fq.gz")
+    } else if let Some(stripped) = file_name.strip_suffix(".fq.gz") {
+        format!("{stripped}_trimmed.fq.gz")
+    } else if let Some(stripped) = file_name.strip_suffix(".fastq") {
+        format!("{stripped}_trimmed.fq")
+    } else if let Some(stripped) = file_name.strip_suffix(".fq") {
+        format!("{stripped}_trimmed.fq")
+    } else {
+        format!("{file_name}_trimmed.fq.gz")
+    };
+    output_dir.join(trimmed_name)
+}
+
+fn wrap_trim_command_with_report(
+    tool_id: &str,
+    command: Vec<String>,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+) -> Vec<String> {
+    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
+    script.push_str(&write_trim_report_script(
+        tool_id, r1, r2, output_r1, output_r2, report_json,
+    ));
+    vec!["sh".to_string(), "-lc".to_string(), script]
+}
+
+fn write_trim_report_script(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+) -> String {
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.trim_reads.report.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2,
+    });
+    format!(
+        "printf '%s\\n' {} > {}\n",
+        shell_quote_str(&payload.to_string()),
+        shell_quote_path(report_json),
     )
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
