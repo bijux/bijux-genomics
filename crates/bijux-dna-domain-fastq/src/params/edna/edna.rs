@@ -39,4 +39,6 @@ pub struct OtuClusteringEffectiveParams {
 pub struct AbundanceNormalizationEffectiveParams {
     pub method: String,
     pub expected_columns: Vec<String>,
+    pub normalized_value_column: String,
+    pub compositional_rule: String,
 }
