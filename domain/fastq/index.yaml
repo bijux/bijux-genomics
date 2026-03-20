@@ -1899,6 +1899,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_host_reference_hash
+  contaminant_depletion_fairness:
+    stage_id: fastq.deplete_reference_contaminants
+    description: Compare contaminant depletion backends on identical read inputs and fixed
+      contaminant reference bundles.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_contaminant_reference_hash
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
