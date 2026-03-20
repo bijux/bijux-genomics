@@ -10,12 +10,94 @@ pub enum ExecutionStatus {
     DeclaredOnly,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlanningSupport {
+    DeclaredOnly,
+    StageFamily,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RuntimeSupport {
+    DeclaredOnly,
+    Runnable,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NormalizationSupport {
+    None,
+    GenericEnvelope,
+    ObserverSpecialized,
+    Mixed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkSupport {
+    None,
+    Cohort,
+    Comparable,
+    Mixed,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageExecutionSupport {
     pub stage_id: StageId,
     pub execution_status: ExecutionStatus,
+    pub planning_support: PlanningSupport,
+    pub runtime_support: RuntimeSupport,
+    pub normalization_support: NormalizationSupport,
+    pub benchmark_support: BenchmarkSupport,
     pub default_tool: Option<ToolId>,
     pub admitted_tools: Vec<ToolId>,
+}
+
+impl StageExecutionSupport {
+    #[must_use]
+    pub fn is_plannable(&self) -> bool {
+        self.planning_support == PlanningSupport::StageFamily
+    }
+
+    #[must_use]
+    pub fn is_runnable(&self) -> bool {
+        self.runtime_support == RuntimeSupport::Runnable
+    }
+
+    #[must_use]
+    pub fn has_generic_normalization(&self) -> bool {
+        matches!(
+            self.normalization_support,
+            NormalizationSupport::GenericEnvelope | NormalizationSupport::Mixed
+        )
+    }
+
+    #[must_use]
+    pub fn has_observer_specialized_normalization(&self) -> bool {
+        matches!(
+            self.normalization_support,
+            NormalizationSupport::ObserverSpecialized | NormalizationSupport::Mixed
+        )
+    }
+
+    #[must_use]
+    pub fn supports_benchmark_cohorts(&self) -> bool {
+        matches!(
+            self.benchmark_support,
+            BenchmarkSupport::Cohort
+                | BenchmarkSupport::Comparable
+                | BenchmarkSupport::Mixed
+        )
+    }
+
+    #[must_use]
+    pub fn supports_comparable_benchmarks(&self) -> bool {
+        matches!(
+            self.benchmark_support,
+            BenchmarkSupport::Comparable | BenchmarkSupport::Mixed
+        )
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -30,6 +112,10 @@ struct ExecutionSupportManifest {
 struct ExecutionSupportRecord {
     stage_id: String,
     execution_status: ExecutionStatus,
+    planning_support: PlanningSupport,
+    runtime_support: RuntimeSupport,
+    normalization_support: NormalizationSupport,
+    benchmark_support: BenchmarkSupport,
     default_tool: Option<String>,
     admitted_tools: Vec<String>,
 }
@@ -52,6 +138,10 @@ fn record_to_support(record: &ExecutionSupportRecord) -> StageExecutionSupport {
     StageExecutionSupport {
         stage_id: StageId::new(record.stage_id.clone()),
         execution_status: record.execution_status,
+        planning_support: record.planning_support,
+        runtime_support: record.runtime_support,
+        normalization_support: record.normalization_support,
+        benchmark_support: record.benchmark_support,
         default_tool: record
             .default_tool
             .as_ref()
@@ -102,6 +192,56 @@ pub fn declared_only_stage_ids() -> Vec<StageId> {
         .stages
         .iter()
         .filter(|record| record.execution_status == ExecutionStatus::DeclaredOnly)
+        .map(|record| StageId::new(record.stage_id.clone()))
+        .collect()
+}
+
+#[must_use]
+pub fn plannable_stage_ids() -> Vec<StageId> {
+    manifest()
+        .stages
+        .iter()
+        .filter(|record| record.planning_support == PlanningSupport::StageFamily)
+        .map(|record| StageId::new(record.stage_id.clone()))
+        .collect()
+}
+
+#[must_use]
+pub fn runnable_stage_ids() -> Vec<StageId> {
+    manifest()
+        .stages
+        .iter()
+        .filter(|record| record.runtime_support == RuntimeSupport::Runnable)
+        .map(|record| StageId::new(record.stage_id.clone()))
+        .collect()
+}
+
+#[must_use]
+pub fn benchmark_cohort_stage_ids() -> Vec<StageId> {
+    manifest()
+        .stages
+        .iter()
+        .filter(|record| {
+            matches!(
+                record.benchmark_support,
+                BenchmarkSupport::Cohort | BenchmarkSupport::Comparable | BenchmarkSupport::Mixed
+            )
+        })
+        .map(|record| StageId::new(record.stage_id.clone()))
+        .collect()
+}
+
+#[must_use]
+pub fn comparable_benchmark_stage_ids() -> Vec<StageId> {
+    manifest()
+        .stages
+        .iter()
+        .filter(|record| {
+            matches!(
+                record.benchmark_support,
+                BenchmarkSupport::Comparable | BenchmarkSupport::Mixed
+            )
+        })
         .map(|record| StageId::new(record.stage_id.clone()))
         .collect()
 }
