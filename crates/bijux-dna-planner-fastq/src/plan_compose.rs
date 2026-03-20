@@ -622,24 +622,51 @@ fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<Artif
     if stage_id == STAGE_REPORT_QC.as_str() {
         return Vec::new();
     }
+    let governed_output_ids = governed_qc_output_ids_for_stage(stage_id);
+    if governed_output_ids.is_empty() {
+        return Vec::new();
+    }
     plan.io
         .outputs
         .iter()
-        .filter(|artifact| is_governed_qc_artifact_role(artifact.role))
+        .filter(|artifact| {
+            governed_output_ids
+                .iter()
+                .any(|artifact_id| artifact.name.as_str() == *artifact_id)
+        })
         .cloned()
         .collect()
 }
 
-fn is_governed_qc_artifact_role(role: bijux_dna_core::prelude::ArtifactRole) -> bool {
-    matches!(
-        role,
-        bijux_dna_core::prelude::ArtifactRole::ReportJson
-            | bijux_dna_core::prelude::ArtifactRole::MetricsJson
-            | bijux_dna_core::prelude::ArtifactRole::MetricsEnvelope
-            | bijux_dna_core::prelude::ArtifactRole::StageReport
-            | bijux_dna_core::prelude::ArtifactRole::SummaryJson
-            | bijux_dna_core::prelude::ArtifactRole::SummaryTsv
-    )
+fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
+    match stage_id {
+        stage if stage == STAGE_VALIDATE_READS.as_str() => &["validation_report"],
+        stage if stage == STAGE_DETECT_ADAPTERS.as_str() => &["adapter_report"],
+        stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
+            &["length_distribution_tsv", "length_distribution_json"]
+        }
+        stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
+            &["overrepresented_sequences_tsv", "overrepresented_sequences_json"]
+        }
+        stage if stage == STAGE_PROFILE_READS.as_str() => {
+            &["qc_json", "qc_tsv", "qc_plots_dir"]
+        }
+        stage if stage == STAGE_DEPLETE_RRNA.as_str() => &["rrna_report_tsv", "rrna_report_json"],
+        stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
+            &["screen_report_tsv", "classification_report_json"]
+        }
+        stage if stage == STAGE_MERGE_PAIRS.as_str() => &["report_json"],
+        stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => &["report_json"],
+        stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => &["filter_report_json"],
+        stage if stage == STAGE_DEPLETE_HOST.as_str() => &["host_depletion_report_json"],
+        stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
+            &["contaminant_screen_report_json"]
+        }
+        stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => &["report_json"],
+        stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => &["report_json"],
+        stage if stage == STAGE_EXTRACT_UMIS.as_str() => &["report_json"],
+        _ => &[],
+    }
 }
 
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
