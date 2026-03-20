@@ -42,9 +42,17 @@ execution_contract:
     - "reads_r1"
     - "reads_r2"
   expected_outputs:
-    - "vsearch.merged.fastq"
-    - "vsearch.unmerged_r1.fastq"
-    - "vsearch.unmerged_r2.fastq"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
+    - "chimera_filtered_reads"
+    - "chimera_metrics_json"
+    - "chimeras_fasta"
+    - "otu_table"
+    - "otu_representatives"
+    - "taxonomy_ready_fasta"
+    - "taxonomy_ready_fastq"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -99,11 +107,15 @@ expected_artifacts:
   - "otu_representatives"
   - "taxonomy_ready_fasta"
   - "taxonomy_ready_fastq"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "vsearch --version"
 help_cmd: "vsearch --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "bbmerge"
+    - "flash2"
+    - "leehom"
+    - "pear"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable across merge, chimera-removal, and OTU-clustering experiments only within the same governed stage contract and lineage branch."
