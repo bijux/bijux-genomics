@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_dna_domain_fastq::FastqPipelineMode;
+use bijux_dna_domain_fastq::{canonical_amplicon_stage_order, FastqPipelineMode};
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
 use bijux_dna_planner_fastq::{default_pipeline_spec, DefaultPipelineOptions};
 use std::collections::BTreeSet;
@@ -98,5 +98,15 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
     assert!(
         !spec.stages.iter().any(|stage| stage == "fastq.infer_asvs"),
         "default amplicon mode must not schedule planned ASV inference by default"
+    );
+
+    let expected = canonical_amplicon_stage_order()
+        .into_iter()
+        .filter(|stage| stage.as_str() != "fastq.screen_taxonomy")
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        spec.stages, expected,
+        "planner default amplicon order drifted from domain canonical order"
     );
 }

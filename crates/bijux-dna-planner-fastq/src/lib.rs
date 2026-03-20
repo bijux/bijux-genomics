@@ -9,7 +9,9 @@ use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_dna_domain_bam::BamStage;
-use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
+use bijux_dna_domain_fastq::{
+    assess_merge_suitability, canonical_amplicon_stage_order, canonical_stage_order,
+};
 use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
     FastqPipelineMode, STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
@@ -86,18 +88,10 @@ impl Default for DefaultPipelineOptions {
 #[must_use]
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     let mut stages = if options.mode == FastqPipelineMode::Amplicon {
-        vec![
-            STAGE_VALIDATE_READS.as_str().to_string(),
-            STAGE_DETECT_ADAPTERS.as_str().to_string(),
-            STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string(),
-            STAGE_NORMALIZE_PRIMERS.as_str().to_string(),
-            STAGE_TRIM_READS.as_str().to_string(),
-            STAGE_FILTER_READS.as_str().to_string(),
-            STAGE_REMOVE_CHIMERAS.as_str().to_string(),
-            STAGE_CLUSTER_OTUS.as_str().to_string(),
-            STAGE_NORMALIZE_ABUNDANCE.as_str().to_string(),
-            STAGE_PROFILE_READS.as_str().to_string(),
-        ]
+        canonical_amplicon_stage_order()
+            .into_iter()
+            .map(|stage| stage.as_str().to_string())
+            .collect()
     } else {
         required_id_catalog()
     };
@@ -109,9 +103,13 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     }
     if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()) {
         stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
+    } else if !options.enable_screen {
+        stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
     }
     if options.enable_qc_post && !stages.iter().any(|stage| stage == STAGE_REPORT_QC.as_str()) {
         stages.push(STAGE_REPORT_QC.as_str().to_string());
+    } else if !options.enable_qc_post {
+        stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
     PipelineSpec { stages }
 }
