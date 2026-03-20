@@ -6,7 +6,9 @@ use bijux_dna_domain_fastq::params::defaults::{correct_defaults, stats_defaults,
 use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams;
+use bijux_dna_domain_fastq::params::edna::{
+    ChimeraDetectionEffectiveParams, OtuClusteringEffectiveParams, DEFAULT_OTU_IDENTITY_THRESHOLD,
+};
 use bijux_dna_domain_fastq::params::merge::{
     MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
 };
@@ -104,6 +106,20 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     assert_eq!(decoded.method, "vsearch_uchime_denovo");
     assert_eq!(decoded.detection_scope, "denovo");
     assert_eq!(decoded.chimera_sequence_artifact, "chimeras_fasta");
+}
+
+#[test]
+fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
+    let params = OtuClusteringEffectiveParams {
+        identity_threshold: DEFAULT_OTU_IDENTITY_THRESHOLD,
+        output_table_kind: "otu_abundance_table".to_string(),
+    };
+    let decoded: OtuClusteringEffectiveParams = roundtrip(&params);
+    assert_eq!(
+        decoded.identity_threshold,
+        DEFAULT_OTU_IDENTITY_THRESHOLD,
+    );
+    assert_eq!(decoded.output_table_kind, "otu_abundance_table");
 }
 
 #[test]
