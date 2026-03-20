@@ -6,6 +6,12 @@
 
 use crate::error::BenchError;
 use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
+use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_domain_fastq::{
+    admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
+    stage_tool_binding,
+};
+use bijux_dna_stage_contract::executor_registry::has_executor;
 use crate::policy::GateDecision;
 
 mod schemas;
@@ -48,6 +54,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 "suite stages must include non-empty stage ids".to_string(),
             ));
         }
+        validate_stage_id(&stage.stage)?;
         let node_id = stage
             .stage_instance_id
             .as_deref()
@@ -92,6 +99,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 )));
             }
         }
+        validate_stage_tools(&stage.stage, &stage.tools)?;
         let mut seen_params = std::collections::BTreeSet::new();
         for params in &stage.params {
             if params.trim().is_empty() {
@@ -288,6 +296,62 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     Ok(())
 }
 
+fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
+    if stage_id.starts_with("fastq.") {
+        if contract_for_stage(stage_id).is_none() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} is not declared in the FASTQ domain catalog",
+                stage_id
+            )));
+        }
+        let stage_id = StageId::new(stage_id.to_string());
+        let support = execution_support_for_stage(&stage_id).ok_or_else(|| {
+            BenchError::InvalidPolicy(format!(
+                "suite stage {} is missing FASTQ execution support",
+                stage_id
+            ))
+        })?;
+        if !support.is_plannable() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} is not plannable under FASTQ execution support",
+                stage_id
+            )));
+        }
+        return Ok(());
+    }
+    if !has_executor(stage_id) {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite stage {} is not registered in the stage executor catalog",
+            stage_id
+        )));
+    }
+    Ok(())
+}
+
+fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchError> {
+    if !stage_id.starts_with("fastq.") {
+        return Ok(());
+    }
+    let stage_id = StageId::new(stage_id.to_string());
+    let admitted_tools = admitted_execution_tools_for_stage(&stage_id);
+    for tool in tools {
+        let tool_id = ToolId::new(tool.clone());
+        if stage_tool_binding(&stage_id, &tool_id).is_none() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} tool {} is not declared in the FASTQ stage-tool matrix",
+                stage_id, tool
+            )));
+        }
+        if !admitted_tools.iter().any(|admitted| admitted == &tool_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} tool {} is not admitted by FASTQ execution support",
+                stage_id, tool
+            )));
+        }
+    }
+    Ok(())
+}
+
 fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     let mut incoming = std::collections::BTreeMap::new();
     let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
@@ -407,6 +471,66 @@ mod tests {
         });
         let error = validate_suite(&suite).expect_err("duplicate tools must fail");
         assert!(error.to_string().contains("must not repeat tool"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_unknown_fastq_stage_ids() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.unknown_stage".to_string(),
+            stage_instance_id: None,
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error = validate_suite(&suite).expect_err("unknown fastq stage must fail");
+        assert!(error
+            .to_string()
+            .contains("is not declared in the FASTQ domain catalog"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_declared_only_fastq_stages() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.infer_asvs".to_string(),
+            stage_instance_id: None,
+            tools: vec!["dada2".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error = validate_suite(&suite).expect_err("declared-only fastq stage must fail");
+        assert!(error.to_string().contains("is not plannable"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_fastq_tools_outside_execution_support() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            tools: vec!["seqpurge".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error =
+            validate_suite(&suite).expect_err("planned-only fastq tool should not validate");
+        assert!(error
+            .to_string()
+            .contains("is not admitted by FASTQ execution support"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_registered_bam_stage_ids() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "bam.align".to_string(),
+            stage_instance_id: None,
+            tools: vec!["bwa".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        validate_suite(&suite).expect("registered BAM stages should validate");
     }
 
     #[test]
