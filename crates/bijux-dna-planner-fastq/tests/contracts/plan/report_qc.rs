@@ -100,7 +100,7 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "qc_json"));
+        .any(|artifact| artifact.name.as_str() == "fastq.profile_reads.tool.seqkit_stats.qc_json"));
     assert_eq!(
         report_plan.effective_params["aggregation_scope"],
         serde_json::json!("governed_qc_artifacts")
@@ -166,7 +166,10 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "host_depletion_report_json"));
+        .any(|artifact| {
+            artifact.name.as_str()
+                == "fastq.deplete_host.tool.bowtie2.host_depletion_report_json"
+        }));
     Ok(())
 }
 
@@ -204,11 +207,16 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "length_distribution_json"));
+        .any(|artifact| {
+            artifact.name.as_str()
+                == "fastq.profile_read_lengths.tool.seqkit.length_distribution_json"
+        }));
     assert!(report_plan
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "filter_report_json"));
+        .any(|artifact| {
+            artifact.name.as_str() == "fastq.filter_low_complexity.tool.prinseq.filter_report_json"
+        }));
     Ok(())
 }

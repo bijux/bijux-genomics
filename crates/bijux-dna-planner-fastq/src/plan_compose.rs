@@ -678,7 +678,11 @@ fn governed_qc_inputs_from_explicit_bindings(
                     binding.from_stage_node_id
                 )
             })?;
-        inputs.push(artifact.clone());
+        inputs.push(report_qc_input_artifact(
+            &binding.from_stage_node_id,
+            artifact,
+            Some(binding.to_input_id.as_str()),
+        ));
     }
     inputs.sort_by(|left, right| {
         left.name
@@ -706,8 +710,24 @@ fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<Artif
                 .iter()
                 .any(|artifact_id| artifact.name.as_str() == *artifact_id)
         })
-        .cloned()
+        .map(|artifact| report_qc_input_artifact(stage_node_id_for_plan(plan), artifact, None))
         .collect()
+}
+
+fn report_qc_input_artifact(
+    source_stage_node_id: &str,
+    artifact: &ArtifactRef,
+    explicit_name: Option<&str>,
+) -> ArtifactRef {
+    ArtifactRef {
+        name: bijux_dna_core::prelude::ArtifactId::new(match explicit_name {
+            Some(name) => name.to_string(),
+            None => format!("{}.{}", source_stage_node_id, artifact.name.as_str()),
+        }),
+        path: artifact.path.clone(),
+        role: artifact.role,
+        optional: artifact.optional,
+    }
 }
 
 fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
