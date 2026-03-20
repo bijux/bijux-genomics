@@ -268,6 +268,65 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             "suite requires outlier detection with at least 3 replicates".to_string(),
         ));
     }
+    validate_suite_dag(suite)?;
+    Ok(())
+}
+
+fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
+    let mut incoming = std::collections::BTreeMap::new();
+    let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
+    for stage in &suite.stages {
+        let node_id = stage
+            .stage_instance_id
+            .as_deref()
+            .unwrap_or(stage.stage.as_str())
+            .to_string();
+        incoming.entry(node_id).or_insert(0usize);
+    }
+    for stage in &suite.stages {
+        let node_id = stage
+            .stage_instance_id
+            .as_deref()
+            .unwrap_or(stage.stage.as_str())
+            .to_string();
+        for upstream in &stage.upstream_stage_instance_ids {
+            outgoing
+                .entry(upstream.clone())
+                .or_default()
+                .push(node_id.clone());
+            *incoming.entry(node_id.clone()).or_insert(0) += 1;
+        }
+    }
+    for edge in &suite.edges {
+        outgoing
+            .entry(edge.from.clone())
+            .or_default()
+            .push(edge.to.clone());
+        *incoming.entry(edge.to.clone()).or_insert(0) += 1;
+    }
+    let mut ready = incoming
+        .iter()
+        .filter_map(|(node, count)| if *count == 0 { Some(node.clone()) } else { None })
+        .collect::<Vec<_>>();
+    let mut visited = 0usize;
+    while let Some(node) = ready.pop() {
+        visited += 1;
+        if let Some(children) = outgoing.get(&node) {
+            for child in children {
+                if let Some(count) = incoming.get_mut(child) {
+                    *count -= 1;
+                    if *count == 0 {
+                        ready.push(child.clone());
+                    }
+                }
+            }
+        }
+    }
+    if visited != incoming.len() {
+        return Err(BenchError::InvalidPolicy(
+            "suite graph must be acyclic".to_string(),
+        ));
+    }
     Ok(())
 }
 
@@ -530,6 +589,64 @@ mod tests {
         ];
         let error = validate_suite(&suite).expect_err("duplicate explicit edges must fail");
         assert!(error.to_string().contains("must not repeat edge"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_cycles_across_explicit_and_upstream_edges() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: vec!["fastq.report_qc.aggregate".to_string()],
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    tools: vec!["multiqc".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![BenchmarkStageEdge {
+            from: "fastq.validate_reads.validator".to_string(),
+            to: "fastq.report_qc.aggregate".to_string(),
+        }];
+        let error = validate_suite(&suite).expect_err("cyclic suite graph must fail");
+        assert!(error.to_string().contains("acyclic"));
     }
 }
 
