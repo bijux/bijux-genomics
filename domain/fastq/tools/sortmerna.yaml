@@ -9,6 +9,16 @@ license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
 - fastq.deplete_rrna
+stage_contracts:
+  fastq.deplete_rrna:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - rrna_filtered_reads_r1
+    - rrna_filtered_reads_r2
+    - rrna_report_tsv
+    - rrna_report_json
+    notes: rRNA depletion emits governed filtered-read artifacts together with normalized depletion reports.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:

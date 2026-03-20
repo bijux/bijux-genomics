@@ -44,6 +44,14 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.report_qc"]
+stage_contracts:
+  fastq.report_qc:
+    required_inputs:
+      - "qc_artifacts"
+    expected_artifacts:
+      - "multiqc_report"
+      - "multiqc_data"
+    notes: "QC aggregation emits the governed MultiQC report bundle from governed upstream QC artifacts."
 expected_artifacts: ["multiqc_report", "multiqc_data"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"

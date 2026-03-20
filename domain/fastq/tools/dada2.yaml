@@ -9,6 +9,16 @@ license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
   - fastq.infer_asvs
+stage_contracts:
+  fastq.infer_asvs:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "asv_table_tsv"
+      - "asv_sequences_fasta"
+      - "taxonomy_ready_fasta"
+      - "taxonomy_ready_fastq"
+    notes: "Planned ASV inference would emit governed feature-table and taxonomy-ready representative-sequence artifacts."
 status: out_of_scope
 scope: pre_hpc_pre_vcf
 expected_artifacts:

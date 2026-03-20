@@ -10,6 +10,20 @@ citation: pending:tool-publication
 stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance
+stage_contracts:
+  fastq.profile_read_lengths:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - length_distribution_tsv
+    - length_distribution_json
+    notes: Planned read-length profiling would emit governed histogram artifacts.
+  fastq.normalize_abundance:
+    required_inputs:
+    - abundance_table
+    expected_artifacts:
+    - normalized_abundance_tsv
+    notes: Planned abundance normalization would emit the governed normalized abundance table artifact.
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
