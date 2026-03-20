@@ -34,6 +34,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "low_complexity_tool_normalization_json",
     ),
     (
+        "fastq.remove_duplicates",
+        "dedup_tool_benchmark_cohort_json",
+        "dedup_tool_comparison_json",
+        "dedup_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",

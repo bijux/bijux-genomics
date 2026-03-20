@@ -90,6 +90,17 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_complexity_policy")
     );
+
+    let dedup_stage = StageId::from_static("fastq.remove_duplicates");
+    let dedup_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&dedup_stage);
+    assert_eq!(dedup_scenarios.len(), 1);
+    assert_eq!(dedup_scenarios[0].scenario_id, "dedup_fairness");
+    assert!(
+        dedup_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_dedup_policy")
+    );
 }
 
 #[test]
