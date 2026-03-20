@@ -1,4 +1,4 @@
-use super::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
+use super::correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION};
 use super::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
@@ -54,7 +54,12 @@ pub fn correct_defaults(paired: bool) -> FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
+        correction_engine: CorrectionEngine::Rcorrector,
+        quality_encoding: QualityEncoding::Phred33,
         kmer_size: None,
+        max_memory_gb: None,
+        trusted_kmer_artifact: None,
+        conservative_mode: false,
     }
 }
 
