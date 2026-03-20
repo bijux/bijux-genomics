@@ -867,7 +867,12 @@ pub fn select_preprocess_tools(
                 .collect();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
-                let records = repo.bench_results(&stage_id, tool, &corpus)?;
+                let records = repo.bench_results(
+                    &stage_id,
+                    tool,
+                    &corpus,
+                    &bijux_dna_domain_fastq::BenchQueryContext::default(),
+                )?;
                 tool_records.push((tool.clone(), records));
             }
             let selection = bijux_dna_core::contract::select_stage(

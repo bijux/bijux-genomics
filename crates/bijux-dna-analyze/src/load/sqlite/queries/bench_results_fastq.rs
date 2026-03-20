@@ -6,7 +6,7 @@ use serde_json::Value as JsonValue;
 
 use bijux_dna_core::contract::{BenchResultRecord, BenchResultStatus};
 use bijux_dna_core::ids::StageId;
-use bijux_dna_domain_fastq::{BenchCorpus, BenchResultsRepository};
+use bijux_dna_domain_fastq::{BenchCorpus, BenchQueryContext, BenchResultsRepository};
 
 #[derive(Debug, Clone)]
 pub struct SqliteBenchResultsRepository {
@@ -26,8 +26,9 @@ impl BenchResultsRepository for SqliteBenchResultsRepository {
         stage: &StageId,
         tool: &str,
         corpus: &BenchCorpus,
+        context: &BenchQueryContext,
     ) -> Result<Vec<BenchResultRecord>> {
-        get_results_from_sqlite(stage, tool, corpus, &self.root_dir)
+        get_results_from_sqlite(stage, tool, corpus, context, &self.root_dir)
     }
 }
 
@@ -153,6 +154,7 @@ pub fn get_results_from_sqlite(
     stage: &StageId,
     tool: &str,
     corpus: &BenchCorpus,
+    _context: &BenchQueryContext,
     out_dir: &Path,
 ) -> Result<Vec<BenchResultRecord>> {
     let table = table_for_stage(stage)

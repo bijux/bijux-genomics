@@ -43,7 +43,7 @@ pub use banks::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use bench_repository::BenchResultsRepository;
+pub use bench_repository::{BenchQueryContext, BenchResultsRepository};
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, StageComparisonContract,
