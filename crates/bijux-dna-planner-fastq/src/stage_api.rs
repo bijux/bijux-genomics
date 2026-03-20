@@ -90,10 +90,7 @@ pub enum StageToolMaturityLevel {
 }
 
 #[must_use]
-pub fn stage_tool_capability(
-    stage_id: &StageId,
-    tool_id: &ToolId,
-) -> Option<StageToolCapability> {
+pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
     let binding = stage_tool_binding(stage_id, tool_id)?;
     let support = bijux_dna_domain_fastq::execution_support_for_stage(stage_id);
     let execution_status = support.as_ref().map(|record| record.execution_status);
@@ -113,13 +110,42 @@ pub fn stage_tool_capability(
         .map(|scenario| scenario.scenario_id)
         .collect::<Vec<_>>();
     let declared = true;
-    let plannable = true;
-    let runnable = binding.integration_level == ToolIntegrationLevel::GovernedContract
-        && execution_status == Some(bijux_dna_domain_fastq::ExecutionStatus::Closed)
+    let plannable = support
+        .as_ref()
+        .map(|record| record.is_plannable())
+        .unwrap_or(false)
+        && binding.integration_level == ToolIntegrationLevel::GovernedContract;
+    let runnable = support
+        .as_ref()
+        .map(|record| record.is_runnable())
+        .unwrap_or(false)
+        && binding.integration_level == ToolIntegrationLevel::GovernedContract
         && admitted;
-    let parse_normalized = runnable;
-    let benchmark_normalized = parse_normalized && !benchmark_scenarios.is_empty();
-    let comparable = benchmark_normalized
+    let parse_normalized = runnable
+        && support
+            .as_ref()
+            .map(|record| match record.normalization_support {
+                bijux_dna_domain_fastq::execution_support::NormalizationSupport::None => false,
+                bijux_dna_domain_fastq::execution_support::NormalizationSupport::GenericEnvelope => {
+                    true
+                }
+                bijux_dna_domain_fastq::execution_support::NormalizationSupport::ObserverSpecialized
+                | bijux_dna_domain_fastq::execution_support::NormalizationSupport::Mixed => {
+                    runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+                }
+            })
+            .unwrap_or(false);
+    let benchmark_normalized = parse_normalized
+        && support
+            .as_ref()
+            .map(|record| record.supports_benchmark_cohorts())
+            .unwrap_or(false)
+        && !benchmark_scenarios.is_empty();
+    let comparable = parse_normalized
+        && support
+            .as_ref()
+            .map(|record| record.supports_comparable_benchmarks())
+            .unwrap_or(false)
         && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized;
 
     Some(StageToolCapability {
@@ -206,7 +232,8 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
             let observer_specialized_tools = cohort_profiles
                 .iter()
                 .filter(|profile| {
-                    profile.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+                    profile.runtime_interpretation
+                        == RuntimeInterpretationLevel::ObserverSpecialized
                 })
                 .map(|profile| profile.tool_id.clone())
                 .collect::<Vec<_>>();
@@ -236,9 +263,9 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
 #[must_use]
 pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<ToolId> {
     match mode {
-        ToolsetExecutionMode::DefaultChoice => default_tool_for_stage(stage_id)
-            .into_iter()
-            .collect(),
+        ToolsetExecutionMode::DefaultChoice => {
+            default_tool_for_stage(stage_id).into_iter().collect()
+        }
         ToolsetExecutionMode::GovernedExecution => stage_tool_capabilities_for_stage(stage_id)
             .into_iter()
             .filter(|capability| capability.runnable)
@@ -262,17 +289,13 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
 }
 
 #[must_use]
-pub fn stage_tool_maturity(
-    stage_id: &StageId,
-    tool_id: &ToolId,
-) -> Option<StageToolMaturityLevel> {
+pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
     let capability = stage_tool_capability(stage_id, tool_id)?;
     Some(if !capability.runnable {
         StageToolMaturityLevel::PlannedBinding
     } else if capability.comparable {
         StageToolMaturityLevel::BenchmarkComparable
-    } else if capability.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-    {
+    } else if capability.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
         StageToolMaturityLevel::ObserverNormalized
     } else if capability.benchmark_normalized {
         StageToolMaturityLevel::GenericNormalized
