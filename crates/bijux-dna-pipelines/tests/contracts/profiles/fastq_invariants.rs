@@ -1,11 +1,11 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::pipeline_contract;
 use bijux_dna_pipelines::fastq::{
     fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
     validate_fastq_profile,
 };
-use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_pipelines::DefaultParams;
 
 #[test]
@@ -95,6 +95,23 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
         "none",
         "aDNA trim.adapter_policy must not be none"
     );
+
+    let trim_polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
+    let Some(DefaultParams::FastqTrimPolygTails(trim_polyg)) =
+        profile.defaults.params.get(&trim_polyg_stage)
+    else {
+        panic!("missing trim polyg params");
+    };
+    assert!(trim_polyg.trim_polyg);
+    assert!(trim_polyg.min_polyg_run >= 10);
+
+    let trim_terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
+    let Some(DefaultParams::FastqTrimTerminalDamage(trim_terminal_damage)) =
+        profile.defaults.params.get(&trim_terminal_damage_stage)
+    else {
+        panic!("missing terminal damage params");
+    };
+    assert_eq!(trim_terminal_damage.damage_mode, "ancient");
 }
 
 #[test]
@@ -151,7 +168,10 @@ fn single_end_fastq_profiles_cover_domain_essential_shotgun_stages() {
     for profile in [fastq_default_profile(), fastq_minimal_profile()] {
         for stage in &essential {
             assert!(
-                profile.capabilities.required_stages.contains(&stage.as_str()),
+                profile
+                    .capabilities
+                    .required_stages
+                    .contains(&stage.as_str()),
                 "profile {} must include domain essential stage {}",
                 profile.id,
                 stage
