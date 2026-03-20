@@ -38,12 +38,7 @@ impl PipelineSpec {
 
     #[must_use]
     pub fn graph(nodes: Vec<PipelineNodeSpec>, edges: Vec<PipelineEdgeSpec>) -> Self {
-        let mut stages = Vec::new();
-        for node in &nodes {
-            if !stages.iter().any(|stage| stage == &node.stage_id) {
-                stages.push(node.stage_id.clone());
-            }
-        }
+        let stages = stage_catalog_from_nodes(&nodes);
         Self {
             stages,
             nodes,
@@ -71,9 +66,55 @@ impl PipelineSpec {
     }
 
     #[must_use]
+    pub fn stage_catalog(&self) -> Vec<String> {
+        if self.declares_graph_topology() {
+            return stage_catalog_from_nodes(&self.ordered_nodes());
+        }
+        self.stages.clone()
+    }
+
+    pub fn retain_nodes<F>(&mut self, mut keep: F)
+    where
+        F: FnMut(&PipelineNodeSpec) -> bool,
+    {
+        if !self.declares_graph_topology() {
+            self.stages.retain(|stage_id| {
+                keep(&PipelineNodeSpec {
+                    stage_id: stage_id.clone(),
+                    stage_instance_id: None,
+                })
+            });
+            return;
+        }
+
+        self.nodes.retain(|node| keep(node));
+        let retained_node_ids = self
+            .nodes
+            .iter()
+            .map(|node| {
+                PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref())
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        self.edges.retain(|edge| {
+            retained_node_ids.contains(&edge.from) && retained_node_ids.contains(&edge.to)
+        });
+        self.stages = stage_catalog_from_nodes(&self.nodes);
+    }
+
+    #[must_use]
     pub fn stage_node_id(stage_id: &str, stage_instance_id: Option<&str>) -> String {
         stage_instance_id.unwrap_or(stage_id).to_string()
     }
+}
+
+fn stage_catalog_from_nodes(nodes: &[PipelineNodeSpec]) -> Vec<String> {
+    let mut stages = Vec::new();
+    for node in nodes {
+        if !stages.iter().any(|stage| stage == &node.stage_id) {
+            stages.push(node.stage_id.clone());
+        }
+    }
+    stages
 }
 
 pub trait PipelineDomain {
@@ -93,7 +134,10 @@ mod tests {
         ]);
         assert_eq!(
             spec.stages,
-            vec!["fastq.validate_reads".to_string(), "fastq.trim_reads".to_string()]
+            vec![
+                "fastq.validate_reads".to_string(),
+                "fastq.trim_reads".to_string()
+            ]
         );
         assert!(!spec.declares_graph_topology());
     }
@@ -131,8 +175,11 @@ mod tests {
             ],
         );
         assert_eq!(
-            spec.stages,
-            vec!["fastq.trim_reads".to_string(), "fastq.report_qc".to_string()]
+            spec.stage_catalog(),
+            vec![
+                "fastq.trim_reads".to_string(),
+                "fastq.report_qc".to_string()
+            ]
         );
         assert!(spec.declares_graph_topology());
         assert_eq!(spec.nodes.len(), 3);
@@ -163,5 +210,52 @@ mod tests {
             PipelineSpec::stage_node_id("fastq.trim_reads", None),
             "fastq.trim_reads"
         );
+    }
+
+    #[test]
+    fn retain_nodes_prunes_graph_edges_and_catalog() {
+        let mut spec = PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.validate_reads.validation".to_string(),
+                    to: "fastq.trim_reads.fastp".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.fastp".to_string(),
+                    to: "fastq.report_qc.aggregate".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+            ],
+        );
+
+        spec.retain_nodes(|node| node.stage_id != "fastq.validate_reads");
+
+        assert_eq!(
+            spec.stage_catalog(),
+            vec![
+                "fastq.trim_reads".to_string(),
+                "fastq.report_qc".to_string()
+            ]
+        );
+        assert_eq!(spec.nodes.len(), 2);
+        assert_eq!(spec.edges.len(), 1);
+        assert_eq!(spec.edges[0].from, "fastq.trim_reads.fastp");
     }
 }
