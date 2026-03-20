@@ -166,3 +166,45 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         .any(|artifact| artifact.name.as_str() == "host_depletion_report_json"));
     Ok(())
 }
+
+#[test]
+fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<()> {
+    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+        &[
+            "fastq.profile_read_lengths".to_string(),
+            "fastq.filter_low_complexity".to_string(),
+            "fastq.report_qc".to_string(),
+        ],
+        &[tool("seqkit"), tool("prinseq"), tool("multiqc")],
+        &BTreeMap::new(),
+        Some(&[
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+        ]),
+        None,
+        None,
+        None,
+        false,
+        Path::new("reads_R1.fastq.gz"),
+        None,
+        None,
+        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+    )?;
+
+    let report_plan = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
+        .expect("report_qc stage");
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "length_distribution_json"));
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "filter_report_json"));
+    Ok(())
+}
