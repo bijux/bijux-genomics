@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use bijux_dna_core::contract::{StageIO, ToolConstraints};
-use bijux_dna_core::ids::{StageId, StageVersion, ToolId};
+use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,6 +52,8 @@ impl Default for PlanDecisionReason {
 #[serde(deny_unknown_fields)]
 pub struct StagePlanV1 {
     pub stage_id: StageId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<StepId>,
     pub stage_version: StageVersion,
     pub tool_id: ToolId,
     pub tool_version: String,
@@ -72,6 +74,8 @@ pub struct StagePlanV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StagePlanJsonV1 {
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
     pub stage_version: String,
     pub io: StageIO,
     pub parameters: serde_json::Value,
@@ -97,6 +101,7 @@ impl StagePlanJsonV1 {
         let stage_version = plan.stage_version.0.to_string();
         Self {
             stage_id,
+            stage_instance_id: plan.stage_instance_id.as_ref().map(ToString::to_string),
             stage_version,
             io: plan.io.clone(),
             parameters: plan.params.clone(),

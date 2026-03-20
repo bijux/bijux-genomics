@@ -547,6 +547,7 @@ fn plan_fastq_transform_stage(
 ) -> StagePlanV1 {
     StagePlanV1 {
         stage_id: StageId::new(stage_id),
+        stage_instance_id: None,
         stage_version: bijux_dna_core::prelude::StageVersion(1),
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

@@ -39,6 +39,7 @@ mod tests {
         bijux_dna_infra::ensure_dir(&stage_out)?;
         let plan = StagePlanV1 {
             stage_id: STAGE_TRIM_READS.clone(),
+            stage_instance_id: None,
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),
@@ -114,6 +115,7 @@ mod tests {
         bijux_dna_infra::ensure_dir(&invocations)?;
         let plan = StagePlanV1 {
             stage_id: STAGE_TRIM_READS.clone(),
+            stage_instance_id: None,
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),

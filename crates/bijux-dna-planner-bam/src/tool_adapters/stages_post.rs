@@ -54,6 +54,7 @@ pub mod markdup {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -128,6 +129,7 @@ pub mod complexity {
         let summary_json = out_dir.join("complexity.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -243,6 +245,7 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.du
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -324,6 +327,7 @@ pub mod coverage {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -397,6 +401,7 @@ pub mod insert_size {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -474,6 +479,7 @@ pub mod gc_bias {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -545,6 +551,7 @@ pub mod recalibration {
         let summary = out_dir.join("recalibration.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

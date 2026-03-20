@@ -137,7 +137,7 @@ impl ExecutionPlan {
         edges: Vec<PlanEdge>,
     ) -> Result<Self> {
         let mut stages = stages;
-        stages.sort_by(|a, b| a.stage_id.0.cmp(&b.stage_id.0));
+        stages.sort_by(|a, b| stage_node_id(a).cmp(&stage_node_id(b)));
         let mut edges = edges;
         edges.sort_by(|a, b| match a.from.cmp(&b.from) {
             std::cmp::Ordering::Equal => a.to.cmp(&b.to),
@@ -249,8 +249,9 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     }
     let mut id_catalog = HashSet::new();
     for stage in &plan.stages {
-        if !id_catalog.insert(stage.stage_id.to_string()) {
-            return Err(anyhow!("duplicate stage id in plan: {}", stage.stage_id.0));
+        let node_id = stage_node_id(stage);
+        if !id_catalog.insert(node_id.clone()) {
+            return Err(anyhow!("duplicate stage node id in plan: {node_id}"));
         }
         if stage.io.inputs.is_empty() {
             return Err(anyhow!(
@@ -329,11 +330,16 @@ pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
     let mut edges = Vec::new();
     for window in stages.windows(2) {
         if let [from, to] = window {
-            edges.push(PlanEdge::new(
-                from.stage_id.to_string(),
-                to.stage_id.to_string(),
-            ));
+            edges.push(PlanEdge::new(stage_node_id(from), stage_node_id(to)));
         }
     }
     edges
+}
+
+fn stage_node_id(stage: &StagePlanV1) -> String {
+    stage
+        .stage_instance_id
+        .as_ref()
+        .map(ToString::to_string)
+        .unwrap_or_else(|| stage.stage_id.to_string())
 }

@@ -48,6 +48,7 @@ pub mod damage {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -136,6 +137,7 @@ pub mod authenticity {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -213,6 +215,7 @@ pub mod contamination {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -284,6 +287,7 @@ pub mod sex {
         let summary = out_dir.join("sex.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

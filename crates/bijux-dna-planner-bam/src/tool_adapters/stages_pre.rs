@@ -49,6 +49,7 @@ pub mod validate {
         }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -176,6 +177,7 @@ pub mod align {
 
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -252,6 +254,7 @@ pub mod qc_pre {
         let stats = out_dir.join("samtools_stats.txt");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -322,6 +325,7 @@ pub mod mapping_summary {
         let summary = out_dir.join("mapping.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -387,6 +391,7 @@ pub mod filter {
         let summary = out_dir.join("filter.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -651,6 +656,7 @@ pub mod overlap_correction {
         };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

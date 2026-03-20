@@ -263,6 +263,7 @@ fn stage_plan(
     validate_generated_stage_params(&stage_id, &params)?;
     Ok(StagePlanV1 {
         stage_id: StageId::new(stage_id),
+        stage_instance_id: None,
         stage_version: StageVersion(2),
         tool_id: ToolId::new(tool.to_string()),
         tool_version: "1.0".to_string(),
