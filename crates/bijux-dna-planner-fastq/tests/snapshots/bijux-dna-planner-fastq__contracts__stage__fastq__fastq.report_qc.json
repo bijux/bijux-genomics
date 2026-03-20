@@ -36,13 +36,13 @@
         "name": "multiqc_report",
         "path": "out/multiqc_report.html",
         "role": "report_html",
-        "optional": true
+        "optional": false
       },
       {
         "name": "multiqc_data",
         "path": "out/multiqc_data",
         "role": "index",
-        "optional": true
+        "optional": false
       }
     ]
   },

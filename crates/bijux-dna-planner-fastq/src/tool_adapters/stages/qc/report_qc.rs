@@ -81,12 +81,12 @@ pub fn plan_qc_post(
     }
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
-            ArtifactRef::optional(
+            ArtifactRef::required(
                 ArtifactId::from_static("multiqc_report"),
                 out_dir.join("multiqc_report.html"),
                 ArtifactRole::ReportHtml,
             ),
-            ArtifactRef::optional(
+            ArtifactRef::required(
                 ArtifactId::from_static("multiqc_data"),
                 out_dir.join("multiqc_data"),
                 ArtifactRole::Index,
