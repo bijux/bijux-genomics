@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
+# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -143,6 +143,40 @@ metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bamtools"
 apptainer_def = "containers/apptainer/lunarc/bamtools.def"
+require_labels = true
+
+[[tools]]
+id = "bayeshammer"
+tool_id = "bayeshammer"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.correct_errors"]
+bindings = ["fastq.correct_errors"]
+tool_role = "corrector"
+version = "4.2.0"
+default_version = "4.2.0"
+upstream = "https://github.com/ablab/spades"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/ablab/spades"
+pinned_commit = "sha256:pending"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/bayeshammer@sha256:pending"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bayeshammer --version"
+help_cmd = "bayeshammer --help"
+smoke_version_cmd = "bayeshammer --version"
+smoke_help_cmd = "bayeshammer --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "bayeshammer --help"
+expected_bin = "bayeshammer"
+expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
+apptainer_def = "containers/apptainer/lunarc/bayeshammer.def"
 require_labels = true
 
 [[tools]]
@@ -724,6 +758,40 @@ apptainer_def = "containers/apptainer/lunarc/krakenuniq.def"
 require_labels = true
 
 [[tools]]
+id = "lighter"
+tool_id = "lighter"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.correct_errors"]
+bindings = ["fastq.correct_errors"]
+tool_role = "corrector"
+version = "1.1.2"
+default_version = "1.1.2"
+upstream = "https://github.com/mourisl/Lighter"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/mourisl/Lighter"
+pinned_commit = "sha256:pending"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/lighter@sha256:pending"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "lighter --version"
+help_cmd = "lighter --help"
+smoke_version_cmd = "lighter --version"
+smoke_help_cmd = "lighter --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "lighter --help"
+expected_bin = "lighter"
+expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.lighter"
+apptainer_def = "containers/apptainer/lunarc/lighter.def"
+require_labels = true
+
+[[tools]]
 id = "mapdamage2"
 tool_id = "mapdamage2"
 domain = "bam"
@@ -826,6 +894,40 @@ apptainer_def = "containers/apptainer/lunarc/multiqc.def"
 require_labels = true
 
 [[tools]]
+id = "musket"
+tool_id = "musket"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.correct_errors"]
+bindings = ["fastq.correct_errors"]
+tool_role = "corrector"
+version = "1.1"
+default_version = "1.1"
+upstream = "https://sourceforge.net/projects/musket/"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://sourceforge.net/projects/musket/"
+pinned_commit = "sha256:pending"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/musket@sha256:pending"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "musket --version"
+help_cmd = "musket --help"
+smoke_version_cmd = "musket --version"
+smoke_help_cmd = "musket --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "musket --help"
+expected_bin = "musket"
+expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
+metrics_schema = "bijux.stage.metrics.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.musket"
+apptainer_def = "containers/apptainer/lunarc/musket.def"
+require_labels = true
+
+[[tools]]
 id = "pear"
 tool_id = "pear"
 domain = "fastq"
@@ -852,7 +954,7 @@ smoke_help_cmd = "pear --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "pear --help"
 expected_bin = "pear"
-expected_artifacts = ["merged_reads", "report_json"]
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.pear"
@@ -955,7 +1057,7 @@ expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "rcorrector --help"
 expected_bin = "rcorrector"
 expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
-metrics_schema = "bijux.tool.metrics.v1"
+metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.rcorrector"
 apptainer_def = "containers/apptainer/lunarc/rcorrector.def"
@@ -1260,7 +1362,7 @@ smoke_help_cmd = "umi_tools --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "umi_tools --help"
 expected_bin = "umi_tools"
-expected_artifacts = ["umi_reads_r1", "umi_reads_r2"]
+expected_artifacts = ["umi_reads_r1", "umi_reads_r2", "report_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.umi_tools"
@@ -1328,7 +1430,7 @@ smoke_help_cmd = "vsearch --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "vsearch --help"
 expected_bin = "vsearch"
-expected_artifacts = ["merged_reads", "report_json", "chimera_filtered_reads_r1", "chimera_filtered_reads_r2", "chimera_metrics_json", "chimeras_fasta", "otu_table", "otu_representatives", "taxonomy_ready_fasta", "taxonomy_ready_fastq"]
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "chimera_filtered_reads_r1", "chimera_filtered_reads_r2", "chimera_metrics_json", "chimeras_fasta", "otu_table", "otu_representatives", "taxonomy_ready_fasta", "taxonomy_ready_fastq"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
@@ -1555,7 +1657,7 @@ requires_reporting = false
 id = "fastq.correct_errors"
 required_tool_roles = ["corrector"]
 primary_tools = ["rcorrector"]
-optional_alternatives = []
+optional_alternatives = ["bayeshammer", "lighter", "musket"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1691,7 +1793,7 @@ optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Deterministic primer trimming keeps mismatch and orientation handling explicit."
+default_rationale = "Deterministic primer trimming with explicit mismatch/orientation controls."
 requires_validation = false
 requires_reporting = false
 
@@ -1826,3 +1928,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+
