@@ -14,7 +14,7 @@ command_template:
   - "{{multiqc_data}}"
   - "-n"
   - "multiqc_report.html"
-  - "{{qc_input_dir}}"
+  - "{{qc_artifacts}}"
 outputs:
   - name: "multiqc_report"
     data_type: "html"

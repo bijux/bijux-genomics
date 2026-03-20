@@ -164,7 +164,10 @@ fn qc_post_command(
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
-            let mut multiqc_inputs = qc_inputs.iter().map(qc_input_scan_path).collect::<Vec<_>>();
+            let mut multiqc_inputs = qc_inputs
+                .iter()
+                .map(|artifact| artifact.path.clone())
+                .collect::<Vec<_>>();
             multiqc_inputs.sort();
             multiqc_inputs.dedup();
             let mut command = vec![
@@ -180,13 +183,6 @@ fn qc_post_command(
             Ok(command)
         }
         _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
-    }
-}
-
-fn qc_input_scan_path(artifact: &ArtifactRef) -> std::path::PathBuf {
-    match artifact.path.parent() {
-        Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
-        _ => artifact.path.clone(),
     }
 }
 
