@@ -15,6 +15,8 @@ mod mod_contracts_index_parity_rs;
 mod mod_contracts_index_dependencies_rs;
 #[path = "contracts/pipeline_ordering.rs"]
 mod mod_contracts_pipeline_ordering_rs;
+#[path = "contracts/planned_tool_bindings.rs"]
+mod mod_contracts_planned_tool_bindings_rs;
 #[path = "contracts/preflight_inputs.rs"]
 mod mod_contracts_preflight_inputs_rs;
 #[path = "contracts/public_surface.rs"]
