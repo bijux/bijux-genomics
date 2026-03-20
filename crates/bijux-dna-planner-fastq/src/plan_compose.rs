@@ -839,6 +839,27 @@ fn inherited_lineage(
         });
     }
 
+    if binding.stage_id == STAGE_REPORT_QC.as_str() {
+        let mut qc_inputs = upstream_lineages
+            .into_iter()
+            .flat_map(|lineage| lineage.qc_inputs.clone())
+            .collect::<Vec<_>>();
+        qc_inputs.sort_by(|left, right| {
+            left.name
+                .as_str()
+                .cmp(right.name.as_str())
+                .then_with(|| left.path.cmp(&right.path))
+        });
+        qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+        return Ok(PlannedStageLineage {
+            reads_r1: raw_r1.clone(),
+            reads_r2: raw_r2.cloned(),
+            feature_table: None,
+            reference_index: None,
+            qc_inputs,
+        });
+    }
+
     let reads_r1 = unique_required_path_for_binding(
         binding,
         "reads_r1",
