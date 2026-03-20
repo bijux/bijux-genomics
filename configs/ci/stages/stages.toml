@@ -665,7 +665,7 @@ resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 4
 sanity_metrics = ["trimmed_read_fraction"]
-output_size_estimates_mb = ["report_json:6", "trimmed_reads:1900"]
+output_size_estimates_mb = ["report_json:6", "trimmed_reads_r1:1900"]
 qc_thresholds = ["trimmed_read_fraction|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]

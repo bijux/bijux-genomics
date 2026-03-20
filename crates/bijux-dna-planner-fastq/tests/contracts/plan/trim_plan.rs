@@ -110,3 +110,20 @@ fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "--detect_adapter_for_pe"));
     Ok(())
 }
+
+#[test]
+fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+    )?;
+
+    assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
+    assert!(plan.command.template.iter().any(|part| part == "--in2"));
+    assert!(plan.command.template.iter().any(|part| part == "--out2"));
+    Ok(())
+}
