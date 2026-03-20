@@ -22,6 +22,8 @@
       "reads_R2.fastq.gz",
       "--un-conc-gz",
       "out/host_depleted_R%.fastq.gz",
+      "--al-conc-gz",
+      "out/removed_host_R%.fastq.gz",
       "--met-file",
       "out/host_depletion_report.json"
     ]
@@ -67,6 +69,18 @@
         "optional": false
       },
       {
+        "name": "removed_host_reads_r1",
+        "path": "out/removed_host_R1.fastq.gz",
+        "role": "reads",
+        "optional": true
+      },
+      {
+        "name": "removed_host_reads_r2",
+        "path": "out/removed_host_R2.fastq.gz",
+        "role": "reads",
+        "optional": true
+      },
+      {
         "name": "host_depletion_report_json",
         "path": "out/host_depletion_report.json",
         "role": "report_json",
@@ -81,14 +95,19 @@
     "output_r1": "out/host_depleted_R1.fastq.gz",
     "output_r2": "out/host_depleted_R2.fastq.gz",
     "reference_index": "host_reference_index",
+    "removed_host_r1": "out/removed_host_R1.fastq.gz",
+    "removed_host_r2": "out/removed_host_R2.fastq.gz",
     "report_json": "out/host_depletion_report.json",
     "tool": "bowtie2"
   },
   "effective_params": {
-    "host_reference": "host_reference",
-    "index_artifact": "host_reference_index",
+    "emit_removed_reads": true,
     "paired_mode": "paired_end",
+    "reference_index_artifact_id": "reference_index",
+    "reference_scope": "host",
+    "report_format": "bowtie2_metrics_file",
     "retain_unmapped_pairs": true,
+    "retained_read_policy": "keep_non_host_reads",
     "schema_version": "bijux.fastq.params.deplete_host.v1",
     "threads": 1
   },

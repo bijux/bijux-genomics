@@ -20,6 +20,12 @@ outputs:
   - name: "host_depleted_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "removed_host_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "removed_host_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
   - name: "host_depletion_report_json"
     data_type: "json"
     cardinality: "One"
@@ -68,12 +74,14 @@ invariants:
 allowed_missingness:
   - "reads_r2"
   - "host_depleted_reads_r2"
+  - "removed_host_reads_r2"
 compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "reference index must match host depletion reference and naming conventions."
-  - "single-end input omits reads_r2 and host_depleted_reads_r2; paired-end input preserves mate synchronization."
+  - "reference index must identify the governed host build used for depletion."
+  - "single-end input omits reads_r2, host_depleted_reads_r2, and removed_host_reads_r2; paired-end input preserves mate synchronization."
+  - "removed_host_reads_* artifacts carry the reads classified as host by the depletion aligner."
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"

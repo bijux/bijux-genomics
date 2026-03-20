@@ -7,6 +7,24 @@ pub const HOST_DEPLETION_SCHEMA_VERSION: &str = "bijux.fastq.params.deplete_host
 pub const REFERENCE_DEPLETION_SCHEMA_VERSION: &str =
     "bijux.fastq.params.deplete_reference_contaminants.v1";
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ReferenceScope {
+    Host,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ReadRetentionPolicy {
+    KeepNonHostReads,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MappingReportFormat {
+    Bowtie2MetricsFile,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ScreenEffectiveParams {
@@ -45,8 +63,11 @@ pub struct HostDepletionEffectiveParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
     pub threads: u32,
-    pub host_reference: String,
-    pub index_artifact: String,
+    pub reference_scope: ReferenceScope,
+    pub reference_index_artifact_id: String,
+    pub retained_read_policy: ReadRetentionPolicy,
+    pub emit_removed_reads: bool,
+    pub report_format: MappingReportFormat,
     pub retain_unmapped_pairs: bool,
 }
 
@@ -63,11 +84,8 @@ impl HostDepletionEffectiveParams {
         if self.threads == 0 {
             missing.push("threads");
         }
-        if self.host_reference.trim().is_empty() {
-            missing.push("host_reference");
-        }
-        if self.index_artifact.trim().is_empty() {
-            missing.push("index_artifact");
+        if self.reference_index_artifact_id.trim().is_empty() {
+            missing.push("reference_index_artifact_id");
         }
         missing
     }
@@ -78,8 +96,11 @@ impl HostDepletionEffectiveParams {
             "schema_version": self.schema_version,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
-            "host_reference": self.host_reference,
-            "index_artifact": self.index_artifact,
+            "reference_scope": self.reference_scope,
+            "reference_index_artifact_id": self.reference_index_artifact_id,
+            "retained_read_policy": self.retained_read_policy,
+            "emit_removed_reads": self.emit_removed_reads,
+            "report_format": self.report_format,
             "retain_unmapped_pairs": self.retain_unmapped_pairs,
         })
     }
