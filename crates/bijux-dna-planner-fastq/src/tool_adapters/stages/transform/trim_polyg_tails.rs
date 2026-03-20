@@ -154,7 +154,7 @@ fn trim_polyg_command(
     report: &Path,
     threads: u32,
     min_polyg_run: u32,
-) -> Result<Vec<String>> {
+    ) -> Result<Vec<String>> {
     match tool_id {
         "fastp" => {
             let mut command = vec![
@@ -180,21 +180,52 @@ fn trim_polyg_command(
             Ok(command)
         }
         "bbduk" => {
-            let mut command = vec![
-                "bbduk.sh".to_string(),
-                format!("in={}", r1.display()),
-                format!("out={}", output_r1.display()),
-                format!("trimpolygright={min_polyg_run}"),
-                format!("stats={}", report.display()),
-            ];
+            let raw_stats = report.with_extension("stats.txt");
+            let mut script = format!(
+                "set -euo pipefail\nbbduk.sh in={} out={} trimpolygright={} stats={}",
+                shell_quote_arg(&format!("in={}", r1.display())),
+                shell_quote_arg(&format!("out={}", output_r1.display())),
+                shell_quote_arg(&format!("trimpolygright={min_polyg_run}")),
+                shell_quote_arg(&format!("stats={}", raw_stats.display())),
+            );
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-                command.push(format!("in2={}", r2.display()));
-                command.push(format!("out2={}", output_r2.display()));
+                script.push(' ');
+                script.push_str(&shell_quote_arg(&format!("in2={}", r2.display())));
+                script.push(' ');
+                script.push_str(&shell_quote_arg(&format!("out2={}", output_r2.display())));
             }
-            Ok(command)
+            let report_payload = serde_json::json!({
+                "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
+                "stage_id": STAGE_ID.as_str(),
+                "tool_id": tool_id,
+                "input_r1": r1,
+                "input_r2": r2,
+                "output_r1": output_r1,
+                "output_r2": output_r2,
+                "min_polyg_run": min_polyg_run,
+                "raw_stats_path": raw_stats,
+            });
+            script.push_str(&format!(
+                "\nprintf '%s\\n' {} > {}\n",
+                shell_quote_str(&report_payload.to_string()),
+                shell_quote_path(report),
+            ));
+            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
         _ => Err(anyhow!(
             "unsupported trim_polyg_tails tool for stage planning: {tool_id}"
         )),
     }
+}
+
+fn shell_quote_arg(value: &str) -> String {
+    shell_quote_str(value)
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }

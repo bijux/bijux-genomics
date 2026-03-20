@@ -192,7 +192,13 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         .command
         .template
         .iter()
-        .any(|part| part == "trimpolygright=14"));
+        .any(|part| part.contains("trimpolygright=14")));
+    assert_eq!(bbduk_plan.command.template[0], "sh");
+    assert_eq!(bbduk_plan.command.template[1], "-lc");
+    let script = &bbduk_plan.command.template[2];
+    assert!(script.contains("trim_polyg_tails_report.stats.txt"));
+    assert!(script.contains("\"tool_id\":\"bbduk\""));
+    assert!(script.contains("\"stage_id\":\"fastq.trim_polyg_tails\""));
     Ok(())
 }
 
