@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ead437e0f837050a36e4f591cfd922f1215c9c57
+# source_commit: ae504fd9551a4974300b25774593c7a1babec003
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -482,7 +482,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["pear", "vsearch"]
+tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
 id = "fastq.normalize_abundance"
@@ -691,7 +691,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["alientrimmer", "bbduk", "cutadapt", "fastp", "fastx_clipper", "seqkit"]
+tools = ["alientrimmer", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "seqkit"]
 
 [[stages]]
 id = "fastq.trim_terminal_damage"

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ead437e0f837050a36e4f591cfd922f1215c9c57
+# source_commit: ae504fd9551a4974300b25774593c7a1babec003
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -211,6 +211,40 @@ metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
 apptainer_def = "containers/apptainer/lunarc/bbduk.def"
+require_labels = true
+
+[[tools]]
+id = "bbmerge"
+tool_id = "bbmerge"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.merge_pairs"]
+bindings = ["fastq.merge_pairs"]
+tool_role = "merger"
+version = "39.01"
+default_version = "39.01"
+upstream = "https://sourceforge.net/projects/bbmap/"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://sourceforge.net/projects/bbmap/"
+pinned_commit = "sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bbmerge --version"
+help_cmd = "bbmerge --help"
+smoke_version_cmd = "bbmerge --version"
+smoke_help_cmd = "bbmerge --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "bbmerge --help"
+expected_bin = "bbmerge"
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
+metrics_schema = "bijux.fastq.merge_pairs.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
+apptainer_def = "containers/apptainer/lunarc/bbmerge.def"
 require_labels = true
 
 [[tools]]
@@ -656,6 +690,40 @@ apptainer_def = "containers/apptainer/lunarc/fastx_clipper.def"
 require_labels = true
 
 [[tools]]
+id = "flash2"
+tool_id = "flash2"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.merge_pairs"]
+bindings = ["fastq.merge_pairs"]
+tool_role = "merger"
+version = "2.2.00"
+default_version = "2.2.00"
+upstream = "https://github.com/dstreett/FLASH2"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/dstreett/FLASH2"
+pinned_commit = "sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/flash2@sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "flash2 --version"
+help_cmd = "flash2 --help"
+smoke_version_cmd = "flash2 --version"
+smoke_help_cmd = "flash2 --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "flash2 --help"
+expected_bin = "flash2"
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
+metrics_schema = "bijux.fastq.merge_pairs.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.flash2"
+apptainer_def = "containers/apptainer/lunarc/flash2.def"
+require_labels = true
+
+[[tools]]
 id = "fqtools"
 tool_id = "fqtools"
 domain = "fastq"
@@ -823,6 +891,40 @@ metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.krakenuniq"
 apptainer_def = "containers/apptainer/lunarc/krakenuniq.def"
+require_labels = true
+
+[[tools]]
+id = "leehom"
+tool_id = "leehom"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads", "fastq.merge_pairs"]
+bindings = ["fastq.merge_pairs", "fastq.trim_reads"]
+tool_role = "merger"
+version = "bbddce1542ce"
+default_version = "bbddce1542ce"
+upstream = "https://github.com/grenaud/leeHom"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/grenaud/leeHom"
+pinned_commit = "git:bbddce1542cea0e73e3814df86268445f707b0d2"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/leehom:bbddce1542ce"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "leehom --version"
+help_cmd = "leehom --help"
+smoke_version_cmd = "leehom --version"
+smoke_help_cmd = "leehom --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "leehom --help"
+expected_bin = "leehom"
+expected_artifacts = ["trimmed_reads", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
+metrics_schema = "bijux.fastq.merge_pairs.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.leehom"
+apptainer_def = "containers/apptainer/lunarc/leehom.def"
 require_labels = true
 
 [[tools]]
@@ -1833,7 +1935,7 @@ requires_reporting = false
 id = "fastq.merge_pairs"
 required_tool_roles = ["merger"]
 primary_tools = ["pear"]
-optional_alternatives = ["vsearch"]
+optional_alternatives = ["bbmerge", "flash2", "leehom", "vsearch"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1965,7 +2067,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["alientrimmer", "bbduk", "cutadapt", "fastx_clipper", "seqkit"]
+optional_alternatives = ["alientrimmer", "bbduk", "cutadapt", "fastx_clipper", "leehom", "seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
