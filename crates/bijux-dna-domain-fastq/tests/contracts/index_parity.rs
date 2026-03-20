@@ -21,8 +21,8 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, Vec<String>>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("stage_id: "))
@@ -51,10 +51,16 @@ fn indexed_stage_tools() -> Result<BTreeMap<String, Vec<String>>> {
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+        if let Some((stage, inline_value)) = line
+            .strip_prefix("  ")
+            .and_then(|rest| rest.split_once(':'))
+        {
             let stage = stage.to_string();
             out.entry(stage.clone()).or_default();
             current_stage = Some(stage);
+            if inline_value.trim() == "[]" {
+                current_stage = None;
+            }
             continue;
         }
         if let Some(tool) = line.strip_prefix("  - ") {
@@ -83,7 +89,10 @@ fn indexed_stage_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, 
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+        if let Some(stage) = line
+            .strip_prefix("  ")
+            .and_then(|rest| rest.strip_suffix(':'))
+        {
             let stage = stage.to_string();
             out.entry(stage.clone()).or_default();
             current_stage = Some(stage);
@@ -94,10 +103,9 @@ fn indexed_stage_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, 
             .and_then(|rest| rest.split_once(':'))
         {
             if let Some(stage) = &current_stage {
-                out.entry(stage.clone()).or_default().insert(
-                    tool_id.trim().to_string(),
-                    level.trim().to_string(),
-                );
+                out.entry(stage.clone())
+                    .or_default()
+                    .insert(tool_id.trim().to_string(), level.trim().to_string());
             }
         }
     }
@@ -121,7 +129,10 @@ fn indexed_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<S
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some(tool_id) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+        if let Some(tool_id) = line
+            .strip_prefix("  ")
+            .and_then(|rest| rest.strip_suffix(':'))
+        {
             let tool_id = tool_id.to_string();
             out.entry(tool_id.clone()).or_default();
             current_tool = Some(tool_id);
@@ -190,8 +201,8 @@ fn manifest_stage_statuses() -> Result<BTreeMap<String, String>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("stage_id: "))
@@ -218,8 +229,8 @@ fn manifest_tool_statuses() -> Result<BTreeMap<String, String>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let tool_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("tool_id: "))
@@ -266,8 +277,7 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
             continue;
         }
         let yaml: serde_yaml::Value = serde_yaml::from_str(
-            &std::fs::read_to_string(&path)
-                .with_context(|| format!("read {}", path.display()))?,
+            &std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
         )
         .with_context(|| format!("parse {}", path.display()))?;
         let stage_id = yaml
@@ -311,8 +321,7 @@ fn tool_manifest_reference_index_compatibility() -> Result<BTreeMap<String, BTre
             continue;
         }
         let yaml: serde_yaml::Value = serde_yaml::from_str(
-            &std::fs::read_to_string(&path)
-                .with_context(|| format!("read {}", path.display()))?,
+            &std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
         )
         .with_context(|| format!("parse {}", path.display()))?;
         let tool_id = yaml
