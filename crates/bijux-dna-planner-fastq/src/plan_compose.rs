@@ -188,10 +188,14 @@ where
                 )
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
+                let reference_index = current_reference_index
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("reference contaminant depletion requires a prior reference index stage"))?;
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
+                    reference_index,
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();

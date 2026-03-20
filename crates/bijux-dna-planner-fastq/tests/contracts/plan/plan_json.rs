@@ -138,12 +138,17 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         &dummy_tool("bowtie2"),
         r1,
         Some(r2),
+        Path::new("contaminant_reference_index"),
         out_dir,
     )?;
     assert_snapshot(
         "stage__fastq__fastq.deplete_reference_contaminants",
         &plan,
     )?;
+    assert_eq!(plan.io.inputs[1].name.as_str(), "reference_index");
+    assert_eq!(plan.command.template[0], "bowtie2");
+    assert!(plan.command.template.iter().any(|part| part == "contaminant_reference_index"));
+    assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
         &dummy_tool("umi_tools"),
