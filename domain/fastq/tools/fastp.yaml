@@ -13,13 +13,19 @@ container:
 command_template:
   - "fastp"
   - "--in1"
-  - "{{reads}}"
+  - "{{reads_r1}}"
   - "--out1"
-  - "{{trimmed_reads}}"
+  - "{{trimmed_reads_r1}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastp_v0"
 constraints:
   runtime: "local"
@@ -30,7 +36,9 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "fastp.fastq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -85,11 +93,19 @@ expected_artifacts:
   - "filtered_reads_r2"
   - "length_distribution_tsv"
   - "length_distribution_json"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "fastp --version"
 help_cmd: "fastp --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "adapterremoval"
+    - "atropos"
+    - "bbduk"
+    - "cutadapt"
+    - "prinseq"
+    - "seqkit"
+    - "trim_galore"
+    - "trimmomatic"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
