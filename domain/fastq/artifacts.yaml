@@ -72,6 +72,9 @@ artifact_ids:
   - primer_orientation_report
   - primer_stats_json
   - qc_json
+  - qc_aggregation_tool_benchmark_cohort_json
+  - qc_aggregation_tool_comparison_json
+  - qc_aggregation_tool_normalization_json
   - qc_plots_dir
   - qc_tsv
   - read_length_tool_benchmark_cohort_json

@@ -1917,6 +1917,14 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_umi_extraction_policy
+  qc_aggregation_fairness:
+    stage_id: fastq.report_qc
+    description: Compare QC aggregation backends on identical upstream QC inputs and governed
+      summary contracts.
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_qc_aggregation_contract
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
