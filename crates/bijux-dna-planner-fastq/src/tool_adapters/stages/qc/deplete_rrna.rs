@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
@@ -105,8 +105,17 @@ pub fn plan_rrna(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: rrna_command(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                &filtered_reads_r1,
+                filtered_reads_r2.as_deref(),
+                &report,
+                &metrics,
+                tool.resources.threads,
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
@@ -125,4 +134,50 @@ pub fn plan_rrna(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn rrna_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    filtered_reads_r1: &Path,
+    filtered_reads_r2: Option<&Path>,
+    report_tsv: &Path,
+    report_json: &Path,
+    threads: u32,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "sortmerna" => {
+            let mut command = vec![
+                "sortmerna".to_string(),
+                "--reads".to_string(),
+                r1.display().to_string(),
+                "--other".to_string(),
+                filtered_reads_r1.display().to_string(),
+                "--workdir".to_string(),
+                report_json
+                    .parent()
+                    .unwrap_or_else(|| Path::new("."))
+                    .display()
+                    .to_string(),
+                "--threads".to_string(),
+                threads.to_string(),
+                "--fastx".to_string(),
+                "--out2".to_string(),
+                "--log".to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push("--reads".to_string());
+                command.push(r2.display().to_string());
+            }
+            if let Some(filtered_reads_r2) = filtered_reads_r2 {
+                command.push("--paired_out".to_string());
+                command.push(filtered_reads_r2.display().to_string());
+            }
+            command.push("--report".to_string());
+            command.push(report_tsv.display().to_string());
+            Ok(command)
+        }
+        _ => Err(anyhow!("unsupported tool {tool_id}")),
+    }
 }

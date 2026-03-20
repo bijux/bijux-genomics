@@ -8,7 +8,22 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "sortmerna",
+      "--reads",
+      "reads_R1.fastq.gz",
+      "--other",
+      "out/rrna_filtered.fastq.gz",
+      "--workdir",
+      "out",
+      "--threads",
+      "1",
+      "--fastx",
+      "--out2",
+      "--log",
+      "--report",
+      "out/rrna_report.tsv"
+    ]
   },
   "resources": {
     "runtime": "local",
