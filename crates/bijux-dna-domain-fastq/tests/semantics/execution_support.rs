@@ -1,5 +1,9 @@
 use std::collections::BTreeSet;
 
+use bijux_dna_domain_fastq::execution_support::{
+    benchmark_cohort_stage_ids, comparable_benchmark_stage_ids, plannable_stage_ids,
+    runnable_stage_ids, BenchmarkSupport, NormalizationSupport, PlanningSupport, RuntimeSupport,
+};
 use bijux_dna_domain_fastq::{
     all_stage_execution_support, execution_closed_stage_ids, execution_declared_only_stage_ids,
     FASTQ_STAGE_ID_CATALOG,
@@ -72,4 +76,105 @@ fn execution_support_separates_closed_and_declared_only_stage_sets() {
         !closed.contains("fastq.infer_asvs"),
         "declared-only stages must not appear in the closed execution set",
     );
+}
+
+#[test]
+fn execution_support_tracks_capability_axes_without_optimistic_defaults() {
+    for support in all_stage_execution_support() {
+        match support.planning_support {
+            PlanningSupport::DeclaredOnly => {
+                assert!(
+                    !support.is_plannable(),
+                    "declared-only stage {} must not report planner readiness",
+                    support.stage_id.as_str(),
+                );
+            }
+            PlanningSupport::StageFamily => {
+                assert!(
+                    support.is_plannable(),
+                    "governed stage family {} must report planner readiness",
+                    support.stage_id.as_str(),
+                );
+            }
+        }
+
+        match support.runtime_support {
+            RuntimeSupport::DeclaredOnly => {
+                assert!(
+                    !support.is_runnable(),
+                    "declared-only stage {} must not report runtime readiness",
+                    support.stage_id.as_str(),
+                );
+            }
+            RuntimeSupport::Runnable => {
+                assert!(
+                    support.is_runnable(),
+                    "runnable stage {} must report runtime readiness",
+                    support.stage_id.as_str(),
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() {
+    let mut by_stage = all_stage_execution_support()
+        .into_iter()
+        .map(|support| (support.stage_id.to_string(), support))
+        .collect::<std::collections::BTreeMap<_, _>>();
+
+    assert_eq!(
+        by_stage
+            .remove("fastq.detect_adapters")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::ObserverSpecialized),
+    );
+    assert_eq!(
+        by_stage
+            .remove("fastq.validate_reads")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::Mixed),
+    );
+    assert_eq!(
+        by_stage
+            .remove("fastq.trim_reads")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::GenericEnvelope),
+    );
+}
+
+#[test]
+fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
+    let cohort = benchmark_cohort_stage_ids()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<BTreeSet<_>>();
+    let comparable = comparable_benchmark_stage_ids()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<BTreeSet<_>>();
+    let plannable = plannable_stage_ids()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<BTreeSet<_>>();
+    let runnable = runnable_stage_ids()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<BTreeSet<_>>();
+
+    assert!(plannable.contains("fastq.trim_reads"));
+    assert!(runnable.contains("fastq.trim_reads"));
+    assert!(cohort.contains("fastq.trim_reads"));
+    assert!(cohort.contains("fastq.validate_reads"));
+    assert!(comparable.contains("fastq.validate_reads"));
+    assert!(!cohort.contains("fastq.deplete_host"));
+    assert!(!comparable.contains("fastq.trim_reads"));
+    assert!(!plannable.contains("fastq.infer_asvs"));
+
+    let support = all_stage_execution_support()
+        .into_iter()
+        .find(|support| support.stage_id.as_str() == "fastq.profile_reads")
+        .expect("fastq.profile_reads must stay in the execution support manifest");
+    assert_eq!(support.benchmark_support, BenchmarkSupport::None);
 }
