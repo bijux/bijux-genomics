@@ -46,6 +46,37 @@ stage_ids:
   - "fastq.filter_reads"
   - "fastq.profile_read_lengths"
   - "fastq.trim_polyg_tails"
+stage_contracts:
+  fastq.trim_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "fastp trim mode emits paired trimmed reads and a governed trim report."
+  fastq.filter_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "filtered_reads_r1"
+      - "filtered_reads_r2"
+    notes: "fastp filter mode emits paired filtered reads without a separate stage report artifact."
+  fastq.profile_read_lengths:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "length_distribution_tsv"
+      - "length_distribution_json"
+    notes: "fastp length profiling emits deterministic histogram summaries for governed read-length metrics."
+  fastq.trim_polyg_tails:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "fastp polyG trimming emits paired trimmed reads and a trim report under the polyG-tail stage contract."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"

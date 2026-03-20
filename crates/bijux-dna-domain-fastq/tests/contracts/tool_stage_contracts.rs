@@ -82,10 +82,18 @@ fn stage_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
 }
 
 #[test]
-fn supported_reference_and_profile_tools_publish_stage_contracts() -> Result<()> {
+fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
     let required_inputs = stage_required_inputs()?;
     let outputs = stage_outputs()?;
-    for tool_name in ["bowtie2", "fastqc", "seqkit_stats", "leehom"] {
+    for tool_name in [
+        "bowtie2",
+        "fastp",
+        "fastqc",
+        "bbduk",
+        "leehom",
+        "prinseq",
+        "seqkit_stats",
+    ] {
         let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
         let yaml = parse_yaml(&tool_path)?;
         let stage_contracts = yaml
