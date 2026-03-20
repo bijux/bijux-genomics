@@ -419,12 +419,7 @@ where
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
-                (plan, next_r1, next_r2, current_feature_table.clone())
+                (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_INFER_ASVS.as_str() => {
                 if tool.tool_id.as_str() != "dada2" {

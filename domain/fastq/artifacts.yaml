@@ -4,8 +4,7 @@ artifact_ids:
   - adapter_report
   - asv_sequences_fasta
   - asv_table_tsv
-  - chimera_filtered_reads_r1
-  - chimera_filtered_reads_r2
+  - chimera_filtered_reads
   - chimera_metrics_json
   - chimeras_fasta
   - classification_report_json

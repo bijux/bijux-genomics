@@ -4,17 +4,11 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads_r1"
-    data_type: "fastq"
-    cardinality: "Many"
-  - name: "reads_r2"
+  - name: "reads"
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "chimera_filtered_reads_r1"
-    data_type: "fastq"
-    cardinality: "Many"
-  - name: "chimera_filtered_reads_r2"
+  - name: "chimera_filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
   - name: "chimera_metrics_json"
@@ -40,19 +34,20 @@ invariants:
   - "chimera_fraction in [0, 1]"
 compatible_tools:
   - vsearch
+tool_capability_requirements:
+  - "SE"
 assumptions:
   - "Reference or de-novo chimera detection mode is fixed per run."
   - "Chimera reference database id/version/checksum is explicit when reference mode is used."
+  - "paired-end libraries must be merged or otherwise reduced to one analysis stream before chimera removal."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs:
-  - "reads_r1"
+  - "reads"
 required_outputs:
-  - "chimera_filtered_reads_r1"
+  - "chimera_filtered_reads"
   - "chimera_metrics_json"
 allowed_missingness:
-  - "reads_r2"
-  - "chimera_filtered_reads_r2"
   - "chimeras_fasta"

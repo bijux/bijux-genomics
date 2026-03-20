@@ -589,7 +589,7 @@ resource_memory_gb = 8
 resource_time_minutes = 25
 resource_threads = 4
 sanity_metrics = ["chimera_fraction", "chimeras_removed"]
-output_size_estimates_mb = ["chimera_filtered_reads_r1:1500", "chimera_metrics_json:4"]
+output_size_estimates_mb = ["chimera_filtered_reads:1500", "chimera_metrics_json:4"]
 qc_thresholds = ["chimera_fraction|warn=>0.4|fail=>0.8"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]

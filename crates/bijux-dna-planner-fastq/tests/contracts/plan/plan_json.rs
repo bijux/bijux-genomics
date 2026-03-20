@@ -329,17 +329,27 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
         &domain_tool("fastq.remove_chimeras", "vsearch"),
         r1,
-        Some(r2),
+        None,
         out_dir,
     )?;
-    assert_eq!(plan.io.inputs.len(), 2);
-    assert_eq!(plan.io.outputs.len(), 4);
-    assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
-    assert_eq!(plan.io.outputs[1].name.as_str(), "chimera_filtered_reads_r2");
+    assert_eq!(plan.io.inputs.len(), 1);
+    assert_eq!(plan.io.outputs.len(), 3);
+    assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
+    assert_eq!(plan.io.outputs[0].name.as_str(), "chimera_filtered_reads");
     assert_eq!(
-        plan.io.outputs[3].role.as_str(),
+        plan.io.outputs[2].role.as_str(),
         "reads",
         "chimera sequence FASTA must be typed as a sequence artifact",
+    );
+    assert!(
+        bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
+            &domain_tool("fastq.remove_chimeras", "vsearch"),
+            r1,
+            Some(r2),
+            out_dir,
+        )
+        .is_err(),
+        "remove_chimeras must reject paired inputs until a paired-aware runtime exists",
     );
 
     let infer_asvs_error = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(

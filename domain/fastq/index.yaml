@@ -1068,7 +1068,7 @@ stage_output_size_estimates_mb:
     qc_json: 2.0
     qc_tsv: 2.0
   fastq.remove_chimeras:
-    chimera_filtered_reads_r1: 1500.0
+    chimera_filtered_reads: 1500.0
     chimera_metrics_json: 4.0
   fastq.remove_duplicates:
     dedup_reads_r1: 1200.0
