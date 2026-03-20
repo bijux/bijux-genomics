@@ -37,7 +37,7 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
     Ok(out)
 }
 
-fn execution_support_manifest() -> Result<Vec<(String, Option<String>, BTreeSet<String>)>> {
+fn execution_support_manifest() -> Result<Vec<(String, String, Option<String>, BTreeSet<String>)>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
         .context("read domain/fastq/execution_support.yaml")?;
     let yaml: serde_yaml::Value =
@@ -57,6 +57,11 @@ fn execution_support_manifest() -> Result<Vec<(String, Option<String>, BTreeSet<
             .get("default_tool")
             .and_then(serde_yaml::Value::as_str)
             .map(str::to_string);
+        let execution_status = stage
+            .get("execution_status")
+            .and_then(serde_yaml::Value::as_str)
+            .map(str::to_string)
+            .context("execution_support execution_status")?;
         let admitted_tools = stage
             .get("admitted_tools")
             .and_then(serde_yaml::Value::as_sequence)
@@ -65,7 +70,7 @@ fn execution_support_manifest() -> Result<Vec<(String, Option<String>, BTreeSet<
             .filter_map(serde_yaml::Value::as_str)
             .map(str::to_string)
             .collect::<BTreeSet<_>>();
-        out.push((stage_id, default_tool, admitted_tools));
+        out.push((stage_id, execution_status, default_tool, admitted_tools));
     }
     Ok(out)
 }
@@ -92,7 +97,7 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
 #[test]
 fn execution_support_stays_inside_stage_tool_contracts() -> Result<()> {
     let stage_tools = stage_manifest_tools()?;
-    for (stage_id, default_tool, admitted_tools) in execution_support_manifest()? {
+    for (stage_id, _execution_status, default_tool, admitted_tools) in execution_support_manifest()? {
         let compatible = stage_tools
             .get(&stage_id)
             .with_context(|| format!("missing stage manifest compatible_tools for {stage_id}"))?;
@@ -112,6 +117,24 @@ fn execution_support_stays_inside_stage_tool_contracts() -> Result<()> {
                 "execution support default tool {default_tool} must remain inside admitted_tools for {stage_id}"
             );
         }
+    }
+    Ok(())
+}
+
+#[test]
+fn closed_stage_contracts_match_execution_support_surface() -> Result<()> {
+    let stage_tools = stage_manifest_tools()?;
+    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()? {
+        if execution_status != "closed" {
+            continue;
+        }
+        let compatible = stage_tools
+            .get(&stage_id)
+            .with_context(|| format!("missing stage manifest compatible_tools for {stage_id}"))?;
+        assert_eq!(
+            compatible, &admitted_tools,
+            "closed runtime stage {stage_id} must keep compatible_tools aligned with execution_support admitted_tools"
+        );
     }
     Ok(())
 }

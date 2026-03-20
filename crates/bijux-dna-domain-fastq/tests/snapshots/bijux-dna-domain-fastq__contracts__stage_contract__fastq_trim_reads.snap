@@ -56,7 +56,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "adapterremoval",
     "trimmomatic",
     "trim_galore",
-    "seqpurge",
     "prinseq",
     "seqkit",
     "skewer",

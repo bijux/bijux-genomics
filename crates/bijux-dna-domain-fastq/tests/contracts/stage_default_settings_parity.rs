@@ -72,6 +72,43 @@ fn indexed_stage_tool_compatibility() -> Result<BTreeMap<String, BTreeSet<String
     Ok(out)
 }
 
+fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    let mut out = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut in_block = false;
+    let mut current_stage = None::<String>;
+    for line in raw.lines() {
+        if line == "stage_default_settings:" {
+            in_block = true;
+            continue;
+        }
+        if !in_block {
+            continue;
+        }
+        if !line.starts_with(' ') && line.contains(':') {
+            break;
+        }
+        if line.starts_with("    ") {
+            if let Some(tool) = line.strip_prefix("    ").and_then(|rest| rest.strip_suffix(':')) {
+                if let Some(stage) = &current_stage {
+                    out.entry(stage.clone()).or_default().insert(tool.to_string());
+                }
+            }
+            continue;
+        }
+        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+            if stage.starts_with("fastq.") {
+                let stage = stage.to_string();
+                current_stage = Some(stage.clone());
+                out.entry(stage).or_default();
+            }
+            continue;
+        }
+    }
+    Ok(out)
+}
+
 fn block_list(raw: &str, key: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut in_block = false;
@@ -98,5 +135,20 @@ fn stage_default_settings_cover_current_supported_tools() -> Result<()> {
         stage_manifest_tools()?,
         "domain/fastq/index.yaml stage_tool_compatibility drifted from stage manifest compatible_tools"
     );
+    Ok(())
+}
+
+#[test]
+fn stage_default_settings_only_reference_current_compatible_tools() -> Result<()> {
+    let stage_tools = indexed_stage_tool_compatibility()?;
+    for (stage_id, configured_tools) in indexed_stage_default_settings()? {
+        let compatible = stage_tools
+            .get(&stage_id)
+            .with_context(|| format!("missing stage_tool_compatibility entry for {stage_id}"))?;
+        assert_eq!(
+            compatible, &configured_tools,
+            "domain/fastq/index.yaml stage_default_settings drifted from current compatible_tools for {stage_id}"
+        );
+    }
     Ok(())
 }

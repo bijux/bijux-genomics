@@ -81,7 +81,6 @@ compatible_tools:
   - adapterremoval
   - trimmomatic
   - trim_galore
-  - seqpurge
   - prinseq
   - seqkit
   - skewer

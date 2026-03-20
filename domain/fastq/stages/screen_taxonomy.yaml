@@ -59,7 +59,6 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - diamond
   - kraken2
   - krakenuniq
   - centrifuge

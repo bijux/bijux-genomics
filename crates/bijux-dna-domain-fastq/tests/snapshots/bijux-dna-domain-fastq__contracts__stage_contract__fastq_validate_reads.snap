@@ -45,7 +45,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.validate_reads",
   "tool_ids": [
     "fastqvalidator",
-    "fastq_scan",
     "seqtk",
     "fqtools"
   ]
