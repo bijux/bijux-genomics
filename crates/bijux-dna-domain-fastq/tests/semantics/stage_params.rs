@@ -174,8 +174,11 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
         paired_mode: PairedMode::PairedEnd,
         threads: 4,
         contaminant_db: None,
+        database_catalog_id: "taxonomy_reference".to_string(),
         database_artifact_id: "taxonomy_db".to_string(),
         database_build_id: Some("kraken2-standard-2025-01".to_string()),
+        database_digest: Some("sha256:taxonomy-db".to_string()),
+        database_namespace: Some("read_screening".to_string()),
         database_scope: TaxonomyDatabaseScope::ReadScreening,
         classifier: TaxonomyClassifier::Kraken2,
         report_format: TaxonomyReportFormat::KrakenReport,
@@ -185,11 +188,14 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
     };
     let decoded: ScreenEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, SCREEN_TAXONOMY_SCHEMA_VERSION);
+    assert_eq!(decoded.database_catalog_id, "taxonomy_reference");
     assert_eq!(decoded.database_artifact_id, "taxonomy_db");
     assert_eq!(
         decoded.database_build_id.as_deref(),
         Some("kraken2-standard-2025-01"),
     );
+    assert_eq!(decoded.database_digest.as_deref(), Some("sha256:taxonomy-db"));
+    assert_eq!(decoded.database_namespace.as_deref(), Some("read_screening"));
     assert_eq!(decoded.database_scope, TaxonomyDatabaseScope::ReadScreening);
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);

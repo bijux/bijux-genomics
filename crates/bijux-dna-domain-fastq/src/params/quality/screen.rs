@@ -49,9 +49,14 @@ pub struct ScreenEffectiveParams {
     pub threads: u32,
     #[serde(default)]
     pub contaminant_db: Option<String>,
+    pub database_catalog_id: String,
     pub database_artifact_id: String,
     #[serde(default)]
     pub database_build_id: Option<String>,
+    #[serde(default)]
+    pub database_digest: Option<String>,
+    #[serde(default)]
+    pub database_namespace: Option<String>,
     pub database_scope: TaxonomyDatabaseScope,
     pub classifier: TaxonomyClassifier,
     pub report_format: TaxonomyReportFormat,
@@ -110,6 +115,9 @@ impl ScreenEffectiveParams {
         if self.database_artifact_id.trim().is_empty() {
             missing.push("database_artifact_id");
         }
+        if self.database_catalog_id.trim().is_empty() {
+            missing.push("database_catalog_id");
+        }
         missing
     }
 
@@ -118,8 +126,11 @@ impl ScreenEffectiveParams {
         serde_json::json!({
             "schema_version": self.schema_version,
             "contaminant_db": self.contaminant_db,
+            "database_catalog_id": self.database_catalog_id,
             "database_artifact_id": self.database_artifact_id,
             "database_build_id": self.database_build_id,
+            "database_digest": self.database_digest,
+            "database_namespace": self.database_namespace,
             "database_scope": self.database_scope,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
