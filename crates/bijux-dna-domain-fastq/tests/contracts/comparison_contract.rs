@@ -128,6 +128,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
 
+    let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&polyg_stage),
+        vec![
+            "polyg_trim_tool_benchmark_cohort_json",
+            "polyg_trim_tool_comparison_json",
+            "polyg_trim_tool_normalization_json",
+        ]
+    );
+
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&overrepresented_stage),

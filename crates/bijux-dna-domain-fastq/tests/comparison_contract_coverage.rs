@@ -131,3 +131,25 @@ fn report_qc_exposes_stage_family_comparison_contract() {
         "qc_aggregation_tool_normalization_json"
     );
 }
+
+#[test]
+fn trim_polyg_tails_exposes_stage_family_comparison_contract() {
+    let contract =
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
+            "fastq.trim_polyg_tails",
+        ))
+        .expect("trim_polyg_tails comparison contract must exist");
+
+    assert_eq!(
+        contract.cohort_artifact_id,
+        "polyg_trim_tool_benchmark_cohort_json"
+    );
+    assert_eq!(
+        contract.comparison_artifact_id,
+        "polyg_trim_tool_comparison_json"
+    );
+    assert_eq!(
+        contract.normalization_artifact_id,
+        "polyg_trim_tool_normalization_json"
+    );
+}

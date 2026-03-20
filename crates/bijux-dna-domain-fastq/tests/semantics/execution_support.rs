@@ -166,6 +166,7 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
     assert!(plannable.contains("fastq.trim_reads"));
     assert!(runnable.contains("fastq.trim_reads"));
     assert!(cohort.contains("fastq.trim_reads"));
+    assert!(cohort.contains("fastq.trim_polyg_tails"));
     assert!(cohort.contains("fastq.validate_reads"));
     assert!(cohort.contains("fastq.deplete_rrna"));
     assert!(cohort.contains("fastq.deplete_host"));

@@ -67,6 +67,9 @@ artifact_ids:
   - overrepresented_sequence_tool_comparison_json
   - overrepresented_sequence_tool_normalization_json
   - overrepresented_sequences_tsv
+  - polyg_trim_tool_benchmark_cohort_json
+  - polyg_trim_tool_comparison_json
+  - polyg_trim_tool_normalization_json
   - primer_normalization_tool_benchmark_cohort_json
   - primer_normalization_tool_comparison_json
   - primer_normalization_tool_normalization_json
