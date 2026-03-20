@@ -156,7 +156,7 @@ impl FastqPlanner {
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
         let stage_bindings = normalize_stage_bindings(config)?;
-        validate_reference_index_bindings(&stage_bindings)?;
+        validate_reference_index_bindings(&stage_bindings, config.pipeline_spec.as_ref())?;
         for binding in &stage_bindings {
             enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
@@ -451,7 +451,21 @@ fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBi
     Ok(bindings)
 }
 
-fn validate_reference_index_bindings(bindings: &[FastqStageBinding]) -> Result<()> {
+fn validate_reference_index_bindings(
+    bindings: &[FastqStageBinding],
+    pipeline_spec: Option<&PipelineSpec>,
+) -> Result<()> {
+    let explicit_stage_inputs = stage_artifact_input_policy(pipeline_spec);
+    let binding_by_node_id = bindings
+        .iter()
+        .map(|binding| {
+            let node_id = binding
+                .stage_instance_id
+                .clone()
+                .unwrap_or_else(|| format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id));
+            (node_id, binding)
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
     let mut current_index_backend: Option<&str> = None;
     for binding in bindings {
         match binding.stage_id.as_str() {
@@ -459,7 +473,21 @@ fn validate_reference_index_bindings(bindings: &[FastqStageBinding]) -> Result<(
                 current_index_backend = Some(binding.tool.tool_id.as_str());
             }
             "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
-                let Some(index_backend) = current_index_backend else {
+                let explicit_backend = explicit_stage_inputs
+                    .get(
+                        binding
+                            .stage_instance_id
+                            .as_deref()
+                            .unwrap_or(binding.stage_id.as_str()),
+                    )
+                    .and_then(|inputs| {
+                        inputs
+                            .iter()
+                            .find(|input| input.to_input_id == "reference_index")
+                    })
+                    .and_then(|input| binding_by_node_id.get(&input.from_stage_node_id))
+                    .map(|binding| binding.tool.tool_id.as_str());
+                let Some(index_backend) = explicit_backend.or(current_index_backend) else {
                     continue;
                 };
                 let depletion_tool_id =

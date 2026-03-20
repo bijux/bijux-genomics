@@ -456,6 +456,257 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
 }
 
 #[test]
+fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-explicit-read-rejoin")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__explicit_rejoin__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.filter_reads".to_string(),
+                    stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.trim_reads.fastp_branch".to_string(),
+                to: "fastq.filter_reads.selected".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("reads_r1".to_string()),
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tool: tool("fastp"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                tool: tool("cutadapt"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                tool: tool("seqkit"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let fastp_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.fastp_branch")
+        .expect("fastp trim branch");
+    let filter_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.filter_reads.selected")
+        .expect("selected filter stage");
+    assert_eq!(filter_step.io.inputs[0].path, fastp_step.io.outputs[0].path);
+    Ok(())
+}
+
+#[test]
+fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -> anyhow::Result<()>
+{
+    let temp = bijux_dna_infra::temp_dir("fastq-explicit-reference-index")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference_fasta = temp.path().join("reference.fasta");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference_fasta, b">chr1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__explicit_reference_index__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.alt".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.deplete_host".to_string(),
+                    stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.index_reference.host".to_string(),
+                to: "fastq.deplete_host.host".to_string(),
+                from_output_id: Some("reference_index".to_string()),
+                to_input_id: Some("reference_index".to_string()),
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                tool: tool("bowtie2_build"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.alt".to_string()),
+                tool: tool("star"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.deplete_host".to_string(),
+                stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                tool: tool("bowtie2"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference_fasta),
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let host_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.deplete_host.host")
+        .expect("host depletion stage");
+    assert!(host_step
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("index_reference.host")));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-explicit-abundance-table")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__explicit_abundance__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.cluster_otus".to_string(),
+                    stage_instance_id: Some("fastq.cluster_otus.primary".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.cluster_otus".to_string(),
+                    stage_instance_id: Some("fastq.cluster_otus.secondary".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.normalize_abundance".to_string(),
+                    stage_instance_id: Some("fastq.normalize_abundance.selected".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.cluster_otus.secondary".to_string(),
+                to: "fastq.normalize_abundance.selected".to_string(),
+                from_output_id: Some("otu_table".to_string()),
+                to_input_id: Some("abundance_table".to_string()),
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.cluster_otus".to_string(),
+                stage_instance_id: Some("fastq.cluster_otus.primary".to_string()),
+                tool: tool("vsearch"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.cluster_otus".to_string(),
+                stage_instance_id: Some("fastq.cluster_otus.secondary".to_string()),
+                tool: tool("vsearch"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.normalize_abundance".to_string(),
+                stage_instance_id: Some("fastq.normalize_abundance.selected".to_string()),
+                tool: tool("seqkit"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let cluster_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.cluster_otus.secondary")
+        .expect("secondary cluster stage");
+    let abundance_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.normalize_abundance.selected")
+        .expect("abundance stage");
+    assert_eq!(abundance_step.io.inputs[0].path, cluster_step.io.outputs[0].path);
+    Ok(())
+}
+
+#[test]
 fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-graph-stage-aliases")?;
     let r1 = temp.path().join("reads_R1.fastq");
