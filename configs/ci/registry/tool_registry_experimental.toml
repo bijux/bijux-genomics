@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
+# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -112,40 +112,6 @@ apptainer_def = "containers/apptainer/lunarc/atropos.def"
 require_labels = true
 
 [[tools]]
-id = "bayeshammer"
-tool_id = "bayeshammer"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.correct_errors"]
-bindings = ["fastq.correct_errors"]
-tool_role = "corrector"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/ablab/spades"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/ablab/spades"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/bayeshammer@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "bayeshammer --version"
-help_cmd = "bayeshammer --help"
-smoke_version_cmd = "bayeshammer --version"
-smoke_help_cmd = "bayeshammer --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "bayeshammer --help"
-expected_bin = "bayeshammer"
-expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
-apptainer_def = "containers/apptainer/lunarc/bayeshammer.def"
-require_labels = true
-
-[[tools]]
 id = "bbmerge"
 tool_id = "bbmerge"
 domain = "fastq"
@@ -172,7 +138,7 @@ smoke_help_cmd = "bbmerge --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bbmerge --help"
 expected_bin = "bbmerge"
-expected_artifacts = ["merged_reads", "report_json"]
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
@@ -274,7 +240,7 @@ smoke_help_cmd = "flash2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "flash2 --help"
 expected_bin = "flash2"
-expected_artifacts = ["merged_reads", "report_json"]
+expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
 metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.flash2"
@@ -342,79 +308,11 @@ smoke_help_cmd = "leehom --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "leehom --help"
 expected_bin = "leehom"
-expected_artifacts = ["trimmed_reads", "merged_reads", "report_json"]
+expected_artifacts = ["trimmed_reads", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.merge_pairs.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.leehom"
 apptainer_def = "containers/apptainer/lunarc/leehom.def"
-require_labels = true
-
-[[tools]]
-id = "lighter"
-tool_id = "lighter"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.correct_errors"]
-bindings = ["fastq.correct_errors"]
-tool_role = "corrector"
-version = "latest-pinned"
-default_version = "latest-pinned"
-upstream = "https://github.com/mourisl/Lighter"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/mourisl/Lighter"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/lighter@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "lighter --version"
-help_cmd = "lighter --help"
-smoke_version_cmd = "lighter --version"
-smoke_help_cmd = "lighter --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "lighter --help"
-expected_bin = "lighter"
-expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.lighter"
-apptainer_def = "containers/apptainer/lunarc/lighter.def"
-require_labels = true
-
-[[tools]]
-id = "musket"
-tool_id = "musket"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.correct_errors"]
-bindings = ["fastq.correct_errors"]
-tool_role = "corrector"
-version = "1.1"
-default_version = "1.1"
-upstream = "https://github.com/alexdobin/musket"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/alexdobin/musket"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/musket@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "musket --version"
-help_cmd = "musket --help"
-smoke_version_cmd = "musket --version"
-smoke_help_cmd = "musket --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "musket --help"
-expected_bin = "musket"
-expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.musket"
-apptainer_def = "containers/apptainer/lunarc/musket.def"
 require_labels = true
 
 [[tools]]

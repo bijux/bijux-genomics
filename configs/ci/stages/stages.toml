@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
+# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -286,7 +286,7 @@ resource_time_minutes = 30
 resource_threads = 4
 sanity_metrics = ["otu_count", "representative_count"]
 output_size_estimates_mb = ["otu_representatives:3", "otu_table:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
-qc_thresholds = ["otu_count|warn<=0|fail<=0"]
+qc_thresholds = ["otu_count|warn=<=0|fail=<=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
@@ -311,7 +311,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["rcorrector"]
+tools = ["bayeshammer", "lighter", "musket", "rcorrector"]
 
 [[stages]]
 id = "fastq.deplete_host"
@@ -392,7 +392,7 @@ tools = ["fastqc"]
 [[stages]]
 id = "fastq.extract_umis"
 status = "supported"
-output_kinds = ["fastq"]
+output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.trim_reads"]
 prerequisites = ["fastq.trim_reads"]
 resource_memory_gb = 4
@@ -507,8 +507,8 @@ tools = ["seqkit"]
 id = "fastq.normalize_primers"
 status = "supported"
 output_kinds = ["fastq", "json", "tsv"]
-ordering_after = []
-prerequisites = []
+ordering_after = ["fastq.trim_terminal_damage"]
+prerequisites = ["fastq.trim_terminal_damage"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
@@ -583,8 +583,8 @@ tools = ["seqkit_stats"]
 id = "fastq.remove_chimeras"
 status = "supported"
 output_kinds = ["fasta", "fastq", "json"]
-ordering_after = []
-prerequisites = []
+ordering_after = ["fastq.filter_reads"]
+prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 8
 resource_time_minutes = 25
 resource_threads = 4
@@ -762,3 +762,4 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
+

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 5a10a982efb7dc6d310e2b7e1957c288cb440139
+# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -32,7 +32,7 @@ version = "latest-pinned"
 version = "2.5.2"
 
 [bayeshammer]
-version = "latest-pinned"
+version = "4.2.0"
 
 [bbduk]
 version = "latest-pinned"
@@ -143,7 +143,7 @@ version = "1.0.4"
 version = "latest-pinned"
 
 [lighter]
-version = "latest-pinned"
+version = "1.1.2"
 
 [mapdamage2]
 version = "2.2.2"
@@ -159,7 +159,7 @@ version = "0.3.10"
 version = "latest-pinned"
 
 [musket]
-version = "latest-pinned"
+version = "1.1"
 
 [pear]
 version = "latest-pinned"
@@ -182,7 +182,7 @@ version = "latest-pinned"
 version = "1.0.0"
 
 [rcorrector]
-version = "latest-pinned"
+version = "1.0.7"
 
 [rxy]
 version = "latest-pinned"
