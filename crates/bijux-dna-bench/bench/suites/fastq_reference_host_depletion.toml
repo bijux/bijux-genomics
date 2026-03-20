@@ -1,0 +1,60 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_reference_host_depletion"
+
+[[datasets]]
+id = "synthetic_fastq_reference_host_01"
+hash = "fixture-fastq-reference-host-01"
+size = 1
+origin = "synthetic"
+class_label = "host_background"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [461, 462]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["host_background"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.index_reference"
+stage_instance_id = "fastq.index_reference.host_index"
+tools = ["bowtie2_build"]
+
+[[stages]]
+stage = "fastq.deplete_host"
+stage_instance_id = "fastq.deplete_host.host_screen"
+tools = ["bowtie2"]
+upstream_stage_instance_ids = [
+  "fastq.validate_reads.validation",
+  "fastq.index_reference.host_index",
+]
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.deplete_host.host_screen"
+from_output_id = "validated_reads_r1"
+to_input_id = "reads_r1"
+
+[[edges]]
+from = "fastq.index_reference.host_index"
+to = "fastq.deplete_host.host_screen"
+from_output_id = "reference_index"
+to_input_id = "reference_index"
