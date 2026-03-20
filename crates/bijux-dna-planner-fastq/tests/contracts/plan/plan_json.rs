@@ -290,25 +290,17 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.correct_errors", &plan)?;
 
-    let single_end_plan =
+    let single_end_error =
         bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
             &domain_tool("fastq.correct_errors", "rcorrector"),
             r1,
             None,
             out_dir,
-        )?;
-    assert_eq!(single_end_plan.io.inputs.len(), 1);
-    assert_eq!(single_end_plan.io.outputs.len(), 1);
-    assert_eq!(
-        single_end_plan.io.outputs[0].name.as_str(),
-        "corrected_reads_r1"
-    );
-    assert_eq!(
-        single_end_plan.effective_params["paired_mode"],
-        "single_end"
-    );
-    assert!(single_end_plan.params.get("r2").is_none());
-    assert!(single_end_plan.params.get("output_r2").is_none());
+        )
+        .expect_err("correction planning must reject single-end inputs");
+    assert!(single_end_error
+        .to_string()
+        .contains("requires paired-end reads"));
 
     let preprocess_plan =
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::PreprocessPlan {
