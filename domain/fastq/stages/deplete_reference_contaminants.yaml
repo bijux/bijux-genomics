@@ -4,7 +4,10 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "reference_index"
@@ -39,7 +42,7 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - "reads"
+  - "reads_r1"
   - "reference_index"
 required_outputs:
   - "contaminant_screened_reads"
@@ -49,12 +52,13 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
 compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "contaminant decoy reference is explicitly versioned and separate from taxonomy DB."
+  - "single-end input omits reads_r2; paired-end input preserves mate synchronization during contaminant depletion."
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
