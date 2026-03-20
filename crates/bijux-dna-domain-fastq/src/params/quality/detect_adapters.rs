@@ -11,6 +11,19 @@ pub enum AdapterInspectionMode {
     EvidenceOnly,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AdapterEvidenceScope {
+    SampledReads,
+    FullInput,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AdapterEvidenceFormat {
+    FastqcSummary,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DetectAdaptersEffectiveParams {
@@ -22,6 +35,9 @@ pub struct DetectAdaptersEffectiveParams {
     pub inspection_mode: AdapterInspectionMode,
     pub report_only: bool,
     pub evidence_engine: String,
+    pub evidence_scope: AdapterEvidenceScope,
+    pub evidence_format: AdapterEvidenceFormat,
+    pub evidence_artifact_id: String,
 }
 
 impl DetectAdaptersEffectiveParams {
@@ -40,6 +56,9 @@ impl DetectAdaptersEffectiveParams {
         if self.evidence_engine.trim().is_empty() {
             missing.push("evidence_engine");
         }
+        if self.evidence_artifact_id.trim().is_empty() {
+            missing.push("evidence_artifact_id");
+        }
         missing
     }
 
@@ -53,6 +72,9 @@ impl DetectAdaptersEffectiveParams {
             "inspection_mode": self.inspection_mode,
             "report_only": self.report_only,
             "evidence_engine": self.evidence_engine,
+            "evidence_scope": self.evidence_scope,
+            "evidence_format": self.evidence_format,
+            "evidence_artifact_id": self.evidence_artifact_id,
         })
     }
 }

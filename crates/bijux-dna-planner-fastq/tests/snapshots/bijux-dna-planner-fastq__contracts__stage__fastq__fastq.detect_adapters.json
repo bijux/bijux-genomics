@@ -60,7 +60,10 @@
     "tool": "fastqc"
   },
   "effective_params": {
+    "evidence_artifact_id": "adapter_report",
     "evidence_engine": "fastqc",
+    "evidence_format": "fastqc_summary",
+    "evidence_scope": "sampled_reads",
     "inspection_mode": "evidence_only",
     "paired_mode": "paired_end",
     "report_only": true,

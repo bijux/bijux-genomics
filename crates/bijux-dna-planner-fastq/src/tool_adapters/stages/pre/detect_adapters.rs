@@ -6,7 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     detect_adapters::{
-        AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+        AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
+        DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
     },
     PairedMode,
 };
@@ -36,6 +37,9 @@ pub fn plan(
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: tool.tool_id.to_string(),
+        evidence_scope: AdapterEvidenceScope::SampledReads,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "adapter_report".to_string(),
     };
     let command_template =
         detect_adapters_command(&tool.tool_id.0, r1, r2, &fastqc_dir, tool.resources.threads)?;
