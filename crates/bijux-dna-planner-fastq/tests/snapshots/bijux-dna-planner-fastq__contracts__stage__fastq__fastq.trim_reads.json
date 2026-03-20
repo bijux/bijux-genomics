@@ -13,7 +13,11 @@
       "--in1",
       "reads_R1.fastq.gz",
       "--out1",
-      "out/fastp.fastq.gz"
+      "out/fastp.fastq.gz",
+      "--json",
+      "out/trim_report.json",
+      "--thread",
+      "4"
     ]
   },
   "resources": {

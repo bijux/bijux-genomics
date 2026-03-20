@@ -104,5 +104,8 @@ fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
     assert_eq!(plan.effective_params["adapter_policy"], "bank");
     assert_eq!(plan.effective_params["polyx_policy"], "bank");
     assert_eq!(plan.effective_params["contaminant_policy"], "bank");
+    assert!(plan.command.template.iter().any(|part| part == "--in2"));
+    assert!(plan.command.template.iter().any(|part| part == "--out2"));
+    assert!(plan.command.template.iter().any(|part| part == "--detect_adapter_for_pe"));
     Ok(())
 }
