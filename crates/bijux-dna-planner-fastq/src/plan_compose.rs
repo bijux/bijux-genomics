@@ -416,8 +416,8 @@ where
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
                     for aux_tool in crate::tool_adapters::fastq::report_qc::aux_tool_ids() {
-                        if let Some(image) = aux_images.get(*aux_tool) {
-                            stage_aux_images.insert(aux_tool.to_string(), image.clone());
+                        if let Some(image) = aux_images.get(aux_tool.as_str()) {
+                            stage_aux_images.insert(aux_tool, image.clone());
                         }
                     }
                 }

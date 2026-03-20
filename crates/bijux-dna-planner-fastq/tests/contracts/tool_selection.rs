@@ -94,3 +94,15 @@ fn correct_errors_planning_rejects_tools_outside_execution_support() {
         "planner must reject correction tools that are not closed in domain execution support",
     );
 }
+
+#[test]
+fn report_qc_aux_tools_come_from_observer_contributors() {
+    let aux_tools = bijux_dna_planner_fastq::stage_api::fastq::report_qc::aux_tool_ids();
+    assert!(aux_tools.iter().any(|tool| tool == "fastqc"));
+    assert!(aux_tools.iter().any(|tool| tool == "seqkit_stats"));
+    assert!(aux_tools.iter().any(|tool| tool == "fastqvalidator"));
+    assert!(
+        !aux_tools.iter().any(|tool| tool == "multiqc"),
+        "report_qc aux tools must describe upstream QC contributors, not the aggregation tool itself",
+    );
+}
