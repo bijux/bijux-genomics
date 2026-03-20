@@ -6,8 +6,8 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_planner_fastq::{
-    DepleteHostStageParams, DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner,
-    FastqStageBinding, FastqStageParameters,
+    DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
+    FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
     TrimTerminalDamageStageParams,
 };
 
@@ -261,5 +261,60 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
     .expect_err("unsupported host retention policy must fail loudly");
 
     assert!(error.to_string().contains("retain_unmapped_only=true"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-reference-contaminant-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference = temp.path().join("reference.fa");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference, b">chr1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__reference_contaminants__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.decoy".to_string()),
+                tool: tool("bowtie2_build"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.deplete_reference_contaminants".to_string(),
+                stage_instance_id: Some("fastq.deplete_reference_contaminants.decoy".to_string()),
+                tool: tool("bowtie2"),
+                reason: None,
+                params: Some(FastqStageParameters::DepleteReferenceContaminants(
+                    DepleteReferenceContaminantsStageParams {
+                        decoy_mode: "phix_only".to_string(),
+                    },
+                )),
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference),
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.deplete_reference_contaminants.decoy")
+        .expect("reference contaminant step");
+    assert!(step.command.template.iter().any(|part| part == "--un-gz"));
     Ok(())
 }
