@@ -46,6 +46,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "merge_tool_normalization_json",
     ),
     (
+        "fastq.deplete_reference_contaminants",
+        "contaminant_depletion_tool_benchmark_cohort_json",
+        "contaminant_depletion_tool_comparison_json",
+        "contaminant_depletion_tool_normalization_json",
+    ),
+    (
         "fastq.filter_low_complexity",
         "low_complexity_tool_benchmark_cohort_json",
         "low_complexity_tool_comparison_json",

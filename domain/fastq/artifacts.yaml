@@ -13,6 +13,9 @@ artifact_ids:
   - chimeras_fasta
   - classification_report_json
   - contaminant_screen_report_json
+  - contaminant_depletion_tool_benchmark_cohort_json
+  - contaminant_depletion_tool_comparison_json
+  - contaminant_depletion_tool_normalization_json
   - contaminant_screened_reads_r1
   - contaminant_screened_reads_r2
   - correction_tool_benchmark_cohort_json
