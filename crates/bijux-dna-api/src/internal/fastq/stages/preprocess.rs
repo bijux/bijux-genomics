@@ -18,7 +18,8 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
-    select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
+    select_preprocess_stage_tools, FastqPlanConfig, FastqPlanner, FastqStageBinding,
+    StageToolSelection,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -32,7 +33,9 @@ use crate::internal::handlers::fastq::summary::{
     StageExecutionSummary,
 };
 use crate::internal::handlers::fastq::write_explain_plan_json;
-use crate::internal::handlers::fastq::{STAGE_PREPROCESS_SUMMARY, STAGE_REPORT_QC, STAGE_TRIM_READS};
+use crate::internal::handlers::fastq::{
+    STAGE_PREPROCESS_SUMMARY, STAGE_REPORT_QC, STAGE_TRIM_READS,
+};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{

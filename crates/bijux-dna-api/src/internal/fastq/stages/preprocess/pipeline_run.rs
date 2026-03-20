@@ -62,7 +62,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             "fastq.normalize_abundance",
         ];
         if let Some(stage) = pipeline
-            .stages
+            .stage_catalog()
             .iter()
             .find(|stage| amplicon_only.contains(&stage.as_str()))
         {
@@ -76,7 +76,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-    let mut selected_tools = select_preprocess_tools(
+    let mut selected_stage_tools = select_preprocess_stage_tools(
         &registry,
         &pipeline,
         args,
@@ -84,39 +84,24 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .as_ref()
             .map(|repo| repo as &dyn bijux_dna_planner_fastq::BenchResultsRepository),
     )?;
-    let mut tool_ids: Vec<String> = selected_tools
+    let mut filtered_stage_tools = Vec::new();
+    for selection in &selected_stage_tools {
+        let mut allowed =
+            filter_tools_by_role(&selection.stage_id, std::slice::from_ref(&selection.tool_id), &registry, false)?;
+        if let Some(selected) = allowed.pop() {
+            filtered_stage_tools.push(StageToolSelection {
+                stage_id: selection.stage_id.clone(),
+                stage_instance_id: selection.stage_instance_id.clone(),
+                tool_id: selected,
+                reason: selection.reason.clone(),
+            });
+        }
+    }
+    selected_stage_tools = filtered_stage_tools;
+    let tool_ids: Vec<String> = selected_stage_tools
         .iter()
         .map(|selection| selection.tool_id.clone())
         .collect();
-    let mut filtered_by_role = Vec::new();
-    for (stage_id, tool_id) in pipeline.stages.iter().zip(tool_ids.iter()) {
-        let mut allowed =
-            filter_tools_by_role(stage_id, std::slice::from_ref(tool_id), &registry, false)?;
-        if let Some(selected) = allowed.pop() {
-            filtered_by_role.push(selected);
-        }
-    }
-    tool_ids = filtered_by_role;
-    let mut reasons_by_tool = std::collections::HashMap::new();
-    for selection in selected_tools.drain(..) {
-        reasons_by_tool.insert(selection.tool_id, selection.reason);
-    }
-    let mut tool_reasons = Vec::new();
-    let mut filtered_selections = Vec::new();
-    for tool_id in &tool_ids {
-        let reason = reasons_by_tool.remove(tool_id).unwrap_or_else(|| {
-            bijux_dna_stage_contract::PlanDecisionReason::new(
-                bijux_dna_stage_contract::PlanReasonKind::Fallback,
-                "selected by role filter",
-            )
-        });
-        tool_reasons.push(reason.clone());
-        filtered_selections.push(ToolSelection {
-            tool_id: tool_id.clone(),
-            reason,
-        });
-    }
-    selected_tools = filtered_selections;
 
     write_explain_plan_json(
         &out_dir,
@@ -144,12 +129,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
     let policy = apply_preprocess_policy(
-        pipeline
-            .stages
+        selected_stage_tools
             .iter()
-            .map(|stage| StageId::new(stage.clone()))
+            .map(|selection| StageId::new(selection.stage_id.clone()))
             .collect(),
-        selected_tools
+        selected_stage_tools
             .iter()
             .map(|selection| ToolId::new(selection.tool_id.clone()))
             .collect(),
@@ -170,15 +154,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let mut failures = Vec::new();
     let mut tool_specs = Vec::new();
-    for (stage, tool) in policy
-        .pipeline_stages
-        .iter()
-        .zip(policy.pipeline_tools.iter())
-    {
+    for selection in &selected_stage_tools {
+        let stage = StageId::new(selection.stage_id.clone());
+        let tool = ToolId::new(selection.tool_id.clone());
         let spec =
             build_tool_execution_spec(stage.as_str(), tool.as_str(), &registry, catalog, platform)?;
         let spec = scale_tool_spec_for_jobs(&spec, jobs);
-        if stage == &STAGE_TRIM_READS {
+        if stage == STAGE_TRIM_READS {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
                 polyx_bank.as_ref(),
@@ -218,7 +200,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(pipeline.clone()),
-        stage_bindings: Vec::new(),
+        stage_bindings: selected_stage_tools
+            .iter()
+            .zip(tool_specs.iter())
+            .map(|(selection, tool)| FastqStageBinding {
+                stage_id: selection.stage_id.clone(),
+                stage_instance_id: selection.stage_instance_id.clone(),
+                tool: tool.clone(),
+                reason: Some(selection.reason.clone()),
+                params: None,
+            })
+            .collect(),
         stages: policy
             .pipeline_stages
             .iter()
@@ -234,7 +226,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         r2: args.r2.clone(),
         reference_fasta: args.reference_fasta.clone(),
         out_dir: bench_tools_dir(&args.out, bench_dir_name, &args.sample_id),
-        tool_reasons: Some(tool_reasons),
+        tool_reasons: None,
         allow_planned: args.allow_planned,
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
@@ -331,9 +323,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let decision_trace = serde_json::json!({
             "schema_version": "bijux.decision_trace.v1",
             "stage": STAGE_PREPROCESS_SUMMARY.as_str(),
-            "selections": selected_tools
+            "selections": selected_stage_tools
                 .iter()
                 .map(|selection| serde_json::json!({
+                    "stage_id": selection.stage_id,
+                    "stage_instance_id": selection.stage_instance_id,
                     "tool_id": selection.tool_id,
                     "reason": selection.reason,
                 }))

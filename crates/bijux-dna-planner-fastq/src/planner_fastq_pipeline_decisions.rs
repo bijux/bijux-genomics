@@ -873,8 +873,17 @@ pub struct ToolSelection {
 }
 
 #[derive(Debug, Clone)]
+pub struct StageToolSelection {
+    pub stage_id: String,
+    pub stage_instance_id: Option<String>,
+    pub tool_id: String,
+    pub reason: PlanDecisionReason,
+}
+
+#[derive(Debug, Clone)]
 pub struct ToolsetSelection {
     pub stage_id: String,
+    pub stage_instance_id: Option<String>,
     pub tool_ids: Vec<String>,
     pub reason: PlanDecisionReason,
 }
@@ -887,15 +896,16 @@ pub fn select_preprocess_toolsets(
     allow_planned: bool,
 ) -> Result<Vec<ToolsetSelection>> {
     let mut selections = Vec::new();
-    for stage in &pipeline.stages {
-        enforce_stage_status(stage, allow_planned)?;
-        let stage_id = StageId::new(stage.clone());
+    for node in pipeline.ordered_nodes() {
+        enforce_stage_status(&node.stage_id, allow_planned)?;
+        let stage_id = StageId::new(node.stage_id.clone());
         let tool_ids = crate::stage_api::toolset_for_stage(&stage_id, mode)
             .into_iter()
             .map(|tool_id| tool_id.to_string())
             .collect::<Vec<_>>();
         selections.push(ToolsetSelection {
-            stage_id: stage.clone(),
+            stage_id: node.stage_id,
+            stage_instance_id: node.stage_instance_id,
             tool_ids,
             reason: PlanDecisionReason::new(
                 PlanReasonKind::Default,
@@ -920,18 +930,18 @@ pub fn select_preprocess_toolsets(
 }
 
 /// # Errors
-/// Returns an error if tool selection fails.
-pub fn select_preprocess_tools(
+/// Returns an error if node-aware tool selection fails.
+pub fn select_preprocess_stage_tools(
     registry: &bijux_dna_core::contract::ToolRegistry,
     pipeline: &PipelineSpec,
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     bench_repo: Option<&dyn BenchResultsRepository>,
-) -> Result<Vec<ToolSelection>> {
-    let mut selected_tools: Vec<ToolSelection> = pipeline
-        .stages
+) -> Result<Vec<StageToolSelection>> {
+    let nodes = pipeline.ordered_nodes();
+    let mut selected_tools: Vec<StageToolSelection> = nodes
         .iter()
-        .map(|stage| {
-            let stage_id = StageId::new(stage.clone());
+        .map(|node| {
+            let stage_id = StageId::new(node.stage_id.clone());
             let tool_id = crate::selection::default_tool_for_stage(&stage_id)
                 .map(|tool| tool.to_string())
                 .or_else(|| {
@@ -940,8 +950,10 @@ pub fn select_preprocess_tools(
                         .first()
                         .map(|tool| tool.tool_id.to_string())
                 })
-                .ok_or_else(|| anyhow!("no default tool for stage {stage}"))?;
-            Ok(ToolSelection {
+                .ok_or_else(|| anyhow!("no default tool for stage {}", node.stage_id))?;
+            Ok(StageToolSelection {
+                stage_id: node.stage_id.clone(),
+                stage_instance_id: node.stage_instance_id.clone(),
                 tool_id,
                 reason: PlanDecisionReason::new(
                     PlanReasonKind::Default,
@@ -961,12 +973,16 @@ pub fn select_preprocess_tools(
             anyhow!("bench results repository required for --auto tool selection")
         })?;
         let mut selections = Vec::new();
-        for (idx, stage) in pipeline.stages.iter().enumerate() {
-            let stage_id = bijux_dna_core::ids::StageId::new(stage.clone());
+        for (idx, node) in nodes.iter().enumerate() {
+            let stage_id = bijux_dna_core::ids::StageId::new(node.stage_id.clone());
+            let prior_stage_ids = selected_tools[..idx]
+                .iter()
+                .map(|selection| selection.stage_id.clone())
+                .collect::<Vec<_>>();
             let query_context = bench_query_context_for_preprocess_stage(
                 &stage_id,
                 args,
-                &pipeline.stages[..idx],
+                &prior_stage_ids,
                 &selected_tools[..idx],
             )?;
             let tool_ids: Vec<String> = registry
@@ -986,7 +1002,9 @@ pub fn select_preprocess_tools(
                 args.allow_partial,
             );
             if let Some(selected) = selection.selected.as_ref() {
-                selected_tools[idx] = ToolSelection {
+                selected_tools[idx] = StageToolSelection {
+                    stage_id: node.stage_id.clone(),
+                    stage_instance_id: node.stage_instance_id.clone(),
                     tool_id: selected.clone(),
                     reason: PlanDecisionReason::new(
                         PlanReasonKind::InputAssessed,
@@ -999,6 +1017,23 @@ pub fn select_preprocess_tools(
     }
 
     Ok(selected_tools)
+}
+
+/// # Errors
+/// Returns an error if tool selection fails.
+pub fn select_preprocess_tools(
+    registry: &bijux_dna_core::contract::ToolRegistry,
+    pipeline: &PipelineSpec,
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
+    bench_repo: Option<&dyn BenchResultsRepository>,
+) -> Result<Vec<ToolSelection>> {
+    Ok(select_preprocess_stage_tools(registry, pipeline, args, bench_repo)?
+        .into_iter()
+        .map(|selection| ToolSelection {
+            tool_id: selection.tool_id,
+            reason: selection.reason,
+        })
+        .collect())
 }
 
 fn bench_query_context_for_stage(
@@ -1020,7 +1055,7 @@ fn bench_query_context_for_preprocess_stage(
     stage_id: &bijux_dna_core::ids::StageId,
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     prior_stages: &[String],
-    prior_tools: &[ToolSelection],
+    prior_tools: &[StageToolSelection],
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
     let mut context = bench_query_context_for_stage(stage_id)?;
     if let Some(reference_fasta) = args.reference_fasta.as_ref() {

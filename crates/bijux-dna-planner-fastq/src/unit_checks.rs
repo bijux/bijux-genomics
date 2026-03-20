@@ -103,7 +103,9 @@ fn preprocess_benchmark_query_context_tracks_lineage_hash() {
         allow_planned: false,
         mode: crate::selection::args::FastqPlannerMode::Shotgun,
     };
-    let prior_tools = vec![ToolSelection {
+    let prior_tools = vec![StageToolSelection {
+        stage_id: "fastq.validate_reads".to_string(),
+        stage_instance_id: None,
         tool_id: "fastqvalidator".to_string(),
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
     }];
