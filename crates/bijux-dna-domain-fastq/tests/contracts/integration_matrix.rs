@@ -125,6 +125,18 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_correction_policy")
     );
+
+    let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
+    let primer_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&normalize_primers_stage);
+    assert_eq!(primer_scenarios.len(), 1);
+    assert_eq!(primer_scenarios[0].scenario_id, "primer_normalization_fairness");
+    assert!(
+        primer_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_primer_contract")
+    );
 }
 
 #[test]

@@ -103,6 +103,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "correction_tool_normalization_json",
         ]
     );
+
+    let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&normalize_primers_stage),
+        vec![
+            "primer_normalization_tool_benchmark_cohort_json",
+            "primer_normalization_tool_comparison_json",
+            "primer_normalization_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]

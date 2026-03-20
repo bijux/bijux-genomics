@@ -298,4 +298,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .any(|tool_id| tool_id.as_str() == "bayeshammer")
     );
+
+    let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
+    let primer_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&normalize_primers_stage);
+    assert_eq!(primer_cohorts.len(), 1);
+    assert_eq!(primer_cohorts[0].scenario_id, "primer_normalization_fairness");
+    assert!(
+        primer_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "cutadapt")
+    );
+    assert!(
+        primer_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "seqkit")
+    );
 }
