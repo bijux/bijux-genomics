@@ -136,6 +136,7 @@ pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<Sta
             })
             .unwrap_or(false);
     let benchmark_normalized = parse_normalized
+        && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
         && support
             .as_ref()
             .map(|record| record.supports_benchmark_cohorts())
@@ -226,7 +227,11 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
                         .benchmark_scenarios
                         .iter()
                         .any(|scenario_id| scenario_id == &scenario.scenario_id)
-                        && profile.readiness != BenchmarkReadinessLevel::PlannedContract
+                        && matches!(
+                            profile.readiness,
+                            BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                                | BenchmarkReadinessLevel::ObserverSpecializedBenchmark
+                        )
                 })
                 .collect::<Vec<_>>();
             let observer_specialized_tools = cohort_profiles

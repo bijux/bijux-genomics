@@ -18,30 +18,38 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
         false,
     )?;
-    assert!(governed[0].tool_ids.iter().any(|tool_id| tool_id == "fastp"));
-    assert!(governed[0].tool_ids.iter().all(|tool_id| tool_id != "seqpurge"));
+    assert!(governed[0]
+        .tool_ids
+        .iter()
+        .any(|tool_id| tool_id == "fastp"));
+    assert!(governed[0]
+        .tool_ids
+        .iter()
+        .all(|tool_id| tool_id != "seqpurge"));
 
     let benchmark = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
         false,
     )?;
-    assert!(benchmark[0].tool_ids.iter().any(|tool_id| tool_id == "fastp"));
-    assert!(benchmark[0].tool_ids.iter().all(|tool_id| tool_id != "seqpurge"));
+    assert!(benchmark[0].tool_ids.is_empty());
 
     Ok(())
 }
 
 #[test]
-fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit() -> anyhow::Result<()>
-{
+fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
+) -> anyhow::Result<()> {
     let trim_pipeline = PipelineSpec::linear(vec!["fastq.trim_reads".to_string()]);
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &trim_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
         false,
     )?;
-    assert!(all_bindings[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
+    assert!(all_bindings[0]
+        .tool_ids
+        .iter()
+        .any(|tool_id| tool_id == "seqpurge"));
 
     let infer_pipeline = PipelineSpec::linear(vec!["fastq.infer_asvs".to_string()]);
     let declared_only_error = bijux_dna_planner_fastq::select_preprocess_toolsets(
