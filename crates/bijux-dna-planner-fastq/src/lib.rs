@@ -4,10 +4,15 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::PipelineSpec;
 use bijux_dna_core::contract::PlanPolicy;
-use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_dna_core::contract::{
+    ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, StageIO,
+    ToolConstraints,
+};
 use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
-use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
+use bijux_dna_core::prelude::{
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
+};
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{
     assess_merge_suitability, canonical_amplicon_stage_order, canonical_stage_order,
