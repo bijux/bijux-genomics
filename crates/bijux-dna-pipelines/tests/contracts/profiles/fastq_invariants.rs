@@ -1,7 +1,6 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::pipeline_contract;
-use bijux_dna_domain_fastq::StageCriticality;
 use bijux_dna_pipelines::fastq::{
     fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
     validate_fastq_profile,
@@ -140,14 +139,8 @@ fn adna_invariants_reject_scientifically_invalid_defaults() {
 }
 
 fn essential_shotgun_stages() -> Vec<String> {
-    pipeline_contract::canonical_stage_order()
+    pipeline_contract::default_shotgun_preprocess_stage_order()
         .into_iter()
-        .filter(|stage_id| {
-            matches!(
-                pipeline_contract::stage_criticality(stage_id),
-                Some(StageCriticality::Essential)
-            )
-        })
         .map(|stage_id| stage_id.as_str().to_string())
         .collect()
 }

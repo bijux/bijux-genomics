@@ -25,23 +25,29 @@ pub use invariants::{
     validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
 
-const ESSENTIAL_SHOTGUN_STAGES: &[&str] = &[
-    id_catalog::FASTQ_VALIDATE_PRE,
-    "fastq.profile_read_lengths",
-    id_catalog::FASTQ_DETECT_ADAPTERS,
-    "fastq.trim_polyg_tails",
-    "fastq.trim_terminal_damage",
-    id_catalog::FASTQ_TRIM,
-    id_catalog::FASTQ_FILTER,
-    id_catalog::FASTQ_STATS_NEUTRAL,
-    "fastq.profile_overrepresented_sequences",
-    id_catalog::FASTQ_QC_POST,
-];
-
 fn append_stage_once(stages: &mut Vec<&'static str>, stage_id: &'static str) {
     if !stages.contains(&stage_id) {
         stages.push(stage_id);
     }
+}
+
+fn default_shotgun_required_stages() -> Vec<&'static str> {
+    bijux_dna_domain_fastq::default_shotgun_preprocess_stage_order()
+        .into_iter()
+        .map(|stage| match stage.as_str() {
+            "fastq.validate_reads" => id_catalog::FASTQ_VALIDATE_PRE,
+            "fastq.profile_read_lengths" => "fastq.profile_read_lengths",
+            "fastq.detect_adapters" => id_catalog::FASTQ_DETECT_ADAPTERS,
+            "fastq.trim_polyg_tails" => "fastq.trim_polyg_tails",
+            "fastq.trim_terminal_damage" => "fastq.trim_terminal_damage",
+            "fastq.trim_reads" => id_catalog::FASTQ_TRIM,
+            "fastq.filter_reads" => id_catalog::FASTQ_FILTER,
+            "fastq.profile_reads" => id_catalog::FASTQ_STATS_NEUTRAL,
+            "fastq.profile_overrepresented_sequences" => "fastq.profile_overrepresented_sequences",
+            "fastq.report_qc" => id_catalog::FASTQ_QC_POST,
+            other => panic!("unsupported default shotgun FASTQ stage in pipelines profile: {other}"),
+        })
+        .collect()
 }
 
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
@@ -340,7 +346,7 @@ fn reference_adna_fastq_defaults() -> EffectiveDefaults {
 
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
-    let required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    let required_stages = default_shotgun_required_stages();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_MINIMAL),
         description: "Minimal FASTQ pipeline",
@@ -381,7 +387,7 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn fastq_default_profile() -> PipelineProfile {
-    let required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    let required_stages = default_shotgun_required_stages();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_DEFAULT),
         description: "Default FASTQ pipeline",
@@ -423,7 +429,7 @@ pub fn fastq_default_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
     let defaults = adna_fastq_defaults();
-    let mut required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    let mut required_stages = default_shotgun_required_stages();
     append_stage_once(&mut required_stages, id_catalog::FASTQ_MERGE);
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),
@@ -466,7 +472,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_reference_adna_profile() -> PipelineProfile {
     let defaults = reference_adna_fastq_defaults();
-    let mut required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    let mut required_stages = default_shotgun_required_stages();
     append_stage_once(&mut required_stages, id_catalog::FASTQ_LOW_COMPLEXITY);
     append_stage_once(&mut required_stages, id_catalog::FASTQ_MERGE);
     PipelineProfile {
