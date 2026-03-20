@@ -56,8 +56,7 @@ invariants:
   - "representative_sequences_match_feature_table"
 allowed_missingness:
   - "reads_r2"
-compatible_tools:
-  - dada2
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "asv inference applies only to amplicon libraries with denoising-aware governance."

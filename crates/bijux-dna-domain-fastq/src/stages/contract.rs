@@ -38,7 +38,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.profile_read_lengths" => vec!["seqkit_stats", "prinseq", "fastp"],
         "fastq.profile_overrepresented_sequences" => vec!["fastqc", "seqkit"],
         "fastq.remove_chimeras" | "fastq.cluster_otus" => vec!["vsearch"],
-        "fastq.infer_asvs" => vec!["dada2"],
+        "fastq.infer_asvs" => Vec::new(),
         "fastq.normalize_abundance" => vec!["seqkit"],
         "fastq.validate_reads" => vec!["fastqvalidator", "seqtk", "fqtools"],
         "fastq.detect_adapters" => vec!["fastqc"],
@@ -47,16 +47,8 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "fastq.extract_umis" => vec!["umi_tools"],
         "fastq.profile_reads" => vec!["seqkit_stats"],
         "fastq.report_qc" => vec!["multiqc"],
-        "fastq.screen_taxonomy" => vec![
-            "kraken2",
-            "krakenuniq",
-            "centrifuge",
-            "kaiju",
-        ],
-        "fastq.index_reference" => vec![
-            "bowtie2_build",
-            "star",
-        ],
+        "fastq.screen_taxonomy" => vec!["kraken2", "krakenuniq", "centrifuge", "kaiju"],
+        "fastq.index_reference" => vec!["bowtie2_build", "star"],
         "fastq.deplete_rrna" => vec!["sortmerna"],
         _ => Vec::new(),
     }
