@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
+assertion_line: 78
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -350,6 +351,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "-n",
           "multiqc_report.html",
           "adapter_report.json",
+          "fastqc",
           "overrepresented_sequences.json",
           "overrepresented_sequences.tsv",
           "length_distribution.json",
@@ -395,6 +397,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
+          },
+          {
+            "name": "fastq.detect_adapters.tool.fastqc.adapter_evidence_dir",
+            "optional": true,
+            "path": "fastqc",
+            "role": "stage_report"
           },
           {
             "name": "fastq.trim_polyg_tails.tool.fastp.report_json",
