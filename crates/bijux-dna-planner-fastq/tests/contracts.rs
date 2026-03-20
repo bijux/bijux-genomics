@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/docs.rs"]
+mod mod_contracts_docs_rs;
 #[path = "contracts/explain.rs"]
 mod mod_contracts_explain_rs;
 #[path = "contracts/graph.rs"]
