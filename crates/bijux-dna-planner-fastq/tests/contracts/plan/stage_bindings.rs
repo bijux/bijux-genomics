@@ -81,6 +81,31 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
         .steps()
         .iter()
         .any(|step| step.step_id.as_str() == "fastq.trim_reads.cutadapt_branch"));
+    let fastp_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.fastp_branch")
+        .expect("fastp branch");
+    let cutadapt_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.cutadapt_branch")
+        .expect("cutadapt branch");
+    assert_ne!(fastp_step.out_dir, cutadapt_step.out_dir);
+    assert!(
+        fastp_step
+            .out_dir
+            .to_string_lossy()
+            .contains("trim_reads.fastp_branch"),
+        "fastp branch out_dir must include stage instance identity"
+    );
+    assert!(
+        cutadapt_step
+            .out_dir
+            .to_string_lossy()
+            .contains("trim_reads.cutadapt_branch"),
+        "cutadapt branch out_dir must include stage instance identity"
+    );
     Ok(())
 }
 
