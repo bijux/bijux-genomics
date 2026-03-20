@@ -147,4 +147,8 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         spec.stages, expected,
         "single-end default pipeline must come from FASTQ pipeline-contract essentials"
     );
+    assert!(
+        spec.declares_graph_topology(),
+        "default preprocess pipeline should declare explicit graph topology"
+    );
 }
