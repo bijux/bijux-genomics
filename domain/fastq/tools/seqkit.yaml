@@ -49,6 +49,52 @@ stage_ids:
   - "fastq.normalize_primers"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
+stage_contracts:
+  fastq.trim_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "seqkit trim mode emits paired trimmed reads and a governed trim report."
+  fastq.filter_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "filtered_reads_r1"
+      - "filtered_reads_r2"
+    notes: "seqkit read filtering emits paired filtered reads under the generic filter contract."
+  fastq.normalize_abundance:
+    required_inputs:
+      - "abundance_table"
+    expected_artifacts:
+      - "normalized_abundance_tsv"
+    notes: "seqkit abundance normalization emits the normalized abundance table."
+  fastq.normalize_primers:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "normalized_reads_r1"
+      - "normalized_reads_r2"
+      - "primer_orientation_report"
+      - "primer_stats_json"
+    notes: "seqkit primer normalization emits normalized reads plus primer orientation and summary reports."
+  fastq.trim_terminal_damage:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "seqkit damage-aware trimming emits paired trimmed reads and a governed damage-trim report."
+  fastq.profile_overrepresented_sequences:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "overrepresented_sequences_tsv"
+      - "overrepresented_sequences_json"
+    notes: "seqkit sequence-content profiling emits normalized overrepresented-sequence tables."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"

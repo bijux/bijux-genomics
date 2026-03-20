@@ -59,6 +59,34 @@ stage_ids:
   - "fastq.merge_pairs"
   - "fastq.remove_chimeras"
   - "fastq.cluster_otus"
+stage_contracts:
+  fastq.merge_pairs:
+    required_inputs:
+      - "reads_r1"
+      - "reads_r2"
+    expected_artifacts:
+      - "merged_reads"
+      - "unmerged_reads_r1"
+      - "unmerged_reads_r2"
+      - "report_json"
+    notes: "vsearch merge mode emits merged reads, retained unmerged mates, and a merge report."
+  fastq.remove_chimeras:
+    required_inputs:
+      - "reads"
+    expected_artifacts:
+      - "chimera_filtered_reads"
+      - "chimera_metrics_json"
+      - "chimeras_fasta"
+    notes: "vsearch chimera removal emits filtered reads, chimera metrics, and optional chimera FASTA output."
+  fastq.cluster_otus:
+    required_inputs:
+      - "reads"
+    expected_artifacts:
+      - "otu_table"
+      - "otu_representatives"
+      - "taxonomy_ready_fasta"
+      - "taxonomy_ready_fastq"
+    notes: "vsearch OTU clustering emits the OTU table, representative sequences, and taxonomy-ready sequence artifacts."
 expected_artifacts:
   - "merged_reads"
   - "unmerged_reads_r1"
