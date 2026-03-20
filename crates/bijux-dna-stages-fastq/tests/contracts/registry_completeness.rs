@@ -20,12 +20,28 @@ fn fastq_stage_registry_is_complete() {
 }
 
 #[test]
-fn implemented_stage_set_matches_observer_runtime_coverage() {
-    let observer_covered = sort_stages(bijux_dna_stages_fastq::observer_stage_ids());
+fn implemented_stage_set_matches_closed_execution_coverage() {
+    let closed_execution = sort_stages(bijux_dna_stages_fastq::closed_execution_stage_ids());
     let implemented = sort_stages(bijux_dna_stages_fastq::implemented_stages());
     assert_eq!(
-        observer_covered, implemented,
-        "implemented_stages must expose only observer-specialized runtime interpretation coverage"
+        closed_execution, implemented,
+        "implemented_stages must expose the full closed execution FASTQ surface"
+    );
+}
+
+#[test]
+fn observer_specialized_stage_set_stays_narrower_than_closed_execution() {
+    let observer_specialized =
+        sort_stages(bijux_dna_stages_fastq::observer_specialized_stage_ids());
+    let observer_alias = sort_stages(bijux_dna_stages_fastq::observer_stage_ids());
+    let closed_execution = sort_stages(bijux_dna_stages_fastq::closed_execution_stage_ids());
+    assert_eq!(
+        observer_specialized, observer_alias,
+        "observer_stage_ids must remain an alias for observer_specialized_stage_ids"
+    );
+    assert!(
+        observer_specialized.len() < closed_execution.len(),
+        "observer-specialized coverage must stay narrower than the full closed execution surface"
     );
 }
 
