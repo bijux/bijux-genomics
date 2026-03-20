@@ -34,9 +34,22 @@ pub struct ScreenEffectiveParams {
     pub threads: u32,
     #[serde(default)]
     pub contaminant_db: Option<String>,
+    pub database_artifact_id: String,
+    #[serde(default)]
+    pub database_build_id: Option<String>,
+    pub database_scope: TaxonomyDatabaseScope,
     pub classifier: TaxonomyClassifier,
     pub report_format: TaxonomyReportFormat,
     pub assignment_format: TaxonomyAssignmentFormat,
+    #[serde(default)]
+    pub minimum_confidence: Option<f32>,
+    pub emit_unclassified: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TaxonomyDatabaseScope {
+    ReadScreening,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -79,6 +92,9 @@ impl ScreenEffectiveParams {
         if self.threads == 0 {
             missing.push("threads");
         }
+        if self.database_artifact_id.trim().is_empty() {
+            missing.push("database_artifact_id");
+        }
         missing
     }
 
@@ -87,11 +103,16 @@ impl ScreenEffectiveParams {
         serde_json::json!({
             "schema_version": self.schema_version,
             "contaminant_db": self.contaminant_db,
+            "database_artifact_id": self.database_artifact_id,
+            "database_build_id": self.database_build_id,
+            "database_scope": self.database_scope,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
             "classifier": self.classifier,
             "report_format": self.report_format,
             "assignment_format": self.assignment_format,
+            "minimum_confidence": self.minimum_confidence,
+            "emit_unclassified": self.emit_unclassified,
         })
     }
 }

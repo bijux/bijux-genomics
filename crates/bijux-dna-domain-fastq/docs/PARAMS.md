@@ -46,5 +46,5 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.deplete_host` | `HostDepletionEffectiveParams` | host-reference depletion controls |
 | `fastq.deplete_reference_contaminants` | `ReferenceContaminantEffectiveParams` | reference-contaminant depletion controls |
 | `fastq.deplete_rrna` | `RrnaEffectiveParams` | rRNA screen controls |
-| `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls |
+| `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls, including database identity and confidence policy |
 | `fastq.report_qc` | `QcPostEffectiveParams` | post-processing QC report controls |

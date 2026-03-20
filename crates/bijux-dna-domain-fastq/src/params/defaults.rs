@@ -12,8 +12,8 @@ use super::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
 use super::screen::{
-    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
-    SCREEN_TAXONOMY_SCHEMA_VERSION,
+    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+    TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use super::trim::TrimEffectiveParams;
@@ -169,8 +169,13 @@ pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         contaminant_db: None,
+        database_artifact_id: "taxonomy_db".to_string(),
+        database_build_id: None,
+        database_scope: TaxonomyDatabaseScope::ReadScreening,
         classifier: TaxonomyClassifier::Kraken2,
         report_format: TaxonomyReportFormat::KrakenReport,
         assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
+        minimum_confidence: None,
+        emit_unclassified: true,
     }
 }
