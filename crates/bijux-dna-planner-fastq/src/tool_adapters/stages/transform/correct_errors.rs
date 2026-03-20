@@ -15,10 +15,7 @@ pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let mut allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
-    if !crate::selection::experimental_registry_enabled() {
-        allowlist.retain(|tool| tool.as_str() == "rcorrector");
-    }
+    let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
 }
 

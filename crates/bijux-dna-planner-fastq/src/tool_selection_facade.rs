@@ -1,13 +1,6 @@
-pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
-    let mut allowlist =
+pub fn select_trim_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
+    let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM_READS);
-    if allow_experimental {
-        if !allowlist.iter().any(|tool| tool.as_str() == "seqpurge") {
-            allowlist.push(bijux_dna_core::ids::ToolId::from_static("seqpurge"));
-        }
-    } else {
-        allowlist.retain(|tool| tool.as_str() != "seqpurge");
-    }
     select_tools_with_allowlist(tools, &allowlist)
 }
 
@@ -89,12 +82,9 @@ pub fn select_cluster_otus_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
-pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
-    let mut allowlist =
+pub fn select_correct_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
+    let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS);
-    if !allow_experimental {
-        allowlist.retain(|tool| tool.as_str() == "rcorrector");
-    }
     select_tools_with_allowlist(tools, &allowlist)
 }
 

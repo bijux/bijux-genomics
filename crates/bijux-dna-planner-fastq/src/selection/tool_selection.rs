@@ -1,126 +1,13 @@
-use std::collections::BTreeSet;
-use std::path::PathBuf;
-
 use bijux_dna_core::ids::{StageId, ToolId};
-
-pub(crate) fn experimental_registry_enabled() -> bool {
-    ["BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "BIJUX_EXPERIMENTAL_TOOLS"]
-        .into_iter()
-        .filter_map(|key| std::env::var(key).ok())
-        .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-}
-
-fn registry_toml() -> Option<toml::Value> {
-    let path = candidates_for_registry()
-        .into_iter()
-        .find(|candidate| candidate.exists())?;
-    let raw = std::fs::read_to_string(path).ok()?;
-    let mut parsed = raw.parse::<toml::Value>().ok()?;
-    if experimental_registry_enabled() {
-        let experimental_path = candidates_for_experimental_registry()
-            .into_iter()
-            .find(|candidate| candidate.exists())?;
-        let exp_raw = std::fs::read_to_string(experimental_path).ok()?;
-        let exp = exp_raw.parse::<toml::Value>().ok()?;
-        if let Some(exp_tools) = exp.get("tools").and_then(toml::Value::as_array) {
-            let current = parsed
-                .as_table_mut()
-                .and_then(|table| table.get_mut("tools"))
-                .and_then(toml::Value::as_array_mut);
-            if let Some(current_tools) = current {
-                current_tools.extend(exp_tools.iter().cloned());
-            }
-        }
-    }
-    Some(parsed)
-}
-
-fn candidates_for_registry() -> Vec<PathBuf> {
-    let cwd = std::env::current_dir().ok();
-    let mut candidates = Vec::new();
-    if let Some(cwd) = cwd {
-        candidates.push(bijux_dna_infra::configs_file(
-            &cwd,
-            "ci/registry/tool_registry.toml",
-        ));
-    }
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    if let Some(root) = manifest_dir.parent().and_then(std::path::Path::parent) {
-        candidates.push(bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"));
-    }
-    candidates
-}
-
-fn candidates_for_experimental_registry() -> Vec<PathBuf> {
-    let cwd = std::env::current_dir().ok();
-    let mut candidates = Vec::new();
-    if let Some(cwd) = cwd {
-        candidates.push(bijux_dna_infra::configs_file(
-            &cwd,
-            "ci/registry/tool_registry_experimental.toml",
-        ));
-    }
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    if let Some(root) = manifest_dir.parent().and_then(std::path::Path::parent) {
-        candidates.push(bijux_dna_infra::configs_file(
-            root,
-            "ci/registry/tool_registry_experimental.toml",
-        ));
-    }
-    candidates
-}
 
 #[must_use]
 pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<ToolId> {
-    let mut tools = BTreeSet::new();
-    let Some(parsed) = registry_toml() else {
-        return Vec::new();
-    };
-    let Some(entries) = parsed.get("tools").and_then(toml::Value::as_array) else {
-        return Vec::new();
-    };
-    for tool in entries {
-        let Some(tool_id) = tool.get("id").and_then(toml::Value::as_str) else {
-            continue;
-        };
-        let stage_ids = tool
-            .get("stage_ids")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        if stage_ids
-            .iter()
-            .filter_map(toml::Value::as_str)
-            .any(|stage| stage == stage_id.as_str())
-        {
-            tools.insert(ToolId::new(tool_id.to_string()));
-        }
-    }
-    let mut tools = tools.into_iter().collect::<Vec<_>>();
+    let mut tools = bijux_dna_domain_fastq::admitted_execution_tools_for_stage(stage_id);
     tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
     tools
 }
 
 #[must_use]
 pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
-    let allowed = allowed_tools_for_stage(stage_id);
-    let parsed = registry_toml()?;
-    let stages = parsed.get("stages")?.as_array()?;
-    for stage in stages {
-        let id = stage.get("id").and_then(toml::Value::as_str)?;
-        if id != stage_id.as_str() {
-            continue;
-        }
-        let primary = stage
-            .get("primary_tools")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        if let Some(tool) = primary.first().and_then(toml::Value::as_str) {
-            if allowed.iter().any(|candidate| candidate.as_str() == tool) {
-                return Some(ToolId::new(tool.to_string()));
-            }
-        }
-    }
-    allowed.first().cloned()
+    bijux_dna_domain_fastq::default_execution_tool_for_stage(stage_id)
 }
