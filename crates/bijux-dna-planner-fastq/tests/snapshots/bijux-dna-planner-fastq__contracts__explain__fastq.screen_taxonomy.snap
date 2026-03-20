@@ -4,7 +4,7 @@ expression: reason_json
 ---
 {
   "details": {
-    "contract_hash": "c0ee3618153c508c426990ba985befff83d29c9ec5f546ebe05c1dadb08e124e",
+    "contract_hash": "bcfb4eab7b1a286b7b3169c1dfe134f841253ffb4321be927388cc6360e653b9",
     "defaults_diff": {}
   },
   "kind": "default",
