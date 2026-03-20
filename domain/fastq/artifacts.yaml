@@ -12,6 +12,9 @@ artifact_ids:
   - contaminant_screen_report_json
   - contaminant_screened_reads_r1
   - contaminant_screened_reads_r2
+  - correction_tool_benchmark_cohort_json
+  - correction_tool_comparison_json
+  - correction_tool_normalization_json
   - corrected_reads_r1
   - corrected_reads_r2
   - dedup_reads_r1

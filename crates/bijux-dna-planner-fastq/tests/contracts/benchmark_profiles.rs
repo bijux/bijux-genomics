@@ -268,4 +268,34 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .all(|tool_id| tool_id.as_str() != "seqfu")
     );
+
+    let correction_stage = StageId::from_static("fastq.correct_errors");
+    let correction_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&correction_stage);
+    assert_eq!(correction_cohorts.len(), 1);
+    assert_eq!(correction_cohorts[0].scenario_id, "correction_fairness");
+    assert!(
+        correction_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "rcorrector")
+    );
+    assert!(
+        correction_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "musket")
+    );
+    assert!(
+        correction_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "lighter")
+    );
+    assert!(
+        correction_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "bayeshammer")
+    );
 }

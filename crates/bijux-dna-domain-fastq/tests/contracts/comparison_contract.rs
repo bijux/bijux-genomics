@@ -93,6 +93,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "read_length_tool_normalization_json",
         ]
     );
+
+    let correction_stage = StageId::from_static("fastq.correct_errors");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&correction_stage),
+        vec![
+            "correction_tool_benchmark_cohort_json",
+            "correction_tool_comparison_json",
+            "correction_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]
