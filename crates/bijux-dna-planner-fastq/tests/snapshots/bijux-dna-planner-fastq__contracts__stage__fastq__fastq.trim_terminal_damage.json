@@ -10,9 +10,18 @@
   "command": {
     "template": [
       "cutadapt",
+      "-u",
+      "2",
+      "-u",
+      "-2",
+      "--json",
+      "out/trim_terminal_damage_report.json",
       "-o",
-      "{{trimmed_reads}}",
-      "{{reads}}"
+      "out/R1.trim_terminal_damage.cutadapt.fastq.gz",
+      "-p",
+      "out/R2.trim_terminal_damage.cutadapt.fastq.gz",
+      "reads_R1.fastq.gz",
+      "reads_R2.fastq.gz"
     ]
   },
   "resources": {

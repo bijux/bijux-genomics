@@ -13,7 +13,7 @@
       "stats",
       "-a",
       "-T",
-      "{{reads_r1}}"
+      "reads_R1.fastq.gz"
     ]
   },
   "resources": {
