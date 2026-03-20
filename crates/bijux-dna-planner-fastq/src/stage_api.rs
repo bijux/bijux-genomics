@@ -54,6 +54,14 @@ pub struct BenchmarkCohort {
     pub generic_envelope_tools: Vec<ToolId>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToolsetExecutionMode {
+    DefaultChoice,
+    GovernedExecution,
+    BenchmarkCohort,
+    AllBindings,
+}
+
 #[must_use]
 pub fn benchmark_profile_for_stage_tool(
     stage_id: &StageId,
@@ -148,6 +156,29 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
             }
         })
         .collect()
+}
+
+#[must_use]
+pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<ToolId> {
+    match mode {
+        ToolsetExecutionMode::DefaultChoice => default_tool_for_stage(stage_id)
+            .into_iter()
+            .collect(),
+        ToolsetExecutionMode::GovernedExecution => allowed_tools_for_stage(stage_id),
+        ToolsetExecutionMode::BenchmarkCohort => {
+            let mut tool_ids = benchmark_cohorts_for_stage(stage_id)
+                .into_iter()
+                .flat_map(|cohort| cohort.tool_ids)
+                .collect::<Vec<_>>();
+            tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+            tool_ids.dedup_by(|left, right| left == right);
+            tool_ids
+        }
+        ToolsetExecutionMode::AllBindings => stage_tool_bindings_for_stage(stage_id)
+            .into_iter()
+            .map(|binding| binding.tool_id)
+            .collect(),
+    }
 }
 
 pub fn adapter_bank_path() -> std::path::PathBuf {
