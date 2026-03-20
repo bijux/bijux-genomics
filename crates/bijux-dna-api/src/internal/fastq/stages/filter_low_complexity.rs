@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_registry};
+use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{
     fetch_fastq_filter_low_complexity_v1, insert_fastq_filter_low_complexity_v1,
@@ -50,7 +50,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &header);
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(

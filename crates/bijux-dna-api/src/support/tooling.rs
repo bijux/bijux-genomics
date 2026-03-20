@@ -1,6 +1,19 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ToolRole;
 use bijux_dna_core::ids::{StageId, ToolId};
+use std::path::{Path, PathBuf};
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")), Path::to_path_buf)
+}
+
+#[must_use]
+pub fn workspace_domain_dir() -> PathBuf {
+    workspace_root().join("domain")
+}
 
 pub fn load_registry(
     source_path: &std::path::Path,
@@ -20,6 +33,10 @@ pub fn load_registry(
     };
     bijux_dna_runtime::manifests::load_manifests(&registry_path)
         .map_err(|err| anyhow!("manifest validation failed: {err}"))
+}
+
+pub fn load_workspace_registry() -> Result<bijux_dna_core::contract::ToolRegistry> {
+    load_registry(&workspace_domain_dir())
 }
 
 pub fn ensure_bench_runner(
@@ -75,4 +92,19 @@ pub fn filter_tools_by_role(
         return Err(anyhow!("no tools available after role filtering"));
     }
     Ok(filtered)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{load_workspace_registry, workspace_domain_dir};
+
+    #[test]
+    fn workspace_domain_dir_resolves_repo_domain_tree() {
+        let domain_dir = workspace_domain_dir();
+        assert!(
+            domain_dir.join("fastq").is_dir(),
+            "workspace domain dir must resolve the repo domain tree"
+        );
+        load_workspace_registry().expect("workspace registry should load from resolved domain dir");
+    }
 }

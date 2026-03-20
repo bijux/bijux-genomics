@@ -19,7 +19,7 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use uuid::Uuid;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_registry};
+use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
@@ -57,7 +57,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_POLYG_TAILS.as_str(), &header);
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_TRIM_POLYG_TAILS.as_str(), &requested, &registry, false)?;
     let bench_inputs = prepare_trim_bench(

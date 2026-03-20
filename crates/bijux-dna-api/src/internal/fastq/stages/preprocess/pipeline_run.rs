@@ -45,7 +45,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     ensure_bench_runner(platform, runner_override)?;
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);

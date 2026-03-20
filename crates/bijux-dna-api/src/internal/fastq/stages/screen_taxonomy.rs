@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_screen_v1, insert_fastq_screen_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqScreenMetrics};
@@ -50,7 +50,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_SCREEN_TAXONOMY.as_str(), &header);
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_SCREEN_TAXONOMY.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args)?;

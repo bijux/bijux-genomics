@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_merge_v1, insert_fastq_merge_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMetrics};
@@ -41,7 +41,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
     log_header_warnings(STAGE_MERGE_PAIRS.as_str(), &header);
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_MERGE_PAIRS.as_str(), &tools, &registry, false)?;
 
