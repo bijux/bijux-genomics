@@ -70,7 +70,11 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
                     FastqArtifactKind::Merged,
                 ],
                 outputs: vec![FastqArtifactKind::StatsOnly],
-                optional_outputs: None,
+                optional_outputs: if matches!(stage, FastqStage::Screen) {
+                    Some(vec![FastqArtifactKind::TaxonomyMapping])
+                } else {
+                    None
+                },
             },
         },
         FastqStage::DamageAwarePretrim

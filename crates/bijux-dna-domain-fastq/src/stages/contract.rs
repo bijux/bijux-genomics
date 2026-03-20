@@ -172,6 +172,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     const REF_FASTA: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceFasta];
     const REF_INDEX: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceIndex];
     const AMPLICON_TABLE: &[FastqArtifactKind] = &[FastqArtifactKind::AmpliconTable];
+    const STATS_OR_TAXONOMY: &[FastqArtifactKind] = &[
+        FastqArtifactKind::StatsOnly,
+        FastqArtifactKind::TaxonomyMapping,
+    ];
     const AMPLICON_TABLE_OR_REPRESENTATIVES: &[FastqArtifactKind] = &[
         FastqArtifactKind::AmpliconTable,
         FastqArtifactKind::RepresentativeFasta,
@@ -244,12 +248,24 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.profile_overrepresented_sequences"
         | "fastq.detect_adapters"
         | "fastq.profile_reads"
-        | "fastq.report_qc"
-        | "fastq.screen_taxonomy" => Some(FastqStageContract {
+        | "fastq.report_qc" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
             accepted_input_kinds: SE_PE_OR_MERGED,
             possible_output_kinds: STATS_ONLY,
+            may_drop_reads: false,
+            must_preserve_pairing: true,
+            emits_fastq: false,
+            preserves: &["reads", "pairs", "bases"],
+            may_drop: &[],
+            retention_definition: "reads_out == reads_in; bases_out == bases_in",
+            retention_units: "reads,bases",
+        }),
+        "fastq.screen_taxonomy" => Some(FastqStageContract {
+            input_kind: FastqArtifactKind::SingleEnd,
+            output_kind: FastqArtifactKind::StatsOnly,
+            accepted_input_kinds: SE_PE_OR_MERGED,
+            possible_output_kinds: STATS_OR_TAXONOMY,
             may_drop_reads: false,
             must_preserve_pairing: true,
             emits_fastq: false,
