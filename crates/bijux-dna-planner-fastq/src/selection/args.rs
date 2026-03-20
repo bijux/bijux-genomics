@@ -291,6 +291,7 @@ pub struct BenchFastqDepleteHostArgs {
     pub sample_id: String,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
+    pub reference_index: PathBuf,
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,

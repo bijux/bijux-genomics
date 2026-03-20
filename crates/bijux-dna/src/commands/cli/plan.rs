@@ -494,6 +494,7 @@ pub fn bench_args_deplete_host(
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         r2: args.r2.clone(),
+        reference_index: args.reference_index.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.deplete_host", &args.tools)?,
         explain: args.explain,

@@ -8,7 +8,23 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "bowtie2",
+      "-x",
+      "host_reference_index",
+      "--threads",
+      "1",
+      "-S",
+      "/dev/null",
+      "-1",
+      "reads_R1.fastq.gz",
+      "-2",
+      "reads_R2.fastq.gz",
+      "--un-conc-gz",
+      "out/host_depleted_R%.fastq.gz",
+      "--met-file",
+      "out/host_depletion_report.json"
+    ]
   },
   "resources": {
     "runtime": "docker",
@@ -22,6 +38,12 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reference_index",
+        "path": "host_reference_index",
+        "role": "index",
         "optional": false
       },
       {
@@ -58,6 +80,7 @@
     "input_r2": "reads_R2.fastq.gz",
     "output_r1": "out/host_depleted_R1.fastq.gz",
     "output_r2": "out/host_depleted_R2.fastq.gz",
+    "reference_index": "host_reference_index",
     "report_json": "out/host_depletion_report.json",
     "tool": "bowtie2"
   },
