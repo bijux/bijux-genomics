@@ -10,6 +10,12 @@ pub struct StageComparisonContract {
 
 const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
     (
+        "fastq.detect_adapters",
+        "adapter_inspection_tool_benchmark_cohort_json",
+        "adapter_inspection_tool_comparison_json",
+        "adapter_inspection_tool_normalization_json",
+    ),
+    (
         "fastq.trim_reads",
         "trim_tool_benchmark_cohort_json",
         "trim_tool_comparison_json",

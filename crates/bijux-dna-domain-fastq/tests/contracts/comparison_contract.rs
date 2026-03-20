@@ -21,8 +21,7 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
-    let screen_artifacts =
-        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&screen_stage);
+    let screen_artifacts = bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&screen_stage);
     assert_eq!(
         screen_artifacts,
         vec![
@@ -38,10 +37,15 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         "taxonomy_tool_comparison_json"
     );
 
-    let validate_stage = StageId::from_static("fastq.detect_adapters");
-    assert!(
-        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&validate_stage).is_empty(),
-        "non-benchmark stages must not advertise comparison artifacts",
+    let detect_adapters_stage = StageId::from_static("fastq.detect_adapters");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&detect_adapters_stage),
+        vec![
+            "adapter_inspection_tool_benchmark_cohort_json",
+            "adapter_inspection_tool_comparison_json",
+            "adapter_inspection_tool_normalization_json",
+        ],
+        "adapter inspection now participates in governed benchmark comparisons",
     );
 
     let filter_stage = StageId::from_static("fastq.filter_reads");
