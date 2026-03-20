@@ -263,6 +263,7 @@ mod tests {
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
         bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static(stage_id),
+            stage_instance_id: None,
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastqc"),
             tool_version: "test".to_string(),

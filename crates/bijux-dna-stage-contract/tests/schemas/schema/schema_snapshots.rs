@@ -6,6 +6,7 @@ use bijux_dna_stage_contract::{
 fn stage_contract_schema_snapshot() {
     let plan = StagePlanV1 {
         stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
+        stage_instance_id: None,
         stage_version: bijux_dna_core::ids::StageVersion(1),
         tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
         tool_version: "1.0".to_string(),

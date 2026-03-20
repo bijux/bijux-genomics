@@ -158,6 +158,7 @@ fn build_stage_plan(
 ) -> Result<StagePlanV1> {
     Ok(StagePlanV1 {
         stage_id: run_spec.stage.clone(),
+        stage_instance_id: None,
         stage_version: StageVersion(1),
         tool_id: run_spec.tool.clone(),
         tool_version: "unknown".to_string(),

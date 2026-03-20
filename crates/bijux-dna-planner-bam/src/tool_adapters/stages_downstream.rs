@@ -26,6 +26,7 @@ pub mod haplogroups {
         );
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -109,6 +110,7 @@ pub mod genotyping {
         let summary = out_dir.join("genotyping.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -200,6 +202,7 @@ pub mod kinship {
         let segments = out_dir.join("kinship.segments.tsv");
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -272,6 +275,7 @@ pub mod bias_mitigation {
         );
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

@@ -20,7 +20,12 @@ use bijux_dna_core::ids::StepId;
 
 #[must_use]
 pub fn execution_step_from_stage_plan(plan: &crate::StagePlanV1) -> ExecutionStep {
-    execution_step_from_stage_plan_with_step_id(plan, StepId::new(plan.stage_id.to_string()))
+    execution_step_from_stage_plan_with_step_id(
+        plan,
+        plan.stage_instance_id
+            .clone()
+            .unwrap_or_else(|| StepId::new(plan.stage_id.to_string())),
+    )
 }
 
 #[must_use]

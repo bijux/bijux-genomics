@@ -9,6 +9,7 @@ mod tests {
     fn mock_plan(stage: bijux_dna_planner_bam::stage_api::BamStage) -> StagePlanV1 {
         StagePlanV1 {
             stage_id: StageId::new(stage.as_str()),
+            stage_instance_id: None,
             stage_version: StageVersion(1),
             tool_id: ToolId::new("samtools"),
             tool_version: "1.20".to_string(),

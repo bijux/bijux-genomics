@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{execution_step_from_stage_plan_with_step_id, Plan
 fn trim_plan() -> StagePlanV1 {
     StagePlanV1 {
         stage_id: StageId::from_static("fastq.trim_reads"),
+        stage_instance_id: None,
         stage_version: StageVersion(1),
         tool_id: ToolId::from_static("fastp"),
         tool_version: "test".to_string(),
