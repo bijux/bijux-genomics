@@ -24,6 +24,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     let allowed_mods = [
         "bench_repository",
         "banks",
+        "execution_support",
         "invariants",
         "metrics",
         "params",
@@ -48,6 +49,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "banks",
         "contaminant_bank",
         "bench_repository",
+        "execution_support",
         "metrics",
         "polyx_bank",
         "prelude",
