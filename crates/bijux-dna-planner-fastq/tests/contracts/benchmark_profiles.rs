@@ -316,4 +316,26 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .any(|tool_id| tool_id.as_str() == "seqkit")
     );
+
+    let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
+    let terminal_damage_cohorts = bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(
+        &terminal_damage_stage,
+    );
+    assert_eq!(terminal_damage_cohorts.len(), 1);
+    assert_eq!(
+        terminal_damage_cohorts[0].scenario_id,
+        "terminal_damage_fairness"
+    );
+    assert!(
+        terminal_damage_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "cutadapt")
+    );
+    assert!(
+        terminal_damage_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "seqkit")
+    );
 }

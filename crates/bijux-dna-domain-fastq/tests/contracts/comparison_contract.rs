@@ -113,6 +113,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "primer_normalization_tool_normalization_json",
         ]
     );
+
+    let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&terminal_damage_stage),
+        vec![
+            "terminal_damage_tool_benchmark_cohort_json",
+            "terminal_damage_tool_comparison_json",
+            "terminal_damage_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]

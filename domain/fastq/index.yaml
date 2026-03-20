@@ -1849,6 +1849,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_primer_contract
+  terminal_damage_fairness:
+    stage_id: fastq.trim_terminal_damage
+    description: Compare terminal-damage trimming backends on identical reads and ancient-DNA
+      trimming policy.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_damage_trim_policy
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.

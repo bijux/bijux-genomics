@@ -377,6 +377,13 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
         "primer_normalization_tool_normalization_json" => {
             "primer_normalization_tool_normalization.json"
         }
+        "terminal_damage_tool_benchmark_cohort_json" => {
+            "terminal_damage_tool_benchmark_cohort.json"
+        }
+        "terminal_damage_tool_comparison_json" => "terminal_damage_tool_comparison.json",
+        "terminal_damage_tool_normalization_json" => {
+            "terminal_damage_tool_normalization.json"
+        }
         "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
         "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
         "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",

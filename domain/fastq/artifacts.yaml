@@ -82,6 +82,9 @@ artifact_ids:
   - trim_tool_normalization_json
   - taxonomy_ready_fasta
   - taxonomy_ready_fastq
+  - terminal_damage_tool_benchmark_cohort_json
+  - terminal_damage_tool_comparison_json
+  - terminal_damage_tool_normalization_json
   - trimmed_reads
   - trimmed_reads_r1
   - trimmed_reads_r2

@@ -137,6 +137,21 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_primer_contract")
     );
+
+    let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
+    let terminal_damage_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&terminal_damage_stage);
+    assert_eq!(terminal_damage_scenarios.len(), 1);
+    assert_eq!(
+        terminal_damage_scenarios[0].scenario_id,
+        "terminal_damage_fairness"
+    );
+    assert!(
+        terminal_damage_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_damage_trim_policy")
+    );
 }
 
 #[test]
