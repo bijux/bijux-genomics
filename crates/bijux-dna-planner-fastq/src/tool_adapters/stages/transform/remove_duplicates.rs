@@ -91,7 +91,21 @@ pub fn plan_deduplicate(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("reads", Some(r1.display().to_string())),
+                    ("reads_r1", Some(r1.display().to_string())),
+                    ("reads_r2", r2.map(|path| path.display().to_string())),
+                    ("dedup_reads_r1", Some(output_r1.display().to_string())),
+                    (
+                        "dedup_reads_r2",
+                        output_r2.as_ref().map(|path| path.display().to_string()),
+                    ),
+                    ("report_json", Some(report.display().to_string())),
+                    ("out_dir", Some(out_dir.display().to_string())),
+                ],
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
@@ -113,9 +127,55 @@ pub fn plan_deduplicate(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints};
+    use bijux_dna_core::ids::ToolId;
 
     #[test]
     fn deduplicate_output_name_rejects_unadmitted_tools() {
         assert!(deduplicate_output_name("prinseq").is_none());
+    }
+
+    #[test]
+    fn plan_deduplicate_renders_governed_placeholders() {
+        let tool = ToolExecutionSpecV1 {
+            tool_id: ToolId::new("fastuniq"),
+            tool_version: "fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![
+                    "sh".to_string(),
+                    "-lc".to_string(),
+                    "run {{reads_r1}} {{reads_r2}} {{dedup_reads_r1}} {{dedup_reads_r2}} {{report_json}} {{out_dir}}".to_string(),
+                ],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        };
+
+        let plan = plan_deduplicate(
+            &tool,
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+        )
+        .expect("deduplicate planner should render concrete command paths");
+
+        assert!(
+            plan.command
+                .template
+                .iter()
+                .all(|part| !part.contains("{{") && !part.contains("}}"))
+        );
+        assert_eq!(plan.params["report_json"], serde_json::json!("out/deduplicate_report.json"));
+        assert!(plan.command.template[2].contains("reads_R1.fastq.gz"));
+        assert!(plan.command.template[2].contains("reads_R2.fastq.gz"));
+        assert!(plan.command.template[2].contains("deduplicate_report.json"));
     }
 }
