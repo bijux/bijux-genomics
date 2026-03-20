@@ -49,7 +49,8 @@ stage_ids:
 expected_artifacts:
   - "trimmed_reads"
   - "report_json"
-  - "filtered_reads"
+  - "filtered_reads_r1"
+  - "filtered_reads_r2"
   - "length_distribution_tsv"
   - "length_distribution_json"
 metrics_schema_id: "bijux.unknown.v1"

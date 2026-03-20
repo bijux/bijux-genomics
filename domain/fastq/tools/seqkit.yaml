@@ -52,7 +52,8 @@ stage_ids:
 expected_artifacts:
   - "trimmed_reads"
   - "report_json"
-  - "filtered_reads"
+  - "filtered_reads_r1"
+  - "filtered_reads_r2"
   - "normalized_abundance_tsv"
   - "normalized_reads_r1"
   - "normalized_reads_r2"
