@@ -51,8 +51,7 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_stats_v1")
     } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS {
         Some("bench_fastq_read_lengths_v1")
-    } else if stage
-        == &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES
+    } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES
     {
         Some("bench_fastq_overrepresented_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_MERGE_PAIRS {
@@ -79,9 +78,7 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
         Some("bench_fastq_screen_v1")
     } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST {
         Some("bench_fastq_deplete_host_v1")
-    } else if stage
-        == &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS
-    {
+    } else if stage == &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS {
         Some("bench_fastq_deplete_reference_contaminants_v1")
     } else if stage == &bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA {
         Some("bench_fastq_deplete_rrna_v1")
@@ -94,7 +91,11 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
-    use super::table_for_stage;
+    use std::path::PathBuf;
+
+    use rusqlite::{params, Connection};
+
+    use super::{get_results_from_sqlite, table_for_stage, SqliteBenchResultsRepository};
     use bijux_dna_domain_fastq::stages::ids::{
         STAGE_CLUSTER_OTUS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
         STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
@@ -102,6 +103,10 @@ mod tests {
         STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
         STAGE_PROFILE_READ_LENGTHS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
         STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_TERMINAL_DAMAGE,
+    };
+    use bijux_dna_domain_fastq::{
+        bench_dir_name, BenchCorpus, BenchCorpusId, BenchDataset, BenchQueryContext,
+        BenchResultsRepository,
     };
     use bijux_dna_domain_fastq::{
         STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_PROFILE_READS, STAGE_REPORT_QC,
@@ -144,6 +149,176 @@ mod tests {
             );
         }
     }
+
+    fn create_bench_db(
+        path: &PathBuf,
+        table: &str,
+        rows: &[(&str, &str, &str, &str, f64, f64, i64)],
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let conn = Connection::open(path)?;
+        conn.execute(
+            &format!(
+                "CREATE TABLE IF NOT EXISTS {table} (\
+                 record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
+                 tool TEXT,\
+                 tool_version TEXT,\
+                 image_digest TEXT,\
+                 runner TEXT,\
+                 platform TEXT,\
+                 input_hash TEXT,\
+                 params_hash TEXT,\
+                 parameters_json TEXT,\
+                 runtime_s REAL,\
+                 memory_mb REAL,\
+                 exit_code INTEGER,\
+                 metrics_json TEXT,\
+                 inserted_at TEXT\
+                 )"
+            ),
+            [],
+        )?;
+
+        for (idx, (tool, input_hash, image_digest, params_hash, runtime_s, memory_mb, exit_code)) in
+            rows.iter().enumerate()
+        {
+            conn.execute(
+                &format!(
+                    "INSERT INTO {table} (record_id, tool, tool_version, image_digest, runner, platform, input_hash, params_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json, inserted_at)\
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)"
+                ),
+                params![
+                    i64::try_from(idx).unwrap_or(i64::MAX) + 1,
+                    tool,
+                    "1.0",
+                    image_digest,
+                    "docker",
+                    "test",
+                    input_hash,
+                    params_hash,
+                    "{}",
+                    runtime_s,
+                    memory_mb,
+                    exit_code,
+                    "{\"metrics\":{\"delta_metrics\":{\"read_retention\":0.9}}}",
+                    "2024-01-01T00:00:00Z"
+                ],
+            )?;
+        }
+
+        Ok(())
+    }
+
+    fn bench_corpus_fixture() -> BenchCorpus {
+        BenchCorpus::new(
+            BenchCorpusId::Fastq5Set,
+            vec![BenchDataset {
+                id: "DATA_A",
+                r1: PathBuf::from("/dev/null"),
+                r2: None,
+                sha256_r1: "hash_a",
+                sha256_r2: None,
+                paired: false,
+            }],
+        )
+    }
+
+    #[test]
+    fn sqlite_queries_honor_params_hash_filter() -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-params-hash");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_TRIM_READS).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_trim_v2",
+            &[
+                (
+                    "fastp",
+                    corpus.datasets[0].sha256_r1,
+                    "sha256:image-a",
+                    "params-a",
+                    1.0,
+                    128.0,
+                    0,
+                ),
+                (
+                    "fastp",
+                    corpus.datasets[0].sha256_r1,
+                    "sha256:image-a",
+                    "params-b",
+                    4.0,
+                    128.0,
+                    0,
+                ),
+            ],
+        )?;
+
+        let records = get_results_from_sqlite(
+            &STAGE_TRIM_READS,
+            "fastp",
+            &corpus,
+            &BenchQueryContext::new().with_params_hash("params-b"),
+            &root_dir,
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(4.0));
+        Ok(())
+    }
+
+    #[test]
+    fn sqlite_repository_honors_image_digest_filter() -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-image-digest");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_TRIM_READS).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_trim_v2",
+            &[
+                (
+                    "fastp",
+                    corpus.datasets[0].sha256_r1,
+                    "sha256:image-a",
+                    "params-a",
+                    1.0,
+                    128.0,
+                    0,
+                ),
+                (
+                    "fastp",
+                    corpus.datasets[0].sha256_r1,
+                    "sha256:image-b",
+                    "params-a",
+                    3.0,
+                    128.0,
+                    0,
+                ),
+            ],
+        )?;
+
+        let repo = SqliteBenchResultsRepository::new(root_dir.clone());
+        let records = repo.bench_results(
+            &STAGE_TRIM_READS,
+            "fastp",
+            &corpus,
+            &BenchQueryContext::new().with_image_digest("sha256:image-b"),
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(3.0));
+        Ok(())
+    }
 }
 
 /// Load bench results for a stage/tool across the corpus.
@@ -154,7 +329,7 @@ pub fn get_results_from_sqlite(
     stage: &StageId,
     tool: &str,
     corpus: &BenchCorpus,
-    _context: &BenchQueryContext,
+    context: &BenchQueryContext,
     out_dir: &Path,
 ) -> Result<Vec<BenchResultRecord>> {
     let table = table_for_stage(stage)
@@ -184,15 +359,25 @@ pub fn get_results_from_sqlite(
             "SELECT runtime_s, memory_mb, exit_code, metrics_json \
              FROM {table} \
              WHERE tool = ?1 AND input_hash = ?2 \
+               AND (?3 IS NULL OR image_digest = ?3) \
+               AND (?4 IS NULL OR params_hash = ?4) \
              ORDER BY record_id DESC, inserted_at DESC LIMIT 1"
         ))?;
-        let row = stmt.query_row(params![tool, dataset.sha256_r1], |row| {
-            let runtime_s: f64 = row.get(0)?;
-            let memory_mb: f64 = row.get(1)?;
-            let exit_code: i64 = row.get(2)?;
-            let metrics_json: String = row.get(3)?;
-            Ok((runtime_s, memory_mb, exit_code, metrics_json))
-        });
+        let row = stmt.query_row(
+            params![
+                tool,
+                dataset.sha256_r1,
+                context.image_digest.as_deref(),
+                context.params_hash.as_deref()
+            ],
+            |row| {
+                let runtime_s: f64 = row.get(0)?;
+                let memory_mb: f64 = row.get(1)?;
+                let exit_code: i64 = row.get(2)?;
+                let metrics_json: String = row.get(3)?;
+                Ok((runtime_s, memory_mb, exit_code, metrics_json))
+            },
+        );
         match row {
             Ok((runtime_s, memory_mb, exit_code, metrics_json)) => {
                 let metrics: JsonValue = serde_json::from_str(&metrics_json)
