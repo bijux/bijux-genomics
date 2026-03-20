@@ -4,7 +4,10 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "reads_r2"
     data_type: "fastq"
     cardinality: "Many"
 outputs:
@@ -33,7 +36,7 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - "reads"
+  - "reads_r1"
 required_outputs:
   - "overrepresented_sequences_tsv"
   - "overrepresented_sequences_json"
@@ -43,13 +46,14 @@ invariants:
   - "report_only_stage"
   - "deterministic_sequence_ranking"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
 compatible_tools:
   - fastqc
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "overrepresented sequence profiles are diagnostic and do not mutate reads."
+  - "single-end input omits reads_r2; paired-end input contributes both mates to sequence ranking."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
