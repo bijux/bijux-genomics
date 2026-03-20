@@ -48,15 +48,22 @@ pub struct AnalysisRequirements {
     pub min_replicates_for_bootstrap: u32,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageSpec {
+    pub stage: String,
+    pub tools: Vec<String>,
+    #[serde(default)]
+    pub params: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkSuiteSpec {
     pub schema_version: String,
     pub suite_id: String,
     pub datasets: Vec<DatasetSpec>,
-    pub stages: Vec<String>,
-    pub tools: Vec<String>,
-    pub params: Vec<String>,
+    pub stages: Vec<BenchmarkStageSpec>,
     pub replicate_policy: ReplicatePolicy,
     pub diversity: DiversityRequirements,
     pub stratifications: Vec<StratificationRequirement>,
@@ -77,17 +84,72 @@ impl BenchmarkSuiteSpec {
         stratifications: Vec<StratificationRequirement>,
         analysis_requirements: AnalysisRequirements,
     ) -> Self {
+        let stage_matrix = stages
+            .into_iter()
+            .map(|stage| BenchmarkStageSpec {
+                stage,
+                tools: tools.clone(),
+                params: params.clone(),
+            })
+            .collect();
+        Self::v1_stage_matrix(
+            suite_id,
+            datasets,
+            stage_matrix,
+            replicate_policy,
+            diversity,
+            stratifications,
+            analysis_requirements,
+        )
+    }
+
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn v1_stage_matrix(
+        suite_id: String,
+        datasets: Vec<DatasetSpec>,
+        stages: Vec<BenchmarkStageSpec>,
+        replicate_policy: ReplicatePolicy,
+        diversity: DiversityRequirements,
+        stratifications: Vec<StratificationRequirement>,
+        analysis_requirements: AnalysisRequirements,
+    ) -> Self {
         Self {
             schema_version: "bijux.bench.suite.v1".to_string(),
             suite_id,
             datasets,
             stages,
-            tools,
-            params,
             replicate_policy,
             diversity,
             stratifications,
             analysis_requirements,
         }
+    }
+
+    #[must_use]
+    pub fn stage_ids(&self) -> Vec<&str> {
+        self.stages.iter().map(|stage| stage.stage.as_str()).collect()
+    }
+
+    #[must_use]
+    pub fn tool_ids(&self) -> Vec<&str> {
+        let mut tool_ids = std::collections::BTreeSet::new();
+        for stage in &self.stages {
+            for tool in &stage.tools {
+                tool_ids.insert(tool.as_str());
+            }
+        }
+        tool_ids.into_iter().collect()
+    }
+
+    #[must_use]
+    pub fn params(&self) -> Vec<&str> {
+        let mut params = std::collections::BTreeSet::new();
+        for stage in &self.stages {
+            for value in &stage.params {
+                params.insert(value.as_str());
+            }
+        }
+        params.into_iter().collect()
     }
 }

@@ -20,9 +20,9 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             suite.schema_version
         )));
     }
-    if suite.datasets.is_empty() || suite.stages.is_empty() || suite.tools.is_empty() {
+    if suite.datasets.is_empty() || suite.stages.is_empty() {
         return Err(BenchError::InvalidPolicy(
-            "suite must include datasets, stages, and tools".to_string(),
+            "suite must include datasets and stages".to_string(),
         ));
     }
     if suite
