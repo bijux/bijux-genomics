@@ -32,6 +32,8 @@ pub fn plan_correct(
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
+    let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
+    let report_json = out_dir.join("correct_report.json");
     let effective_params = FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
@@ -54,7 +56,21 @@ pub fn plan_correct(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("reads", Some(r1.display().to_string())),
+                    ("reads_r1", Some(r1.display().to_string())),
+                    ("reads_r2", r2.map(|path| path.display().to_string())),
+                    ("corrected_reads_r1", Some(output_r1.display().to_string())),
+                    (
+                        "corrected_reads_r2",
+                        output_r2.as_ref().map(|path| path.display().to_string()),
+                    ),
+                    ("report_json", Some(report_json.display().to_string())),
+                    ("threads", Some(tool.resources.threads.to_string())),
+                ],
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -79,13 +95,18 @@ pub fn plan_correct(
                     output_r1.clone(),
                     ArtifactRole::Reads,
                 )];
-                if r2.is_some() {
+                if let Some(output_r2) = &output_r2 {
                     outputs.push(ArtifactRef::required(
                         ArtifactId::from_static("corrected_reads_r2"),
-                        out_dir.join("reads_r2.fastq.gz"),
+                        output_r2.clone(),
                         ArtifactRole::Reads,
                     ));
                 }
+                outputs.push(ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report_json.clone(),
+                    ArtifactRole::ReportJson,
+                ));
                 outputs
             },
         },
@@ -96,10 +117,11 @@ pub fn plan_correct(
                 "r1": r1,
                 "out_dir": out_dir,
                 "output_r1": output_r1,
+                "report_json": report_json,
             });
-            if let Some(r2) = r2 {
+            if let Some((r2, output_r2)) = r2.zip(output_r2.as_ref()) {
                 params["r2"] = serde_json::json!(r2);
-                params["output_r2"] = serde_json::json!(out_dir.join("reads_r2.fastq.gz"));
+                params["output_r2"] = serde_json::json!(output_r2);
             }
             params
         },
