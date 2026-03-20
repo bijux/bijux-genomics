@@ -281,7 +281,17 @@ status = "supported"
 output_kinds = ["fasta", "fastq", "table"]
 ordering_after = []
 prerequisites = []
+resource_memory_gb = 8
+resource_time_minutes = 30
+resource_threads = 4
+sanity_metrics = ["otu_count", "representative_count"]
 output_size_estimates_mb = ["otu_representatives:3", "otu_table:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
+qc_thresholds = ["otu_count|warn<=0|fail<=0"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["vsearch"]
 
 [[stages]]
@@ -480,7 +490,17 @@ status = "supported"
 output_kinds = ["tsv"]
 ordering_after = []
 prerequisites = []
+resource_memory_gb = 2
+resource_time_minutes = 10
+resource_threads = 2
+sanity_metrics = ["table_rows", "zero_fraction"]
 output_size_estimates_mb = ["normalized_abundance_tsv:4"]
+qc_thresholds = ["zero_fraction|warn=>0.98|fail=>0.999"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["seqkit"]
 
 [[stages]]
@@ -489,7 +509,17 @@ status = "supported"
 output_kinds = ["fastq", "json", "tsv"]
 ordering_after = []
 prerequisites = []
+resource_memory_gb = 4
+resource_time_minutes = 20
+resource_threads = 4
+sanity_metrics = ["primer_trimmed_fraction", "orientation_forward_fraction"]
 output_size_estimates_mb = ["normalized_reads_r1:1800", "primer_orientation_report:3", "primer_stats_json:2"]
+qc_thresholds = ["primer_trimmed_fraction|warn=<0.05|fail=<0.01"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["cutadapt", "seqkit"]
 
 [[stages]]
@@ -555,7 +585,17 @@ status = "supported"
 output_kinds = ["fasta", "fastq", "json"]
 ordering_after = []
 prerequisites = []
+resource_memory_gb = 8
+resource_time_minutes = 25
+resource_threads = 4
+sanity_metrics = ["chimera_fraction", "chimeras_removed"]
 output_size_estimates_mb = ["chimera_filtered_reads_r1:1500", "chimera_metrics_json:4"]
+qc_thresholds = ["chimera_fraction|warn=>0.4|fail=>0.8"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["vsearch"]
 
 [[stages]]
@@ -722,4 +762,3 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
-

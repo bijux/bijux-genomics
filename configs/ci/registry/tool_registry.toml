@@ -1547,7 +1547,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Stable OTU cluster policy with reproducible identifiers."
 requires_validation = false
 requires_reporting = false
 
@@ -1679,7 +1679,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Abundance-table normalization stays within the admitted amplicon table tooling set."
 requires_validation = false
 requires_reporting = false
 
@@ -1691,7 +1691,7 @@ optional_alternatives = ["seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Deterministic primer trimming keeps mismatch and orientation handling explicit."
 requires_validation = false
 requires_reporting = false
 
@@ -1739,7 +1739,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Deterministic UCHIME-based chimera screening remains the baseline before broader ensemble admission."
 requires_validation = false
 requires_reporting = false
 
@@ -1826,4 +1826,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-
