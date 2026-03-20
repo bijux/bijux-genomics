@@ -46,6 +46,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "read_length_tool_normalization_json",
     ),
     (
+        "fastq.correct_errors",
+        "correction_tool_benchmark_cohort_json",
+        "correction_tool_comparison_json",
+        "correction_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",

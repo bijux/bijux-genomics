@@ -113,6 +113,18 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_length_profile_contract")
     );
+
+    let correction_stage = StageId::from_static("fastq.correct_errors");
+    let correction_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&correction_stage);
+    assert_eq!(correction_scenarios.len(), 1);
+    assert_eq!(correction_scenarios[0].scenario_id, "correction_fairness");
+    assert!(
+        correction_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_correction_policy")
+    );
 }
 
 #[test]
