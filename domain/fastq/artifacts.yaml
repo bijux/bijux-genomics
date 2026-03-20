@@ -75,6 +75,9 @@ artifact_ids:
   - report_json
   - rrna_filtered_reads_r1
   - rrna_filtered_reads_r2
+  - rrna_depletion_tool_benchmark_cohort_json
+  - rrna_depletion_tool_comparison_json
+  - rrna_depletion_tool_normalization_json
   - rrna_report_json
   - rrna_report_tsv
   - screen_report_tsv
