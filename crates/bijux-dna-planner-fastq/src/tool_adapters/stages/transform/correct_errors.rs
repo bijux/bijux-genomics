@@ -5,7 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION},
+    correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION},
     PairedMode,
 };
 use bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS;
@@ -37,7 +37,12 @@ pub fn plan_correct(
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
+        correction_engine: correction_engine_for_tool(&tool.tool_id.0)?,
+        quality_encoding: QualityEncoding::Phred33,
         kmer_size: None,
+        max_memory_gb: None,
+        trusted_kmer_artifact: None,
+        conservative_mode: false,
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -89,6 +94,16 @@ pub fn plan_correct(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn correction_engine_for_tool(tool_id: &str) -> Result<CorrectionEngine> {
+    match tool_id {
+        "rcorrector" => Ok(CorrectionEngine::Rcorrector),
+        "musket" => Ok(CorrectionEngine::Musket),
+        "lighter" => Ok(CorrectionEngine::Lighter),
+        "bayeshammer" => Ok(CorrectionEngine::Bayeshammer),
+        _ => Err(anyhow!("unsupported tool: {tool_id}")),
+    }
 }
 
 fn normalize_tools_with_allowlist(

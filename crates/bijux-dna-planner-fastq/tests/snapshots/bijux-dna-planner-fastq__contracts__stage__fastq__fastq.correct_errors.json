@@ -62,10 +62,15 @@
     "tool": "rcorrector"
   },
   "effective_params": {
+    "conservative_mode": false,
+    "correction_engine": "rcorrector",
     "kmer_size": null,
+    "max_memory_gb": null,
     "paired_mode": "paired_end",
+    "quality_encoding": "phred33",
     "schema_version": "bijux.fastq.params.correct.v1",
-    "threads": 4
+    "threads": 4,
+    "trusted_kmer_artifact": null
   },
   "aux_images": {},
   "reason": {
