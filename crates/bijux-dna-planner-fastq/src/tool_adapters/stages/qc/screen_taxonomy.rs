@@ -4,7 +4,13 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    screen::{
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
+        SCREEN_TAXONOMY_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -28,8 +34,10 @@ pub fn plan_screen(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
-    let report = out_dir.join("screen_report.tsv");
+    let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir)?;
+    let (classifier, report_format, assignment_format) = classifier_contract(&tool.tool_id.0)?;
     let effective_params = ScreenEffectiveParams {
+        schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
@@ -37,6 +45,9 @@ pub fn plan_screen(
         },
         threads: tool.resources.threads,
         contaminant_db: None,
+        classifier,
+        report_format,
+        assignment_format,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -65,12 +76,12 @@ pub fn plan_screen(
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("screen_report_tsv"),
-                    report.clone(),
+                    outputs.report.clone(),
                     ArtifactRole::SummaryTsv,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("classification_report_json"),
-                    out_dir.join("classification.report.json"),
+                    outputs.assignments.clone(),
                     ArtifactRole::MetricsJson,
                 ),
             ],
@@ -81,7 +92,8 @@ pub fn plan_screen(
             "input_r1": r1,
             "input_r2": r2,
             "out_dir": out_dir,
-            "report": report
+            "report": outputs.report,
+            "assignments": outputs.assignments
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,
@@ -106,4 +118,65 @@ fn normalize_tools_with_allowlist(
         }
     }
     Ok(normalized)
+}
+
+struct TaxonomyOutputs {
+    report: std::path::PathBuf,
+    assignments: std::path::PathBuf,
+}
+
+fn taxonomy_outputs(tool_id: &str, out_dir: &Path) -> Result<TaxonomyOutputs> {
+    let outputs = match tool_id {
+        "kraken2" => TaxonomyOutputs {
+            report: out_dir.join("kraken2.report.tsv"),
+            assignments: out_dir.join("kraken2.classifications.json"),
+        },
+        "krakenuniq" => TaxonomyOutputs {
+            report: out_dir.join("krakenuniq.report.tsv"),
+            assignments: out_dir.join("krakenuniq.classifications.json"),
+        },
+        "centrifuge" => TaxonomyOutputs {
+            report: out_dir.join("centrifuge.report.tsv"),
+            assignments: out_dir.join("centrifuge.classifications.json"),
+        },
+        "kaiju" => TaxonomyOutputs {
+            report: out_dir.join("kaiju.summary.tsv"),
+            assignments: out_dir.join("kaiju.classifications.json"),
+        },
+        _ => return Err(anyhow!("unsupported taxonomy screening tool: {tool_id}")),
+    };
+    Ok(outputs)
+}
+
+fn classifier_contract(
+    tool_id: &str,
+) -> Result<(
+    TaxonomyClassifier,
+    TaxonomyReportFormat,
+    TaxonomyAssignmentFormat,
+)> {
+    let contract = match tool_id {
+        "kraken2" => (
+            TaxonomyClassifier::Kraken2,
+            TaxonomyReportFormat::KrakenReport,
+            TaxonomyAssignmentFormat::KrakenAssignments,
+        ),
+        "krakenuniq" => (
+            TaxonomyClassifier::KrakenUniq,
+            TaxonomyReportFormat::KrakenUniqReport,
+            TaxonomyAssignmentFormat::KrakenUniqAssignments,
+        ),
+        "centrifuge" => (
+            TaxonomyClassifier::Centrifuge,
+            TaxonomyReportFormat::CentrifugeReport,
+            TaxonomyAssignmentFormat::CentrifugeAssignments,
+        ),
+        "kaiju" => (
+            TaxonomyClassifier::Kaiju,
+            TaxonomyReportFormat::KaijuSummary,
+            TaxonomyAssignmentFormat::KaijuAssignments,
+        ),
+        _ => return Err(anyhow!("unsupported taxonomy screening tool: {tool_id}")),
+    };
+    Ok(contract)
 }

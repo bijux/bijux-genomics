@@ -262,8 +262,12 @@ fn build_screen_record(
     out_dir: &Path,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqScreenMetrics>> {
-    let (contamination_rate, contamination_summary) =
-        parse_screen_report(&out_dir.join("screen_report.tsv"))?;
+    let report_path = params
+        .get("report")
+        .and_then(serde_json::Value::as_str)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| out_dir.join("screen_report.tsv"));
+    let (contamination_rate, contamination_summary) = parse_screen_report(&report_path)?;
     let reads_in = bench_inputs.input_stats.reads
         + bench_inputs
             .input_stats_r2

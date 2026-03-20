@@ -6,7 +6,8 @@ use bijux_dna_domain_fastq::params::detect_adapters::{
 };
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
-    HOST_DEPLETION_SCHEMA_VERSION,
+    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
+    HOST_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
@@ -79,6 +80,28 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
     assert_eq!(
         decoded.report_format,
         MappingReportFormat::Bowtie2MetricsFile,
+    );
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
+    let params = ScreenEffectiveParams {
+        schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::PairedEnd,
+        threads: 4,
+        contaminant_db: None,
+        classifier: TaxonomyClassifier::Kraken2,
+        report_format: TaxonomyReportFormat::KrakenReport,
+        assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
+    };
+    let decoded: ScreenEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, SCREEN_TAXONOMY_SCHEMA_VERSION);
+    assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
+    assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
+    assert_eq!(
+        decoded.assignment_format,
+        TaxonomyAssignmentFormat::KrakenAssignments,
     );
     assert!(decoded.missing_required_fields().is_empty());
 }

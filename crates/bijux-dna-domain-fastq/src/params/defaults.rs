@@ -7,7 +7,10 @@ use super::merge::MergeEffectiveParams;
 use super::preprocess::LibraryDamageTreatment;
 use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::QcPostEffectiveParams;
-use super::screen::ScreenEffectiveParams;
+use super::screen::{
+    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
+    SCREEN_TAXONOMY_SCHEMA_VERSION,
+};
 use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use super::trim::TrimEffectiveParams;
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
@@ -147,8 +150,12 @@ pub fn merge_defaults(paired: bool) -> MergeEffectiveParams {
 #[must_use]
 pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
     ScreenEffectiveParams {
+        schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
         contaminant_db: None,
+        classifier: TaxonomyClassifier::Kraken2,
+        report_format: TaxonomyReportFormat::KrakenReport,
+        assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
     }
 }
