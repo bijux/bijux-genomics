@@ -1027,7 +1027,7 @@ stage_output_size_estimates_mb:
     host_depleted_reads_r1: 950.0
     host_depletion_report_json: 12.0
   fastq.deplete_reference_contaminants:
-    contaminant_screened_reads: 900.0
+    contaminant_screened_reads_r1: 900.0
     contaminant_screen_report_json: 10.0
   fastq.deplete_rrna:
     rrna_filtered_reads_r1: 1700.0

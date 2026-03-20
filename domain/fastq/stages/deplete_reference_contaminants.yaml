@@ -14,7 +14,10 @@ inputs:
     data_type: "ref_index"
     cardinality: "One"
 outputs:
-  - name: "contaminant_screened_reads"
+  - name: "contaminant_screened_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "contaminant_screened_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "contaminant_screen_report_json"
@@ -45,7 +48,7 @@ required_inputs:
   - "reads_r1"
   - "reference_index"
 required_outputs:
-  - "contaminant_screened_reads"
+  - "contaminant_screened_reads_r1"
   - "contaminant_screen_report_json"
 tool_capability_requirements: []
 invariants:
@@ -53,12 +56,13 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "reads_r2"
+  - "contaminant_screened_reads_r2"
 compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "contaminant decoy reference is explicitly versioned and separate from taxonomy DB."
-  - "single-end input omits reads_r2; paired-end input preserves mate synchronization during contaminant depletion."
+  - "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion."
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"

@@ -342,7 +342,7 @@ resource_memory_gb = 10
 resource_time_minutes = 30
 resource_threads = 6
 sanity_metrics = ["reads_removed_contaminant_kmer"]
-output_size_estimates_mb = ["contaminant_screen_report_json:10", "contaminant_screened_reads:900"]
+output_size_estimates_mb = ["contaminant_screen_report_json:10", "contaminant_screened_reads_r1:900"]
 qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.8|fail=>0.95"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
@@ -762,4 +762,3 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
-

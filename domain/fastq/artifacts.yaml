@@ -10,7 +10,8 @@ artifact_ids:
   - chimeras_fasta
   - classification_report_json
   - contaminant_screen_report_json
-  - contaminant_screened_reads
+  - contaminant_screened_reads_r1
+  - contaminant_screened_reads_r2
   - corrected_reads_r1
   - corrected_reads_r2
   - dedup_reads_r1

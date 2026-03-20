@@ -55,13 +55,13 @@
     ],
     "outputs": [
       {
-        "name": "contaminant_screened_reads",
+        "name": "contaminant_screened_reads_r1",
         "path": "out/contaminant_screened_R1.fastq.gz",
         "role": "reads",
         "optional": false
       },
       {
-        "name": "contaminant_screened_reads",
+        "name": "contaminant_screened_reads_r2",
         "path": "out/contaminant_screened_R2.fastq.gz",
         "role": "reads",
         "optional": false
