@@ -9,6 +9,15 @@ license: GPL-3.0
 citation: pending:tool-publication
 stage_ids:
 - fastq.trim_reads
+stage_contracts:
+  fastq.trim_reads:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - trimmed_reads_r1
+    - trimmed_reads_r2
+    - report_json
+    notes: Trim execution emits governed trimmed-read artifacts together with the normalized stage report.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
