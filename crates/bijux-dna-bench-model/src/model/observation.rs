@@ -27,6 +27,10 @@ pub struct BenchmarkObservation {
     pub dataset_class: String,
     pub read_layout: String,
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lineage_id: Option<String>,
     pub tool_id: String,
     pub tool_version: String,
     pub image_digest: String,
@@ -58,6 +62,8 @@ impl BenchmarkObservation {
         dataset_class: String,
         read_layout: String,
         stage_id: String,
+        stage_instance_id: Option<String>,
+        lineage_id: Option<String>,
         tool_id: String,
         tool_version: String,
         image_digest: String,
@@ -86,6 +92,8 @@ impl BenchmarkObservation {
             dataset_class,
             read_layout,
             stage_id,
+            stage_instance_id,
+            lineage_id,
             tool_id,
             tool_version,
             image_digest,
@@ -129,6 +137,22 @@ impl BenchmarkObservation {
         }
         if self.platform.trim().is_empty() {
             return Err(BenchError::MissingConfounder { field: "platform" });
+        }
+        if self
+            .stage_instance_id
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(BenchError::MissingConfounder {
+                field: "stage_instance_id",
+            });
+        }
+        if self
+            .lineage_id
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(BenchError::MissingConfounder { field: "lineage_id" });
         }
         if self.cpu.trim().is_empty() {
             return Err(BenchError::MissingConfounder { field: "cpu" });

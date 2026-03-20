@@ -23,6 +23,8 @@ fn observation(
         dataset_class: dataset_class.to_string(),
         read_layout: read_layout.to_string(),
         stage_id: "fastq.trim_reads".to_string(),
+        stage_instance_id: None,
+        lineage_id: None,
         tool_id: tool_id.to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: "sha256:abc".to_string(),

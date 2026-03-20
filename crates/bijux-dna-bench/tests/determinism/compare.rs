@@ -90,6 +90,8 @@ fn bench_compare_snapshot() -> Result<()> {
         dataset_class: "trueseq".to_string(),
         read_layout: "paired".to_string(),
         stage_id: "fastq.trim_reads".to_string(),
+        stage_instance_id: None,
+        lineage_id: None,
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: "sha256:abc".to_string(),

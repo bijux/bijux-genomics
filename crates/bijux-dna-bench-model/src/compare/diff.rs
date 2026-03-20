@@ -34,13 +34,18 @@ pub fn compare_summaries(
     let mut diffs = Vec::new();
     let mut strata = Vec::new();
 
-    let mut index_b: BTreeMap<(String, String, String, String), &crate::model::SummaryRow> =
+    let mut index_b: BTreeMap<
+        (String, String, Option<String>, Option<String>, String, String),
+        &crate::model::SummaryRow,
+    > =
         BTreeMap::new();
     for row in &summary_b.rows {
         index_b.insert(
             (
                 row.dataset_id.clone(),
                 row.stage_id.clone(),
+                row.stage_instance_id.clone(),
+                row.lineage_id.clone(),
                 row.tool_id.clone(),
                 row.params_hash.clone(),
             ),
@@ -52,6 +57,8 @@ pub fn compare_summaries(
         let key = (
             row_a.dataset_id.clone(),
             row_a.stage_id.clone(),
+            row_a.stage_instance_id.clone(),
+            row_a.lineage_id.clone(),
             row_a.tool_id.clone(),
             row_a.params_hash.clone(),
         );

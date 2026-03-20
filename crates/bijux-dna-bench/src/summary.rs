@@ -93,36 +93,58 @@ pub fn summarize(
     if suite.replicate_policy.count < 3 {
         warnings.push("low_power".to_string());
     }
-    let mut stage_dataset_inputs: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
-    let mut stage_dataset_tool_params: BTreeMap<(String, String, String), BTreeSet<String>> =
+    let mut stage_dataset_inputs: BTreeMap<(String, String, Option<String>, Option<String>), BTreeSet<String>> =
+        BTreeMap::new();
+    let mut stage_dataset_tool_params: BTreeMap<
+        (String, String, Option<String>, Option<String>, String),
+        BTreeSet<String>,
+    > =
         BTreeMap::new();
     for obs in observations {
         stage_dataset_inputs
-            .entry((obs.stage_id.clone(), obs.dataset_id.clone()))
+            .entry((
+                obs.stage_id.clone(),
+                obs.dataset_id.clone(),
+                obs.stage_instance_id.clone(),
+                obs.lineage_id.clone(),
+            ))
             .or_default()
             .insert(obs.input_hash.clone());
         stage_dataset_tool_params
             .entry((
                 obs.stage_id.clone(),
                 obs.dataset_id.clone(),
+                obs.stage_instance_id.clone(),
+                obs.lineage_id.clone(),
                 obs.tool_id.clone(),
             ))
             .or_default()
             .insert(obs.params_hash.clone());
     }
-    for ((stage_id, dataset_id), hashes) in &stage_dataset_inputs {
+    for ((stage_id, dataset_id, stage_instance_id, lineage_id), hashes) in &stage_dataset_inputs {
         if hashes.len() > 1 {
             scientifically_invalid = true;
-            let warning = format!("fairness_input_mismatch:{stage_id}:{dataset_id}");
+            let warning = format!(
+                "fairness_input_mismatch:{}",
+                stage_scope_label(stage_id, stage_instance_id.as_deref(), lineage_id.as_deref(), dataset_id)
+            );
             warnings.push(warning.clone());
             invalid_reasons.push(warning);
         }
     }
-    for ((stage_id, dataset_id, tool_id), hashes) in &stage_dataset_tool_params {
+    for ((stage_id, dataset_id, stage_instance_id, lineage_id, tool_id), hashes) in
+        &stage_dataset_tool_params
+    {
         if hashes.len() > 1 {
             scientifically_invalid = true;
             let warning = format!(
-                "fairness_param_hash_mismatch:{stage_id}:{dataset_id}:{tool}",
+                "fairness_param_hash_mismatch:{}:{tool}",
+                stage_scope_label(
+                    stage_id,
+                    stage_instance_id.as_deref(),
+                    lineage_id.as_deref(),
+                    dataset_id
+                ),
                 tool = tool_id
             );
             warnings.push(warning.clone());
@@ -130,13 +152,18 @@ pub fn summarize(
         }
     }
 
-    let mut groups: BTreeMap<(String, String, String, String), Vec<&BenchmarkObservation>> =
+    let mut groups: BTreeMap<
+        (String, String, Option<String>, Option<String>, String, String),
+        Vec<&BenchmarkObservation>,
+    > =
         BTreeMap::new();
     for obs in observations {
         groups
             .entry((
                 obs.dataset_id.clone(),
                 obs.stage_id.clone(),
+                obs.stage_instance_id.clone(),
+                obs.lineage_id.clone(),
                 obs.tool_id.clone(),
                 obs.params_hash.clone(),
             ))
@@ -145,7 +172,7 @@ pub fn summarize(
     }
 
     let mut rows = Vec::new();
-    for ((dataset_id, stage_id, tool_id, params_hash), group) in groups {
+    for ((dataset_id, stage_id, stage_instance_id, lineage_id, tool_id, params_hash), group) in groups {
         let tool = tool_id.as_str();
         let runtimes: Vec<f64> = group.iter().map(|o| o.runtime_s).collect();
         let memories: Vec<f64> = group.iter().map(|o| o.memory_mb).collect();
@@ -270,6 +297,8 @@ pub fn summarize(
             dataset_class,
             read_layout,
             stage_id,
+            stage_instance_id,
+            lineage_id,
             tool_id,
             params_hash,
             runtime: runtime_summary,
@@ -282,17 +311,33 @@ pub fn summarize(
         });
     }
     rows.sort_by(|a, b| {
-        (&a.dataset_id, &a.stage_id, &a.tool_id, &a.params_hash).cmp(&(
+        (
+            &a.dataset_id,
+            &a.stage_id,
+            &a.stage_instance_id,
+            &a.lineage_id,
+            &a.tool_id,
+            &a.params_hash,
+        )
+            .cmp(&(
             &b.dataset_id,
             &b.stage_id,
+            &b.stage_instance_id,
+            &b.lineage_id,
             &b.tool_id,
             &b.params_hash,
         ))
     });
-    let mut strata_map: BTreeMap<(String, String), (usize, usize)> = BTreeMap::new();
+    let mut strata_map: BTreeMap<(String, Option<String>, Option<String>, String), (usize, usize)> =
+        BTreeMap::new();
     for row in &rows {
         let entry = strata_map
-            .entry((row.stage_id.clone(), row.dataset_class.clone()))
+            .entry((
+                row.stage_id.clone(),
+                row.stage_instance_id.clone(),
+                row.lineage_id.clone(),
+                row.dataset_class.clone(),
+            ))
             .or_insert((0, 0));
         entry.0 += 1;
         if row.low_power {
@@ -300,9 +345,13 @@ pub fn summarize(
         }
     }
     let mut strata = Vec::new();
-    for ((stage_id, dataset_class), (row_count, low_power_count)) in strata_map {
+    for ((stage_id, stage_instance_id, lineage_id, dataset_class), (row_count, low_power_count)) in
+        strata_map
+    {
         strata.push(SummaryStratum {
             stage_id,
+            stage_instance_id,
+            lineage_id,
             dataset_class,
             row_count,
             low_power_count,
@@ -395,6 +444,8 @@ pub fn run_suite(
                 seen.insert((
                     obs.dataset_id.clone(),
                     obs.stage_id.clone(),
+                    obs.stage_instance_id.clone(),
+                    obs.lineage_id.clone(),
                     obs.tool_id.clone(),
                     obs.params_hash.clone(),
                     obs.replicate_id.clone(),
@@ -404,6 +455,8 @@ pub fn run_suite(
                 let key = (
                     obs.dataset_id.clone(),
                     obs.stage_id.clone(),
+                    obs.stage_instance_id.clone(),
+                    obs.lineage_id.clone(),
                     obs.tool_id.clone(),
                     obs.params_hash.clone(),
                     obs.replicate_id.clone(),
@@ -441,9 +494,25 @@ pub fn run_suite(
     Ok((summary, decisions))
 }
 
+fn stage_scope_label(
+    stage_id: &str,
+    stage_instance_id: Option<&str>,
+    lineage_id: Option<&str>,
+    dataset_id: &str,
+) -> String {
+    let mut parts = vec![stage_id.to_string(), dataset_id.to_string()];
+    if let Some(stage_instance_id) = stage_instance_id {
+        parts.push(stage_instance_id.to_string());
+    }
+    if let Some(lineage_id) = lineage_id {
+        parts.push(lineage_id.to_string());
+    }
+    parts.join(":")
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{run_suite, BenchRunOptions};
+    use super::{run_suite, summarize, BenchRunOptions};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
@@ -495,6 +564,8 @@ mod tests {
             dataset_class: "trueseq".to_string(),
             read_layout: "paired".to_string(),
             stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            lineage_id: None,
             tool_id: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: "sha256:abc".to_string(),
@@ -544,6 +615,88 @@ mod tests {
         assert!(out_dir.join("observations.jsonl").exists());
         assert!(out_dir.join("summary.json").exists());
         assert!(out_dir.join("decision.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn summary_keeps_distinct_stage_instances_separate() -> anyhow::Result<()> {
+        let suite = BenchmarkSuiteSpec::v1(
+            "suite-branching".to_string(),
+            vec![DatasetSpec {
+                id: "dataset-1".to_string(),
+                hash: "hash-1".to_string(),
+                size: 100,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec!["fastq.trim_reads".to_string()],
+            vec!["fastp".to_string()],
+            vec!["params-a".to_string()],
+            ReplicatePolicy {
+                count: 1,
+                warmup: 0,
+                seeds: vec![1],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        let base = BenchmarkObservation {
+            schema_version: "bijux.bench.observation.v1".to_string(),
+            run_id: "run-1".to_string(),
+            dataset_id: "dataset-1".to_string(),
+            dataset_class: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            lineage_id: Some("branch-a".to_string()),
+            tool_id: "fastp".to_string(),
+            tool_version: "0.23.4".to_string(),
+            image_digest: "sha256:abc".to_string(),
+            container_digest: "sha256:abc".to_string(),
+            params_hash: "params-a".to_string(),
+            input_hash: "input".to_string(),
+            runtime_s: 1.0,
+            memory_mb: 100.0,
+            exit_code: 0,
+            failure_kind: None,
+            metrics: MetricsEnvelope {
+                stage_id: "fastq.trim_reads".to_string(),
+                schema_version: "metrics.v1".to_string(),
+                values: BTreeMap::new(),
+            },
+            replicate_id: "r1".to_string(),
+            replicate_index: 0,
+            warmup_policy: "none".to_string(),
+            seed_policy: "default".to_string(),
+            runner: "docker".to_string(),
+            platform: "linux".to_string(),
+            cpu: "x86_64".to_string(),
+            threads: 4,
+            io_mode: "local".to_string(),
+        };
+        let other = BenchmarkObservation {
+            run_id: "run-2".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.tool.fastp.alt".to_string()),
+            lineage_id: Some("branch-b".to_string()),
+            ..base.clone()
+        };
+
+        let summary = summarize(&suite, &[base, other], &BenchRunOptions::default())?;
+        assert_eq!(summary.rows.len(), 2);
+        assert_ne!(summary.rows[0].lineage_id, summary.rows[1].lineage_id);
         Ok(())
     }
 }
