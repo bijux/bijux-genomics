@@ -114,7 +114,7 @@ pub fn trim_terminal_damage_defaults(paired: bool) -> TrimTerminalDamageParams {
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
-        damage_mode: super::DamageMode::Ancient,
+        damage_mode: "ancient".to_string(),
         trim_5p_bases: 2,
         trim_3p_bases: 2,
     }
