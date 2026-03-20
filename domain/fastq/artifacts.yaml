@@ -18,7 +18,8 @@ artifact_ids:
   - dedup_reads_r2
   - filter_report_json
   - filtered_reads
-  - filtered_fastq
+  - filtered_fastq_r1
+  - filtered_fastq_r2
   - host_depleted_reads_r1
   - host_depleted_reads_r2
   - host_depletion_report_json

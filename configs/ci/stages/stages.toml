@@ -418,7 +418,7 @@ resource_memory_gb = 6
 resource_time_minutes = 20
 resource_threads = 4
 sanity_metrics = ["reads_removed_low_complexity"]
-output_size_estimates_mb = ["filter_report_json:8", "filtered_fastq:1100"]
+output_size_estimates_mb = ["filter_report_json:8", "filtered_fastq_r1:1100"]
 qc_thresholds = ["reads_removed_low_complexity|warn=>0.5|fail=>0.8"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]

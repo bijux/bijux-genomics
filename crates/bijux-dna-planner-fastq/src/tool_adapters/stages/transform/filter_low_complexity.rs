@@ -72,13 +72,13 @@ pub fn plan_low_complexity(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("filtered_fastq"),
+        ArtifactId::from_static("filtered_fastq_r1"),
         output_r1.clone(),
         ArtifactRole::Reads,
     )];
     if let Some(output_r2) = &output_r2 {
         outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("filtered_fastq"),
+            ArtifactId::from_static("filtered_fastq_r2"),
             output_r2.clone(),
             ArtifactRole::Reads,
         ));
@@ -95,7 +95,21 @@ pub fn plan_low_complexity(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("reads", Some(r1.display().to_string())),
+                    ("reads_r1", Some(r1.display().to_string())),
+                    ("reads_r2", r2.map(|path| path.display().to_string())),
+                    ("filtered_fastq", Some(output_r1.display().to_string())),
+                    ("filtered_fastq_r1", Some(output_r1.display().to_string())),
+                    (
+                        "filtered_fastq_r2",
+                        output_r2.as_ref().map(|path| path.display().to_string()),
+                    ),
+                    ("filter_report_json", Some(report.display().to_string())),
+                ],
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },

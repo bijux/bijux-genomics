@@ -96,7 +96,6 @@ stage_tool_compatibility:
   - dustmasker
   - prinseq
   - bbduk
-  - fastp
   fastq.filter_reads:
   - fastp
   - seqkit
@@ -1039,7 +1038,7 @@ stage_output_size_estimates_mb:
     umi_reads_r1: 700.0
     umi_reads_r2: 700.0
   fastq.filter_low_complexity:
-    filtered_fastq: 1100.0
+    filtered_fastq_r1: 1100.0
     filter_report_json: 8.0
   fastq.filter_reads:
     filtered_reads: 1800.0

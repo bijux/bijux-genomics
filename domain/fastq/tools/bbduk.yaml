@@ -46,7 +46,8 @@ stage_ids:
 expected_artifacts:
   - "trimmed_reads"
   - "filtered_reads"
-  - "filtered_fastq"
+  - "filtered_fastq_r1"
+  - "filtered_fastq_r2"
   - "filter_report_json"
   - "report_json"
 metrics_schema_id: "bijux.unknown.v1"
