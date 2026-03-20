@@ -55,6 +55,25 @@ impl PipelineSpec {
     pub fn declares_graph_topology(&self) -> bool {
         !self.nodes.is_empty() || !self.edges.is_empty()
     }
+
+    #[must_use]
+    pub fn ordered_nodes(&self) -> Vec<PipelineNodeSpec> {
+        if !self.nodes.is_empty() {
+            return self.nodes.clone();
+        }
+        self.stages
+            .iter()
+            .map(|stage_id| PipelineNodeSpec {
+                stage_id: stage_id.clone(),
+                stage_instance_id: None,
+            })
+            .collect()
+    }
+
+    #[must_use]
+    pub fn stage_node_id(stage_id: &str, stage_instance_id: Option<&str>) -> String {
+        stage_instance_id.unwrap_or(stage_id).to_string()
+    }
 }
 
 pub trait PipelineDomain {
@@ -100,10 +119,14 @@ mod tests {
                 PipelineEdgeSpec {
                     from: "fastq.trim_reads.fastp".to_string(),
                     to: "fastq.report_qc.compare".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
                 },
                 PipelineEdgeSpec {
                     from: "fastq.trim_reads.cutadapt".to_string(),
                     to: "fastq.report_qc.compare".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
                 },
             ],
         );
@@ -114,5 +137,31 @@ mod tests {
         assert!(spec.declares_graph_topology());
         assert_eq!(spec.nodes.len(), 3);
         assert_eq!(spec.edges.len(), 2);
+    }
+
+    #[test]
+    fn linear_pipeline_spec_can_materialize_ordered_nodes() {
+        let spec = PipelineSpec::linear(vec![
+            "fastq.validate_reads".to_string(),
+            "fastq.trim_reads".to_string(),
+        ]);
+        let nodes = spec.ordered_nodes();
+        assert_eq!(nodes.len(), 2);
+        assert_eq!(nodes[0].stage_id, "fastq.validate_reads");
+        assert_eq!(nodes[0].stage_instance_id, None);
+        assert_eq!(nodes[1].stage_id, "fastq.trim_reads");
+        assert_eq!(nodes[1].stage_instance_id, None);
+    }
+
+    #[test]
+    fn stage_node_id_prefers_instance_when_present() {
+        assert_eq!(
+            PipelineSpec::stage_node_id("fastq.trim_reads", Some("fastq.trim_reads.fastp")),
+            "fastq.trim_reads.fastp"
+        );
+        assert_eq!(
+            PipelineSpec::stage_node_id("fastq.trim_reads", None),
+            "fastq.trim_reads"
+        );
     }
 }
