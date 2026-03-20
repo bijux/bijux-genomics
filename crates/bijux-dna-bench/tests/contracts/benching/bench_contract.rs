@@ -67,9 +67,6 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
           "min_dataset_count": 1,
           "min_read_layouts": 1
         },
-        "params": [
-          "params-a"
-        ],
         "replicate_policy": {
           "count": 3,
           "seeds": [
@@ -81,7 +78,15 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         },
         "schema_version": "bijux.bench.suite.v1",
         "stages": [
-          "fastq.trim_reads"
+          {
+            "params": [
+              "params-a"
+            ],
+            "stage": "fastq.trim_reads",
+            "tools": [
+              "tool-a"
+            ]
+          }
         ],
         "stratifications": [
           {
@@ -91,10 +96,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
             ]
           }
         ],
-        "suite_id": "suite-1",
-        "tools": [
-          "tool-a"
-        ]
+        "suite_id": "suite-1"
       },
       "summary": {
         "invalid_reasons": [],
