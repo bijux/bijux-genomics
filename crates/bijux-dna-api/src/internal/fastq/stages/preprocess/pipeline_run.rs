@@ -224,7 +224,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         allow_planned: args.allow_planned,
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
-    let planned_stages = pipeline_plan.steps().to_vec();
+    let planned_stages = ordered_execution_steps(&pipeline_plan)?;
     if matches!(
         args.mode,
         bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
@@ -288,11 +288,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let mut steps = planned_stages.clone();
         steps.push(report_plan.clone());
         let mut edges = pipeline_plan.edges().to_vec();
-        if let Some(last) = planned_stages.last() {
-            edges.push(ExecutionEdge::new(
-                last.step_id.clone(),
-                report_plan.step_id.clone(),
-            ));
+        for terminal in terminal_step_ids(&pipeline_plan) {
+            edges.push(ExecutionEdge::new(terminal, report_plan.step_id.clone()));
         }
         let graph = ExecutionGraph::new(
             pipeline_plan.pipeline_id().to_string(),
@@ -569,12 +566,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .context("write decision_trace.json")?;
     let steps: Vec<_> = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
     let mut edges = pipeline_plan.edges().to_vec();
-    if let (Some(last), Some(report)) = (planned_stages.last(), steps.last()) {
-        if last.step_id != report.step_id {
-            edges.push(ExecutionEdge::new(
-                last.step_id.clone(),
-                report.step_id.clone(),
-            ));
+    if let Some(report) = steps.last() {
+        for terminal in terminal_step_ids(&pipeline_plan) {
+            if terminal != report.step_id {
+                edges.push(ExecutionEdge::new(terminal, report.step_id.clone()));
+            }
         }
     }
     let graph = ExecutionGraph::new(
@@ -623,4 +619,32 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
 
     Ok(())
+}
+
+fn ordered_execution_steps(graph: &ExecutionGraph) -> Result<Vec<ExecutionStep>> {
+    graph
+        .topological_step_ids()?
+        .into_iter()
+        .map(|step_id| {
+            graph.step_by_id(step_id.as_str()).cloned().ok_or_else(|| {
+                anyhow!(
+                    "execution graph is missing planned step {} during runtime ordering",
+                    step_id.as_str()
+                )
+            })
+        })
+        .collect()
+}
+
+fn terminal_step_ids(graph: &ExecutionGraph) -> Vec<bijux_dna_core::prelude::StepId> {
+    let mut outgoing = std::collections::BTreeSet::new();
+    for edge in graph.edges() {
+        outgoing.insert(edge.from().as_str().to_string());
+    }
+    graph
+        .steps()
+        .iter()
+        .filter(|step| !outgoing.contains(step.step_id.as_str()))
+        .map(|step| step.step_id.clone())
+        .collect()
 }
