@@ -17,7 +17,7 @@ fn stage_tool_maturity_distinguishes_planned_generic_and_observer_bindings() {
             &detect_stage,
             &ToolId::from_static("fastqc"),
         ),
-        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::ObserverNormalized)
+        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::BenchmarkComparable)
     );
 
     let trim_stage = StageId::from_static("fastq.trim_reads");
@@ -37,9 +37,9 @@ fn current_fastq_benchmark_bindings_do_not_overclaim_full_comparability() {
     )
     .into_iter()
     .chain(
-        bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(
-            &StageId::from_static("fastq.screen_taxonomy"),
-        ),
+        bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&StageId::from_static(
+            "fastq.screen_taxonomy",
+        )),
     )
     .filter_map(|profile| {
         bijux_dna_planner_fastq::stage_api::stage_tool_maturity(&profile.stage_id, &profile.tool_id)
