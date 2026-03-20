@@ -22,6 +22,21 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "fastq.profile_read_lengths",
+        schema: "fastq_profile_read_lengths_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.profile_overrepresented_sequences",
+        schema: "fastq_profile_overrepresented_sequences_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.index_reference",
+        schema: "fastq_index_reference_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.trim_terminal_damage",
         schema: "fastq_trim_terminal_damage_v2",
         version: 2,
@@ -47,6 +62,16 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "fastq.deplete_host",
+        schema: "fastq_deplete_host_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.deplete_reference_contaminants",
+        schema: "fastq_deplete_reference_contaminants_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.merge_pairs",
         schema: "fastq_merge_pairs_v1",
         version: 1,
@@ -59,6 +84,31 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     MetricsSchemaId {
         stage_id: "fastq.report_qc",
         schema: "fastq_report_qc_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.normalize_primers",
+        schema: "fastq_normalize_primers_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.remove_chimeras",
+        schema: "fastq_remove_chimeras_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.cluster_otus",
+        schema: "fastq_cluster_otus_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.infer_asvs",
+        schema: "fastq_infer_asvs_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.normalize_abundance",
+        schema: "fastq_normalize_abundance_v1",
         version: 1,
     },
     MetricsSchemaId {
