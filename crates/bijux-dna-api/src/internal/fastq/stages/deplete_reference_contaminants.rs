@@ -127,8 +127,13 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan =
-            plan_contaminant_screen(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+        let plan = plan_contaminant_screen(
+            &tool_spec,
+            &bench_inputs.r1,
+            args.r2.as_deref(),
+            &args.reference_index,
+            &out_dir,
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
