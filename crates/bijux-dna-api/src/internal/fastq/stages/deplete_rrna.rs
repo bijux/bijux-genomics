@@ -5,7 +5,7 @@ use crate::internal::fastq::stages::trim_bench_common::{
 };
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_deplete_rrna_v1, insert_fastq_deplete_rrna_v1,
@@ -44,7 +44,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_RRNA.as_str(), &header);
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_DEPLETE_RRNA.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(

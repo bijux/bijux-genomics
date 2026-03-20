@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_normalize_primers_v1, insert_fastq_normalize_primers_v1,
@@ -38,7 +38,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
 ) -> Result<BenchOutcome<FastqNormalizePrimersMetrics>> {
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_normalize_primers_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;

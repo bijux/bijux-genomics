@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
@@ -65,7 +65,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     preflight_stage(STAGE_PROFILE_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_PROFILE_READS.as_str(), &header);
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_PROFILE_READS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
@@ -309,7 +309,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_spec = build_tool_execution_spec(
         STAGE_PROFILE_READS.as_str(),
@@ -383,7 +383,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
     let tool_manifest = registry

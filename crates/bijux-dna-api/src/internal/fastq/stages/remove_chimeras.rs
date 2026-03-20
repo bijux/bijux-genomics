@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1,
@@ -33,7 +33,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
 ) -> Result<BenchOutcome<FastqChimeraMetrics>> {
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;

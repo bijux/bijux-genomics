@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_index_reference_v1, insert_fastq_index_reference_v1,
@@ -35,7 +35,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqIndexReferenceArgs,
 ) -> Result<BenchOutcome<FastqIndexReferenceMetrics>> {
     let tools = select_index_reference_tools(&args.tools)?;
-    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+    let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_INDEX_REFERENCE.as_str(), &tools, &registry, false)?;
 
