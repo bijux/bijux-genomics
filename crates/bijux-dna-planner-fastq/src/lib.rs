@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::PipelineSpec;
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{
     ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, StageIO,
@@ -54,6 +54,26 @@ fn required_id_catalog() -> Vec<String> {
         .into_iter()
         .map(|stage| stage.as_str().to_string())
         .collect()
+}
+
+fn pipeline_spec_from_stage_sequence(stages: Vec<String>) -> PipelineSpec {
+    let nodes = stages
+        .iter()
+        .map(|stage_id| PipelineNodeSpec {
+            stage_id: stage_id.clone(),
+            stage_instance_id: None,
+        })
+        .collect::<Vec<_>>();
+    let edges = stages
+        .windows(2)
+        .map(|window| PipelineEdgeSpec {
+            from: window[0].clone(),
+            to: window[1].clone(),
+            from_output_id: None,
+            to_input_id: None,
+        })
+        .collect::<Vec<_>>();
+    PipelineSpec::graph(nodes, edges)
 }
 
 fn sort_stages_by_domain_order(stages: Vec<String>, mode: FastqPipelineMode) -> Vec<String> {
@@ -122,7 +142,7 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     } else if !options.enable_qc_post {
         stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
-    PipelineSpec::linear(sort_stages_by_domain_order(stages, options.mode))
+    pipeline_spec_from_stage_sequence(sort_stages_by_domain_order(stages, options.mode))
 }
 
 #[derive(Debug, Clone)]
@@ -359,7 +379,7 @@ pub fn resolve_preprocess_pipeline(
                 if shotgun_mode {
                     stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
                 }
-                PipelineSpec::linear(stages)
+                pipeline_spec_from_stage_sequence(stages)
             }
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
@@ -383,7 +403,7 @@ pub fn resolve_preprocess_pipeline(
                     spec.stages
                         .retain(|stage| !amplicon_only.contains(&stage.as_str()));
                 }
-                spec
+                pipeline_spec_from_stage_sequence(spec.stages)
             }
         }
     } else {
@@ -407,7 +427,7 @@ pub fn resolve_preprocess_pipeline(
             spec.stages
                 .retain(|stage| !amplicon_only.contains(&stage.as_str()));
         }
-        spec
+        pipeline_spec_from_stage_sequence(spec.stages)
     }
 }
 
