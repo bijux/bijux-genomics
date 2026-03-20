@@ -162,7 +162,8 @@ impl FastqPlanner {
         }
         let out_dir = config.out_dir.clone();
         let explicit_stage_inputs = stage_artifact_input_policy(config.pipeline_spec.as_ref());
-        let plans = compose_fastq_stage_bindings(
+        let stage_dependencies = stage_dependency_policy(config.pipeline_spec.as_ref());
+        let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
             &stage_bindings,
             &config.aux_images,
             config.adapter_bank.as_ref(),
@@ -173,6 +174,7 @@ impl FastqPlanner {
             config.r2.as_deref(),
             config.reference_fasta.as_deref(),
             Some(&explicit_stage_inputs),
+            Some(&stage_dependencies),
             |binding, _r1, _r2| {
                 let stage_dir = binding
                     .stage_instance_id
