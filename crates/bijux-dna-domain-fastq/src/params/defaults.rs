@@ -1,5 +1,7 @@
 use super::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
-use super::detect_adapters::{DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION};
+use super::detect_adapters::{
+    AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+};
 use super::filter::FilterEffectiveParams;
 use super::merge::MergeEffectiveParams;
 use super::preprocess::LibraryDamageTreatment;
@@ -66,6 +68,7 @@ pub fn detect_adapters_defaults(paired: bool) -> DetectAdaptersEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         sample_reads: None,
+        inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: "fastqc".to_string(),
     }

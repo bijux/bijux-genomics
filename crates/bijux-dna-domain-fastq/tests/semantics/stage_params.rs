@@ -1,5 +1,9 @@
 use bijux_dna_domain_fastq::params::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
 use bijux_dna_domain_fastq::params::defaults::{correct_defaults, stats_defaults, umi_defaults};
+use bijux_dna_domain_fastq::params::detect_adapters::{
+    AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 
@@ -32,5 +36,15 @@ fn umi_params_roundtrip_and_schema_version() {
     let params = umi_defaults(true);
     let decoded: FastqUmiParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, UMI_SCHEMA_VERSION);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn detect_adapters_params_roundtrip_and_remain_inspection_only() {
+    let params = detect_adapters_defaults(true);
+    let decoded: DetectAdaptersEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, DETECT_ADAPTERS_SCHEMA_VERSION);
+    assert_eq!(decoded.inspection_mode, AdapterInspectionMode::EvidenceOnly);
+    assert!(decoded.report_only);
     assert!(decoded.missing_required_fields().is_empty());
 }
