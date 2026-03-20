@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 162
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -199,13 +200,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "outputs": [
           {
             "name": "multiqc_report",
-            "optional": true,
+            "optional": false,
             "path": "out/report_qc/multiqc/multiqc_report.html",
             "role": "report_html"
           },
           {
             "name": "multiqc_data",
-            "optional": true,
+            "optional": false,
             "path": "out/report_qc/multiqc/multiqc_data",
             "role": "index"
           }
