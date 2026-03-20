@@ -40,19 +40,31 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             suite.diversity.min_dataset_count
         )));
     }
-    let mut seen_stages = std::collections::BTreeSet::new();
+    let mut seen_stage_nodes = std::collections::BTreeSet::new();
+    let mut declared_stage_nodes = Vec::new();
     for stage in &suite.stages {
         if stage.stage.trim().is_empty() {
             return Err(BenchError::InvalidPolicy(
                 "suite stages must include non-empty stage ids".to_string(),
             ));
         }
-        if !seen_stages.insert(stage.stage.as_str()) {
+        let node_id = stage
+            .stage_instance_id
+            .as_deref()
+            .unwrap_or(stage.stage.as_str());
+        if node_id.trim().is_empty() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite must not repeat stage {}",
+                "suite stage {} must not include blank stage_instance_id",
                 stage.stage
             )));
         }
+        if !seen_stage_nodes.insert(node_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite must not repeat stage node {}",
+                node_id
+            )));
+        }
+        declared_stage_nodes.push(node_id.to_string());
         if stage.tools.is_empty() {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {} must include at least one tool",
@@ -131,6 +143,37 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                         stage.stage
                     )));
                 }
+            }
+        }
+        for upstream in &stage.upstream_stage_instance_ids {
+            if upstream.trim().is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not include blank upstream_stage_instance_ids",
+                    stage.stage
+                )));
+            }
+            if upstream == node_id {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not reference itself as an upstream stage",
+                    node_id
+                )));
+            }
+        }
+    }
+    let declared_stage_nodes = declared_stage_nodes
+        .into_iter()
+        .collect::<std::collections::BTreeSet<_>>();
+    for stage in &suite.stages {
+        let node_id = stage
+            .stage_instance_id
+            .as_deref()
+            .unwrap_or(stage.stage.as_str());
+        for upstream in &stage.upstream_stage_instance_ids {
+            if !declared_stage_nodes.contains(upstream) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} references unknown upstream stage node {}",
+                    node_id, upstream
+                )));
             }
         }
     }
@@ -242,9 +285,11 @@ mod tests {
     fn suite_validation_rejects_duplicate_stage_tools() {
         let suite = suite_with_stage(BenchmarkStageSpec {
             stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
             tools: vec!["fastp".to_string(), "fastp".to_string()],
             params: Vec::new(),
             param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("duplicate tools must fail");
         assert!(error.to_string().contains("must not repeat tool"));
@@ -254,9 +299,11 @@ mod tests {
     fn suite_validation_rejects_blank_stage_params() {
         let suite = suite_with_stage(BenchmarkStageSpec {
             stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: vec!["".to_string()],
             param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("blank params must fail");
         assert!(error.to_string().contains("blank params entries"));
@@ -266,6 +313,7 @@ mod tests {
     fn suite_validation_rejects_mixed_legacy_and_structured_stage_params() {
         let suite = suite_with_stage(BenchmarkStageSpec {
             stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: vec!["threads=4".to_string()],
             param_bindings: vec![BenchmarkParamBinding {
@@ -276,6 +324,7 @@ mod tests {
                     serde_json::json!(4),
                 )]),
             }],
+            upstream_stage_instance_ids: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("mixed params must fail");
         assert!(error.to_string().contains("either params or param_bindings"));
@@ -285,6 +334,7 @@ mod tests {
     fn suite_validation_accepts_structured_stage_param_bindings() {
         let suite = suite_with_stage(BenchmarkStageSpec {
             stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
@@ -295,8 +345,76 @@ mod tests {
                     serde_json::json!(4),
                 )]),
             }],
+            upstream_stage_instance_ids: Vec::new(),
         });
         validate_suite(&suite).expect("structured param bindings should validate");
+    }
+
+    #[test]
+    fn suite_validation_allows_repeated_stage_ids_with_distinct_stage_instance_ids() {
+        let suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    tools: vec!["fastp".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cutadapt".to_string()),
+                    tools: vec!["cutadapt".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: vec!["fastq.trim_reads.fastp".to_string()],
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        validate_suite(&suite).expect("distinct stage instance ids should validate");
+    }
+
+    #[test]
+    fn suite_validation_rejects_unknown_upstream_stage_nodes() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: vec!["missing.stage.node".to_string()],
+        });
+        let error = validate_suite(&suite).expect_err("unknown upstream stage must fail");
+        assert!(error.to_string().contains("unknown upstream stage node"));
     }
 }
 
