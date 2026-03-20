@@ -106,6 +106,7 @@ stage_tool_compatibility:
   - bowtie2_build
   - star
   fastq.infer_asvs:
+  - dada2
   fastq.merge_pairs:
   - pear
   - vsearch
@@ -163,6 +164,7 @@ stage_tool_compatibility:
   - seqtk
   - fqtools
 active_defaults:
+  fastq.cluster_otus: vsearch
   fastq.index_reference: bowtie2_build
   fastq.detect_adapters: fastqc
   fastq.trim_reads: fastp
@@ -182,8 +184,12 @@ active_defaults:
   fastq.trim_polyg_tails: fastp
   fastq.deplete_reference_contaminants: bowtie2
   fastq.trim_terminal_damage: cutadapt
+  fastq.normalize_abundance: seqkit
+  fastq.normalize_primers: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
+  fastq.remove_chimeras: vsearch
 active_default_rationale:
+  fastq.cluster_otus: Stable OTU cluster policy with reproducible identifiers.
   fastq.index_reference: Default FASTQ reference preparation must emit the mapper
     index consumed by governed host and reference-contaminant depletion.
   fastq.detect_adapters: Default adapter detector remains report-only and avoids mutating reads.
@@ -211,11 +217,27 @@ active_default_rationale:
     depletion against governed decoy references.
   fastq.trim_terminal_damage: Damage-aware pretrim default uses deterministic terminal mask/trim
     policy for aDNA damage-aware pretrim.
+  fastq.normalize_abundance: Abundance-table normalization stays within the admitted
+    amplicon table tooling set.
   fastq.normalize_primers: Deterministic primer trimming with explicit mismatch/orientation
     controls.
   fastq.profile_overrepresented_sequences: Default overrepresented-sequence detector uses
     FastQC module output.
+  fastq.remove_chimeras: Deterministic UCHIME-based chimera screening remains the
+    baseline before broader ensemble admission.
 stage_completeness_checklist:
+  fastq.cluster_otus:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.infer_asvs:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
   fastq.index_reference:
   - inputs_defined
   - outputs_defined
@@ -330,7 +352,25 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
+  fastq.normalize_abundance:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.normalize_primers:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
   fastq.profile_overrepresented_sequences:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.remove_chimeras:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -579,6 +619,12 @@ stage_default_settings:
       profile: adna_sane_default
       notes: format sanity preset
 stage_comparability_mapping:
+  fastq.cluster_otus:
+  - otu_count
+  - representative_count
+  fastq.infer_asvs:
+  - asv_count
+  - sample_count
   fastq.index_reference:
   - reference_index_build_metrics
   fastq.detect_adapters:
@@ -633,10 +679,23 @@ stage_comparability_mapping:
   fastq.trim_terminal_damage:
   - reads_in
   - reads_out
+  fastq.normalize_abundance:
+  - table_rows
+  - zero_fraction
+  fastq.normalize_primers:
+  - primer_trimmed_fraction
+  - orientation_forward_fraction
   fastq.profile_overrepresented_sequences:
   - reads_total
   - reads_removed_contaminant_kmer
+  fastq.remove_chimeras:
+  - chimera_fraction
+  - chimeras_removed
 stage_min_quality_gates:
+  fastq.cluster_otus:
+  - otu_count>0
+  fastq.infer_asvs:
+  - asv_count>0
   fastq.index_reference:
   - index_build_exit_code=0
   fastq.detect_adapters:
@@ -676,9 +735,19 @@ stage_min_quality_gates:
   - reads_removed_contaminant_kmer>=0.0
   fastq.trim_terminal_damage:
   - reads_out>0
+  fastq.normalize_abundance:
+  - table_rows>0
+  fastq.normalize_primers:
+  - primer_trimmed_fraction>=0.0
   fastq.profile_overrepresented_sequences:
   - reads_total>0
+  fastq.remove_chimeras:
+  - chimera_fraction>=0.0
 stage_failure_diagnosis_hints:
+  fastq.cluster_otus:
+  - inspect clustering identity thresholds and representative-sequence export paths
+  fastq.infer_asvs:
+  - verify DADA2 runtime availability, sample-wise denoising inputs, and representative-sequence export paths
   fastq.index_reference:
   - verify reference fasta path and index write permissions
   fastq.detect_adapters:
@@ -717,8 +786,14 @@ stage_failure_diagnosis_hints:
   - check contaminant bank/decoy reference selection and k-mer thresholds
   fastq.trim_terminal_damage:
   - review terminal trim/mask parameters and UDG classification inputs
+  fastq.normalize_abundance:
+  - verify feature-table schema and per-sample abundance normalization method
+  fastq.normalize_primers:
+  - confirm primer set selection, orientation policy, and mismatch allowances
   fastq.profile_overrepresented_sequences:
   - inspect overrepresented table and adapter/contaminant sequence banks
+  fastq.remove_chimeras:
+  - inspect chimera mode selection and representative-read compatibility assumptions
 pipeline_compositions:
   pre_hpc_best:
   - fastq.validate_reads
@@ -736,10 +811,18 @@ pipeline_compositions:
   - fastq.profile_overrepresented_sequences
   - fastq.screen_taxonomy
 stage_ordering_constraints:
+  fastq.cluster_otus: []
+  fastq.infer_asvs:
+  - fastq.remove_chimeras
   fastq.index_reference: []
   fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
+  fastq.normalize_abundance: []
+  fastq.normalize_primers:
+  - fastq.trim_terminal_damage
+  fastq.remove_chimeras:
+  - fastq.filter_reads
   fastq.trim_reads:
   - fastq.trim_polyg_tails
   fastq.filter_reads:
@@ -777,10 +860,18 @@ stage_ordering_constraints:
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
 stage_prerequisites:
+  fastq.cluster_otus: []
+  fastq.infer_asvs:
+  - fastq.remove_chimeras
   fastq.index_reference: []
   fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
+  fastq.normalize_abundance: []
+  fastq.normalize_primers:
+  - fastq.trim_terminal_damage
+  fastq.remove_chimeras:
+  - fastq.filter_reads
   fastq.trim_reads:
   - fastq.trim_polyg_tails
   fastq.filter_reads:
@@ -818,6 +909,14 @@ stage_prerequisites:
   fastq.profile_overrepresented_sequences:
   - fastq.report_qc
 stage_resource_hints:
+  fastq.cluster_otus:
+    memory_gb: 8.0
+    time_minutes: 30
+    threads: 4
+  fastq.infer_asvs:
+    memory_gb: 12.0
+    time_minutes: 60
+    threads: 4
   fastq.index_reference:
     memory_gb: 8.0
     time_minutes: 30
@@ -894,10 +993,22 @@ stage_resource_hints:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
+  fastq.normalize_abundance:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
+  fastq.normalize_primers:
+    memory_gb: 4.0
+    time_minutes: 20
+    threads: 4
   fastq.profile_overrepresented_sequences:
     memory_gb: 4.0
     time_minutes: 15
     threads: 2
+  fastq.remove_chimeras:
+    memory_gb: 8.0
+    time_minutes: 25
+    threads: 4
 stage_output_size_estimates_mb:
   fastq.cluster_otus:
     otu_table: 8.0
@@ -976,6 +1087,12 @@ stage_output_size_estimates_mb:
   fastq.validate_reads:
     validation_report: 5.0
 stage_sanity_metrics:
+  fastq.cluster_otus:
+  - otu_count
+  - representative_count
+  fastq.infer_asvs:
+  - asv_count
+  - sample_count
   fastq.index_reference:
   - index_build_exit_code
   fastq.detect_adapters:
@@ -1018,9 +1135,26 @@ stage_sanity_metrics:
   fastq.trim_terminal_damage:
   - reads_in
   - reads_out
+  fastq.normalize_abundance:
+  - table_rows
+  - zero_fraction
+  fastq.normalize_primers:
+  - primer_trimmed_fraction
+  - orientation_forward_fraction
   fastq.profile_overrepresented_sequences:
   - reads_total
+  fastq.remove_chimeras:
+  - chimera_fraction
+  - chimeras_removed
 stage_qc_thresholds:
+  fastq.cluster_otus:
+    otu_count:
+      warn: <=0
+      fail: <=0
+  fastq.infer_asvs:
+    asv_count:
+      warn: <=0
+      fail: <=0
   fastq.index_reference:
     index_build_exit_code:
       warn: '!=0'
@@ -1097,11 +1231,31 @@ stage_qc_thresholds:
     reads_out:
       warn: <100
       fail: <=0
+  fastq.normalize_abundance:
+    zero_fraction:
+      warn: '>0.98'
+      fail: '>0.999'
+  fastq.normalize_primers:
+    primer_trimmed_fraction:
+      warn: <0.05
+      fail: <0.01
   fastq.profile_overrepresented_sequences:
     reads_removed_contaminant_kmer:
       warn: '>0.2'
       fail: '>0.5'
+  fastq.remove_chimeras:
+    chimera_fraction:
+      warn: '>0.4'
+      fail: '>0.8'
 stage_contamination_thresholds:
+  fastq.cluster_otus:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.infer_asvs:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
   fastq.index_reference:
     contamination_rate:
       warn: '>=0.0'
@@ -1178,11 +1332,31 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: ">=0.05"
       fail: ">=0.2"
+  fastq.normalize_abundance:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.normalize_primers:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
   fastq.profile_overrepresented_sequences:
     contamination_rate:
       warn: '>=0.05'
       fail: '>=0.2'
+  fastq.remove_chimeras:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
 stage_authenticity_thresholds:
+  fastq.cluster_otus:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.infer_asvs:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
   fastq.index_reference:
     authenticity_score:
       warn: <=1.0
@@ -1259,11 +1433,31 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
+  fastq.normalize_abundance:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.normalize_primers:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
   fastq.profile_overrepresented_sequences:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
+  fastq.remove_chimeras:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
 stage_duplication_thresholds:
+  fastq.cluster_otus:
+    duplication_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.infer_asvs:
+    duplication_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
   fastq.index_reference:
     duplication_rate:
       warn: '>=0.0'
@@ -1340,11 +1534,27 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: ">=0.7"
       fail: ">=0.9"
+  fastq.normalize_abundance:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.normalize_primers:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
   fastq.profile_overrepresented_sequences:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
+  fastq.remove_chimeras:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
 stage_coverage_sufficiency:
+  fastq.cluster_otus:
+  - not_applicable
+  fastq.infer_asvs:
+  - not_applicable
   fastq.index_reference:
   - not_applicable
   fastq.detect_adapters:
@@ -1383,9 +1593,19 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.trim_terminal_damage:
   - not_applicable
+  fastq.normalize_abundance:
+  - not_applicable
+  fastq.normalize_primers:
+  - not_applicable
   fastq.profile_overrepresented_sequences:
+  - not_applicable
+  fastq.remove_chimeras:
   - not_applicable
 stage_sex_kinship_sufficiency:
+  fastq.cluster_otus:
+  - not_applicable
+  fastq.infer_asvs:
+  - not_applicable
   fastq.index_reference:
   - not_applicable
   fastq.detect_adapters:
@@ -1424,7 +1644,13 @@ stage_sex_kinship_sufficiency:
   - not_applicable
   fastq.trim_terminal_damage:
   - not_applicable
+  fastq.normalize_abundance:
+  - not_applicable
+  fastq.normalize_primers:
+  - not_applicable
   fastq.profile_overrepresented_sequences:
+  - not_applicable
+  fastq.remove_chimeras:
   - not_applicable
 benchmark_scenarios:
   trim_fairness:

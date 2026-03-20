@@ -54,7 +54,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - "dada2"
+  - dada2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "asv inference applies only to amplicon libraries with denoising-aware governance."
