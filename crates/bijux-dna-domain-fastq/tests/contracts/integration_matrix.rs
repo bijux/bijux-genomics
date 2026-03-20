@@ -78,3 +78,18 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
         bijux_dna_domain_fastq::ToolIntegrationLevel::GovernedContract
     );
 }
+
+#[test]
+fn reference_index_compatibility_is_queryable_from_domain_api() {
+    let bowtie2 = ToolId::from_static("bowtie2");
+    let backends = bijux_dna_domain_fastq::reference_index_backends_for_tool(&bowtie2);
+    assert_eq!(backends, vec![ToolId::from_static("bowtie2_build")]);
+    assert!(bijux_dna_domain_fastq::is_reference_index_backend_compatible(
+        &bowtie2,
+        &ToolId::from_static("bowtie2_build"),
+    ));
+    assert!(!bijux_dna_domain_fastq::is_reference_index_backend_compatible(
+        &bowtie2,
+        &ToolId::from_static("star"),
+    ));
+}

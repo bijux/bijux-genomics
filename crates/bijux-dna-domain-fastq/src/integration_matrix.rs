@@ -29,6 +29,8 @@ pub struct BenchmarkScenario {
 #[derive(Debug, Deserialize)]
 struct DomainIndexContract {
     stage_tool_integration: BTreeMap<String, BTreeMap<String, ToolIntegrationLevel>>,
+    #[serde(default)]
+    reference_index_compatibility: BTreeMap<String, Vec<String>>,
     benchmark_scenarios: BTreeMap<String, BenchmarkScenarioRecord>,
 }
 
@@ -97,4 +99,26 @@ pub fn benchmark_scenarios_for_stage(stage_id: &StageId) -> Vec<BenchmarkScenari
         .into_iter()
         .filter(|scenario| scenario.stage_id == *stage_id)
         .collect()
+}
+
+#[must_use]
+pub fn reference_index_backends_for_tool(tool_id: &ToolId) -> Vec<ToolId> {
+    domain_index_contract()
+        .reference_index_compatibility
+        .get(tool_id.as_str())
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .map(ToolId::new)
+        .collect()
+}
+
+#[must_use]
+pub fn is_reference_index_backend_compatible(
+    tool_id: &ToolId,
+    index_tool_id: &ToolId,
+) -> bool {
+    reference_index_backends_for_tool(tool_id)
+        .into_iter()
+        .any(|backend| backend == *index_tool_id)
 }
