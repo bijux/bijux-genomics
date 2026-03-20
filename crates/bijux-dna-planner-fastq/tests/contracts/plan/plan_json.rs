@@ -475,5 +475,22 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         )
         .is_err()
     );
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
+        &domain_tool("fastq.normalize_abundance", "seqkit"),
+        Path::new("otu_abundance.tsv"),
+        out_dir,
+    )?;
+    assert_eq!(plan.io.inputs[0].role.as_str(), "summary_tsv");
+    assert_eq!(plan.io.outputs[0].name.as_str(), "normalized_abundance_tsv");
+    assert_eq!(plan.effective_params["method"], "relative_abundance");
+    assert_eq!(
+        plan.effective_params["normalized_value_column"],
+        "normalized_abundance"
+    );
+    assert_eq!(
+        plan.effective_params["compositional_rule"],
+        "per_sample_sum_to_one"
+    );
     Ok(())
 }

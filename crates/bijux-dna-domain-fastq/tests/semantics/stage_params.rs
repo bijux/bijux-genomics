@@ -7,7 +7,8 @@ use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::edna::{
-    ChimeraDetectionEffectiveParams, OtuClusteringEffectiveParams, DEFAULT_OTU_IDENTITY_THRESHOLD,
+    AbundanceNormalizationEffectiveParams, ChimeraDetectionEffectiveParams,
+    OtuClusteringEffectiveParams, DEFAULT_OTU_IDENTITY_THRESHOLD,
 };
 use bijux_dna_domain_fastq::params::merge::{
     MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
@@ -17,11 +18,10 @@ use bijux_dna_domain_fastq::params::qc_post::{
 };
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy,
-    ReferenceMaskingPolicy, ReferenceScope,
-    RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine, ScreenEffectiveParams,
-    TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope, TaxonomyReportFormat,
-    HOST_DEPLETION_SCHEMA_VERSION, RRNA_DEPLETION_SCHEMA_VERSION,
-    SCREEN_TAXONOMY_SCHEMA_VERSION,
+    ReferenceMaskingPolicy, ReferenceScope, RrnaEffectiveParams, RrnaReportFormat,
+    RrnaScreeningEngine, ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
+    TaxonomyDatabaseScope, TaxonomyReportFormat, HOST_DEPLETION_SCHEMA_VERSION,
+    RRNA_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
@@ -115,11 +115,27 @@ fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
         output_table_kind: "otu_abundance_table".to_string(),
     };
     let decoded: OtuClusteringEffectiveParams = roundtrip(&params);
-    assert_eq!(
-        decoded.identity_threshold,
-        DEFAULT_OTU_IDENTITY_THRESHOLD,
-    );
+    assert_eq!(decoded.identity_threshold, DEFAULT_OTU_IDENTITY_THRESHOLD,);
     assert_eq!(decoded.output_table_kind, "otu_abundance_table");
+}
+
+#[test]
+fn abundance_normalization_params_roundtrip_with_output_semantics() {
+    let params = AbundanceNormalizationEffectiveParams {
+        method: "relative_abundance".to_string(),
+        expected_columns: vec![
+            "sample_id".to_string(),
+            "feature_id".to_string(),
+            "abundance".to_string(),
+        ],
+        normalized_value_column: "normalized_abundance".to_string(),
+        compositional_rule: "per_sample_sum_to_one".to_string(),
+    };
+    let decoded: AbundanceNormalizationEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.method, "relative_abundance");
+    assert_eq!(decoded.expected_columns.len(), 3);
+    assert_eq!(decoded.normalized_value_column, "normalized_abundance");
+    assert_eq!(decoded.compositional_rule, "per_sample_sum_to_one");
 }
 
 #[test]
@@ -194,8 +210,14 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
         decoded.database_build_id.as_deref(),
         Some("kraken2-standard-2025-01"),
     );
-    assert_eq!(decoded.database_digest.as_deref(), Some("sha256:taxonomy-db"));
-    assert_eq!(decoded.database_namespace.as_deref(), Some("read_screening"));
+    assert_eq!(
+        decoded.database_digest.as_deref(),
+        Some("sha256:taxonomy-db")
+    );
+    assert_eq!(
+        decoded.database_namespace.as_deref(),
+        Some("read_screening")
+    );
     assert_eq!(decoded.database_scope, TaxonomyDatabaseScope::ReadScreening);
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);

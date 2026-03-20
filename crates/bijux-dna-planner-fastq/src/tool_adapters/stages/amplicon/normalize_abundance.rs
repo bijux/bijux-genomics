@@ -4,6 +4,7 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_ABUNDANCE;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -45,11 +46,16 @@ pub fn plan(
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({}),
-        effective_params: serde_json::json!({
-            "method": "relative_abundance",
-            "expected_columns": ["sample_id", "feature_id", "abundance"],
-            "compositional_rule": "per_sample_sum_to_one"
-        }),
+        effective_params: serde_json::to_value(AbundanceNormalizationEffectiveParams {
+            method: "relative_abundance".to_string(),
+            expected_columns: vec![
+                "sample_id".to_string(),
+                "feature_id".to_string(),
+                "abundance".to_string(),
+            ],
+            normalized_value_column: "normalized_abundance".to_string(),
+            compositional_rule: "per_sample_sum_to_one".to_string(),
+        })?,
         aux_images: std::collections::BTreeMap::new(),
         reason: PlanDecisionReason::new(
             PlanReasonKind::Default,
