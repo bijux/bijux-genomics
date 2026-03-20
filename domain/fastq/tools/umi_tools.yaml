@@ -44,9 +44,9 @@ execution_contract:
     - "reads_r1"
     - "reads_r2"
   expected_outputs:
-    - "umi_tools.r1.fastq.gz"
-    - "umi_tools.r2.fastq.gz"
-    - "umi_report.json"
+    - "umi_reads_r1"
+    - "umi_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
