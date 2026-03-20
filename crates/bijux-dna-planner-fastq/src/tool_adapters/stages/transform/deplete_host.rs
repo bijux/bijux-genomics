@@ -44,13 +44,14 @@ pub fn plan_host_depletion(
     reference_index: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_host_depletion_with_options(
+    plan_host_depletion_with_index_backend(
         tool,
         r1,
         r2,
         reference_index,
         out_dir,
         &DepleteHostPlanOptions::default(),
+        "bowtie2_build",
     )
 }
 
@@ -65,6 +66,30 @@ pub fn plan_host_depletion_with_options(
     reference_index: &Path,
     out_dir: &Path,
     options: &DepleteHostPlanOptions,
+) -> Result<StagePlanV1> {
+    plan_host_depletion_with_index_backend(
+        tool,
+        r1,
+        r2,
+        reference_index,
+        out_dir,
+        options,
+        "bowtie2_build",
+    )
+}
+
+/// Build a host depletion plan with explicit upstream reference-index provenance.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_host_depletion_with_index_backend(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    out_dir: &Path,
+    options: &DepleteHostPlanOptions,
+    reference_index_backend: &str,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_host_depletion_tool_list(std::slice::from_ref(&tool_id))?;
@@ -86,7 +111,7 @@ pub fn plan_host_depletion_with_options(
         reference_scope: ReferenceScope::Host,
         reference_catalog_id: "host_reference".to_string(),
         reference_index_artifact_id: "reference_index".to_string(),
-        reference_index_backend: "bowtie2_build".to_string(),
+        reference_index_backend: reference_index_backend.to_string(),
         reference_build_id: None,
         reference_digest: None,
         masking_policy: ReferenceMaskingPolicy::Unmasked,
@@ -113,6 +138,7 @@ pub fn plan_host_depletion_with_options(
         "tool": tool.tool_id.0,
         "input_r1": r1,
         "reference_index": reference_index,
+        "reference_index_backend": reference_index_backend,
         "host_identity_threshold": options.host_identity_threshold,
         "retain_unmapped_only": options.retain_unmapped_only,
         "report_json": report,
@@ -232,9 +258,15 @@ fn host_depletion_command(
                     "-2".to_string(),
                     r2.display().to_string(),
                     "--un-conc-gz".to_string(),
-                    out_dir.join("host_depleted_R%.fastq.gz").display().to_string(),
+                    out_dir
+                        .join("host_depleted_R%.fastq.gz")
+                        .display()
+                        .to_string(),
                     "--al-conc-gz".to_string(),
-                    out_dir.join("removed_host_R%.fastq.gz").display().to_string(),
+                    out_dir
+                        .join("removed_host_R%.fastq.gz")
+                        .display()
+                        .to_string(),
                 ]);
             } else {
                 command.extend([
@@ -246,14 +278,54 @@ fn host_depletion_command(
                     out_dir.join("removed_host.fastq.gz").display().to_string(),
                 ]);
             }
-            command.extend([
-                "--met-file".to_string(),
-                report_json.display().to_string(),
-            ]);
+            command.extend(["--met-file".to_string(), report_json.display().to_string()]);
             Ok(command)
         }
         _ => Err(anyhow!(
             "unsupported host depletion tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};
+
+    fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/dummy:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["echo".to_string(), tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn host_depletion_tracks_explicit_reference_backend() -> Result<()> {
+        let plan = plan_host_depletion_with_index_backend(
+            &tool("bowtie2"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("reference.index"),
+            Path::new("out"),
+            &DepleteHostPlanOptions::default(),
+            "star",
+        )?;
+
+        assert_eq!(plan.effective_params["reference_index_backend"], "star");
+        assert_eq!(plan.params["reference_index_backend"], "star");
+        Ok(())
     }
 }

@@ -255,13 +255,14 @@ where
                 )?;
                 let params = deplete_host_params(binding);
                 let plan =
-                    crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_options(
+                    crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_index_backend(
                         tool,
                         &current_r1,
                         current_r2.as_deref(),
                         &reference_index.path,
                         &out_dir,
                         &params,
+                        &reference_index.tool_id,
                     )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {
