@@ -55,6 +55,30 @@ fn pre_hpc_pipeline_depletes_before_merging_pairs() -> Result<()> {
 }
 
 #[test]
+fn pre_hpc_pipeline_matches_canonical_shotgun_order() -> Result<()> {
+    let index = parse_yaml(&workspace_root()?.join("domain/fastq/index.yaml"))?;
+    let pipeline = index
+        .get("pipeline_compositions")
+        .and_then(Value::as_mapping)
+        .and_then(|compositions| compositions.get(Value::String("pre_hpc_best".to_string())))
+        .and_then(Value::as_sequence)
+        .context("pipeline_compositions.pre_hpc_best")?
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<Vec<_>>();
+    let canonical = bijux_dna_domain_fastq::canonical_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        pipeline, canonical,
+        "pre_hpc_best must stay aligned with the canonical FASTQ shotgun order"
+    );
+    Ok(())
+}
+
+#[test]
 fn canonical_shotgun_order_covers_reference_and_reporting_stages() {
     let stages = bijux_dna_domain_fastq::canonical_stage_order()
         .into_iter()
