@@ -109,3 +109,25 @@ fn extract_umis_exposes_stage_family_comparison_contract() {
         "umi_extraction_tool_normalization_json"
     );
 }
+
+#[test]
+fn report_qc_exposes_stage_family_comparison_contract() {
+    let contract =
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
+            "fastq.report_qc",
+        ))
+        .expect("report_qc comparison contract must exist");
+
+    assert_eq!(
+        contract.cohort_artifact_id,
+        "qc_aggregation_tool_benchmark_cohort_json"
+    );
+    assert_eq!(
+        contract.comparison_artifact_id,
+        "qc_aggregation_tool_comparison_json"
+    );
+    assert_eq!(
+        contract.normalization_artifact_id,
+        "qc_aggregation_tool_normalization_json"
+    );
+}
