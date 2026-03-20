@@ -123,6 +123,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "fastq.infer_asvs",
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
         stage_id: "fastq.profile_overrepresented_sequences",
         executor: FASTQ_QC_EXECUTOR,
         domain: StageDomain::Fastq,
@@ -427,6 +433,10 @@ mod tests {
         assert_eq!(
             entry("fastq.report_qc").map(|value| value.executor),
             Some(FASTQ_QC_EXECUTOR)
+        );
+        assert_eq!(
+            entry("fastq.infer_asvs").map(|value| value.readiness),
+            Some(ReadinessBadge::Experimental)
         );
     }
 }
