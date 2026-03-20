@@ -72,6 +72,57 @@ fn benchmark_query_context_stays_empty_for_unknown_stages() {
 }
 
 #[test]
+fn preprocess_benchmark_query_context_tracks_lineage_hash() {
+    let args = crate::selection::args::BenchFastqPreprocessArgs {
+        sample_id: "sample".to_string(),
+        profile: None,
+        r1: "reads_R1.fastq.gz".into(),
+        r2: None,
+        reference_fasta: None,
+        out: "out".into(),
+        strict: false,
+        auto: true,
+        objective: bijux_dna_core::contract::Objective::Balanced,
+        bench_corpus: None,
+        allow_partial: false,
+        dry_run: false,
+        replicates: 1,
+        jobs: 1,
+        ci_bootstrap: None,
+        adapter_bank_preset: None,
+        adapter_bank: None,
+        adapter_bank_file: None,
+        enable_adapters: Vec::new(),
+        disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
+        enable_contaminant_removal: false,
+        no_qc_post: false,
+        force_merge: false,
+        enable_correct: false,
+        allow_planned: false,
+        mode: crate::selection::args::FastqPlannerMode::Shotgun,
+    };
+    let prior_tools = vec![ToolSelection {
+        tool_id: "fastqvalidator".to_string(),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+    }];
+
+    let context = bench_query_context_for_preprocess_stage(
+        &StageId::from_static("fastq.trim_reads"),
+        &args,
+        &["fastq.validate_reads".to_string()],
+        &prior_tools,
+    )
+    .expect("preprocess query context should serialize prior lineage");
+
+    assert_eq!(
+        context.lineage_hash.as_deref(),
+        Some("fastq.validate_reads=fastqvalidator")
+    );
+}
+
+#[test]
 fn stage_tool_capability_no_longer_treats_planned_bindings_as_plannable() {
     let capability = crate::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.infer_asvs"),

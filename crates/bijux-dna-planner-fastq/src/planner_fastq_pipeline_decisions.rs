@@ -961,9 +961,14 @@ pub fn select_preprocess_tools(
             anyhow!("bench results repository required for --auto tool selection")
         })?;
         let mut selections = Vec::new();
-        for stage in &pipeline.stages {
+        for (idx, stage) in pipeline.stages.iter().enumerate() {
             let stage_id = bijux_dna_core::ids::StageId::new(stage.clone());
-            let query_context = bench_query_context_for_stage(&stage_id)?;
+            let query_context = bench_query_context_for_preprocess_stage(
+                &stage_id,
+                args,
+                &pipeline.stages[..idx],
+                &selected_tools[..idx],
+            )?;
             let tool_ids: Vec<String> = registry
                 .tools_for_stage(&stage_id)
                 .iter()
@@ -980,18 +985,16 @@ pub fn select_preprocess_tools(
                 &objective,
                 args.allow_partial,
             );
-            selections.push(selection);
-        }
-        for (idx, selection) in selections.into_iter().enumerate() {
-            if let Some(selected) = selection.selected {
+            if let Some(selected) = selection.selected.as_ref() {
                 selected_tools[idx] = ToolSelection {
-                    tool_id: selected,
+                    tool_id: selected.clone(),
                     reason: PlanDecisionReason::new(
                         PlanReasonKind::InputAssessed,
                         "auto-selected from benchmark corpus",
                     ),
                 };
             }
+            selections.push(selection);
         }
     }
 
@@ -1011,6 +1014,82 @@ fn bench_query_context_for_stage(
         })?);
     }
     Ok(context)
+}
+
+fn bench_query_context_for_preprocess_stage(
+    stage_id: &bijux_dna_core::ids::StageId,
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
+    prior_stages: &[String],
+    prior_tools: &[ToolSelection],
+) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    let mut context = bench_query_context_for_stage(stage_id)?;
+    if let Some(reference_fasta) = args.reference_fasta.as_ref() {
+        context = context.with_reference_hash(
+            bijux_dna_infra::hash_file_sha256(reference_fasta).map_err(|err| {
+                anyhow!(
+                    "hash reference FASTA for benchmark query context {}: {err}",
+                    reference_fasta.display()
+                )
+            })?,
+        );
+    }
+    for (bank_id, bank_hash) in bank_hashes_for_preprocess_args(args)? {
+        context = context.with_bank_hash(bank_id, bank_hash);
+    }
+    let lineage_hash = prior_stages
+        .iter()
+        .zip(prior_tools.iter())
+        .map(|(stage_id, tool)| format!("{stage_id}={}", tool.tool_id))
+        .collect::<Vec<_>>()
+        .join("|");
+    if !lineage_hash.is_empty() {
+        context = context.with_lineage_hash(lineage_hash);
+    }
+    Ok(context)
+}
+
+fn bank_hashes_for_preprocess_args(
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
+) -> Result<Vec<(String, String)>> {
+    let mut hashes = Vec::new();
+    if args.adapter_bank_preset.is_some()
+        || args.adapter_bank.is_some()
+        || args.adapter_bank_file.is_some()
+        || !args.enable_adapters.is_empty()
+        || !args.disable_adapters.is_empty()
+    {
+        if let Some(context) = bijux_dna_domain_fastq::banks::adapter_bank_context(
+            args.adapter_bank_preset.as_deref(),
+            args.adapter_bank.as_deref(),
+            args.adapter_bank_file.as_deref(),
+            &args.enable_adapters,
+            &args.disable_adapters,
+        )? {
+            if let Some(bank_hash) = context.get("bank_hash").and_then(serde_json::Value::as_str) {
+                hashes.push(("adapter_bank".to_string(), bank_hash.to_string()));
+            }
+        }
+    }
+    if args.polyx_preset.is_some() {
+        if let Some(context) =
+            bijux_dna_domain_fastq::banks::polyx_bank_context(args.polyx_preset.as_deref())?
+        {
+            if let Some(bank_hash) = context.get("bank_hash").and_then(serde_json::Value::as_str) {
+                hashes.push(("polyx_bank".to_string(), bank_hash.to_string()));
+            }
+        }
+    }
+    if args.contaminant_preset.is_some() {
+        if let Some(context) = bijux_dna_domain_fastq::banks::contaminant_bank_context(
+            args.contaminant_preset.as_deref(),
+        )? {
+            if let Some(bank_hash) = context.get("bank_hash").and_then(serde_json::Value::as_str) {
+                hashes.push(("contaminant_bank".to_string(), bank_hash.to_string()));
+            }
+        }
+    }
+    hashes.sort();
+    Ok(hashes)
 }
 
 include!("tool_selection_facade.rs");

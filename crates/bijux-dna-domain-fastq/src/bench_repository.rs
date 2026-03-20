@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +15,9 @@ pub struct BenchQueryContext {
     pub stage_contract_hash: Option<String>,
     pub reference_hash: Option<String>,
     pub database_hash: Option<String>,
+    #[serde(default)]
+    pub bank_hashes: BTreeMap<String, String>,
+    pub lineage_hash: Option<String>,
 }
 
 impl BenchQueryContext {
@@ -52,12 +57,30 @@ impl BenchQueryContext {
     }
 
     #[must_use]
+    pub fn with_bank_hash(
+        mut self,
+        bank_id: impl Into<String>,
+        bank_hash: impl Into<String>,
+    ) -> Self {
+        self.bank_hashes.insert(bank_id.into(), bank_hash.into());
+        self
+    }
+
+    #[must_use]
+    pub fn with_lineage_hash(mut self, lineage_hash: impl Into<String>) -> Self {
+        self.lineage_hash = Some(lineage_hash.into());
+        self
+    }
+
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.params_hash.is_none()
             && self.image_digest.is_none()
             && self.stage_contract_hash.is_none()
             && self.reference_hash.is_none()
             && self.database_hash.is_none()
+            && self.bank_hashes.is_empty()
+            && self.lineage_hash.is_none()
     }
 }
 
