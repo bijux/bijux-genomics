@@ -74,3 +74,35 @@ fn plan_trim_rejects_unknown_tool() {
         Err(err) => assert!(err.to_string().contains("unsupported trim tool")),
     }
 }
+
+#[test]
+fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
+    let config =
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
+            bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
+                tool: "fastp".to_string(),
+                r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+                r2: Some(std::path::PathBuf::from("reads_R2.fastq.gz")),
+                out_dir: std::path::PathBuf::from("out"),
+                adapter_bank: Some(serde_json::json!({"preset": "illumina"})),
+                polyx_bank: Some(serde_json::json!({"enabled": true})),
+                contaminant_bank: Some(serde_json::json!({"catalog": "decoys"})),
+            },
+        );
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_from_config(
+        &dummy_tool("fastp"),
+        &config,
+    )?;
+
+    assert_eq!(plan.io.inputs.len(), 2);
+    assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads");
+    assert_eq!(plan.params["adapter_bank"]["preset"], "illumina");
+    assert_eq!(plan.params["polyx_bank"]["enabled"], true);
+    assert_eq!(plan.params["contaminant_bank"]["catalog"], "decoys");
+    assert_eq!(plan.effective_params["paired_mode"], "paired_end");
+    assert_eq!(plan.effective_params["adapter_policy"], "bank");
+    assert_eq!(plan.effective_params["polyx_policy"], "bank");
+    assert_eq!(plan.effective_params["contaminant_policy"], "bank");
+    Ok(())
+}

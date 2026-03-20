@@ -15,14 +15,22 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub struct TrimUserConfig {
     pub tool: String,
     pub r1: std::path::PathBuf,
+    pub r2: Option<std::path::PathBuf>,
     pub out_dir: std::path::PathBuf,
+    pub adapter_bank: Option<serde_json::Value>,
+    pub polyx_bank: Option<serde_json::Value>,
+    pub contaminant_bank: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone)]
 pub struct TrimEffectiveConfig {
     pub tool: String,
     pub r1: std::path::PathBuf,
+    pub r2: Option<std::path::PathBuf>,
     pub out_dir: std::path::PathBuf,
+    pub adapter_bank: Option<serde_json::Value>,
+    pub polyx_bank: Option<serde_json::Value>,
+    pub contaminant_bank: Option<serde_json::Value>,
 }
 
 pub fn trim_output_name(tool: &str) -> Option<&'static str> {
@@ -49,7 +57,11 @@ pub fn resolve_config(user: TrimUserConfig) -> TrimEffectiveConfig {
     TrimEffectiveConfig {
         tool: user.tool,
         r1: user.r1,
+        r2: user.r2,
         out_dir: user.out_dir,
+        adapter_bank: user.adapter_bank,
+        polyx_bank: user.polyx_bank,
+        contaminant_bank: user.contaminant_bank,
     }
 }
 
@@ -188,5 +200,13 @@ pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &TrimEffectiveConfig,
 ) -> Result<StagePlanV1> {
-    plan(tool, &config.r1, None, &config.out_dir, None, None, None)
+    plan(
+        tool,
+        &config.r1,
+        config.r2.as_deref(),
+        &config.out_dir,
+        config.adapter_bank.as_ref(),
+        config.polyx_bank.as_ref(),
+        config.contaminant_bank.as_ref(),
+    )
 }
