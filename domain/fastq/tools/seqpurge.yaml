@@ -11,13 +11,19 @@ container:
 command_template:
   - "seqpurge"
   - "-in1"
-  - "{{reads}}"
+  - "{{reads_r1}}"
   - "-out1"
-  - "{{trimmed_reads}}"
+  - "{{trimmed_reads_r1}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "seqpurge_v1"
 constraints:
   runtime: "local"
@@ -28,7 +34,9 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "seqpurge.fastq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -41,11 +49,15 @@ license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.trim_reads"]
 expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.trim_reads.v1"
+metrics_schema: "bijux.fastq.trim_reads.v1"
 version_cmd: "seqpurge --version"
 help_cmd: "seqpurge --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "adapterremoval"
+    - "cutadapt"
+    - "fastp"
+    - "trimmomatic"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed trimming backends for planned paired-end experiments when the same trim stage contract and report artifacts are used."
