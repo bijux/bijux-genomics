@@ -14,7 +14,8 @@ use bijux_dna_domain_fastq::params::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::screen::{
-    HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
+    HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy,
+    ReferenceMaskingPolicy, ReferenceScope,
     RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine, ScreenEffectiveParams,
     TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope, TaxonomyReportFormat,
     HOST_DEPLETION_SCHEMA_VERSION, RRNA_DEPLETION_SCHEMA_VERSION,
@@ -112,7 +113,11 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
         paired_mode: PairedMode::PairedEnd,
         threads: 8,
         reference_scope: ReferenceScope::Host,
+        reference_catalog_id: "host_reference".to_string(),
         reference_index_artifact_id: "reference_index".to_string(),
+        reference_build_id: Some("grch38_no_alt".to_string()),
+        masking_policy: ReferenceMaskingPolicy::HardMasked,
+        decoy_policy: ReferenceDecoyPolicy::Included,
         retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
         report_format: MappingReportFormat::Bowtie2MetricsFile,
@@ -121,7 +126,11 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
     let decoded: HostDepletionEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, HOST_DEPLETION_SCHEMA_VERSION);
     assert_eq!(decoded.reference_scope, ReferenceScope::Host);
+    assert_eq!(decoded.reference_catalog_id, "host_reference");
     assert_eq!(decoded.reference_index_artifact_id, "reference_index");
+    assert_eq!(decoded.reference_build_id.as_deref(), Some("grch38_no_alt"));
+    assert_eq!(decoded.masking_policy, ReferenceMaskingPolicy::HardMasked);
+    assert_eq!(decoded.decoy_policy, ReferenceDecoyPolicy::Included);
     assert_eq!(
         decoded.retained_read_policy,
         ReadRetentionPolicy::KeepNonHostReads,

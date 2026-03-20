@@ -27,6 +27,20 @@ pub enum MappingReportFormat {
     Bowtie2MetricsFile,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ReferenceMaskingPolicy {
+    Unmasked,
+    HardMasked,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ReferenceDecoyPolicy {
+    None,
+    Included,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ScreenEffectiveParams {
@@ -125,7 +139,12 @@ pub struct HostDepletionEffectiveParams {
     pub paired_mode: PairedMode,
     pub threads: u32,
     pub reference_scope: ReferenceScope,
+    pub reference_catalog_id: String,
     pub reference_index_artifact_id: String,
+    #[serde(default)]
+    pub reference_build_id: Option<String>,
+    pub masking_policy: ReferenceMaskingPolicy,
+    pub decoy_policy: ReferenceDecoyPolicy,
     pub retained_read_policy: ReadRetentionPolicy,
     pub emit_removed_reads: bool,
     pub report_format: MappingReportFormat,
@@ -148,6 +167,9 @@ impl HostDepletionEffectiveParams {
         if self.reference_index_artifact_id.trim().is_empty() {
             missing.push("reference_index_artifact_id");
         }
+        if self.reference_catalog_id.trim().is_empty() {
+            missing.push("reference_catalog_id");
+        }
         missing
     }
 
@@ -158,7 +180,11 @@ impl HostDepletionEffectiveParams {
             "paired_mode": self.paired_mode,
             "threads": self.threads,
             "reference_scope": self.reference_scope,
+            "reference_catalog_id": self.reference_catalog_id,
             "reference_index_artifact_id": self.reference_index_artifact_id,
+            "reference_build_id": self.reference_build_id,
+            "masking_policy": self.masking_policy,
+            "decoy_policy": self.decoy_policy,
             "retained_read_policy": self.retained_read_policy,
             "emit_removed_reads": self.emit_removed_reads,
             "report_format": self.report_format,

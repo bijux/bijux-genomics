@@ -6,7 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
-        HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
+        HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy,
+        ReferenceDecoyPolicy, ReferenceMaskingPolicy, ReferenceScope,
         HOST_DEPLETION_SCHEMA_VERSION,
     },
     PairedMode,
@@ -54,7 +55,11 @@ pub fn plan_host_depletion(
         paired_mode,
         threads: tool.resources.threads,
         reference_scope: ReferenceScope::Host,
+        reference_catalog_id: "host_reference".to_string(),
         reference_index_artifact_id: "reference_index".to_string(),
+        reference_build_id: None,
+        masking_policy: ReferenceMaskingPolicy::Unmasked,
+        decoy_policy: ReferenceDecoyPolicy::None,
         retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
         report_format: MappingReportFormat::Bowtie2MetricsFile,

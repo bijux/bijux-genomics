@@ -101,8 +101,12 @@
     "tool": "bowtie2"
   },
   "effective_params": {
+    "decoy_policy": "none",
     "emit_removed_reads": true,
+    "masking_policy": "unmasked",
     "paired_mode": "paired_end",
+    "reference_build_id": null,
+    "reference_catalog_id": "host_reference",
     "reference_index_artifact_id": "reference_index",
     "reference_scope": "host",
     "report_format": "bowtie2_metrics_file",
