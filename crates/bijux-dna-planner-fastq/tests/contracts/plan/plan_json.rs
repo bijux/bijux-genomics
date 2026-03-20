@@ -110,6 +110,16 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.profile_overrepresented_sequences", &plan)?;
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
+        &domain_tool("fastq.filter_low_complexity", "bbduk"),
+        r1,
+        Some(r2),
+        out_dir,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions::default(),
+    )?;
+    assert_command_is_concrete(&plan);
+    assert_snapshot("stage__fastq__fastq.filter_low_complexity", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &domain_tool("fastq.trim_reads", "fastp"),
         r1,

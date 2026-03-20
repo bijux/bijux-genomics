@@ -10,7 +10,7 @@ citation: "pending:tool-publication"
 stage_ids: ["fastq.filter_low_complexity"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["filtered_fastq", "filter_report_json"]
+expected_artifacts: ["filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "dustmasker -version"
