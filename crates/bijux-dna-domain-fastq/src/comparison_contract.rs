@@ -22,6 +22,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "trim_tool_normalization_json",
     ),
     (
+        "fastq.trim_polyg_tails",
+        "polyg_trim_tool_benchmark_cohort_json",
+        "polyg_trim_tool_comparison_json",
+        "polyg_trim_tool_normalization_json",
+    ),
+    (
         "fastq.deplete_rrna",
         "rrna_depletion_tool_benchmark_cohort_json",
         "rrna_depletion_tool_comparison_json",
