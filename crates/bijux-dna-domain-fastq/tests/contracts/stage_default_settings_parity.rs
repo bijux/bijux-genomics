@@ -3,6 +3,13 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
+fn declared_only_stage_ids() -> BTreeSet<String> {
+    bijux_dna_domain_fastq::execution_declared_only_stage_ids()
+        .into_iter()
+        .map(|stage_id| stage_id.as_str().to_string())
+        .collect()
+}
+
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -141,13 +148,29 @@ fn stage_default_settings_cover_current_supported_tools() -> Result<()> {
 #[test]
 fn stage_default_settings_only_reference_current_compatible_tools() -> Result<()> {
     let stage_tools = indexed_stage_tool_compatibility()?;
+    let declared_only = declared_only_stage_ids();
     for (stage_id, configured_tools) in indexed_stage_default_settings()? {
+        if declared_only.contains(&stage_id) {
+            continue;
+        }
         let compatible = stage_tools
             .get(&stage_id)
             .with_context(|| format!("missing stage_tool_compatibility entry for {stage_id}"))?;
         assert_eq!(
             compatible, &configured_tools,
             "domain/fastq/index.yaml stage_default_settings drifted from current compatible_tools for {stage_id}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn declared_only_stages_do_not_receive_runtime_default_settings() -> Result<()> {
+    let declared_only = declared_only_stage_ids();
+    for stage_id in indexed_stage_default_settings()?.keys() {
+        assert!(
+            !declared_only.contains(stage_id),
+            "declared-only stage {stage_id} must not receive generated runtime default settings"
         );
     }
     Ok(())

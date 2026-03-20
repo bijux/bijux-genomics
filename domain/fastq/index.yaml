@@ -439,10 +439,6 @@ stage_default_settings:
     bowtie2_build:
       profile: adna_sane_default
       notes: Bowtie2 host-screen index preset
-  fastq.infer_asvs:
-    dada2:
-      profile: adna_sane_default
-      notes: amplicon denoising preset for ASV inference
   fastq.merge_pairs:
     pear:
       profile: adna_sane_default
