@@ -14,7 +14,7 @@ pub fn contract_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
-    closed_execution_stage_ids()
+    observer_stage_ids()
 }
 
 #[must_use]
