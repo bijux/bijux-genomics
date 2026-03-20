@@ -14,6 +14,7 @@ pub mod bench_repository;
 mod domain_adapter;
 pub mod execution_support;
 pub mod id_catalog;
+mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
 pub mod params;
@@ -51,6 +52,10 @@ pub use execution_support::{
 };
 pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
+};
+pub use integration_matrix::{
+    benchmark_scenarios, benchmark_scenarios_for_stage, stage_tool_binding, stage_tool_bindings,
+    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,
