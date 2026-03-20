@@ -108,7 +108,10 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
             out_dir,
         )?;
     assert_command_is_concrete(&plan);
-    assert_snapshot("stage__fastq__fastq.profile_overrepresented_sequences", &plan)?;
+    assert_snapshot(
+        "stage__fastq__fastq.profile_overrepresented_sequences",
+        &plan,
+    )?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
         &domain_tool("fastq.filter_low_complexity", "bbduk"),
@@ -132,12 +135,13 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.trim_reads", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
-        &domain_tool("fastq.trim_polyg_tails", "fastp"),
-        r1,
-        Some(r2),
-        out_dir,
-    )?;
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+            &domain_tool("fastq.trim_polyg_tails", "fastp"),
+            r1,
+            Some(r2),
+            out_dir,
+        )?;
     assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.trim_polyg_tails", &plan)?;
 
@@ -178,7 +182,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.index_reference", &plan)?;
     assert_eq!(plan.command.template[0], "bowtie2-build");
-    assert!(plan.command.template.iter().any(|part| part == "out/reference_index/bowtie2/reference"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "out/reference_index/bowtie2/reference"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
         &domain_tool("fastq.validate_reads", "fastqvalidator"),
@@ -219,14 +227,21 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.deplete_host", &plan)?;
     assert_eq!(plan.io.inputs[1].name.as_str(), "reference_index");
     assert_eq!(plan.command.template[0], "bowtie2");
-    assert!(plan.command.template.iter().any(|part| part == "host_reference_index"));
-    assert!(
-        plan.command
-            .template
-            .iter()
-            .any(|part| part == &plan.resources.threads.to_string())
-    );
-    assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "host_reference_index"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == &plan.resources.threads.to_string()));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
         &domain_tool("fastq.deplete_reference_contaminants", "bowtie2"),
@@ -235,14 +250,19 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Path::new("contaminant_reference_index"),
         out_dir,
     )?;
-    assert_snapshot(
-        "stage__fastq__fastq.deplete_reference_contaminants",
-        &plan,
-    )?;
+    assert_snapshot("stage__fastq__fastq.deplete_reference_contaminants", &plan)?;
     assert_eq!(plan.io.inputs[1].name.as_str(), "reference_index");
     assert_eq!(plan.command.template[0], "bowtie2");
-    assert!(plan.command.template.iter().any(|part| part == "contaminant_reference_index"));
-    assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "contaminant_reference_index"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
         &domain_tool("fastq.extract_umis", "umi_tools"),
@@ -290,7 +310,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         )?;
     assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
         &domain_tool("fastq.report_qc", "multiqc"),
         r1,
         Some(r2),
@@ -322,9 +342,17 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
     assert_eq!(plan.io.outputs[1].name.as_str(), "normalized_reads_r2");
     assert_eq!(plan.command.template[0], "cutadapt");
-    assert!(plan.command.template.iter().any(|part| part == "--info-file"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--info-file"));
     assert!(plan.command.template.iter().any(|part| part == "--json"));
-    assert!(plan.command.template.iter().any(|part| part == "out/R2.primer_normalized.fastq.gz"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "out/R2.primer_normalized.fastq.gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
         &domain_tool("fastq.remove_chimeras", "vsearch"),
@@ -386,7 +414,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
     assert_eq!(plan.command.template[0], "vsearch");
     assert_eq!(plan.command.template[1], "--cluster_fast");
-    assert!(plan.command.template.iter().any(|part| part == "out/otu_abundance.tsv"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "out/otu_abundance.tsv"));
     assert_eq!(
         plan.io.outputs[1].role.as_str(),
         "reference",
