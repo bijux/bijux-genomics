@@ -87,6 +87,7 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "fastq.trim_terminal_damage",
         "fastq.normalize_primers",
         "fastq.remove_chimeras",
+        "fastq.cluster_otus",
         "fastq.normalize_abundance",
     ] {
         assert!(
@@ -94,4 +95,8 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
             "amplicon mode missing stage {required}"
         );
     }
+    assert!(
+        !spec.stages.iter().any(|stage| stage == "fastq.infer_asvs"),
+        "default amplicon mode must not schedule planned ASV inference by default"
+    );
 }

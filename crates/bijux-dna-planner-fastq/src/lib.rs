@@ -94,7 +94,7 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
             STAGE_TRIM_READS.as_str().to_string(),
             STAGE_FILTER_READS.as_str().to_string(),
             STAGE_REMOVE_CHIMERAS.as_str().to_string(),
-            STAGE_INFER_ASVS.as_str().to_string(),
+            STAGE_CLUSTER_OTUS.as_str().to_string(),
             STAGE_NORMALIZE_ABUNDANCE.as_str().to_string(),
             STAGE_PROFILE_READS.as_str().to_string(),
         ]
@@ -106,13 +106,6 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     }
     if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
         stages.push(STAGE_MERGE_PAIRS.as_str().to_string());
-    }
-    if options.mode == FastqPipelineMode::Amplicon
-        && !stages
-            .iter()
-            .any(|stage| stage == STAGE_INFER_ASVS.as_str())
-    {
-        stages.push(STAGE_CLUSTER_OTUS.as_str().to_string());
     }
     if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()) {
         stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
