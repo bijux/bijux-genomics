@@ -43,7 +43,7 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.filter_reads` | `FilterEffectiveParams` | contamination and complexity filtering controls |
 | `fastq.merge_pairs` | `MergeEffectiveParams` | paired-end overlap merge controls |
 | `fastq.index_reference` | `ReferenceIndexEffectiveParams` | reference-index build controls |
-| `fastq.deplete_host` | `HostDepletionEffectiveParams` | host-reference depletion controls |
+| `fastq.deplete_host` | `HostDepletionEffectiveParams` | host-reference depletion controls, including reference provenance and masking policy |
 | `fastq.deplete_reference_contaminants` | `ReferenceContaminantEffectiveParams` | reference-contaminant depletion controls |
 | `fastq.deplete_rrna` | `RrnaEffectiveParams` | rRNA screen controls, including database identity and report shape |
 | `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls, including database identity and confidence policy |
