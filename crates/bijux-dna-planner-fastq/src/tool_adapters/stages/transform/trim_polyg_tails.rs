@@ -4,8 +4,14 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::trim::{
+    TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
+};
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
-use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1};
+use bijux_dna_stage_contract::{
+    ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
+};
 
 pub const STAGE_ID: StageId = STAGE_TRIM_POLYG_TAILS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -44,6 +50,13 @@ pub fn plan_trim_polyg_tails(
         &report,
         tool.resources.threads,
     )?;
+    let effective_params = TrimPolygTailsParams {
+        schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        threads: tool.resources.threads,
+        trim_polyg: true,
+        min_polyg_run: 10,
+    };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -97,15 +110,7 @@ pub fn plan_trim_polyg_tails(
             "output_r2": output_r2,
             "report_json": report,
         }),
-        effective_params: serde_json::json!({
-            "applicability": {
-                "requires_illumina_like_cycle_artifacts": true,
-                "skip_when_not_applicable": true
-            },
-            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-            "threads": tool.resources.threads,
-            "polyx_policy": "terminal_g_only",
-        }),
+        effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "polyG tail trimming"),
     })
