@@ -458,6 +458,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                             tool.tool_id
                         );
                     }
+                    let mut stage_specs = Vec::new();
                     for stage_id in &tool.stage_ids {
                         let stage_domain = stage_id.split('.').next().unwrap_or(dom);
                         let stage_path =
@@ -480,14 +481,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                                         stage_path.display()
                                     )
                                 })?;
-                            validate_tool_output_subset(
-                                &tool_raw,
-                                &stage_yaml_raw,
-                                &path,
-                                stage_id,
-                            )?;
+                            stage_specs.push((stage_id.as_str(), stage_yaml_raw));
                         }
                     }
+                    validate_tool_output_subset(&tool_raw, &stage_specs, &path)?;
                     let dockerfile = options
                         .domain_dir
                         .parent()

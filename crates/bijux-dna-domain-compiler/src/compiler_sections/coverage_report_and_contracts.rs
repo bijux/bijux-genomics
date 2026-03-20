@@ -133,8 +133,8 @@ stage_id: fastq.trim_reads
 outputs:
   - name: trimmed_reads
 ";
-        let Err(err) =
-            validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim_reads")
+        let stage_specs = [("fastq.trim_reads", stage.to_string())];
+        let Err(err) = validate_tool_output_subset(tool, &stage_specs, Path::new("tool.yaml"))
         else {
             panic!("must reject unknown output");
         };
@@ -142,5 +142,31 @@ outputs:
             err.to_string().contains("rogue_output"),
             "unexpected error: {err}"
         );
+    }
+
+    #[test]
+    fn tool_output_validation_accepts_outputs_declared_across_bound_stages() {
+        let tool = r"
+tool_id: fastp
+outputs:
+  - name: trimmed_reads
+  - name: filtered_reads
+";
+        let trim_stage = r"
+stage_id: fastq.trim_reads
+outputs:
+  - name: trimmed_reads
+";
+        let filter_stage = r"
+stage_id: fastq.filter_reads
+outputs:
+  - name: filtered_reads
+";
+        let stage_specs = [
+            ("fastq.trim_reads", trim_stage.to_string()),
+            ("fastq.filter_reads", filter_stage.to_string()),
+        ];
+        validate_tool_output_subset(tool, &stage_specs, Path::new("tool.yaml"))
+            .expect("shared tool outputs should validate against the union of bound stages");
     }
 }
