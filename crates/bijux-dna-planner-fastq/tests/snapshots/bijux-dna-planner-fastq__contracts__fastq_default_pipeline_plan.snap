@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 162
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -45,7 +44,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "echo"
+          "fastqc",
+          "--outdir",
+          "out/detect_adapters/fastqc/fastqc",
+          "--threads",
+          "1",
+          "reads_R1.fastq.gz"
         ]
       },
       "expected_artifact_ids": [],
@@ -127,7 +131,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "echo"
+          "seqkit",
+          "stats",
+          "-a",
+          "-T",
+          "out/filter_reads/fastp/fastp.fastq.gz"
         ]
       },
       "expected_artifact_ids": [],
@@ -180,7 +188,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "echo"
+          "multiqc",
+          "-o",
+          "out/report_qc/multiqc/multiqc_data",
+          "-n",
+          "multiqc_report.html",
+          "out/filter_reads/fastp/fastp.fastq.gz"
         ]
       },
       "expected_artifact_ids": [],
