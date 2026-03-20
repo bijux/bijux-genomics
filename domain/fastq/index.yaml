@@ -1908,6 +1908,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_contaminant_reference_hash
+  umi_extraction_fairness:
+    stage_id: fastq.extract_umis
+    description: Compare UMI extraction backends on identical read inputs and fixed UMI
+      parsing policy.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_umi_extraction_policy
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.

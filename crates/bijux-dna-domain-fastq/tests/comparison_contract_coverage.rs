@@ -87,3 +87,25 @@ fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
         "contaminant_depletion_tool_normalization_json"
     );
 }
+
+#[test]
+fn extract_umis_exposes_stage_family_comparison_contract() {
+    let contract =
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
+            "fastq.extract_umis",
+        ))
+        .expect("extract_umis comparison contract must exist");
+
+    assert_eq!(
+        contract.cohort_artifact_id,
+        "umi_extraction_tool_benchmark_cohort_json"
+    );
+    assert_eq!(
+        contract.comparison_artifact_id,
+        "umi_extraction_tool_comparison_json"
+    );
+    assert_eq!(
+        contract.normalization_artifact_id,
+        "umi_extraction_tool_normalization_json"
+    );
+}
