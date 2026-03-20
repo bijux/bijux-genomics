@@ -2,12 +2,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{
     ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, StageIO,
     ToolConstraints,
 };
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_dna_core::prelude::{
     ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
@@ -18,12 +18,13 @@ use bijux_dna_domain_fastq::{
     default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
 };
 use bijux_dna_domain_fastq::{
-    stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
-    FastqPipelineMode, STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
-    STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES, STAGE_DETECT_ADAPTERS,
-    STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_PREFIX,
-    STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY,
-    STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
+    stages::ids::{STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS},
+    FastqPipelineMode, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_RRNA,
+    STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS,
+    STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
+    STAGE_PREFIX, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
+    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
+    STAGE_VALIDATE_READS,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -132,7 +133,11 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
         stages.push(STAGE_MERGE_PAIRS.as_str().to_string());
     }
-    if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()) {
+    if options.enable_screen
+        && !stages
+            .iter()
+            .any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str())
+    {
         stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
     } else if !options.enable_screen {
         stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
@@ -159,8 +164,32 @@ pub fn apply_preprocess_policy(
     pipeline_stages: Vec<StageId>,
     pipeline_tools: Vec<bijux_dna_core::ids::ToolId>,
 ) -> PreprocessPolicyDecision {
+    let adapter_inference = pipeline_stages
+        .iter()
+        .zip(pipeline_tools.iter())
+        .find(|(stage, _)| stage == &&STAGE_DETECT_ADAPTERS)
+        .map(|(stage, tool)| {
+            let trim_binding = pipeline_stages
+                .iter()
+                .zip(pipeline_tools.iter())
+                .find(|(candidate_stage, _)| candidate_stage == &&STAGE_TRIM_READS)
+                .map(|(candidate_stage, candidate_tool)| {
+                    serde_json::json!({
+                        "stage_id": candidate_stage.as_str(),
+                        "tool_id": candidate_tool.as_str(),
+                    })
+                });
+            serde_json::json!({
+                "schema_version": "bijux.fastq.preprocess_policy.v1",
+                "source_stage_id": stage.as_str(),
+                "source_tool_id": tool.as_str(),
+                "evidence_artifacts": ["adapter_report", "adapter_evidence_dir"],
+                "handoff_mode": "runtime_evidence",
+                "consumer_binding": trim_binding,
+            })
+        });
     PreprocessPolicyDecision {
-        adapter_inference: None,
+        adapter_inference,
         adapter_bank_preset_override: None,
         pipeline_stages,
         pipeline_tools,
@@ -397,7 +426,8 @@ pub fn resolve_preprocess_pipeline(
                 });
                 spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
                 if !shotgun_mode {
-                    spec.stages.retain(|stage| stage != "fastq.trim_polyg_tails");
+                    spec.stages
+                        .retain(|stage| stage != "fastq.trim_polyg_tails");
                 }
                 if shotgun_mode {
                     spec.stages
@@ -421,7 +451,8 @@ pub fn resolve_preprocess_pipeline(
         });
         spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
         if !shotgun_mode {
-            spec.stages.retain(|stage| stage != "fastq.trim_polyg_tails");
+            spec.stages
+                .retain(|stage| stage != "fastq.trim_polyg_tails");
         }
         if shotgun_mode {
             spec.stages
