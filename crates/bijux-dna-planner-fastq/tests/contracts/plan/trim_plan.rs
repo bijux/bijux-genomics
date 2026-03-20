@@ -54,7 +54,7 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
         plan.io.outputs[0].path.to_string_lossy(),
         "out/fastp.fastq.gz"
     );
-    assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads");
+    assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
     assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
     Ok(())
 }
@@ -96,7 +96,8 @@ fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
     )?;
 
     assert_eq!(plan.io.inputs.len(), 2);
-    assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
     assert_eq!(plan.params["adapter_bank"]["preset"], "illumina");
     assert_eq!(plan.params["polyx_bank"]["enabled"], true);
     assert_eq!(plan.params["contaminant_bank"]["catalog"], "decoys");

@@ -273,7 +273,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ],
         "outputs": [
           {
-            "name": "trimmed_reads",
+            "name": "trimmed_reads_r1",
             "optional": false,
             "path": "out/trim_reads/fastp/fastp.fastq.gz",
             "role": "trimmed_reads"
