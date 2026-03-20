@@ -1,0 +1,79 @@
+{
+  "stage_id": "fastq.profile_read_lengths",
+  "stage_version": 1,
+  "tool_id": "seqkit_stats",
+  "tool_version": "domain-manifest",
+  "image": {
+    "image": "bijuxdna/seqkit_stats",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "seqkit",
+      "stats",
+      "-a",
+      "-T",
+      "{{reads_r1}}"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 2,
+    "tmp_gb": 2,
+    "threads": 2
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "length_distribution_tsv",
+        "path": "out/length_distribution.tsv",
+        "role": "summary_tsv",
+        "optional": false
+      },
+      {
+        "name": "length_distribution_json",
+        "path": "out/length_distribution.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "input_r1": "reads_R1.fastq.gz",
+    "input_r2": "reads_R2.fastq.gz",
+    "output_json": "out/length_distribution.json",
+    "output_tsv": "out/length_distribution.tsv",
+    "tool": "seqkit_stats"
+  },
+  "effective_params": {
+    "paired_mode": "paired_end",
+    "schema": [
+      "sample_id",
+      "read_length",
+      "count"
+    ],
+    "stage": "profile_read_lengths",
+    "threads": 2
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "pre-trim length distribution metrics",
+    "details": {}
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "stage_id": "fastq.profile_overrepresented_sequences",
+  "stage_version": 1,
+  "tool_id": "fastqc",
+  "tool_version": "domain-manifest",
+  "image": {
+    "image": "bijuxdna/fastqc",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "fastqc",
+      "{{reads}}"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 4,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "overrepresented_sequences_tsv",
+        "path": "out/overrepresented_sequences.tsv",
+        "role": "summary_tsv",
+        "optional": false
+      },
+      {
+        "name": "overrepresented_sequences_json",
+        "path": "out/overrepresented_sequences.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "input_r1": "reads_R1.fastq.gz",
+    "input_r2": "reads_R2.fastq.gz",
+    "output_json": "out/overrepresented_sequences.json",
+    "output_tsv": "out/overrepresented_sequences.tsv",
+    "tool": "fastqc"
+  },
+  "effective_params": {
+    "paired_mode": "paired_end",
+    "schema": [
+      "sequence",
+      "count",
+      "fraction",
+      "flag"
+    ],
+    "stage": "profile_overrepresented_sequences",
+    "threads": 4
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "overrepresented sequence detection",
+    "details": {}
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "stage_id": "fastq.trim_polyg_tails",
+  "stage_version": 1,
+  "tool_id": "fastp",
+  "tool_version": "domain-manifest",
+  "image": {
+    "image": "bijuxdna/fastp",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "fastp",
+      "--in1",
+      "{{reads}}",
+      "--out1",
+      "{{trimmed_reads}}"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 4,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "trimmed_reads",
+        "path": "out/R1.polyg.fastp.fastq.gz",
+        "role": "trimmed_reads",
+        "optional": false
+      },
+      {
+        "name": "trimmed_reads",
+        "path": "out/R2.polyg.fastp.fastq.gz",
+        "role": "trimmed_reads",
+        "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "out/trim_polyg_tails_report.json",
+        "role": "report_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "input_r1": "reads_R1.fastq.gz",
+    "input_r2": "reads_R2.fastq.gz",
+    "output_r1": "out/R1.polyg.fastp.fastq.gz",
+    "output_r2": "out/R2.polyg.fastp.fastq.gz",
+    "report_json": "out/trim_polyg_tails_report.json",
+    "tool": "fastp"
+  },
+  "effective_params": {
+    "applicability": {
+      "requires_illumina_like_cycle_artifacts": true,
+      "skip_when_not_applicable": true
+    },
+    "paired_mode": "paired_end",
+    "polyx_policy": "terminal_g_only",
+    "threads": 4
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "polyG tail trimming",
+    "details": {}
+  }
+}

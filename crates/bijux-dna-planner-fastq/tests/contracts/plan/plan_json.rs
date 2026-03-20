@@ -79,6 +79,23 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
 
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
+        &domain_tool("fastq.profile_read_lengths", "seqkit_stats"),
+        r1,
+        Some(r2),
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.profile_read_lengths", &plan)?;
+
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::profile_overrepresented_sequences::plan(
+            &domain_tool("fastq.profile_overrepresented_sequences", "fastqc"),
+            r1,
+            Some(r2),
+            out_dir,
+        )?;
+    assert_snapshot("stage__fastq__fastq.profile_overrepresented_sequences", &plan)?;
+
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &domain_tool("fastq.trim_reads", "fastp"),
         r1,
@@ -89,6 +106,25 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         None,
     )?;
     assert_snapshot("stage__fastq__fastq.trim_reads", &plan)?;
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+        &domain_tool("fastq.trim_polyg_tails", "fastp"),
+        r1,
+        Some(r2),
+        out_dir,
+    )?;
+    assert_snapshot("stage__fastq__fastq.trim_polyg_tails", &plan)?;
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+        &domain_tool("fastq.trim_terminal_damage", "cutadapt"),
+        r1,
+        Some(r2),
+        out_dir,
+        "ancient",
+        2,
+        2,
+    )?;
+    assert_snapshot("stage__fastq__fastq.trim_terminal_damage", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
         &domain_tool("fastq.filter_reads", "seqkit"),
@@ -139,6 +175,10 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.deplete_rrna", &plan)?;
+    assert!(
+        !plan.command.template.is_empty(),
+        "deplete_rrna must plan a concrete command template"
+    );
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_host::plan_host_depletion(
         &domain_tool("fastq.deplete_host", "bowtie2"),
