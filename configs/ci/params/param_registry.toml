@@ -130,8 +130,8 @@ schema_version = "bijux.fastq.params.trim_polyg_tails.v1"
 
 [[entries]]
 stage_id = "fastq.remove_duplicates"
-param_type_id = "paramless"
-schema_version = "none"
+param_type_id = "fastq.remove_duplicates"
+schema_version = "bijux.fastq.params.remove_duplicates.v1"
 
 [[entries]]
 stage_id = "fastq.index_reference"
