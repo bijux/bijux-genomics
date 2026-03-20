@@ -10,8 +10,17 @@ container:
   digest: "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
 command_template:
   - "fastqc"
-  - "{{reads}}"
-outputs: []
+  - "{{reads_r1}}"
+outputs:
+  - name: "adapter_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "overrepresented_sequences_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "overrepresented_sequences_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_validate_v1"
 constraints:
   runtime: "local"
@@ -22,9 +31,11 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "*_fastqc/**"
+    - "adapter_report"
+    - "overrepresented_sequences_tsv"
+    - "overrepresented_sequences_json"
   forbidden_outputs: []
-  forbid_unexpected_outputs: false
+  forbid_unexpected_outputs: true
 upstream: "unknown"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
@@ -53,11 +64,12 @@ expected_artifacts:
   - "adapter_report"
   - "overrepresented_sequences_json"
   - "overrepresented_sequences_tsv"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.qc.v1"
+metrics_schema: "bijux.fastq.qc.v1"
 version_cmd: "fastqc --version"
 help_cmd: "fastqc --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "seqkit"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable for governed adapter detection and overrepresented-sequence profiling when the same read layout and summary artifacts are emitted."
