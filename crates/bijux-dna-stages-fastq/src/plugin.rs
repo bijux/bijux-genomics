@@ -50,9 +50,10 @@ impl StagePlugin for FastqStagePlugin {
             .map(|output| output.path.clone())
             .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
-        let observer_covered = crate::observer_stage_ids()
-            .into_iter()
-            .any(|stage_id| stage_id == plan.stage_id);
+        let interpretation_level = crate::runtime_interpretation_for_stage(&plan.stage_id)
+            .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
+        let observer_covered =
+            interpretation_level == crate::RuntimeInterpretationLevel::ObserverSpecialized;
         let artifacts = if outputs.is_empty() {
             plan.io.outputs.clone()
         } else {
@@ -127,6 +128,7 @@ impl StagePlugin for FastqStagePlugin {
                 key_metrics: serde_json::json!({
                     "artifact_count": artifacts.len(),
                     "observer_coverage": observer_covered,
+                    "runtime_interpretation": format!("{interpretation_level:?}"),
                     "used_observed_outputs": !outputs.is_empty(),
                     "declared_metric_invariants": declared_metric_invariants,
                 }),
@@ -143,6 +145,7 @@ impl StagePlugin for FastqStagePlugin {
             payload: serde_json::json!({
                 "stage_id": plan.stage_id,
                 "observer_coverage": observer_covered,
+                "runtime_interpretation": format!("{interpretation_level:?}"),
                 "artifact_count": artifacts.len(),
                 "declared_metric_invariants": declared_metric_invariants,
                 "artifact_ids": artifacts
@@ -170,6 +173,7 @@ impl StagePlugin for FastqStagePlugin {
             attrs: serde_json::json!({
                 "stage_id": plan.stage_id,
                 "observer_coverage": observer_covered,
+                "runtime_interpretation": format!("{interpretation_level:?}"),
                 "artifact_count": artifacts.len(),
             }),
         }];
@@ -244,6 +248,10 @@ mod tests {
         assert!(output.warnings.is_empty());
         assert_eq!(output.invariants.len(), 3);
         assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
             output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
         );
@@ -258,6 +266,10 @@ mod tests {
             .expect("parse outputs");
         assert_eq!(output.artifacts.len(), 1);
         assert_eq!(output.warnings.len(), 1);
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("GenericEnvelope")
+        );
         assert!(output.warnings[0].contains("fastq.trim_reads"));
         assert_eq!(output.invariants.len(), 3);
         assert_eq!(
