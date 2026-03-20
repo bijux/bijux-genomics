@@ -12,6 +12,27 @@ stage_ids:
   - "fastq.deplete_reference_contaminants"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  fastq.deplete_host:
+    required_inputs:
+      - "reads_r1"
+      - "reference_index"
+    expected_artifacts:
+      - "host_depleted_reads_r1"
+      - "host_depleted_reads_r2"
+      - "removed_host_reads_r1"
+      - "removed_host_reads_r2"
+      - "host_depletion_report_json"
+    notes: "Reference-guided host depletion emits retained reads, removed host reads, and a depletion report."
+  fastq.deplete_reference_contaminants:
+    required_inputs:
+      - "reads_r1"
+      - "reference_index"
+    expected_artifacts:
+      - "contaminant_screened_reads_r1"
+      - "contaminant_screened_reads_r2"
+      - "contaminant_screen_report_json"
+    notes: "Reference-contaminant depletion emits retained reads and a contaminant screen report."
 expected_artifacts:
   - "host_depleted_reads_r1"
   - "host_depleted_reads_r2"

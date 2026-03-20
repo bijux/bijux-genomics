@@ -52,6 +52,22 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.profile_reads"
   - "fastq.profile_read_lengths"
+stage_contracts:
+  fastq.profile_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "qc_json"
+      - "qc_tsv"
+      - "qc_plots_dir"
+    notes: "Read profiling emits aggregate QC tables and optional plots."
+  fastq.profile_read_lengths:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "length_distribution_tsv"
+      - "length_distribution_json"
+    notes: "Length profiling emits deterministic histogram tables for governed read-length summaries."
 expected_artifacts:
   - "qc_json"
   - "qc_tsv"

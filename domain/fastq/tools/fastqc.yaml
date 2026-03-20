@@ -35,6 +35,20 @@ citation: "pending:tool-publication"
 stage_ids:
   - "fastq.detect_adapters"
   - "fastq.profile_overrepresented_sequences"
+stage_contracts:
+  fastq.detect_adapters:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "adapter_report"
+    notes: "Evidence-only adapter inspection emits the normalized adapter report."
+  fastq.profile_overrepresented_sequences:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "overrepresented_sequences_tsv"
+      - "overrepresented_sequences_json"
+    notes: "Sequence-content profiling emits normalized overrepresented-sequence tables."
 expected_artifacts:
   - "adapter_report"
   - "overrepresented_sequences_json"
