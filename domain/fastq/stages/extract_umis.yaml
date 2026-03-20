@@ -17,6 +17,9 @@ outputs:
   - name: "umi_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "threads"
     param_type: "int"
@@ -58,7 +61,7 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
-  - "none"
+  - "report_json"
 compatible_tools:
   - umi_tools
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
