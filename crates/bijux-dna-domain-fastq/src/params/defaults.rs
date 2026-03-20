@@ -3,7 +3,9 @@ use super::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
 use super::filter::FilterEffectiveParams;
-use super::merge::MergeEffectiveParams;
+use super::merge::{
+    MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
+};
 use super::preprocess::LibraryDamageTreatment;
 use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::QcPostEffectiveParams;
@@ -140,10 +142,13 @@ pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
 #[must_use]
 pub fn merge_defaults(paired: bool) -> MergeEffectiveParams {
     MergeEffectiveParams {
+        schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
         merge_overlap: None,
         min_len: None,
+        merge_engine: MergeEngine::Pear,
+        unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
     }
 }
 

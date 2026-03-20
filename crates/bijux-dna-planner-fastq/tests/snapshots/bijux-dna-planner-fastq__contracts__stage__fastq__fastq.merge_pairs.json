@@ -77,10 +77,13 @@
     "unmerged_reads_r2": "out/pear.unassembled.reverse.fastq"
   },
   "effective_params": {
+    "merge_engine": "pear",
     "merge_overlap": null,
     "min_len": null,
     "paired_mode": "paired_end",
-    "threads": 1
+    "schema_version": "bijux.fastq.params.merge_pairs.v1",
+    "threads": 1,
+    "unmerged_read_policy": "emit_unmerged_pairs"
   },
   "aux_images": {},
   "reason": {
