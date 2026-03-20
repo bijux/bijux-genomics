@@ -1,34 +1,24 @@
 # STAGE_MAPPING
 
-Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus the FASTQ domain manifests.
+This document is intentionally not a manual stage-to-tool matrix.
 
-| Stage ID | Tool Adapter(s) | Artifacts Emitted | Metrics Emitted |
-| --- | --- | --- | --- |
-| fastq.validate_reads | fastqvalidator, fqtools, seqtk | validation report | reads_total, reads_invalid, mean_q |
-| fastq.profile_read_lengths | seqkit_stats, prinseq, fastp | length report | length histogram |
-| fastq.detect_adapters | fastqc | adapter evidence report | candidate_adapter_count |
-| fastq.profile_overrepresented_sequences | fastqc, seqkit | overrepresented-sequence report | flagged sequence counts |
-| fastq.index_reference | bowtie2_build, star | reference index directory | runtime_s, index_file_count, index_bytes |
-| fastq.trim_polyg_tails | fastp, bbduk | trimmed FASTQ, trim report | polyG/polyX trimming counts |
-| fastq.trim_terminal_damage | cutadapt, seqkit | terminal-damage-trimmed FASTQ, trim report | reads_out |
-| fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper | trimmed FASTQ | retention, bases_kept |
-| fastq.filter_reads | fastp, seqkit, prinseq, bbduk | filtered FASTQ | filter counts |
-| fastq.deplete_reference_contaminants | bowtie2 | contaminant-screened FASTQ, contaminant screen report | reads_removed_contaminant_kmer |
-| fastq.filter_low_complexity | prinseq, bbduk | filtered FASTQ, low-complexity report | reads_removed_low_complexity |
-| fastq.merge_pairs | pear, vsearch, bbmerge, flash2, leehom | merged FASTQ, unmerged mates, merge report | merge_rate |
-| fastq.remove_duplicates | fastuniq, clumpify | deduplicated FASTQ | dedup_rate |
-| fastq.deplete_host | bowtie2 | host-depleted FASTQ, host depletion report | host_fraction_removed |
-| fastq.deplete_rrna | sortmerna | rRNA-filtered FASTQ, rRNA report | rrna_fraction |
-| fastq.correct_errors | rcorrector, musket, lighter, bayeshammer | corrected FASTQ | correction_rate |
-| fastq.extract_umis | umi_tools | UMI-tagged FASTQ | umi_stats |
-| fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, kaiju | screen report, classification report | contamination_rate |
-| fastq.profile_reads | seqkit_stats | stats report | read_count, base_count |
-| fastq.normalize_primers | cutadapt, seqkit | primer-normalized FASTQ | primer_trimmed_fraction |
-| fastq.remove_chimeras | vsearch | chimera-filtered FASTQ, chimera report | chimera_fraction |
-| fastq.cluster_otus | vsearch | OTU table, representative FASTA, taxonomy-ready FASTA/FASTQ | otu_count |
-| fastq.normalize_abundance | seqkit | normalized abundance table | table_rows |
-| fastq.report_qc | multiqc | qc report | qc summary |
+Authoritative FASTQ stage and tool truth lives in:
 
-declared-only FASTQ stages:
+- `domain/fastq/index.yaml` for declared stage and tool families
+- `domain/fastq/execution_support.yaml` for governed execution closure and maturity
+- `domain/fastq/stages/*.yaml` for governed stage contracts
+- `domain/fastq/tools/*.yaml` for tool execution contracts and `stage_contracts`
+- `crates/bijux-dna-planner-fastq/src/tool_adapters/fastq.rs` and `stage_api` for the closed planner surface derived from those manifests
 
-- `fastq.infer_asvs` remains defined in the domain with planned `dada2` intent, but it is not part of the governed runtime registry until its execution contract is closed.
+Generated configs and runtime registries must publish only the closed FASTQ execution surface.
+If a binding is declared, planned, or out of scope, keep that truth in the manifests and tests rather than copying it into a Markdown table.
+
+Use this document only to explain planner interpretation rules:
+
+- FASTQ planner admission follows manifest-governed stage compatibility plus execution-support closure.
+- Runtime registry publication follows the closed governed surface, not every declared or planned binding.
+- Bench cohort selection may include only bindings whose normalization and comparison contracts are explicitly governed.
+
+Declared-only FASTQ stages:
+
+- `fastq.infer_asvs` remains defined in the domain with planned `dada2` intent, but it stays outside the governed runtime registry and governed metrics surface until execution support is closed.

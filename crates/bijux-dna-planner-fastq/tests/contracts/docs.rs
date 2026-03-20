@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
-use bijux_dna_core::ids::StageId;
 use toml::Value;
 
 fn workspace_root() -> PathBuf {
@@ -24,66 +23,27 @@ fn parse_toml(path: &Path) -> Value {
         .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
 }
 
-fn stage_mapping_rows() -> Vec<(String, String)> {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("docs")
-        .join("STAGE_MAPPING.md");
-    let content = read_doc(&doc);
-    content
-        .lines()
-        .filter_map(|line| {
-            let trimmed = line.trim();
-            if !trimmed.starts_with("| fastq.") {
-                return None;
-            }
-            let cells = trimmed
-                .trim_start_matches('|')
-                .trim_end_matches('|')
-                .split('|')
-                .map(str::trim)
-                .collect::<Vec<_>>();
-            if cells.len() < 2 {
-                return None;
-            }
-            Some((cells[0].to_string(), cells[1].to_string()))
-        })
-        .collect()
-}
-
 #[test]
-fn stage_mapping_covers_planner_registry() {
-    let documented = stage_mapping_rows()
-        .into_iter()
-        .map(|(stage_id, _)| stage_id)
-        .collect::<BTreeSet<_>>();
-    let registry = bijux_dna_planner_fastq::stage_api::fastq::registry()
-        .into_iter()
-        .map(|stage| stage.id().to_string())
-        .collect::<BTreeSet<_>>();
-
-    assert_eq!(
-        documented, registry,
-        "STAGE_MAPPING.md drifted from planner registry"
+fn stage_mapping_points_to_manifest_authorities() {
+    let doc = read_doc(
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("docs")
+            .join("STAGE_MAPPING.md"),
     );
-}
-
-#[test]
-fn stage_mapping_tool_lists_match_planner_admission() {
-    for (stage_id_raw, tool_cell) in stage_mapping_rows() {
-        let stage_id = StageId::new(&stage_id_raw);
-        let documented = tool_cell
-            .split(',')
-            .map(str::trim)
-            .filter(|tool| !tool.is_empty())
-            .map(str::to_string)
-            .collect::<BTreeSet<_>>();
-        let admitted = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&stage_id)
-            .into_iter()
-            .map(|tool| tool.to_string())
-            .collect::<BTreeSet<_>>();
-        assert_eq!(
-            documented, admitted,
-            "STAGE_MAPPING.md tool list drifted for {stage_id_raw}"
+    assert!(
+        doc.contains("intentionally not a manual stage-to-tool matrix"),
+        "STAGE_MAPPING.md must refuse manual stage/tool tables",
+    );
+    for authority in [
+        "domain/fastq/index.yaml",
+        "domain/fastq/execution_support.yaml",
+        "domain/fastq/stages/*.yaml",
+        "domain/fastq/tools/*.yaml",
+        "src/tool_adapters/fastq.rs",
+    ] {
+        assert!(
+            doc.contains(authority),
+            "STAGE_MAPPING.md must point to manifest authority {authority}",
         );
     }
 }
@@ -153,5 +113,18 @@ fn stage_mapping_documents_declared_only_infer_asvs() {
     assert!(
         doc.contains("`fastq.infer_asvs`") && doc.contains("declared-only"),
         "STAGE_MAPPING.md must explain why fastq.infer_asvs is outside the governed runtime table",
+    );
+}
+
+#[test]
+fn add_tool_doc_refuses_manual_mapping_updates() {
+    let doc = read_doc(
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("docs")
+            .join("ADD_TOOL.md"),
+    );
+    assert!(
+        doc.contains("Do not maintain manual stage-to-tool tables in docs"),
+        "ADD_TOOL.md must route contributors to manifest SSOT instead of manual mapping docs",
     );
 }
