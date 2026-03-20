@@ -1,3 +1,5 @@
+use bijux_dna_core::contract::PipelineEdgeSpec;
+
 fn apply_layout_branching(mut stages: Vec<String>, paired: bool) -> Vec<String> {
     if paired {
         return stages;
@@ -37,6 +39,7 @@ fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result
 pub struct FastqPlanConfig {
     pub pipeline_id: String,
     pub policy: PlanPolicy,
+    pub pipeline_spec: Option<PipelineSpec>,
     pub stage_bindings: Vec<FastqStageBinding>,
     pub stages: Vec<String>,
     pub tools: Vec<ToolExecutionSpecV1>,
@@ -174,7 +177,7 @@ impl FastqPlanner {
                 Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
             },
         )?;
-        let edges = default_edges_for_stages(&plans);
+        let edges = execution_edges_for_stage_plans(config.pipeline_spec.as_ref(), &plans)?;
         let graph = ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
@@ -183,15 +186,7 @@ impl FastqPlanner {
                 .iter()
                 .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
                 .collect(),
-            edges
-                .into_iter()
-                .map(|edge| {
-                    ExecutionEdge::new(
-                        StepId::new(edge.from().to_string()),
-                        StepId::new(edge.to().to_string()),
-                    )
-                })
-                .collect(),
+            edges,
         )?;
         tracing::info!(
             target: "plan.graph",
@@ -406,6 +401,80 @@ fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBi
     Ok(bindings)
 }
 
+fn execution_edges_for_stage_plans(
+    pipeline_spec: Option<&PipelineSpec>,
+    plans: &[StagePlanV1],
+) -> Result<Vec<ExecutionEdge>> {
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return Ok(default_edges_for_stages(plans)
+            .into_iter()
+            .map(|edge| {
+                ExecutionEdge::new(
+                    StepId::new(edge.from().to_string()),
+                    StepId::new(edge.to().to_string()),
+                )
+            })
+            .collect());
+    };
+
+    let mut plan_nodes = std::collections::BTreeMap::new();
+    for plan in plans {
+        let node_id = plan
+            .stage_instance_id
+            .as_ref()
+            .map_or_else(|| plan.stage_id.as_str().to_string(), ToString::to_string);
+        plan_nodes.insert(node_id.clone(), StepId::new(node_id));
+    }
+    for node in pipeline_spec.ordered_nodes() {
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        if !plan_nodes.contains_key(&node_id) {
+            return Err(anyhow!(
+                "pipeline graph references stage node {} but planner did not produce a matching step",
+                node_id
+            ));
+        }
+    }
+
+    pipeline_spec
+        .edges
+        .iter()
+        .map(|edge| execution_edge_from_pipeline_edge(edge, &plan_nodes))
+        .collect()
+}
+
+fn execution_edge_from_pipeline_edge(
+    edge: &PipelineEdgeSpec,
+    plan_nodes: &std::collections::BTreeMap<String, StepId>,
+) -> Result<ExecutionEdge> {
+    let from = plan_nodes.get(&edge.from).cloned().ok_or_else(|| {
+        anyhow!(
+            "pipeline graph edge source {} does not resolve to a planned step",
+            edge.from
+        )
+    })?;
+    let to = plan_nodes.get(&edge.to).cloned().ok_or_else(|| {
+        anyhow!(
+            "pipeline graph edge target {} does not resolve to a planned step",
+            edge.to
+        )
+    })?;
+    match (&edge.from_output_id, &edge.to_input_id) {
+        (Some(from_output_id), Some(to_input_id)) => Ok(ExecutionEdge::with_artifact_binding(
+            from,
+            to,
+            ArtifactId::new(from_output_id.clone()),
+            ArtifactId::new(to_input_id.clone()),
+        )),
+        (None, None) => Ok(ExecutionEdge::new(from, to)),
+        _ => Err(anyhow!(
+            "pipeline graph edge {} -> {} must set both from_output_id and to_input_id together",
+            edge.from,
+            edge.to
+        )),
+    }
+}
+
 fn ensure_unique_stage_binding_nodes(bindings: &[FastqStageBinding]) -> Result<()> {
     let mut seen_nodes = std::collections::BTreeSet::new();
     for binding in bindings {
@@ -479,6 +548,7 @@ pub fn plan_fastq_to_fastq__default__v1(
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: inputs.policy,
+        pipeline_spec: Some(pipeline.clone()),
         stage_bindings: Vec::new(),
         stages: pipeline.stages,
         tools: inputs.tools.clone(),

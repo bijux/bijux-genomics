@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::PlanPolicy;
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec, PlanPolicy};
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
@@ -40,6 +40,7 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
                 stage_id: "fastq.trim_reads".to_string(),
@@ -92,6 +93,7 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
                 stage_id: "fastq.trim_reads".to_string(),
@@ -139,6 +141,7 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__trim_terminal_damage__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.trim_terminal_damage".to_string(),
             stage_instance_id: Some("fastq.trim_terminal_damage.custom".to_string()),
@@ -183,6 +186,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__deplete_rrna__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.deplete_rrna".to_string(),
             stage_instance_id: Some("fastq.deplete_rrna.sortmerna.custom".to_string()),
@@ -225,6 +229,7 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__deplete_host__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
                 stage_id: "fastq.index_reference".to_string(),
@@ -275,6 +280,7 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__reference_contaminants__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
                 stage_id: "fastq.index_reference".to_string(),
@@ -316,5 +322,94 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
         .find(|step| step.step_id.as_str() == "fastq.deplete_reference_contaminants.decoy")
         .expect("reference contaminant step");
     assert!(step.command.template.iter().any(|part| part == "--un-gz"));
+    Ok(())
+}
+
+#[test]
+fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-explicit-pipeline-graph")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__explicit_graph__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.detect_adapters".to_string(),
+                    stage_instance_id: Some("fastq.detect_adapters.fastqc".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.validate_reads.validator".to_string(),
+                    to: "fastq.report_qc.aggregate".to_string(),
+                    from_output_id: Some("validation_report".to_string()),
+                    to_input_id: Some("validation_report".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.detect_adapters.fastqc".to_string(),
+                    to: "fastq.report_qc.aggregate".to_string(),
+                    from_output_id: Some("adapter_report".to_string()),
+                    to_input_id: Some("adapter_report".to_string()),
+                },
+            ],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                tool: tool("fastqvalidator"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.detect_adapters".to_string(),
+                stage_instance_id: Some("fastq.detect_adapters.fastqc".to_string()),
+                tool: tool("fastqc"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                tool: tool("multiqc"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    assert_eq!(plan.edges().len(), 2);
+    assert!(plan
+        .edges()
+        .iter()
+        .all(|edge| edge.to().as_str() == "fastq.report_qc.aggregate"));
+    assert!(plan
+        .edges()
+        .iter()
+        .all(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some()));
     Ok(())
 }

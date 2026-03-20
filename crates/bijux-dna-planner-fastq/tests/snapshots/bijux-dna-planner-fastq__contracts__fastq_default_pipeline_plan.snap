@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 155
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -10,40 +11,40 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "deterministic_scheduler": true,
   "edges": [
     {
-      "from": "fastq.detect_adapters",
-      "to": "fastq.trim_polyg_tails"
+      "from": "fastq.detect_adapters.tool.fastqc",
+      "to": "fastq.trim_polyg_tails.tool.fastp"
     },
     {
-      "from": "fastq.filter_reads",
-      "to": "fastq.profile_reads"
+      "from": "fastq.filter_reads.tool.fastp",
+      "to": "fastq.profile_reads.tool.seqkit_stats"
     },
     {
-      "from": "fastq.profile_overrepresented_sequences",
-      "to": "fastq.report_qc"
+      "from": "fastq.profile_overrepresented_sequences.tool.fastqc",
+      "to": "fastq.report_qc.tool.multiqc"
     },
     {
-      "from": "fastq.profile_read_lengths",
-      "to": "fastq.detect_adapters"
+      "from": "fastq.profile_read_lengths.tool.seqkit_stats",
+      "to": "fastq.detect_adapters.tool.fastqc"
     },
     {
-      "from": "fastq.profile_reads",
-      "to": "fastq.profile_overrepresented_sequences"
+      "from": "fastq.profile_reads.tool.seqkit_stats",
+      "to": "fastq.profile_overrepresented_sequences.tool.fastqc"
     },
     {
-      "from": "fastq.trim_polyg_tails",
-      "to": "fastq.trim_terminal_damage"
+      "from": "fastq.trim_polyg_tails.tool.fastp",
+      "to": "fastq.trim_terminal_damage.tool.cutadapt"
     },
     {
-      "from": "fastq.trim_reads",
-      "to": "fastq.filter_reads"
+      "from": "fastq.trim_reads.tool.fastp",
+      "to": "fastq.filter_reads.tool.fastp"
     },
     {
-      "from": "fastq.trim_terminal_damage",
-      "to": "fastq.trim_reads"
+      "from": "fastq.trim_terminal_damage.tool.cutadapt",
+      "to": "fastq.trim_reads.tool.fastp"
     },
     {
-      "from": "fastq.validate_reads",
-      "to": "fastq.profile_read_lengths"
+      "from": "fastq.validate_reads.tool.fastqvalidator",
+      "to": "fastq.profile_read_lengths.tool.seqkit_stats"
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
@@ -104,7 +105,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.detect_adapters",
-      "step_id": "fastq.detect_adapters"
+      "step_id": "fastq.detect_adapters.tool.fastqc"
     },
     {
       "aux_images": {},
@@ -155,7 +156,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.filter_reads",
-      "step_id": "fastq.filter_reads"
+      "step_id": "fastq.filter_reads.tool.fastp"
     },
     {
       "aux_images": {},
@@ -212,7 +213,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.profile_overrepresented_sequences",
-      "step_id": "fastq.profile_overrepresented_sequences"
+      "step_id": "fastq.profile_overrepresented_sequences.tool.fastqc"
     },
     {
       "aux_images": {},
@@ -268,7 +269,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.profile_read_lengths",
-      "step_id": "fastq.profile_read_lengths"
+      "step_id": "fastq.profile_read_lengths.tool.seqkit_stats"
     },
     {
       "aux_images": {},
@@ -331,7 +332,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.profile_reads",
-      "step_id": "fastq.profile_reads"
+      "step_id": "fastq.profile_reads.tool.seqkit_stats"
     },
     {
       "aux_images": {},
@@ -342,7 +343,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "out/report_qc/multiqc/multiqc_data",
           "-n",
           "multiqc_report.html",
-          "out/filter_reads/fastp/fastp.fastq.gz"
+          "out/detect_adapters/fastqc",
+          "out/profile_overrepresented_sequences/fastqc",
+          "out/profile_read_lengths/seqkit_stats",
+          "out/profile_reads/seqkit_stats",
+          "out/validate_reads/fastqvalidator"
         ]
       },
       "expected_artifact_ids": [
@@ -356,10 +361,58 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
-            "name": "reads_r1",
+            "name": "validation_report",
             "optional": false,
-            "path": "out/filter_reads/fastp/fastp.fastq.gz",
-            "role": "reads"
+            "path": "out/validate_reads/fastqvalidator/validation.json",
+            "role": "report_json"
+          },
+          {
+            "name": "length_distribution_tsv",
+            "optional": false,
+            "path": "out/profile_read_lengths/seqkit_stats/length_distribution.tsv",
+            "role": "summary_tsv"
+          },
+          {
+            "name": "length_distribution_json",
+            "optional": false,
+            "path": "out/profile_read_lengths/seqkit_stats/length_distribution.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "adapter_report",
+            "optional": false,
+            "path": "out/detect_adapters/fastqc/adapter_report.json",
+            "role": "report_json"
+          },
+          {
+            "name": "qc_json",
+            "optional": false,
+            "path": "out/profile_reads/seqkit_stats/qc.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "qc_tsv",
+            "optional": false,
+            "path": "out/profile_reads/seqkit_stats/qc.tsv",
+            "role": "summary_tsv"
+          },
+          {
+            "name": "qc_plots_dir",
+            "optional": true,
+            "path": "out/profile_reads/seqkit_stats/plots",
+            "role": "index"
+          },
+          {
+            "name": "overrepresented_sequences_tsv",
+            "optional": false,
+            "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv",
+            "role": "summary_tsv"
+          },
+          {
+            "name": "overrepresented_sequences_json",
+            "optional": false,
+            "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json",
+            "role": "metrics_json"
           }
         ],
         "outputs": [
@@ -388,7 +441,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.report_qc",
-      "step_id": "fastq.report_qc"
+      "step_id": "fastq.report_qc.tool.multiqc"
     },
     {
       "aux_images": {},
@@ -449,7 +502,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.trim_polyg_tails",
-      "step_id": "fastq.trim_polyg_tails"
+      "step_id": "fastq.trim_polyg_tails.tool.fastp"
     },
     {
       "aux_images": {},
@@ -509,7 +562,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.trim_reads",
-      "step_id": "fastq.trim_reads"
+      "step_id": "fastq.trim_reads.tool.fastp"
     },
     {
       "aux_images": {},
@@ -570,7 +623,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.trim_terminal_damage",
-      "step_id": "fastq.trim_terminal_damage"
+      "step_id": "fastq.trim_terminal_damage.tool.cutadapt"
     },
     {
       "aux_images": {},
@@ -615,7 +668,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.validate_reads",
-      "step_id": "fastq.validate_reads"
+      "step_id": "fastq.validate_reads.tool.fastqvalidator"
     }
   ]
 }
