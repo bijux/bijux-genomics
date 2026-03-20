@@ -1143,6 +1143,7 @@ stage_output_size_estimates_mb:
   fastq.correct_errors:
     corrected_reads_r1: 900.0
     corrected_reads_r2: 900.0
+    report_json: 8.0
   fastq.deplete_host:
     host_depleted_reads_r1: 950.0
     host_depletion_report_json: 12.0
