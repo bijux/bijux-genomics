@@ -86,6 +86,7 @@ fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
         decoded.schema_version,
         TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION
     );
+    assert_eq!(decoded.damage_mode, "ancient");
     assert_eq!(decoded.trim_5p_bases, 2);
     assert_eq!(decoded.trim_3p_bases, 2);
     assert!(decoded.missing_required_fields().is_empty());
