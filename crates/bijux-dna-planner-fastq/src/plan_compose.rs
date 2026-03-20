@@ -284,13 +284,14 @@ where
                     &reference_index.tool_id,
                 )?;
                 let params = deplete_reference_contaminants_params(binding);
-                let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_options(
+                let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_index_backend(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
                     &reference_index.path,
                     &out_dir,
                     &params,
+                    &reference_index.tool_id,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {

@@ -5,9 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    screen::{
-        ReferenceContaminantEffectiveParams, REFERENCE_DEPLETION_SCHEMA_VERSION,
-    },
+    screen::{ReferenceContaminantEffectiveParams, REFERENCE_DEPLETION_SCHEMA_VERSION},
     PairedMode,
 };
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
@@ -16,8 +14,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-pub type DepleteReferenceContaminantsPlanOptions =
-    crate::DepleteReferenceContaminantsStageParams;
+pub type DepleteReferenceContaminantsPlanOptions = crate::DepleteReferenceContaminantsStageParams;
 
 pub fn normalize_contaminant_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -43,13 +40,14 @@ pub fn plan_contaminant_screen(
     reference_index: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_contaminant_screen_with_options(
+    plan_contaminant_screen_with_index_backend(
         tool,
         r1,
         r2,
         reference_index,
         out_dir,
         &DepleteReferenceContaminantsPlanOptions::default(),
+        "bowtie2_build",
     )
 }
 
@@ -64,6 +62,30 @@ pub fn plan_contaminant_screen_with_options(
     reference_index: &Path,
     out_dir: &Path,
     options: &DepleteReferenceContaminantsPlanOptions,
+) -> Result<StagePlanV1> {
+    plan_contaminant_screen_with_index_backend(
+        tool,
+        r1,
+        r2,
+        reference_index,
+        out_dir,
+        options,
+        "bowtie2_build",
+    )
+}
+
+/// Build a contaminant screen plan with explicit upstream reference-index provenance.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_contaminant_screen_with_index_backend(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    out_dir: &Path,
+    options: &DepleteReferenceContaminantsPlanOptions,
+    reference_index_backend: &str,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_contaminant_screen_tool_list(std::slice::from_ref(&tool_id))?;
@@ -85,7 +107,7 @@ pub fn plan_contaminant_screen_with_options(
         reference_catalog_id: "contaminant_reference".to_string(),
         contaminant_reference: options.decoy_mode.clone(),
         index_artifact: "reference_index".to_string(),
-        reference_index_backend: "bowtie2_build".to_string(),
+        reference_index_backend: reference_index_backend.to_string(),
         reference_build_id: None,
         reference_digest: None,
         retain_unmapped_pairs: r2.is_some(),
@@ -153,6 +175,7 @@ pub fn plan_contaminant_screen_with_options(
             "input_r1": r1,
             "input_r2": r2,
             "reference_index": reference_index,
+            "reference_index_backend": reference_index_backend,
             "decoy_mode": options.decoy_mode,
             "output_r1": output_r1,
             "output_r2": output_r2,
@@ -202,17 +225,60 @@ fn contaminant_screen_command(
                     "-U".to_string(),
                     r1.display().to_string(),
                     "--un-gz".to_string(),
-                    out_dir.join("contaminant_screened.fastq.gz").display().to_string(),
+                    out_dir
+                        .join("contaminant_screened.fastq.gz")
+                        .display()
+                        .to_string(),
                 ]);
             }
-            command.extend([
-                "--met-file".to_string(),
-                report_json.display().to_string(),
-            ]);
+            command.extend(["--met-file".to_string(), report_json.display().to_string()]);
             Ok(command)
         }
         _ => Err(anyhow!(
             "unsupported contaminant depletion tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};
+
+    fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/dummy:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["echo".to_string(), tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn contaminant_screen_tracks_explicit_reference_backend() -> Result<()> {
+        let plan = plan_contaminant_screen_with_index_backend(
+            &tool("bowtie2"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("reference.index"),
+            Path::new("out"),
+            &DepleteReferenceContaminantsPlanOptions::default(),
+            "star",
+        )?;
+
+        assert_eq!(plan.effective_params["reference_index_backend"], "star");
+        assert_eq!(plan.params["reference_index_backend"], "star");
+        Ok(())
     }
 }
