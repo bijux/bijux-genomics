@@ -21,7 +21,9 @@ pub use bijux_dna_domain_fastq::{
     FastqArtifactKind,
 };
 pub use bijux_dna_stages_fastq::stage_specs::*;
-pub use bijux_dna_stages_fastq::RuntimeInterpretationLevel;
+pub use bijux_dna_stages_fastq::{
+    observer_stage_tool_bindings, runtime_interpretation_for_stage_tool, RuntimeInterpretationLevel,
+};
 
 pub type StagePlanJson = bijux_dna_stage_contract::StagePlanJsonV1;
 
@@ -77,7 +79,7 @@ pub fn benchmark_profile_for_stage_tool(
     tool_id: &ToolId,
 ) -> Option<StageToolBenchmarkProfile> {
     let binding = stage_tool_binding(stage_id, tool_id)?;
-    let runtime_interpretation = bijux_dna_stages_fastq::runtime_interpretation_for_stage(stage_id)
+    let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
         .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
     let benchmark_scenarios = benchmark_scenarios_for_stage(stage_id)
         .into_iter()
