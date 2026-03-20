@@ -116,3 +116,17 @@ fn checked_in_suite_catalog_exercises_structured_param_bindings() -> Result<()> 
     );
     Ok(())
 }
+
+#[test]
+fn checked_in_fastq_suite_catalog_exercises_multi_tool_validation_cohorts() -> Result<()> {
+    let has_multi_tool_validation_suite = checked_in_suites()?.into_iter().any(|(_path, suite)| {
+        suite.stages.into_iter().any(|stage| {
+            stage.stage == "fastq.validate_reads" && stage.tools.len() > 1
+        })
+    });
+    assert!(
+        has_multi_tool_validation_suite,
+        "checked-in FASTQ suites must exercise a multi-tool validation cohort"
+    );
+    Ok(())
+}
