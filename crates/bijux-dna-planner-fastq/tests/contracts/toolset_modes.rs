@@ -15,21 +15,26 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
         &trim_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
     );
-    assert!(governed_tools.iter().any(|tool_id| tool_id.as_str() == "fastp"));
-    assert!(governed_tools.iter().all(|tool_id| tool_id.as_str() != "seqpurge"));
+    assert!(governed_tools
+        .iter()
+        .any(|tool_id| tool_id.as_str() == "fastp"));
+    assert!(governed_tools
+        .iter()
+        .all(|tool_id| tool_id.as_str() != "seqpurge"));
 
     let benchmark_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &trim_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
     );
-    assert!(benchmark_tools.iter().any(|tool_id| tool_id.as_str() == "fastp"));
-    assert!(benchmark_tools.iter().all(|tool_id| tool_id.as_str() != "seqpurge"));
+    assert!(benchmark_tools.is_empty());
 
     let all_bindings = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &trim_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
     );
-    assert!(all_bindings.iter().any(|tool_id| tool_id.as_str() == "seqpurge"));
+    assert!(all_bindings
+        .iter()
+        .any(|tool_id| tool_id.as_str() == "seqpurge"));
 }
 
 #[test]

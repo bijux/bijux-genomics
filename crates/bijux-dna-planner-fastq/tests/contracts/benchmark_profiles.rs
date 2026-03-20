@@ -18,7 +18,7 @@ fn benchmark_profiles_distinguish_planned_governed_and_benchmarkable_bindings() 
     );
     assert_eq!(
         trim_profile.readiness,
-        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
     );
     assert_eq!(trim_profile.benchmark_scenarios, vec!["trim_fairness"]);
 
@@ -82,9 +82,9 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
             == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract)
             .all(|profile| {
             profile.readiness
-                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
         }),
-        "closed taxonomy screening backends should surface the shared benchmark cohort",
+        "generic taxonomy screening backends must stay governed-only until observer-specialized normalization exists",
     );
 }
 
@@ -108,7 +108,7 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     .expect("trim capability");
     assert!(trim_capability.runnable);
     assert!(trim_capability.parse_normalized);
-    assert!(trim_capability.benchmark_normalized);
+    assert!(!trim_capability.benchmark_normalized);
     assert!(!trim_capability.comparable);
 
     let detect_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
@@ -128,58 +128,30 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let trim_cohorts = bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&trim_stage);
     assert_eq!(trim_cohorts.len(), 1);
     assert_eq!(trim_cohorts[0].scenario_id, "trim_fairness");
-    assert!(trim_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "fastp"));
-    assert!(trim_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "seqpurge"));
+    assert!(trim_cohorts[0].tool_ids.is_empty());
     assert!(trim_cohorts[0].observer_specialized_tools.is_empty());
-    assert!(!trim_cohorts[0].generic_envelope_tools.is_empty());
+    assert!(trim_cohorts[0].generic_envelope_tools.is_empty());
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let screen_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&screen_stage);
     assert_eq!(screen_cohorts.len(), 1);
     assert_eq!(screen_cohorts[0].scenario_id, "screen_fairness");
-    assert!(screen_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "kraken2"));
-    assert!(screen_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "diamond"));
+    assert!(screen_cohorts[0].tool_ids.is_empty());
 
     let filter_stage = StageId::from_static("fastq.filter_reads");
     let filter_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&filter_stage);
     assert_eq!(filter_cohorts.len(), 1);
     assert_eq!(filter_cohorts[0].scenario_id, "filter_fairness");
-    assert!(filter_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "fastp"));
-    assert!(filter_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "cutadapt"));
+    assert!(filter_cohorts[0].tool_ids.is_empty());
 
     let merge_stage = StageId::from_static("fastq.merge_pairs");
     let merge_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&merge_stage);
     assert_eq!(merge_cohorts.len(), 1);
     assert_eq!(merge_cohorts[0].scenario_id, "merge_fairness");
-    assert!(merge_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "pear"));
-    assert!(merge_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "vsearch"));
+    assert!(merge_cohorts[0].tool_ids.is_empty());
 
     let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
     let low_complexity_cohorts =
@@ -189,32 +161,14 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         low_complexity_cohorts[0].scenario_id,
         "low_complexity_fairness"
     );
-    assert!(low_complexity_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "bbduk"));
-    assert!(low_complexity_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "prinseq"));
-    assert!(low_complexity_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "dustmasker"));
+    assert!(low_complexity_cohorts[0].tool_ids.is_empty());
 
     let dedup_stage = StageId::from_static("fastq.remove_duplicates");
     let dedup_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&dedup_stage);
     assert_eq!(dedup_cohorts.len(), 1);
     assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
-    assert!(dedup_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "fastuniq"));
-    assert!(dedup_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "clumpify"));
+    assert!(dedup_cohorts[0].tool_ids.is_empty());
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
     let read_length_cohorts =
@@ -228,37 +182,18 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert!(read_length_cohorts[0]
         .tool_ids
         .iter()
-        .any(|tool_id| tool_id.as_str() == "fastp"));
+        .all(|tool_id| tool_id.as_str() != "fastp"));
     assert!(read_length_cohorts[0]
         .tool_ids
         .iter()
-        .any(|tool_id| tool_id.as_str() == "prinseq"));
-    assert!(read_length_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "seqfu"));
+        .all(|tool_id| tool_id.as_str() != "prinseq"));
 
     let correction_stage = StageId::from_static("fastq.correct_errors");
     let correction_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&correction_stage);
     assert_eq!(correction_cohorts.len(), 1);
     assert_eq!(correction_cohorts[0].scenario_id, "correction_fairness");
-    assert!(correction_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "rcorrector"));
-    assert!(correction_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "musket"));
-    assert!(correction_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "lighter"));
-    assert!(correction_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "bayeshammer"));
+    assert!(correction_cohorts[0].tool_ids.is_empty());
 
     let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
     let primer_cohorts =
@@ -268,14 +203,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         primer_cohorts[0].scenario_id,
         "primer_normalization_fairness"
     );
-    assert!(primer_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "cutadapt"));
-    assert!(primer_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "seqkit"));
+    assert!(primer_cohorts[0].tool_ids.is_empty());
 
     let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
     let terminal_damage_cohorts =
@@ -285,14 +213,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         terminal_damage_cohorts[0].scenario_id,
         "terminal_damage_fairness"
     );
-    assert!(terminal_damage_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "cutadapt"));
-    assert!(terminal_damage_cohorts[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id.as_str() == "seqkit"));
+    assert!(terminal_damage_cohorts[0].tool_ids.is_empty());
 
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
     let overrepresented_cohorts =
@@ -309,11 +230,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert!(overrepresented_cohorts[0]
         .tool_ids
         .iter()
-        .any(|tool_id| tool_id.as_str() == "seqkit"));
-    assert!(overrepresented_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "fastq_scan"));
+        .all(|tool_id| tool_id.as_str() != "seqkit"));
 
     let validation_stage = StageId::from_static("fastq.validate_reads");
     let validation_cohorts =
@@ -327,9 +244,9 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert!(validation_cohorts[0]
         .tool_ids
         .iter()
-        .any(|tool_id| tool_id.as_str() == "seqtk"));
+        .all(|tool_id| tool_id.as_str() != "seqtk"));
     assert!(validation_cohorts[0]
         .tool_ids
         .iter()
-        .any(|tool_id| tool_id.as_str() == "fqtools"));
+        .all(|tool_id| tool_id.as_str() != "fqtools"));
 }
