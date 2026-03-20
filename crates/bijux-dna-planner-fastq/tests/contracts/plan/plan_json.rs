@@ -1,9 +1,10 @@
 use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 use bijux_dna_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StageId, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::{STAGE_TRIM_READS, STAGE_VALIDATE_READS};
@@ -13,23 +14,39 @@ fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-planner-fastq__{group}__{name}")
 }
 
-fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("workspace root")
+        .to_path_buf()
+}
+
+fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
+    static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| {
+        bijux_dna_runtime::manifests::load_manifests(&workspace_root())
+            .expect("load domain tool registry")
+    })
+}
+
+fn domain_tool(stage: &str, tool: &str) -> ToolExecutionSpecV1 {
+    let stage_id = StageId::new(stage);
+    let tool_id = ToolId::new(tool);
+    let manifest = tool_registry()
+        .tool_by_id(&stage_id, &tool_id)
+        .unwrap_or_else(|| panic!("missing tool manifest {tool} for {stage}"));
     ToolExecutionSpecV1 {
-        tool_id: ToolId::new(tool),
-        tool_version: "1.0.0".to_string(),
+        tool_id,
+        tool_version: "domain-manifest".to_string(),
         image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
+            image: format!("bijuxdna/{tool}"),
             digest: None,
         },
         command: CommandSpecV1 {
-            template: Vec::new(),
+            template: manifest.command_template.clone(),
         },
-        resources: ToolConstraints {
-            runtime: "docker".to_string(),
-            mem_gb: 1,
-            tmp_gb: 1,
-            threads: 1,
-        },
+        resources: manifest.constraints.clone(),
     }
 }
 
@@ -55,7 +72,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let out_dir = Path::new("out");
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters::plan(
-        &dummy_tool("fastqc"),
+        &domain_tool("fastq.detect_adapters", "fastqc"),
         r1,
         Some(r2),
         out_dir,
@@ -63,7 +80,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
-        &dummy_tool("fastp"),
+        &domain_tool("fastq.trim_reads", "fastp"),
         r1,
         None,
         out_dir,
@@ -74,7 +91,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.trim_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
-        &dummy_tool("seqkit"),
+        &domain_tool("fastq.filter_reads", "seqkit"),
         r1,
         None,
         out_dir,
@@ -83,7 +100,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.filter_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::plan_merge(
-        &dummy_tool("pear"),
+        &domain_tool("fastq.merge_pairs", "pear"),
         r1,
         r2,
         out_dir,
@@ -91,7 +108,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.merge_pairs", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::index_reference::plan(
-        &dummy_tool("bowtie2_build"),
+        &domain_tool("fastq.index_reference", "bowtie2_build"),
         Path::new("reference.fa"),
         out_dir,
     )?;
@@ -100,7 +117,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "out/reference_index/bowtie2/reference"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
-        &dummy_tool("fastqvalidator"),
+        &domain_tool("fastq.validate_reads", "fastqvalidator"),
         r1,
         None,
         out_dir,
@@ -108,7 +125,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.validate_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::screen_taxonomy::plan_screen(
-        &dummy_tool("kraken2"),
+        &domain_tool("fastq.screen_taxonomy", "kraken2"),
         r1,
         Some(r2),
         out_dir,
@@ -116,7 +133,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.screen_taxonomy", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_rrna::plan_rrna(
-        &dummy_tool("sortmerna"),
+        &domain_tool("fastq.deplete_rrna", "sortmerna"),
         r1,
         None,
         out_dir,
@@ -124,7 +141,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.deplete_rrna", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_host::plan_host_depletion(
-        &dummy_tool("bowtie2"),
+        &domain_tool("fastq.deplete_host", "bowtie2"),
         r1,
         Some(r2),
         Path::new("host_reference_index"),
@@ -137,7 +154,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
-        &dummy_tool("bowtie2"),
+        &domain_tool("fastq.deplete_reference_contaminants", "bowtie2"),
         r1,
         Some(r2),
         Path::new("contaminant_reference_index"),
@@ -153,7 +170,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
-        &dummy_tool("umi_tools"),
+        &domain_tool("fastq.extract_umis", "umi_tools"),
         r1,
         r2,
         out_dir,
@@ -162,7 +179,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.extract_umis", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
-        &dummy_tool("rcorrector"),
+        &domain_tool("fastq.correct_errors", "rcorrector"),
         r1,
         r2,
         out_dir,
@@ -183,12 +200,23 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan =
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::plan_preprocess_stage(
             &preprocess_plan,
-            &dummy_tool("planner"),
+            &ToolExecutionSpecV1 {
+                tool_id: ToolId::new("planner"),
+                tool_version: "domain-manifest".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijuxdna/planner".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["planner".to_string()],
+                },
+                resources: Default::default(),
+            },
         )?;
     assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post(
-        &dummy_tool("multiqc"),
+        &domain_tool("fastq.report_qc", "multiqc"),
         r1,
         Some(r2),
         out_dir,
@@ -199,7 +227,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.report_qc", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads::plan_stats_neutral(
-        &dummy_tool("seqkit_stats"),
+        &domain_tool("fastq.profile_reads", "seqkit_stats"),
         r1,
         None,
         out_dir,
@@ -207,7 +235,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.profile_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan(
-        &dummy_tool("cutadapt"),
+        &domain_tool("fastq.normalize_primers", "cutadapt"),
         r1,
         Some(r2),
         out_dir,
@@ -222,7 +250,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "out/R2.primer_normalized.fastq.gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
-        &dummy_tool("vsearch"),
+        &domain_tool("fastq.remove_chimeras", "vsearch"),
         r1,
         Some(r2),
         out_dir,
@@ -238,7 +266,18 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     );
 
     let infer_asvs_error = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
-        &dummy_tool("dada2"),
+        &ToolExecutionSpecV1 {
+            tool_id: ToolId::new("dada2"),
+            tool_version: "domain-manifest".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijuxdna/dada2".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["Rscript".to_string(), "run_dada2.R".to_string()],
+            },
+            resources: Default::default(),
+        },
         r1,
         Some(r2),
         out_dir,
@@ -250,7 +289,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     );
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
-        &dummy_tool("vsearch"),
+        &domain_tool("fastq.cluster_otus", "vsearch"),
         r1,
         None,
         out_dir,
@@ -264,7 +303,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.outputs[2].name.as_str(), "taxonomy_ready_fasta");
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
-            &dummy_tool("vsearch"),
+            &domain_tool("fastq.cluster_otus", "vsearch"),
             r1,
             Some(r2),
             out_dir,

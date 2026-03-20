@@ -2,19 +2,24 @@
   "stage_id": "fastq.screen_taxonomy",
   "stage_version": 1,
   "tool_id": "kraken2",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/kraken2",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "kraken2",
+      "--report",
+      "{{screen_report_tsv}}",
+      "{{reads_r1}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 16,
+    "tmp_gb": 8,
+    "threads": 4
   },
   "io": {
     "inputs": [
@@ -62,7 +67,7 @@
     "paired_mode": "paired_end",
     "report_format": "kraken_report",
     "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-    "threads": 1
+    "threads": 4
   },
   "aux_images": {},
   "reason": {

@@ -651,6 +651,7 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-pipelines",
  "bijux-dna-policies",
+ "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "bijux-dna-stages-fastq",
  "bijux-dna-testkit",
