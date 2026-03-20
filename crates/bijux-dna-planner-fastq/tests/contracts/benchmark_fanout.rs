@@ -74,7 +74,7 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
     assert!(compare_step
         .expected_artifact_ids
         .iter()
-        .any(|artifact_id| artifact_id.as_str() == "stage_tool_comparison_json"));
+        .any(|artifact_id| artifact_id.as_str() == "trim_tool_comparison_json"));
     assert!(graph.edges().iter().any(|edge| {
         edge.from().as_str() == "fastq.trim_reads.tool.fastp"
             && edge.to().as_str() == "fastq.trim_reads.compare"
