@@ -66,6 +66,44 @@ fn indexed_stage_tools() -> Result<BTreeMap<String, Vec<String>>> {
     Ok(out)
 }
 
+fn indexed_stage_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, String>>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    let mut out = BTreeMap::<String, BTreeMap<String, String>>::new();
+    let mut in_block = false;
+    let mut current_stage = None::<String>;
+    for line in raw.lines() {
+        if line == "stage_tool_integration:" {
+            in_block = true;
+            continue;
+        }
+        if !in_block {
+            continue;
+        }
+        if !line.starts_with(' ') && line.contains(':') {
+            break;
+        }
+        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
+            let stage = stage.to_string();
+            out.entry(stage.clone()).or_default();
+            current_stage = Some(stage);
+            continue;
+        }
+        if let Some((tool_id, level)) = line
+            .strip_prefix("    ")
+            .and_then(|rest| rest.split_once(':'))
+        {
+            if let Some(stage) = &current_stage {
+                out.entry(stage.clone()).or_default().insert(
+                    tool_id.trim().to_string(),
+                    level.trim().to_string(),
+                );
+            }
+        }
+    }
+    Ok(out)
+}
+
 fn indexed_tool_ids() -> Result<BTreeSet<String>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
         .context("read domain/fastq/index.yaml")?;
@@ -182,12 +220,67 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
     out
 }
 
+fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, String>>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml: serde_yaml::Value = serde_yaml::from_str(
+            &std::fs::read_to_string(&path)
+                .with_context(|| format!("read {}", path.display()))?,
+        )
+        .with_context(|| format!("parse {}", path.display()))?;
+        let stage_id = yaml
+            .get("stage_id")
+            .and_then(serde_yaml::Value::as_str)
+            .map(str::to_string)
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        let mut tool_map = BTreeMap::new();
+        for tool_id in yaml
+            .get("compatible_tools")
+            .and_then(serde_yaml::Value::as_sequence)
+            .into_iter()
+            .flatten()
+            .filter_map(serde_yaml::Value::as_str)
+        {
+            tool_map.insert(tool_id.to_string(), "governed_contract".to_string());
+        }
+        for tool_id in yaml
+            .get("planned_out_of_scope")
+            .and_then(serde_yaml::Value::as_sequence)
+            .into_iter()
+            .flatten()
+            .filter_map(serde_yaml::Value::as_str)
+        {
+            tool_map.insert(tool_id.to_string(), "planned_contract".to_string());
+        }
+        out.insert(stage_id, tool_map);
+    }
+    Ok(out)
+}
+
 #[test]
 fn generated_index_stage_tool_compatibility_matches_stage_manifests() -> Result<()> {
     assert_eq!(
         indexed_stage_tools()?,
         stage_manifest_tools()?,
         "domain/fastq/index.yaml drifted from stage manifest compatible_tools"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_index_stage_tool_integration_matches_stage_manifests() -> Result<()> {
+    assert_eq!(
+        indexed_stage_tool_integration()?,
+        stage_manifest_tool_integration()?,
+        "domain/fastq/index.yaml stage_tool_integration drifted from stage manifest compatibility and planned bindings"
     );
     Ok(())
 }

@@ -382,6 +382,12 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         "stage_tool_compatibility",
         render_stage_tool_compatibility_block(&dom_dir)?,
     )?;
+    replace_or_insert_block(
+        &mut body_lines,
+        "stage_tool_integration",
+        render_stage_tool_integration_block(&dom_dir)?,
+        Some("stage_tool_compatibility"),
+    )?;
 
     if !body_lines
         .iter()
@@ -427,6 +433,52 @@ fn render_stage_tool_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> 
     for (stage_id, tools) in stage_map {
         rendered.push(format!("  {stage_id}:"));
         rendered.extend(tools.into_iter().map(|tool_id| format!("  - {tool_id}")));
+    }
+    Ok(rendered)
+}
+
+fn render_stage_tool_integration_block(dom_dir: &Path) -> Result<Vec<String>> {
+    let mut rendered = Vec::new();
+    let mut stage_map = BTreeMap::<String, BTreeMap<String, String>>::new();
+    for stage_file in yaml_files(&dom_dir.join("stages"))? {
+        if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let text = read_utf8(&stage_file)?;
+        let Some(stage_id) = scalar_from_text(&text, "stage_id")? else {
+            continue;
+        };
+        let mut integration = BTreeMap::new();
+        let compatible = {
+            let block = list_block(&text, "compatible_tools")?;
+            if block.is_empty() {
+                inline_list(&text, "compatible_tools")?
+            } else {
+                block
+            }
+        };
+        for tool_id in compatible {
+            integration.insert(tool_id, "governed_contract".to_string());
+        }
+        let planned = {
+            let block = list_block(&text, "planned_out_of_scope")?;
+            if block.is_empty() {
+                inline_list(&text, "planned_out_of_scope")?
+            } else {
+                block
+            }
+        };
+        for tool_id in planned {
+            integration.insert(tool_id, "planned_contract".to_string());
+        }
+        stage_map.insert(stage_id, integration);
+    }
+
+    for (stage_id, tool_map) in stage_map {
+        rendered.push(format!("  {stage_id}:"));
+        for (tool_id, level) in tool_map {
+            rendered.push(format!("    {tool_id}: {level}"));
+        }
     }
     Ok(rendered)
 }
