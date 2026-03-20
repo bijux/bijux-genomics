@@ -57,6 +57,7 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         &r1,
         None,
         None,
+        None,
         |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
     )?;
     let edges = default_edges_for_stages(&plans);
@@ -108,6 +109,7 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
         &r1,
         None,
         Some(&reference),
+        None,
         |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
     )?;
 
@@ -161,6 +163,7 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
         &r1,
         None,
         Some(&reference),
+        None,
         |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
     )
     .expect_err("STAR index must not satisfy bowtie2 depletion");

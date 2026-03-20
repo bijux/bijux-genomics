@@ -88,6 +88,7 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         Path::new("reads_R1.fastq.gz"),
         None,
         None,
+        None,
         |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
     )?;
 
@@ -121,6 +122,7 @@ fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
         Path::new("reads_R1.fastq.gz"),
         None,
         None,
+        None,
         |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
     )
     .expect_err("report_qc should require governed QC artifacts");
@@ -152,6 +154,7 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         Path::new("reads_R1.fastq.gz"),
         None,
         Some(Path::new("reference.fa")),
+        None,
         |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
     )?;
 
@@ -187,6 +190,7 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         None,
         false,
         Path::new("reads_R1.fastq.gz"),
+        None,
         None,
         None,
         |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),

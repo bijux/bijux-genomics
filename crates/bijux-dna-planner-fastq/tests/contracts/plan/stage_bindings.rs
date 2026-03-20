@@ -411,6 +411,22 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
         .edges()
         .iter()
         .all(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some()));
+    let report_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.report_qc.aggregate")
+        .expect("report_qc step");
+    assert_eq!(report_step.io.inputs.len(), 2);
+    assert!(report_step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "validation_report"));
+    assert!(report_step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "adapter_report"));
     Ok(())
 }
 
@@ -473,7 +489,13 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
     })?;
 
     assert_eq!(plan.edges().len(), 1);
-    assert_eq!(plan.edges()[0].from().as_str(), "fastq.validate_reads.tool.fastqvalidator");
-    assert_eq!(plan.edges()[0].to().as_str(), "fastq.detect_adapters.tool.fastqc");
+    assert_eq!(
+        plan.edges()[0].from().as_str(),
+        "fastq.validate_reads.tool.fastqvalidator"
+    );
+    assert_eq!(
+        plan.edges()[0].to().as_str(),
+        "fastq.detect_adapters.tool.fastqc"
+    );
     Ok(())
 }
