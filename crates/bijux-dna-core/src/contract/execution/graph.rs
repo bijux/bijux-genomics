@@ -155,6 +155,58 @@ impl ExecutionGraph {
         &self.edges
     }
 
+    #[must_use]
+    pub fn step_by_id(&self, step_id: &str) -> Option<&ExecutionStep> {
+        self.steps.iter().find(|step| step.step_id.as_str() == step_id)
+    }
+
+    /// # Errors
+    /// Returns an error if the graph is cyclic or references unknown steps.
+    pub fn topological_step_ids(&self) -> Result<Vec<&StepId>> {
+        validate_acyclic(self)?;
+        let mut incoming: BTreeMap<&str, usize> = BTreeMap::new();
+        let mut outgoing: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        for step in &self.steps {
+            incoming.insert(step.step_id.as_str(), 0);
+        }
+        for edge in &self.edges {
+            *incoming.entry(edge.to().as_str()).or_insert(0) += 1;
+            outgoing
+                .entry(edge.from().as_str())
+                .or_default()
+                .push(edge.to().as_str());
+        }
+        let mut ready = incoming
+            .iter()
+            .filter_map(|(id, count)| if *count == 0 { Some(*id) } else { None })
+            .collect::<Vec<_>>();
+        ready.sort_unstable();
+        ready.reverse();
+        let mut order = Vec::with_capacity(self.steps.len());
+        while let Some(node_id) = ready.pop() {
+            let step = self
+                .step_by_id(node_id)
+                .expect("validated graph must resolve step ids from topological walk");
+            order.push(&step.step_id);
+            if let Some(children) = outgoing.get(node_id) {
+                let mut released = Vec::new();
+                for child in children {
+                    if let Some(count) = incoming.get_mut(child) {
+                        *count -= 1;
+                        if *count == 0 {
+                            released.push(*child);
+                        }
+                    }
+                }
+                released.sort_unstable();
+                for child in released.into_iter().rev() {
+                    ready.push(child);
+                }
+            }
+        }
+        Ok(order)
+    }
+
     /// # Errors
     /// Returns an error if the graph fails validation checks.
     pub fn new(
@@ -407,4 +459,96 @@ fn validate_acyclic(graph: &ExecutionGraph) -> Result<()> {
         return Err(BijuxError::validation("execution graph contains a cycle"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+    use crate::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
+    use crate::foundation::{CommandSpecV1, ContainerImageRefV1};
+    use crate::ids::{ArtifactId, StageId, StepId};
+    use std::path::PathBuf;
+
+    fn step(step_id: &str, stage_id: &str) -> ExecutionStep {
+        ExecutionStep {
+            step_id: StepId::new(step_id.to_string()),
+            stage_id: StageId::new(stage_id.to_string()),
+            command: CommandSpecV1 {
+                template: vec!["tool".to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "img".to_string(),
+                digest: Some("sha256:test".to_string()),
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("in".to_string()),
+                    PathBuf::from("in.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("out".to_string()),
+                    PathBuf::from("out.fastq.gz"),
+                    ArtifactRole::TrimmedReads,
+                )],
+            },
+            out_dir: PathBuf::from("out"),
+            aux_images: Default::default(),
+            expected_artifact_ids: vec![],
+            metrics_schema_ids: vec![],
+        }
+    }
+
+    #[test]
+    fn execution_graph_exposes_step_lookup() {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![step("a", "fastq.validate_reads")],
+            vec![],
+        )
+        .expect("graph");
+        assert_eq!(
+            graph
+                .step_by_id("a")
+                .expect("step")
+                .stage_id,
+            StageId::new("fastq.validate_reads".to_string())
+        );
+        assert!(graph.step_by_id("missing").is_none());
+    }
+
+    #[test]
+    fn execution_graph_topological_order_is_stable() {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![
+                step("trim", "fastq.trim_reads"),
+                step("validate", "fastq.validate_reads"),
+                step("report", "fastq.report_qc"),
+            ],
+            vec![
+                ExecutionEdge::new(
+                    StepId::new("validate".to_string()),
+                    StepId::new("trim".to_string()),
+                ),
+                ExecutionEdge::new(
+                    StepId::new("trim".to_string()),
+                    StepId::new("report".to_string()),
+                ),
+            ],
+        )
+        .expect("graph");
+        let ordered = graph
+            .topological_step_ids()
+            .expect("topological order")
+            .into_iter()
+            .map(|step_id| step_id.as_str().to_string())
+            .collect::<Vec<_>>();
+        assert_eq!(ordered, vec!["validate", "trim", "report"]);
+    }
 }
