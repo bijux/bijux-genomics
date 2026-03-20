@@ -13,11 +13,13 @@ pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static st
         "fastq.profile_reads" => &["qc_json", "qc_tsv", "qc_plots_dir"],
         "fastq.deplete_rrna" => &["rrna_report_tsv", "rrna_report_json"],
         "fastq.screen_taxonomy" => &["screen_report_tsv", "classification_report_json"],
+        "fastq.trim_reads" => &["report_json"],
         "fastq.merge_pairs" => &["report_json"],
         "fastq.remove_duplicates" => &["report_json"],
         "fastq.filter_low_complexity" => &["filter_report_json"],
         "fastq.deplete_host" => &["host_depletion_report_json"],
         "fastq.deplete_reference_contaminants" => &["contaminant_screen_report_json"],
+        "fastq.correct_errors" => &["report_json"],
         "fastq.trim_terminal_damage" => &["report_json"],
         "fastq.trim_polyg_tails" => &["report_json"],
         "fastq.extract_umis" => &["report_json"],
@@ -61,6 +63,8 @@ mod tests {
         assert!(producers.contains(&StageId::from_static("fastq.detect_adapters")));
         assert!(!producers.contains(&StageId::from_static("fastq.report_qc")));
         assert!(producers.contains(&StageId::from_static("fastq.deplete_rrna")));
+        assert!(producers.contains(&StageId::from_static("fastq.trim_reads")));
+        assert!(producers.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(producers.contains(&StageId::from_static("fastq.trim_polyg_tails")));
     }
 
