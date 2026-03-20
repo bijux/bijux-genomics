@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.deplete_reference_contaminants",
+  "stage_instance_id": "fastq.deplete_reference_contaminants.tool.bowtie2",
   "stage_version": 1,
   "tool_id": "bowtie2",
   "tool_version": "domain-manifest",

@@ -10,7 +10,7 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams,
+    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams,
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
@@ -391,12 +391,14 @@ where
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_RRNA.as_str() => {
+                let params = deplete_rrna_params(binding);
                 let plan =
-                    crate::tool_adapters::fastq::deplete_rrna::plan_rrna(
+                    crate::tool_adapters::fastq::deplete_rrna::plan_rrna_with_options(
                         tool,
                         &current_r1,
                         current_r2.as_deref(),
                         &out_dir,
+                        &params,
                     )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {
@@ -553,7 +555,14 @@ where
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::TrimTerminalDamage(params)) => params.clone(),
-        None => TrimTerminalDamageStageParams::default(),
+        _ => TrimTerminalDamageStageParams::default(),
+    }
+}
+
+fn deplete_rrna_params(binding: &FastqStageBinding) -> DepleteRrnaStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::DepleteRrna(params)) => params.clone(),
+        _ => DepleteRrnaStageParams::default(),
     }
 }
 

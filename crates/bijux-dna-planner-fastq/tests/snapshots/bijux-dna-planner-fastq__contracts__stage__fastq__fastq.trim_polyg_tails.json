@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.trim_polyg_tails",
+  "stage_instance_id": "fastq.trim_polyg_tails.tool.fastp",
   "stage_version": 1,
   "tool_id": "fastp",
   "tool_version": "domain-manifest",

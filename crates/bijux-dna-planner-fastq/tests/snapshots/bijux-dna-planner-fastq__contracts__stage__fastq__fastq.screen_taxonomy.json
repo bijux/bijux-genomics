@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.screen_taxonomy",
+  "stage_instance_id": "fastq.screen_taxonomy.tool.kraken2",
   "stage_version": 1,
   "tool_id": "kraken2",
   "tool_version": "domain-manifest",

@@ -65,6 +65,7 @@ pub struct FastqStageBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     TrimTerminalDamage(TrimTerminalDamageStageParams),
+    DepleteRrna(DepleteRrnaStageParams),
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +81,21 @@ impl Default for TrimTerminalDamageStageParams {
             damage_mode: "ancient".to_string(),
             trim_5p_bases: 2,
             trim_3p_bases: 2,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DepleteRrnaStageParams {
+    pub rrna_db: String,
+    pub min_identity: f64,
+}
+
+impl Default for DepleteRrnaStageParams {
+    fn default() -> Self {
+        Self {
+            rrna_db: "rrna_reference".to_string(),
+            min_identity: 0.95,
         }
     }
 }

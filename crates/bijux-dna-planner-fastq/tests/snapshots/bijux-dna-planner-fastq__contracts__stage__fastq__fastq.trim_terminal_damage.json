@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.trim_terminal_damage",
+  "stage_instance_id": "fastq.trim_terminal_damage.tool.cutadapt",
   "stage_version": 1,
   "tool_id": "cutadapt",
   "tool_version": "domain-manifest",

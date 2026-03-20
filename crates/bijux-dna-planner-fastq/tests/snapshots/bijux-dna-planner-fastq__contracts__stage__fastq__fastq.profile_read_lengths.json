@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.profile_read_lengths",
+  "stage_instance_id": "fastq.profile_read_lengths.tool.seqkit_stats",
   "stage_version": 1,
   "tool_id": "seqkit_stats",
   "tool_version": "domain-manifest",

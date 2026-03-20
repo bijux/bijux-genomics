@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.filter_low_complexity",
+  "stage_instance_id": "fastq.filter_low_complexity.tool.bbduk",
   "stage_version": 1,
   "tool_id": "bbduk",
   "tool_version": "domain-manifest",

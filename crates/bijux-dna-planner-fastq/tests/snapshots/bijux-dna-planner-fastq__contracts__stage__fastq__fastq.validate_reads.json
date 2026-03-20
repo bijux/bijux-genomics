@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.validate_reads",
+  "stage_instance_id": "fastq.validate_reads.tool.fastqvalidator",
   "stage_version": 1,
   "tool_id": "fastqvalidator",
   "tool_version": "domain-manifest",
