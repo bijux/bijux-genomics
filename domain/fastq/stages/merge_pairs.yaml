@@ -14,6 +14,12 @@ outputs:
   - name: "merged_reads"
     data_type: "fastq"
     cardinality: "One"
+  - name: "unmerged_reads_r1"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "unmerged_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
@@ -53,7 +59,8 @@ invariants:
   - "paired_end_input_required"
   - "deterministic_merge_output_names"
 allowed_missingness:
-  - "none"
+  - "unmerged_reads_r1"
+  - "unmerged_reads_r2"
 compatible_tools:
   - pear
   - vsearch

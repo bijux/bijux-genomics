@@ -8,7 +8,15 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "pear",
+      "-f",
+      "reads_R1.fastq.gz",
+      "-r",
+      "reads_R2.fastq.gz",
+      "-o",
+      "out/pear"
+    ]
   },
   "resources": {
     "runtime": "docker",
@@ -34,18 +42,39 @@
     "outputs": [
       {
         "name": "merged_reads",
-        "path": "out/pear.fastq.gz",
+        "path": "out/pear.assembled.fastq",
         "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "unmerged_reads_r1",
+        "path": "out/pear.unassembled.forward.fastq",
+        "role": "reads",
+        "optional": true
+      },
+      {
+        "name": "unmerged_reads_r2",
+        "path": "out/pear.unassembled.reverse.fastq",
+        "role": "reads",
+        "optional": true
+      },
+      {
+        "name": "report_json",
+        "path": "out/merge_report.json",
+        "role": "metrics_json",
         "optional": false
       }
     ]
   },
   "out_dir": "out",
   "params": {
-    "output": "out/pear.fastq.gz",
+    "merged_reads": "out/pear.assembled.fastq",
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
-    "tool": "pear"
+    "report_json": "out/merge_report.json",
+    "tool": "pear",
+    "unmerged_reads_r1": "out/pear.unassembled.forward.fastq",
+    "unmerged_reads_r2": "out/pear.unassembled.reverse.fastq"
   },
   "effective_params": {
     "merge_overlap": null,

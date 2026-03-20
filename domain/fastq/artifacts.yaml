@@ -49,6 +49,8 @@ artifact_ids:
   - taxonomy_ready_fasta
   - taxonomy_ready_fastq
   - trimmed_reads
+  - unmerged_reads_r1
+  - unmerged_reads_r2
   - umi_reads_r1
   - umi_reads_r2
   - validation_report
