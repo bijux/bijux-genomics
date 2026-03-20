@@ -58,7 +58,13 @@
   },
   "effective_params": {
     "contaminant_db": "rrna_reference",
+    "database_artifact_id": "rrna_reference",
+    "database_build_id": null,
+    "emit_removed_reads": false,
     "paired_mode": "single_end",
+    "report_format": "summary_tsv_and_json",
+    "schema_version": "bijux.fastq.params.deplete_rrna.v1",
+    "screening_engine": "sortmerna",
     "threads": 1
   },
   "aux_images": {},
