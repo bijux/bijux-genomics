@@ -57,6 +57,10 @@ impl From<&StagePlanV1> for PlannerContractV1 {
 pub struct PlanEdge {
     from: String,
     to: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    from_output_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    to_input_id: Option<String>,
 }
 
 impl PlanEdge {
@@ -65,6 +69,23 @@ impl PlanEdge {
         Self {
             from: from.into(),
             to: to.into(),
+            from_output_id: None,
+            to_input_id: None,
+        }
+    }
+
+    #[must_use]
+    pub fn with_artifact_binding(
+        from: impl Into<String>,
+        to: impl Into<String>,
+        from_output_id: impl Into<String>,
+        to_input_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            from: from.into(),
+            to: to.into(),
+            from_output_id: Some(from_output_id.into()),
+            to_input_id: Some(to_input_id.into()),
         }
     }
 
@@ -76,6 +97,16 @@ impl PlanEdge {
     #[must_use]
     pub fn to(&self) -> &str {
         &self.to
+    }
+
+    #[must_use]
+    pub fn from_output_id(&self) -> Option<&str> {
+        self.from_output_id.as_deref()
+    }
+
+    #[must_use]
+    pub fn to_input_id(&self) -> Option<&str> {
+        self.to_input_id.as_deref()
     }
 }
 
@@ -280,6 +311,54 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
                 edge.from,
                 edge.to
             ));
+        }
+        let from_stage = plan
+            .stages
+            .iter()
+            .find(|stage| stage_node_id(stage) == edge.from)
+            .expect("validated edge source stage exists");
+        let to_stage = plan
+            .stages
+            .iter()
+            .find(|stage| stage_node_id(stage) == edge.to)
+            .expect("validated edge target stage exists");
+        match (edge.from_output_id(), edge.to_input_id()) {
+            (Some(from_output_id), Some(to_input_id)) => {
+                if !from_stage
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == from_output_id)
+                {
+                    return Err(anyhow!(
+                        "plan edge {} -> {} references unknown output artifact {}",
+                        edge.from,
+                        edge.to,
+                        from_output_id
+                    ));
+                }
+                if !to_stage
+                    .io
+                    .inputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == to_input_id)
+                {
+                    return Err(anyhow!(
+                        "plan edge {} -> {} references unknown input artifact {}",
+                        edge.from,
+                        edge.to,
+                        to_input_id
+                    ));
+                }
+            }
+            (None, None) => {}
+            _ => {
+                return Err(anyhow!(
+                    "plan edge {} -> {} must set both from_output_id and to_input_id together",
+                    edge.from,
+                    edge.to
+                ));
+            }
         }
         edges.push((edge.from.clone(), edge.to.clone()));
     }

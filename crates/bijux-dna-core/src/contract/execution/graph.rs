@@ -33,12 +33,36 @@ pub struct ExecutionStep {
 pub struct ExecutionEdge {
     from: StepId,
     to: StepId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    from_output_id: Option<ArtifactId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    to_input_id: Option<ArtifactId>,
 }
 
 impl ExecutionEdge {
     #[must_use]
     pub fn new(from: StepId, to: StepId) -> Self {
-        Self { from, to }
+        Self {
+            from,
+            to,
+            from_output_id: None,
+            to_input_id: None,
+        }
+    }
+
+    #[must_use]
+    pub fn with_artifact_binding(
+        from: StepId,
+        to: StepId,
+        from_output_id: ArtifactId,
+        to_input_id: ArtifactId,
+    ) -> Self {
+        Self {
+            from,
+            to,
+            from_output_id: Some(from_output_id),
+            to_input_id: Some(to_input_id),
+        }
     }
 
     #[must_use]
@@ -49,6 +73,16 @@ impl ExecutionEdge {
     #[must_use]
     pub fn to(&self) -> &StepId {
         &self.to
+    }
+
+    #[must_use]
+    pub fn from_output_id(&self) -> Option<&ArtifactId> {
+        self.from_output_id.as_ref()
+    }
+
+    #[must_use]
+    pub fn to_input_id(&self) -> Option<&ArtifactId> {
+        self.to_input_id.as_ref()
     }
 }
 
@@ -288,6 +322,52 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
                 edge.from().0,
                 edge.to().0
             )));
+        }
+        let from_step = by_id
+            .get(edge.from().as_str())
+            .copied()
+            .expect("validated edge source step exists");
+        let to_step = by_id
+            .get(edge.to().as_str())
+            .copied()
+            .expect("validated edge target step exists");
+        match (edge.from_output_id(), edge.to_input_id()) {
+            (Some(from_output_id), Some(to_input_id)) => {
+                if !from_step
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name == *from_output_id)
+                {
+                    return Err(BijuxError::validation(format!(
+                        "edge {} -> {} references unknown output artifact {}",
+                        edge.from().as_str(),
+                        edge.to().as_str(),
+                        from_output_id.as_str()
+                    )));
+                }
+                if !to_step
+                    .io
+                    .inputs
+                    .iter()
+                    .any(|artifact| artifact.name == *to_input_id)
+                {
+                    return Err(BijuxError::validation(format!(
+                        "edge {} -> {} references unknown input artifact {}",
+                        edge.from().as_str(),
+                        edge.to().as_str(),
+                        to_input_id.as_str()
+                    )));
+                }
+            }
+            (None, None) => {}
+            _ => {
+                return Err(BijuxError::validation(format!(
+                    "edge {} -> {} must set both from_output_id and to_input_id together",
+                    edge.from().as_str(),
+                    edge.to().as_str()
+                )));
+            }
         }
     }
     Ok(())

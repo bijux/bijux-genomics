@@ -11,6 +11,10 @@ pub struct PipelineNodeSpec {
 pub struct PipelineEdgeSpec {
     pub from: String,
     pub to: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_output_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to_input_id: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

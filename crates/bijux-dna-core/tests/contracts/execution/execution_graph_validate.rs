@@ -54,3 +54,22 @@ fn validate_rejects_cycles() {
     );
     assert!(graph.is_err());
 }
+
+#[test]
+fn validate_rejects_partial_artifact_binding() {
+    let a = step("a");
+    let b = step("b");
+    let graph = ExecutionGraph::new(
+        PipelineId::new("fastq-to-fastq__default__v1").as_str(),
+        "planner",
+        PlanPolicy::default(),
+        vec![a, b],
+        vec![ExecutionEdge::with_artifact_binding(
+            StepId::new("a"),
+            StepId::new("b"),
+            ArtifactId::new("missing"),
+            ArtifactId::new("in"),
+        )],
+    );
+    assert!(graph.is_err());
+}
