@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for semantics
+#[path = "semantics/execution_support.rs"]
+mod mod_semantics_execution_support_rs;
 #[path = "semantics/invariants.rs"]
 mod mod_semantics_invariants_rs;
 #[path = "semantics/observability.rs"]

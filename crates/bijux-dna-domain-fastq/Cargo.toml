@@ -9,6 +9,7 @@ rust-version.workspace = true
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+serde_yaml = "0.9"
 sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
@@ -19,7 +20,6 @@ schemars.workspace = true
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 insta = { workspace = true, features = ["json"] }
-serde_yaml = "0.9"
 walkdir.workspace = true
 
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
