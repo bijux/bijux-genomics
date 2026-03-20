@@ -13,7 +13,8 @@ stage_ids:
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
-- trimmed_reads
+- trimmed_reads_r1
+- trimmed_reads_r2
 - merged_reads
 - unmerged_reads_r1
 - unmerged_reads_r2
