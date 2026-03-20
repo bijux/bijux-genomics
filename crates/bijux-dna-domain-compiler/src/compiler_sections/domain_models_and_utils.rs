@@ -474,9 +474,8 @@ fn generated_header(source: &str, source_commit: &str) -> String {
 
 fn validate_tool_output_subset(
     tool_raw: &str,
-    stage_raw: &str,
+    stage_specs: &[(&str, String)],
     tool_path: &Path,
-    stage_id: &str,
 ) -> Result<()> {
     #[derive(serde::Deserialize)]
     struct NamedOutput {
@@ -509,20 +508,18 @@ fn validate_tool_output_subset(
             tool_path.display()
         );
     }
-    let stage_yaml: StageOutputsDoc = bijux_dna_infra::formats::parse_yaml(stage_raw)
-        .with_context(|| format!("parse stage {stage_id}"))?;
-    let stage_outputs = stage_yaml
-        .outputs
-        .iter()
-        .map(|entry| entry.name.as_str())
-        .collect::<BTreeSet<_>>();
+    let mut stage_outputs = BTreeSet::new();
+    for (stage_id, stage_raw) in stage_specs {
+        let stage_yaml: StageOutputsDoc = bijux_dna_infra::formats::parse_yaml(stage_raw)
+            .with_context(|| format!("parse stage {stage_id}"))?;
+        stage_outputs.extend(stage_yaml.outputs.into_iter().map(|entry| entry.name));
+    }
     for output in &output_names {
-        if !stage_outputs.contains(output) {
+        if !stage_outputs.contains(*output) {
             bail!(
-                "{} output `{}` is not declared by stage `{}` outputs",
+                "{} output `{}` is not declared by any bound stage outputs",
                 tool_path.display(),
-                output,
-                stage_id
+                output
             );
         }
     }
