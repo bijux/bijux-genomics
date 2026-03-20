@@ -66,6 +66,7 @@ pub struct FastqStageBinding {
 pub enum FastqStageParameters {
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
+    DepleteHost(DepleteHostStageParams),
 }
 
 #[derive(Debug, Clone)]
@@ -96,6 +97,21 @@ impl Default for DepleteRrnaStageParams {
         Self {
             rrna_db: "rrna_reference".to_string(),
             min_identity: 0.95,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DepleteHostStageParams {
+    pub host_identity_threshold: f64,
+    pub retain_unmapped_only: bool,
+}
+
+impl Default for DepleteHostStageParams {
+    fn default() -> Self {
+        Self {
+            host_identity_threshold: 0.95,
+            retain_unmapped_only: true,
         }
     }
 }

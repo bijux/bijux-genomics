@@ -91,6 +91,7 @@
   },
   "out_dir": "out",
   "params": {
+    "host_identity_threshold": 0.95,
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": "reads_R2.fastq.gz",
     "output_r1": "out/host_depleted_R1.fastq.gz",
@@ -99,6 +100,7 @@
     "removed_host_r1": "out/removed_host_R1.fastq.gz",
     "removed_host_r2": "out/removed_host_R2.fastq.gz",
     "report_json": "out/host_depletion_report.json",
+    "retain_unmapped_only": true,
     "tool": "bowtie2"
   },
   "effective_params": {
