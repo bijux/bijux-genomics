@@ -58,7 +58,7 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.extract_umis"]
-expected_artifacts: ["umi_reads_r1", "umi_reads_r2"]
+expected_artifacts: ["umi_reads_r1", "umi_reads_r2", "report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
 version_cmd: "umi_tools --version"
