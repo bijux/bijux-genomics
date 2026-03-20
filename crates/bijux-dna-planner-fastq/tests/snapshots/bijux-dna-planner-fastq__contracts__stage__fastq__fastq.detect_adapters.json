@@ -52,6 +52,7 @@
   },
   "effective_params": {
     "evidence_engine": "fastqc",
+    "inspection_mode": "evidence_only",
     "paired_mode": "paired_end",
     "report_only": true,
     "sample_reads": 100000,

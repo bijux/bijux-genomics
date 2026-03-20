@@ -5,7 +5,9 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    detect_adapters::{DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION},
+    detect_adapters::{
+        AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+    },
     PairedMode,
 };
 use bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS;
@@ -31,6 +33,7 @@ pub fn plan(
         },
         threads: tool.resources.threads,
         sample_reads: Some(100_000),
+        inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: tool.tool_id.to_string(),
     };

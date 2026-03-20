@@ -18,7 +18,7 @@ parameters: []
 metrics:
   - name: "candidate_adapter_count"
     meaning: "Number of adapter candidates detected"
-description: "Detect likely adapter content prior to trimming."
+description: "Inspect likely adapter content without mutating reads prior to trimming."
 required_inputs:
   - reads_r1
 required_outputs:
@@ -34,7 +34,7 @@ compatible_tools:
   - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "single-end input omits reads_r2; paired-end input contributes both mates to adapter detection."
+  - "single-end input omits reads_r2; paired-end input contributes both mates to evidence-only adapter inspection."
 bank_hooks:
   - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"
