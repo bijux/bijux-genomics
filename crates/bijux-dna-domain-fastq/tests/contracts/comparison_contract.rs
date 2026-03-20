@@ -38,7 +38,7 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         "taxonomy_tool_comparison_json"
     );
 
-    let validate_stage = StageId::from_static("fastq.validate_reads");
+    let validate_stage = StageId::from_static("fastq.detect_adapters");
     assert!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&validate_stage).is_empty(),
         "non-benchmark stages must not advertise comparison artifacts",
@@ -131,6 +131,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "overrepresented_sequence_tool_benchmark_cohort_json",
             "overrepresented_sequence_tool_comparison_json",
             "overrepresented_sequence_tool_normalization_json",
+        ]
+    );
+
+    let validation_stage = StageId::from_static("fastq.validate_reads");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&validation_stage),
+        vec![
+            "validation_tool_benchmark_cohort_json",
+            "validation_tool_comparison_json",
+            "validation_tool_normalization_json",
         ]
     );
 }

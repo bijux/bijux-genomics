@@ -70,6 +70,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "overrepresented_sequence_tool_normalization_json",
     ),
     (
+        "fastq.validate_reads",
+        "validation_tool_benchmark_cohort_json",
+        "validation_tool_comparison_json",
+        "validation_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",

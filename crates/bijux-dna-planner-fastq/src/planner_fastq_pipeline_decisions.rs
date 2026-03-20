@@ -393,6 +393,9 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
         "overrepresented_sequence_tool_normalization_json" => {
             "overrepresented_sequence_tool_normalization.json"
         }
+        "validation_tool_benchmark_cohort_json" => "validation_tool_benchmark_cohort.json",
+        "validation_tool_comparison_json" => "validation_tool_comparison.json",
+        "validation_tool_normalization_json" => "validation_tool_normalization.json",
         "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
         "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
         "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",

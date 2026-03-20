@@ -365,4 +365,28 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .all(|tool_id| tool_id.as_str() != "fastq_scan")
     );
+
+    let validation_stage = StageId::from_static("fastq.validate_reads");
+    let validation_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&validation_stage);
+    assert_eq!(validation_cohorts.len(), 1);
+    assert_eq!(validation_cohorts[0].scenario_id, "validation_fairness");
+    assert!(
+        validation_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastqvalidator")
+    );
+    assert!(
+        validation_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "seqtk")
+    );
+    assert!(
+        validation_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fqtools")
+    );
 }

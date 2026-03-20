@@ -1866,6 +1866,13 @@ benchmark_scenarios:
     - same_input_hash
     - same_dataset_class
     - same_overrepresented_sequence_contract
+  validation_fairness:
+    stage_id: fastq.validate_reads
+    description: Compare FASTQ validators on identical raw reads and governed validation semantics.
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_validation_contract
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
