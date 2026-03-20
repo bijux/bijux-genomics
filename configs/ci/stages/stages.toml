@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 78eadbd928261097252df20dc314a7f7b277d5eb
+# source_commit: ebd1fc46968877d105513ef115f80e984ceb41bf
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -752,14 +752,110 @@ description = "Compare damage tools on identical BAM inputs and identical prepro
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
 
 [[benchmark_scenarios]]
+id = "fastq.contaminant_depletion_fairness"
+stage_id = "fastq.deplete_reference_contaminants"
+description = "Compare contaminant depletion backends on identical read inputs and fixed contaminant reference bundles."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_contaminant_reference_hash"]
+
+[[benchmark_scenarios]]
+id = "fastq.correction_fairness"
+stage_id = "fastq.correct_errors"
+description = "Compare error-correction backends on identical filtered reads and k-mer correction policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_correction_policy"]
+
+[[benchmark_scenarios]]
+id = "fastq.dedup_fairness"
+stage_id = "fastq.remove_duplicates"
+description = "Compare duplicate-removal tools on identical filtered inputs and duplicate retention policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_dedup_policy"]
+
+[[benchmark_scenarios]]
+id = "fastq.detect_adapters_fairness"
+stage_id = "fastq.detect_adapters"
+description = "Compare adapter-inspection backends on identical raw reads and governed adapter-evidence outputs."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_adapter_evidence_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.filter_fairness"
+stage_id = "fastq.filter_reads"
+description = "Compare read-filtering tools on identical trimmed inputs and governed filter thresholds."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_filter_contract_hash"]
+
+[[benchmark_scenarios]]
+id = "fastq.host_depletion_fairness"
+stage_id = "fastq.deplete_host"
+description = "Compare host depletion backends on identical read inputs and fixed host reference bundles."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_host_reference_hash"]
+
+[[benchmark_scenarios]]
+id = "fastq.low_complexity_fairness"
+stage_id = "fastq.filter_low_complexity"
+description = "Compare low-complexity filters on identical filtered inputs and entropy/polyX thresholds."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_complexity_policy"]
+
+[[benchmark_scenarios]]
+id = "fastq.merge_fairness"
+stage_id = "fastq.merge_pairs"
+description = "Compare merge backends on identical paired filtered inputs and overlap policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_merge_policy"]
+
+[[benchmark_scenarios]]
+id = "fastq.overrepresented_sequence_fairness"
+stage_id = "fastq.profile_overrepresented_sequences"
+description = "Compare overrepresented-sequence profilers on identical reads and governed sequence summary outputs."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_overrepresented_sequence_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.primer_normalization_fairness"
+stage_id = "fastq.normalize_primers"
+description = "Compare primer-normalization backends on identical reads and governed primer orientation policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_primer_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.qc_aggregation_fairness"
+stage_id = "fastq.report_qc"
+description = "Compare QC aggregation backends on identical upstream QC inputs and governed summary contracts."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_qc_aggregation_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.read_length_fairness"
+stage_id = "fastq.profile_read_lengths"
+description = "Compare read-length profilers on identical raw reads and governed histogram outputs."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_length_profile_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.rrna_depletion_fairness"
+stage_id = "fastq.deplete_rrna"
+description = "Compare rRNA depletion backends on identical read inputs and fixed rRNA reference bundles."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_rrna_reference_hash"]
+
+[[benchmark_scenarios]]
 id = "fastq.screen_fairness"
 stage_id = "fastq.screen_taxonomy"
 description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
 
 [[benchmark_scenarios]]
+id = "fastq.terminal_damage_fairness"
+stage_id = "fastq.trim_terminal_damage"
+description = "Compare terminal-damage trimming backends on identical reads and ancient-DNA trimming policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_damage_trim_policy"]
+
+[[benchmark_scenarios]]
 id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
+
+[[benchmark_scenarios]]
+id = "fastq.umi_extraction_fairness"
+stage_id = "fastq.extract_umis"
+description = "Compare UMI extraction backends on identical read inputs and fixed UMI parsing policy."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_umi_extraction_policy"]
+
+[[benchmark_scenarios]]
+id = "fastq.validation_fairness"
+stage_id = "fastq.validate_reads"
+description = "Compare FASTQ validators on identical raw reads and governed validation semantics."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_validation_contract"]
 
