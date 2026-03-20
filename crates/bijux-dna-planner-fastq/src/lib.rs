@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -43,22 +43,34 @@ pub use selection::args;
 pub mod stage_api;
 
 fn required_id_catalog() -> Vec<String> {
-    let mut stages = bijux_dna_pipelines::fastq::fastq_default_profile()
+    let selected = bijux_dna_pipelines::fastq::fastq_default_profile()
         .capabilities
         .required_stages
         .iter()
         .map(|stage| (*stage).to_string())
         .collect::<Vec<_>>();
-    stages.retain(|stage| stage.starts_with(STAGE_PREFIX));
-    let canonical = canonical_stage_order()
+    let selected = selected
+        .into_iter()
+        .filter(|stage| stage.starts_with(STAGE_PREFIX))
+        .collect::<BTreeSet<_>>();
+    canonical_stage_order()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
-        .collect::<Vec<_>>();
-    stages.retain(|stage| canonical.contains(stage));
-    if !stages.iter().any(|stage| stage == STAGE_REPORT_QC.as_str()) {
-        stages.push(STAGE_REPORT_QC.as_str().to_string());
-    }
-    stages
+        .filter(|stage| selected.contains(stage))
+        .collect()
+}
+
+fn sort_stages_by_domain_order(stages: Vec<String>, mode: FastqPipelineMode) -> Vec<String> {
+    let order = match mode {
+        FastqPipelineMode::Shotgun => canonical_stage_order(),
+        FastqPipelineMode::Amplicon => canonical_amplicon_stage_order(),
+    };
+    let mut selected = stages.into_iter().collect::<BTreeSet<_>>();
+    order
+        .into_iter()
+        .map(|stage| stage.as_str().to_string())
+        .filter(|stage| selected.remove(stage))
+        .collect()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -111,7 +123,9 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     } else if !options.enable_qc_post {
         stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
-    PipelineSpec { stages }
+    PipelineSpec {
+        stages: sort_stages_by_domain_order(stages, options.mode),
+    }
 }
 
 #[derive(Debug, Clone)]
