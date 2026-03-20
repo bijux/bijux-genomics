@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/contract_docs.rs"]
 mod mod_contracts_contract_docs_rs;
+#[path = "contracts/comparison_contract.rs"]
+mod mod_contracts_comparison_contract_rs;
 #[path = "contracts/contract_harness.rs"]
 mod mod_contracts_contract_harness_rs;
 #[path = "contracts/domain_manifest_parity.rs"]

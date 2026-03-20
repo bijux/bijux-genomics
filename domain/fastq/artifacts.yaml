@@ -4,6 +4,7 @@ artifact_ids:
   - adapter_report
   - asv_sequences_fasta
   - asv_table_tsv
+  - benchmark_cohort_json
   - chimera_filtered_reads
   - chimera_metrics_json
   - chimeras_fasta
@@ -50,6 +51,8 @@ artifact_ids:
   - rrna_report_json
   - rrna_report_tsv
   - screen_report_tsv
+  - stage_tool_comparison_json
+  - stage_tool_normalization_json
   - taxonomy_ready_fasta
   - taxonomy_ready_fastq
   - trimmed_reads

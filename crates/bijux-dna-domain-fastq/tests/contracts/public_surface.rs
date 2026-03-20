@@ -49,6 +49,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "banks",
         "contaminant_bank",
         "bench_repository",
+        "comparison_contract",
         "execution_support",
         "integration_matrix",
         "metrics",

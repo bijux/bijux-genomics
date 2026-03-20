@@ -11,6 +11,7 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 pub mod banks;
 pub mod bench_repository;
+mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
 pub mod id_catalog;
@@ -43,6 +44,7 @@ pub use banks::{
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
 pub use bench_repository::BenchResultsRepository;
+pub use comparison_contract::{benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage};
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
     closed_stage_ids as execution_closed_stage_ids,
