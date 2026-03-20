@@ -36,9 +36,10 @@ execution_contract:
     - "reads_r1"
     - "reads_r2"
   expected_outputs:
-    - "pear.assembled.fastq"
-    - "pear.unassembled.forward.fastq"
-    - "pear.unassembled.reverse.fastq"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
 upstream: "unknown"
@@ -50,11 +51,15 @@ license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.merge_pairs"]
 expected_artifacts: ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.merge_pairs.v1"
+metrics_schema: "bijux.fastq.merge_pairs.v1"
 version_cmd: "pear --version"
 help_cmd: "pear --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "bbmerge"
+    - "flash2"
+    - "leehom"
+    - "vsearch"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed paired-end merge backends when overlap policy, read layout, and retained unmerged mate artifacts are matched."
