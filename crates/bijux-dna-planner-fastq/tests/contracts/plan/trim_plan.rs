@@ -158,5 +158,12 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
     assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
     assert!(plan.command.template.iter().any(|part| part == "-p"));
+    assert_eq!(
+        plan.effective_params["schema_version"],
+        "bijux.fastq.params.trim_terminal_damage.v1"
+    );
+    assert_eq!(plan.effective_params["damage_mode"], "ancient");
+    assert_eq!(plan.effective_params["trim_5p_bases"], 2);
+    assert_eq!(plan.effective_params["trim_3p_bases"], 2);
     Ok(())
 }
