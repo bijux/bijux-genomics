@@ -40,6 +40,11 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
+    - "qc_json"
+    - "qc_tsv"
+    - "qc_plots_dir"
+    - "length_distribution_tsv"
+    - "length_distribution_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "unknown"
@@ -74,11 +79,13 @@ expected_artifacts:
   - "qc_plots_dir"
   - "length_distribution_tsv"
   - "length_distribution_json"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.stats.v1"
+metrics_schema: "bijux.fastq.stats.v1"
 version_cmd: "seqkit_stats --version"
 help_cmd: "seqkit_stats --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "fastq_scan"
+    - "seqfu"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed read-statistics backends when dataset class, read layout, and emitted QC tables are held constant."
