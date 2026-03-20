@@ -38,6 +38,16 @@ pub fn plan_trim_terminal_damage(
     };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
     let report = out_dir.join("trim_terminal_damage_report.json");
+    let command_template = trim_terminal_damage_command(
+        &tool.tool_id.0,
+        r1,
+        r2,
+        &output_r1,
+        output_r2.as_deref(),
+        &report,
+        trim_5p_bases,
+        trim_3p_bases,
+    )?;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -74,7 +84,7 @@ pub fn plan_trim_terminal_damage(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: command_template,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
@@ -102,4 +112,57 @@ pub fn plan_trim_terminal_damage(
             "damage-aware terminal trimming",
         ),
     })
+}
+
+fn trim_terminal_damage_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report: &Path,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "cutadapt" => {
+            let mut command = vec![
+                "cutadapt".to_string(),
+                "-u".to_string(),
+                trim_5p_bases.to_string(),
+                "-u".to_string(),
+                format!("-{trim_3p_bases}"),
+                "--json".to_string(),
+                report.display().to_string(),
+                "-o".to_string(),
+                output_r1.display().to_string(),
+            ];
+            if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+                command.push("-p".to_string());
+                command.push(output_r2.display().to_string());
+                command.push(r1.display().to_string());
+                command.push(r2.display().to_string());
+            } else {
+                command.push(r1.display().to_string());
+            }
+            Ok(command)
+        }
+        "seqkit" => crate::tool_adapters::template_render::render_command_template(
+            &[
+                "seqkit".to_string(),
+                "seq".to_string(),
+                "-o".to_string(),
+                "{{trimmed_reads}}".to_string(),
+                "{{reads}}".to_string(),
+            ],
+            &[
+                ("reads", Some(r1.display().to_string())),
+                ("trimmed_reads", Some(output_r1.display().to_string())),
+                ("report_json", Some(report.display().to_string())),
+            ],
+        ),
+        _ => Err(anyhow!(
+            "unsupported trim_terminal_damage tool for stage planning: {tool_id}"
+        )),
+    }
 }

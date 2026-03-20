@@ -2,7 +2,8 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRef, ArtifactRole, ContainerImageRefV1, StageId, StageVersion,
+    ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
+    StageVersion,
     ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
@@ -67,6 +68,8 @@ pub fn plan_qc_post(
         aggregation_engine: QcAggregationEngine::Multiqc,
         aggregation_scope: QcAggregationScope::FastqQcInputs,
     };
+    let multiqc_data = out_dir.join("multiqc_data");
+    let command_template = qc_post_command(&tool.tool_id.0, r1, r2, &multiqc_data)?;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -88,7 +91,7 @@ pub fn plan_qc_post(
             ),
             ArtifactRef::required(
                 ArtifactId::from_static("multiqc_data"),
-                out_dir.join("multiqc_data"),
+                multiqc_data.clone(),
                 ArtifactRole::Index,
             ),
         ]
@@ -101,8 +104,8 @@ pub fn plan_qc_post(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: command_template,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -116,6 +119,31 @@ pub fn plan_qc_post(
         aux_images,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn qc_post_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    multiqc_data: &Path,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "multiqc" => {
+            let mut command = vec![
+                "multiqc".to_string(),
+                "-o".to_string(),
+                multiqc_data.display().to_string(),
+                "-n".to_string(),
+                "multiqc_report.html".to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            Ok(command)
+        }
+        _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
+    }
 }
 
 fn normalize_tools_with_allowlist(

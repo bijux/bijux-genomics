@@ -97,6 +97,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Some(r2),
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.profile_read_lengths", &plan)?;
 
     let plan =
@@ -106,6 +107,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
             Some(r2),
             out_dir,
         )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.profile_overrepresented_sequences", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
@@ -126,6 +128,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Some(r2),
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.trim_polyg_tails", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
@@ -137,6 +140,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         2,
         2,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.trim_terminal_damage", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
@@ -279,6 +283,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         None,
         None,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.report_qc", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads::plan_stats_neutral(
@@ -287,6 +292,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         None,
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.profile_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan(

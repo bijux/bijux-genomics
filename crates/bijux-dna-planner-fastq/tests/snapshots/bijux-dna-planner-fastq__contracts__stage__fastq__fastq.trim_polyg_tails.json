@@ -10,10 +10,19 @@
   "command": {
     "template": [
       "fastp",
+      "--trim_poly_g",
+      "--json",
+      "out/trim_polyg_tails_report.json",
+      "--thread",
+      "4",
       "--in1",
-      "{{reads}}",
+      "reads_R1.fastq.gz",
       "--out1",
-      "{{trimmed_reads}}"
+      "out/R1.polyg.fastp.fastq.gz",
+      "--in2",
+      "reads_R2.fastq.gz",
+      "--out2",
+      "out/R2.polyg.fastp.fastq.gz"
     ]
   },
   "resources": {

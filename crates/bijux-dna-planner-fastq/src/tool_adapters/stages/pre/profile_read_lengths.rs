@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -22,6 +22,7 @@ pub fn plan(
 ) -> Result<StagePlanV1> {
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
+    let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2);
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -40,8 +41,8 @@ pub fn plan(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: command_template,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -79,4 +80,21 @@ pub fn plan(
             "pre-trim length distribution metrics",
         ),
     })
+}
+
+fn profile_lengths_command(tool_id: &str, r1: &Path, r2: Option<&Path>) -> Vec<String> {
+    let mut command = match tool_id {
+        "seqkit_stats" => vec![
+            "seqkit".to_string(),
+            "stats".to_string(),
+            "-a".to_string(),
+            "-T".to_string(),
+            r1.display().to_string(),
+        ],
+        other => vec![other.to_string(), r1.display().to_string()],
+    };
+    if let Some(r2) = r2 {
+        command.push(r2.display().to_string());
+    }
+    command
 }
