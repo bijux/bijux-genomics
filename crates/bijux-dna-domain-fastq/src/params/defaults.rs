@@ -8,7 +8,9 @@ use super::merge::{
 };
 use super::preprocess::LibraryDamageTreatment;
 use super::preprocess::PreprocessEffectiveParams;
-use super::qc_post::QcPostEffectiveParams;
+use super::qc_post::{
+    QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
+};
 use super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
     SCREEN_TAXONOMY_SCHEMA_VERSION,
@@ -114,8 +116,11 @@ pub fn filter_defaults(paired: bool) -> FilterEffectiveParams {
 #[must_use]
 pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
     QcPostEffectiveParams {
+        schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
+        aggregation_engine: QcAggregationEngine::Multiqc,
+        aggregation_scope: QcAggregationScope::FastqQcInputs,
     }
 }
 
