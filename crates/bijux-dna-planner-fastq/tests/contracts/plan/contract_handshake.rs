@@ -165,8 +165,10 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
     )
     .expect_err("STAR index must not satisfy bowtie2 depletion");
 
-    assert!(error
-        .to_string()
-        .contains("requires a bowtie2_build reference index"));
+    let message = error.to_string();
+    assert!(
+        message.contains("requires one of [bowtie2_build]"),
+        "planner must explain the governed compatible index backends: {message}"
+    );
     Ok(())
 }
