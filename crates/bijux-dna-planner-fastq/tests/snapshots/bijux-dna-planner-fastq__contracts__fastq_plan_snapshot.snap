@@ -39,7 +39,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "2"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "trimmed_reads_r1",
+        "report_json"
+      ],
       "image": {
         "digest": "sha256:fastp",
         "image": "bijux/fastp"
@@ -68,7 +71,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "fastq_trim_reads_v2"
+      ],
       "out_dir": "out/trim_reads/fastp",
       "resources": {
         "mem_gb": 2,
@@ -86,7 +91,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastqvalidator"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "validation_report"
+      ],
       "image": {
         "digest": "sha256:fastqvalidator",
         "image": "bijux/fastqvalidator"
@@ -109,7 +116,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "fastq_validate_reads_v1"
+      ],
       "out_dir": "out/validate_reads/fastqvalidator",
       "resources": {
         "mem_gb": 1,
