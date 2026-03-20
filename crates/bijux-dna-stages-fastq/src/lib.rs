@@ -1,6 +1,7 @@
 //! Stage specs, metrics, and observers for FASTQ.
 
 use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_domain_fastq::execution_support::NormalizationSupport;
 
 pub mod metrics;
 pub mod observer;
@@ -22,7 +23,7 @@ pub fn contract_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
-    observer_stage_ids()
+    closed_execution_stage_ids()
 }
 
 #[must_use]
@@ -31,15 +32,20 @@ pub fn closed_execution_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
 }
 
 #[must_use]
+pub fn observer_specialized_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
+    closed_execution_stage_ids()
+        .into_iter()
+        .filter(|stage_id| {
+            bijux_dna_domain_fastq::execution_support_for_stage(stage_id).is_some_and(|support| {
+                support.normalization_support == NormalizationSupport::ObserverSpecialized
+            })
+        })
+        .collect()
+}
+
+#[must_use]
 pub fn observer_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
-    vec![
-        bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
-        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
-        bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS,
-        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
-        bijux_dna_domain_fastq::STAGE_PROFILE_READS,
-        bijux_dna_domain_fastq::STAGE_REPORT_QC,
-    ]
+    observer_specialized_stage_ids()
 }
 
 #[must_use]
@@ -77,7 +83,10 @@ pub fn runtime_interpretation_for_stage_tool(
     stage_id: &StageId,
     tool_id: &ToolId,
 ) -> Option<RuntimeInterpretationLevel> {
-    if !stage_id.as_str().starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX) {
+    if !stage_id
+        .as_str()
+        .starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX)
+    {
         return None;
     }
     Some(
@@ -85,7 +94,8 @@ pub fn runtime_interpretation_for_stage_tool(
             .into_iter()
             .any(|(candidate_stage, candidate_tool)| {
                 candidate_stage == *stage_id && candidate_tool == *tool_id
-            }) {
+            })
+        {
             RuntimeInterpretationLevel::ObserverSpecialized
         } else {
             RuntimeInterpretationLevel::GenericEnvelope
@@ -95,13 +105,18 @@ pub fn runtime_interpretation_for_stage_tool(
 
 #[must_use]
 pub fn runtime_interpretation_for_stage(stage_id: &StageId) -> Option<RuntimeInterpretationLevel> {
-    if !stage_id.as_str().starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX) {
+    if !stage_id
+        .as_str()
+        .starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX)
+    {
         return None;
     }
-    Some(if observer_stage_ids().into_iter().any(|candidate| candidate == *stage_id) {
-        RuntimeInterpretationLevel::ObserverSpecialized
-    } else {
-        RuntimeInterpretationLevel::GenericEnvelope
+    bijux_dna_domain_fastq::execution_support_for_stage(stage_id).map(|support| {
+        if support.normalization_support == NormalizationSupport::ObserverSpecialized {
+            RuntimeInterpretationLevel::ObserverSpecialized
+        } else {
+            RuntimeInterpretationLevel::GenericEnvelope
+        }
     })
 }
 
@@ -123,6 +138,7 @@ pub mod contracts {
 #[cfg(test)]
 mod tests {
     use super::{
+        implemented_stages, observer_specialized_stage_ids, runtime_interpretation_for_stage,
         runtime_interpretation_for_stage_tool, RuntimeInterpretationLevel,
     };
     use bijux_dna_core::ids::{StageId, ToolId};
@@ -143,5 +159,36 @@ mod tests {
             ),
             Some(RuntimeInterpretationLevel::GenericEnvelope)
         );
+    }
+
+    #[test]
+    fn stage_level_runtime_interpretation_uses_domain_normalization_truth() {
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.detect_adapters")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.validate_reads")),
+            Some(RuntimeInterpretationLevel::GenericEnvelope)
+        );
+    }
+
+    #[test]
+    fn implemented_stages_cover_closed_execution_surface() {
+        assert_eq!(
+            implemented_stages(),
+            bijux_dna_domain_fastq::execution_closed_stage_ids()
+        );
+    }
+
+    #[test]
+    fn observer_specialized_stage_ids_exclude_mixed_stage_families() {
+        let observer_specialized = observer_specialized_stage_ids();
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.detect_adapters")));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.report_qc")));
+        assert!(!observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
+        assert!(!observer_specialized.contains(&StageId::from_static(
+            "fastq.profile_overrepresented_sequences"
+        )));
     }
 }
