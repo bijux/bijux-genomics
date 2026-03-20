@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
+# source_commit: ead437e0f837050a36e4f591cfd922f1215c9c57
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -653,7 +653,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["kraken2", "krakenuniq"]
+tools = ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
 
 [[stages]]
 id = "fastq.trim_polyg_tails"

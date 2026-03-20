@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
+# source_commit: ead437e0f837050a36e4f591cfd922f1215c9c57
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -146,40 +146,6 @@ apptainer_def = "containers/apptainer/lunarc/bbmerge.def"
 require_labels = true
 
 [[tools]]
-id = "centrifuge"
-tool_id = "centrifuge"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.screen_taxonomy"]
-bindings = ["fastq.screen_taxonomy"]
-tool_role = "screen"
-version = "1.0.4"
-default_version = "1.0.4"
-upstream = "https://github.com/DaehwanKimLab/centrifuge"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/DaehwanKimLab/centrifuge"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/centrifuge@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "centrifuge --version"
-help_cmd = "centrifuge --help"
-smoke_version_cmd = "centrifuge --version"
-smoke_help_cmd = "centrifuge --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "centrifuge --help"
-expected_bin = "centrifuge"
-expected_artifacts = ["classification_report_json", "screen_report_tsv"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
-apptainer_def = "containers/apptainer/lunarc/centrifuge.def"
-require_labels = true
-
-[[tools]]
 id = "damageprofiler"
 tool_id = "damageprofiler"
 domain = "bam"
@@ -245,40 +211,6 @@ metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.flash2"
 apptainer_def = "containers/apptainer/lunarc/flash2.def"
-require_labels = true
-
-[[tools]]
-id = "kaiju"
-tool_id = "kaiju"
-domain = "fastq"
-domains = ["fastq"]
-status = "experimental"
-stage_ids = ["fastq.screen_taxonomy"]
-bindings = ["fastq.screen_taxonomy"]
-tool_role = "screen"
-version = "1.10.0"
-default_version = "1.10.0"
-upstream = "https://github.com/bioinformatics-centre/kaiju"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/bioinformatics-centre/kaiju"
-pinned_commit = "sha256:pending"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/kaiju@sha256:pending"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "kaiju --version"
-help_cmd = "kaiju --help"
-smoke_version_cmd = "kaiju --version"
-smoke_help_cmd = "kaiju --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "kaiju --help"
-expected_bin = "kaiju"
-expected_artifacts = ["classification_report_json", "screen_report_tsv"]
-metrics_schema = "bijux.unknown.v1"
-comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
-apptainer_def = "containers/apptainer/lunarc/kaiju.def"
 require_labels = true
 
 [[tools]]
