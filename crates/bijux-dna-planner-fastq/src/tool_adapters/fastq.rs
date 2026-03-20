@@ -1,4 +1,5 @@
 use bijux_dna_core::prelude::{StageId, StageVersion};
+use bijux_dna_domain_fastq::ExecutionStatus;
 use bijux_dna_domain_fastq::stages::ids as fastq_ids;
 
 pub use crate::tool_adapters::stages::amplicon::cluster_otus;
@@ -44,7 +45,7 @@ impl StageInfo {
 }
 
 pub fn registry() -> Vec<StageInfo> {
-    vec![
+    let stages = vec![
         StageInfo {
             id: crate::tool_adapters::stages::pre::index_reference::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::pre::index_reference::STAGE_VERSION,
@@ -146,11 +147,6 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_ID.clone(),
-            version: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_VERSION,
-            affects_read_counts: false,
-        },
-        StageInfo {
             id: crate::tool_adapters::stages::amplicon::cluster_otus::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::amplicon::cluster_otus::STAGE_VERSION,
             affects_read_counts: false,
@@ -170,5 +166,14 @@ pub fn registry() -> Vec<StageInfo> {
             version: crate::tool_adapters::stages::qc::deplete_rrna::STAGE_VERSION,
             affects_read_counts: true,
         },
-    ]
+    ];
+    stages
+        .into_iter()
+        .filter(|stage| {
+            matches!(
+                bijux_dna_domain_fastq::execution_support_for_stage(stage.id()),
+                Some(support) if support.execution_status == ExecutionStatus::Closed
+            )
+        })
+        .collect()
 }

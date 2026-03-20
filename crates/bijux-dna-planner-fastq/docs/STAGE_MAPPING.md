@@ -26,6 +26,5 @@ Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus 
 | fastq.normalize_primers | cutadapt, seqkit | primer-normalized FASTQ | primer_trimmed_fraction |
 | fastq.remove_chimeras | vsearch | chimera-filtered FASTQ, chimera report | chimera_fraction |
 | fastq.cluster_otus | vsearch | OTU table, representative FASTA, taxonomy-ready FASTA/FASTQ | otu_count |
-| fastq.infer_asvs | dada2 | ASV table, ASV sequences, taxonomy-ready FASTA/FASTQ | asv_count, sample_count |
 | fastq.normalize_abundance | seqfu, seqkit | normalized abundance table | table_rows |
 | fastq.report_qc | multiqc | qc report | qc summary |
