@@ -4,7 +4,10 @@ status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads"
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "reads_r2"
     data_type: "fastq"
     cardinality: "Many"
 outputs:
@@ -40,7 +43,7 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - "reads"
+  - "reads_r1"
 required_outputs:
   - "asv_table_tsv"
   - "asv_sequences_fasta"
@@ -52,12 +55,13 @@ invariants:
   - "amplicon_only_stage"
   - "representative_sequences_match_feature_table"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
 compatible_tools:
   - dada2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "asv inference applies only to amplicon libraries with denoising-aware governance."
+  - "single-end input omits reads_r2; paired-end denoising retains mate-aware error modeling when a closed runtime backend is introduced."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
