@@ -25,8 +25,7 @@ use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
-    governed_qc_producer_stage_ids, inspect_headers, log_header_warnings, preflight_stage,
-    FastqArtifactKind, RawFailure,
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
@@ -513,19 +512,7 @@ fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
 }
 
 fn bench_governed_qc_contributor_stage_ids(paired_end: bool) -> Vec<bijux_dna_core::ids::StageId> {
-    governed_qc_producer_stage_ids()
-        .into_iter()
-        .filter(|stage_id| match stage_id.as_str() {
-            "fastq.validate_reads"
-            | "fastq.detect_adapters"
-            | "fastq.profile_reads"
-            | "fastq.profile_read_lengths"
-            | "fastq.profile_overrepresented_sequences"
-            | "fastq.trim_reads" => true,
-            "fastq.correct_errors" => paired_end,
-            _ => false,
-        })
-        .collect()
+    bijux_dna_planner_fastq::stage_api::governed_qc_bench_contributor_stage_ids(paired_end)
 }
 
 fn plan_governed_qc_contributor(
@@ -564,6 +551,39 @@ fn plan_governed_qc_contributor(
         "fastq.trim_reads" => bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
             tool_spec, r1, r2, out_dir, None, None, None,
         )?,
+        "fastq.trim_terminal_damage" => {
+            bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+                tool_spec, r1, r2, out_dir, "ancient", 2, 2,
+            )?
+        }
+        "fastq.trim_polyg_tails" => {
+            bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+                tool_spec, r1, r2, out_dir,
+            )?
+        }
+        "fastq.filter_reads" => {
+            bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
+                tool_spec,
+                r1,
+                r2,
+                out_dir,
+                &bijux_dna_planner_fastq::stage_api::fastq::filter_reads::FilterPlanOptions::default(),
+            )?
+        }
+        "fastq.filter_low_complexity" => {
+            bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
+                tool_spec,
+                r1,
+                r2,
+                out_dir,
+                &bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::LowComplexityPlanOptions::default(),
+            )?
+        }
+        "fastq.remove_duplicates" => {
+            bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
+                tool_spec, r1, r2, out_dir,
+            )?
+        }
         "fastq.correct_errors" => {
             let Some(r2) = r2 else {
                 return Ok(None);
@@ -573,6 +593,22 @@ fn plan_governed_qc_contributor(
                 r1,
                 Some(r2),
                 out_dir,
+            )?
+        }
+        "fastq.merge_pairs" => {
+            let Some(r2) = r2 else {
+                return Ok(None);
+            };
+            bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::plan_merge(
+                tool_spec, r1, r2, out_dir,
+            )?
+        }
+        "fastq.extract_umis" => {
+            let Some(r2) = r2 else {
+                return Ok(None);
+            };
+            bijux_dna_planner_fastq::tool_adapters::fastq::extract_umis::plan_umi(
+                tool_spec, r1, r2, out_dir, None,
             )?
         }
         _ => return Ok(None),
@@ -626,11 +662,21 @@ mod tests {
     fn bench_qc_contributors_expand_for_paired_inputs() {
         let paired = bench_governed_qc_contributor_stage_ids(true);
         assert!(paired.contains(&StageId::from_static("fastq.trim_reads")));
+        assert!(paired.contains(&StageId::from_static("fastq.trim_terminal_damage")));
+        assert!(paired.contains(&StageId::from_static("fastq.trim_polyg_tails")));
+        assert!(paired.contains(&StageId::from_static("fastq.remove_duplicates")));
         assert!(paired.contains(&StageId::from_static("fastq.correct_errors")));
+        assert!(paired.contains(&StageId::from_static("fastq.merge_pairs")));
+        assert!(paired.contains(&StageId::from_static("fastq.extract_umis")));
 
         let single_end = bench_governed_qc_contributor_stage_ids(false);
         assert!(single_end.contains(&StageId::from_static("fastq.trim_reads")));
+        assert!(single_end.contains(&StageId::from_static("fastq.trim_terminal_damage")));
+        assert!(single_end.contains(&StageId::from_static("fastq.trim_polyg_tails")));
+        assert!(single_end.contains(&StageId::from_static("fastq.remove_duplicates")));
         assert!(!single_end.contains(&StageId::from_static("fastq.correct_errors")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.extract_umis")));
     }
 
     #[test]

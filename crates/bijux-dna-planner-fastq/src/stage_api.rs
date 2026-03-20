@@ -1,14 +1,15 @@
 use bijux_dna_core::ids::{StageId, ToolId};
 
+pub use crate::qc_contract::{
+    governed_qc_bench_contributor_stage_ids, governed_qc_default_tool_ids,
+    governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
+};
 pub use crate::selection::args;
 pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
 pub use crate::tool_adapters::fastq;
 pub use crate::tool_adapters::fastq::StageInfo;
 pub use crate::STAGE_REPORT_AGGREGATE;
 pub use crate::TOOL_SEQKIT;
-pub use crate::qc_contract::{
-    governed_qc_default_tool_ids, governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
-};
 pub use bijux_dna_core::prelude::RawFailure;
 pub use bijux_dna_domain_fastq::banks;
 pub use bijux_dna_domain_fastq::banks::{

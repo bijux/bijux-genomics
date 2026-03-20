@@ -48,11 +48,38 @@ pub fn governed_qc_default_tool_ids() -> Vec<String> {
     tool_ids
 }
 
+#[must_use]
+pub fn governed_qc_bench_contributor_stage_ids(paired_end: bool) -> Vec<StageId> {
+    governed_qc_producer_stage_ids()
+        .into_iter()
+        .filter(|stage_id| {
+            matches!(
+                stage_id.as_str(),
+                "fastq.validate_reads"
+                    | "fastq.detect_adapters"
+                    | "fastq.profile_reads"
+                    | "fastq.profile_read_lengths"
+                    | "fastq.profile_overrepresented_sequences"
+                    | "fastq.trim_reads"
+                    | "fastq.trim_terminal_damage"
+                    | "fastq.trim_polyg_tails"
+                    | "fastq.filter_reads"
+                    | "fastq.filter_low_complexity"
+                    | "fastq.remove_duplicates"
+            ) || (paired_end
+                && matches!(
+                    stage_id.as_str(),
+                    "fastq.correct_errors" | "fastq.merge_pairs" | "fastq.extract_umis"
+                ))
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        governed_qc_default_tool_ids, governed_qc_output_ids_for_stage,
-        governed_qc_producer_stage_ids,
+        governed_qc_bench_contributor_stage_ids, governed_qc_default_tool_ids,
+        governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
     };
     use bijux_dna_core::ids::StageId;
 
@@ -75,7 +102,10 @@ mod tests {
         assert!(tool_ids.contains(&"fastqc".to_string()));
         assert!(!tool_ids.contains(&"multiqc".to_string()));
         assert_eq!(
-            tool_ids.iter().filter(|tool_id| tool_id.as_str() == "fastqc").count(),
+            tool_ids
+                .iter()
+                .filter(|tool_id| tool_id.as_str() == "fastqc")
+                .count(),
             1
         );
     }
@@ -83,5 +113,21 @@ mod tests {
     #[test]
     fn report_qc_is_not_a_qc_producer() {
         assert!(governed_qc_output_ids_for_stage("fastq.report_qc").is_empty());
+    }
+
+    #[test]
+    fn bench_qc_contributors_cover_cleanup_and_pair_aware_stages() {
+        let single_end = governed_qc_bench_contributor_stage_ids(false);
+        assert!(single_end.contains(&StageId::from_static("fastq.trim_reads")));
+        assert!(single_end.contains(&StageId::from_static("fastq.trim_terminal_damage")));
+        assert!(single_end.contains(&StageId::from_static("fastq.trim_polyg_tails")));
+        assert!(single_end.contains(&StageId::from_static("fastq.remove_duplicates")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.correct_errors")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
+
+        let paired_end = governed_qc_bench_contributor_stage_ids(true);
+        assert!(paired_end.contains(&StageId::from_static("fastq.correct_errors")));
+        assert!(paired_end.contains(&StageId::from_static("fastq.merge_pairs")));
+        assert!(paired_end.contains(&StageId::from_static("fastq.extract_umis")));
     }
 }
