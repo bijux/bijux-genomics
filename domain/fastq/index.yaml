@@ -61,7 +61,6 @@ tool_ids:
   - musket
   - pear
   - prinseq
-  - qualimap
   - rcorrector
   - seqfu
   - seqkit

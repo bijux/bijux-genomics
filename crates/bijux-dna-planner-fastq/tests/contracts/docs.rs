@@ -133,7 +133,6 @@ fn ci_tool_registry_excludes_planned_fastq_tools() {
         "diamond",
         "dustmasker",
         "fastq_scan",
-        "qualimap",
         "seqfu",
         "seqpurge",
     ] {
