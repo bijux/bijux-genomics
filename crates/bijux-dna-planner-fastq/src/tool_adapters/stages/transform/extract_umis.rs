@@ -32,6 +32,7 @@ pub fn plan_umi(
     normalize_umi_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
     let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
+    let report_json = out_dir.join("umi_report.json");
     let umi_pattern = umi_pattern.unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
@@ -73,6 +74,11 @@ pub fn plan_umi(
                     output_r2.clone(),
                     ArtifactRole::Reads,
                 ),
+                ArtifactRef::optional(
+                    ArtifactId::from_static("report_json"),
+                    report_json.clone(),
+                    ArtifactRole::MetricsJson,
+                ),
             ],
         },
         out_dir: out_dir.to_path_buf(),
@@ -83,6 +89,7 @@ pub fn plan_umi(
             "out_dir": out_dir,
             "output_r1": output_r1,
             "output_r2": output_r2,
+            "report_json": report_json,
             "umi_pattern": umi_pattern
         }),
         effective_params: serde_json::to_value(&effective_params)
