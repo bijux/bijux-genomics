@@ -2,19 +2,25 @@
   "stage_id": "fastq.correct_errors",
   "stage_version": 1,
   "tool_id": "rcorrector",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/rcorrector",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "rcorrector",
+      "-1",
+      "{{reads_r1}}",
+      "-2",
+      "{{reads_r2}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 4,
+    "threads": 4
   },
   "io": {
     "inputs": [
@@ -59,7 +65,7 @@
     "kmer_size": null,
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.correct.v1",
-    "threads": 1
+    "threads": 4
   },
   "aux_images": {},
   "reason": {

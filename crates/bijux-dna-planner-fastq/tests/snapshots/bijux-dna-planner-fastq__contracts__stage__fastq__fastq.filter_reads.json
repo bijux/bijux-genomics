@@ -2,19 +2,27 @@
   "stage_id": "fastq.filter_reads",
   "stage_version": 1,
   "tool_id": "seqkit",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/seqkit",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "seqkit",
+      "seq",
+      "-m",
+      "1",
+      "-o",
+      "{{filtered_reads}}",
+      "{{reads}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 4,
+    "tmp_gb": 2,
+    "threads": 2
   },
   "io": {
     "inputs": [
@@ -60,7 +68,7 @@
     "n_policy": null,
     "paired_mode": "single_end",
     "polyx_policy": null,
-    "threads": 1
+    "threads": 2
   },
   "aux_images": {},
   "reason": {

@@ -2,19 +2,25 @@
   "stage_id": "fastq.trim_reads",
   "stage_version": 1,
   "tool_id": "fastp",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/fastp",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "fastp",
+      "--in1",
+      "{{reads}}",
+      "--out1",
+      "{{trimmed_reads}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 4,
+    "threads": 4
   },
   "io": {
     "inputs": [
@@ -56,7 +62,7 @@
     "paired_mode": "single_end",
     "polyx_policy": null,
     "q_cutoff": null,
-    "threads": 1
+    "threads": 4
   },
   "aux_images": {},
   "reason": {

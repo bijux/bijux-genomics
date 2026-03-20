@@ -2,19 +2,26 @@
   "stage_id": "fastq.report_qc",
   "stage_version": 1,
   "tool_id": "multiqc",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/multiqc",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "multiqc",
+      "-o",
+      "{{multiqc_data}}",
+      "-n",
+      "multiqc_report.html",
+      "{{reads_r1}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 4,
+    "tmp_gb": 4,
+    "threads": 2
   },
   "io": {
     "inputs": [
@@ -58,7 +65,7 @@
     "aggregation_scope": "fastq_qc_inputs",
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.report_qc.v1",
-    "threads": 1
+    "threads": 2
   },
   "aux_images": {},
   "reason": {

@@ -2,19 +2,34 @@
   "stage_id": "fastq.extract_umis",
   "stage_version": 1,
   "tool_id": "umi_tools",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/umi_tools",
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "umi_tools",
+      "extract",
+      "--stdin",
+      "{{reads_r1}}",
+      "--stdout",
+      "{{umi_reads_r1}}",
+      "--read2-in",
+      "{{reads_r2}}",
+      "--read2-out",
+      "{{umi_reads_r2}}",
+      "--bc-pattern",
+      "{{umi_pattern}}",
+      "--log",
+      "{{report_json}}"
+    ]
   },
   "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+    "runtime": "local",
+    "mem_gb": 4,
+    "tmp_gb": 4,
+    "threads": 2
   },
   "io": {
     "inputs": [
@@ -66,7 +81,7 @@
   "effective_params": {
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.umi.v1",
-    "threads": 1,
+    "threads": 2,
     "umi_pattern": "NNNNNNNN"
   },
   "aux_images": {},

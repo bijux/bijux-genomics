@@ -2,9 +2,9 @@
   "stage_id": "fastq.deplete_reference_contaminants",
   "stage_version": 1,
   "tool_id": "bowtie2",
-  "tool_version": "1.0.0",
+  "tool_version": "domain-manifest",
   "image": {
-    "image": "bijux/test:latest",
+    "image": "bijuxdna/bowtie2",
     "digest": null
   },
   "command": {
@@ -27,7 +27,7 @@
     ]
   },
   "resources": {
-    "runtime": "docker",
+    "runtime": "local",
     "mem_gb": 1,
     "tmp_gb": 1,
     "threads": 1
