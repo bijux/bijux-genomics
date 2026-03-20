@@ -11,12 +11,18 @@ container:
   digest: "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
 command_template:
   - "bbduk.sh"
-  - "in={{reads}}"
-  - "out={{filtered_fastq}}"
+  - "in={{reads_r1}}"
+  - "out={{filtered_reads_r1}}"
 outputs:
-  - name: "filtered_fastq"
+  - name: "filtered_reads_r1"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
+  - name: "filtered_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "filter_report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_trim_v1"
 constraints:
   runtime: "local"
@@ -25,9 +31,11 @@ constraints:
   threads: 4
 execution_contract:
   required_inputs:
-    - "reads"
+    - "reads_r1"
   expected_outputs:
-    - "filtered_fastq"
+    - "filtered_reads_r1"
+    - "filtered_reads_r2"
+    - "filter_report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -84,11 +92,16 @@ expected_artifacts:
   - "filtered_fastq_r2"
   - "filter_report_json"
   - "report_json"
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "bbduk --version"
 help_cmd: "bbduk --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "fastp"
+    - "cutadapt"
+    - "prinseq"
+    - "seqkit"
+    - "trimmomatic"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with governed trimming and filtering backends when the same stage contract, read layout, and retained summary artifacts are used."
