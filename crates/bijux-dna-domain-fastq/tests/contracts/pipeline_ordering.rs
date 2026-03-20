@@ -53,3 +53,42 @@ fn pre_hpc_pipeline_depletes_before_merging_pairs() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn canonical_shotgun_order_covers_reference_and_reporting_stages() {
+    let stages = bijux_dna_domain_fastq::canonical_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+
+    for required in [
+        "fastq.index_reference",
+        "fastq.deplete_host",
+        "fastq.deplete_reference_contaminants",
+        "fastq.profile_overrepresented_sequences",
+        "fastq.screen_taxonomy",
+        "fastq.report_qc",
+    ] {
+        assert!(
+            stages.iter().any(|stage| stage == required),
+            "canonical FASTQ order missing stage {required}"
+        );
+    }
+}
+
+#[test]
+fn canonical_amplicon_order_uses_supported_feature_stage() {
+    let stages = bijux_dna_domain_fastq::canonical_amplicon_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+
+    assert!(
+        stages.iter().any(|stage| stage == "fastq.cluster_otus"),
+        "canonical amplicon order must include clustering"
+    );
+    assert!(
+        !stages.iter().any(|stage| stage == "fastq.infer_asvs"),
+        "canonical amplicon order must not default to planned ASV inference"
+    );
+}

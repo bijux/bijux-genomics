@@ -66,7 +66,7 @@ pub use params::{
     StageParamDescriptor,
 };
 pub use pipeline_contract::{
-    canonical_stage_order, forbidden_transitions, optional_branches, FastqPipelineMode,
+    canonical_amplicon_stage_order, canonical_stage_order, forbidden_transitions, optional_branches, FastqPipelineMode,
     StageCriticality,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
