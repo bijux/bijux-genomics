@@ -101,25 +101,26 @@ mod tests {
     use std::path::PathBuf;
 
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
-    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
-    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::ids::*;
     use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlugin};
 
     use super::FastqStagePlugin;
 
-    fn plan(stage_id: &str) -> bijux_dna_stage_contract::StagePlanV1 {
+    fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
         bijux_dna_stage_contract::StagePlanV1 {
-            stage_id: StageId::new(stage_id),
+            stage_id: StageId::from_static(stage_id),
             stage_version: StageVersion(1),
-            tool_id: ToolId::new("fastqc"),
+            tool_id: ToolId::from_static("fastqc"),
             tool_version: "test".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/test".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), "ok".to_string()],
-            },
+            image: serde_json::from_value(serde_json::json!({
+                "image": "bijuxdna/test",
+                "digest": null,
+            }))
+            .expect("image"),
+            command: serde_json::from_value(serde_json::json!({
+                "template": ["echo", "ok"],
+            }))
+            .expect("command"),
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
