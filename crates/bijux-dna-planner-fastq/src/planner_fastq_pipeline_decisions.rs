@@ -205,7 +205,9 @@ impl FastqPlanner {
 
     /// # Errors
     /// Returns an error if benchmark fan-out planning fails.
-    pub fn plan_stage_benchmark_cohort(config: &FastqStageBenchmarkConfig) -> Result<ExecutionGraph> {
+    pub fn plan_stage_benchmark_cohort(
+        config: &FastqStageBenchmarkConfig,
+    ) -> Result<ExecutionGraph> {
         let stage_id = StageId::new(config.stage_id.clone());
         enforce_stage_status(stage_id.as_str(), config.allow_planned)?;
         if config.tools.is_empty() {
@@ -233,11 +235,13 @@ impl FastqPlanner {
                 ));
             }
             let maturity = crate::stage_api::stage_tool_maturity(&stage_id, &tool.tool_id)
-                .ok_or_else(|| anyhow!(
-                    "missing stage-tool maturity for {} / {}",
-                    stage_id.as_str(),
-                    tool.tool_id.as_str()
-                ))?;
+                .ok_or_else(|| {
+                    anyhow!(
+                        "missing stage-tool maturity for {} / {}",
+                        stage_id.as_str(),
+                        tool.tool_id.as_str()
+                    )
+                })?;
             if maturity == crate::stage_api::StageToolMaturityLevel::PlannedBinding
                 && !config.allow_planned
             {
@@ -283,17 +287,28 @@ impl FastqPlanner {
                     output.role,
                 ));
             }
-            steps.push(bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
-                &plan,
-                StepId::new(format!("{}.tool.{}", stage_id.as_str(), tool.tool_id.as_str())),
-            ));
+            steps.push(
+                bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
+                    &plan,
+                    StepId::new(format!(
+                        "{}.tool.{}",
+                        stage_id.as_str(),
+                        tool.tool_id.as_str()
+                    )),
+                ),
+            );
         }
 
         let comparison_artifact_ids =
             bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
         if !comparison_artifact_ids.is_empty() {
             let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
-            let compare_out_dir = config.out_dir.join(stage_id.as_str().trim_start_matches(STAGE_PREFIX)).join("compare");
+            let compare_out_dir = config
+                .out_dir
+                .join(stage_id.as_str().trim_start_matches(STAGE_PREFIX))
+                .join("compare");
+            let comparison_command =
+                comparison_command_for_stage(&stage_id, &comparison_artifact_ids)?;
             let comparison_outputs = comparison_artifact_ids
                 .iter()
                 .map(|artifact_id| {
@@ -308,11 +323,7 @@ impl FastqPlanner {
                 step_id: compare_step_id,
                 stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
                 command: CommandSpecV1 {
-                    template: vec![
-                        "stage-tool-compare".to_string(),
-                        "--stage".to_string(),
-                        stage_id.as_str().to_string(),
-                    ],
+                    template: comparison_command,
                 },
                 image: ContainerImageRefV1 {
                     image: "bijux-dna-compare".to_string(),
@@ -335,7 +346,8 @@ impl FastqPlanner {
 
         let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
         let edges = if steps.iter().any(|step| step.step_id == compare_step_id) {
-            steps.iter()
+            steps
+                .iter()
                 .filter(|step| step.step_id != compare_step_id)
                 .map(|step| ExecutionEdge::new(step.step_id.clone(), compare_step_id.clone()))
                 .collect()
@@ -351,6 +363,39 @@ impl FastqPlanner {
             edges,
         )?)
     }
+}
+
+fn comparison_command_for_stage(
+    stage_id: &StageId,
+    comparison_artifact_ids: &[&str],
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "stage-tool-compare".to_string(),
+        "--stage".to_string(),
+        stage_id.as_str().to_string(),
+    ];
+    if let Some(scenario) = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(stage_id)
+        .into_iter()
+        .map(|scenario| scenario.scenario_id)
+        .next()
+    {
+        command.push("--scenario".to_string());
+        command.push(scenario);
+    }
+    if let Some(contract_hash) = bijux_dna_domain_fastq::stage_contract_hash(stage_id.as_str()) {
+        command.push("--stage-contract-hash".to_string());
+        command.push(contract_hash.map_err(|err| {
+            anyhow!(
+                "compute stage contract hash for benchmark compare {}: {err}",
+                stage_id.as_str()
+            )
+        })?);
+    }
+    for artifact_id in comparison_artifact_ids {
+        command.push("--comparison-artifact".to_string());
+        command.push((*artifact_id).to_string());
+    }
+    Ok(command)
 }
 
 fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
@@ -379,9 +424,7 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
         "primer_normalization_tool_benchmark_cohort_json" => {
             "primer_normalization_tool_benchmark_cohort.json"
         }
-        "primer_normalization_tool_comparison_json" => {
-            "primer_normalization_tool_comparison.json"
-        }
+        "primer_normalization_tool_comparison_json" => "primer_normalization_tool_comparison.json",
         "primer_normalization_tool_normalization_json" => {
             "primer_normalization_tool_normalization.json"
         }
@@ -389,9 +432,7 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
             "terminal_damage_tool_benchmark_cohort.json"
         }
         "terminal_damage_tool_comparison_json" => "terminal_damage_tool_comparison.json",
-        "terminal_damage_tool_normalization_json" => {
-            "terminal_damage_tool_normalization.json"
-        }
+        "terminal_damage_tool_normalization_json" => "terminal_damage_tool_normalization.json",
         "overrepresented_sequence_tool_benchmark_cohort_json" => {
             "overrepresented_sequence_tool_benchmark_cohort.json"
         }
@@ -558,19 +599,17 @@ fn stage_artifact_input_policy(
         return policies;
     };
     for edge in &pipeline_spec.edges {
-        let (Some(from_output_id), Some(to_input_id)) =
-            (&edge.from_output_id, &edge.to_input_id)
+        let (Some(from_output_id), Some(to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
         else {
             continue;
         };
-        policies
-            .entry(edge.to.clone())
-            .or_default()
-            .push(crate::plan_compose::StageArtifactInputBinding {
+        policies.entry(edge.to.clone()).or_default().push(
+            crate::plan_compose::StageArtifactInputBinding {
                 from_stage_node_id: edge.from.clone(),
                 from_output_id: from_output_id.clone(),
                 to_input_id: to_input_id.clone(),
-            });
+            },
+        );
     }
     policies
 }
@@ -818,11 +857,7 @@ pub fn compose_fastq_stage_bindings<F>(
     out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
-    F: FnMut(
-        &FastqStageBinding,
-        &std::path::Path,
-        Option<&std::path::Path>,
-    ) -> Result<PathBuf>,
+    F: FnMut(&FastqStageBinding, &std::path::Path, Option<&std::path::Path>) -> Result<PathBuf>,
 {
     plan_compose::compose_fastq_stage_bindings(
         stage_bindings,
@@ -944,12 +979,7 @@ pub fn select_preprocess_tools(
                 .collect();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
-                let records = repo.bench_results(
-                    &stage_id,
-                    tool,
-                    &corpus,
-                    &query_context,
-                )?;
+                let records = repo.bench_results(&stage_id, tool, &corpus, &query_context)?;
                 tool_records.push((tool.clone(), records));
             }
             let selection = bijux_dna_core::contract::select_stage(
@@ -981,13 +1011,12 @@ fn bench_query_context_for_stage(
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
     let mut context = bijux_dna_domain_fastq::BenchQueryContext::default();
     if let Some(contract_hash) = bijux_dna_domain_fastq::stage_contract_hash(stage_id.as_str()) {
-        context =
-            context.with_stage_contract_hash(contract_hash.map_err(|err| {
-                anyhow!(
-                    "compute stage contract hash for {}: {err}",
-                    stage_id.as_str()
-                )
-            })?);
+        context = context.with_stage_contract_hash(contract_hash.map_err(|err| {
+            anyhow!(
+                "compute stage contract hash for {}: {err}",
+                stage_id.as_str()
+            )
+        })?);
     }
     Ok(context)
 }
