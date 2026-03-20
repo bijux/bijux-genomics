@@ -5,7 +5,10 @@ use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_planner_fastq::{FastqPlanConfig, FastqPlanner, FastqStageBinding};
+use bijux_dna_planner_fastq::{
+    FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
+    TrimTerminalDamageStageParams,
+};
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -42,12 +45,14 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
                 stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
                 tool: tool("fastp"),
                 reason: None,
+                params: None,
             },
             FastqStageBinding {
                 stage_id: "fastq.trim_reads".to_string(),
                 stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
                 tool: tool("cutadapt"),
                 reason: None,
+                params: None,
             },
         ],
         stages: Vec::new(),
@@ -92,12 +97,14 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
                 stage_instance_id: None,
                 tool: tool("fastp"),
                 reason: None,
+                params: None,
             },
             FastqStageBinding {
                 stage_id: "fastq.trim_reads".to_string(),
                 stage_instance_id: None,
                 tool: tool("fastp"),
                 reason: None,
+                params: None,
             },
         ],
         stages: Vec::new(),
@@ -119,5 +126,49 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
     assert!(error
         .to_string()
         .contains("must set distinct stage_instance_id values"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-trim-terminal-damage-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__trim_terminal_damage__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.trim_terminal_damage".to_string(),
+            stage_instance_id: Some("fastq.trim_terminal_damage.custom".to_string()),
+            tool: tool("cutadapt"),
+            reason: None,
+            params: Some(FastqStageParameters::TrimTerminalDamage(
+                TrimTerminalDamageStageParams {
+                    damage_mode: "udg_trimmed".to_string(),
+                    trim_5p_bases: 5,
+                    trim_3p_bases: 3,
+                },
+            )),
+        }],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.trim_terminal_damage.custom");
+    assert!(step.command.template.iter().any(|part| part == "5"));
+    assert!(step.command.template.iter().any(|part| part == "-3"));
     Ok(())
 }
