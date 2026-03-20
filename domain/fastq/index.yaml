@@ -74,6 +74,70 @@ tool_ids:
   - trimmomatic
   - umi_tools
   - vsearch
+governed_stage_ids:
+  - fastq.cluster_otus
+  - fastq.correct_errors
+  - fastq.deplete_host
+  - fastq.deplete_reference_contaminants
+  - fastq.deplete_rrna
+  - fastq.detect_adapters
+  - fastq.extract_umis
+  - fastq.filter_low_complexity
+  - fastq.filter_reads
+  - fastq.index_reference
+  - fastq.merge_pairs
+  - fastq.normalize_abundance
+  - fastq.normalize_primers
+  - fastq.profile_overrepresented_sequences
+  - fastq.profile_read_lengths
+  - fastq.profile_reads
+  - fastq.remove_chimeras
+  - fastq.remove_duplicates
+  - fastq.report_qc
+  - fastq.screen_taxonomy
+  - fastq.trim_polyg_tails
+  - fastq.trim_reads
+  - fastq.trim_terminal_damage
+  - fastq.validate_reads
+governed_tool_ids:
+  - adapterremoval
+  - alientrimmer
+  - atropos
+  - bayeshammer
+  - bbduk
+  - bbmerge
+  - bowtie2
+  - bowtie2_build
+  - centrifuge
+  - clumpify
+  - cutadapt
+  - fastp
+  - fastqc
+  - fastqvalidator
+  - fastuniq
+  - fastx_clipper
+  - flash2
+  - fqtools
+  - kaiju
+  - kraken2
+  - krakenuniq
+  - leehom
+  - lighter
+  - multiqc
+  - musket
+  - pear
+  - prinseq
+  - rcorrector
+  - seqkit
+  - seqkit_stats
+  - seqtk
+  - skewer
+  - sortmerna
+  - star
+  - trim_galore
+  - trimmomatic
+  - umi_tools
+  - vsearch
 stage_tool_compatibility:
   fastq.cluster_otus:
   - vsearch

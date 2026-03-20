@@ -39,6 +39,17 @@ tool_ids:
   - plink
   - plink2
   - shapeit5
+governed_stage_ids:
+  - vcf.call
+  - vcf.call_diploid
+  - vcf.call_gl
+  - vcf.call_pseudohaploid
+  - vcf.damage_filter
+  - vcf.filter
+  - vcf.gl_propagation
+  - vcf.stats
+governed_tool_ids:
+  - bcftools
 stage_tool_compatibility:
   vcf.admixture:
   - plink

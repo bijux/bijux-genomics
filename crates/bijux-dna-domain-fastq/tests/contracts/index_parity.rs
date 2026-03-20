@@ -72,6 +72,18 @@ fn indexed_tool_ids() -> Result<BTreeSet<String>> {
     Ok(block_list(&raw, "tool_ids").into_iter().collect())
 }
 
+fn indexed_governed_stage_ids() -> Result<BTreeSet<String>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    Ok(block_list(&raw, "governed_stage_ids").into_iter().collect())
+}
+
+fn indexed_governed_tool_ids() -> Result<BTreeSet<String>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    Ok(block_list(&raw, "governed_tool_ids").into_iter().collect())
+}
+
 fn indexed_active_defaults() -> Result<BTreeMap<String, String>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
         .context("read domain/fastq/index.yaml")?;
@@ -91,6 +103,62 @@ fn indexed_active_defaults() -> Result<BTreeMap<String, String>> {
         if let Some((stage_id, tool_id)) = line.trim().split_once(':') {
             out.insert(stage_id.trim().to_string(), tool_id.trim().to_string());
         }
+    }
+    Ok(out)
+}
+
+fn manifest_stage_statuses() -> Result<BTreeMap<String, String>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = std::fs::read_to_string(&path)
+            .with_context(|| format!("read {}", path.display()))?;
+        let stage_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("stage_id: "))
+            .map(|value| value.trim().trim_matches('"').to_string())
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        let status = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("status: "))
+            .map(|value| value.trim().trim_matches('"').to_string())
+            .with_context(|| format!("status missing in {}", path.display()))?;
+        out.insert(stage_id, status);
+    }
+    Ok(out)
+}
+
+fn manifest_tool_statuses() -> Result<BTreeMap<String, String>> {
+    let tools_dir = workspace_root()?.join("domain/fastq/tools");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&tools_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = std::fs::read_to_string(&path)
+            .with_context(|| format!("read {}", path.display()))?;
+        let tool_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("tool_id: "))
+            .map(|value| value.trim().trim_matches('"').to_string())
+            .with_context(|| format!("tool_id missing in {}", path.display()))?;
+        let status = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("status: "))
+            .map(|value| value.trim().trim_matches('"').to_string())
+            .with_context(|| format!("status missing in {}", path.display()))?;
+        out.insert(tool_id, status);
     }
     Ok(out)
 }
@@ -141,5 +209,33 @@ fn generated_index_defaults_reference_known_compatible_tools() -> Result<()> {
             "active default {default_tool} for {stage_id} must stay inside tool_ids"
         );
     }
+    Ok(())
+}
+
+#[test]
+fn generated_index_governed_stage_ids_match_supported_stage_manifests() -> Result<()> {
+    let supported = manifest_stage_statuses()?
+        .into_iter()
+        .filter_map(|(stage_id, status)| (status == "supported").then_some(stage_id))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        indexed_governed_stage_ids()?,
+        supported,
+        "domain/fastq/index.yaml governed_stage_ids drifted from supported stage manifests"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_index_governed_tool_ids_match_supported_tool_manifests() -> Result<()> {
+    let supported = manifest_tool_statuses()?
+        .into_iter()
+        .filter_map(|(tool_id, status)| (status == "supported").then_some(tool_id))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        indexed_governed_tool_ids()?,
+        supported,
+        "domain/fastq/index.yaml governed_tool_ids drifted from supported tool manifests"
+    );
     Ok(())
 }
