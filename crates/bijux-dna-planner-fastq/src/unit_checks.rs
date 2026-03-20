@@ -125,3 +125,11 @@ fn mixed_normalization_stages_only_mark_observer_specialized_tools_comparable() 
     assert!(!seqkit.benchmark_normalized);
     assert!(!seqkit.comparable);
 }
+
+#[test]
+fn normalize_abundance_rejects_planned_seqfu_backend() {
+    let error = crate::plan_compose::ensure_normalize_abundance_tool("seqfu")
+        .expect_err("seqfu should stay outside the governed normalize_abundance runtime");
+
+    assert!(error.to_string().contains("requires seqkit"));
+}
