@@ -82,8 +82,12 @@ pub fn plan_contaminant_screen_with_options(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
+        reference_catalog_id: "contaminant_reference".to_string(),
         contaminant_reference: options.decoy_mode.clone(),
         index_artifact: "reference_index".to_string(),
+        reference_index_backend: "bowtie2_build".to_string(),
+        reference_build_id: None,
+        reference_digest: None,
         retain_unmapped_pairs: r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(

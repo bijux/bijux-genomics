@@ -90,6 +90,10 @@
     "contaminant_reference": "phix_and_spikeins",
     "index_artifact": "reference_index",
     "paired_mode": "paired_end",
+    "reference_build_id": null,
+    "reference_catalog_id": "contaminant_reference",
+    "reference_digest": null,
+    "reference_index_backend": "bowtie2_build",
     "retain_unmapped_pairs": true,
     "schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
     "threads": 1
