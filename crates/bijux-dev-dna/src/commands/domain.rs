@@ -234,6 +234,10 @@ fn parse_tool_id(path: &Path) -> Result<Option<String>> {
     scalar_from_text(&read_utf8(path)?, "tool_id")
 }
 
+fn parse_status(path: &Path) -> Result<Option<String>> {
+    scalar_from_text(&read_utf8(path)?, "status")
+}
+
 fn domain_directories(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut directories = fs::read_dir(workspace.path("domain"))
         .with_context(|| format!("read {}", workspace.path("domain").display()))?
@@ -291,21 +295,29 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
     }
 
     let mut stage_ids = BTreeSet::new();
+    let mut governed_stage_ids = BTreeSet::new();
     for stage_file in yaml_files(&dom_dir.join("stages"))? {
         if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
         if let Some(stage_id) = parse_stage_id(&stage_file)? {
+            if parse_status(&stage_file)?.as_deref() == Some("supported") {
+                governed_stage_ids.insert(stage_id.clone());
+            }
             stage_ids.insert(stage_id);
         }
     }
 
     let mut tool_ids = BTreeSet::new();
+    let mut governed_tool_ids = BTreeSet::new();
     for tool_file in yaml_files(&dom_dir.join("tools"))? {
         if tool_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
         if let Some(tool_id) = parse_tool_id(&tool_file)? {
+            if parse_status(&tool_file)?.as_deref() == Some("supported") {
+                governed_tool_ids.insert(tool_id.clone());
+            }
             tool_ids.insert(tool_id);
         }
     }
@@ -329,21 +341,41 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
     }
     let mut body_lines = lines;
 
-    replace_block(
+    replace_or_insert_block(
         &mut body_lines,
         "stage_ids",
         stage_ids
             .iter()
             .map(|stage_id| format!("  - {stage_id}"))
             .collect(),
+        Some("domain_version"),
     )?;
-    replace_block(
+    replace_or_insert_block(
         &mut body_lines,
         "tool_ids",
         tool_ids
             .iter()
             .map(|tool_id| format!("  - {tool_id}"))
             .collect(),
+        Some("stage_ids"),
+    )?;
+    replace_or_insert_block(
+        &mut body_lines,
+        "governed_stage_ids",
+        governed_stage_ids
+            .iter()
+            .map(|stage_id| format!("  - {stage_id}"))
+            .collect(),
+        Some("tool_ids"),
+    )?;
+    replace_or_insert_block(
+        &mut body_lines,
+        "governed_tool_ids",
+        governed_tool_ids
+            .iter()
+            .map(|tool_id| format!("  - {tool_id}"))
+            .collect(),
+        Some("governed_stage_ids"),
     )?;
     replace_block(
         &mut body_lines,
@@ -415,6 +447,38 @@ fn replace_block(lines: &mut Vec<String>, key: &str, items: Vec<String>) -> Resu
     let mut replacement = vec![format!("{key}:")];
     replacement.extend(items);
     lines.splice(start..end, replacement);
+    Ok(())
+}
+
+fn replace_or_insert_block(
+    lines: &mut Vec<String>,
+    key: &str,
+    items: Vec<String>,
+    after_key: Option<&str>,
+) -> Result<()> {
+    if lines.iter().any(|line| line == &format!("{key}:")) {
+        return replace_block(lines, key, items);
+    }
+    let mut replacement = vec![format!("{key}:")];
+    replacement.extend(items);
+    let insert_at = if let Some(after_key) = after_key {
+        let start_re = regex(&format!(r"^{}:\s*$", regex::escape(after_key)))?;
+        let top_level_re = regex(r"^[A-Za-z0-9_]+:\s*")?;
+        let Some(start) = lines.iter().position(|line| start_re.is_match(line)) else {
+            bail!("missing {after_key}: block");
+        };
+        let mut end = lines.len();
+        for (index, line) in lines.iter().enumerate().skip(start + 1) {
+            if !line.is_empty() && !line.starts_with(' ') && top_level_re.is_match(line) {
+                end = index;
+                break;
+            }
+        }
+        end
+    } else {
+        lines.len()
+    };
+    lines.splice(insert_at..insert_at, replacement);
     Ok(())
 }
 
