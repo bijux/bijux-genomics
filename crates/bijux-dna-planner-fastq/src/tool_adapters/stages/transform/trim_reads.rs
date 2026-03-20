@@ -42,7 +42,6 @@ pub fn trim_output_name(tool: &str) -> Option<&'static str> {
         "adapterremoval" => Some("adapterremoval.fastq.gz"),
         "trimmomatic" => Some("trimmomatic.fastq.gz"),
         "trim_galore" => Some("trimmed_trimmed.fq.gz"),
-        "seqpurge" => Some("seqpurge.fastq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "seqkit" => Some("seqkit.fastq.gz"),
         "skewer" => Some("skewer.fastq.gz"),
@@ -157,14 +156,8 @@ pub fn plan(
         ArtifactRole::ReportJson,
     ));
     let report_json = out_dir.join("trim_report.json");
-    let command_template = trim_command_template(
-        tool,
-        r1,
-        r2,
-        &output_r1,
-        output_r2.as_deref(),
-        &report_json,
-    )?;
+    let command_template =
+        trim_command_template(tool, r1, r2, &output_r1, output_r2.as_deref(), &report_json)?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(

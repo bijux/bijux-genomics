@@ -37,6 +37,10 @@ fn trim_output_names_are_defined_for_known_tools() {
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::trim_output_name("unknown"),
         None
     );
+    assert_eq!(
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::trim_output_name("seqpurge"),
+        None
+    );
 }
 
 #[test]
@@ -77,18 +81,17 @@ fn plan_trim_rejects_unknown_tool() {
 
 #[test]
 fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
-    let config =
-        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
-            bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
-                tool: "fastp".to_string(),
-                r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
-                r2: Some(std::path::PathBuf::from("reads_R2.fastq.gz")),
-                out_dir: std::path::PathBuf::from("out"),
-                adapter_bank: Some(serde_json::json!({"preset": "illumina"})),
-                polyx_bank: Some(serde_json::json!({"enabled": true})),
-                contaminant_bank: Some(serde_json::json!({"catalog": "decoys"})),
-            },
-        );
+    let config = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
+            tool: "fastp".to_string(),
+            r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(std::path::PathBuf::from("reads_R2.fastq.gz")),
+            out_dir: std::path::PathBuf::from("out"),
+            adapter_bank: Some(serde_json::json!({"preset": "illumina"})),
+            polyx_bank: Some(serde_json::json!({"enabled": true})),
+            contaminant_bank: Some(serde_json::json!({"catalog": "decoys"})),
+        },
+    );
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_from_config(
         &dummy_tool("fastp"),
@@ -107,18 +110,23 @@ fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
     assert_eq!(plan.effective_params["contaminant_policy"], "bank");
     assert!(plan.command.template.iter().any(|part| part == "--in2"));
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
-    assert!(plan.command.template.iter().any(|part| part == "--detect_adapter_for_pe"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--detect_adapter_for_pe"));
     Ok(())
 }
 
 #[test]
 fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
-        &dummy_tool("fastp"),
-        std::path::Path::new("reads_R1.fastq.gz"),
-        Some(std::path::Path::new("reads_R2.fastq.gz")),
-        std::path::Path::new("out"),
-    )?;
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+            &dummy_tool("fastp"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+        )?;
 
     assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
     assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
