@@ -60,6 +60,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         &r1,
         None,
         None,
+        None,
         |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
     )?;
 
@@ -103,11 +104,15 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
     };
 
     let stages = vec![
-        bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(),
+        bijux_dna_domain_fastq::STAGE_TRIM_READS
+            .as_str()
+            .to_string(),
         bijux_dna_domain_fastq::STAGE_PROFILE_READS
             .as_str()
             .to_string(),
-        bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(),
+        bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY
+            .as_str()
+            .to_string(),
     ];
     let tool_reasons: Vec<PlanDecisionReason> = stages
         .iter()
@@ -139,6 +144,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
             None,
             false,
             &r1,
+            None,
             None,
             None,
             |stage_id, tool, _r1, _r2| {

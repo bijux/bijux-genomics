@@ -161,6 +161,7 @@ impl FastqPlanner {
             enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
         let out_dir = config.out_dir.clone();
+        let explicit_stage_inputs = stage_artifact_input_policy(config.pipeline_spec.as_ref());
         let plans = compose_fastq_stage_bindings(
             &stage_bindings,
             &config.aux_images,
@@ -171,6 +172,7 @@ impl FastqPlanner {
             &config.r1,
             config.r2.as_deref(),
             config.reference_fasta.as_deref(),
+            Some(&explicit_stage_inputs),
             |binding, _r1, _r2| {
                 let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
                 Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
@@ -253,6 +255,7 @@ impl FastqPlanner {
                 &config.r1,
                 config.r2.as_deref(),
                 config.reference_fasta.as_deref(),
+                None,
                 |stage, tool, _r1, _r2| {
                     let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
                     Ok(config.out_dir.join(stage_dir).join(tool.tool_id.as_str()))
@@ -543,6 +546,31 @@ fn execution_edges_for_stage_plans(
         .collect()
 }
 
+fn stage_artifact_input_policy(
+    pipeline_spec: Option<&PipelineSpec>,
+) -> crate::plan_compose::StageArtifactInputPolicy {
+    let mut policies = crate::plan_compose::StageArtifactInputPolicy::new();
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return policies;
+    };
+    for edge in &pipeline_spec.edges {
+        let (Some(from_output_id), Some(to_input_id)) =
+            (&edge.from_output_id, &edge.to_input_id)
+        else {
+            continue;
+        };
+        policies
+            .entry(edge.to.clone())
+            .or_default()
+            .push(crate::plan_compose::StageArtifactInputBinding {
+                from_stage_node_id: edge.from.clone(),
+                from_output_id: from_output_id.clone(),
+                to_input_id: to_input_id.clone(),
+            });
+    }
+    policies
+}
+
 fn execution_edge_from_pipeline_edge(
     edge: &PipelineEdgeSpec,
     plan_nodes: &std::collections::BTreeMap<String, StepId>,
@@ -731,6 +759,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
+    explicit_stage_inputs: Option<&crate::plan_compose::StageArtifactInputPolicy>,
     mut out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
@@ -763,6 +792,7 @@ where
         r1,
         r2,
         reference_fasta,
+        explicit_stage_inputs,
         |binding, current_r1, current_r2| {
             out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
         },
@@ -780,6 +810,7 @@ pub fn compose_fastq_stage_bindings<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
+    explicit_stage_inputs: Option<&crate::plan_compose::StageArtifactInputPolicy>,
     out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
@@ -799,6 +830,7 @@ where
         r1,
         r2,
         reference_fasta,
+        explicit_stage_inputs,
         out_dir_for_stage,
     )
 }

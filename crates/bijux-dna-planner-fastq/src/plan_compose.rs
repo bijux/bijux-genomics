@@ -29,6 +29,15 @@ struct ReferenceIndexState {
     tool_id: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StageArtifactInputBinding {
+    pub from_stage_node_id: String,
+    pub from_output_id: String,
+    pub to_input_id: String,
+}
+
+pub type StageArtifactInputPolicy = BTreeMap<String, Vec<StageArtifactInputBinding>>;
+
 #[allow(dead_code, clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_pipeline_steps<F>(
     stages: &[String],
@@ -42,6 +51,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
+    explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
     mut out_dir_for_stage: F,
 ) -> Result<Vec<StagePlanV1>>
 where
@@ -74,6 +84,7 @@ where
         r1,
         r2,
         reference_fasta,
+        explicit_stage_inputs,
         |binding, current_r1, current_r2| {
             out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
         },
@@ -91,6 +102,7 @@ pub fn compose_fastq_stage_bindings<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
+    explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
     mut out_dir_for_stage: F,
 ) -> Result<Vec<StagePlanV1>>
 where
@@ -415,14 +427,21 @@ where
                 } else {
                     PairedMode::SingleEnd
                 };
-                if current_qc_inputs.is_empty() {
+                let report_qc_inputs = explicit_stage_inputs
+                    .and_then(|policies| {
+                        policies.get(&stage_node_id_for_binding(binding))
+                    })
+                    .map(|bindings| governed_qc_inputs_from_explicit_bindings(bindings, &plans))
+                    .transpose()?
+                    .unwrap_or_else(|| current_qc_inputs.clone());
+                if report_qc_inputs.is_empty() {
                     return Err(anyhow!(
                         "fastq.report_qc requires governed upstream QC artifacts; add contributing QC stages before report aggregation"
                     ));
                 }
                 let plan = crate::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
                     tool,
-                    &current_qc_inputs,
+                    &report_qc_inputs,
                     &out_dir,
                     stage_aux_images,
                     paired_mode,
@@ -616,6 +635,59 @@ where
         current_feature_table = next_feature_table;
     }
     Ok(plans)
+}
+
+fn stage_node_id_for_binding(binding: &FastqStageBinding) -> String {
+    binding
+        .stage_instance_id
+        .clone()
+        .unwrap_or_else(|| binding.stage_id.clone())
+}
+
+fn stage_node_id_for_plan(plan: &StagePlanV1) -> &str {
+    plan.stage_instance_id
+        .as_ref()
+        .map(|step_id| step_id.as_str())
+        .unwrap_or(plan.stage_id.as_str())
+}
+
+fn governed_qc_inputs_from_explicit_bindings(
+    bindings: &[StageArtifactInputBinding],
+    plans: &[StagePlanV1],
+) -> Result<Vec<ArtifactRef>> {
+    let mut inputs = Vec::new();
+    for binding in bindings {
+        let source_plan = plans
+            .iter()
+            .find(|plan| stage_node_id_for_plan(plan) == binding.from_stage_node_id)
+            .ok_or_else(|| {
+                anyhow!(
+                    "fastq.report_qc input binding references unknown upstream stage node {}",
+                    binding.from_stage_node_id
+                )
+            })?;
+        let artifact = source_plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == binding.from_output_id)
+            .ok_or_else(|| {
+                anyhow!(
+                    "fastq.report_qc input binding references missing artifact {} on upstream stage node {}",
+                    binding.from_output_id,
+                    binding.from_stage_node_id
+                )
+            })?;
+        inputs.push(artifact.clone());
+    }
+    inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    Ok(inputs)
 }
 
 fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<ArtifactRef> {
