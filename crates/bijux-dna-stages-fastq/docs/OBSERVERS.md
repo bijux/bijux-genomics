@@ -1,5 +1,13 @@
 # OBSERVERS
 
+## Observer coverage
+- `fastq.validate_reads`
+- `fastq.profile_read_lengths`
+- `fastq.detect_adapters`
+- `fastq.profile_overrepresented_sequences`
+- `fastq.profile_reads`
+- `fastq.report_qc`
+
 ## Parser contracts
 - Accepted tool versions: fastp >=0.23, fastq_screen v1, seqkit v2
 - Strictness: unknown fields are ignored, missing required fields cause ParseError.

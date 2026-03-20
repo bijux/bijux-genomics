@@ -1,7 +1,7 @@
 # bijux-dna-stages-fastq
 
 ## What this crate does
-FASTQ stage specs + observers only (parsing/metrics).
+FASTQ stage contracts plus observer-side parsing/metrics helpers.
 
 ## What it must not do (boundaries)
 No command assembly or tool selection.
@@ -19,20 +19,18 @@ Observers parse known tool outputs into metrics.
 - Required: the fields listed in `docs/STAGE_CONTRACTS.md`.
 
 ## Stages and observers
-Stage list is authoritative in `docs/STAGE_LIST.md`. Observers map input artifacts → outputs
-documented under `docs/OBSERVERS.md`.
+`implemented_stages()` publishes contract coverage for all FASTQ stages.
+`observer_stage_ids()` is the narrower set with parser-specialized observer coverage documented under
+`docs/OBSERVERS.md`.
 
 | Stage | Observer Inputs → Outputs |
 | --- | --- |
-| validate_pre | FASTQ → report.json |
-| trim | FASTQ → trimmed FASTQ |
-| merge | paired FASTQ → merged FASTQ |
-| filter | FASTQ → filtered FASTQ |
-| screen | FASTQ → screened FASTQ |
-| qc_post | FASTQ → qc report |
-| stats_neutral | FASTQ → stats report |
-| correct | FASTQ → corrected FASTQ |
-| umi | FASTQ → umi FASTQ |
+| fastq.validate_reads | FASTQ validator output → validation metrics |
+| fastq.profile_read_lengths | seqkit/fastp/prinseq output → length metrics |
+| fastq.detect_adapters | FastQC output → adapter evidence metrics |
+| fastq.profile_overrepresented_sequences | FastQC/seqkit output → sequence evidence metrics |
+| fastq.profile_reads | seqkit stats output → read/base metrics |
+| fastq.report_qc | MultiQC output → QC aggregation metrics |
 
 ## Key contracts it owns/consumes
 Stage report/metrics shape snapshots.

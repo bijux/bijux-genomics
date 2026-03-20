@@ -8,8 +8,25 @@ pub mod stage_specs;
 pub use bijux_dna_stage_contract::StagePlanJsonV1 as StagePlanJson;
 
 #[must_use]
-pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
+pub fn contract_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
     bijux_dna_domain_fastq::STAGES.to_vec()
+}
+
+#[must_use]
+pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
+    contract_stage_ids()
+}
+
+#[must_use]
+pub fn observer_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
+    vec![
+        bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
+        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
+        bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS,
+        bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+        bijux_dna_domain_fastq::STAGE_PROFILE_READS,
+        bijux_dna_domain_fastq::STAGE_REPORT_QC,
+    ]
 }
 
 pub mod contracts {
