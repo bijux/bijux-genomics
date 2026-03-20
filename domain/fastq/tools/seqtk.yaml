@@ -33,6 +33,13 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.validate_reads"]
+stage_contracts:
+  fastq.validate_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "validation_report"
+    notes: "Validation remains report-only and emits the governed validation report artifact."
 expected_artifacts: ["validation_report"]
 metrics_schema_id: "bijux.fastq.validate.v1"
 metrics_schema: "bijux.fastq.validate.v1"
