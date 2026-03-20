@@ -24,7 +24,7 @@ pub fn plan(
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let report = out_dir.join("adapter_report.json");
-    let fastqc_dir = out_dir.join("fastqc");
+    let adapter_evidence_dir = out_dir.join("fastqc");
     let effective_params = DetectAdaptersEffectiveParams {
         schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -41,8 +41,13 @@ pub fn plan(
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
         evidence_artifact_id: "adapter_report".to_string(),
     };
-    let command_template =
-        detect_adapters_command(&tool.tool_id.0, r1, r2, &fastqc_dir, tool.resources.threads)?;
+    let command_template = detect_adapters_command(
+        &tool.tool_id.0,
+        r1,
+        r2,
+        &adapter_evidence_dir,
+        tool.resources.threads,
+    )?;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -71,11 +76,18 @@ pub fn plan(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs,
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("adapter_report"),
-                report.clone(),
-                ArtifactRole::ReportJson,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("adapter_report"),
+                    report.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::optional(
+                    ArtifactId::from_static("adapter_evidence_dir"),
+                    adapter_evidence_dir.clone(),
+                    ArtifactRole::StageReport,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -84,7 +96,7 @@ pub fn plan(
             "input_r2": r2,
             "out_dir": out_dir,
             "report_json": report,
-            "fastqc_dir": fastqc_dir,
+            "adapter_evidence_dir": adapter_evidence_dir,
             "sample_reads": effective_params.sample_reads,
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -98,7 +110,7 @@ fn detect_adapters_command(
     tool_id: &str,
     r1: &Path,
     r2: Option<&Path>,
-    fastqc_dir: &Path,
+    adapter_evidence_dir: &Path,
     threads: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
@@ -106,7 +118,7 @@ fn detect_adapters_command(
             let mut command = vec![
                 "fastqc".to_string(),
                 "--outdir".to_string(),
-                fastqc_dir.display().to_string(),
+                adapter_evidence_dir.display().to_string(),
                 "--threads".to_string(),
                 threads.to_string(),
                 r1.display().to_string(),

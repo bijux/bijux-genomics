@@ -2,6 +2,7 @@ schema_version: "bijux.domain.artifacts.v1"
 domain: "fastq"
 artifact_ids:
   - adapter_report
+  - adapter_evidence_dir
   - adapter_inspection_tool_benchmark_cohort_json
   - adapter_inspection_tool_comparison_json
   - adapter_inspection_tool_normalization_json
