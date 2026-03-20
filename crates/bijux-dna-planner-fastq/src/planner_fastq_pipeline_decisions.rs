@@ -418,12 +418,22 @@ fn execution_edges_for_stage_plans(
     };
 
     let mut plan_nodes = std::collections::BTreeMap::new();
+    let mut stage_counts = std::collections::BTreeMap::new();
+    for plan in plans {
+        *stage_counts
+            .entry(plan.stage_id.as_str().to_string())
+            .or_insert(0usize) += 1;
+    }
     for plan in plans {
         let node_id = plan
             .stage_instance_id
             .as_ref()
             .map_or_else(|| plan.stage_id.as_str().to_string(), ToString::to_string);
-        plan_nodes.insert(node_id.clone(), StepId::new(node_id));
+        let step_id = StepId::new(node_id.clone());
+        plan_nodes.insert(node_id, step_id.clone());
+        if stage_counts.get(plan.stage_id.as_str()).copied() == Some(1) {
+            plan_nodes.insert(plan.stage_id.as_str().to_string(), step_id);
+        }
     }
     for node in pipeline_spec.ordered_nodes() {
         let node_id =
