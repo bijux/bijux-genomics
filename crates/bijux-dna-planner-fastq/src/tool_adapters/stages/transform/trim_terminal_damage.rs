@@ -75,6 +75,7 @@ pub fn plan_trim_terminal_damage_with_options(
         &output_r1,
         output_r2.as_deref(),
         &report,
+        &options.damage_mode,
         options.trim_5p_bases,
         options.trim_3p_bases,
     )?;
@@ -152,6 +153,7 @@ fn trim_terminal_damage_command(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report: &Path,
+    damage_mode: &str,
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> Result<Vec<String>> {
@@ -178,22 +180,60 @@ fn trim_terminal_damage_command(
             }
             Ok(command)
         }
-        "seqkit" => crate::tool_adapters::template_render::render_command_template(
-            &[
-                "seqkit".to_string(),
-                "seq".to_string(),
-                "-o".to_string(),
-                "{{trimmed_reads}}".to_string(),
-                "{{reads}}".to_string(),
-            ],
-            &[
-                ("reads", Some(r1.display().to_string())),
-                ("trimmed_reads", Some(output_r1.display().to_string())),
-                ("report_json", Some(report.display().to_string())),
-            ],
-        ),
+        "seqkit" => {
+            let region = terminal_trim_region(trim_5p_bases, trim_3p_bases);
+            let mut script = format!(
+                "set -euo pipefail\nseqkit subseq -r {} {} -o {}\n",
+                shell_quote_str(&region),
+                shell_quote_path(r1),
+                shell_quote_path(output_r1),
+            );
+            if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+                script.push_str(&format!(
+                    "seqkit subseq -r {} {} -o {}\n",
+                    shell_quote_str(&region),
+                    shell_quote_path(r2),
+                    shell_quote_path(output_r2),
+                ));
+            }
+            let report_payload = serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.report.v1",
+                "tool_id": tool_id,
+                "damage_mode": damage_mode,
+                "trim_5p_bases": trim_5p_bases,
+                "trim_3p_bases": trim_3p_bases,
+                "input_r1": r1,
+                "input_r2": r2,
+                "output_r1": output_r1,
+                "output_r2": output_r2,
+            });
+            script.push_str(&format!(
+                "printf '%s\\n' {} > {}\n",
+                shell_quote_str(&report_payload.to_string()),
+                shell_quote_path(report),
+            ));
+            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+        }
         _ => Err(anyhow!(
             "unsupported trim_terminal_damage tool for stage planning: {tool_id}"
         )),
     }
+}
+
+fn terminal_trim_region(trim_5p_bases: u32, trim_3p_bases: u32) -> String {
+    let start = trim_5p_bases.saturating_add(1);
+    let end = if trim_3p_bases == 0 {
+        "-1".to_string()
+    } else {
+        format!("-{}", trim_3p_bases.saturating_add(1))
+    };
+    format!("{start}:{end}")
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }

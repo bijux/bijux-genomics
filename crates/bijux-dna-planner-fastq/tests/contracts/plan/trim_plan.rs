@@ -167,3 +167,26 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     assert_eq!(plan.effective_params["trim_3p_bases"], 2);
     Ok(())
 }
+
+#[test]
+fn plan_trim_terminal_damage_seqkit_respects_terminal_trim_settings() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+        &dummy_tool("seqkit"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        "udg_trimmed",
+        5,
+        3,
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("seqkit subseq -r '6:-4'"));
+    assert!(script.contains("reads_R1.fastq.gz"));
+    assert!(script.contains("reads_R2.fastq.gz"));
+    assert!(script.contains("trim_terminal_damage_report.json"));
+    assert!(script.contains("\"damage_mode\":\"udg_trimmed\""));
+    Ok(())
+}
