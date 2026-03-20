@@ -65,11 +65,15 @@ pub struct BenchmarkParamBinding {
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageSpec {
     pub stage: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
     pub tools: Vec<String>,
     #[serde(default)]
     pub params: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub param_bindings: Vec<BenchmarkParamBinding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub upstream_stage_instance_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,9 +107,11 @@ impl BenchmarkSuiteSpec {
             .into_iter()
             .map(|stage| BenchmarkStageSpec {
                 stage,
+                stage_instance_id: None,
                 tools: tools.clone(),
                 params: params.clone(),
                 param_bindings: Vec::new(),
+                upstream_stage_instance_ids: Vec::new(),
             })
             .collect();
         Self::v1_stage_matrix(
@@ -145,6 +151,14 @@ impl BenchmarkSuiteSpec {
     #[must_use]
     pub fn stage_ids(&self) -> Vec<&str> {
         self.stages.iter().map(|stage| stage.stage.as_str()).collect()
+    }
+
+    #[must_use]
+    pub fn stage_node_ids(&self) -> Vec<&str> {
+        self.stages
+            .iter()
+            .map(|stage| stage.stage_instance_id.as_deref().unwrap_or(stage.stage.as_str()))
+            .collect()
     }
 
     #[must_use]
