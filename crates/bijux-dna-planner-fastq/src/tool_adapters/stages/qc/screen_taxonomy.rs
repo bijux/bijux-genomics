@@ -6,8 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
-        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
-        SCREEN_TAXONOMY_SCHEMA_VERSION,
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
+        TaxonomyDatabaseScope, TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
     },
     PairedMode,
 };
@@ -45,9 +45,14 @@ pub fn plan_screen(
         },
         threads: tool.resources.threads,
         contaminant_db: None,
+        database_artifact_id: "taxonomy_db".to_string(),
+        database_build_id: None,
+        database_scope: TaxonomyDatabaseScope::ReadScreening,
         classifier,
         report_format,
         assignment_format,
+        minimum_confidence: None,
+        emit_unclassified: true,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
