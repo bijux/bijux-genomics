@@ -4,6 +4,7 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams;
 use bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -59,7 +60,7 @@ pub fn plan(
     outputs.push(ArtifactRef::optional(
         ArtifactId::from_static("chimeras_fasta"),
         chimeras.clone(),
-        ArtifactRole::Index,
+        ArtifactRole::Reference,
     ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -84,11 +85,15 @@ pub fn plan(
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({}),
-        effective_params: serde_json::json!({
-            "chimera_mode": "denovo",
-            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-            "report_auxiliary_uchime_table": uchime,
-        }),
+        effective_params: serde_json::to_value(ChimeraDetectionEffectiveParams {
+            method: "vsearch_uchime_denovo".to_string(),
+            detection_scope: "denovo".to_string(),
+            chimera_sequence_artifact: "chimeras_fasta".to_string(),
+            chimera_removed_definition:
+                "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                    .to_string(),
+        })
+        .expect("serialize chimera effective params"),
         aux_images: std::collections::BTreeMap::new(),
         reason: PlanDecisionReason::new(
             PlanReasonKind::Default,

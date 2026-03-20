@@ -4,6 +4,7 @@ use bijux_dna_domain_fastq::params::defaults::{correct_defaults, stats_defaults,
 use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::{
     MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
 };
@@ -77,6 +78,22 @@ fn merge_params_roundtrip_with_engine_specific_output_policy() {
         UnmergedReadPolicy::EmitUnmergedPairs,
     );
     assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn chimera_params_roundtrip_with_sequence_artifact_contract() {
+    let params = ChimeraDetectionEffectiveParams {
+        method: "vsearch_uchime_denovo".to_string(),
+        detection_scope: "denovo".to_string(),
+        chimera_sequence_artifact: "chimeras_fasta".to_string(),
+        chimera_removed_definition:
+            "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                .to_string(),
+    };
+    let decoded: ChimeraDetectionEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.method, "vsearch_uchime_denovo");
+    assert_eq!(decoded.detection_scope, "denovo");
+    assert_eq!(decoded.chimera_sequence_artifact, "chimeras_fasta");
 }
 
 #[test]
