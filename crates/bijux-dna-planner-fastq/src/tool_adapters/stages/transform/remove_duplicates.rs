@@ -27,7 +27,6 @@ fn deduplicate_output_name(tool: &str) -> Option<&'static str> {
     match tool {
         "fastuniq" => Some("fastuniq.fastq.gz"),
         "clumpify" => Some("clumpify.fastq.gz"),
-        "prinseq" => Some("prinseq_good.fastq"),
         _ => None,
     }
 }
@@ -43,12 +42,6 @@ pub fn plan_deduplicate(
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let paired_mode = r2.is_some();
-    if paired_mode && tool.tool_id.as_str() == "prinseq" {
-        return Err(anyhow!(
-            "paired-end duplicate removal is not supported for tool {}",
-            tool.tool_id
-        ));
-    }
     let output_r1 = if paired_mode {
         out_dir.join(format!("{}.dedup.R1.fastq.gz", tool.tool_id))
     } else {
@@ -115,4 +108,14 @@ pub fn plan_deduplicate(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deduplicate_output_name_rejects_unadmitted_tools() {
+        assert!(deduplicate_output_name("prinseq").is_none());
+    }
 }
