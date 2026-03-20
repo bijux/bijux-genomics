@@ -160,4 +160,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .all(|tool_id| tool_id.as_str() != "diamond")
     );
+
+    let filter_stage = StageId::from_static("fastq.filter_reads");
+    let filter_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&filter_stage);
+    assert_eq!(filter_cohorts.len(), 1);
+    assert_eq!(filter_cohorts[0].scenario_id, "filter_fairness");
+    assert!(
+        filter_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastp")
+    );
+    assert!(
+        filter_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "cutadapt")
+    );
 }

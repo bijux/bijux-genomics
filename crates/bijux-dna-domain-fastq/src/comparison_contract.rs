@@ -16,6 +16,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "trim_tool_normalization_json",
     ),
     (
+        "fastq.filter_reads",
+        "filter_tool_benchmark_cohort_json",
+        "filter_tool_comparison_json",
+        "filter_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",

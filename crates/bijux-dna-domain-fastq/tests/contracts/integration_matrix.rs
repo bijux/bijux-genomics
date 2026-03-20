@@ -56,6 +56,17 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_contamination_db_hash")
     );
+
+    let filter_stage = StageId::from_static("fastq.filter_reads");
+    let filter_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&filter_stage);
+    assert_eq!(filter_scenarios.len(), 1);
+    assert_eq!(filter_scenarios[0].scenario_id, "filter_fairness");
+    assert!(
+        filter_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_filter_contract_hash")
+    );
 }
 
 #[test]

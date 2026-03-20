@@ -43,6 +43,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&validate_stage).is_empty(),
         "non-benchmark stages must not advertise comparison artifacts",
     );
+
+    let filter_stage = StageId::from_static("fastq.filter_reads");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&filter_stage),
+        vec![
+            "filter_tool_benchmark_cohort_json",
+            "filter_tool_comparison_json",
+            "filter_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]
