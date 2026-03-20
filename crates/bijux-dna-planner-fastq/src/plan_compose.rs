@@ -17,6 +17,12 @@ use crate::{
     STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 
+#[derive(Debug, Clone)]
+struct ReferenceIndexState {
+    path: PathBuf,
+    tool_id: String,
+}
+
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_pipeline_steps<F>(
     stages: &[String],
@@ -52,7 +58,7 @@ where
     let mut current_r2 = r2.map(|path| path.to_path_buf());
     let raw_r2 = r2.map(|path| path.to_path_buf());
     let mut current_feature_table: Option<PathBuf> = None;
-    let mut current_reference_index: Option<PathBuf> = None;
+    let mut current_reference_index: Option<ReferenceIndexState> = None;
     let mut plans = Vec::new();
     for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
@@ -178,11 +184,16 @@ where
                 let reference_index = current_reference_index
                     .as_ref()
                     .ok_or_else(|| anyhow!("host depletion requires a prior reference index stage"))?;
+                ensure_reference_index_backend(
+                    STAGE_DEPLETE_HOST.as_str(),
+                    tool.tool_id.as_str(),
+                    &reference_index.tool_id,
+                )?;
                 let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
-                    reference_index,
+                    &reference_index.path,
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -202,11 +213,16 @@ where
                 let reference_index = current_reference_index
                     .as_ref()
                     .ok_or_else(|| anyhow!("reference contaminant depletion requires a prior reference index stage"))?;
+                ensure_reference_index_backend(
+                    STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
+                    tool.tool_id.as_str(),
+                    &reference_index.tool_id,
+                )?;
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
-                    reference_index,
+                    &reference_index.path,
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -480,14 +496,33 @@ where
         }
         plans.push(plan);
         if stage_id == STAGE_INDEX_REFERENCE.as_str() {
-            current_reference_index =
-                Some(plans.last().expect("stage just pushed").io.outputs[0].path.clone());
+            let plan = plans.last().expect("stage just pushed");
+            current_reference_index = Some(ReferenceIndexState {
+                path: plan.io.outputs[0].path.clone(),
+                tool_id: plan.tool_id.to_string(),
+            });
         }
         current_r1 = next_r1;
         current_r2 = next_r2;
         current_feature_table = next_feature_table;
     }
     Ok(plans)
+}
+
+fn ensure_reference_index_backend(
+    stage_id: &str,
+    depletion_tool_id: &str,
+    index_tool_id: &str,
+) -> Result<()> {
+    match (depletion_tool_id, index_tool_id) {
+        ("bowtie2", "bowtie2_build") => Ok(()),
+        ("bowtie2", other) => Err(anyhow!(
+            "{stage_id} requires a bowtie2_build reference index, but upstream fastq.index_reference used {other}"
+        )),
+        (other, _) => Err(anyhow!(
+            "unsupported reference-aware depletion backend for {stage_id}: {other}"
+        )),
+    }
 }
 
 #[allow(dead_code)]
