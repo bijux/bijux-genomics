@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 78
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -70,7 +69,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "expected_artifact_ids": [
-        "adapter_report"
+        "adapter_report",
+        "adapter_evidence_dir"
       ],
       "image": {
         "digest": null,
@@ -91,6 +91,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
+          },
+          {
+            "name": "adapter_evidence_dir",
+            "optional": true,
+            "path": "fastqc",
+            "role": "stage_report"
           }
         ]
       },
@@ -343,11 +349,17 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "multiqc_data",
           "-n",
           "multiqc_report.html",
-          "fastqc",
-          "fastqc",
-          "seqkit_stats",
-          "seqkit_stats",
-          "fastqvalidator"
+          "adapter_report.json",
+          "overrepresented_sequences.json",
+          "overrepresented_sequences.tsv",
+          "length_distribution.json",
+          "length_distribution.tsv",
+          "plots",
+          "qc.json",
+          "qc.tsv",
+          "trim_polyg_tails_report.json",
+          "trim_terminal_damage_report.json",
+          "validation.json"
         ]
       },
       "expected_artifact_ids": [
@@ -361,55 +373,67 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "io": {
         "inputs": [
           {
-            "name": "validation_report",
+            "name": "fastq.validate_reads.tool.fastqvalidator.validation_report",
             "optional": false,
             "path": "validation.json",
             "role": "report_json"
           },
           {
-            "name": "length_distribution_tsv",
+            "name": "fastq.profile_read_lengths.tool.seqkit_stats.length_distribution_tsv",
             "optional": false,
             "path": "length_distribution.tsv",
             "role": "summary_tsv"
           },
           {
-            "name": "length_distribution_json",
+            "name": "fastq.profile_read_lengths.tool.seqkit_stats.length_distribution_json",
             "optional": false,
             "path": "length_distribution.json",
             "role": "metrics_json"
           },
           {
-            "name": "adapter_report",
+            "name": "fastq.detect_adapters.tool.fastqc.adapter_report",
             "optional": false,
             "path": "adapter_report.json",
             "role": "report_json"
           },
           {
-            "name": "qc_json",
+            "name": "fastq.trim_polyg_tails.tool.fastp.report_json",
+            "optional": false,
+            "path": "trim_polyg_tails_report.json",
+            "role": "report_json"
+          },
+          {
+            "name": "fastq.trim_terminal_damage.tool.cutadapt.report_json",
+            "optional": false,
+            "path": "trim_terminal_damage_report.json",
+            "role": "report_json"
+          },
+          {
+            "name": "fastq.profile_reads.tool.seqkit_stats.qc_json",
             "optional": false,
             "path": "qc.json",
             "role": "metrics_json"
           },
           {
-            "name": "qc_tsv",
+            "name": "fastq.profile_reads.tool.seqkit_stats.qc_tsv",
             "optional": false,
             "path": "qc.tsv",
             "role": "summary_tsv"
           },
           {
-            "name": "qc_plots_dir",
+            "name": "fastq.profile_reads.tool.seqkit_stats.qc_plots_dir",
             "optional": true,
             "path": "plots",
             "role": "index"
           },
           {
-            "name": "overrepresented_sequences_tsv",
+            "name": "fastq.profile_overrepresented_sequences.tool.fastqc.overrepresented_sequences_tsv",
             "optional": false,
             "path": "overrepresented_sequences.tsv",
             "role": "summary_tsv"
           },
           {
-            "name": "overrepresented_sequences_json",
+            "name": "fastq.profile_overrepresented_sequences.tool.fastqc.overrepresented_sequences_json",
             "optional": false,
             "path": "overrepresented_sequences.json",
             "role": "metrics_json"
