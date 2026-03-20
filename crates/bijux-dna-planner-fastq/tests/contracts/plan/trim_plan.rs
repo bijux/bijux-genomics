@@ -23,6 +23,26 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+fn templated_tool(tool: &str, template: &[&str]) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new(tool),
+        tool_version: "1.0.0".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: template.iter().map(|part| (*part).to_string()).collect(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
+}
+
 #[test]
 fn trim_output_names_are_defined_for_known_tools() {
     assert_eq!(
@@ -222,5 +242,53 @@ fn plan_trim_terminal_damage_seqkit_respects_terminal_trim_settings() -> Result<
     assert!(script.contains("reads_R2.fastq.gz"));
     assert!(script.contains("trim_terminal_damage_report.json"));
     assert!(script.contains("\"damage_mode\":\"udg_trimmed\""));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_wraps_generic_backends_with_normalized_report_json() -> Result<()> {
+    let tool = templated_tool(
+        "cutadapt",
+        &["cutadapt", "-o", "{{trimmed_reads_r1}}", "{{reads_r1}}"],
+    );
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &tool,
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("cutadapt"));
+    assert!(script.contains("trim_report.json"));
+    assert!(script.contains("\"tool_id\":\"cutadapt\""));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_galore_uses_output_directory_and_moves_governed_outputs() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("trim_galore"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("trim_galore --output_dir"));
+    assert!(script.contains("--paired"));
+    assert!(script.contains("reads_R1_trimmed.fq.gz"));
+    assert!(script.contains("reads_R2_trimmed.fq.gz"));
+    assert!(script.contains("trim_report.json"));
     Ok(())
 }
