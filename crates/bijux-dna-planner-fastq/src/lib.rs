@@ -41,6 +41,7 @@ pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.prepro
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
 
 mod plan_compose;
+mod qc_contract;
 mod report_stage;
 mod selection;
 pub mod tool_adapters;
