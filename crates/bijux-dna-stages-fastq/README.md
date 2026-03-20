@@ -19,7 +19,8 @@ Observers parse known tool outputs into metrics.
 - Required: the fields listed in `docs/STAGE_CONTRACTS.md`.
 
 ## Stages and observers
-`implemented_stages()` publishes contract coverage for all FASTQ stages.
+`contract_stage_ids()` publishes the full FASTQ contract surface.
+`implemented_stages()` is the narrower set whose execution support is closed in the FASTQ domain.
 `observer_stage_ids()` is the narrower set with parser-specialized observer coverage documented under
 `docs/OBSERVERS.md`.
 
