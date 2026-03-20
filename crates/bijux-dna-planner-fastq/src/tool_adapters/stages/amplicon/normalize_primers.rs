@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
 use bijux_dna_stage_contract::{
@@ -24,6 +24,8 @@ pub fn plan(
         out_dir.join("primer_normalized.fastq.gz")
     };
     let output_r2 = r2.map(|_| out_dir.join("R2.primer_normalized.fastq.gz"));
+    let orientation_report = out_dir.join("primer_orientation.tsv");
+    let primer_stats = out_dir.join("primer_stats.json");
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -50,12 +52,12 @@ pub fn plan(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("primer_orientation_report"),
-        out_dir.join("primer_orientation.tsv"),
+        orientation_report.clone(),
         ArtifactRole::SummaryTsv,
     ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("primer_stats_json"),
-        out_dir.join("primer_stats.json"),
+        primer_stats.clone(),
         ArtifactRole::MetricsJson,
     ));
 
@@ -65,8 +67,16 @@ pub fn plan(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: normalize_primers_command(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                &output_r1,
+                output_r2.as_deref(),
+                &orientation_report,
+                &primer_stats,
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
@@ -88,4 +98,64 @@ pub fn plan(
             "amplicon primer normalization",
         ),
     })
+}
+
+fn normalize_primers_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    orientation_report: &Path,
+    primer_stats: &Path,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "cutadapt" => {
+            let mut command = vec![
+                "cutadapt".to_string(),
+                "-g".to_string(),
+                "file:primers.fa".to_string(),
+                "--overlap".to_string(),
+                "8".to_string(),
+                "--error-rate".to_string(),
+                "0.12".to_string(),
+                "--revcomp".to_string(),
+                "--info-file".to_string(),
+                orientation_report.display().to_string(),
+                "--json".to_string(),
+                primer_stats.display().to_string(),
+                "-o".to_string(),
+                output_r1.display().to_string(),
+            ];
+            if let Some(output_r2) = output_r2 {
+                command.push("-p".to_string());
+                command.push(output_r2.display().to_string());
+            }
+            command.push(r1.display().to_string());
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            Ok(command)
+        }
+        "seqkit" => {
+            if r2.is_some() {
+                return Err(anyhow!(
+                    "seqkit primer normalization planning requires a single merged or single-end input"
+                ));
+            }
+            Ok(vec![
+                "seqkit".to_string(),
+                "grep".to_string(),
+                "-r".to_string(),
+                "-p".to_string(),
+                "PRIMER".to_string(),
+                "-o".to_string(),
+                output_r1.display().to_string(),
+                r1.display().to_string(),
+            ])
+        }
+        _ => Err(anyhow!(
+            "unsupported primer normalization tool for stage planning: {tool_id}"
+        )),
+    }
 }

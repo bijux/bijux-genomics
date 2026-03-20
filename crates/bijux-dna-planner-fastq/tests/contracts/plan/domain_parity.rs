@@ -52,7 +52,7 @@ fn fastq_domain_yaml_matches_rust_stage_catalog() -> Result<()> {
 fn fastq_planner_registry_covers_new_amplicon_stages() {
     let stages = bijux_dna_planner_fastq::stage_api::fastq::registry()
         .into_iter()
-        .map(|s| s.id.to_string())
+        .map(|s| s.id().to_string())
         .collect::<BTreeSet<_>>();
     assert!(
         !stages.contains("fastq.preprocess"),
