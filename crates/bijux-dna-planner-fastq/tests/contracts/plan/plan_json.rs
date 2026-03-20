@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use bijux_dna_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, StageId, ToolExecutionSpecV1, ToolId,
+    ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
+    ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::{STAGE_TRIM_READS, STAGE_VALIDATE_READS};
@@ -339,14 +340,33 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
 
     let plan =
-        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
+        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
             &domain_tool("fastq.report_qc", "multiqc"),
-            r1,
-            Some(r2),
+            &[
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.detect_adapters.tool.fastqc.adapter_report"),
+                    out_dir.join("detect_adapters/fastqc/adapter_report.json"),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::optional(
+                    ArtifactId::from_static(
+                        "fastq.detect_adapters.tool.fastqc.adapter_evidence_dir",
+                    ),
+                    out_dir.join("detect_adapters/fastqc/fastqc"),
+                    ArtifactRole::StageReport,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.profile_reads.tool.seqkit_stats.qc_json"),
+                    out_dir.join("profile_reads/seqkit_stats/qc.json"),
+                    ArtifactRole::MetricsJson,
+                ),
+            ],
             out_dir,
             std::collections::BTreeMap::new(),
-            None,
-            None,
+            bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+            bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
+            Some(r1),
+            Some(r2),
         )?;
     assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.report_qc", &plan)?;

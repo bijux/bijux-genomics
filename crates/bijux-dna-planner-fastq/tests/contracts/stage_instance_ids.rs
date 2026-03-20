@@ -123,13 +123,20 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
     );
 
     let report_plan =
-        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
+        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
             &tool("multiqc"),
-            &r1,
-            None,
+            &[bijux_dna_core::prelude::ArtifactRef::required(
+                bijux_dna_core::prelude::ArtifactId::from_static(
+                    "fastq.profile_reads.tool.seqkit_stats.qc_json",
+                ),
+                temp.path().join("profile_reads/qc.json"),
+                bijux_dna_core::prelude::ArtifactRole::MetricsJson,
+            )],
             temp.path(),
             std::collections::BTreeMap::new(),
-            None,
+            bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+            bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
+            Some(&r1),
             None,
         )?;
     assert_eq!(
