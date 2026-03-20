@@ -99,7 +99,6 @@ stages:
     admitted_tools:
       - "prinseq"
       - "bbduk"
-      - "fastp"
   - stage_id: "fastq.deplete_host"
     execution_status: "closed"
     default_tool: "bowtie2"
