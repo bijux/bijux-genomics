@@ -2,6 +2,8 @@
 mod contract_handshake;
 #[path = "plan/domain_parity.rs"]
 mod domain_parity;
+#[path = "plan/filter_plan.rs"]
+mod filter_plan;
 #[path = "plan/no_parsing.rs"]
 mod no_parsing;
 #[path = "plan/plan_json.rs"]

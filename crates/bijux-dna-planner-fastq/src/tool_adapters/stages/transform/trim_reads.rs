@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
 use bijux_dna_domain_fastq::STAGE_TRIM_READS;
@@ -157,20 +157,13 @@ pub fn plan(
         ArtifactRole::ReportJson,
     ));
     let report_json = out_dir.join("trim_report.json");
-    let command_template = crate::tool_adapters::template_render::render_command_template(
-        &tool.command.template,
-        &[
-            ("reads", Some(r1.display().to_string())),
-            ("reads_r1", Some(r1.display().to_string())),
-            ("reads_r2", r2.map(|path| path.display().to_string())),
-            ("trimmed_reads", Some(output_r1.display().to_string())),
-            ("trimmed_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "trimmed_reads_r2",
-                output_r2.as_ref().map(|path| path.display().to_string()),
-            ),
-            ("report_json", Some(report_json.display().to_string())),
-        ],
+    let command_template = trim_command_template(
+        tool,
+        r1,
+        r2,
+        &output_r1,
+        output_r2.as_deref(),
+        &report_json,
     )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -178,7 +171,7 @@ pub fn plan(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
+        command: CommandSpecV1 {
             template: command_template,
         },
         resources: tool.resources.clone(),
@@ -208,5 +201,53 @@ pub fn plan_from_config(
         config.adapter_bank.as_ref(),
         config.polyx_bank.as_ref(),
         config.contaminant_bank.as_ref(),
+    )
+}
+
+fn trim_command_template(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+) -> Result<Vec<String>> {
+    if tool.tool_id.as_str() == "fastp" {
+        let mut command = vec![
+            "fastp".to_string(),
+            "--in1".to_string(),
+            r1.display().to_string(),
+            "--out1".to_string(),
+            output_r1.display().to_string(),
+            "--json".to_string(),
+            report_json.display().to_string(),
+            "--thread".to_string(),
+            tool.resources.threads.to_string(),
+        ];
+        if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+            command.extend([
+                "--in2".to_string(),
+                r2.display().to_string(),
+                "--out2".to_string(),
+                output_r2.display().to_string(),
+                "--detect_adapter_for_pe".to_string(),
+            ]);
+        }
+        return Ok(command);
+    }
+    crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", Some(r1.display().to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            ("reads_r2", r2.map(|path| path.display().to_string())),
+            ("trimmed_reads", Some(output_r1.display().to_string())),
+            ("trimmed_reads_r1", Some(output_r1.display().to_string())),
+            (
+                "trimmed_reads_r2",
+                output_r2.map(|path| path.display().to_string()),
+            ),
+            ("report_json", Some(report_json.display().to_string())),
+        ],
     )
 }

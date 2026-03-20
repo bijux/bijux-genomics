@@ -28,7 +28,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "fastp"
+          "fastp",
+          "--in1",
+          "reads_R1.fastq.gz",
+          "--out1",
+          "out/trim_reads/fastp/fastp.fastq.gz",
+          "--json",
+          "out/trim_reads/fastp/trim_report.json",
+          "--thread",
+          "2"
         ]
       },
       "expected_artifact_ids": [],

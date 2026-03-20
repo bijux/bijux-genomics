@@ -92,20 +92,8 @@ pub fn plan_filter(
             ArtifactRole::Reads,
         ));
     }
-    let command_template = crate::tool_adapters::template_render::render_command_template(
-        &tool.command.template,
-        &[
-            ("reads", Some(r1.display().to_string())),
-            ("reads_r1", Some(r1.display().to_string())),
-            ("reads_r2", r2.map(|path| path.display().to_string())),
-            ("filtered_reads", Some(output_r1.display().to_string())),
-            ("filtered_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "filtered_reads_r2",
-                output_r2.as_ref().map(|path| path.display().to_string()),
-            ),
-        ],
-    )?;
+    let command_template =
+        filter_command_template(tool, r1, r2, &output_r1, output_r2.as_deref(), options)?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -138,6 +126,79 @@ pub fn plan_filter(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn filter_command_template(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    options: &FilterPlanOptions,
+) -> Result<Vec<String>> {
+    if tool.tool_id.as_str() == "fastp" {
+        if options.kmer_ref.is_some() {
+            return Err(anyhow!(
+                "fastp filter planning does not support contaminant k-mer reference filtering"
+            ));
+        }
+        if options.max_n_fraction.is_some() {
+            return Err(anyhow!(
+                "fastp filter planning does not support max_n_fraction without a count translation"
+            ));
+        }
+        let mut command = vec![
+            "fastp".to_string(),
+            "--in1".to_string(),
+            r1.display().to_string(),
+            "--out1".to_string(),
+            output_r1.display().to_string(),
+            "--thread".to_string(),
+            tool.resources.threads.to_string(),
+        ];
+        if let Some(limit) = options.max_n_count.or(options.max_n) {
+            command.extend(["--n_base_limit".to_string(), limit.to_string()]);
+        }
+        if let Some(threshold) = options
+            .low_complexity_threshold
+            .or(options.entropy_threshold)
+        {
+            command.push("--low_complexity_filter".to_string());
+            command.extend([
+                "--complexity_threshold".to_string(),
+                threshold.to_string(),
+            ]);
+        }
+        if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+            command.extend([
+                "--in2".to_string(),
+                r2.display().to_string(),
+                "--out2".to_string(),
+                output_r2.display().to_string(),
+            ]);
+        }
+        return Ok(command);
+    }
+    crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", Some(r1.display().to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            ("reads_r2", r2.map(|path| path.display().to_string())),
+            ("filtered_reads", Some(output_r1.display().to_string())),
+            ("filtered_reads_r1", Some(output_r1.display().to_string())),
+            (
+                "filtered_reads_r2",
+                output_r2.map(|path| path.display().to_string()),
+            ),
+            ("trimmed_reads", Some(output_r1.display().to_string())),
+            ("trimmed_reads_r1", Some(output_r1.display().to_string())),
+            (
+                "trimmed_reads_r2",
+                output_r2.map(|path| path.display().to_string()),
+            ),
+        ],
+    )
 }
 
 fn filter_output_name(tool: &str) -> Option<&'static str> {
