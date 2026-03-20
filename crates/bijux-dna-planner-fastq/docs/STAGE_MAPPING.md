@@ -10,7 +10,7 @@ Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus 
 | fastq.profile_overrepresented_sequences | fastqc, seqkit | overrepresented-sequence report | flagged sequence counts |
 | fastq.index_reference | bowtie2_build, star | reference index directory | runtime_s, index_file_count, index_bytes |
 | fastq.trim_polyg_tails | fastp, bbduk | trimmed FASTQ, trim report | polyG/polyX trimming counts |
-| fastq.trim_terminal_damage | trim_galore, adapterremoval | terminal-damage-trimmed FASTQ, trim report | reads_out |
+| fastq.trim_terminal_damage | cutadapt, seqkit | terminal-damage-trimmed FASTQ, trim report | reads_out |
 | fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper | trimmed FASTQ | retention, bases_kept |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | filtered FASTQ | filter counts |
 | fastq.deplete_reference_contaminants | bowtie2 | contaminant-screened FASTQ, contaminant screen report | reads_removed_contaminant_kmer |
@@ -26,5 +26,5 @@ Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus 
 | fastq.normalize_primers | cutadapt, seqkit | primer-normalized FASTQ | primer_trimmed_fraction |
 | fastq.remove_chimeras | vsearch | chimera-filtered FASTQ, chimera report | chimera_fraction |
 | fastq.cluster_otus | vsearch | OTU table, representative FASTA, taxonomy-ready FASTA/FASTQ | otu_count |
-| fastq.normalize_abundance | seqfu, seqkit | normalized abundance table | table_rows |
+| fastq.normalize_abundance | seqkit | normalized abundance table | table_rows |
 | fastq.report_qc | multiqc | qc report | qc summary |
