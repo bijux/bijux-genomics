@@ -62,12 +62,12 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
         .command
         .template
         .iter()
-        .any(|part| part == "profile_reads"));
+        .any(|part| part == "profile_reads/qc.json"));
     assert!(plan
         .command
         .template
         .iter()
-        .any(|part| part == "detect_adapters"));
+        .any(|part| part == "detect_adapters/adapter_report.json"));
     Ok(())
 }
 
