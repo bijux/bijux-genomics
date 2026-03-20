@@ -472,13 +472,11 @@ fn validate_reference_index_bindings(
     let binding_by_node_id = bindings
         .iter()
         .map(|binding| {
-            let node_id = binding
-                .stage_instance_id
-                .clone()
-                .unwrap_or_else(|| format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id));
+            let node_id = binding_node_id(binding);
             (node_id, binding)
         })
         .collect::<std::collections::BTreeMap<_, _>>();
+    let dependency_policy = stage_dependency_policy(pipeline_spec);
     let mut current_index_backend: Option<&str> = None;
     for binding in bindings {
         match binding.stage_id.as_str() {
@@ -486,21 +484,22 @@ fn validate_reference_index_bindings(
                 current_index_backend = Some(binding.tool.tool_id.as_str());
             }
             "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
-                let explicit_backend = explicit_stage_inputs
-                    .get(
-                        binding
-                            .stage_instance_id
-                            .as_deref()
-                            .unwrap_or(binding.stage_id.as_str()),
-                    )
-                    .and_then(|inputs| {
-                        inputs
-                            .iter()
-                            .find(|input| input.to_input_id == "reference_index")
-                    })
-                    .and_then(|input| binding_by_node_id.get(&input.from_stage_node_id))
-                    .map(|binding| binding.tool.tool_id.as_str());
-                let Some(index_backend) = explicit_backend.or(current_index_backend) else {
+                let explicit_backend = explicit_reference_index_binding(
+                    binding,
+                    &explicit_stage_inputs,
+                    &binding_by_node_id,
+                )?
+                .map(|binding| binding.tool.tool_id.as_str());
+                let dependency_backend = dependency_reference_index_binding(
+                    binding,
+                    &dependency_policy,
+                    &binding_by_node_id,
+                )?
+                .map(|binding| binding.tool.tool_id.as_str());
+                let Some(index_backend) = explicit_backend
+                    .or(dependency_backend)
+                    .or(current_index_backend)
+                else {
                     continue;
                 };
                 let depletion_tool_id =
@@ -529,6 +528,70 @@ fn validate_reference_index_bindings(
         }
     }
     Ok(())
+}
+
+fn binding_node_id(binding: &FastqStageBinding) -> String {
+    binding
+        .stage_instance_id
+        .clone()
+        .unwrap_or_else(|| format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id))
+}
+
+fn stage_dependency_policy(
+    pipeline_spec: Option<&PipelineSpec>,
+) -> std::collections::BTreeMap<String, Vec<String>> {
+    let mut dependencies = std::collections::BTreeMap::<String, Vec<String>>::new();
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return dependencies;
+    };
+    for edge in &pipeline_spec.edges {
+        dependencies
+            .entry(edge.to.clone())
+            .or_default()
+            .push(edge.from.clone());
+    }
+    dependencies
+}
+
+fn explicit_reference_index_binding<'a>(
+    binding: &FastqStageBinding,
+    explicit_stage_inputs: &'a crate::plan_compose::StageArtifactInputPolicy,
+    binding_by_node_id: &'a std::collections::BTreeMap<String, &'a FastqStageBinding>,
+) -> Result<Option<&'a FastqStageBinding>> {
+    Ok(explicit_stage_inputs
+        .get(&binding_node_id(binding))
+        .and_then(|inputs| {
+            inputs
+                .iter()
+                .find(|input| input.to_input_id == "reference_index")
+        })
+        .and_then(|input| binding_by_node_id.get(&input.from_stage_node_id).copied()))
+}
+
+fn dependency_reference_index_binding<'a>(
+    binding: &FastqStageBinding,
+    dependency_policy: &'a std::collections::BTreeMap<String, Vec<String>>,
+    binding_by_node_id: &'a std::collections::BTreeMap<String, &'a FastqStageBinding>,
+) -> Result<Option<&'a FastqStageBinding>> {
+    let node_id = binding_node_id(binding);
+    let Some(upstream_nodes) = dependency_policy.get(&node_id) else {
+        return Ok(None);
+    };
+    let mut upstream_indices = upstream_nodes
+        .iter()
+        .filter_map(|upstream_node| binding_by_node_id.get(upstream_node).copied())
+        .filter(|upstream| upstream.stage_id == "fastq.index_reference")
+        .collect::<Vec<_>>();
+    upstream_indices.sort_by(|left, right| binding_node_id(left).cmp(&binding_node_id(right)));
+    upstream_indices.dedup_by(|left, right| binding_node_id(left) == binding_node_id(right));
+    match upstream_indices.len() {
+        0 => Ok(None),
+        1 => Ok(upstream_indices.into_iter().next()),
+        _ => Err(anyhow!(
+            "{} depends on multiple fastq.index_reference nodes; add an explicit reference_index artifact binding",
+            binding.stage_id
+        )),
+    }
 }
 
 fn execution_edges_for_stage_plans(
