@@ -1,0 +1,46 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_adapter_and_overrepresented_qc"
+
+[[datasets]]
+id = "synthetic_fastq_qc_signal_01"
+hash = "fixture-fastq-qc-signal-01"
+size = 1
+origin = "synthetic"
+class_label = "adapter_rich"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [521, 522]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["adapter_rich"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.detect_adapters"
+stage_instance_id = "fastq.detect_adapters.adapter_inspection"
+tools = ["fastqc"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.profile_overrepresented_sequences"
+stage_instance_id = "fastq.profile_overrepresented_sequences.sequence_rankings"
+tools = ["fastqc", "seqkit"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]

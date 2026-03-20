@@ -1,0 +1,34 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_length_profile_cohort"
+
+[[datasets]]
+id = "synthetic_fastq_length_profile_01"
+hash = "fixture-fastq-length-profile-01"
+size = 1
+origin = "synthetic"
+class_label = "mixed_length"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [511, 512]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["mixed_length"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.profile_read_lengths"
+stage_instance_id = "fastq.profile_read_lengths.length_profiles"
+tools = ["seqkit_stats", "prinseq", "fastp"]
