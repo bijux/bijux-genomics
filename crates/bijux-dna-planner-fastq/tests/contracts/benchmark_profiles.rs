@@ -89,6 +89,40 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
 }
 
 #[test]
+fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings() {
+    let infer_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
+        &StageId::from_static("fastq.infer_asvs"),
+        &ToolId::from_static("dada2"),
+    )
+    .expect("infer_asvs capability");
+    assert!(infer_capability.declared);
+    assert!(infer_capability.plannable);
+    assert!(!infer_capability.runnable);
+    assert!(!infer_capability.benchmark_normalized);
+    assert!(!infer_capability.comparable);
+
+    let trim_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
+        &StageId::from_static("fastq.trim_reads"),
+        &ToolId::from_static("fastp"),
+    )
+    .expect("trim capability");
+    assert!(trim_capability.runnable);
+    assert!(trim_capability.parse_normalized);
+    assert!(trim_capability.benchmark_normalized);
+    assert!(!trim_capability.comparable);
+
+    let detect_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
+        &StageId::from_static("fastq.detect_adapters"),
+        &ToolId::from_static("fastqc"),
+    )
+    .expect("detect capability");
+    assert!(detect_capability.runnable);
+    assert!(detect_capability.parse_normalized);
+    assert!(!detect_capability.benchmark_normalized);
+    assert!(!detect_capability.comparable);
+}
+
+#[test]
 fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
     let trim_cohorts = bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&trim_stage);
