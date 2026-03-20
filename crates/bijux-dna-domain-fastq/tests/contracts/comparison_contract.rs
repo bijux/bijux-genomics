@@ -7,7 +7,17 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     let trim_artifacts = bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&trim_stage);
     assert_eq!(
         trim_artifacts,
-        bijux_dna_domain_fastq::benchmark_comparison_artifact_ids()
+        vec![
+            "trim_tool_benchmark_cohort_json",
+            "trim_tool_comparison_json",
+            "trim_tool_normalization_json",
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&trim_stage)
+            .expect("trim comparison contract")
+            .comparison_artifact_id,
+        "trim_tool_comparison_json"
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
@@ -15,7 +25,17 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&screen_stage);
     assert_eq!(
         screen_artifacts,
-        bijux_dna_domain_fastq::benchmark_comparison_artifact_ids()
+        vec![
+            "taxonomy_tool_benchmark_cohort_json",
+            "taxonomy_tool_comparison_json",
+            "taxonomy_tool_normalization_json",
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&screen_stage)
+            .expect("taxonomy comparison contract")
+            .comparison_artifact_id,
+        "taxonomy_tool_comparison_json"
     );
 
     let validate_stage = StageId::from_static("fastq.validate_reads");

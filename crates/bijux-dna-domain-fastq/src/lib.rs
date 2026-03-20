@@ -44,7 +44,10 @@ pub use banks::{
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
 pub use bench_repository::BenchResultsRepository;
-pub use comparison_contract::{benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage};
+pub use comparison_contract::{
+    benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
+    comparison_contract_for_stage, StageComparisonContract,
+};
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
     closed_stage_ids as execution_closed_stage_ids,

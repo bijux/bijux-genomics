@@ -335,7 +335,7 @@ mod tests {
         );
         assert_eq!(
             output.report_parts[1].payload["comparison_artifact_ids"],
-            serde_json::json!(["benchmark_cohort_json", "stage_tool_comparison_json", "stage_tool_normalization_json"])
+            serde_json::json!(["trim_tool_benchmark_cohort_json", "trim_tool_comparison_json", "trim_tool_normalization_json"])
         );
         assert_eq!(
             output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],

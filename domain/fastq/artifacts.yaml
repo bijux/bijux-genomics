@@ -53,6 +53,12 @@ artifact_ids:
   - screen_report_tsv
   - stage_tool_comparison_json
   - stage_tool_normalization_json
+  - taxonomy_tool_benchmark_cohort_json
+  - taxonomy_tool_comparison_json
+  - taxonomy_tool_normalization_json
+  - trim_tool_benchmark_cohort_json
+  - trim_tool_comparison_json
+  - trim_tool_normalization_json
   - taxonomy_ready_fasta
   - taxonomy_ready_fastq
   - trimmed_reads

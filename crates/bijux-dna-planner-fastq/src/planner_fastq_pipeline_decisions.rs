@@ -289,15 +289,9 @@ impl FastqPlanner {
             let comparison_outputs = comparison_artifact_ids
                 .iter()
                 .map(|artifact_id| {
-                    let file_name = match *artifact_id {
-                        "benchmark_cohort_json" => "benchmark_cohort.json",
-                        "stage_tool_comparison_json" => "stage_tool_comparison.json",
-                        "stage_tool_normalization_json" => "stage_tool_normalization.json",
-                        _ => "comparison.json",
-                    };
                     ArtifactRef::required(
                         ArtifactId::new((*artifact_id).to_string()),
-                        compare_out_dir.join(file_name),
+                        compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
                         ArtifactRole::SummaryJson,
                     )
                 })
@@ -348,6 +342,18 @@ impl FastqPlanner {
             steps,
             edges,
         )?)
+    }
+}
+
+fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
+    match artifact_id {
+        "trim_tool_benchmark_cohort_json" => "trim_tool_benchmark_cohort.json",
+        "trim_tool_comparison_json" => "trim_tool_comparison.json",
+        "trim_tool_normalization_json" => "trim_tool_normalization.json",
+        "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
+        "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
+        "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",
+        _ => "comparison.json",
     }
 }
 
