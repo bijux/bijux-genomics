@@ -11,8 +11,11 @@ container:
 command_template:
   - "fastqvalidator"
   - "--file"
-  - "{{reads}}"
-outputs: []
+  - "{{reads_r1}}"
+outputs:
+  - name: "validation_report"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_validate_v1"
 constraints:
   runtime: "local"
@@ -21,8 +24,9 @@ constraints:
   threads: 4
 execution_contract:
   required_inputs:
-    - "reads"
+    - "reads_r1"
   expected_outputs:
+    - "validation_report"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "unknown"
