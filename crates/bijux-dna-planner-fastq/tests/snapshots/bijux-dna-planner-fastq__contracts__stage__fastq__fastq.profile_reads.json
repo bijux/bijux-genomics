@@ -62,7 +62,7 @@
   },
   "effective_params": {
     "paired_mode": "single_end",
-    "q_cutoff": null,
+    "schema_version": "bijux.fastq.params.stats.v1",
     "threads": 2
   },
   "aux_images": {},
