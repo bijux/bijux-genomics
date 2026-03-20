@@ -141,10 +141,16 @@ pub struct HostDepletionEffectiveParams {
     pub reference_scope: ReferenceScope,
     pub reference_catalog_id: String,
     pub reference_index_artifact_id: String,
+    pub reference_index_backend: String,
     #[serde(default)]
     pub reference_build_id: Option<String>,
+    #[serde(default)]
+    pub reference_digest: Option<String>,
     pub masking_policy: ReferenceMaskingPolicy,
     pub decoy_policy: ReferenceDecoyPolicy,
+    #[serde(default)]
+    pub decoy_catalog_id: Option<String>,
+    pub identity_threshold: f64,
     pub retained_read_policy: ReadRetentionPolicy,
     pub emit_removed_reads: bool,
     pub report_format: MappingReportFormat,
@@ -170,6 +176,9 @@ impl HostDepletionEffectiveParams {
         if self.reference_catalog_id.trim().is_empty() {
             missing.push("reference_catalog_id");
         }
+        if self.reference_index_backend.trim().is_empty() {
+            missing.push("reference_index_backend");
+        }
         missing
     }
 
@@ -182,9 +191,13 @@ impl HostDepletionEffectiveParams {
             "reference_scope": self.reference_scope,
             "reference_catalog_id": self.reference_catalog_id,
             "reference_index_artifact_id": self.reference_index_artifact_id,
+            "reference_index_backend": self.reference_index_backend,
             "reference_build_id": self.reference_build_id,
+            "reference_digest": self.reference_digest,
             "masking_policy": self.masking_policy,
             "decoy_policy": self.decoy_policy,
+            "decoy_catalog_id": self.decoy_catalog_id,
+            "identity_threshold": self.identity_threshold,
             "retained_read_policy": self.retained_read_policy,
             "emit_removed_reads": self.emit_removed_reads,
             "report_format": self.report_format,
