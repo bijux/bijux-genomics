@@ -12,7 +12,7 @@ pub use error::BenchError;
 pub use model::decision::DecisionRationale;
 pub use model::observation::MetricsEnvelope;
 pub use model::suite::{
-    AnalysisRequirements, BenchmarkStageSpec, DatasetSpec, DiversityRequirements,
+    AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec, DiversityRequirements,
     ReplicatePolicy, StratificationRequirement,
 };
 pub use model::summary::{MetricSummary, SummaryRow, SummaryStratum};

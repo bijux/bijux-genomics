@@ -4,6 +4,8 @@
 //! Must not perform IO or depend on compare/gate logic.
 //! Invariants: `schema_version` is stable and versioned.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,11 +52,24 @@ pub struct AnalysisRequirements {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkParamBinding {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool: Option<String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub values: BTreeMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkStageSpec {
     pub stage: String,
     pub tools: Vec<String>,
     #[serde(default)]
     pub params: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub param_bindings: Vec<BenchmarkParamBinding>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,6 +105,7 @@ impl BenchmarkSuiteSpec {
                 stage,
                 tools: tools.clone(),
                 params: params.clone(),
+                param_bindings: Vec::new(),
             })
             .collect();
         Self::v1_stage_matrix(
@@ -148,6 +164,11 @@ impl BenchmarkSuiteSpec {
         for stage in &self.stages {
             for value in &stage.params {
                 params.insert(value.as_str());
+            }
+            for binding in &stage.param_bindings {
+                for key in binding.values.keys() {
+                    params.insert(key.as_str());
+                }
             }
         }
         params.into_iter().collect()
