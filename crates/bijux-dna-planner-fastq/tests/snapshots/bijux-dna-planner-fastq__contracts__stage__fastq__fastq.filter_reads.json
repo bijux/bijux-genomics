@@ -35,7 +35,7 @@
     ],
     "outputs": [
       {
-        "name": "filtered_reads",
+        "name": "filtered_reads_r1",
         "path": "out/seqkit.fastq.gz",
         "role": "reads",
         "optional": false
