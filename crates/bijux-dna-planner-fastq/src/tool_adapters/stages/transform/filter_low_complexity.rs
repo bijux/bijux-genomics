@@ -105,6 +105,12 @@ pub fn plan_low_complexity(
                     ("reads", Some(r1.display().to_string())),
                     ("reads_r1", Some(r1.display().to_string())),
                     ("reads_r2", r2.map(|path| path.display().to_string())),
+                    ("filtered_reads", Some(output_r1.display().to_string())),
+                    ("filtered_reads_r1", Some(output_r1.display().to_string())),
+                    (
+                        "filtered_reads_r2",
+                        output_r2.as_ref().map(|path| path.display().to_string()),
+                    ),
                     ("filtered_fastq", Some(output_r1.display().to_string())),
                     ("filtered_fastq_r1", Some(output_r1.display().to_string())),
                     (
