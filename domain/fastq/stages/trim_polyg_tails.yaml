@@ -7,6 +7,9 @@ inputs:
   - name: "reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
 outputs:
   - name: "trimmed_reads"
     data_type: "fastq"
@@ -51,20 +54,20 @@ required_outputs:
   - "trimmed_reads"
   - "report_json"
 tool_capability_requirements:
-  - "SE"
   - "polyx_trim"
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
   - "polyg_trim_applied_before_emit"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
 compatible_tools:
   - fastp
   - bbduk
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "polyG trimming remains a no-op on inputs without terminal G-tail artifacts."
+  - "single-end input omits reads_r2; paired-end input preserves mate synchronization during terminal trimming."
 bank_hooks:
   - "polyx_bank"
 metrics_schema: "bijux.stage.metrics.v1"
