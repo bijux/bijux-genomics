@@ -280,10 +280,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
                 } else {
                     SE_PE_OR_MERGED
                 },
-                possible_output_kinds: if stage_id == "fastq.cluster_otus" {
-                    AMPLICON_TABLE_OR_REPRESENTATIVES
-                } else {
+                possible_output_kinds: if stage_id == "fastq.normalize_abundance" {
                     AMPLICON_TABLE
+                } else {
+                    AMPLICON_TABLE_OR_REPRESENTATIVES
                 },
                 may_drop_reads: false,
                 must_preserve_pairing: false,
