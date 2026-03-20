@@ -237,18 +237,17 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         "chimera sequence FASTA must be typed as a sequence artifact",
     );
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
+    let infer_asvs_error = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
         &dummy_tool("dada2"),
         r1,
         Some(r2),
         out_dir,
-    )?;
-    assert_eq!(plan.io.inputs.len(), 2);
-    assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
-    assert_eq!(plan.command.template[0], "Rscript");
-    assert_eq!(plan.command.template[1], "run_dada2.R");
-    assert!(plan.command.template.iter().any(|part| part == "--input-r2"));
-    assert!(plan.command.template.iter().any(|part| part == "out/asv_abundance.tsv"));
+    )
+    .expect_err("declared-only ASV inference must not plan through the FASTQ adapter");
+    assert!(
+        infer_asvs_error.to_string().contains("declared-only"),
+        "infer_asvs failure must explain that the runtime contract is not closed",
+    );
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
         &dummy_tool("vsearch"),
