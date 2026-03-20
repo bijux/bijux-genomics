@@ -46,7 +46,7 @@ pub fn plan(
     outputs.push(ArtifactRef::optional(
         ArtifactId::from_static("chimeras_fasta"),
         chimeras.clone(),
-        ArtifactRole::Reads,
+        ArtifactRole::Reference,
     ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -100,9 +100,6 @@ pub fn plan(
         })
         .expect("serialize chimera effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Default,
-            "amplicon chimera removal",
-        ),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon chimera removal"),
     })
 }
