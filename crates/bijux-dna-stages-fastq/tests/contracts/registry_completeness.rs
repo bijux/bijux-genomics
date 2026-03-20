@@ -28,3 +28,22 @@ fn implemented_stage_set_matches_observer_runtime_coverage() {
         "implemented_stages must expose only observer-specialized runtime interpretation coverage"
     );
 }
+
+#[test]
+fn runtime_interpretation_partitions_fastq_contract_coverage() {
+    let specialized = sort_stages(bijux_dna_stages_fastq::runtime_interpretation_stage_ids(
+        bijux_dna_stages_fastq::RuntimeInterpretationLevel::ObserverSpecialized,
+    ));
+    let generic = sort_stages(bijux_dna_stages_fastq::runtime_interpretation_stage_ids(
+        bijux_dna_stages_fastq::RuntimeInterpretationLevel::GenericEnvelope,
+    ));
+    let all = sort_stages(bijux_dna_stages_fastq::contract_stage_ids());
+    let mut combined = specialized.clone();
+    combined.extend(generic.clone());
+    combined.sort();
+    combined.dedup();
+    assert_eq!(
+        combined, all,
+        "runtime interpretation levels must cover the full FASTQ contract registry",
+    );
+}
