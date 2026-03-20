@@ -59,6 +59,12 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 stage.stage
             )));
         }
+        if !stage.params.is_empty() && !stage.param_bindings.is_empty() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} must use either params or param_bindings, not both",
+                stage.stage
+            )));
+        }
         let mut seen_tools = std::collections::BTreeSet::new();
         for tool in &stage.tools {
             if tool.trim().is_empty() {
@@ -87,6 +93,44 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                     "suite stage {} must not repeat params entry {}",
                     stage.stage, params
                 )));
+            }
+        }
+        for binding in &stage.param_bindings {
+            if let Some(stage_instance_id) = binding.stage_instance_id.as_ref() {
+                if stage_instance_id.trim().is_empty() {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "suite stage {} must not include blank stage_instance_id in param_bindings",
+                        stage.stage
+                    )));
+                }
+            }
+            if let Some(tool) = binding.tool.as_ref() {
+                if tool.trim().is_empty() {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "suite stage {} must not include blank tool ids in param_bindings",
+                        stage.stage
+                    )));
+                }
+                if !stage.tools.iter().any(|candidate| candidate == tool) {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "suite stage {} param binding tool {} must belong to declared tools",
+                        stage.stage, tool
+                    )));
+                }
+            }
+            if binding.values.is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} param_bindings must include at least one structured value",
+                    stage.stage
+                )));
+            }
+            for key in binding.values.keys() {
+                if key.trim().is_empty() {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "suite stage {} param_bindings must not include blank parameter names",
+                        stage.stage
+                    )));
+                }
             }
         }
     }
@@ -156,7 +200,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
 mod tests {
     use super::validate_suite;
     use crate::{
-        AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
+        AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
         DiversityRequirements, ReplicatePolicy, StratificationRequirement,
     };
 
@@ -200,6 +244,7 @@ mod tests {
             stage: "fastq.trim_reads".to_string(),
             tools: vec!["fastp".to_string(), "fastp".to_string()],
             params: Vec::new(),
+            param_bindings: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("duplicate tools must fail");
         assert!(error.to_string().contains("must not repeat tool"));
@@ -211,9 +256,47 @@ mod tests {
             stage: "fastq.trim_reads".to_string(),
             tools: vec!["fastp".to_string()],
             params: vec!["".to_string()],
+            param_bindings: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("blank params must fail");
         assert!(error.to_string().contains("blank params entries"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_mixed_legacy_and_structured_stage_params() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            tools: vec!["fastp".to_string()],
+            params: vec!["threads=4".to_string()],
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                tool: Some("fastp".to_string()),
+                values: std::collections::BTreeMap::from([(
+                    "threads".to_string(),
+                    serde_json::json!(4),
+                )]),
+            }],
+        });
+        let error = validate_suite(&suite).expect_err("mixed params must fail");
+        assert!(error.to_string().contains("either params or param_bindings"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_structured_stage_param_bindings() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                tool: Some("fastp".to_string()),
+                values: std::collections::BTreeMap::from([(
+                    "threads".to_string(),
+                    serde_json::json!(4),
+                )]),
+            }],
+        });
+        validate_suite(&suite).expect("structured param bindings should validate");
     }
 }
 
