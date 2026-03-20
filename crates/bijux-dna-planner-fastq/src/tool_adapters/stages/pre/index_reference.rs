@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::reference_index::{
     ReferenceIndexEffectiveParams, INDEX_REFERENCE_SCHEMA_VERSION,
@@ -34,7 +34,7 @@ pub fn plan(
     reference_fasta: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    let output = out_dir.join("reference_index");
+    let output = reference_index_output(&tool.tool_id.0, out_dir)?;
     let effective_params = ReferenceIndexEffectiveParams {
         schema_version: INDEX_REFERENCE_SCHEMA_VERSION.to_string(),
         threads: tool.resources.threads,
@@ -47,8 +47,13 @@ pub fn plan(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: index_reference_command(
+                &tool.tool_id.0,
+                reference_fasta,
+                &output,
+                tool.resources.threads,
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -75,4 +80,43 @@ pub fn plan(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn reference_index_output(tool_id: &str, out_dir: &Path) -> Result<std::path::PathBuf> {
+    match tool_id {
+        "bowtie2_build" => Ok(out_dir.join("reference_index").join("bowtie2").join("reference")),
+        "star" => Ok(out_dir.join("reference_index").join("star")),
+        _ => Err(anyhow!(
+            "unsupported reference indexing tool for stage planning: {tool_id}"
+        )),
+    }
+}
+
+fn index_reference_command(
+    tool_id: &str,
+    reference_fasta: &Path,
+    output: &Path,
+    threads: u32,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "bowtie2_build" => Ok(vec![
+            "bowtie2-build".to_string(),
+            reference_fasta.display().to_string(),
+            output.display().to_string(),
+        ]),
+        "star" => Ok(vec![
+            "STAR".to_string(),
+            "--runMode".to_string(),
+            "genomeGenerate".to_string(),
+            "--runThreadN".to_string(),
+            threads.to_string(),
+            "--genomeDir".to_string(),
+            output.display().to_string(),
+            "--genomeFastaFiles".to_string(),
+            reference_fasta.display().to_string(),
+        ]),
+        _ => Err(anyhow!(
+            "unsupported reference indexing tool for stage planning: {tool_id}"
+        )),
+    }
 }

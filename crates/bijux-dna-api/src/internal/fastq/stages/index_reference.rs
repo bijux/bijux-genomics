@@ -144,6 +144,11 @@ fn build_index_reference_record(
     out_dir: &std::path::Path,
     execution: &bijux_dna_runner::step_runner::StageResultV1,
 ) -> Result<BenchmarkRecord<FastqIndexReferenceMetrics>> {
+    let index_artifact = params
+        .get("reference_index")
+        .and_then(serde_json::Value::as_str)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| out_dir.join("reference_index"));
     let index_root = out_dir.join("reference_index");
     let mut index_bytes = 0_u64;
     let mut index_file_count = 0_u64;
@@ -170,7 +175,7 @@ fn build_index_reference_record(
         "stage_id": STAGE_INDEX_REFERENCE.as_str(),
         "tool_id": tool,
         "reference_fasta": reference_fasta,
-        "reference_index": index_root,
+        "reference_index": index_artifact,
         "reference_bytes": metrics.reference_bytes,
         "index_bytes": metrics.index_bytes,
         "index_file_count": metrics.index_file_count,
