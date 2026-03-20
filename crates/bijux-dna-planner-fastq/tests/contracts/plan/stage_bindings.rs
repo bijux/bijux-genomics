@@ -413,3 +413,67 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
         .all(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some()));
     Ok(())
 }
+
+#[test]
+fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-graph-stage-aliases")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__graph_aliases__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: None,
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.detect_adapters".to_string(),
+                    stage_instance_id: None,
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.validate_reads".to_string(),
+                to: "fastq.detect_adapters".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: None,
+                tool: tool("fastqvalidator"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.detect_adapters".to_string(),
+                stage_instance_id: None,
+                tool: tool("fastqc"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    assert_eq!(plan.edges().len(), 1);
+    assert_eq!(plan.edges()[0].from().as_str(), "fastq.validate_reads.tool.fastqvalidator");
+    assert_eq!(plan.edges()[0].to().as_str(), "fastq.detect_adapters.tool.fastqc");
+    Ok(())
+}
