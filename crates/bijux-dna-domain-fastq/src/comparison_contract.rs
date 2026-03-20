@@ -64,6 +64,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "dedup_tool_normalization_json",
     ),
     (
+        "fastq.extract_umis",
+        "umi_extraction_tool_benchmark_cohort_json",
+        "umi_extraction_tool_comparison_json",
+        "umi_extraction_tool_normalization_json",
+    ),
+    (
         "fastq.profile_read_lengths",
         "read_length_tool_benchmark_cohort_json",
         "read_length_tool_comparison_json",

@@ -107,6 +107,9 @@ artifact_ids:
   - unmerged_reads_r2
   - umi_reads_r1
   - umi_reads_r2
+  - umi_extraction_tool_benchmark_cohort_json
+  - umi_extraction_tool_comparison_json
+  - umi_extraction_tool_normalization_json
   - validation_tool_benchmark_cohort_json
   - validation_tool_comparison_json
   - validation_tool_normalization_json
