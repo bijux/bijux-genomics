@@ -53,6 +53,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "filter_tool_normalization_json",
         ]
     );
+
+    let merge_stage = StageId::from_static("fastq.merge_pairs");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&merge_stage),
+        vec![
+            "merge_tool_benchmark_cohort_json",
+            "merge_tool_comparison_json",
+            "merge_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]
