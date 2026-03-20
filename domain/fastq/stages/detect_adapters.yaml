@@ -14,6 +14,9 @@ outputs:
   - name: "adapter_report"
     data_type: "json"
     cardinality: "One"
+  - name: "adapter_evidence_dir"
+    data_type: "dir"
+    cardinality: "One"
 parameters: []
 metrics:
   - name: "candidate_adapter_count"
@@ -30,6 +33,7 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "reads_r2"
+  - "adapter_evidence_dir"
 compatible_tools:
   - fastqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"

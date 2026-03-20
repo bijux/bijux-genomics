@@ -12,8 +12,7 @@ fn workspace_root() -> Result<PathBuf> {
 }
 
 fn parse_yaml(path: &Path) -> Result<Value> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
@@ -44,6 +43,21 @@ fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
     assert!(
         allowed_missingness.contains(&"reads_r2"),
         "detect_adapters manifest must allow missing reads_r2 for single-end input"
+    );
+    let output_names = yaml
+        .get("outputs")
+        .and_then(Value::as_sequence)
+        .context("outputs")?
+        .iter()
+        .filter_map(|output| output.get("name").and_then(Value::as_str))
+        .collect::<Vec<_>>();
+    assert!(
+        output_names.contains(&"adapter_evidence_dir"),
+        "detect_adapters manifest must expose the governed adapter evidence directory"
+    );
+    assert!(
+        allowed_missingness.contains(&"adapter_evidence_dir"),
+        "detect_adapters manifest must allow missing adapter_evidence_dir when only the normalized report is materialized"
     );
     Ok(())
 }

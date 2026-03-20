@@ -15,6 +15,9 @@ outputs:
   - name: "adapter_report"
     data_type: "json"
     cardinality: "One"
+  - name: "adapter_evidence_dir"
+    data_type: "dir"
+    cardinality: "One"
   - name: "overrepresented_sequences_tsv"
     data_type: "tsv"
     cardinality: "One"
@@ -32,6 +35,7 @@ execution_contract:
     - "reads_r1"
   expected_outputs:
     - "adapter_report"
+    - "adapter_evidence_dir"
     - "overrepresented_sequences_tsv"
     - "overrepresented_sequences_json"
   forbidden_outputs: []
@@ -52,7 +56,8 @@ stage_contracts:
       - "reads_r1"
     expected_artifacts:
       - "adapter_report"
-    notes: "Evidence-only adapter inspection emits the normalized adapter report."
+      - "adapter_evidence_dir"
+    notes: "Evidence-only adapter inspection emits the normalized adapter report and governed evidence directory."
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
@@ -62,6 +67,7 @@ stage_contracts:
     notes: "Sequence-content profiling emits normalized overrepresented-sequence tables."
 expected_artifacts:
   - "adapter_report"
+  - "adapter_evidence_dir"
   - "overrepresented_sequences_json"
   - "overrepresented_sequences_tsv"
 metrics_schema_id: "bijux.fastq.qc.v1"
