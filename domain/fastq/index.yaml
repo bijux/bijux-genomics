@@ -1840,6 +1840,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_correction_policy
+  primer_normalization_fairness:
+    stage_id: fastq.normalize_primers
+    description: Compare primer-normalization backends on identical reads and governed primer
+      orientation policy.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_primer_contract
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.

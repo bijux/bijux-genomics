@@ -368,6 +368,15 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
         "correction_tool_benchmark_cohort_json" => "correction_tool_benchmark_cohort.json",
         "correction_tool_comparison_json" => "correction_tool_comparison.json",
         "correction_tool_normalization_json" => "correction_tool_normalization.json",
+        "primer_normalization_tool_benchmark_cohort_json" => {
+            "primer_normalization_tool_benchmark_cohort.json"
+        }
+        "primer_normalization_tool_comparison_json" => {
+            "primer_normalization_tool_comparison.json"
+        }
+        "primer_normalization_tool_normalization_json" => {
+            "primer_normalization_tool_normalization.json"
+        }
         "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
         "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
         "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",
