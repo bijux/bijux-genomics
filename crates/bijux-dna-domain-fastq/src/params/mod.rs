@@ -10,8 +10,8 @@ use crate::stages::ids::{
     STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INDEX_REFERENCE,
     STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
     STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READS, STAGE_PROFILE_READ_LENGTHS,
-    STAGE_REMOVE_CHIMERAS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS,
-    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -32,6 +32,8 @@ pub mod preprocess;
 pub mod qc_post;
 #[path = "processing/reference_index.rs"]
 pub mod reference_index;
+#[path = "processing/remove_duplicates.rs"]
+pub mod remove_duplicates;
 #[path = "quality/screen.rs"]
 pub mod screen;
 #[path = "quality/stats.rs"]
@@ -104,6 +106,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
         return Some(StageParamDescriptor {
             param_type_id: "fastq.trim_polyg_tails",
             schema_version: trim::TRIM_POLYG_TAILS_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_REMOVE_DUPLICATES {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.remove_duplicates",
+            schema_version: remove_duplicates::REMOVE_DUPLICATES_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_FILTER_READS {
@@ -235,6 +243,7 @@ pub enum EffectiveParams {
     Trim(trim::TrimEffectiveParams),
     TrimTerminalDamage(trim::TrimTerminalDamageParams),
     TrimPolygTails(trim::TrimPolygTailsParams),
+    RemoveDuplicates(remove_duplicates::RemoveDuplicatesEffectiveParams),
     Filter(filter::FilterEffectiveParams),
     Merge(merge::MergeEffectiveParams),
     ReferenceIndex(reference_index::ReferenceIndexEffectiveParams),
@@ -262,6 +271,7 @@ impl EffectiveParams {
             Self::Trim(params) => params.missing_required_fields(),
             Self::TrimTerminalDamage(params) => params.missing_required_fields(),
             Self::TrimPolygTails(params) => params.missing_required_fields(),
+            Self::RemoveDuplicates(params) => params.missing_required_fields(),
             Self::Filter(params) => params.missing_required_fields(),
             Self::Merge(params) => params.missing_required_fields(),
             Self::ReferenceIndex(params) => params.missing_required_fields(),
@@ -289,6 +299,7 @@ impl EffectiveParams {
             Self::Trim(params) => params.retention_conditions(),
             Self::TrimTerminalDamage(params) => params.retention_conditions(),
             Self::TrimPolygTails(params) => params.retention_conditions(),
+            Self::RemoveDuplicates(params) => params.retention_conditions(),
             Self::Filter(params) => params.retention_conditions(),
             Self::Merge(params) => params.retention_conditions(),
             Self::ReferenceIndex(params) => params.retention_conditions(),
@@ -359,6 +370,13 @@ pub fn parse_effective_params(
         return serde_json::from_value::<trim::TrimPolygTailsParams>(value.clone())
             .ok()
             .map(EffectiveParams::TrimPolygTails);
+    }
+    if stage_id == &STAGE_REMOVE_DUPLICATES {
+        return serde_json::from_value::<remove_duplicates::RemoveDuplicatesEffectiveParams>(
+            value.clone(),
+        )
+        .ok()
+        .map(EffectiveParams::RemoveDuplicates);
     }
     if stage_id == &STAGE_FILTER_READS {
         return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())

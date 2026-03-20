@@ -1,9 +1,10 @@
+use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::params::correct::{
     CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
 use bijux_dna_domain_fastq::params::defaults::{
-    correct_defaults, stats_defaults, trim_polyg_tails_defaults,
+    correct_defaults, remove_duplicates_defaults, stats_defaults, trim_polyg_tails_defaults,
     trim_terminal_damage_defaults, umi_defaults,
 };
 use bijux_dna_domain_fastq::params::detect_adapters::{
@@ -19,6 +20,9 @@ use bijux_dna_domain_fastq::params::merge::{
 use bijux_dna_domain_fastq::params::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::remove_duplicates::{
+    DedupMode, RemoveDuplicatesEffectiveParams, REMOVE_DUPLICATES_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy,
     ReferenceMaskingPolicy, ReferenceScope, RrnaEffectiveParams, RrnaReportFormat,
@@ -33,6 +37,7 @@ use bijux_dna_domain_fastq::params::trim::{
 };
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::{parse_effective_params, stage_param_descriptor, EffectiveParams};
 
 fn roundtrip<T>(value: &T) -> T
 where
@@ -82,10 +87,7 @@ fn detect_adapters_params_roundtrip_and_remain_inspection_only() {
 fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
     let params = trim_terminal_damage_defaults(true);
     let decoded: TrimTerminalDamageParams = roundtrip(&params);
-    assert_eq!(
-        decoded.schema_version,
-        TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION
-    );
+    assert_eq!(decoded.schema_version, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION);
     assert_eq!(decoded.damage_mode, "ancient");
     assert_eq!(decoded.trim_5p_bases, 2);
     assert_eq!(decoded.trim_3p_bases, 2);
@@ -100,6 +102,33 @@ fn trim_polyg_tails_params_roundtrip_with_stage_specific_schema() {
     assert!(decoded.trim_polyg);
     assert_eq!(decoded.min_polyg_run, 10);
     assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn remove_duplicates_params_roundtrip_with_stage_specific_schema() {
+    let params = remove_duplicates_defaults(true);
+    let decoded: RemoveDuplicatesEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, REMOVE_DUPLICATES_SCHEMA_VERSION);
+    assert_eq!(decoded.dedup_mode, DedupMode::Exact);
+    assert!(decoded.keep_order);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn remove_duplicates_descriptor_and_parser_stay_in_sync() {
+    let stage_id = StageId::from_static("fastq.remove_duplicates");
+    let descriptor = stage_param_descriptor(&stage_id).expect("remove_duplicates descriptor");
+    assert_eq!(descriptor.param_type_id, "fastq.remove_duplicates");
+    assert_eq!(descriptor.schema_version, REMOVE_DUPLICATES_SCHEMA_VERSION);
+
+    let params = remove_duplicates_defaults(true);
+    let value = serde_json::to_value(&params).expect("serialize remove_duplicates params");
+    let parsed = parse_effective_params(&stage_id, &value)
+        .expect("parse remove_duplicates effective params");
+    match parsed {
+        EffectiveParams::RemoveDuplicates(parsed) => assert_eq!(parsed, params),
+        other => panic!("unexpected effective params variant: {other:?}"),
+    }
 }
 
 #[test]

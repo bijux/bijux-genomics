@@ -12,6 +12,9 @@ use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
+use super::remove_duplicates::{
+    DedupMode, RemoveDuplicatesEffectiveParams, REMOVE_DUPLICATES_SCHEMA_VERSION,
+};
 use super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
@@ -210,5 +213,15 @@ pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
         assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
         minimum_confidence: None,
         emit_unclassified: true,
+    }
+}
+
+#[must_use]
+pub fn remove_duplicates_defaults(paired: bool) -> RemoveDuplicatesEffectiveParams {
+    RemoveDuplicatesEffectiveParams {
+        schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        dedup_mode: DedupMode::Exact,
+        keep_order: true,
     }
 }
