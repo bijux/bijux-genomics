@@ -6,13 +6,13 @@
 
 use crate::error::BenchError;
 use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
+use crate::policy::GateDecision;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
-    stage_tool_binding,
+    stage_input_ids, stage_output_ids, stage_tool_binding,
 };
 use bijux_dna_stage_contract::executor_registry::has_executor;
-use crate::policy::GateDecision;
 
 mod schemas;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
@@ -190,6 +190,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     let declared_stage_nodes = declared_stage_nodes
         .into_iter()
         .collect::<std::collections::BTreeSet<_>>();
+    let declared_graph_nodes = declared_graph_nodes(suite);
     for stage in &suite.stages {
         let node_id = stage
             .stage_instance_id
@@ -217,13 +218,13 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 edge.from, edge.to
             )));
         }
-        if !declared_stage_nodes.contains(&edge.from) {
+        if !declared_graph_nodes.contains_key(&edge.from) {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite edge references unknown source node {}",
                 edge.from
             )));
         }
-        if !declared_stage_nodes.contains(&edge.to) {
+        if !declared_graph_nodes.contains_key(&edge.to) {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite edge references unknown target node {}",
                 edge.to
@@ -256,6 +257,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 )));
             }
         }
+        validate_edge_ports(edge, &declared_graph_nodes)?;
     }
     let mut classes = std::collections::BTreeSet::new();
     let mut layouts = std::collections::BTreeSet::new();
@@ -320,6 +322,76 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     Ok(())
 }
 
+fn declared_graph_nodes(suite: &BenchmarkSuiteSpec) -> std::collections::BTreeMap<String, String> {
+    let mut nodes = std::collections::BTreeMap::new();
+    for stage in &suite.stages {
+        let stage_node_id = stage.stage_node_id().to_string();
+        nodes.insert(stage_node_id, stage.stage.clone());
+        for tool in &stage.tools {
+            nodes.insert(stage.tool_node_id(tool), stage.stage.clone());
+        }
+    }
+    nodes
+}
+
+fn validate_edge_ports(
+    edge: &crate::model::BenchmarkStageEdge,
+    declared_graph_nodes: &std::collections::BTreeMap<String, String>,
+) -> Result<(), BenchError> {
+    match (&edge.from_output_id, &edge.to_input_id) {
+        (Some(from_output_id), Some(to_input_id)) => {
+            validate_stage_output_port(&edge.from, from_output_id, declared_graph_nodes)?;
+            validate_stage_input_port(&edge.to, to_input_id, declared_graph_nodes)?;
+            Ok(())
+        }
+        (None, None) => Ok(()),
+        _ => Err(BenchError::InvalidPolicy(format!(
+            "suite edge {} -> {} must set from_output_id and to_input_id together",
+            edge.from, edge.to
+        ))),
+    }
+}
+
+fn validate_stage_output_port(
+    node_id: &str,
+    output_id: &str,
+    declared_graph_nodes: &std::collections::BTreeMap<String, String>,
+) -> Result<(), BenchError> {
+    let Some(stage_id) = declared_graph_nodes.get(node_id) else {
+        return Ok(());
+    };
+    let Some(output_ids) = stage_output_ids(stage_id) else {
+        return Ok(());
+    };
+    if output_ids.contains(output_id) {
+        return Ok(());
+    }
+    Err(BenchError::InvalidPolicy(format!(
+        "suite edge source node {} does not expose output {} in the governed {} contract",
+        node_id, output_id, stage_id
+    )))
+}
+
+fn validate_stage_input_port(
+    node_id: &str,
+    input_id: &str,
+    declared_graph_nodes: &std::collections::BTreeMap<String, String>,
+) -> Result<(), BenchError> {
+    let Some(stage_id) = declared_graph_nodes.get(node_id) else {
+        return Ok(());
+    };
+    let Some(input_ids) = stage_input_ids(stage_id) else {
+        return Ok(());
+    };
+    if input_ids.contains(input_id) {
+        return Ok(());
+    }
+    Err(BenchError::InvalidPolicy(format!(
+        "suite edge target node {} does not accept input {} in the governed {} contract",
+        node_id, input_id, stage_id
+    )))
+}
+
 fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
     if stage_id.starts_with("fastq.") {
         if contract_for_stage(stage_id).is_none() {
@@ -379,12 +451,7 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
 fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     let mut incoming = std::collections::BTreeMap::new();
     let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
-    for stage in &suite.stages {
-        let node_id = stage
-            .stage_instance_id
-            .as_deref()
-            .unwrap_or(stage.stage.as_str())
-            .to_string();
+    for node_id in declared_graph_nodes(suite).into_keys() {
         incoming.entry(node_id).or_insert(0usize);
     }
     for stage in &suite.stages {
@@ -806,9 +873,9 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
-                    tools: vec!["fastqvalidator".to_string()],
+                    stage: "fastq.profile_read_lengths".to_string(),
+                    stage_instance_id: Some("fastq.profile_read_lengths.lengths".to_string()),
+                    tools: vec!["seqkit_stats".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
@@ -844,16 +911,16 @@ mod tests {
         );
         suite.edges = vec![
             BenchmarkStageEdge {
-                from: "fastq.validate_reads.validator".to_string(),
+                from: "fastq.profile_read_lengths.lengths".to_string(),
                 to: "fastq.report_qc.aggregate".to_string(),
-                from_output_id: Some("validation_report".to_string()),
+                from_output_id: Some("length_distribution_tsv".to_string()),
                 to_input_id: Some("qc_artifacts".to_string()),
             },
             BenchmarkStageEdge {
-                from: "fastq.validate_reads.validator".to_string(),
+                from: "fastq.profile_read_lengths.lengths".to_string(),
                 to: "fastq.report_qc.aggregate".to_string(),
-                from_output_id: Some("validated_reads_r1".to_string()),
-                to_input_id: Some("reads_r1".to_string()),
+                from_output_id: Some("length_distribution_json".to_string()),
+                to_input_id: Some("qc_artifacts".to_string()),
             },
         ];
         validate_suite(&suite)
@@ -921,7 +988,67 @@ mod tests {
     }
 
     #[test]
-    fn suite_validation_accepts_artifact_aware_edges() {
+    fn suite_validation_accepts_artifact_aware_edges_with_stage_tool_nodes() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    tools: vec!["multiqc".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![BenchmarkStageEdge {
+            from: "fastq.validate_reads.validator.tool.fastqvalidator".to_string(),
+            to: "fastq.report_qc.aggregate.tool.multiqc".to_string(),
+            from_output_id: Some("validation_report".to_string()),
+            to_input_id: Some("qc_artifacts".to_string()),
+        }];
+        validate_suite(&suite)
+            .expect("artifact-aware edges across stage-tool nodes should validate");
+    }
+
+    #[test]
+    fn suite_validation_rejects_unknown_governed_output_ports() {
         let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
             "suite".to_string(),
             vec![DatasetSpec {
@@ -976,7 +1103,10 @@ mod tests {
             from_output_id: Some("validated_reads_r1".to_string()),
             to_input_id: Some("reads_r1".to_string()),
         }];
-        validate_suite(&suite).expect("artifact-aware edges should validate");
+        let error = validate_suite(&suite).expect_err("unknown governed output ports must fail");
+        assert!(error
+            .to_string()
+            .contains("does not expose output validated_reads_r1"));
     }
 
     #[test]
