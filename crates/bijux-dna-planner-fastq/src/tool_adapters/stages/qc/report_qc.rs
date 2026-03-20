@@ -31,10 +31,10 @@ pub fn aux_tool_ids() -> Vec<String> {
         bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
         bijux_dna_domain_fastq::STAGE_PROFILE_READS,
     ];
-    let mut tool_ids = bijux_dna_stages_fastq::observer_stage_tool_bindings()
+    let mut tool_ids = qc_contributor_stages
         .into_iter()
-        .filter(|(stage_id, _)| qc_contributor_stages.contains(stage_id))
-        .map(|(_, tool_id)| tool_id.to_string())
+        .filter_map(|stage_id| crate::selection::default_tool_for_stage(&stage_id))
+        .map(|tool_id| tool_id.to_string())
         .collect::<Vec<_>>();
     tool_ids.sort();
     tool_ids.dedup();
