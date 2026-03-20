@@ -183,3 +183,42 @@ fn reference_aware_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::
 
     Ok(())
 }
+
+#[test]
+fn amplicon_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-amplicon-stage-instance-ids")?;
+    let reads = temp.path().join("merged.fastq");
+    std::fs::write(&reads, b"@r1\nA\n+\n#\n")?;
+
+    let otu_plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
+        &tool("vsearch"),
+        &reads,
+        None,
+        temp.path(),
+    )?;
+    assert_eq!(
+        otu_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.cluster_otus.tool.vsearch")
+    );
+
+    let abundance_input = temp.path().join("otu_abundance.tsv");
+    std::fs::write(&abundance_input, b"otu\tcount\nOTU_1\t1\n")?;
+    let abundance_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
+            &tool("seqkit"),
+            &abundance_input,
+            temp.path(),
+        )?;
+    assert_eq!(
+        abundance_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.normalize_abundance.tool.seqkit")
+    );
+
+    Ok(())
+}
