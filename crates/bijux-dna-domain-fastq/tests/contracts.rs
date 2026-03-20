@@ -35,3 +35,5 @@ mod mod_contracts_stage_output_size_estimates_parity_rs;
 mod mod_contracts_stage_contract_tool_ids_parity_rs;
 #[path = "contracts/tool_metrics.rs"]
 mod mod_contracts_tool_metrics_rs;
+#[path = "contracts/tool_stage_contracts.rs"]
+mod mod_contracts_tool_stage_contracts_rs;

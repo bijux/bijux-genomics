@@ -10,6 +10,25 @@ citation: pending:tool-publication
 stage_ids:
 - fastq.trim_reads
 - fastq.merge_pairs
+stage_contracts:
+  fastq.trim_reads:
+    required_inputs:
+      - reads_r1
+    expected_artifacts:
+      - trimmed_reads_r1
+      - trimmed_reads_r2
+      - report_json
+    notes: LeeHom trim mode emits paired trimmed reads plus a trim report.
+  fastq.merge_pairs:
+    required_inputs:
+      - reads_r1
+      - reads_r2
+    expected_artifacts:
+      - merged_reads
+      - unmerged_reads_r1
+      - unmerged_reads_r2
+      - report_json
+    notes: LeeHom merge mode emits merged reads, retained unmerged mates, and a merge report.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
