@@ -8,6 +8,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqInferAsv
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::{execution_support_for_stage, ExecutionStatus};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::{
@@ -32,6 +33,14 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqInferAsvsArgs,
 ) -> Result<BenchOutcome<FastqInferAsvsMetrics>> {
+    match execution_support_for_stage(&bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS) {
+        Some(support) if support.execution_status == ExecutionStatus::Closed => {}
+        _ => {
+            return Err(anyhow!(
+                "{STAGE_ID} is declared-only and has no admitted governed runtime backend"
+            ));
+        }
+    }
     let registry = load_workspace_registry()
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_infer_asvs_tools(&args.tools)?;

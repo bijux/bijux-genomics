@@ -25,6 +25,12 @@ fn planner_stage_selection_comes_from_domain_execution_support() {
         bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&infer_asvs_stage).is_none(),
         "declared-only stages must not expose default execution tools",
     );
+    let infer_asvs_error = bijux_dna_planner_fastq::select_infer_asvs_tools(&["dada2".to_string()])
+        .expect_err("declared-only stage selection must fail before pretending to admit tools");
+    assert!(
+        infer_asvs_error.to_string().contains("declared-only"),
+        "declared-only stage selection must explain the governed runtime boundary",
+    );
 }
 
 #[test]

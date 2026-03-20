@@ -28,3 +28,7 @@ Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus 
 | fastq.cluster_otus | vsearch | OTU table, representative FASTA, taxonomy-ready FASTA/FASTQ | otu_count |
 | fastq.normalize_abundance | seqkit | normalized abundance table | table_rows |
 | fastq.report_qc | multiqc | qc report | qc summary |
+
+declared-only FASTQ stages:
+
+- `fastq.infer_asvs` remains defined in the domain with planned `dada2` intent, but it is not part of the governed runtime registry until its execution contract is closed.
