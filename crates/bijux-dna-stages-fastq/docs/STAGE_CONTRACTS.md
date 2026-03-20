@@ -4,7 +4,8 @@
 Symmetry is enforced at the contract level (observable inputs/outputs), not file naming.
 
 ## Coverage surfaces
-`implemented_stages()` and `contract_stage_ids()` cover the published FASTQ stage contracts.
+`contract_stage_ids()` covers the published FASTQ stage contracts.
+`implemented_stages()` covers only the closed execution subset.
 `observer_stage_ids()` is the narrower observer-specialized subset documented in `OBSERVERS.md`.
 
 ## Registry completeness

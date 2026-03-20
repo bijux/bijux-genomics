@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 #[test]
 fn stage_contracts_snapshot() {
     let mut contracts = BTreeMap::new();
-    for stage in bijux_dna_stages_fastq::implemented_stages() {
+    for stage in bijux_dna_stages_fastq::contract_stage_ids() {
         let contract = bijux_dna_stages_fastq::contracts::contract_for_stage(stage.as_str())
             .expect("contract");
         contracts.insert(stage.as_str().to_string(), contract);

@@ -14,7 +14,12 @@ pub fn contract_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
-    contract_stage_ids()
+    closed_execution_stage_ids()
+}
+
+#[must_use]
+pub fn closed_execution_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
+    bijux_dna_domain_fastq::execution_closed_stage_ids()
 }
 
 #[must_use]
