@@ -27,6 +27,15 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 
+fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, name: &str) -> Result<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == name)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| anyhow!("missing planned output {name}"))
+}
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
@@ -148,11 +157,11 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let output_r1 = plan.io.outputs[0].path.clone();
+        let output_r1 = output_path(&plan, "host_depleted_reads_r1")?;
         let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
         let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, summary) =
             if let Some(input_r2) = input_stats_r2.as_ref() {
-                let output_r2 = plan.io.outputs[1].path.clone();
+                let output_r2 = output_path(&plan, "host_depleted_reads_r2")?;
                 let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
                 (
                     bench_inputs.input_stats.reads + input_r2.reads,
@@ -168,7 +177,9 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
                             .saturating_sub(output_stats_r1.bases + output_stats_r2.bases),
                         "output_r1": output_r1,
                         "output_r2": output_r2,
-                        "report_json": plan.io.outputs[2].path,
+                        "removed_host_r1": output_path(&plan, "removed_host_reads_r1")?,
+                        "removed_host_r2": output_path(&plan, "removed_host_reads_r2")?,
+                        "report_json": output_path(&plan, "host_depletion_report_json")?,
                     }),
                 )
             } else {
@@ -183,7 +194,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
                         "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats_r1.reads),
                         "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats_r1.bases),
                         "output_fastq": output_r1,
-                        "report_json": plan.io.outputs[1].path,
+                        "removed_host_reads": output_path(&plan, "removed_host_reads_r1")?,
+                        "report_json": output_path(&plan, "host_depletion_report_json")?,
                     }),
                 )
             };

@@ -5,7 +5,10 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    screen::{HostDepletionEffectiveParams, HOST_DEPLETION_SCHEMA_VERSION},
+    screen::{
+        HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
+        HOST_DEPLETION_SCHEMA_VERSION,
+    },
     PairedMode,
 };
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
@@ -50,8 +53,11 @@ pub fn plan_host_depletion(
         schema_version: HOST_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode,
         threads: tool.resources.threads,
-        host_reference: "host_reference".to_string(),
-        index_artifact: "host_reference_index".to_string(),
+        reference_scope: ReferenceScope::Host,
+        reference_index_artifact_id: "reference_index".to_string(),
+        retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
+        emit_removed_reads: true,
+        report_format: MappingReportFormat::Bowtie2MetricsFile,
         retain_unmapped_pairs: r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(
@@ -74,6 +80,8 @@ pub fn plan_host_depletion(
     if let Some(r2) = r2 {
         let output_r1 = out_dir.join("host_depleted_R1.fastq.gz");
         let output_r2 = out_dir.join("host_depleted_R2.fastq.gz");
+        let removed_r1 = out_dir.join("removed_host_R1.fastq.gz");
+        let removed_r2 = out_dir.join("removed_host_R2.fastq.gz");
         inputs.push(ArtifactRef::required(
             ArtifactId::from_static("reads_r2"),
             r2.to_path_buf(),
@@ -89,17 +97,36 @@ pub fn plan_host_depletion(
             output_r2.clone(),
             ArtifactRole::Reads,
         ));
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("removed_host_reads_r1"),
+            removed_r1.clone(),
+            ArtifactRole::Reads,
+        ));
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("removed_host_reads_r2"),
+            removed_r2.clone(),
+            ArtifactRole::Reads,
+        ));
         params["input_r2"] = serde_json::json!(r2);
         params["output_r1"] = serde_json::json!(output_r1);
         params["output_r2"] = serde_json::json!(output_r2);
+        params["removed_host_r1"] = serde_json::json!(removed_r1);
+        params["removed_host_r2"] = serde_json::json!(removed_r2);
     } else {
         let output = out_dir.join("host_depleted.fastq.gz");
+        let removed = out_dir.join("removed_host.fastq.gz");
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("host_depleted_reads_r1"),
             output.clone(),
             ArtifactRole::Reads,
         ));
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("removed_host_reads_r1"),
+            removed.clone(),
+            ArtifactRole::Reads,
+        ));
         params["output"] = serde_json::json!(output);
+        params["removed_host_reads"] = serde_json::json!(removed);
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("host_depletion_report_json"),
@@ -160,6 +187,8 @@ fn host_depletion_command(
                     r2.display().to_string(),
                     "--un-conc-gz".to_string(),
                     out_dir.join("host_depleted_R%.fastq.gz").display().to_string(),
+                    "--al-conc-gz".to_string(),
+                    out_dir.join("removed_host_R%.fastq.gz").display().to_string(),
                 ]);
             } else {
                 command.extend([
@@ -167,6 +196,8 @@ fn host_depletion_command(
                     r1.display().to_string(),
                     "--un-gz".to_string(),
                     out_dir.join("host_depleted.fastq.gz").display().to_string(),
+                    "--al-gz".to_string(),
+                    out_dir.join("removed_host.fastq.gz").display().to_string(),
                 ]);
             }
             command.extend([
