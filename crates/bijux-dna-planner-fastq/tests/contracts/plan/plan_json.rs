@@ -395,8 +395,8 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.outputs[0].name.as_str(), "chimera_filtered_reads");
     assert_eq!(
         plan.io.outputs[2].role.as_str(),
-        "reference",
-        "chimera sequence FASTA must be typed as a reference-style sequence output",
+        "reads",
+        "chimera sequence FASTA must stay typed as a read-derived artifact",
     );
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
