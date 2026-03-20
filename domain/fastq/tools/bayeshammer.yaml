@@ -25,6 +25,9 @@ outputs:
   - name: "corrected_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "bayeshammer_v1"
 constraints:
   runtime: "local"
@@ -35,7 +38,9 @@ execution_contract:
   required_inputs:
     - "reads_r1"
   expected_outputs:
-    - "*.cor.fq.gz"
+    - "corrected_reads_r1"
+    - "corrected_reads_r2"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -55,8 +60,9 @@ stage_contracts:
     expected_artifacts:
       - "corrected_reads_r1"
       - "corrected_reads_r2"
-    notes: "Error correction emits governed corrected read artifacts for both mates."
-expected_artifacts: ["corrected_reads_r1", "corrected_reads_r2"]
+      - "report_json"
+    notes: "Error correction emits governed corrected read artifacts and the normalized correction report."
+expected_artifacts: ["corrected_reads_r1", "corrected_reads_r2", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "bayeshammer --version"
