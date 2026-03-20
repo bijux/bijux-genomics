@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub const EDNA_SCHEMA_VERSION: &str = "v1";
+pub const DEFAULT_OTU_IDENTITY_THRESHOLD: f64 = 0.97;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]

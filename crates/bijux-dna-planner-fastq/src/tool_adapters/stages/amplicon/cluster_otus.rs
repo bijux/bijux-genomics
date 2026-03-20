@@ -4,6 +4,9 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::edna::{
+    OtuClusteringEffectiveParams, DEFAULT_OTU_IDENTITY_THRESHOLD,
+};
 use bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -11,6 +14,7 @@ use bijux_dna_stage_contract::{
 
 pub const STAGE_ID: StageId = STAGE_CLUSTER_OTUS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+const DEFAULT_OTU_IDENTITY_THRESHOLD_ARG: &str = "0.97";
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -32,6 +36,10 @@ pub fn plan(
     let otu_representatives = out_dir.join("otu_representatives.fasta");
     let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
     let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
+    let effective_params = OtuClusteringEffectiveParams {
+        identity_threshold: DEFAULT_OTU_IDENTITY_THRESHOLD,
+        output_table_kind: "otu_abundance_table".to_string(),
+    };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -73,10 +81,12 @@ pub fn plan(
             ],
         },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({}),
+        params: serde_json::json!({
+            "otu_identity": DEFAULT_OTU_IDENTITY_THRESHOLD,
+        }),
         effective_params: serde_json::json!({
-            "identity_threshold": 0.97,
-            "output_table_kind": "otu_abundance_table",
+            "identity_threshold": effective_params.identity_threshold,
+            "output_table_kind": effective_params.output_table_kind,
             "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
             "output_naming": "deterministic"
         }),
@@ -100,7 +110,7 @@ fn cluster_otus_command(
             "--cluster_fast".to_string(),
             reads.display().to_string(),
             "--id".to_string(),
-            "0.97".to_string(),
+            DEFAULT_OTU_IDENTITY_THRESHOLD_ARG.to_string(),
             "--sizein".to_string(),
             "--sizeout".to_string(),
             "--relabel".to_string(),
