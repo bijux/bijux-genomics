@@ -19,3 +19,5 @@ mod mod_contracts_tool_maturity_rs;
 mod mod_contracts_toolset_selection_rs;
 #[path = "contracts/toolset_modes.rs"]
 mod mod_contracts_toolset_modes_rs;
+#[path = "contracts/toolset_overrides.rs"]
+mod mod_contracts_toolset_overrides_rs;

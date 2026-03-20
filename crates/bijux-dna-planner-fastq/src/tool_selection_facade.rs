@@ -189,6 +189,39 @@ pub fn apply_tool_overrides(
 }
 
 #[must_use]
+pub fn apply_toolset_overrides(
+    base: BTreeMap<String, Vec<String>>,
+    profile: BTreeMap<String, Vec<String>>,
+    cli_overrides: BTreeMap<String, Vec<String>>,
+    forced_overrides: BTreeMap<String, Vec<String>>,
+) -> BTreeMap<String, Vec<String>> {
+    fn normalize_toolset(tool_ids: Vec<String>) -> Vec<String> {
+        let mut normalized = tool_ids
+            .into_iter()
+            .map(|tool_id| tool_id.to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        normalized.sort();
+        normalized.dedup();
+        normalized
+    }
+
+    let mut merged = base
+        .into_iter()
+        .map(|(stage_id, tool_ids)| (stage_id, normalize_toolset(tool_ids)))
+        .collect::<BTreeMap<_, _>>();
+    for (stage_id, tool_ids) in profile {
+        merged.insert(stage_id, normalize_toolset(tool_ids));
+    }
+    for (stage_id, tool_ids) in cli_overrides {
+        merged.insert(stage_id, normalize_toolset(tool_ids));
+    }
+    for (stage_id, tool_ids) in forced_overrides {
+        merged.insert(stage_id, normalize_toolset(tool_ids));
+    }
+    merged
+}
+
+#[must_use]
 pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
     if let Ok(profile) =
         bijux_dna_pipelines::registry::profile_by_id(bijux_dna_pipelines::Domain::Fastq, profile_id)
