@@ -415,8 +415,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         dom
                     );
                 }
+                let has_declared_stage_claims = tool.declared_stage_ids().next().is_some();
                 if dom != "vcf"
-                    && (tool.stage_ids.is_empty()
+                    && (!has_declared_stage_claims
                         || tool.default_version.is_empty()
                         || tool.upstream.is_empty()
                         || tool.pin_strategy.is_empty()
@@ -438,6 +439,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     );
                 }
                 if dom != "vcf" && tool.status == "supported" {
+                    if tool.stage_ids.is_empty() {
+                        bail!("{} supported tool {} missing governed stage_ids", path.display(), tool.tool_id);
+                    }
                     let artifact_ids = artifact_vocab
                         .get(dom)
                         .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;

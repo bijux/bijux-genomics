@@ -12,7 +12,10 @@ pub struct ValidateOptions {
 #[derive(Debug, Deserialize, Default)]
 struct DomainTool {
     tool_id: String,
+    #[serde(default)]
     stage_ids: Vec<String>,
+    #[serde(default)]
+    planned_stage_ids: Vec<String>,
     status: String,
     scope: String,
     default_version: String,
@@ -43,6 +46,8 @@ struct DomainToolLoose {
     #[serde(default)]
     stage_ids: Vec<String>,
     #[serde(default)]
+    planned_stage_ids: Vec<String>,
+    #[serde(default)]
     status: String,
     #[serde(default)]
     scope: String,
@@ -70,6 +75,18 @@ struct DomainToolLoose {
     comparability_notes: String,
     #[serde(default)]
     container: Option<DomainToolContainer>,
+}
+
+impl DomainTool {
+    fn declared_stage_ids(&self) -> impl Iterator<Item = &String> {
+        self.stage_ids.iter().chain(self.planned_stage_ids.iter())
+    }
+}
+
+impl DomainToolLoose {
+    fn declared_stage_ids(&self) -> impl Iterator<Item = &String> {
+        self.stage_ids.iter().chain(self.planned_stage_ids.iter())
+    }
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
