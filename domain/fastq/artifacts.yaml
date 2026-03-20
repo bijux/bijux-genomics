@@ -21,6 +21,8 @@ artifact_ids:
   - host_depleted_reads_r1
   - host_depleted_reads_r2
   - host_depletion_report_json
+  - removed_host_reads_r1
+  - removed_host_reads_r2
   - length_distribution_json
   - length_distribution_tsv
   - manifest_json
