@@ -50,8 +50,6 @@ upstream_stage_instance_ids = [
 [[edges]]
 from = "fastq.validate_reads.validation"
 to = "fastq.deplete_host.host_screen"
-from_output_id = "validated_reads_r1"
-to_input_id = "reads_r1"
 
 [[edges]]
 from = "fastq.index_reference.host_index"
