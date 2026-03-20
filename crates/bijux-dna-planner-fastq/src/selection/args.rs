@@ -360,6 +360,7 @@ pub struct BenchFastqPreprocessArgs {
     pub profile: Option<String>,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
+    pub reference_fasta: Option<PathBuf>,
     pub out: PathBuf,
     pub strict: bool,
     pub auto: bool,

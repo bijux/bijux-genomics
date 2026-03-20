@@ -71,6 +71,7 @@ fn fastq_plan_snapshot() {
         enable_contaminant_removal: false,
         r1: PathBuf::from("reads_R1.fastq.gz"),
         r2: None,
+        reference_fasta: None,
         out_dir: PathBuf::from("out"),
         tool_reasons: None,
         allow_planned: false,
@@ -150,6 +151,7 @@ fn default_pipeline_plan_snapshot_is_stable() {
         enable_contaminant_removal: false,
         r1: PathBuf::from("reads_R1.fastq.gz"),
         r2: None,
+        reference_fasta: None,
         out_dir: PathBuf::from("out"),
         tool_reasons: None,
     };

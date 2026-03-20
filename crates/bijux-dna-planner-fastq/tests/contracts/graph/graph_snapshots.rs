@@ -61,6 +61,7 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
         enable_contaminant_removal: false,
         r1: r1.clone(),
         r2: None,
+        reference_fasta: None,
         out_dir: temp.path().join("out"),
         tool_reasons: None,
     };

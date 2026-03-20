@@ -46,6 +46,7 @@ pub struct FastqPlanConfig {
     pub enable_contaminant_removal: bool,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
+    pub reference_fasta: Option<PathBuf>,
     pub out_dir: PathBuf,
     pub tool_reasons: Option<Vec<PlanDecisionReason>>,
     pub allow_planned: bool,
@@ -79,6 +80,7 @@ impl FastqPlanner {
             config.enable_contaminant_removal,
             &config.r1,
             config.r2.as_deref(),
+            config.reference_fasta.as_deref(),
             |stage, tool, _r1, _r2| {
                 let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
                 Ok(out_dir.join(stage_dir).join(tool.tool_id.as_str()))
@@ -155,6 +157,7 @@ pub struct FastqPipelineInputs {
     pub enable_contaminant_removal: bool,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
+    pub reference_fasta: Option<PathBuf>,
     pub out_dir: PathBuf,
     pub tool_reasons: Option<Vec<PlanDecisionReason>>,
 }
@@ -179,6 +182,7 @@ pub fn plan_fastq_to_fastq__default__v1(
         enable_contaminant_removal: inputs.enable_contaminant_removal,
         r1: inputs.r1.clone(),
         r2: inputs.r2.clone(),
+        reference_fasta: inputs.reference_fasta.clone(),
         out_dir: inputs.out_dir.clone(),
         tool_reasons: inputs.tool_reasons.clone(),
         allow_planned: false,
@@ -249,6 +253,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     enable_contaminant_removal: bool,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
     out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
@@ -270,6 +275,7 @@ where
         enable_contaminant_removal,
         r1,
         r2,
+        reference_fasta,
         out_dir_for_stage,
     )
 }

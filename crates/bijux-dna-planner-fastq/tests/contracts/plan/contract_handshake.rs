@@ -56,6 +56,7 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         false,
         &r1,
         None,
+        None,
         |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
     )?;
     let edges = default_edges_for_stages(&plans);
@@ -76,5 +77,42 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         allowed_tool_ids: Some(&allowed_tool_ids),
     };
     plan.validate_strict(&context)?;
+    Ok(())
+}
+
+#[test]
+fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<()> {
+    let stages = vec![
+        "fastq.index_reference".to_string(),
+        "fastq.deplete_host".to_string(),
+    ];
+    let tools = stages
+        .iter()
+        .map(|stage| tool_for_stage(stage))
+        .collect::<Vec<_>>();
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-reference-handshake")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference = temp.path().join("reference.fa");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference, b">chr1\nA\n")?;
+
+    let plans = compose_fastq_pipeline_steps(
+        &stages,
+        &tools,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        Some(&reference),
+        |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
+    )?;
+
+    assert_eq!(plans[0].stage_id.as_str(), "fastq.index_reference");
+    assert_eq!(plans[1].stage_id.as_str(), "fastq.deplete_host");
+    assert_eq!(plans[1].io.inputs[1].path, plans[0].io.outputs[0].path);
     Ok(())
 }
