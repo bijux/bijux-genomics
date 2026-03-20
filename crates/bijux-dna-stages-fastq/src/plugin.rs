@@ -54,6 +54,15 @@ impl StagePlugin for FastqStagePlugin {
             .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
         let observer_covered =
             interpretation_level == crate::RuntimeInterpretationLevel::ObserverSpecialized;
+        let benchmark_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&plan.stage_id);
+        let comparison_artifact_ids =
+            bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&plan.stage_id);
+        let semantic_loss = match interpretation_level {
+            crate::RuntimeInterpretationLevel::ObserverSpecialized => Vec::new(),
+            crate::RuntimeInterpretationLevel::GenericEnvelope => {
+                vec!["observer_specialized_parser_missing"]
+            }
+        };
         let artifacts = if outputs.is_empty() {
             plan.io.outputs.clone()
         } else {
@@ -129,6 +138,11 @@ impl StagePlugin for FastqStagePlugin {
                     "artifact_count": artifacts.len(),
                     "observer_coverage": observer_covered,
                     "runtime_interpretation": format!("{interpretation_level:?}"),
+                    "benchmark_scenarios": benchmark_scenarios
+                        .iter()
+                        .map(|scenario| scenario.scenario_id.clone())
+                        .collect::<Vec<_>>(),
+                    "semantic_loss": semantic_loss,
                     "used_observed_outputs": !outputs.is_empty(),
                     "declared_metric_invariants": declared_metric_invariants,
                 }),
@@ -139,13 +153,19 @@ impl StagePlugin for FastqStagePlugin {
                 verdict
             },
         );
-        let report_parts = vec![StageReportPartV1 {
+        let mut report_parts = vec![StageReportPartV1 {
             name: "stage_outputs".to_string(),
             file_name: "stage_outputs.json".to_string(),
             payload: serde_json::json!({
                 "stage_id": plan.stage_id,
                 "observer_coverage": observer_covered,
                 "runtime_interpretation": format!("{interpretation_level:?}"),
+                "benchmark_scenarios": benchmark_scenarios
+                    .iter()
+                    .map(|scenario| scenario.scenario_id.clone())
+                    .collect::<Vec<_>>(),
+                "comparison_artifact_ids": comparison_artifact_ids,
+                "semantic_loss": semantic_loss,
                 "artifact_count": artifacts.len(),
                 "declared_metric_invariants": declared_metric_invariants,
                 "artifact_ids": artifacts
@@ -155,7 +175,33 @@ impl StagePlugin for FastqStagePlugin {
                 "used_observed_outputs": !outputs.is_empty(),
             }),
         }];
-        let warnings = if observer_covered {
+        if !benchmark_scenarios.is_empty() {
+            report_parts.push(StageReportPartV1 {
+                name: "stage_tool_comparison".to_string(),
+                file_name: "stage_tool_comparison.json".to_string(),
+                payload: serde_json::json!({
+                    "stage_id": plan.stage_id,
+                    "tool_id": plan.tool_id,
+                    "runtime_interpretation": format!("{interpretation_level:?}"),
+                    "comparison_artifact_ids": comparison_artifact_ids,
+                    "semantic_loss": semantic_loss,
+                    "benchmark_scenarios": benchmark_scenarios
+                        .iter()
+                        .map(|scenario| serde_json::json!({
+                            "scenario_id": scenario.scenario_id,
+                            "description": scenario.description,
+                            "fairness_rules": scenario.fairness_rules,
+                        }))
+                        .collect::<Vec<_>>(),
+                    "normalized_artifact_ids": artifacts
+                        .iter()
+                        .map(|artifact| artifact.name.as_str().to_string())
+                        .collect::<Vec<_>>(),
+                    "observer_specialized_parser": observer_covered,
+                }),
+            });
+        }
+        let mut warnings = if observer_covered {
             Vec::new()
         } else {
             vec![format!(
@@ -163,6 +209,13 @@ impl StagePlugin for FastqStagePlugin {
                 plan.stage_id.as_str()
             )]
         };
+        if !benchmark_scenarios.is_empty() && !semantic_loss.is_empty() {
+            warnings.push(format!(
+                "{} comparison record carries semantic loss tags: {}",
+                plan.stage_id.as_str(),
+                semantic_loss.join(", ")
+            ));
+        }
         let event_hints = vec![StageEventHintV1 {
             event_name: "stage_outputs_parsed".to_string(),
             status: if outputs.is_empty() {
@@ -174,6 +227,11 @@ impl StagePlugin for FastqStagePlugin {
                 "stage_id": plan.stage_id,
                 "observer_coverage": observer_covered,
                 "runtime_interpretation": format!("{interpretation_level:?}"),
+                "benchmark_scenarios": benchmark_scenarios
+                    .iter()
+                    .map(|scenario| scenario.scenario_id.clone())
+                    .collect::<Vec<_>>(),
+                "semantic_loss": semantic_loss,
                 "artifact_count": artifacts.len(),
             }),
         }];
@@ -265,12 +323,26 @@ mod tests {
             .parse_outputs(&plan, &plan.io.outputs)
             .expect("parse outputs");
         assert_eq!(output.artifacts.len(), 1);
-        assert_eq!(output.warnings.len(), 1);
+        assert_eq!(output.report_parts.len(), 2);
+        assert_eq!(output.warnings.len(), 2);
         assert_eq!(
             output.report_parts[0].payload["runtime_interpretation"],
             serde_json::json!("GenericEnvelope")
         );
+        assert_eq!(
+            output.report_parts[1].payload["comparison_artifact_ids"],
+            serde_json::json!(["benchmark_cohort_json", "stage_tool_comparison_json", "stage_tool_normalization_json"])
+        );
+        assert_eq!(
+            output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],
+            serde_json::json!("trim_fairness")
+        );
+        assert_eq!(
+            output.report_parts[1].payload["semantic_loss"],
+            serde_json::json!(["observer_specialized_parser_missing"])
+        );
         assert!(output.warnings[0].contains("fastq.trim_reads"));
+        assert!(output.warnings[1].contains("semantic loss tags"));
         assert_eq!(output.invariants.len(), 3);
         assert_eq!(
             output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
