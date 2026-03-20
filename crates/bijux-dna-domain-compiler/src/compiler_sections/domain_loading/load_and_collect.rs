@@ -87,8 +87,7 @@ fn load_domain_tools(
         let version_rule = tool.versioning_strategy.clone();
         let help_cmd_value = tool.help_cmd.clone();
         let mut domains = tool
-            .stage_ids
-            .iter()
+            .declared_stage_ids()
             .filter_map(|stage_id| stage_id.split('.').next().map(str::to_string))
             .collect::<Vec<_>>();
         domains.sort();
