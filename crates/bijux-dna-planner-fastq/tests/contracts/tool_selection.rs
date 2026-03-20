@@ -61,6 +61,13 @@ fn correct_errors_planning_accepts_closed_backends() {
     )
     .expect("planner must accept correction tools that are closed in domain execution support");
     assert_eq!(plan.tool_id.as_str(), "musket");
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("'musket'"));
+    assert!(script.contains("correct_report.json"));
+    assert!(script.contains("\"tool_id\":\"musket\""));
+    assert!(script.contains("\"correction_engine\":\"musket\""));
 }
 
 #[test]
