@@ -12,6 +12,8 @@ mod plan_json;
 mod rrna_flow;
 #[path = "plan/plan_snapshots.rs"]
 mod plan_snapshots;
+#[path = "plan/stage_bindings.rs"]
+mod stage_bindings;
 #[path = "plan/trim_params.rs"]
 mod trim_params;
 #[path = "plan/trim_plan.rs"]

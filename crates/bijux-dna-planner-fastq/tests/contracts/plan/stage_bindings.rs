@@ -1,0 +1,123 @@
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+
+use bijux_dna_core::contract::PlanPolicy;
+use bijux_dna_core::prelude::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+};
+use bijux_dna_planner_fastq::{FastqPlanConfig, FastqPlanner, FastqStageBinding};
+
+fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new(tool_id.to_string()),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/dummy:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["echo".to_string(), tool_id.to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
+}
+
+#[test]
+fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-stage-bindings")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tool: tool("fastp"),
+                reason: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                tool: tool("cutadapt"),
+                reason: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1: r1.clone(),
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    assert_eq!(plan.steps().len(), 2);
+    assert!(plan
+        .steps()
+        .iter()
+        .any(|step| step.step_id.as_str() == "fastq.trim_reads.fastp_branch"));
+    assert!(plan
+        .steps()
+        .iter()
+        .any(|step| step.step_id.as_str() == "fastq.trim_reads.cutadapt_branch"));
+    Ok(())
+}
+
+#[test]
+fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-stage-binding-collision")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: None,
+                tool: tool("fastp"),
+                reason: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: None,
+                tool: tool("fastp"),
+                reason: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: PathBuf::from("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })
+    .expect_err("duplicate stage bindings without instance ids must fail");
+
+    assert!(error
+        .to_string()
+        .contains("must set distinct stage_instance_id values"));
+    Ok(())
+}

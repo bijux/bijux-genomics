@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
+use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_READ_LENGTHS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
     STAGE_TRIM_POLYG_TAILS,
@@ -10,6 +10,7 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
+    FastqStageBinding,
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
@@ -23,7 +24,7 @@ struct ReferenceIndexState {
     tool_id: String,
 }
 
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+#[allow(dead_code, clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_pipeline_steps<F>(
     stages: &[String],
     tools: &[ToolExecutionSpecV1],
@@ -46,13 +47,53 @@ where
         Option<&std::path::Path>,
     ) -> Result<PathBuf>,
 {
-    if stages.len() != tools.len() {
-        return Err(anyhow!(
-            "pipeline stages/tools length mismatch: {} vs {}",
-            stages.len(),
-            tools.len()
-        ));
-    }
+    let stage_bindings = stages
+        .iter()
+        .zip(tools.iter())
+        .enumerate()
+        .map(|(idx, (stage_id, tool))| FastqStageBinding {
+            stage_id: stage_id.clone(),
+            stage_instance_id: None,
+            tool: tool.clone(),
+            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
+        })
+        .collect::<Vec<_>>();
+    compose_fastq_stage_bindings(
+        &stage_bindings,
+        aux_images,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        enable_contaminant_removal,
+        r1,
+        r2,
+        reference_fasta,
+        |binding, current_r1, current_r2| {
+            out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
+        },
+    )
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+pub fn compose_fastq_stage_bindings<F>(
+    stage_bindings: &[FastqStageBinding],
+    aux_images: &BTreeMap<String, ContainerImageRefV1>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
+    mut out_dir_for_stage: F,
+) -> Result<Vec<StagePlanV1>>
+where
+    F: FnMut(
+        &FastqStageBinding,
+        &std::path::Path,
+        Option<&std::path::Path>,
+    ) -> Result<PathBuf>,
+{
     let mut current_r1 = r1.to_path_buf();
     let raw_r1 = r1.to_path_buf();
     let mut current_r2 = r2.map(|path| path.to_path_buf());
@@ -60,9 +101,10 @@ where
     let mut current_feature_table: Option<PathBuf> = None;
     let mut current_reference_index: Option<ReferenceIndexState> = None;
     let mut plans = Vec::new();
-    for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
-        let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
-        let stage_id: &str = stage;
+    for binding in stage_bindings {
+        let out_dir = out_dir_for_stage(binding, &current_r1, current_r2.as_deref())?;
+        let stage_id = binding.stage_id.as_str();
+        let tool = &binding.tool;
         let (plan, next_r1, next_r2, next_feature_table) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan = crate::tool_adapters::fastq::detect_adapters::plan(
@@ -475,19 +517,23 @@ where
                 (plan, current_r1.clone(), current_r2.clone(), next_feature_table)
             }
             _ => {
-                return Err(anyhow!("unsupported stage in fastq pipeline: {stage}"));
+                return Err(anyhow!(
+                    "unsupported stage in fastq pipeline: {}",
+                    binding.stage_id
+                ));
             }
         };
         let mut plan = plan;
-        if let Some(reasons) = tool_reasons {
-            if let Some(reason) = reasons.get(idx) {
-                plan.reason = reason.clone();
-            }
+        if let Some(reason) = binding.reason.as_ref() {
+            plan.reason = reason.clone();
         } else {
             plan.reason = PlanDecisionReason::new(
                 PlanReasonKind::Default,
                 format!("tool {} selected by planner", plan.tool_id.0),
             );
+        }
+        if let Some(stage_instance_id) = binding.stage_instance_id.as_ref() {
+            plan.stage_instance_id = Some(StepId::new(stage_instance_id.clone()));
         }
         plans.push(plan);
         if stage_id == STAGE_INDEX_REFERENCE.as_str() {

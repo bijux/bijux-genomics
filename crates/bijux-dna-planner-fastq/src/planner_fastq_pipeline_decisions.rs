@@ -37,6 +37,7 @@ fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result
 pub struct FastqPlanConfig {
     pub pipeline_id: String,
     pub policy: PlanPolicy,
+    pub stage_bindings: Vec<FastqStageBinding>,
     pub stages: Vec<String>,
     pub tools: Vec<ToolExecutionSpecV1>,
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
@@ -50,6 +51,14 @@ pub struct FastqPlanConfig {
     pub out_dir: PathBuf,
     pub tool_reasons: Option<Vec<PlanDecisionReason>>,
     pub allow_planned: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct FastqStageBinding {
+    pub stage_id: String,
+    pub stage_instance_id: Option<String>,
+    pub tool: ToolExecutionSpecV1,
+    pub reason: Option<PlanDecisionReason>,
 }
 
 #[derive(Debug, Clone)]
@@ -76,22 +85,14 @@ impl FastqPlanner {
     /// # Errors
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
-        if config.stages.len() != config.tools.len() {
-            return Err(anyhow!(
-                "pipeline stages/tools length mismatch: {} vs {}",
-                config.stages.len(),
-                config.tools.len()
-            ));
-        }
-        for stage in &config.stages {
-            enforce_stage_status(stage, config.allow_planned)?;
+        let stage_bindings = normalize_stage_bindings(config)?;
+        for binding in &stage_bindings {
+            enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
         let out_dir = config.out_dir.clone();
-        let plans = compose_fastq_pipeline_steps(
-            &config.stages,
-            &config.tools,
+        let plans = compose_fastq_stage_bindings(
+            &stage_bindings,
             &config.aux_images,
-            config.tool_reasons.as_deref(),
             config.adapter_bank.as_ref(),
             config.polyx_bank.as_ref(),
             config.contaminant_bank.as_ref(),
@@ -99,9 +100,9 @@ impl FastqPlanner {
             &config.r1,
             config.r2.as_deref(),
             config.reference_fasta.as_deref(),
-            |stage, tool, _r1, _r2| {
-                let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
-                Ok(out_dir.join(stage_dir).join(tool.tool_id.as_str()))
+            |binding, _r1, _r2| {
+                let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
+                Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
             },
         )?;
         let edges = default_edges_for_stages(&plans);
@@ -288,6 +289,77 @@ impl FastqPlanner {
     }
 }
 
+fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBinding>> {
+    if !config.stage_bindings.is_empty() {
+        if !config.stages.is_empty() || !config.tools.is_empty() || config.tool_reasons.is_some() {
+            return Err(anyhow!(
+                "FastqPlanConfig must use either stage_bindings or legacy stages/tools fields, not both"
+            ));
+        }
+        ensure_unique_stage_binding_nodes(&config.stage_bindings)?;
+        return Ok(config.stage_bindings.clone());
+    }
+
+    if config.stages.len() != config.tools.len() {
+        return Err(anyhow!(
+            "pipeline stages/tools length mismatch: {} vs {}",
+            config.stages.len(),
+            config.tools.len()
+        ));
+    }
+    if let Some(reasons) = config.tool_reasons.as_ref() {
+        if reasons.len() != config.stages.len() {
+            return Err(anyhow!(
+                "pipeline stages/tool_reasons length mismatch: {} vs {}",
+                config.stages.len(),
+                reasons.len()
+            ));
+        }
+    }
+
+    let bindings = config
+        .stages
+        .iter()
+        .zip(config.tools.iter())
+        .enumerate()
+        .map(|(idx, (stage_id, tool))| FastqStageBinding {
+            stage_id: stage_id.clone(),
+            stage_instance_id: None,
+            tool: tool.clone(),
+            reason: config
+                .tool_reasons
+                .as_ref()
+                .and_then(|reasons| reasons.get(idx).cloned()),
+        })
+        .collect::<Vec<_>>();
+    ensure_unique_stage_binding_nodes(&bindings)?;
+    Ok(bindings)
+}
+
+fn ensure_unique_stage_binding_nodes(bindings: &[FastqStageBinding]) -> Result<()> {
+    let mut seen_nodes = std::collections::BTreeSet::new();
+    for binding in bindings {
+        let node_id = binding
+            .stage_instance_id
+            .as_deref()
+            .map(str::to_string)
+            .unwrap_or_else(|| {
+                format!(
+                    "{}.tool.{}",
+                    binding.stage_id,
+                    binding.tool.tool_id.as_str()
+                )
+            });
+        if !seen_nodes.insert(node_id.clone()) {
+            return Err(anyhow!(
+                "duplicate FASTQ stage node binding {}; repeated stage/tool bindings must set distinct stage_instance_id values",
+                node_id
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn stage_status(stage_id: &str) -> Option<String> {
     let stage_id = bijux_dna_core::ids::StageId::try_from(stage_id).ok()?;
     bijux_dna_domain_fastq::execution_support_for_stage(&stage_id).map(|support| {
@@ -337,6 +409,7 @@ pub fn plan_fastq_to_fastq__default__v1(
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: inputs.policy,
+        stage_bindings: Vec::new(),
         stages: pipeline.stages,
         tools: inputs.tools.clone(),
         aux_images: inputs.aux_images.clone(),
@@ -418,7 +491,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
-    out_dir_for_stage: F,
+    mut out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
     F: FnMut(
@@ -428,11 +501,56 @@ where
         Option<&std::path::Path>,
     ) -> Result<PathBuf>,
 {
-    plan_compose::compose_fastq_pipeline_steps(
-        stages,
-        tools,
+    let stage_bindings = stages
+        .iter()
+        .zip(tools.iter())
+        .enumerate()
+        .map(|(idx, (stage_id, tool))| FastqStageBinding {
+            stage_id: stage_id.clone(),
+            stage_instance_id: None,
+            tool: tool.clone(),
+            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
+        })
+        .collect::<Vec<_>>();
+    compose_fastq_stage_bindings(
+        &stage_bindings,
         aux_images,
-        tool_reasons,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        enable_contaminant_removal,
+        r1,
+        r2,
+        reference_fasta,
+        |binding, current_r1, current_r2| {
+            out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
+        },
+    )
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+pub fn compose_fastq_stage_bindings<F>(
+    stage_bindings: &[FastqStageBinding],
+    aux_images: &BTreeMap<String, ContainerImageRefV1>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
+    out_dir_for_stage: F,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
+where
+    F: FnMut(
+        &FastqStageBinding,
+        &std::path::Path,
+        Option<&std::path::Path>,
+    ) -> Result<PathBuf>,
+{
+    plan_compose::compose_fastq_stage_bindings(
+        stage_bindings,
+        aux_images,
         adapter_bank,
         polyx_bank,
         contaminant_bank,

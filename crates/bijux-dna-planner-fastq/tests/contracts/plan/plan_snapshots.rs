@@ -86,6 +86,7 @@ fn fastq_plan_snapshot() {
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: Vec::new(),
         stages: vec!["fastq.validate_reads".to_string(), "fastq.trim_reads".to_string()],
         tools: vec![tool_validate, tool_trim],
         aux_images: BTreeMap::new(),
