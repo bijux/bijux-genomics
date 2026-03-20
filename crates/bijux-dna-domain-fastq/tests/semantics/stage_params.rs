@@ -15,9 +15,10 @@ use bijux_dna_domain_fastq::params::qc_post::{
 };
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
-    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
-    TaxonomyDatabaseScope, TaxonomyReportFormat,
-    HOST_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
+    RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine, ScreenEffectiveParams,
+    TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope, TaxonomyReportFormat,
+    HOST_DEPLETION_SCHEMA_VERSION, RRNA_DEPLETION_SCHEMA_VERSION,
+    SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
@@ -165,6 +166,29 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
     );
     assert_eq!(decoded.minimum_confidence, Some(0.2));
     assert!(decoded.emit_unclassified);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn rrna_params_roundtrip_with_database_contract() {
+    let params = RrnaEffectiveParams {
+        schema_version: RRNA_DEPLETION_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::SingleEnd,
+        threads: 4,
+        contaminant_db: Some("silva-138".to_string()),
+        database_artifact_id: "rrna_reference".to_string(),
+        database_build_id: Some("silva-138.1".to_string()),
+        screening_engine: RrnaScreeningEngine::Sortmerna,
+        report_format: RrnaReportFormat::SummaryTsvAndJson,
+        emit_removed_reads: false,
+    };
+    let decoded: RrnaEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, RRNA_DEPLETION_SCHEMA_VERSION);
+    assert_eq!(decoded.database_artifact_id, "rrna_reference");
+    assert_eq!(decoded.database_build_id.as_deref(), Some("silva-138.1"));
+    assert_eq!(decoded.screening_engine, RrnaScreeningEngine::Sortmerna);
+    assert_eq!(decoded.report_format, RrnaReportFormat::SummaryTsvAndJson);
+    assert!(!decoded.emit_removed_reads);
     assert!(decoded.missing_required_fields().is_empty());
 }
 

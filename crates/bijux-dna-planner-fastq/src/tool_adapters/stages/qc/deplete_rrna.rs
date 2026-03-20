@@ -4,7 +4,13 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{screen::RrnaEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    screen::{
+        RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine,
+        RRNA_DEPLETION_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -45,6 +51,7 @@ pub fn plan_rrna(
     let report = out_dir.join("rrna_report.tsv");
     let metrics = out_dir.join("rrna_report.json");
     let effective_params = RrnaEffectiveParams {
+        schema_version: RRNA_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
@@ -52,6 +59,11 @@ pub fn plan_rrna(
         },
         threads: tool.resources.threads,
         contaminant_db: Some("rrna_reference".to_string()),
+        database_artifact_id: "rrna_reference".to_string(),
+        database_build_id: None,
+        screening_engine: RrnaScreeningEngine::Sortmerna,
+        report_format: RrnaReportFormat::SummaryTsvAndJson,
+        emit_removed_reads: false,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
