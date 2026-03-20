@@ -76,6 +76,13 @@ pub struct BenchmarkStageSpec {
     pub upstream_stage_instance_ids: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageEdge {
+    pub from: String,
+    pub to: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkSuiteSpec {
@@ -83,6 +90,8 @@ pub struct BenchmarkSuiteSpec {
     pub suite_id: String,
     pub datasets: Vec<DatasetSpec>,
     pub stages: Vec<BenchmarkStageSpec>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub edges: Vec<BenchmarkStageEdge>,
     pub replicate_policy: ReplicatePolicy,
     pub diversity: DiversityRequirements,
     pub stratifications: Vec<StratificationRequirement>,
@@ -141,6 +150,7 @@ impl BenchmarkSuiteSpec {
             suite_id,
             datasets,
             stages,
+            edges: Vec::new(),
             replicate_policy,
             diversity,
             stratifications,
