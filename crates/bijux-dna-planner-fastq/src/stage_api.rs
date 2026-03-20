@@ -62,6 +62,15 @@ pub enum ToolsetExecutionMode {
     AllBindings,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StageToolMaturityLevel {
+    PlannedBinding,
+    GovernedExecution,
+    GenericNormalized,
+    ObserverNormalized,
+    BenchmarkComparable,
+}
+
 #[must_use]
 pub fn benchmark_profile_for_stage_tool(
     stage_id: &StageId,
@@ -179,6 +188,41 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
             .map(|binding| binding.tool_id)
             .collect(),
     }
+}
+
+#[must_use]
+pub fn stage_tool_maturity(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> Option<StageToolMaturityLevel> {
+    let profile = benchmark_profile_for_stage_tool(stage_id, tool_id)?;
+    Some(match (
+        profile.integration_level,
+        profile.runtime_interpretation,
+        profile.benchmark_scenarios.is_empty(),
+    ) {
+        (ToolIntegrationLevel::PlannedContract, _, _) => StageToolMaturityLevel::PlannedBinding,
+        (
+            ToolIntegrationLevel::GovernedContract,
+            RuntimeInterpretationLevel::ObserverSpecialized,
+            false,
+        ) => StageToolMaturityLevel::BenchmarkComparable,
+        (
+            ToolIntegrationLevel::GovernedContract,
+            RuntimeInterpretationLevel::ObserverSpecialized,
+            true,
+        ) => StageToolMaturityLevel::ObserverNormalized,
+        (
+            ToolIntegrationLevel::GovernedContract,
+            RuntimeInterpretationLevel::GenericEnvelope,
+            false,
+        ) => StageToolMaturityLevel::GenericNormalized,
+        (
+            ToolIntegrationLevel::GovernedContract,
+            RuntimeInterpretationLevel::GenericEnvelope,
+            true,
+        ) => StageToolMaturityLevel::GovernedExecution,
+    })
 }
 
 pub fn adapter_bank_path() -> std::path::PathBuf {
