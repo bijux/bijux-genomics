@@ -39,6 +39,15 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.trim_reads"]
+stage_contracts:
+  fastq.trim_reads:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "Trim execution emits governed trimmed-read artifacts together with the normalized stage report."
 expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
 metrics_schema: "bijux.fastq.trim_reads.v1"
