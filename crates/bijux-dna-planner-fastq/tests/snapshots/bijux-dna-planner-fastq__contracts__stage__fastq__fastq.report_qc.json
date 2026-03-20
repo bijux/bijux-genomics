@@ -15,8 +15,9 @@
       "out/multiqc_data",
       "-n",
       "multiqc_report.html",
-      "reads_R1.fastq.gz",
-      "reads_R2.fastq.gz"
+      "out/detect_adapters/fastqc/adapter_report.json",
+      "out/detect_adapters/fastqc/fastqc",
+      "out/profile_reads/seqkit_stats/qc.json"
     ]
   },
   "resources": {
@@ -28,15 +29,21 @@
   "io": {
     "inputs": [
       {
-        "name": "reads_r1",
-        "path": "reads_R1.fastq.gz",
-        "role": "reads",
+        "name": "fastq.detect_adapters.tool.fastqc.adapter_report",
+        "path": "out/detect_adapters/fastqc/adapter_report.json",
+        "role": "report_json",
         "optional": false
       },
       {
-        "name": "reads_r2",
-        "path": "reads_R2.fastq.gz",
-        "role": "reads",
+        "name": "fastq.detect_adapters.tool.fastqc.adapter_evidence_dir",
+        "path": "out/detect_adapters/fastqc/fastqc",
+        "role": "stage_report",
+        "optional": true
+      },
+      {
+        "name": "fastq.profile_reads.tool.seqkit_stats.qc_json",
+        "path": "out/profile_reads/seqkit_stats/qc.json",
+        "role": "metrics_json",
         "optional": false
       }
     ],
@@ -59,14 +66,17 @@
   "params": {
     "out_dir": "out",
     "qc_inputs": [
-      "reads_R1.fastq.gz",
-      "reads_R2.fastq.gz"
+      "out/detect_adapters/fastqc/adapter_report.json",
+      "out/detect_adapters/fastqc/fastqc",
+      "out/profile_reads/seqkit_stats/qc.json"
     ],
+    "raw_r1": "reads_R1.fastq.gz",
+    "raw_r2": "reads_R2.fastq.gz",
     "tool": "multiqc"
   },
   "effective_params": {
     "aggregation_engine": "multiqc",
-    "aggregation_scope": "fastq_qc_inputs",
+    "aggregation_scope": "governed_qc_artifacts",
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.report_qc.v1",
     "threads": 2

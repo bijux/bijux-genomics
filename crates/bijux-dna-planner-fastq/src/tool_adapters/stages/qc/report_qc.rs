@@ -41,47 +41,6 @@ pub fn aux_tool_ids() -> Vec<String> {
     tool_ids
 }
 
-/// Build a QC reporting plan from FASTQ inputs for synthetic QC aggregation helpers.
-///
-/// # Errors
-/// Returns an error if the tool is unsupported.
-pub fn plan_qc_post_from_fastq_inputs(
-    tool: &ToolExecutionSpecV1,
-    r1: &Path,
-    r2: Option<&Path>,
-    out_dir: &Path,
-    aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
-    raw_r1: Option<&Path>,
-    raw_r2: Option<&Path>,
-) -> Result<StagePlanV1> {
-    let mut qc_inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(r2) = r2 {
-        qc_inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
-    plan_qc_post_with_qc_inputs(
-        tool,
-        &qc_inputs,
-        out_dir,
-        aux_images,
-        if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
-        QcAggregationScope::FastqQcInputs,
-        raw_r1,
-        raw_r2,
-    )
-}
-
 /// Build a QC reporting plan from governed upstream QC artifacts.
 ///
 /// # Errors
