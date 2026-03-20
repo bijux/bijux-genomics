@@ -23,3 +23,5 @@ mod mod_contracts_public_api_owner_rs;
 mod mod_contracts_public_api_rs;
 #[path = "contracts/benching/ssot_ids.rs"]
 mod mod_contracts_ssot_ids_rs;
+#[path = "contracts/benching/suite_catalog.rs"]
+mod mod_contracts_suite_catalog_rs;
