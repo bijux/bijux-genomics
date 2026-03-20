@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
@@ -19,39 +19,25 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    let filtered_r1 = if r2.is_some() {
-        out_dir.join("nonchimeras_R1.fastq.gz")
-    } else {
-        out_dir.join("nonchimeras.fastq.gz")
-    };
-    let filtered_r2 = r2.map(|_| out_dir.join("nonchimeras_R2.fastq.gz"));
+    if r2.is_some() {
+        return Err(anyhow!(
+            "vsearch chimera removal requires a single merged or single-end input stream"
+        ));
+    }
+    let filtered_reads = out_dir.join("nonchimeras.fastq.gz");
     let metrics = out_dir.join("chimera_metrics.json");
     let chimeras = out_dir.join("chimeras.fasta");
     let uchime = out_dir.join("uchime.tsv");
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
+    let inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads"),
         r1.to_path_buf(),
         ArtifactRole::Reads,
     )];
-    if let Some(r2) = r2 {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
     let mut outputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("chimera_filtered_reads_r1"),
-        filtered_r1.clone(),
+        ArtifactId::from_static("chimera_filtered_reads"),
+        filtered_reads.clone(),
         ArtifactRole::Reads,
     )];
-    if let Some(filtered_r2) = &filtered_r2 {
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("chimera_filtered_reads_r2"),
-            filtered_r2.clone(),
-            ArtifactRole::Reads,
-        ));
-    }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("chimera_metrics_json"),
         metrics.clone(),
@@ -72,9 +58,9 @@ pub fn plan(
             template: vec![
                 "vsearch".to_string(),
                 "--uchime_denovo".to_string(),
-                "{{reads_r1}}".to_string(),
+                r1.to_string_lossy().to_string(),
                 "--nonchimeras".to_string(),
-                filtered_r1.to_string_lossy().to_string(),
+                filtered_reads.to_string_lossy().to_string(),
                 "--chimeras".to_string(),
                 chimeras.to_string_lossy().to_string(),
                 "--uchimeout".to_string(),
@@ -84,7 +70,13 @@ pub fn plan(
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({}),
+        params: serde_json::json!({
+            "input_reads": r1,
+            "chimera_filtered_reads": filtered_reads,
+            "chimera_metrics_json": metrics,
+            "chimeras_fasta": chimeras,
+            "uchime_report_tsv": uchime,
+        }),
         effective_params: serde_json::to_value(ChimeraDetectionEffectiveParams {
             method: "vsearch_uchime_denovo".to_string(),
             detection_scope: "denovo".to_string(),
@@ -92,6 +84,15 @@ pub fn plan(
             chimera_removed_definition:
                 "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
                     .to_string(),
+        })
+        .map(|mut value| {
+            if let Some(object) = value.as_object_mut() {
+                object.insert(
+                    "input_layout".to_string(),
+                    serde_json::Value::String("single_stream".to_string()),
+                );
+            }
+            value
         })
         .expect("serialize chimera effective params"),
         aux_images: std::collections::BTreeMap::new(),
