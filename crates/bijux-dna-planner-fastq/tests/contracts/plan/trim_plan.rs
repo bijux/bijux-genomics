@@ -133,6 +133,12 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
     assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
     assert!(plan.command.template.iter().any(|part| part == "--in2"));
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
+    assert_eq!(
+        plan.effective_params["schema_version"],
+        "bijux.fastq.params.trim_polyg_tails.v1"
+    );
+    assert_eq!(plan.effective_params["trim_polyg"], true);
+    assert_eq!(plan.effective_params["min_polyg_run"], 10);
     Ok(())
 }
 
