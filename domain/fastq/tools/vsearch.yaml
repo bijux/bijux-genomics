@@ -61,6 +61,8 @@ stage_ids:
   - "fastq.cluster_otus"
 expected_artifacts:
   - "merged_reads"
+  - "unmerged_reads_r1"
+  - "unmerged_reads_r2"
   - "report_json"
   - "chimera_filtered_reads_r1"
   - "chimera_filtered_reads_r2"
