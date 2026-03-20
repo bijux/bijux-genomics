@@ -123,6 +123,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "terminal_damage_tool_normalization_json",
         ]
     );
+
+    let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&overrepresented_stage),
+        vec![
+            "overrepresented_sequence_tool_benchmark_cohort_json",
+            "overrepresented_sequence_tool_comparison_json",
+            "overrepresented_sequence_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]

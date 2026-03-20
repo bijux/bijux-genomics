@@ -152,6 +152,21 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_damage_trim_policy")
     );
+
+    let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
+    let overrepresented_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&overrepresented_stage);
+    assert_eq!(overrepresented_scenarios.len(), 1);
+    assert_eq!(
+        overrepresented_scenarios[0].scenario_id,
+        "overrepresented_sequence_fairness"
+    );
+    assert!(
+        overrepresented_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_overrepresented_sequence_contract")
+    );
 }
 
 #[test]

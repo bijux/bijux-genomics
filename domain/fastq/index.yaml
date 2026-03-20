@@ -1858,6 +1858,14 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_damage_trim_policy
+  overrepresented_sequence_fairness:
+    stage_id: fastq.profile_overrepresented_sequences
+    description: Compare overrepresented-sequence profilers on identical reads and governed
+      sequence summary outputs.
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_overrepresented_sequence_contract
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.

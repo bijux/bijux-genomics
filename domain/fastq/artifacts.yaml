@@ -53,6 +53,9 @@ artifact_ids:
   - otu_representatives
   - otu_table
   - overrepresented_sequences_json
+  - overrepresented_sequence_tool_benchmark_cohort_json
+  - overrepresented_sequence_tool_comparison_json
+  - overrepresented_sequence_tool_normalization_json
   - overrepresented_sequences_tsv
   - primer_normalization_tool_benchmark_cohort_json
   - primer_normalization_tool_comparison_json

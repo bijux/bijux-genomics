@@ -384,6 +384,15 @@ fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
         "terminal_damage_tool_normalization_json" => {
             "terminal_damage_tool_normalization.json"
         }
+        "overrepresented_sequence_tool_benchmark_cohort_json" => {
+            "overrepresented_sequence_tool_benchmark_cohort.json"
+        }
+        "overrepresented_sequence_tool_comparison_json" => {
+            "overrepresented_sequence_tool_comparison.json"
+        }
+        "overrepresented_sequence_tool_normalization_json" => {
+            "overrepresented_sequence_tool_normalization.json"
+        }
         "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
         "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
         "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",

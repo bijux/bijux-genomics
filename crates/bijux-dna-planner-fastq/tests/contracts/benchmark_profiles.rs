@@ -64,7 +64,7 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
     );
     assert_eq!(
         seqkit_profile.readiness,
-        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
@@ -337,5 +337,32 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .tool_ids
             .iter()
             .any(|tool_id| tool_id.as_str() == "seqkit")
+    );
+
+    let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
+    let overrepresented_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&overrepresented_stage);
+    assert_eq!(overrepresented_cohorts.len(), 1);
+    assert_eq!(
+        overrepresented_cohorts[0].scenario_id,
+        "overrepresented_sequence_fairness"
+    );
+    assert!(
+        overrepresented_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastqc")
+    );
+    assert!(
+        overrepresented_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "seqkit")
+    );
+    assert!(
+        overrepresented_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "fastq_scan")
     );
 }
