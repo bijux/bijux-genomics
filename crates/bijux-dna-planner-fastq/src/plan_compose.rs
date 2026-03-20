@@ -10,8 +10,8 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    DepleteHostStageParams, DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters,
-    TrimTerminalDamageStageParams,
+    DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
+    FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams,
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
@@ -263,12 +263,14 @@ where
                     tool.tool_id.as_str(),
                     &reference_index.tool_id,
                 )?;
-                let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
+                let params = deplete_reference_contaminants_params(binding);
+                let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_options(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
                     &reference_index.path,
                     &out_dir,
+                    &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {
@@ -573,6 +575,15 @@ fn deplete_host_params(binding: &FastqStageBinding) -> DepleteHostStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::DepleteHost(params)) => params.clone(),
         _ => DepleteHostStageParams::default(),
+    }
+}
+
+fn deplete_reference_contaminants_params(
+    binding: &FastqStageBinding,
+) -> DepleteReferenceContaminantsStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::DepleteReferenceContaminants(params)) => params.clone(),
+        _ => DepleteReferenceContaminantsStageParams::default(),
     }
 }
 

@@ -16,6 +16,9 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+pub type DepleteReferenceContaminantsPlanOptions =
+    crate::DepleteReferenceContaminantsStageParams;
+
 pub fn normalize_contaminant_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -40,6 +43,28 @@ pub fn plan_contaminant_screen(
     reference_index: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_contaminant_screen_with_options(
+        tool,
+        r1,
+        r2,
+        reference_index,
+        out_dir,
+        &DepleteReferenceContaminantsPlanOptions::default(),
+    )
+}
+
+/// Build a contaminant screen plan.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_contaminant_screen_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    out_dir: &Path,
+    options: &DepleteReferenceContaminantsPlanOptions,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_contaminant_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = if r2.is_some() {
@@ -57,7 +82,7 @@ pub fn plan_contaminant_screen(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        contaminant_reference: "contaminant_reference".to_string(),
+        contaminant_reference: options.decoy_mode.clone(),
         index_artifact: "reference_index".to_string(),
         retain_unmapped_pairs: r2.is_some(),
     };
@@ -124,6 +149,7 @@ pub fn plan_contaminant_screen(
             "input_r1": r1,
             "input_r2": r2,
             "reference_index": reference_index,
+            "decoy_mode": options.decoy_mode,
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,

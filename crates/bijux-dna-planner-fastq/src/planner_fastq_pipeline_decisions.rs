@@ -67,6 +67,7 @@ pub enum FastqStageParameters {
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
+    DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
 }
 
 #[derive(Debug, Clone)]
@@ -112,6 +113,19 @@ impl Default for DepleteHostStageParams {
         Self {
             host_identity_threshold: 0.95,
             retain_unmapped_only: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DepleteReferenceContaminantsStageParams {
+    pub decoy_mode: String,
+}
+
+impl Default for DepleteReferenceContaminantsStageParams {
+    fn default() -> Self {
+        Self {
+            decoy_mode: "phix_and_spikeins".to_string(),
         }
     }
 }
