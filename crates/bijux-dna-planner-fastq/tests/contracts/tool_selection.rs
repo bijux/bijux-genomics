@@ -1,68 +1,34 @@
-use std::sync::{Mutex, OnceLock};
-
 use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1};
-
-fn env_lock() -> &'static Mutex<()> {
-    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-    LOCK.get_or_init(|| Mutex::new(()))
-}
-
-struct EnvGuard {
-    key: &'static str,
-    value: Option<String>,
-}
-
-impl EnvGuard {
-    fn capture(key: &'static str) -> Self {
-        Self {
-            key,
-            value: std::env::var(key).ok(),
-        }
-    }
-}
-
-impl Drop for EnvGuard {
-    fn drop(&mut self) {
-        if let Some(value) = self.value.take() {
-            std::env::set_var(self.key, value);
-        } else {
-            std::env::remove_var(self.key);
-        }
-    }
-}
+use bijux_dna_core::prelude::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+};
 
 #[test]
-fn experimental_registry_alias_extends_planner_stage_selection() {
-    let _lock = env_lock().lock().expect("lock env mutation tests");
-    let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
-    let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
-    std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
-    std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
-
-    let stage_id = StageId::from_static("fastq.trim_reads");
-    let default_tools = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&stage_id);
+fn planner_stage_selection_comes_from_domain_execution_support() {
+    let trim_stage = StageId::from_static("fastq.trim_reads");
+    let trim_tools = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&trim_stage);
     assert!(
-        !default_tools.iter().any(|tool| tool.as_str() == "prinseq"),
-        "experimental trim backend must stay out of planner defaults"
+        trim_tools.iter().any(|tool| tool.as_str() == "prinseq"),
+        "planner trim tool selection must come from the domain execution support manifest",
+    );
+    assert!(
+        !trim_tools.iter().any(|tool| tool.as_str() == "seqpurge"),
+        "planner must not admit tools that are absent from the domain execution support manifest",
     );
 
-    std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
-    let experimental_tools = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&stage_id);
+    let infer_asvs_stage = StageId::from_static("fastq.infer_asvs");
     assert!(
-        experimental_tools.iter().any(|tool| tool.as_str() == "prinseq"),
-        "planner stage selection must honor the experimental registry alias"
+        bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&infer_asvs_stage).is_empty(),
+        "declared-only stages must not admit execution tools",
+    );
+    assert!(
+        bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&infer_asvs_stage).is_none(),
+        "declared-only stages must not expose default execution tools",
     );
 }
 
 #[test]
-fn correct_errors_planning_honors_include_experimental_alias() {
-    let _lock = env_lock().lock().expect("lock env mutation tests");
-    let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
-    let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
-    std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
-    std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
-
+fn correct_errors_planning_rejects_tools_outside_execution_support() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("musket"),
         tool_version: "99.99.99+fixture".to_string(),
@@ -89,16 +55,6 @@ fn correct_errors_planning_honors_include_experimental_alias() {
             std::path::Path::new("out"),
         )
         .is_err(),
-        "experimental corrector must stay blocked without the experimental alias"
+        "planner must reject correction tools that are not closed in domain execution support",
     );
-
-    std::env::set_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "1");
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
-        &tool,
-        std::path::Path::new("reads_R1.fastq.gz"),
-        std::path::Path::new("reads_R2.fastq.gz"),
-        std::path::Path::new("out"),
-    )
-    .expect("include-experimental alias must unlock planning for experimental correctors");
-    assert_eq!(plan.tool_id.as_str(), "musket");
 }

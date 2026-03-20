@@ -16,7 +16,7 @@ fn select_trim_tools_dedup_and_sort() {
 }
 
 #[test]
-fn select_trim_tools_blocks_experimental_by_default() {
+fn select_trim_tools_rejects_tools_outside_execution_support() {
     let tools = vec!["seqpurge".to_string()];
     match select_trim_tools(&tools, false) {
         Ok(_) => panic!("expected failure"),
@@ -25,11 +25,11 @@ fn select_trim_tools_blocks_experimental_by_default() {
 }
 
 #[test]
-fn select_trim_tools_allows_experimental_when_enabled() {
+fn select_trim_tools_keeps_contract_even_when_opt_in_flag_is_set() {
     let tools = vec!["seqpurge".to_string()];
     match select_trim_tools(&tools, true) {
-        Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
-        Err(err) => panic!("normalize failed: {err}"),
+        Ok(_) => panic!("expected failure"),
+        Err(err) => assert!(err.to_string().contains("unsupported tool")),
     }
 }
 
