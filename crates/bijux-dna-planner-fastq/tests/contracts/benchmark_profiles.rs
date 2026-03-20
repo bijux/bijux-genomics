@@ -196,4 +196,28 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .any(|tool_id| tool_id.as_str() == "vsearch")
     );
+
+    let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
+    let low_complexity_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&low_complexity_stage);
+    assert_eq!(low_complexity_cohorts.len(), 1);
+    assert_eq!(low_complexity_cohorts[0].scenario_id, "low_complexity_fairness");
+    assert!(
+        low_complexity_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "bbduk")
+    );
+    assert!(
+        low_complexity_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "prinseq")
+    );
+    assert!(
+        low_complexity_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "dustmasker")
+    );
 }

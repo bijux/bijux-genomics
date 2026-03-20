@@ -63,6 +63,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "merge_tool_normalization_json",
         ]
     );
+
+    let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&low_complexity_stage),
+        vec![
+            "low_complexity_tool_benchmark_cohort_json",
+            "low_complexity_tool_comparison_json",
+            "low_complexity_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]

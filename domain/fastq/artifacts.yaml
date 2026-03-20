@@ -31,6 +31,9 @@ artifact_ids:
   - removed_host_reads_r2
   - length_distribution_json
   - length_distribution_tsv
+  - low_complexity_tool_benchmark_cohort_json
+  - low_complexity_tool_comparison_json
+  - low_complexity_tool_normalization_json
   - manifest_json
   - merge_tool_benchmark_cohort_json
   - merge_tool_comparison_json

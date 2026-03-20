@@ -28,6 +28,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "merge_tool_normalization_json",
     ),
     (
+        "fastq.filter_low_complexity",
+        "low_complexity_tool_benchmark_cohort_json",
+        "low_complexity_tool_comparison_json",
+        "low_complexity_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",
