@@ -41,17 +41,17 @@ execution_contract:
     - "flash2.notCombined_2.fastq"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
-upstream: "unknown"
+upstream: "https://github.com/dstreett/FLASH2"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "latest-pinned"
+default_version: "2.2.00"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.merge_pairs"]
 expected_artifacts: ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.merge_pairs.v1"
+metrics_schema: "bijux.fastq.merge_pairs.v1"
 version_cmd: "flash2 --version"
 help_cmd: "flash2 --help"
 comparability:
