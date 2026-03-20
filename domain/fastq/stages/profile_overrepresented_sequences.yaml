@@ -49,6 +49,7 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - fastqc
+  - fastq_scan
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:

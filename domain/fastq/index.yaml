@@ -93,6 +93,7 @@ stage_tool_compatibility:
   fastq.extract_umis:
   - umi_tools
   fastq.filter_low_complexity:
+  - dustmasker
   - prinseq
   - bbduk
   - fastp
@@ -113,12 +114,14 @@ stage_tool_compatibility:
   - flash2
   - leehom
   fastq.normalize_abundance:
+  - seqfu
   - seqkit
   fastq.normalize_primers:
   - cutadapt
   - seqkit
   fastq.profile_overrepresented_sequences:
   - fastqc
+  - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
   - seqkit_stats
@@ -134,6 +137,7 @@ stage_tool_compatibility:
   fastq.report_qc:
   - multiqc
   fastq.screen_taxonomy:
+  - diamond
   - kraken2
   - krakenuniq
   - centrifuge
@@ -149,6 +153,7 @@ stage_tool_compatibility:
   - adapterremoval
   - trimmomatic
   - trim_galore
+  - seqpurge
   - prinseq
   - seqkit
   - skewer
@@ -160,6 +165,7 @@ stage_tool_compatibility:
   - seqkit
   fastq.validate_reads:
   - fastqvalidator
+  - fastq_scan
   - seqtk
   - fqtools
 active_defaults:
