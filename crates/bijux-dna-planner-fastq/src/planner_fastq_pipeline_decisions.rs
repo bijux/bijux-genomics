@@ -221,6 +221,8 @@ impl FastqPlanner {
             &stage_id,
             crate::stage_api::ToolsetExecutionMode::AllBindings,
         );
+        let comparison_input_artifact_ids =
+            bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&stage_id);
         let mut steps = Vec::new();
         let mut comparison_inputs = Vec::new();
         for tool in &config.tools {
@@ -277,6 +279,13 @@ impl FastqPlanner {
                 ));
             };
             for output in &plan.io.outputs {
+                if !comparison_input_artifact_ids.is_empty()
+                    && !comparison_input_artifact_ids
+                        .iter()
+                        .any(|artifact_id| *artifact_id == output.name.as_str())
+                {
+                    continue;
+                }
                 comparison_inputs.push(ArtifactRef::required(
                     ArtifactId::new(format!(
                         "{}__{}",
@@ -390,6 +399,10 @@ fn comparison_command_for_stage(
                 stage_id.as_str()
             )
         })?);
+    }
+    for artifact_id in bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(stage_id) {
+        command.push("--comparison-input".to_string());
+        command.push(artifact_id.to_string());
     }
     for artifact_id in comparison_artifact_ids {
         command.push("--comparison-artifact".to_string());

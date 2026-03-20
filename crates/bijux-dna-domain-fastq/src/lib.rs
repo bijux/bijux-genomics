@@ -46,6 +46,7 @@ pub use banks::{
 pub use bench_repository::{BenchQueryContext, BenchResultsRepository};
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
+    comparison_input_artifact_ids_for_stage,
     comparison_contract_for_stage, StageComparisonContract,
 };
 pub use execution_support::{
@@ -59,9 +60,9 @@ pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
 pub use integration_matrix::{
-    benchmark_scenarios, benchmark_scenarios_for_stage, stage_tool_binding, stage_tool_bindings,
-    stage_tool_bindings_for_stage, is_reference_index_backend_compatible,
-    reference_index_backends_for_tool, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
+    benchmark_scenarios, benchmark_scenarios_for_stage, is_reference_index_backend_compatible,
+    reference_index_backends_for_tool, stage_tool_binding, stage_tool_bindings,
+    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,
@@ -85,9 +86,9 @@ pub use params::{
     StageParamDescriptor,
 };
 pub use pipeline_contract::{
-    canonical_amplicon_stage_order, canonical_stage_order,
-    default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
-    forbidden_transitions, optional_branches, FastqPipelineMode, StageCriticality,
+    canonical_amplicon_stage_order, canonical_stage_order, default_amplicon_preprocess_stage_order,
+    default_shotgun_preprocess_stage_order, forbidden_transitions, optional_branches,
+    FastqPipelineMode, StageCriticality,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
