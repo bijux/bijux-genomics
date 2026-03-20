@@ -118,6 +118,44 @@ fn canonical_amplicon_order_uses_supported_feature_stage() {
 }
 
 #[test]
+fn default_shotgun_preprocess_order_stays_within_canonical_shotgun_order() {
+    let canonical = bijux_dna_domain_fastq::canonical_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+    let defaults = bijux_dna_domain_fastq::default_shotgun_preprocess_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+
+    for stage in defaults {
+        assert!(
+            canonical.iter().any(|candidate| candidate == &stage),
+            "default FASTQ shotgun preprocess order must stay inside canonical order: {stage}"
+        );
+    }
+}
+
+#[test]
+fn default_amplicon_preprocess_order_stays_within_canonical_amplicon_order() {
+    let canonical = bijux_dna_domain_fastq::canonical_amplicon_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+    let defaults = bijux_dna_domain_fastq::default_amplicon_preprocess_stage_order()
+        .into_iter()
+        .map(|stage| stage.to_string())
+        .collect::<Vec<_>>();
+
+    for stage in defaults {
+        assert!(
+            canonical.iter().any(|candidate| candidate == &stage),
+            "default FASTQ amplicon preprocess order must stay inside canonical order: {stage}"
+        );
+    }
+}
+
+#[test]
 fn closed_screen_taxonomy_is_not_marked_experimental() {
     let stage_id = bijux_dna_core::ids::StageId::from_static("fastq.screen_taxonomy");
     assert_eq!(

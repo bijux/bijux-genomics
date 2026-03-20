@@ -82,8 +82,9 @@ pub use params::{
     StageParamDescriptor,
 };
 pub use pipeline_contract::{
-    canonical_amplicon_stage_order, canonical_stage_order, forbidden_transitions,
-    optional_branches, FastqPipelineMode, StageCriticality,
+    canonical_amplicon_stage_order, canonical_stage_order,
+    default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
+    forbidden_transitions, optional_branches, FastqPipelineMode, StageCriticality,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
