@@ -5,7 +5,12 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, ContainerImageRefV1, StageId, StageVersion,
     ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{qc_post::QcPostEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    qc_post::{
+        QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_REPORT_QC;
 use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
@@ -52,12 +57,15 @@ pub fn plan_qc_post(
         params["raw_r2"] = serde_json::json!(raw);
     }
     let effective_params = QcPostEffectiveParams {
+        schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
+        aggregation_engine: QcAggregationEngine::Multiqc,
+        aggregation_scope: QcAggregationScope::FastqQcInputs,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),

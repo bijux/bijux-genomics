@@ -46,7 +46,7 @@ metrics:
     meaning: "Path to MultiQC HTML report"
   - name: "multiqc_data"
     meaning: "Path to MultiQC data directory"
-description: "FASTQ stage for quality control reporting (FastQC/MultiQC)."
+description: "FASTQ stage for MultiQC aggregation of FASTQ quality-control reports."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
@@ -71,6 +71,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "single-end input omits reads_r2; paired-end input contributes both mates to the aggregated QC report."
+  - "the stage aggregates existing FASTQ QC inputs rather than recomputing primary read statistics."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

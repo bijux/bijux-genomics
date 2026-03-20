@@ -54,7 +54,10 @@
     "tool": "multiqc"
   },
   "effective_params": {
+    "aggregation_engine": "multiqc",
+    "aggregation_scope": "fastq_qc_inputs",
     "paired_mode": "paired_end",
+    "schema_version": "bijux.fastq.params.report_qc.v1",
     "threads": 1
   },
   "aux_images": {},
