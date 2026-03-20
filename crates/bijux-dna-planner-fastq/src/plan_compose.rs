@@ -385,18 +385,17 @@ where
                 (plan, next_r1, None, current_feature_table.clone())
             }
             stage if stage == STAGE_CORRECT_ERRORS.as_str() => {
-                let r2 = current_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("correct requires r2"))?;
                 let plan = crate::tool_adapters::fastq::correct_errors::plan_correct(
                     tool,
                     &current_r1,
-                    r2,
+                    current_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = plan.io.outputs[1].path.clone();
-                (plan, next_r1, Some(next_r2), current_feature_table.clone())
+                let next_r2 = current_r2
+                    .as_ref()
+                    .and_then(|_| plan.io.outputs.get(1).map(|artifact| artifact.path.clone()));
+                (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_EXTRACT_UMIS.as_str() => {
                 let r2 = current_r2
@@ -428,9 +427,7 @@ where
                     PairedMode::SingleEnd
                 };
                 let report_qc_inputs = explicit_stage_inputs
-                    .and_then(|policies| {
-                        policies.get(&stage_node_id_for_binding(binding))
-                    })
+                    .and_then(|policies| policies.get(&stage_node_id_for_binding(binding)))
                     .map(|bindings| governed_qc_inputs_from_explicit_bindings(bindings, &plans))
                     .transpose()?
                     .unwrap_or_else(|| current_qc_inputs.clone());
@@ -737,12 +734,11 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
         stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
             &["length_distribution_tsv", "length_distribution_json"]
         }
-        stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
-            &["overrepresented_sequences_tsv", "overrepresented_sequences_json"]
-        }
-        stage if stage == STAGE_PROFILE_READS.as_str() => {
-            &["qc_json", "qc_tsv", "qc_plots_dir"]
-        }
+        stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => &[
+            "overrepresented_sequences_tsv",
+            "overrepresented_sequences_json",
+        ],
+        stage if stage == STAGE_PROFILE_READS.as_str() => &["qc_json", "qc_tsv", "qc_plots_dir"],
         stage if stage == STAGE_DEPLETE_RRNA.as_str() => &["rrna_report_tsv", "rrna_report_json"],
         stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
             &["screen_report_tsv", "classification_report_json"]

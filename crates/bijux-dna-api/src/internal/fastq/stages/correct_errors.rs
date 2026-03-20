@@ -50,8 +50,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_CORRECT_ERRORS.as_str());
@@ -94,12 +94,21 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_CORRECT_ERRORS.as_str(), tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_CORRECT_ERRORS.as_str(),
+            tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_correct(&tool_spec, &bench_inputs.r1, &bench_inputs.r2, &out_dir)?;
-        let params_hash =
-            params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let plan = plan_correct(
+            &tool_spec,
+            &bench_inputs.r1,
+            Some(&bench_inputs.r2),
+            &out_dir,
+        )?;
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -120,7 +129,9 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -234,12 +245,9 @@ fn build_correct_record(
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_stats = observe_fastq_stats(
-        &bench_inputs.seqkit_image,
-        bench_inputs.runner,
-        &output_r1,
-    )?
-    .unwrap_or_else(|| bench_inputs.input_stats_r1.clone());
+    let output_stats =
+        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, &output_r1)?
+            .unwrap_or_else(|| bench_inputs.input_stats_r1.clone());
     let metrics = FastqCorrectMetrics {
         reads_in: bench_inputs.input_stats_r1.reads,
         reads_out: output_stats.reads,
