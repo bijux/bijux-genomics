@@ -8,7 +8,6 @@ use bijux_dna_core::contract::{
     ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, StageIO,
     ToolConstraints,
 };
-use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_dna_core::prelude::{
     ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
@@ -140,41 +139,12 @@ pub fn apply_preprocess_policy(
     pipeline_stages: Vec<StageId>,
     pipeline_tools: Vec<bijux_dna_core::ids::ToolId>,
 ) -> PreprocessPolicyDecision {
-    let mut pipeline_stages = pipeline_stages;
-    let mut pipeline_tools = pipeline_tools;
-    let mut stage_skips = Vec::new();
-
-    if let (Some(trim_idx), Some(filter_idx)) = (
-        pipeline_stages
-            .iter()
-            .position(|stage| stage == &STAGE_TRIM_READS),
-        pipeline_stages
-            .iter()
-            .position(|stage| stage == &STAGE_FILTER_READS),
-    ) {
-        let trim_tool = pipeline_tools.get(trim_idx).map(|tool| tool.as_str());
-        let filter_tool = pipeline_tools.get(filter_idx).map(|tool| tool.as_str());
-        if trim_tool == Some(id_catalog::TOOL_FASTP) && filter_tool == Some(id_catalog::TOOL_FASTP)
-        {
-            let skipped_stage = pipeline_stages.remove(filter_idx);
-            let skipped_tool = pipeline_tools.remove(filter_idx);
-            stage_skips.push(serde_json::json!({
-                "stage_id": skipped_stage.as_str(),
-                "tool_id": skipped_tool.as_str(),
-                "reason": "fastp trimming already performs quality filtering; filter stage skipped",
-                "equivalent_params": {
-                    "quality_filtering": true
-                }
-            }));
-        }
-    }
-
     PreprocessPolicyDecision {
         adapter_inference: None,
         adapter_bank_preset_override: None,
         pipeline_stages,
         pipeline_tools,
-        stage_skips,
+        stage_skips: Vec::new(),
     }
 }
 
