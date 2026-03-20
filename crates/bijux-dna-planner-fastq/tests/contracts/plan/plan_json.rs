@@ -419,6 +419,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         .template
         .iter()
         .any(|part| part == "out/otu_abundance.tsv"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == &bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD.to_string()));
     assert_eq!(
         plan.io.outputs[1].role.as_str(),
         "reference",

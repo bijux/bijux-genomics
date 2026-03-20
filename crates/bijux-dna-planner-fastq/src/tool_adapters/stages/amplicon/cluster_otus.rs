@@ -14,7 +14,6 @@ use bijux_dna_stage_contract::{
 
 pub const STAGE_ID: StageId = STAGE_CLUSTER_OTUS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-const DEFAULT_OTU_IDENTITY_THRESHOLD_ARG: &str = "0.97";
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -40,6 +39,7 @@ pub fn plan(
         identity_threshold: DEFAULT_OTU_IDENTITY_THRESHOLD,
         output_table_kind: "otu_abundance_table".to_string(),
     };
+    let otu_identity_arg = DEFAULT_OTU_IDENTITY_THRESHOLD.to_string();
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -56,6 +56,7 @@ pub fn plan(
                 r1,
                 &otu_table,
                 &otu_representatives,
+                &otu_identity_arg,
             )?,
         },
         resources: tool.resources.clone(),
@@ -95,10 +96,7 @@ pub fn plan(
             "output_naming": "deterministic"
         }),
         aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Default,
-            "amplicon OTU clustering",
-        ),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon OTU clustering"),
     })
 }
 
@@ -107,6 +105,7 @@ fn cluster_otus_command(
     reads: &Path,
     otu_table: &Path,
     otu_representatives: &Path,
+    otu_identity_arg: &str,
 ) -> Result<Vec<String>> {
     match tool_id {
         "vsearch" => Ok(vec![
@@ -114,7 +113,7 @@ fn cluster_otus_command(
             "--cluster_fast".to_string(),
             reads.display().to_string(),
             "--id".to_string(),
-            DEFAULT_OTU_IDENTITY_THRESHOLD_ARG.to_string(),
+            otu_identity_arg.to_string(),
             "--sizein".to_string(),
             "--sizeout".to_string(),
             "--relabel".to_string(),
