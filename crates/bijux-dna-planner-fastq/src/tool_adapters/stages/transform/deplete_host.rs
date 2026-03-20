@@ -18,6 +18,8 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DEPLETE_HOST;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+pub type DepleteHostPlanOptions = crate::DepleteHostStageParams;
+
 pub fn normalize_host_depletion_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -42,8 +44,35 @@ pub fn plan_host_depletion(
     reference_index: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_host_depletion_with_options(
+        tool,
+        r1,
+        r2,
+        reference_index,
+        out_dir,
+        &DepleteHostPlanOptions::default(),
+    )
+}
+
+/// Build a host depletion plan.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_host_depletion_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    out_dir: &Path,
+    options: &DepleteHostPlanOptions,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_host_depletion_tool_list(std::slice::from_ref(&tool_id))?;
+    if !options.retain_unmapped_only {
+        return Err(anyhow!(
+            "fastq.deplete_host with bowtie2 currently requires retain_unmapped_only=true"
+        ));
+    }
     let report = out_dir.join("host_depletion_report.json");
     let paired_mode = if r2.is_some() {
         PairedMode::PairedEnd
@@ -63,7 +92,7 @@ pub fn plan_host_depletion(
         retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
         report_format: MappingReportFormat::Bowtie2MetricsFile,
-        retain_unmapped_pairs: r2.is_some(),
+        retain_unmapped_pairs: options.retain_unmapped_only && r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -80,6 +109,8 @@ pub fn plan_host_depletion(
         "tool": tool.tool_id.0,
         "input_r1": r1,
         "reference_index": reference_index,
+        "host_identity_threshold": options.host_identity_threshold,
+        "retain_unmapped_only": options.retain_unmapped_only,
         "report_json": report,
     });
     if let Some(r2) = r2 {

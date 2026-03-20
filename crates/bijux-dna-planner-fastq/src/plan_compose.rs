@@ -10,7 +10,8 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams,
+    DepleteHostStageParams, DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters,
+    TrimTerminalDamageStageParams,
     STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS, STAGE_REMOVE_CHIMERAS,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
     STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_DEPLETE_HOST, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS,
@@ -231,12 +232,14 @@ where
                     tool.tool_id.as_str(),
                     &reference_index.tool_id,
                 )?;
-                let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion(
+                let params = deplete_host_params(binding);
+                let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_options(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
                     &reference_index.path,
                     &out_dir,
+                    &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if current_r2.is_some() {
@@ -563,6 +566,13 @@ fn deplete_rrna_params(binding: &FastqStageBinding) -> DepleteRrnaStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::DepleteRrna(params)) => params.clone(),
         _ => DepleteRrnaStageParams::default(),
+    }
+}
+
+fn deplete_host_params(binding: &FastqStageBinding) -> DepleteHostStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::DepleteHost(params)) => params.clone(),
+        _ => DepleteHostStageParams::default(),
     }
 }
 
