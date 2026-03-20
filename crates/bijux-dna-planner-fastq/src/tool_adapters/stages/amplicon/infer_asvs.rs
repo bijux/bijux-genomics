@@ -4,6 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::ExecutionStatus;
 use bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -18,6 +19,15 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    match bijux_dna_domain_fastq::execution_support_for_stage(&STAGE_ID) {
+        Some(support) if support.execution_status == ExecutionStatus::Closed => {}
+        _ => {
+            return Err(anyhow!(
+                "{} is declared-only and cannot be planned until its runtime contract closes",
+                STAGE_ID.as_str()
+            ));
+        }
+    }
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
