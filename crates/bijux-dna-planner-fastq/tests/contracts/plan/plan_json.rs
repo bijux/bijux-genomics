@@ -204,6 +204,10 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.outputs.len(), 4);
     assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
     assert_eq!(plan.io.outputs[1].name.as_str(), "normalized_reads_r2");
+    assert_eq!(plan.command.template[0], "cutadapt");
+    assert!(plan.command.template.iter().any(|part| part == "--info-file"));
+    assert!(plan.command.template.iter().any(|part| part == "--json"));
+    assert!(plan.command.template.iter().any(|part| part == "out/R2.primer_normalized.fastq.gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
         &dummy_tool("vsearch"),
@@ -224,17 +228,32 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_eq!(plan.io.inputs.len(), 2);
     assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
+    assert_eq!(plan.command.template[0], "Rscript");
+    assert_eq!(plan.command.template[1], "run_dada2.R");
+    assert!(plan.command.template.iter().any(|part| part == "--input-r2"));
+    assert!(plan.command.template.iter().any(|part| part == "out/asv_abundance.tsv"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
         &dummy_tool("vsearch"),
         r1,
-        Some(r2),
+        None,
         out_dir,
     )?;
-    assert_eq!(plan.io.inputs.len(), 2);
+    assert_eq!(plan.io.inputs.len(), 1);
     assert_eq!(plan.io.outputs.len(), 4);
     assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
-    assert_eq!(plan.io.inputs[1].name.as_str(), "reads");
+    assert_eq!(plan.command.template[0], "vsearch");
+    assert_eq!(plan.command.template[1], "--cluster_fast");
+    assert!(plan.command.template.iter().any(|part| part == "out/otu_abundance.tsv"));
     assert_eq!(plan.io.outputs[2].name.as_str(), "taxonomy_ready_fasta");
+    assert!(
+        bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
+            &dummy_tool("vsearch"),
+            r1,
+            Some(r2),
+            out_dir,
+        )
+        .is_err()
+    );
     Ok(())
 }

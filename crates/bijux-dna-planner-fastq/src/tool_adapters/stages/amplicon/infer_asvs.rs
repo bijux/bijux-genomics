@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS;
 use bijux_dna_stage_contract::{
@@ -30,14 +30,26 @@ pub fn plan(
             ArtifactRole::Reads,
         ));
     }
+    let asv_table = out_dir.join("asv_abundance.tsv");
+    let asv_sequences = out_dir.join("asv_sequences.fasta");
+    let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
+    let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: infer_asvs_command(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                &asv_table,
+                &asv_sequences,
+                &taxonomy_ready_fasta,
+                &taxonomy_ready_fastq,
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -45,22 +57,22 @@ pub fn plan(
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("asv_table_tsv"),
-                    out_dir.join("asv_abundance.tsv"),
+                    asv_table.clone(),
                     ArtifactRole::SummaryTsv,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("asv_sequences_fasta"),
-                    out_dir.join("asv_sequences.fasta"),
+                    asv_sequences.clone(),
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fasta"),
-                    out_dir.join("taxonomy_ready.fasta"),
+                    taxonomy_ready_fasta.clone(),
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fastq"),
-                    out_dir.join("taxonomy_ready.fastq"),
+                    taxonomy_ready_fastq.clone(),
                     ArtifactRole::Reads,
                 ),
             ],
@@ -82,4 +94,43 @@ pub fn plan(
             "amplicon ASV inference",
         ),
     })
+}
+
+fn infer_asvs_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    asv_table: &Path,
+    asv_sequences: &Path,
+    taxonomy_ready_fasta: &Path,
+    taxonomy_ready_fastq: &Path,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "dada2" => {
+            let mut command = vec![
+                "Rscript".to_string(),
+                "run_dada2.R".to_string(),
+                "--input-r1".to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push("--input-r2".to_string());
+                command.push(r2.display().to_string());
+            }
+            command.extend([
+                "--asv-table".to_string(),
+                asv_table.display().to_string(),
+                "--asv-fasta".to_string(),
+                asv_sequences.display().to_string(),
+                "--taxonomy-ready-fasta".to_string(),
+                taxonomy_ready_fasta.display().to_string(),
+                "--taxonomy-ready-fastq".to_string(),
+                taxonomy_ready_fastq.display().to_string(),
+            ]);
+            Ok(command)
+        }
+        _ => Err(anyhow!(
+            "unsupported ASV inference tool for stage planning: {tool_id}"
+        )),
+    }
 }
