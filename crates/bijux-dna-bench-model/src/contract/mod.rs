@@ -208,6 +208,22 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 edge.from, edge.to
             )));
         }
+        if let Some(from_output_id) = edge.from_output_id.as_ref() {
+            if from_output_id.trim().is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite edge {} -> {} must not include blank from_output_id",
+                    edge.from, edge.to
+                )));
+            }
+        }
+        if let Some(to_input_id) = edge.to_input_id.as_ref() {
+            if to_input_id.trim().is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite edge {} -> {} must not include blank to_input_id",
+                    edge.from, edge.to
+                )));
+            }
+        }
     }
     let mut classes = std::collections::BTreeSet::new();
     let mut layouts = std::collections::BTreeSet::new();
@@ -306,7 +322,13 @@ fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     }
     let mut ready = incoming
         .iter()
-        .filter_map(|(node, count)| if *count == 0 { Some(node.clone()) } else { None })
+        .filter_map(|(node, count)| {
+            if *count == 0 {
+                Some(node.clone())
+            } else {
+                None
+            }
+        })
         .collect::<Vec<_>>();
     let mut visited = 0usize;
     while let Some(node) = ready.pop() {
@@ -335,8 +357,8 @@ mod tests {
     use super::validate_suite;
     use crate::{
         AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
-        BenchmarkSuiteSpec, DatasetSpec,
-        DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+        BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, ReplicatePolicy,
+        StratificationRequirement,
     };
 
     fn suite_with_stage(stage: BenchmarkStageSpec) -> BenchmarkSuiteSpec {
@@ -419,7 +441,9 @@ mod tests {
             upstream_stage_instance_ids: Vec::new(),
         });
         let error = validate_suite(&suite).expect_err("mixed params must fail");
-        assert!(error.to_string().contains("either params or param_bindings"));
+        assert!(error
+            .to_string()
+            .contains("either params or param_bindings"));
     }
 
     #[test]
@@ -522,6 +546,8 @@ mod tests {
         suite.edges = vec![BenchmarkStageEdge {
             from: "fastq.trim_reads.fastp".to_string(),
             to: "missing.node".to_string(),
+            from_output_id: None,
+            to_input_id: None,
         }];
         let error = validate_suite(&suite).expect_err("unknown explicit edge target must fail");
         assert!(error.to_string().contains("unknown target node"));
@@ -581,10 +607,14 @@ mod tests {
             BenchmarkStageEdge {
                 from: "fastq.validate_reads.validator".to_string(),
                 to: "fastq.trim_reads.fastp".to_string(),
+                from_output_id: None,
+                to_input_id: None,
             },
             BenchmarkStageEdge {
                 from: "fastq.validate_reads.validator".to_string(),
                 to: "fastq.trim_reads.fastp".to_string(),
+                from_output_id: None,
+                to_input_id: None,
             },
         ];
         let error = validate_suite(&suite).expect_err("duplicate explicit edges must fail");
@@ -644,9 +674,130 @@ mod tests {
         suite.edges = vec![BenchmarkStageEdge {
             from: "fastq.validate_reads.validator".to_string(),
             to: "fastq.report_qc.aggregate".to_string(),
+            from_output_id: None,
+            to_input_id: None,
         }];
         let error = validate_suite(&suite).expect_err("cyclic suite graph must fail");
         assert!(error.to_string().contains("acyclic"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_artifact_aware_edges() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    tools: vec!["fastp".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![BenchmarkStageEdge {
+            from: "fastq.validate_reads.validator".to_string(),
+            to: "fastq.trim_reads.fastp".to_string(),
+            from_output_id: Some("validated_reads_r1".to_string()),
+            to_input_id: Some("reads_r1".to_string()),
+        }];
+        validate_suite(&suite).expect("artifact-aware edges should validate");
+    }
+
+    #[test]
+    fn suite_validation_rejects_blank_edge_ports() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    tools: vec!["fastp".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![BenchmarkStageEdge {
+            from: "fastq.validate_reads.validator".to_string(),
+            to: "fastq.trim_reads.fastp".to_string(),
+            from_output_id: Some("".to_string()),
+            to_input_id: Some("reads_r1".to_string()),
+        }];
+        let error = validate_suite(&suite).expect_err("blank edge ports must fail");
+        assert!(error.to_string().contains("blank from_output_id"));
     }
 }
 

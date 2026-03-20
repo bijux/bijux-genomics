@@ -81,6 +81,10 @@ pub struct BenchmarkStageSpec {
 pub struct BenchmarkStageEdge {
     pub from: String,
     pub to: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_output_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to_input_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -160,14 +164,22 @@ impl BenchmarkSuiteSpec {
 
     #[must_use]
     pub fn stage_ids(&self) -> Vec<&str> {
-        self.stages.iter().map(|stage| stage.stage.as_str()).collect()
+        self.stages
+            .iter()
+            .map(|stage| stage.stage.as_str())
+            .collect()
     }
 
     #[must_use]
     pub fn stage_node_ids(&self) -> Vec<&str> {
         self.stages
             .iter()
-            .map(|stage| stage.stage_instance_id.as_deref().unwrap_or(stage.stage.as_str()))
+            .map(|stage| {
+                stage
+                    .stage_instance_id
+                    .as_deref()
+                    .unwrap_or(stage.stage.as_str())
+            })
             .collect()
     }
 
