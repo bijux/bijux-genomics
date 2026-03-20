@@ -58,7 +58,7 @@ pub fn plan_contaminant_screen(
         },
         threads: tool.resources.threads,
         contaminant_reference: "contaminant_reference".to_string(),
-        index_artifact: "contaminant_reference_index".to_string(),
+        index_artifact: "reference_index".to_string(),
         retain_unmapped_pairs: r2.is_some(),
     };
     let mut inputs = vec![ArtifactRef::required(
