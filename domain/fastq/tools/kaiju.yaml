@@ -32,17 +32,17 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
-upstream: "unknown"
+upstream: "https://github.com/bioinformatics-centre/kaiju"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "latest-pinned"
+default_version: "1.10.0"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.screen_taxonomy"]
 expected_artifacts: ["classification_report_json", "screen_report_tsv"]
-metrics_schema_id: "bijux.unknown.v1"
-metrics_schema: "bijux.unknown.v1"
+metrics_schema_id: "bijux.fastq.classify.v1"
+metrics_schema: "bijux.fastq.classify.v1"
 version_cmd: "kaiju --version"
 help_cmd: "kaiju --help"
 comparability:

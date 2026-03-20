@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4e1011ba0d11c72df21c16378f8b3ca9c5b23523
+# source_commit: ead437e0f837050a36e4f591cfd922f1215c9c57
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -60,7 +60,7 @@ version = "2.5.4"
 version = "0.7.17"
 
 [centrifuge]
-version = "latest-pinned"
+version = "1.0.4"
 
 [clumpify]
 version = "39.08"
@@ -128,13 +128,13 @@ version = "planned"
 enabled = false
 
 [kaiju]
-version = "latest-pinned"
+version = "1.10.0"
 
 [king]
 version = "2.3.0"
 
 [kraken2]
-version = "latest-pinned"
+version = "2.1.3"
 
 [krakenuniq]
 version = "1.0.4"
