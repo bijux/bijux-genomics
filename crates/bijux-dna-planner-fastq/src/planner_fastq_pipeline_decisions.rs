@@ -174,7 +174,11 @@ impl FastqPlanner {
             config.reference_fasta.as_deref(),
             Some(&explicit_stage_inputs),
             |binding, _r1, _r2| {
-                let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
+                let stage_dir = binding
+                    .stage_instance_id
+                    .as_deref()
+                    .unwrap_or(binding.stage_id.as_str())
+                    .trim_start_matches(STAGE_PREFIX);
                 Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
             },
         )?;
