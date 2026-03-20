@@ -114,7 +114,7 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_MERGE_PAIRS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.merge_pairs",
-            schema_version: "bijux.fastq.params.merge_pairs.v1",
+            schema_version: merge::MERGE_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_INDEX_REFERENCE {

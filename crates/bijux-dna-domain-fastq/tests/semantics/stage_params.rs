@@ -4,6 +4,9 @@ use bijux_dna_domain_fastq::params::defaults::{correct_defaults, stats_defaults,
 use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::merge::{
+    MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceScope,
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
@@ -52,6 +55,27 @@ fn detect_adapters_params_roundtrip_and_remain_inspection_only() {
     assert_eq!(decoded.schema_version, DETECT_ADAPTERS_SCHEMA_VERSION);
     assert_eq!(decoded.inspection_mode, AdapterInspectionMode::EvidenceOnly);
     assert!(decoded.report_only);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn merge_params_roundtrip_with_engine_specific_output_policy() {
+    let params = MergeEffectiveParams {
+        schema_version: MERGE_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::PairedEnd,
+        threads: 2,
+        merge_overlap: Some(10),
+        min_len: Some(30),
+        merge_engine: MergeEngine::Pear,
+        unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+    };
+    let decoded: MergeEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, MERGE_SCHEMA_VERSION);
+    assert_eq!(decoded.merge_engine, MergeEngine::Pear);
+    assert_eq!(
+        decoded.unmerged_read_policy,
+        UnmergedReadPolicy::EmitUnmergedPairs,
+    );
     assert!(decoded.missing_required_fields().is_empty());
 }
 

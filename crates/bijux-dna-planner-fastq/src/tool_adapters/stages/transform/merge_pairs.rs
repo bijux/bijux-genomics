@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{merge::MergeEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    merge::{MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION},
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_MERGE_PAIRS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -27,11 +30,20 @@ pub fn plan_merge(
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let outputs = merge_outputs(&tool.tool_id.0, out_dir)?;
+    let merge_engine = merge_engine(&tool.tool_id.0)?;
     let effective_params = MergeEffectiveParams {
+        schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
         merge_overlap: None,
         min_len: None,
+        merge_engine,
+        unmerged_read_policy: if outputs.unmerged_reads_r1.is_some() && outputs.unmerged_reads_r2.is_some()
+        {
+            UnmergedReadPolicy::EmitUnmergedPairs
+        } else {
+            UnmergedReadPolicy::OmitUnmergedPairs
+        },
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -122,6 +134,18 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     Ok(outputs)
+}
+
+fn merge_engine(tool: &str) -> Result<MergeEngine> {
+    let engine = match tool {
+        "pear" => MergeEngine::Pear,
+        "vsearch" => MergeEngine::Vsearch,
+        "bbmerge" => MergeEngine::Bbmerge,
+        "flash2" => MergeEngine::Flash2,
+        "leehom" => MergeEngine::Leehom,
+        _ => return Err(anyhow!("unsupported merge tool")),
+    };
+    Ok(engine)
 }
 
 fn merge_artifacts(outputs: &MergeOutputs) -> Vec<ArtifactRef> {

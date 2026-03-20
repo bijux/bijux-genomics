@@ -15,7 +15,9 @@ use bijux_dna_domain_fastq::metrics::{
     FastqValidateMetricsV1, RetentionReportMetricV1,
 };
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
-use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
+use bijux_dna_domain_fastq::params::merge::{
+    MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
 use bijux_dna_domain_fastq::{fastq_invariant_specs, PairedMode};
@@ -149,10 +151,13 @@ fn effective_params_filter() -> serde_json::Value {
 
 fn effective_params_merge() -> serde_json::Value {
     serde_json::to_value(MergeEffectiveParams {
+        schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: 2,
         merge_overlap: Some(10),
         min_len: Some(30),
+        merge_engine: MergeEngine::Pear,
+        unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
     })
     .unwrap()
 }
