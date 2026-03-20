@@ -147,3 +147,57 @@ fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Res
     assert!(error.to_string().contains("planned-only binding"));
     Ok(())
 }
+
+#[test]
+fn benchmark_fanout_scopes_detect_adapter_compare_inputs_to_governed_artifacts() -> anyhow::Result<()>
+{
+    let temp = bijux_dna_infra::temp_dir("fastq-detect-adapters-fanout")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let graph = bijux_dna_planner_fastq::FastqPlanner::plan_stage_benchmark_cohort(
+        &bijux_dna_planner_fastq::FastqStageBenchmarkConfig {
+            pipeline_id: "fastq-to-fastq__detect_adapters_benchmark__v1".to_string(),
+            policy: PlanPolicy::PreferAccuracy,
+            stage_id: "fastq.detect_adapters".to_string(),
+            tools: vec![tool("fastqc")],
+            aux_images: BTreeMap::new(),
+            adapter_bank: None,
+            polyx_bank: None,
+            contaminant_bank: None,
+            enable_contaminant_removal: false,
+            r1,
+            r2: None,
+            reference_fasta: None,
+            out_dir: temp.path().join("out"),
+            allow_planned: false,
+        },
+    )?;
+
+    let compare_step = graph
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.detect_adapters.compare")
+        .expect("detect_adapters benchmark graph must include a comparison fan-in step");
+    assert!(compare_step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--comparison-input", "adapter_report"]));
+    assert!(compare_step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--comparison-input", "adapter_evidence_dir"]));
+    assert!(compare_step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str().ends_with("__adapter_report")));
+    assert!(compare_step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str().ends_with("__adapter_evidence_dir")));
+    Ok(())
+}
