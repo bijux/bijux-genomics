@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 0dd5f20b1727e35b58782eac0c217216fc33c600
+# source_commit: 32b04fa9655406c2c5c5faf9492c1f0a0bbfa951
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -425,7 +425,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp"]
+tools = ["bbduk", "fastp", "prinseq"]
 
 [[stages]]
 id = "fastq.filter_reads"
@@ -444,7 +444,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp", "seqkit"]
+tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 
 [[stages]]
 id = "fastq.index_reference"
@@ -558,7 +558,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "seqkit_stats"]
+tools = ["fastp", "prinseq", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -691,7 +691,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "seqkit", "skewer", "trim_galore", "trimmomatic"]
+tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.trim_terminal_damage"

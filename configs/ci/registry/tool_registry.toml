@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 0dd5f20b1727e35b58782eac0c217216fc33c600
+# source_commit: 32b04fa9655406c2c5c5faf9492c1f0a0bbfa951
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1234,6 +1234,40 @@ apptainer_def = "containers/apptainer/lunarc/pmdtools.def"
 require_labels = true
 
 [[tools]]
+id = "prinseq"
+tool_id = "prinseq"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads", "fastq.filter_reads", "fastq.filter_low_complexity", "fastq.profile_read_lengths"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_reads"]
+tool_role = "filter"
+version = "1.2.4"
+default_version = "1.2.4"
+upstream = "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
+pinned_commit = "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "prinseq++ --version"
+help_cmd = "prinseq++ --help"
+smoke_version_cmd = "prinseq++ --version"
+smoke_help_cmd = "prinseq++ --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "prinseq++ --help"
+expected_bin = "prinseq++"
+expected_artifacts = ["trimmed_reads", "report_json", "filtered_reads", "filtered_fastq", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
+metrics_schema = "bijux.tool.metrics.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
+apptainer_def = "containers/apptainer/lunarc/prinseq.def"
+require_labels = true
+
+[[tools]]
 id = "pydamage"
 tool_id = "pydamage"
 domain = "bam"
@@ -2069,7 +2103,7 @@ requires_reporting = false
 id = "fastq.filter_low_complexity"
 required_tool_roles = ["filter"]
 primary_tools = ["bbduk"]
-optional_alternatives = ["fastp"]
+optional_alternatives = ["fastp", "prinseq"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2081,7 +2115,7 @@ requires_reporting = false
 id = "fastq.filter_reads"
 required_tool_roles = ["filter"]
 primary_tools = ["fastp"]
-optional_alternatives = ["bbduk", "seqkit"]
+optional_alternatives = ["bbduk", "prinseq", "seqkit"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2153,7 +2187,7 @@ requires_reporting = false
 id = "fastq.profile_read_lengths"
 required_tool_roles = ["transform"]
 primary_tools = ["seqkit_stats"]
-optional_alternatives = ["fastp"]
+optional_alternatives = ["fastp", "prinseq"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2237,7 +2271,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "seqkit", "skewer", "trim_galore", "trimmomatic"]
+optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
