@@ -43,3 +43,25 @@ fn deplete_rrna_exposes_stage_family_comparison_contract() {
         "rrna_depletion_tool_normalization_json"
     );
 }
+
+#[test]
+fn deplete_host_exposes_stage_family_comparison_contract() {
+    let contract =
+        bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
+            "fastq.deplete_host",
+        ))
+        .expect("deplete_host comparison contract must exist");
+
+    assert_eq!(
+        contract.cohort_artifact_id,
+        "host_depletion_tool_benchmark_cohort_json"
+    );
+    assert_eq!(
+        contract.comparison_artifact_id,
+        "host_depletion_tool_comparison_json"
+    );
+    assert_eq!(
+        contract.normalization_artifact_id,
+        "host_depletion_tool_normalization_json"
+    );
+}
