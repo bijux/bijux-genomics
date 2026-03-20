@@ -34,6 +34,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "filter_tool_normalization_json",
     ),
     (
+        "fastq.deplete_host",
+        "host_depletion_tool_benchmark_cohort_json",
+        "host_depletion_tool_comparison_json",
+        "host_depletion_tool_normalization_json",
+    ),
+    (
         "fastq.merge_pairs",
         "merge_tool_benchmark_cohort_json",
         "merge_tool_comparison_json",

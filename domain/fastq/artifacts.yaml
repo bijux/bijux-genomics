@@ -35,6 +35,9 @@ artifact_ids:
   - filtered_fastq_r2
   - host_depleted_reads_r1
   - host_depleted_reads_r2
+  - host_depletion_tool_benchmark_cohort_json
+  - host_depletion_tool_comparison_json
+  - host_depletion_tool_normalization_json
   - host_depletion_report_json
   - removed_host_reads_r1
   - removed_host_reads_r2
