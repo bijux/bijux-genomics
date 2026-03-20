@@ -1779,6 +1779,14 @@ stage_sex_kinship_sufficiency:
   fastq.remove_chimeras:
   - not_applicable
 benchmark_scenarios:
+  detect_adapters_fairness:
+    stage_id: fastq.detect_adapters
+    description: Compare adapter-inspection backends on identical raw reads and governed
+      adapter-evidence outputs.
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_adapter_evidence_contract
   trim_fairness:
     stage_id: fastq.trim_reads
     description: Compare trim tools on identical raw FASTQ pairs and identical adapter
