@@ -50,6 +50,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "contaminant_bank",
         "bench_repository",
         "execution_support",
+        "integration_matrix",
         "metrics",
         "polyx_bank",
         "prelude",
