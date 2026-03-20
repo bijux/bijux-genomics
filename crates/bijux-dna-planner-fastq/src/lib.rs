@@ -124,9 +124,7 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     } else if !options.enable_qc_post {
         stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
-    PipelineSpec {
-        stages: sort_stages_by_domain_order(stages, options.mode),
-    }
+    PipelineSpec::linear(sort_stages_by_domain_order(stages, options.mode))
 }
 
 #[derive(Debug, Clone)]
@@ -392,7 +390,7 @@ pub fn resolve_preprocess_pipeline(
                 if shotgun_mode {
                     stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
                 }
-                PipelineSpec { stages }
+                PipelineSpec::linear(stages)
             }
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");

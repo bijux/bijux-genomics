@@ -166,12 +166,12 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
 
 #[must_use]
 pub fn preprocess_pipeline() -> PipelineSpec {
-    PipelineSpec {
-        stages: canonical_stage_order()
+    PipelineSpec::linear(
+        canonical_stage_order()
             .into_iter()
             .map(|stage| stage.as_str().to_string())
             .collect(),
-    }
+    )
 }
 
 #[must_use]
@@ -180,10 +180,10 @@ pub fn preprocess_pipeline_for_mode(mode: FastqPipelineMode) -> PipelineSpec {
         FastqPipelineMode::Shotgun => canonical_stage_order(),
         FastqPipelineMode::Amplicon => canonical_amplicon_stage_order(),
     };
-    PipelineSpec {
-        stages: stages
+    PipelineSpec::linear(
+        stages
             .into_iter()
             .map(|stage| stage.as_str().to_string())
             .collect(),
-    }
+    )
 }

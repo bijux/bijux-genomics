@@ -8,7 +8,7 @@ mod metadata;
 mod provenance;
 mod spec;
 
-pub use domain::{PipelineDomain, PipelineSpec};
+pub use domain::{PipelineDomain, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 pub use index::{
     list_runs, query_latest_runs, query_run, query_runs, query_stage_rows, RunIndexEntry,
     RunIndexLine, RunQuery, StageIndexRow,
