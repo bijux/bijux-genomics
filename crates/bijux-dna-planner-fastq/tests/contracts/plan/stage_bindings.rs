@@ -624,6 +624,167 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
 }
 
 #[test]
+fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-implicit-reference-index")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference_fasta = temp.path().join("reference.fasta");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference_fasta, b">chr1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__implicit_reference_index__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.deplete_host".to_string(),
+                    stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.index_reference.host".to_string(),
+                to: "fastq.deplete_host.host".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                tool: tool("bowtie2_build"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.deplete_host".to_string(),
+                stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                tool: tool("bowtie2"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference_fasta),
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let host_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.deplete_host.host")
+        .expect("host depletion stage");
+    assert!(host_step
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("index_reference.host")));
+    Ok(())
+}
+
+#[test]
+fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_binding(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-ambiguous-reference-index")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference_fasta = temp.path().join("reference.fasta");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference_fasta, b">chr1\nACGT\n")?;
+
+    let error = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__ambiguous_reference_index__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.alt".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.deplete_host".to_string(),
+                    stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.index_reference.host".to_string(),
+                    to: "fastq.deplete_host.host".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.index_reference.alt".to_string(),
+                    to: "fastq.deplete_host.host".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+            ],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.host".to_string()),
+                tool: tool("bowtie2_build"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.alt".to_string()),
+                tool: tool("star"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.deplete_host".to_string(),
+                stage_instance_id: Some("fastq.deplete_host.host".to_string()),
+                tool: tool("bowtie2"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference_fasta),
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })
+    .expect_err("ambiguous dependency should fail");
+
+    assert!(error
+        .to_string()
+        .contains("multiple fastq.index_reference nodes"));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-explicit-abundance-table")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -702,7 +863,10 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.normalize_abundance.selected")
         .expect("abundance stage");
-    assert_eq!(abundance_step.io.inputs[0].path, cluster_step.io.outputs[0].path);
+    assert_eq!(
+        abundance_step.io.inputs[0].path,
+        cluster_step.io.outputs[0].path
+    );
     Ok(())
 }
 
