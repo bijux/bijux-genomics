@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{stats::FastqStatsParams, stats::STATS_SCHEMA_VERSION, PairedMode};
 use bijux_dna_domain_fastq::STAGE_PROFILE_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -21,14 +21,14 @@ pub fn plan_stats_neutral(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    let effective_params = ValidateEffectiveParams {
+    let effective_params = FastqStatsParams {
+        schema_version: STATS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        q_cutoff: None,
     };
     let command_template = profile_reads_command(&tool.tool_id.0, r1, r2)?;
     let mut inputs = vec![ArtifactRef::required(
