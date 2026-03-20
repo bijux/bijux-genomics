@@ -134,3 +134,29 @@ fn normalize_abundance_rejects_planned_seqfu_backend() {
 
     assert!(error.to_string().contains("requires seqkit"));
 }
+
+#[test]
+fn detect_adapters_surfaces_observer_specialized_benchmark_profile() {
+    let profile = crate::stage_api::benchmark_profile_for_stage_tool(
+        &StageId::from_static("fastq.detect_adapters"),
+        &ToolId::from_static("fastqc"),
+    )
+    .expect("detect_adapters benchmark profile must exist");
+
+    assert_eq!(
+        profile.readiness,
+        crate::stage_api::BenchmarkReadinessLevel::ObserverSpecializedBenchmark
+    );
+    assert_eq!(profile.benchmark_scenarios, vec!["detect_adapters_fairness"]);
+}
+
+#[test]
+fn host_depletion_surfaces_benchmark_cohort_from_manifest_support() {
+    let cohorts = crate::stage_api::benchmark_cohorts_for_stage(&StageId::from_static(
+        "fastq.deplete_host",
+    ));
+
+    assert_eq!(cohorts.len(), 1);
+    assert_eq!(cohorts[0].scenario_id, "host_depletion_fairness");
+    assert_eq!(cohorts[0].tool_ids, vec![ToolId::from_static("bowtie2")]);
+}
