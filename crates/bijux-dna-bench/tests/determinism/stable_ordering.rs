@@ -21,6 +21,8 @@ fn obs(
         dataset_class: "trueseq".to_string(),
         read_layout: "paired".to_string(),
         stage_id: stage_id.to_string(),
+        stage_instance_id: None,
+        lineage_id: None,
         tool_id: tool_id.to_string(),
         tool_version: "1.0".to_string(),
         image_digest: "sha256:abc".to_string(),

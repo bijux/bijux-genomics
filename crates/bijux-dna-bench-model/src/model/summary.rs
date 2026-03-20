@@ -28,6 +28,10 @@ pub struct SummaryRow {
     pub dataset_class: String,
     pub read_layout: String,
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lineage_id: Option<String>,
     pub tool_id: String,
     pub params_hash: String,
     pub runtime: MetricSummary,
@@ -55,6 +59,10 @@ pub struct BenchmarkSummary {
 #[serde(deny_unknown_fields)]
 pub struct SummaryStratum {
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lineage_id: Option<String>,
     pub dataset_class: String,
     pub row_count: usize,
     pub low_power_count: usize,
