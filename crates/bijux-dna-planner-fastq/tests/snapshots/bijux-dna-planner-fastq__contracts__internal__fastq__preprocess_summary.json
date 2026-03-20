@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.preprocess",
+  "stage_instance_id": "fastq.preprocess.tool.planner",
   "stage_version": 1,
   "tool_id": "planner",
   "tool_version": "domain-manifest",

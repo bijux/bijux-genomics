@@ -17,6 +17,8 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DEPLETE_RRNA;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+pub type DepleteRrnaPlanOptions = crate::DepleteRrnaStageParams;
+
 pub fn normalize_rrna_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -40,6 +42,20 @@ pub fn plan_rrna(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_rrna_with_options(tool, r1, r2, out_dir, &DepleteRrnaPlanOptions::default())
+}
+
+/// Build an rRNA screening plan.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_rrna_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &DepleteRrnaPlanOptions,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_rrna_tool_list(std::slice::from_ref(&tool_id))?;
     let filtered_reads_r1 = if r2.is_some() {
@@ -58,8 +74,8 @@ pub fn plan_rrna(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        contaminant_db: Some("rrna_reference".to_string()),
-        database_artifact_id: "rrna_reference".to_string(),
+        contaminant_db: Some(options.rrna_db.clone()),
+        database_artifact_id: options.rrna_db.clone(),
         database_build_id: None,
         screening_engine: RrnaScreeningEngine::Sortmerna,
         report_format: RrnaReportFormat::SummaryTsvAndJson,
@@ -128,6 +144,8 @@ pub fn plan_rrna(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "rrna_db": options.rrna_db,
+            "min_identity": options.min_identity,
             "filtered_reads_r1": filtered_reads_r1,
             "filtered_reads_r2": filtered_reads_r2,
             "report_tsv": report,

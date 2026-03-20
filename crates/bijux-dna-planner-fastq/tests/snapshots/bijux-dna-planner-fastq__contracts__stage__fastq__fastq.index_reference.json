@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.index_reference",
+  "stage_instance_id": "fastq.index_reference.tool.bowtie2_build",
   "stage_version": 1,
   "tool_id": "bowtie2_build",
   "tool_version": "domain-manifest",

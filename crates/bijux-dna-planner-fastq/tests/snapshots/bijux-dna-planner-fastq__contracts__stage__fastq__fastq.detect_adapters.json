@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.detect_adapters",
+  "stage_instance_id": "fastq.detect_adapters.tool.fastqc",
   "stage_version": 1,
   "tool_id": "fastqc",
   "tool_version": "domain-manifest",

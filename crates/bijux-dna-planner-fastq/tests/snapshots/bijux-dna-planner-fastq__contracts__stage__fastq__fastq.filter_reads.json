@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.filter_reads",
+  "stage_instance_id": "fastq.filter_reads.tool.seqkit",
   "stage_version": 1,
   "tool_id": "seqkit",
   "tool_version": "domain-manifest",

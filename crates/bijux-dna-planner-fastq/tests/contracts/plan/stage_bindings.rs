@@ -6,7 +6,7 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_planner_fastq::{
-    FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
+    DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
     TrimTerminalDamageStageParams,
 };
 
@@ -170,5 +170,45 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
     assert_eq!(step.step_id.as_str(), "fastq.trim_terminal_damage.custom");
     assert!(step.command.template.iter().any(|part| part == "5"));
     assert!(step.command.template.iter().any(|part| part == "-3"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-deplete-rrna-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__deplete_rrna__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.deplete_rrna".to_string(),
+            stage_instance_id: Some("fastq.deplete_rrna.sortmerna.custom".to_string()),
+            tool: tool("sortmerna"),
+            reason: None,
+            params: Some(FastqStageParameters::DepleteRrna(DepleteRrnaStageParams {
+                rrna_db: "silva_nr99".to_string(),
+                min_identity: 0.99,
+            })),
+        }],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.deplete_rrna.sortmerna.custom");
+    assert!(step.command.template.iter().any(|part| part == "--report"));
     Ok(())
 }

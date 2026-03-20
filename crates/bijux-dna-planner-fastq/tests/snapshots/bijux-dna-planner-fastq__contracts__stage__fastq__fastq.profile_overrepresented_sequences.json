@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.profile_overrepresented_sequences",
+  "stage_instance_id": "fastq.profile_overrepresented_sequences.tool.fastqc",
   "stage_version": 1,
   "tool_id": "fastqc",
   "tool_version": "domain-manifest",

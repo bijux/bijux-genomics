@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.extract_umis",
+  "stage_instance_id": "fastq.extract_umis.tool.umi_tools",
   "stage_version": 1,
   "tool_id": "umi_tools",
   "tool_version": "domain-manifest",

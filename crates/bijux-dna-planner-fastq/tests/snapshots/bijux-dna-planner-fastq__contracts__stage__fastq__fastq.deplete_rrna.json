@@ -1,5 +1,6 @@
 {
   "stage_id": "fastq.deplete_rrna",
+  "stage_instance_id": "fastq.deplete_rrna.tool.sortmerna",
   "stage_version": 1,
   "tool_id": "sortmerna",
   "tool_version": "domain-manifest",
@@ -67,8 +68,10 @@
     "filtered_reads_r2": null,
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
+    "min_identity": 0.95,
     "report_json": "out/rrna_report.json",
     "report_tsv": "out/rrna_report.tsv",
+    "rrna_db": "rrna_reference",
     "tool": "sortmerna"
   },
   "effective_params": {
