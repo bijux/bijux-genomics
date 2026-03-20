@@ -34,6 +34,8 @@ use bijux_dna_stage_contract::{
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-fastq.v1";
 pub const TOOL_SEQKIT: &str = "seqkit";
 pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggregate");
+pub const STAGE_COMPARE_STAGE_TOOLS: StageId =
+    StageId::from_static("benchmark.compare_stage_tools");
 pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.preprocess");
 
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
