@@ -78,6 +78,18 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_merge_policy")
     );
+
+    let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
+    let low_complexity_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&low_complexity_stage);
+    assert_eq!(low_complexity_scenarios.len(), 1);
+    assert_eq!(low_complexity_scenarios[0].scenario_id, "low_complexity_fairness");
+    assert!(
+        low_complexity_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_complexity_policy")
+    );
 }
 
 #[test]

@@ -1805,6 +1805,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_merge_policy
+  low_complexity_fairness:
+    stage_id: fastq.filter_low_complexity
+    description: Compare low-complexity filters on identical filtered inputs and entropy/polyX
+      thresholds.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_complexity_policy
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
