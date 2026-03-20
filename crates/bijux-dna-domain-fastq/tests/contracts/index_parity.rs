@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -66,6 +66,35 @@ fn indexed_stage_tools() -> Result<BTreeMap<String, Vec<String>>> {
     Ok(out)
 }
 
+fn indexed_tool_ids() -> Result<BTreeSet<String>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    Ok(block_list(&raw, "tool_ids").into_iter().collect())
+}
+
+fn indexed_active_defaults() -> Result<BTreeMap<String, String>> {
+    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
+        .context("read domain/fastq/index.yaml")?;
+    let mut out = BTreeMap::new();
+    let mut in_block = false;
+    for line in raw.lines() {
+        if line == "active_defaults:" {
+            in_block = true;
+            continue;
+        }
+        if !in_block {
+            continue;
+        }
+        if !line.starts_with("  ") {
+            break;
+        }
+        if let Some((stage_id, tool_id)) = line.trim().split_once(':') {
+            out.insert(stage_id.trim().to_string(), tool_id.trim().to_string());
+        }
+    }
+    Ok(out)
+}
+
 fn block_list(raw: &str, key: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut in_block = false;
@@ -92,5 +121,25 @@ fn generated_index_stage_tool_compatibility_matches_stage_manifests() -> Result<
         stage_manifest_tools()?,
         "domain/fastq/index.yaml drifted from stage manifest compatible_tools"
     );
+    Ok(())
+}
+
+#[test]
+fn generated_index_defaults_reference_known_compatible_tools() -> Result<()> {
+    let stage_tools = indexed_stage_tools()?;
+    let tool_ids = indexed_tool_ids()?;
+    for (stage_id, default_tool) in indexed_active_defaults()? {
+        let compatible = stage_tools
+            .get(&stage_id)
+            .with_context(|| format!("missing stage_tool_compatibility entry for {stage_id}"))?;
+        assert!(
+            compatible.iter().any(|tool| tool == &default_tool),
+            "active default {default_tool} must stay inside stage compatibility for {stage_id}"
+        );
+        assert!(
+            tool_ids.contains(&default_tool),
+            "active default {default_tool} for {stage_id} must stay inside tool_ids"
+        );
+    }
     Ok(())
 }
