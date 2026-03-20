@@ -144,6 +144,22 @@ pub fn plan(
         out_dir.join("trim_report.json"),
         ArtifactRole::ReportJson,
     ));
+    let report_json = out_dir.join("trim_report.json");
+    let command_template = crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", Some(r1.display().to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            ("reads_r2", r2.map(|path| path.display().to_string())),
+            ("trimmed_reads", Some(output_r1.display().to_string())),
+            ("trimmed_reads_r1", Some(output_r1.display().to_string())),
+            (
+                "trimmed_reads_r2",
+                output_r2.as_ref().map(|path| path.display().to_string()),
+            ),
+            ("report_json", Some(report_json.display().to_string())),
+        ],
+    )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
@@ -151,7 +167,7 @@ pub fn plan(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: command_template,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },

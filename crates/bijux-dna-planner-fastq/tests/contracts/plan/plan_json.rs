@@ -65,6 +65,17 @@ fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
     Ok(())
 }
 
+fn assert_command_is_concrete(plan: &StagePlanV1) {
+    assert!(
+        plan.command
+            .template
+            .iter()
+            .all(|part| !part.contains("{{") && !part.contains("}}")),
+        "stage plan command must not leak unresolved template placeholders: {:?}",
+        plan.command.template
+    );
+}
+
 #[test]
 fn stage_plan_snapshots_are_stable() -> Result<()> {
     let r1 = Path::new("reads_R1.fastq.gz");
@@ -77,6 +88,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Some(r2),
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
@@ -105,6 +117,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         None,
         None,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.trim_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
@@ -133,6 +146,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
         &bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::FilterPlanOptions::default(),
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.filter_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::plan_merge(
@@ -158,6 +172,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         None,
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.validate_reads", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::screen_taxonomy::plan_screen(
