@@ -75,12 +75,17 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
 fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
     let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
         &[
+            "fastq.detect_adapters".to_string(),
             "fastq.profile_reads".to_string(),
             "fastq.report_qc".to_string(),
         ],
-        &[tool("seqkit_stats"), tool("multiqc")],
+        &[tool("fastqc"), tool("seqkit_stats"), tool("multiqc")],
         &BTreeMap::new(),
-        Some(&[PlanDecisionReason::default(), PlanDecisionReason::default()]),
+        Some(&[
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+        ]),
         None,
         None,
         None,
@@ -101,6 +106,13 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         .inputs
         .iter()
         .any(|artifact| artifact.name.as_str() == "fastq.profile_reads.tool.seqkit_stats.qc_json"));
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| {
+            artifact.name.as_str() == "fastq.detect_adapters.tool.fastqc.adapter_evidence_dir"
+        }));
     assert_eq!(
         report_plan.effective_params["aggregation_scope"],
         serde_json::json!("governed_qc_artifacts")
