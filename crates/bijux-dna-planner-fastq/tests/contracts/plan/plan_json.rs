@@ -89,6 +89,14 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_command_is_concrete(&plan);
+    assert_eq!(plan.io.outputs.len(), 2);
+    assert_eq!(plan.io.outputs[0].name.as_str(), "adapter_report");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "adapter_evidence_dir");
+    assert_eq!(plan.io.outputs[1].role.as_str(), "stage_report");
+    assert_eq!(
+        plan.params["adapter_evidence_dir"],
+        serde_json::json!("out/fastqc")
+    );
     assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(

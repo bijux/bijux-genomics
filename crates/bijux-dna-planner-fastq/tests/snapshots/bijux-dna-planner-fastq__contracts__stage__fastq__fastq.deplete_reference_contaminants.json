@@ -83,6 +83,7 @@
     "output_r1": "out/contaminant_screened_R1.fastq.gz",
     "output_r2": "out/contaminant_screened_R2.fastq.gz",
     "reference_index": "contaminant_reference_index",
+    "reference_index_backend": "bowtie2_build",
     "report_json": "out/contaminant_screen_report.json",
     "tool": "bowtie2"
   },
