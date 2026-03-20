@@ -11,23 +11,39 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "edges": [
     {
       "from": "fastq.detect_adapters",
-      "to": "fastq.trim_reads"
+      "to": "fastq.trim_polyg_tails"
     },
     {
       "from": "fastq.filter_reads",
       "to": "fastq.profile_reads"
     },
     {
-      "from": "fastq.profile_reads",
+      "from": "fastq.profile_overrepresented_sequences",
       "to": "fastq.report_qc"
+    },
+    {
+      "from": "fastq.profile_read_lengths",
+      "to": "fastq.detect_adapters"
+    },
+    {
+      "from": "fastq.profile_reads",
+      "to": "fastq.profile_overrepresented_sequences"
+    },
+    {
+      "from": "fastq.trim_polyg_tails",
+      "to": "fastq.trim_terminal_damage"
     },
     {
       "from": "fastq.trim_reads",
       "to": "fastq.filter_reads"
     },
     {
+      "from": "fastq.trim_terminal_damage",
+      "to": "fastq.trim_reads"
+    },
+    {
       "from": "fastq.validate_reads",
-      "to": "fastq.detect_adapters"
+      "to": "fastq.profile_read_lengths"
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
@@ -132,6 +148,109 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "fastq.filter_reads",
       "step_id": "fastq.filter_reads"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "fastqc",
+          "--outdir",
+          "out/profile_overrepresented_sequences/fastqc/fastqc_overrepresented",
+          "--threads",
+          "1",
+          "out/filter_reads/fastp/fastp.fastq.gz"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:plan",
+        "image": "bijux/test"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "out/filter_reads/fastp/fastp.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "overrepresented_sequences_tsv",
+            "optional": false,
+            "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv",
+            "role": "summary_tsv"
+          },
+          {
+            "name": "overrepresented_sequences_json",
+            "optional": false,
+            "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out/profile_overrepresented_sequences/fastqc",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "step_id": "fastq.profile_overrepresented_sequences"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "seqkit",
+          "stats",
+          "-a",
+          "-T",
+          "reads_R1.fastq.gz"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:plan",
+        "image": "bijux/test"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "reads_R1.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "length_distribution_tsv",
+            "optional": false,
+            "path": "out/profile_read_lengths/seqkit_stats/length_distribution.tsv",
+            "role": "summary_tsv"
+          },
+          {
+            "name": "length_distribution_json",
+            "optional": false,
+            "path": "out/profile_read_lengths/seqkit_stats/length_distribution.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out/profile_read_lengths/seqkit_stats",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.profile_read_lengths",
+      "step_id": "fastq.profile_read_lengths"
     },
     {
       "aux_images": {},
@@ -247,8 +366,64 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "command": {
         "template": [
           "fastp",
+          "--trim_poly_g",
+          "--json",
+          "out/trim_polyg_tails/fastp/trim_polyg_tails_report.json",
+          "--thread",
+          "1",
           "--in1",
           "reads_R1.fastq.gz",
+          "--out1",
+          "out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:plan",
+        "image": "bijux/test"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "reads_R1.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "trimmed_reads_r1",
+            "optional": false,
+            "path": "out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz",
+            "role": "trimmed_reads"
+          },
+          {
+            "name": "report_json",
+            "optional": false,
+            "path": "out/trim_polyg_tails/fastp/trim_polyg_tails_report.json",
+            "role": "report_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out/trim_polyg_tails/fastp",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.trim_polyg_tails",
+      "step_id": "fastq.trim_polyg_tails"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "fastp",
+          "--in1",
+          "out/trim_terminal_damage/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
           "--out1",
           "out/trim_reads/fastp/fastp.fastq.gz",
           "--json",
@@ -267,7 +442,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "reads_R1.fastq.gz",
+            "path": "out/trim_terminal_damage/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
             "role": "reads"
           }
         ],
@@ -296,6 +471,62 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "fastq.trim_reads",
       "step_id": "fastq.trim_reads"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "cutadapt",
+          "-u",
+          "2",
+          "-u",
+          "-2",
+          "--json",
+          "out/trim_terminal_damage/cutadapt/trim_terminal_damage_report.json",
+          "-o",
+          "out/trim_terminal_damage/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+          "out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:plan",
+        "image": "bijux/test"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "optional": false,
+            "path": "out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "trimmed_reads_r1",
+            "optional": false,
+            "path": "out/trim_terminal_damage/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+            "role": "trimmed_reads"
+          },
+          {
+            "name": "report_json",
+            "optional": false,
+            "path": "out/trim_terminal_damage/cutadapt/trim_terminal_damage_report.json",
+            "role": "report_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out/trim_terminal_damage/cutadapt",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "fastq.trim_terminal_damage",
+      "step_id": "fastq.trim_terminal_damage"
     },
     {
       "aux_images": {},

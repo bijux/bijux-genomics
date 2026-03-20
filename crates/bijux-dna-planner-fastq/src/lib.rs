@@ -11,6 +11,7 @@ use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutio
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{
     assess_merge_suitability, canonical_amplicon_stage_order, canonical_stage_order,
+    pipeline_contract, StageCriticality,
 };
 use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
@@ -43,20 +44,15 @@ pub use selection::args;
 pub mod stage_api;
 
 fn required_id_catalog() -> Vec<String> {
-    let selected = bijux_dna_pipelines::fastq::fastq_default_profile()
-        .capabilities
-        .required_stages
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect::<Vec<_>>();
-    let selected = selected
-        .into_iter()
-        .filter(|stage| stage.starts_with(STAGE_PREFIX))
-        .collect::<BTreeSet<_>>();
     canonical_stage_order()
         .into_iter()
+        .filter(|stage| {
+            matches!(
+                pipeline_contract::stage_criticality(stage),
+                Some(StageCriticality::Essential)
+            )
+        })
         .map(|stage| stage.as_str().to_string())
-        .filter(|stage| selected.contains(stage))
         .collect()
 }
 
