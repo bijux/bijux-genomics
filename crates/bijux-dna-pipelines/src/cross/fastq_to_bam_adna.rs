@@ -33,9 +33,22 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     (fastq_profile, bam_profile, defaults)
 }
 
+fn required_cross_stages(fastq_profile: &PipelineProfile) -> Vec<&'static str> {
+    let mut stages = fastq_profile.capabilities.required_stages.clone();
+    stages.extend([
+        "core.prepare_reference",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.coverage",
+        "bam.damage",
+    ]);
+    stages
+}
+
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
-    let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    let (fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    let required_stages = required_cross_stages(&fastq_profile);
     defaults.tools.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
@@ -121,14 +134,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
                 ReportSection::PipelineDefaults,
             ],
             required_metrics_bundles: vec![MetricsBundle::FastqCore, MetricsBundle::BamAdna],
-            required_stages: vec![
-                "fastq.preprocess",
-                "core.prepare_reference",
-                "bam.align",
-                "bam.qc_pre",
-                "bam.coverage",
-                "bam.damage",
-            ],
+            required_stages,
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
             required_artifacts: vec![
                 "report.json",
@@ -143,7 +149,8 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn fastq_to_bam_default_profile() -> PipelineProfile {
-    let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    let (fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    let required_stages = required_cross_stages(&fastq_profile);
     defaults.tools.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
@@ -229,14 +236,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
                 ReportSection::PipelineDefaults,
             ],
             required_metrics_bundles: vec![MetricsBundle::FastqCore, MetricsBundle::BamCore],
-            required_stages: vec![
-                "fastq.preprocess",
-                "core.prepare_reference",
-                "bam.align",
-                "bam.qc_pre",
-                "bam.coverage",
-                "bam.damage",
-            ],
+            required_stages,
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
             required_artifacts: vec![
                 "report.json",

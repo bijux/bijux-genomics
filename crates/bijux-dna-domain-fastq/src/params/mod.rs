@@ -9,7 +9,8 @@ use crate::stages::ids::{
     STAGE_TRIM_TERMINAL_DAMAGE, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS,
     STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS, STAGE_NORMALIZE_PRIMERS,
     STAGE_REPORT_QC, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
-    STAGE_INDEX_REFERENCE, STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS,
+    STAGE_INDEX_REFERENCE, STAGE_DEPLETE_RRNA, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
@@ -60,6 +61,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_PROFILE_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.profile_reads",
+            schema_version: stats::STATS_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_PROFILE_READ_LENGTHS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.profile_read_lengths",
             schema_version: stats::STATS_SCHEMA_VERSION,
         });
     }
@@ -151,6 +158,12 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
         return Some(StageParamDescriptor {
             param_type_id: "fastq.report_qc",
             schema_version: "bijux.fastq.params.report_qc.v1",
+        });
+    }
+    if stage_id == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.profile_overrepresented_sequences",
+            schema_version: stats::STATS_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
@@ -304,6 +317,11 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::Stats);
     }
+    if stage_id == &STAGE_PROFILE_READ_LENGTHS {
+        return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Stats);
+    }
     if stage_id == &STAGE_CORRECT_ERRORS {
         return serde_json::from_value::<correct::FastqCorrectParams>(value.clone())
             .ok()
@@ -384,6 +402,11 @@ pub fn parse_effective_params(
         return serde_json::from_value::<qc_post::QcPostEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::ReportQc);
+    }
+    if stage_id == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
+        return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Stats);
     }
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())

@@ -1,9 +1,12 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
+use bijux_dna_domain_fastq::pipeline_contract;
+use bijux_dna_domain_fastq::StageCriticality;
 use bijux_dna_pipelines::fastq::{
     fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
     validate_fastq_profile,
 };
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_pipelines::DefaultParams;
 
 #[test]
@@ -47,15 +50,15 @@ fn reference_adna_profile_stage_contract_and_pairing_invariants() {
         );
     }
 
-    let preprocess_stage = StageId::from_static(id_catalog::FASTQ_PREPROCESS);
-    let Some(bijux_dna_pipelines::DefaultParams::FastqPreprocess(preprocess)) =
-        profile.defaults.params.get(&preprocess_stage)
+    let detect_stage = StageId::from_static(id_catalog::FASTQ_DETECT_ADAPTERS);
+    let Some(bijux_dna_pipelines::DefaultParams::FastqDetectAdapters(preprocess)) =
+        profile.defaults.params.get(&detect_stage)
     else {
-        panic!("missing preprocess params");
+        panic!("missing detect_adapters params");
     };
     assert!(
-        preprocess.library_declared_paired,
-        "reference profile must declare paired library type"
+        preprocess.paired_mode == PairedMode::PairedEnd,
+        "reference profile must keep paired-end defaults on FASTQ stage params"
     );
 }
 
@@ -134,4 +137,79 @@ fn adna_invariants_reject_scientifically_invalid_defaults() {
         "bijux.invariants_report.v1"
     );
     assert!(invariants_report.blocking);
+}
+
+fn essential_shotgun_stages() -> Vec<String> {
+    pipeline_contract::canonical_stage_order()
+        .into_iter()
+        .filter(|stage_id| {
+            matches!(
+                pipeline_contract::stage_criticality(stage_id),
+                Some(StageCriticality::Essential)
+            )
+        })
+        .map(|stage_id| stage_id.as_str().to_string())
+        .collect()
+}
+
+#[test]
+fn single_end_fastq_profiles_cover_domain_essential_shotgun_stages() {
+    let essential = essential_shotgun_stages();
+    for profile in [fastq_default_profile(), fastq_minimal_profile()] {
+        for stage in &essential {
+            assert!(
+                profile.capabilities.required_stages.contains(&stage.as_str()),
+                "profile {} must include domain essential stage {}",
+                profile.id,
+                stage
+            );
+        }
+    }
+}
+
+#[test]
+fn fastq_pipeline_defaults_follow_domain_active_tools() {
+    let default_profile = fastq_default_profile();
+    let filter_tool = default_profile
+        .defaults
+        .tools
+        .get(&StageId::from_static(id_catalog::FASTQ_FILTER))
+        .expect("filter default tool");
+    assert_eq!(
+        filter_tool.as_str(),
+        "fastp",
+        "pipeline defaults must align with domain active default for fastq.filter_reads"
+    );
+
+    let merge_tool = default_profile
+        .defaults
+        .tools
+        .get(&StageId::from_static(id_catalog::FASTQ_MERGE))
+        .expect("merge default tool");
+    assert_eq!(
+        merge_tool.as_str(),
+        "pear",
+        "pipeline defaults must align with domain active default for fastq.merge_pairs"
+    );
+}
+
+#[test]
+fn essential_shotgun_stage_roster_stays_in_sync_with_domain_contract() {
+    let pipeline_essentials = essential_shotgun_stages();
+    let expected = vec![
+        id_catalog::FASTQ_VALIDATE_PRE.to_string(),
+        "fastq.profile_read_lengths".to_string(),
+        id_catalog::FASTQ_DETECT_ADAPTERS.to_string(),
+        "fastq.trim_polyg_tails".to_string(),
+        "fastq.trim_terminal_damage".to_string(),
+        id_catalog::FASTQ_TRIM.to_string(),
+        id_catalog::FASTQ_FILTER.to_string(),
+        id_catalog::FASTQ_STATS_NEUTRAL.to_string(),
+        "fastq.profile_overrepresented_sequences".to_string(),
+        id_catalog::FASTQ_QC_POST.to_string(),
+    ];
+    assert_eq!(
+        pipeline_essentials, expected,
+        "FASTQ pipeline essential stage roster drifted from the domain pipeline contract"
+    );
 }
