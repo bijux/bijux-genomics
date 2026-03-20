@@ -38,6 +38,13 @@ pub struct StageArtifactInputBinding {
 
 pub type StageArtifactInputPolicy = BTreeMap<String, Vec<StageArtifactInputBinding>>;
 
+#[derive(Debug, Clone)]
+struct ResolvedStageInputArtifact {
+    artifact: ArtifactRef,
+    source_stage_node_id: String,
+    source_tool_id: String,
+}
+
 #[allow(dead_code, clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_pipeline_steps<F>(
     stages: &[String],
@@ -117,49 +124,60 @@ where
     let mut current_qc_inputs: Vec<ArtifactRef> = Vec::new();
     let mut plans = Vec::new();
     for binding in stage_bindings {
-        let out_dir = out_dir_for_stage(binding, &current_r1, current_r2.as_deref())?;
+        let resolved_inputs =
+            resolved_stage_input_artifacts(binding, explicit_stage_inputs, &plans)?;
+        let stage_r1 = explicit_reads_input_path(&resolved_inputs, "reads_r1")
+            .unwrap_or_else(|| current_r1.clone());
+        let stage_r2 = explicit_reads_input_path(&resolved_inputs, "reads_r2").or_else(|| {
+            if resolved_inputs.contains_key("reads_r1") {
+                None
+            } else {
+                current_r2.clone()
+            }
+        });
+        let out_dir = out_dir_for_stage(binding, &stage_r1, stage_r2.as_deref())?;
         let stage_id = binding.stage_id.as_str();
         let tool = &binding.tool;
         let (plan, next_r1, next_r2, next_feature_table) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan = crate::tool_adapters::fastq::detect_adapters::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
             stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_read_lengths::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
             stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_overrepresented_sequences::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
@@ -181,15 +199,15 @@ where
             stage if stage == STAGE_TRIM_READS.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_reads::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                     adapter_bank,
                     polyx_bank,
                     contaminant_bank,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -200,13 +218,13 @@ where
                 let params = trim_terminal_damage_params(binding);
                 let plan = crate::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage_with_options(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                     &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -228,13 +246,13 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::filter_reads::plan_filter(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                     &filter_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -244,12 +262,12 @@ where
             stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => {
                 let plan = crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -257,9 +275,12 @@ where
                 (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_HOST.as_str() => {
-                let reference_index = current_reference_index.as_ref().ok_or_else(|| {
-                    anyhow!("host depletion requires a prior reference index stage")
-                })?;
+                let explicit_reference_index =
+                    explicit_reference_index_state(&resolved_inputs, "reference_index");
+                let reference_index = explicit_reference_index
+                    .as_ref()
+                    .or(current_reference_index.as_ref())
+                    .ok_or_else(|| anyhow!("host depletion requires a prior reference index stage"))?;
                 ensure_reference_index_backend(
                     STAGE_DEPLETE_HOST.as_str(),
                     tool.tool_id.as_str(),
@@ -269,15 +290,15 @@ where
                 let plan =
                     crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_index_backend(
                         tool,
-                        &current_r1,
-                        current_r2.as_deref(),
+                        &stage_r1,
+                        stage_r2.as_deref(),
                         &reference_index.path,
                         &out_dir,
                         &params,
                         &reference_index.tool_id,
                     )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -285,7 +306,9 @@ where
                 (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
-                let reference_index = current_reference_index.as_ref().ok_or_else(|| {
+                let explicit_reference_index =
+                    explicit_reference_index_state(&resolved_inputs, "reference_index");
+                let reference_index = explicit_reference_index.as_ref().or(current_reference_index.as_ref()).ok_or_else(|| {
                     anyhow!(
                         "reference contaminant depletion requires a prior reference index stage"
                     )
@@ -298,15 +321,15 @@ where
                 let params = deplete_reference_contaminants_params(binding);
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_index_backend(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &reference_index.path,
                     &out_dir,
                     &params,
                     &reference_index.tool_id,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -318,13 +341,13 @@ where
                     crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions::default();
                 let plan = crate::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                     &low_complexity_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -334,12 +357,12 @@ where
             stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => {
                 let plan = crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -360,24 +383,24 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::validate_reads::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
             stage if stage == STAGE_MERGE_PAIRS.as_str() => {
-                let r2 = current_r2
+                let r2 = stage_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("merge requires r2"))?;
                 let plan = crate::tool_adapters::fastq::merge_pairs::plan_merge(
                     tool,
-                    &current_r1,
+                    &stage_r1,
                     r2,
                     &out_dir,
                 )?;
@@ -387,23 +410,23 @@ where
             stage if stage == STAGE_CORRECT_ERRORS.as_str() => {
                 let plan = crate::tool_adapters::fastq::correct_errors::plan_correct(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = current_r2
+                let next_r2 = stage_r2
                     .as_ref()
                     .and_then(|_| plan.io.outputs.get(1).map(|artifact| artifact.path.clone()));
                 (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_EXTRACT_UMIS.as_str() => {
-                let r2 = current_r2
+                let r2 = stage_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("umi requires r2"))?;
                 let plan = crate::tool_adapters::fastq::extract_umis::plan_umi(
                     tool,
-                    &current_r1,
+                    &stage_r1,
                     r2,
                     &out_dir,
                     None,
@@ -421,16 +444,13 @@ where
                         }
                     }
                 }
-                let paired_mode = if current_r2.is_some() {
+                let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)
+                    .unwrap_or_else(|| current_qc_inputs.clone());
+                let paired_mode = if stage_r2.is_some() {
                     PairedMode::PairedEnd
                 } else {
                     PairedMode::SingleEnd
                 };
-                let report_qc_inputs = explicit_stage_inputs
-                    .and_then(|policies| policies.get(&stage_node_id_for_binding(binding)))
-                    .map(|bindings| governed_qc_inputs_from_explicit_bindings(bindings, &plans))
-                    .transpose()?
-                    .unwrap_or_else(|| current_qc_inputs.clone());
                 if report_qc_inputs.is_empty() {
                     return Err(anyhow!(
                         "fastq.report_qc requires governed upstream QC artifacts; add contributing QC stages before report aggregation"
@@ -448,8 +468,8 @@ where
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
@@ -457,13 +477,13 @@ where
                 let params = deplete_rrna_params(binding);
                 let plan = crate::tool_adapters::fastq::deplete_rrna::plan_rrna_with_options(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                     &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -473,28 +493,28 @@ where
             stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
                 let plan = crate::tool_adapters::fastq::screen_taxonomy::plan_screen(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
             stage if stage == STAGE_PROFILE_READS.as_str() => {
                 let plan = crate::tool_adapters::fastq::profile_reads::plan_stats_neutral(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     current_feature_table.clone(),
                 )
             }
@@ -508,12 +528,12 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::normalize_primers::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if current_r2.is_some() {
+                let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
                 } else {
                     None
@@ -530,8 +550,8 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::remove_chimeras::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -547,15 +567,15 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::infer_asvs::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     next_feature_table,
                 )
             }
@@ -569,33 +589,33 @@ where
                 }
                 let plan = crate::tool_adapters::fastq::cluster_otus::plan(
                     tool,
-                    &current_r1,
-                    current_r2.as_deref(),
+                    &stage_r1,
+                    stage_r2.as_deref(),
                     &out_dir,
                 )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     next_feature_table,
                 )
             }
             stage if stage == STAGE_NORMALIZE_ABUNDANCE.as_str() => {
                 ensure_normalize_abundance_tool(tool.tool_id.as_str())?;
-                let abundance_table = current_feature_table.as_ref().ok_or_else(|| {
-                    anyhow!("fastq.normalize_abundance requires an upstream feature table")
-                })?;
+                let abundance_table = explicit_abundance_table(&resolved_inputs)
+                    .or(current_feature_table.clone())
+                    .ok_or_else(|| anyhow!("fastq.normalize_abundance requires an upstream feature table"))?;
                 let plan = crate::tool_adapters::fastq::normalize_abundance::plan(
                     tool,
-                    abundance_table,
+                    &abundance_table,
                     &out_dir,
                 )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (
                     plan,
-                    current_r1.clone(),
-                    current_r2.clone(),
+                    stage_r1.clone(),
+                    stage_r2.clone(),
                     next_feature_table,
                 )
             }
@@ -648,47 +668,101 @@ fn stage_node_id_for_plan(plan: &StagePlanV1) -> &str {
         .unwrap_or(plan.stage_id.as_str())
 }
 
-fn governed_qc_inputs_from_explicit_bindings(
-    bindings: &[StageArtifactInputBinding],
+fn resolved_stage_input_artifacts(
+    binding: &FastqStageBinding,
+    explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
     plans: &[StagePlanV1],
-) -> Result<Vec<ArtifactRef>> {
-    let mut inputs = Vec::new();
-    for binding in bindings {
+) -> Result<BTreeMap<String, ResolvedStageInputArtifact>> {
+    let mut inputs = BTreeMap::new();
+    let Some(policies) = explicit_stage_inputs else {
+        return Ok(inputs);
+    };
+    let Some(bindings) = policies.get(&stage_node_id_for_binding(binding)) else {
+        return Ok(inputs);
+    };
+    for stage_input in bindings {
         let source_plan = plans
             .iter()
-            .find(|plan| stage_node_id_for_plan(plan) == binding.from_stage_node_id)
+            .find(|plan| stage_node_id_for_plan(plan) == stage_input.from_stage_node_id)
             .ok_or_else(|| {
                 anyhow!(
-                    "fastq.report_qc input binding references unknown upstream stage node {}",
-                    binding.from_stage_node_id
+                    "stage input binding references unknown upstream stage node {}",
+                    stage_input.from_stage_node_id
                 )
             })?;
         let artifact = source_plan
             .io
             .outputs
             .iter()
-            .find(|artifact| artifact.name.as_str() == binding.from_output_id)
+            .find(|artifact| artifact.name.as_str() == stage_input.from_output_id)
             .ok_or_else(|| {
                 anyhow!(
-                    "fastq.report_qc input binding references missing artifact {} on upstream stage node {}",
-                    binding.from_output_id,
-                    binding.from_stage_node_id
+                    "stage input binding references missing artifact {} on upstream stage node {}",
+                    stage_input.from_output_id,
+                    stage_input.from_stage_node_id
                 )
             })?;
-        inputs.push(report_qc_input_artifact(
-            &binding.from_stage_node_id,
-            artifact,
-            Some(binding.to_input_id.as_str()),
-        ));
+        inputs.insert(
+            stage_input.to_input_id.clone(),
+            ResolvedStageInputArtifact {
+                artifact: artifact.clone(),
+                source_stage_node_id: stage_input.from_stage_node_id.clone(),
+                source_tool_id: source_plan.tool_id.to_string(),
+            },
+        );
     }
-    inputs.sort_by(|left, right| {
+    Ok(inputs)
+}
+
+fn explicit_reads_input_path(
+    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
+    input_id: &str,
+) -> Option<PathBuf> {
+    inputs.get(input_id).map(|input| input.artifact.path.clone())
+}
+
+fn explicit_abundance_table(
+    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
+) -> Option<PathBuf> {
+    inputs
+        .get("abundance_table")
+        .map(|input| input.artifact.path.clone())
+}
+
+fn explicit_reference_index_state(
+    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
+    input_id: &str,
+) -> Option<ReferenceIndexState> {
+    inputs.get(input_id).map(|input| ReferenceIndexState {
+        path: input.artifact.path.clone(),
+        tool_id: input.source_tool_id.clone(),
+    })
+}
+
+fn explicit_report_qc_inputs(
+    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
+) -> Option<Vec<ArtifactRef>> {
+    if inputs.is_empty() {
+        return None;
+    }
+    let mut qc_inputs = inputs
+        .iter()
+        .map(|(input_id, input)| {
+            report_qc_input_artifact(
+                &input.source_stage_node_id,
+                &input.artifact,
+                Some(input_id.as_str()),
+            )
+        })
+        .collect::<Vec<_>>();
+    qc_inputs.sort_by(|left, right| {
         left.name
             .as_str()
             .cmp(right.name.as_str())
             .then_with(|| left.path.cmp(&right.path))
     });
-    inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
-    Ok(inputs)
+    qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    Some(qc_inputs)
 }
 
 fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<ArtifactRef> {
