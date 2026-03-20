@@ -387,7 +387,22 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.command.template[0], "vsearch");
     assert_eq!(plan.command.template[1], "--cluster_fast");
     assert!(plan.command.template.iter().any(|part| part == "out/otu_abundance.tsv"));
+    assert_eq!(
+        plan.io.outputs[1].role.as_str(),
+        "reference",
+        "OTU representatives must be typed as reference-style sequence outputs",
+    );
     assert_eq!(plan.io.outputs[2].name.as_str(), "taxonomy_ready_fasta");
+    assert_eq!(
+        plan.io.outputs[2].role.as_str(),
+        "reference",
+        "taxonomy-ready FASTA must be typed as a reference-style sequence output",
+    );
+    assert_eq!(
+        plan.io.outputs[3].role.as_str(),
+        "reference",
+        "taxonomy-ready FASTQ must be typed as a reference-style sequence output",
+    );
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
             &domain_tool("fastq.cluster_otus", "vsearch"),

@@ -66,17 +66,17 @@ pub fn plan(
                 ArtifactRef::required(
                     ArtifactId::from_static("otu_representatives"),
                     otu_representatives.clone(),
-                    ArtifactRole::Reads,
+                    ArtifactRole::Reference,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fasta"),
                     taxonomy_ready_fasta.clone(),
-                    ArtifactRole::Reads,
+                    ArtifactRole::Reference,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fastq"),
                     taxonomy_ready_fastq.clone(),
-                    ArtifactRole::Reads,
+                    ArtifactRole::Reference,
                 ),
             ],
         },
