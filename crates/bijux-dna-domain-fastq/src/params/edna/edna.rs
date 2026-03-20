@@ -14,6 +14,8 @@ pub struct PrimerNormalizationEffectiveParams {
 #[serde(deny_unknown_fields)]
 pub struct ChimeraDetectionEffectiveParams {
     pub method: String,
+    pub detection_scope: String,
+    pub chimera_sequence_artifact: String,
     pub chimera_removed_definition: String,
 }
 
