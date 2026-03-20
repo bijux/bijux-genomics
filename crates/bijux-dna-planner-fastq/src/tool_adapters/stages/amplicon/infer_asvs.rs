@@ -4,8 +4,8 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::ExecutionStatus;
 use bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS;
+use bijux_dna_domain_fastq::ExecutionStatus;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
 };
@@ -68,28 +68,12 @@ pub fn plan(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs,
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("asv_table_tsv"),
-                    asv_table.clone(),
-                    ArtifactRole::SummaryTsv,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("asv_sequences_fasta"),
-                    asv_sequences.clone(),
-                    ArtifactRole::Reads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("taxonomy_ready_fasta"),
-                    taxonomy_ready_fasta.clone(),
-                    ArtifactRole::Reads,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("taxonomy_ready_fastq"),
-                    taxonomy_ready_fastq.clone(),
-                    ArtifactRole::Reads,
-                ),
-            ],
+            outputs: infer_asvs_output_refs(
+                &asv_table,
+                &asv_sequences,
+                &taxonomy_ready_fasta,
+                &taxonomy_ready_fastq,
+            ),
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({}),
@@ -103,11 +87,38 @@ pub fn plan(
             }
         }),
         aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Default,
-            "amplicon ASV inference",
-        ),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon ASV inference"),
     })
+}
+
+fn infer_asvs_output_refs(
+    asv_table: &Path,
+    asv_sequences: &Path,
+    taxonomy_ready_fasta: &Path,
+    taxonomy_ready_fastq: &Path,
+) -> Vec<ArtifactRef> {
+    vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("asv_table_tsv"),
+            asv_table.to_path_buf(),
+            ArtifactRole::SummaryTsv,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("asv_sequences_fasta"),
+            asv_sequences.to_path_buf(),
+            ArtifactRole::Reference,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("taxonomy_ready_fasta"),
+            taxonomy_ready_fasta.to_path_buf(),
+            ArtifactRole::Reference,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("taxonomy_ready_fastq"),
+            taxonomy_ready_fastq.to_path_buf(),
+            ArtifactRole::Reference,
+        ),
+    ]
 }
 
 fn infer_asvs_command(
@@ -146,5 +157,26 @@ fn infer_asvs_command(
         _ => Err(anyhow!(
             "unsupported ASV inference tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::infer_asvs_output_refs;
+
+    #[test]
+    fn infer_asvs_outputs_use_reference_roles_for_representative_sequences() {
+        let outputs = infer_asvs_output_refs(
+            std::path::Path::new("out/asv_abundance.tsv"),
+            std::path::Path::new("out/asv_sequences.fasta"),
+            std::path::Path::new("out/taxonomy_ready.fasta"),
+            std::path::Path::new("out/taxonomy_ready.fastq"),
+        );
+
+        assert_eq!(outputs[0].name.as_str(), "asv_table_tsv");
+        assert_eq!(outputs[0].role.as_str(), "summary_tsv");
+        assert_eq!(outputs[1].role.as_str(), "reference");
+        assert_eq!(outputs[2].role.as_str(), "reference");
+        assert_eq!(outputs[3].role.as_str(), "reference");
     }
 }
