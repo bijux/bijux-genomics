@@ -86,7 +86,7 @@
   },
   "effective_params": {
     "contaminant_reference": "contaminant_reference",
-    "index_artifact": "contaminant_reference_index",
+    "index_artifact": "reference_index",
     "paired_mode": "paired_end",
     "retain_unmapped_pairs": true,
     "schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
