@@ -8,6 +8,15 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.remove_duplicates"]
+stage_contracts:
+  fastq.remove_duplicates:
+    required_inputs:
+      - "reads_r1"
+    expected_artifacts:
+      - "dedup_reads_r1"
+      - "dedup_reads_r2"
+      - "report_json"
+    notes: "Duplicate-removal execution emits governed deduplicated reads and the normalized duplicate report."
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
