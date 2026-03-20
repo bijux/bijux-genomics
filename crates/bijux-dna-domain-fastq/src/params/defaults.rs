@@ -1,6 +1,7 @@
 use super::correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION};
 use super::detect_adapters::{
-    AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+    AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
+    DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
 use super::filter::FilterEffectiveParams;
 use super::merge::{
@@ -83,6 +84,9 @@ pub fn detect_adapters_defaults(paired: bool) -> DetectAdaptersEffectiveParams {
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: "fastqc".to_string(),
+        evidence_scope: AdapterEvidenceScope::SampledReads,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "adapter_report".to_string(),
     }
 }
 
