@@ -141,3 +141,45 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn reference_aware_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-reference-stage-instance-ids")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let index = temp.path().join("host_index");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::create_dir_all(&index)?;
+
+    let host_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::deplete_host::plan_host_depletion(
+            &tool("bowtie2"),
+            &r1,
+            None,
+            &index,
+            temp.path(),
+        )?;
+    assert_eq!(
+        host_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.deplete_host.tool.bowtie2")
+    );
+
+    let contaminant_plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
+        &tool("bowtie2"),
+        &r1,
+        None,
+        &index,
+        temp.path(),
+    )?;
+    assert_eq!(
+        contaminant_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.deplete_reference_contaminants.tool.bowtie2")
+    );
+
+    Ok(())
+}
