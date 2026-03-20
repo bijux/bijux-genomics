@@ -152,6 +152,7 @@ pub fn plan_host_depletion(
                 reference_index,
                 out_dir,
                 report.as_path(),
+                tool.resources.threads,
             )?,
         },
         resources: tool.resources.clone(),
@@ -172,6 +173,7 @@ fn host_depletion_command(
     reference_index: &Path,
     out_dir: &Path,
     report_json: &Path,
+    threads: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
         "bowtie2" => {
@@ -180,7 +182,7 @@ fn host_depletion_command(
                 "-x".to_string(),
                 reference_index.display().to_string(),
                 "--threads".to_string(),
-                "1".to_string(),
+                threads.to_string(),
                 "-S".to_string(),
                 "/dev/null".to_string(),
             ];
