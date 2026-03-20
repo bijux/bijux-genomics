@@ -14,12 +14,14 @@ use bijux_dna_analyze::{
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::{ArtifactId, ArtifactRef};
+use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_qc_post_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{
-    aux_tool_ids, plan_qc_post_from_fastq_inputs,
+    aux_tool_ids, plan_qc_post_with_qc_inputs,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
@@ -36,6 +38,7 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_REPORT_QC,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -114,6 +117,15 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+        let governed_qc = prepare_governed_qc_inputs(
+            catalog,
+            platform,
+            &registry,
+            bench_inputs.runner,
+            jobs,
+            &bench_inputs,
+            &out_dir,
+        )?;
         let tool_spec = build_tool_execution_spec(
             STAGE_REPORT_QC.as_str(),
             tool,
@@ -122,14 +134,15 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_qc_post_from_fastq_inputs(
+        let plan = plan_qc_post_with_qc_inputs(
             &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
+            &governed_qc.qc_inputs,
             &out_dir,
             aux_tools.clone(),
-            None,
-            None,
+            paired_mode_for_bench_inputs(&bench_inputs),
+            QcAggregationScope::GovernedQcArtifacts,
+            Some(&bench_inputs.r1),
+            bench_inputs.r2.as_deref(),
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -169,6 +182,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             &plan.params,
             &out_dir,
             &execution,
+            governed_qc.raw_fastqc_dir.as_deref(),
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_qc_post_v1(&conn, &record).context("insert bench sqlite")?;
@@ -201,6 +215,12 @@ struct QcPostBenchInputs {
     input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+struct GovernedQcInputs {
+    qc_inputs: Vec<ArtifactRef>,
+    raw_fastqc_dir: Option<PathBuf>,
 }
 
 fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
@@ -293,11 +313,13 @@ fn build_qc_post_record(
     params: &serde_json::Value,
     out_dir: &Path,
     execution: &StageResultV1,
+    raw_fastqc_dir: Option<&Path>,
 ) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
     let metrics = derive_qc_post_metrics(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
         out_dir,
+        raw_fastqc_dir,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -360,10 +382,10 @@ fn derive_qc_post_metrics(
     input_stats: &SeqkitMetrics,
     input_stats_r2: Option<&SeqkitMetrics>,
     out_dir: &Path,
+    raw_fastqc_dir: Option<&Path>,
 ) -> FastqQcPostMetrics {
     let multiqc_report = out_dir.join("multiqc_report.html");
     let multiqc_data = out_dir.join("multiqc_data");
-    let raw_fastqc_dir = out_dir.join("fastqc_raw");
     let trimmed_fastqc_dir = out_dir.join("fastqc_trimmed");
     let reads_in = input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
     let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
@@ -383,7 +405,7 @@ fn derive_qc_post_metrics(
         pairs_out: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
         mean_q,
         contamination_rate: 0.0,
-        raw_fastqc_dir: path_if_exists(&raw_fastqc_dir),
+        raw_fastqc_dir: raw_fastqc_dir.and_then(path_if_exists),
         trimmed_fastqc_dir: path_if_exists(&trimmed_fastqc_dir),
         multiqc_report: path_if_exists(&multiqc_report),
         multiqc_data: path_if_exists(&multiqc_data),
@@ -392,4 +414,233 @@ fn derive_qc_post_metrics(
 
 fn path_if_exists(path: &Path) -> Option<String> {
     path.exists().then(|| path.display().to_string())
+}
+
+fn paired_mode_for_bench_inputs(bench_inputs: &QcPostBenchInputs) -> PairedMode {
+    if bench_inputs.r2.is_some() {
+        PairedMode::PairedEnd
+    } else {
+        PairedMode::SingleEnd
+    }
+}
+
+fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    registry: &bijux_dna_core::contract::ToolRegistry,
+    runner: RuntimeKind,
+    jobs: usize,
+    bench_inputs: &QcPostBenchInputs,
+    out_dir: &Path,
+) -> Result<GovernedQcInputs> {
+    let contributors = [
+        ("fastq.validate_reads", "fastqvalidator"),
+        ("fastq.detect_adapters", "fastqc"),
+        ("fastq.profile_reads", "seqkit_stats"),
+    ];
+    let mut plans = Vec::with_capacity(contributors.len());
+    for (stage_id, tool_id) in contributors {
+        let tool_spec = build_tool_execution_spec(stage_id, tool_id, registry, catalog, platform)?;
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let stage_out_dir = out_dir
+            .join("governed_qc_inputs")
+            .join(stage_id.trim_start_matches("fastq."))
+            .join(tool_id);
+        bijux_dna_infra::ensure_dir(&stage_out_dir)
+            .with_context(|| format!("create governed qc input dir for {stage_id}/{tool_id}"))?;
+        let plan = match stage_id {
+            "fastq.validate_reads" => {
+                bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
+                    &tool_spec,
+                    &bench_inputs.r1,
+                    bench_inputs.r2.as_deref(),
+                    &stage_out_dir,
+                )?
+            }
+            "fastq.detect_adapters" => {
+                bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters::plan(
+                    &tool_spec,
+                    &bench_inputs.r1,
+                    bench_inputs.r2.as_deref(),
+                    &stage_out_dir,
+                )?
+            }
+            "fastq.profile_reads" => {
+                bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads::plan_stats_neutral(
+                    &tool_spec,
+                    &bench_inputs.r1,
+                    bench_inputs.r2.as_deref(),
+                    &stage_out_dir,
+                )?
+            }
+            _ => unreachable!("governed qc contributor set is fixed"),
+        };
+        plans.push(plan);
+    }
+    let executions = execute_plans_with_jobs(
+        plans
+            .iter()
+            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
+            .collect(),
+        runner,
+        jobs,
+    )?;
+    for (plan, execution) in plans.iter().zip(executions.iter()) {
+        if execution.exit_code != 0 {
+            return Err(anyhow!(
+                "governed QC contributor {} / {} failed with status {}",
+                plan.stage_id,
+                plan.tool_id,
+                execution.exit_code
+            ));
+        }
+    }
+    let mut qc_inputs = plans
+        .iter()
+        .flat_map(governed_qc_artifacts_for_plan)
+        .collect::<Vec<_>>();
+    qc_inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    let raw_fastqc_dir = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.detect_adapters")
+        .and_then(|plan| {
+            plan.io
+                .outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "adapter_evidence_dir")
+                .map(|artifact| artifact.path.clone())
+        });
+    Ok(GovernedQcInputs {
+        qc_inputs,
+        raw_fastqc_dir,
+    })
+}
+
+fn governed_qc_artifacts_for_plan(plan: &StagePlanV1) -> Vec<ArtifactRef> {
+    let stage_node_id = plan
+        .stage_instance_id
+        .as_ref()
+        .map(|step_id| step_id.as_str())
+        .unwrap_or(plan.stage_id.as_str());
+    plan.io
+        .outputs
+        .iter()
+        .filter(|artifact| {
+            governed_qc_output_ids_for_stage(plan.stage_id.as_str())
+                .iter()
+                .any(|artifact_id| artifact.name.as_str() == *artifact_id)
+        })
+        .map(|artifact| ArtifactRef {
+            name: ArtifactId::new(format!("{stage_node_id}.{}", artifact.name.as_str())),
+            path: artifact.path.clone(),
+            role: artifact.role,
+            optional: artifact.optional,
+        })
+        .collect()
+}
+
+fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
+    match stage_id {
+        "fastq.validate_reads" => &["validation_report"],
+        "fastq.detect_adapters" => &["adapter_report", "adapter_evidence_dir"],
+        "fastq.profile_reads" => &["qc_json", "qc_tsv", "qc_plots_dir"],
+        _ => &[],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{derive_qc_post_metrics, governed_qc_artifacts_for_plan};
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, StepId, ToolId};
+    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
+    use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
+
+    #[test]
+    fn governed_qc_artifacts_keep_stage_instance_namespace() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.detect_adapters"),
+            stage_instance_id: Some(StepId::from_static("fastq.detect_adapters.tool.fastqc")),
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("fastqc"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["fastqc".to_string()],
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::from_static("adapter_report"),
+                        PathBuf::from("detect_adapters/adapter_report.json"),
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::optional(
+                        ArtifactId::from_static("adapter_evidence_dir"),
+                        PathBuf::from("detect_adapters/fastqc"),
+                        ArtifactRole::StageReport,
+                    ),
+                ],
+            },
+            out_dir: PathBuf::from("out"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        let inputs = governed_qc_artifacts_for_plan(&plan);
+        assert_eq!(inputs.len(), 2);
+        assert!(inputs.iter().any(|artifact| {
+            artifact.name.as_str() == "fastq.detect_adapters.tool.fastqc.adapter_report"
+        }));
+        assert!(inputs.iter().any(|artifact| {
+            artifact.name.as_str() == "fastq.detect_adapters.tool.fastqc.adapter_evidence_dir"
+        }));
+    }
+
+    #[test]
+    fn qc_post_metrics_report_governed_fastqc_dir_when_present() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let multiqc_data = temp.path().join("multiqc_data");
+        std::fs::create_dir_all(&multiqc_data).expect("multiqc data dir");
+        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        let raw_fastqc_dir = temp.path().join("governed_qc_inputs/detect_adapters/fastqc/fastqc");
+        std::fs::create_dir_all(&raw_fastqc_dir).expect("fastqc dir");
+
+        let metrics = derive_qc_post_metrics(
+            &SeqkitMetrics {
+                reads: 10,
+                bases: 100,
+                mean_q: 30.0,
+                gc_percent: 50.0,
+            },
+            None,
+            temp.path(),
+            Some(raw_fastqc_dir.as_path()),
+        );
+
+        let expected_raw_fastqc_dir = raw_fastqc_dir.display().to_string();
+        assert_eq!(
+            metrics.raw_fastqc_dir.as_deref(),
+            Some(expected_raw_fastqc_dir.as_str())
+        );
+        assert!(metrics.multiqc_report.is_some());
+        assert!(metrics.multiqc_data.is_some());
+    }
 }
