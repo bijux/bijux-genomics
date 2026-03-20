@@ -354,7 +354,7 @@ pub fn plan_preprocess(
     crate::tool_adapters::stages::pre::preprocess::PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
-        stages: pipeline.stages,
+        stages: pipeline.stage_catalog(),
         enable_contaminant_removal: args.enable_contaminant_removal,
         pipeline_mode: match args.mode {
             crate::selection::args::FastqPlannerMode::Shotgun => FastqPipelineMode::Shotgun,
@@ -388,79 +388,97 @@ pub fn resolve_preprocess_pipeline(
             bijux_dna_pipelines::Domain::Fastq,
             profile_id,
         ) {
-            Ok(profile) => {
-                let mut stages: Vec<String> = fastq_pipeline_id_catalog(profile.id.as_str());
-                stages = apply_layout_branching(stages, args.r2.is_some());
-                if !shotgun_mode {
-                    stages.retain(|stage| stage != "fastq.trim_polyg_tails");
-                }
-                if !enable_merge {
-                    stages.retain(|stage| stage != STAGE_MERGE_PAIRS.as_str());
-                }
-                if !enable_correct {
-                    stages.retain(|stage| stage != STAGE_CORRECT_ERRORS.as_str());
-                }
-                if !enable_qc_post {
-                    stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
-                }
-                if !enable_screen {
-                    stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
-                }
-                if shotgun_mode {
-                    stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
-                }
-                pipeline_spec_from_stage_sequence(stages)
-            }
+            Ok(profile) => filter_preprocess_pipeline(
+                pipeline_spec_from_stage_sequence(fastq_pipeline_id_catalog(profile.id.as_str())),
+                args.r2.is_some(),
+                shotgun_mode,
+                enable_merge,
+                enable_correct,
+                enable_qc_post,
+                enable_screen,
+                &amplicon_only,
+            ),
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
-                let mut spec = default_pipeline_spec(DefaultPipelineOptions {
-                    paired: args.r2.is_some(),
+                filter_preprocess_pipeline(
+                    default_pipeline_spec(DefaultPipelineOptions {
+                        paired: args.r2.is_some(),
+                        enable_merge,
+                        enable_correct,
+                        enable_qc_post,
+                        enable_screen,
+                        mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
+                            FastqPipelineMode::Shotgun
+                        } else {
+                            FastqPipelineMode::Amplicon
+                        },
+                    }),
+                    args.r2.is_some(),
+                    shotgun_mode,
                     enable_merge,
                     enable_correct,
                     enable_qc_post,
                     enable_screen,
-                    mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
-                        FastqPipelineMode::Shotgun
-                    } else {
-                        FastqPipelineMode::Amplicon
-                    },
-                });
-                spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
-                if !shotgun_mode {
-                    spec.stages
-                        .retain(|stage| stage != "fastq.trim_polyg_tails");
-                }
-                if shotgun_mode {
-                    spec.stages
-                        .retain(|stage| !amplicon_only.contains(&stage.as_str()));
-                }
-                pipeline_spec_from_stage_sequence(spec.stages)
+                    &amplicon_only,
+                )
             }
         }
     } else {
-        let mut spec = default_pipeline_spec(DefaultPipelineOptions {
-            paired: args.r2.is_some(),
+        filter_preprocess_pipeline(
+            default_pipeline_spec(DefaultPipelineOptions {
+                paired: args.r2.is_some(),
+                enable_merge,
+                enable_correct,
+                enable_qc_post,
+                enable_screen,
+                mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
+                    FastqPipelineMode::Shotgun
+                } else {
+                    FastqPipelineMode::Amplicon
+                },
+            }),
+            args.r2.is_some(),
+            shotgun_mode,
             enable_merge,
             enable_correct,
             enable_qc_post,
             enable_screen,
-            mode: if args.mode == crate::selection::args::FastqPlannerMode::Shotgun {
-                FastqPipelineMode::Shotgun
-            } else {
-                FastqPipelineMode::Amplicon
-            },
-        });
-        spec.stages = apply_layout_branching(spec.stages, args.r2.is_some());
-        if !shotgun_mode {
-            spec.stages
-                .retain(|stage| stage != "fastq.trim_polyg_tails");
-        }
-        if shotgun_mode {
-            spec.stages
-                .retain(|stage| !amplicon_only.contains(&stage.as_str()));
-        }
-        pipeline_spec_from_stage_sequence(spec.stages)
+            &amplicon_only,
+        )
     }
+}
+
+fn filter_preprocess_pipeline(
+    mut spec: PipelineSpec,
+    paired: bool,
+    shotgun_mode: bool,
+    enable_merge: bool,
+    enable_correct: bool,
+    enable_qc_post: bool,
+    enable_screen: bool,
+    amplicon_only: &[&str],
+) -> PipelineSpec {
+    let allowed_stages = apply_layout_branching(spec.stage_catalog(), paired);
+    spec.retain_nodes(|node| allowed_stages.iter().any(|stage| stage == &node.stage_id));
+    if !shotgun_mode {
+        spec.retain_nodes(|node| node.stage_id != "fastq.trim_polyg_tails");
+    }
+    if !enable_merge {
+        spec.retain_nodes(|node| node.stage_id != STAGE_MERGE_PAIRS.as_str());
+    }
+    if !enable_correct {
+        spec.retain_nodes(|node| node.stage_id != STAGE_CORRECT_ERRORS.as_str());
+    }
+    if !enable_qc_post {
+        spec.retain_nodes(|node| node.stage_id != STAGE_REPORT_QC.as_str());
+    }
+    if !enable_screen {
+        spec.retain_nodes(|node| node.stage_id != STAGE_SCREEN_TAXONOMY.as_str());
+    }
+    if shotgun_mode {
+        spec.retain_nodes(|node| !amplicon_only.contains(&node.stage_id.as_str()));
+    }
+    spec
 }
 
 include!("planner_fastq_pipeline_decisions.rs");
