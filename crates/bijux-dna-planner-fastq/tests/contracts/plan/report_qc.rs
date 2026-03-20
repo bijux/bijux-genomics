@@ -5,6 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_stage_contract::PlanDecisionReason;
 use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -66,5 +67,44 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
         .template
         .iter()
         .any(|part| part == "detect_adapters"));
+    Ok(())
+}
+
+#[test]
+fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
+    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+        &[
+            "fastq.profile_reads".to_string(),
+            "fastq.report_qc".to_string(),
+        ],
+        &[tool("seqkit_stats"), tool("multiqc")],
+        &BTreeMap::new(),
+        Some(&[
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+        ]),
+        None,
+        None,
+        None,
+        false,
+        Path::new("reads_R1.fastq.gz"),
+        None,
+        None,
+        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+    )?;
+
+    let report_plan = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
+        .expect("report_qc stage");
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "qc_json"));
+    assert_eq!(
+        report_plan.effective_params["aggregation_scope"],
+        serde_json::json!("governed_qc_artifacts")
+    );
     Ok(())
 }
