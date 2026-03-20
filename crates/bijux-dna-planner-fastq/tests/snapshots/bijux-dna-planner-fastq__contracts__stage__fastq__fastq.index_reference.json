@@ -8,7 +8,11 @@
     "digest": null
   },
   "command": {
-    "template": []
+    "template": [
+      "bowtie2-build",
+      "reference.fa",
+      "out/reference_index/bowtie2/reference"
+    ]
   },
   "resources": {
     "runtime": "docker",
@@ -28,7 +32,7 @@
     "outputs": [
       {
         "name": "reference_index",
-        "path": "out/reference_index",
+        "path": "out/reference_index/bowtie2/reference",
         "role": "index",
         "optional": false
       }
@@ -38,7 +42,7 @@
   "params": {
     "out_dir": "out",
     "reference_fasta": "reference.fa",
-    "reference_index": "out/reference_index",
+    "reference_index": "out/reference_index/bowtie2/reference",
     "tool": "bowtie2_build"
   },
   "effective_params": {
