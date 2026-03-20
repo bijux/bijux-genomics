@@ -4,8 +4,14 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::trim::{
+    TrimTerminalDamageParams, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+};
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
-use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1};
+use bijux_dna_stage_contract::{
+    ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
+};
 
 pub const STAGE_ID: StageId = STAGE_TRIM_TERMINAL_DAMAGE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -72,6 +78,14 @@ pub fn plan_trim_terminal_damage_with_options(
         options.trim_5p_bases,
         options.trim_3p_bases,
     )?;
+    let effective_params = TrimTerminalDamageParams {
+        schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        threads: tool.resources.threads,
+        damage_mode: options.damage_mode.clone(),
+        trim_5p_bases: options.trim_5p_bases,
+        trim_3p_bases: options.trim_3p_bases,
+    };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -125,20 +139,9 @@ pub fn plan_trim_terminal_damage_with_options(
             "output_r2": output_r2,
             "report_json": report,
         }),
-        effective_params: serde_json::json!({
-            "damage_mode": options.damage_mode,
-            "trim_5p_bases": options.trim_5p_bases,
-            "trim_3p_bases": options.trim_3p_bases,
-            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-            "transition_masking": "CT_GA_terminal_windows",
-            "udg_classification_source": "config_or_inferred",
-            "threads": tool.resources.threads,
-        }),
+        effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Default,
-            "damage-aware terminal trimming",
-        ),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "damage-aware terminal trimming"),
     })
 }
 
