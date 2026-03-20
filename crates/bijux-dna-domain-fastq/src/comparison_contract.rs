@@ -40,6 +40,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "dedup_tool_normalization_json",
     ),
     (
+        "fastq.profile_read_lengths",
+        "read_length_tool_benchmark_cohort_json",
+        "read_length_tool_comparison_json",
+        "read_length_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",

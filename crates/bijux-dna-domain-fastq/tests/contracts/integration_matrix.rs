@@ -101,6 +101,18 @@ fn benchmark_scenarios_attach_to_governed_stages() {
             .iter()
             .any(|rule| rule == "same_dedup_policy")
     );
+
+    let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
+    let read_length_scenarios =
+        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&read_length_stage);
+    assert_eq!(read_length_scenarios.len(), 1);
+    assert_eq!(read_length_scenarios[0].scenario_id, "read_length_fairness");
+    assert!(
+        read_length_scenarios[0]
+            .fairness_rules
+            .iter()
+            .any(|rule| rule == "same_length_profile_contract")
+    );
 }
 
 #[test]
