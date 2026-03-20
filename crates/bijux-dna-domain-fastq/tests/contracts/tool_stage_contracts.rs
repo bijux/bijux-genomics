@@ -13,8 +13,7 @@ fn workspace_root() -> Result<PathBuf> {
 }
 
 fn parse_yaml(path: &Path) -> Result<Value> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
@@ -23,7 +22,8 @@ fn yaml_string(value: Option<&Value>) -> Option<String> {
 }
 
 fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
-    value.and_then(Value::as_sequence)
+    value
+        .and_then(Value::as_sequence)
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
@@ -119,9 +119,8 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
                 .get(Value::String(stage_id.clone()))
                 .and_then(Value::as_mapping)
                 .with_context(|| format!("{tool_name} missing stage_contract for {stage_id}"))?;
-            let contract_inputs = yaml_string_set(
-                stage_contract.get(Value::String("required_inputs".to_string())),
-            );
+            let contract_inputs =
+                yaml_string_set(stage_contract.get(Value::String("required_inputs".to_string())));
             let contract_outputs = yaml_string_set(
                 stage_contract.get(Value::String("expected_artifacts".to_string())),
             );
@@ -160,6 +159,87 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
         assert_eq!(
             union, expected_artifacts,
             "{tool_name} expected_artifacts must remain the union of stage_contract expected_artifacts"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
+    let required_inputs = stage_required_inputs()?;
+    let outputs = stage_outputs()?;
+    let tools_dir = workspace_root()?.join("domain/fastq/tools");
+    for entry in std::fs::read_dir(&tools_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml = parse_yaml(&path)?;
+        let Some(tool_id) = yaml_string(yaml.get("tool_id")) else {
+            continue;
+        };
+        let Some(stage_contracts) = yaml.get("stage_contracts").and_then(Value::as_mapping) else {
+            continue;
+        };
+        let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
+        assert_eq!(
+            stage_contracts
+                .keys()
+                .filter_map(Value::as_str)
+                .map(str::to_string)
+                .collect::<BTreeSet<_>>(),
+            stage_ids,
+            "{tool_id} stage_contracts must cover every declared stage"
+        );
+        for stage_id in &stage_ids {
+            let stage_contract = stage_contracts
+                .get(Value::String(stage_id.clone()))
+                .and_then(Value::as_mapping)
+                .with_context(|| format!("{tool_id} missing stage_contract for {stage_id}"))?;
+            let contract_inputs =
+                yaml_string_set(stage_contract.get(Value::String("required_inputs".to_string())));
+            let contract_outputs = yaml_string_set(
+                stage_contract.get(Value::String("expected_artifacts".to_string())),
+            );
+            let notes = stage_contract
+                .get(Value::String("notes".to_string()))
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            assert_eq!(
+                contract_inputs,
+                required_inputs
+                    .get(stage_id)
+                    .with_context(|| format!("missing required_inputs for {stage_id}"))?
+                    .clone(),
+                "{tool_id} stage_contract required_inputs drifted for {stage_id}"
+            );
+            assert_eq!(
+                contract_outputs,
+                outputs
+                    .get(stage_id)
+                    .with_context(|| format!("missing outputs for {stage_id}"))?
+                    .clone(),
+                "{tool_id} stage_contract expected_artifacts drifted for {stage_id}"
+            );
+            assert!(
+                !notes.trim().is_empty(),
+                "{tool_id} stage_contract notes must stay non-empty for {stage_id}"
+            );
+        }
+        let union = stage_contracts
+            .values()
+            .filter_map(Value::as_mapping)
+            .flat_map(|stage_contract| {
+                yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())))
+            })
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            union, expected_artifacts,
+            "{tool_id} expected_artifacts must remain the union of stage_contract expected_artifacts"
         );
     }
     Ok(())

@@ -10,6 +10,20 @@ citation: pending:tool-publication
 stage_ids:
 - fastq.validate_reads
 - fastq.profile_overrepresented_sequences
+stage_contracts:
+  fastq.validate_reads:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - validation_report
+    notes: Validation remains report-only and would emit the governed validation report artifact.
+  fastq.profile_overrepresented_sequences:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - overrepresented_sequences_tsv
+    - overrepresented_sequences_json
+    notes: Overrepresented-sequence profiling remains report-only and would emit governed ranked summaries.
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
