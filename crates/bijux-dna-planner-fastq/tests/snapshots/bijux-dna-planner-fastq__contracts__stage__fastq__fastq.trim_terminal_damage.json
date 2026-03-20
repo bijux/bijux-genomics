@@ -79,11 +79,10 @@
   "effective_params": {
     "damage_mode": "ancient",
     "paired_mode": "paired_end",
+    "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
     "threads": 4,
-    "transition_masking": "CT_GA_terminal_windows",
     "trim_3p_bases": 2,
-    "trim_5p_bases": 2,
-    "udg_classification_source": "config_or_inferred"
+    "trim_5p_bases": 2
   },
   "aux_images": {},
   "reason": {
