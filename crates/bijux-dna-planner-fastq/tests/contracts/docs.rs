@@ -142,3 +142,16 @@ fn ci_tool_registry_excludes_planned_fastq_tools() {
         );
     }
 }
+
+#[test]
+fn stage_mapping_documents_declared_only_infer_asvs() {
+    let doc = read_doc(
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("docs")
+            .join("STAGE_MAPPING.md"),
+    );
+    assert!(
+        doc.contains("`fastq.infer_asvs`") && doc.contains("declared-only"),
+        "STAGE_MAPPING.md must explain why fastq.infer_asvs is outside the governed runtime table",
+    );
+}
