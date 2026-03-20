@@ -413,28 +413,21 @@ where
                 } else {
                     PairedMode::SingleEnd
                 };
-                let plan = if current_qc_inputs.is_empty() {
-                    crate::tool_adapters::fastq::report_qc::plan_qc_post(
-                        tool,
-                        &current_r1,
-                        current_r2.as_deref(),
-                        &out_dir,
-                        stage_aux_images,
-                        Some(raw_r1.as_path()),
-                        raw_r2.as_deref(),
-                    )?
-                } else {
-                    crate::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
-                        tool,
-                        &current_qc_inputs,
-                        &out_dir,
-                        stage_aux_images,
-                        paired_mode,
-                        QcAggregationScope::GovernedQcArtifacts,
-                        None,
-                        None,
-                    )?
-                };
+                if current_qc_inputs.is_empty() {
+                    return Err(anyhow!(
+                        "fastq.report_qc requires governed upstream QC artifacts; add contributing QC stages before report aggregation"
+                    ));
+                }
+                let plan = crate::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
+                    tool,
+                    &current_qc_inputs,
+                    &out_dir,
+                    stage_aux_images,
+                    paired_mode,
+                    QcAggregationScope::GovernedQcArtifacts,
+                    Some(raw_r1.as_path()),
+                    raw_r2.as_deref(),
+                )?;
                 (
                     plan,
                     current_r1.clone(),
@@ -624,15 +617,27 @@ where
 }
 
 fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<ArtifactRef> {
-    match stage_id {
-        "fastq.validate_reads"
-        | "fastq.detect_adapters"
-        | "fastq.profile_read_lengths"
-        | "fastq.profile_reads"
-        | "fastq.profile_overrepresented_sequences"
-        | "fastq.deplete_rrna" => plan.io.outputs.clone(),
-        _ => Vec::new(),
+    if stage_id == STAGE_REPORT_QC.as_str() {
+        return Vec::new();
     }
+    plan.io
+        .outputs
+        .iter()
+        .filter(|artifact| is_governed_qc_artifact_role(artifact.role))
+        .cloned()
+        .collect()
+}
+
+fn is_governed_qc_artifact_role(role: bijux_dna_core::prelude::ArtifactRole) -> bool {
+    matches!(
+        role,
+        bijux_dna_core::prelude::ArtifactRole::ReportJson
+            | bijux_dna_core::prelude::ArtifactRole::MetricsJson
+            | bijux_dna_core::prelude::ArtifactRole::MetricsEnvelope
+            | bijux_dna_core::prelude::ArtifactRole::StageReport
+            | bijux_dna_core::prelude::ArtifactRole::SummaryJson
+            | bijux_dna_core::prelude::ArtifactRole::SummaryTsv
+    )
 }
 
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {

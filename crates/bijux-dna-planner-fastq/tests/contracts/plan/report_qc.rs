@@ -5,8 +5,8 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_stage_contract::PlanDecisionReason;
 use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
+use bijux_dna_stage_contract::PlanDecisionReason;
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -30,27 +30,28 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
 
 #[test]
 fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
-        &tool("multiqc"),
-        &[
-            ArtifactRef::required(
-                ArtifactId::from_static("qc_json"),
-                Path::new("profile_reads/qc.json").to_path_buf(),
-                ArtifactRole::MetricsJson,
-            ),
-            ArtifactRef::required(
-                ArtifactId::from_static("adapter_report"),
-                Path::new("detect_adapters/adapter_report.json").to_path_buf(),
-                ArtifactRole::ReportJson,
-            ),
-        ],
-        Path::new("out"),
-        BTreeMap::new(),
-        PairedMode::SingleEnd,
-        QcAggregationScope::GovernedQcArtifacts,
-        None,
-        None,
-    )?;
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
+            &tool("multiqc"),
+            &[
+                ArtifactRef::required(
+                    ArtifactId::from_static("qc_json"),
+                    Path::new("profile_reads/qc.json").to_path_buf(),
+                    ArtifactRole::MetricsJson,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("adapter_report"),
+                    Path::new("detect_adapters/adapter_report.json").to_path_buf(),
+                    ArtifactRole::ReportJson,
+                ),
+            ],
+            Path::new("out"),
+            BTreeMap::new(),
+            PairedMode::SingleEnd,
+            QcAggregationScope::GovernedQcArtifacts,
+            None,
+            None,
+        )?;
 
     assert_eq!(plan.io.inputs.len(), 2);
     assert_eq!(
@@ -79,10 +80,7 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         ],
         &[tool("seqkit_stats"), tool("multiqc")],
         &BTreeMap::new(),
-        Some(&[
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-        ]),
+        Some(&[PlanDecisionReason::default(), PlanDecisionReason::default()]),
         None,
         None,
         None,
@@ -106,5 +104,65 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         report_plan.effective_params["aggregation_scope"],
         serde_json::json!("governed_qc_artifacts")
     );
+    Ok(())
+}
+
+#[test]
+fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
+    let error = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+        &["fastq.report_qc".to_string()],
+        &[tool("multiqc")],
+        &BTreeMap::new(),
+        Some(&[PlanDecisionReason::default()]),
+        None,
+        None,
+        None,
+        false,
+        Path::new("reads_R1.fastq.gz"),
+        None,
+        None,
+        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+    )
+    .expect_err("report_qc should require governed QC artifacts");
+
+    assert!(error
+        .to_string()
+        .contains("requires governed upstream QC artifacts"));
+}
+
+#[test]
+fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()> {
+    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+        &[
+            "fastq.index_reference".to_string(),
+            "fastq.deplete_host".to_string(),
+            "fastq.report_qc".to_string(),
+        ],
+        &[tool("bowtie2_build"), tool("bowtie2"), tool("multiqc")],
+        &BTreeMap::new(),
+        Some(&[
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+            PlanDecisionReason::default(),
+        ]),
+        None,
+        None,
+        None,
+        false,
+        Path::new("reads_R1.fastq.gz"),
+        None,
+        Some(Path::new("reference.fa")),
+        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+    )?;
+
+    let report_plan = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
+        .expect("report_qc stage");
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "host_depletion_report_json"));
     Ok(())
 }
