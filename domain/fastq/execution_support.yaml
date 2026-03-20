@@ -115,6 +115,9 @@ stages:
     default_tool: "rcorrector"
     admitted_tools:
       - "rcorrector"
+      - "musket"
+      - "lighter"
+      - "bayeshammer"
   - stage_id: "fastq.extract_umis"
     execution_status: "closed"
     default_tool: "umi_tools"

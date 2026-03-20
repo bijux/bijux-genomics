@@ -28,7 +28,7 @@ fn planner_stage_selection_comes_from_domain_execution_support() {
 }
 
 #[test]
-fn correct_errors_planning_rejects_tools_outside_execution_support() {
+fn correct_errors_planning_accepts_closed_backends() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("musket"),
         tool_version: "99.99.99+fixture".to_string(),
@@ -38,6 +38,36 @@ fn correct_errors_planning_rejects_tools_outside_execution_support() {
         },
         command: CommandSpecV1 {
             template: vec!["musket".to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    };
+
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
+            &tool,
+            std::path::Path::new("reads_R1.fastq.gz"),
+            std::path::Path::new("reads_R2.fastq.gz"),
+            std::path::Path::new("out"),
+        )
+        .expect("planner must accept correction tools that are closed in domain execution support");
+    assert_eq!(plan.tool_id.as_str(), "musket");
+}
+
+#[test]
+fn correct_errors_planning_rejects_tools_outside_execution_support() {
+    let tool = ToolExecutionSpecV1 {
+        tool_id: ToolId::new("seqpurge"),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["seqpurge".to_string()],
         },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
