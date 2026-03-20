@@ -25,7 +25,7 @@ metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "clumpify.sh --version"
 help_cmd: "clumpify.sh --help"
 comparability:
-  comparable_with: ["fastuniq", "prinseq"]
+  comparable_with: ["fastuniq"]
   non_comparable_with: []
 comparability_notes: "Comparable when duplicate model and optical-duplicate handling are harmonized."
 capabilities:
