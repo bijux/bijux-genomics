@@ -284,10 +284,30 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
         &domain_tool("fastq.correct_errors", "rcorrector"),
         r1,
-        r2,
+        Some(r2),
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.correct_errors", &plan)?;
+
+    let single_end_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
+            &domain_tool("fastq.correct_errors", "rcorrector"),
+            r1,
+            None,
+            out_dir,
+        )?;
+    assert_eq!(single_end_plan.io.inputs.len(), 1);
+    assert_eq!(single_end_plan.io.outputs.len(), 1);
+    assert_eq!(
+        single_end_plan.io.outputs[0].name.as_str(),
+        "corrected_reads_r1"
+    );
+    assert_eq!(
+        single_end_plan.effective_params["paired_mode"],
+        "single_end"
+    );
+    assert!(single_end_plan.params.get("r2").is_none());
+    assert!(single_end_plan.params.get("output_r2").is_none());
 
     let preprocess_plan =
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::PreprocessPlan {
@@ -318,15 +338,16 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         )?;
     assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
-        &domain_tool("fastq.report_qc", "multiqc"),
-        r1,
-        Some(r2),
-        out_dir,
-        std::collections::BTreeMap::new(),
-        None,
-        None,
-    )?;
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
+            &domain_tool("fastq.report_qc", "multiqc"),
+            r1,
+            Some(r2),
+            out_dir,
+            std::collections::BTreeMap::new(),
+            None,
+            None,
+        )?;
     assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.report_qc", &plan)?;
 
@@ -427,11 +448,8 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         .template
         .iter()
         .any(|part| part == "out/otu_abundance.tsv"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == &bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD.to_string()));
+    assert!(plan.command.template.iter().any(|part| part
+        == &bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD.to_string()));
     assert_eq!(
         plan.io.outputs[1].role.as_str(),
         "reference",

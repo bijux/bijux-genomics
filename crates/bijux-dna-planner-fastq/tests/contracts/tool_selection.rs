@@ -54,12 +54,12 @@ fn correct_errors_planning_accepts_closed_backends() {
     };
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
-            &tool,
-            std::path::Path::new("reads_R1.fastq.gz"),
-            std::path::Path::new("reads_R2.fastq.gz"),
-            std::path::Path::new("out"),
-        )
-        .expect("planner must accept correction tools that are closed in domain execution support");
+        &tool,
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+    )
+    .expect("planner must accept correction tools that are closed in domain execution support");
     assert_eq!(plan.tool_id.as_str(), "musket");
 }
 
@@ -87,7 +87,7 @@ fn correct_errors_planning_rejects_tools_outside_execution_support() {
         bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
             &tool,
             std::path::Path::new("reads_R1.fastq.gz"),
-            std::path::Path::new("reads_R2.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
             std::path::Path::new("out"),
         )
         .is_err(),
