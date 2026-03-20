@@ -1,4 +1,4 @@
-schema_version = "bijux.bench-suite.fastq.v1"
+schema_version = "bijux.bench.suite.v1"
 suite_id = "bam_stage03_filter"
 corpus = "example-203"
 repetitions = 2

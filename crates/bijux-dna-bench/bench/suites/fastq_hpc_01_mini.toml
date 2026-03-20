@@ -1,4 +1,4 @@
-schema_version = "bijux.bench-suite.fastq.v1"
+schema_version = "bijux.bench.suite.v1"
 suite_id = "fastq_hpc_01_mini"
 corpus = "corpus-01-mini"
 repetitions = 2
@@ -11,21 +11,21 @@ cold_runs = 1
 warm_runs = 2
 
 [[stages]]
-stage = "validate_pre"
+stage = "fastq.validate_reads"
 tools = ["fastqvalidator"]
 
 [[stages]]
-stage = "trim"
+stage = "fastq.trim_reads"
 tools = ["fastp", "bbduk", "seqkit"]
 
 [[stages]]
-stage = "filter"
+stage = "fastq.filter_reads"
 tools = ["fastp", "seqkit"]
 
 [[stages]]
-stage = "stats"
+stage = "fastq.profile_reads"
 tools = ["seqkit_stats"]
 
 [[stages]]
-stage = "qc_post"
-tools = ["multiqc", "samtools"]
+stage = "fastq.report_qc"
+tools = ["multiqc"]

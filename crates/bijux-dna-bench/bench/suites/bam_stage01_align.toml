@@ -1,4 +1,4 @@
-schema_version = "bijux.bench-suite.fastq.v1"
+schema_version = "bijux.bench.suite.v1"
 suite_id = "bam_stage01_align"
 corpus = "example-201"
 repetitions = 2

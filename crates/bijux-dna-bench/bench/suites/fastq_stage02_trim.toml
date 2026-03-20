@@ -1,4 +1,4 @@
-schema_version = "bijux.bench-suite.fastq.v1"
+schema_version = "bijux.bench.suite.v1"
 suite_id = "fastq_stage02_trim"
 corpus = "example-102"
 repetitions = 2
@@ -11,5 +11,5 @@ cold_runs = 1
 warm_runs = 1
 
 [[stages]]
-stage = "trim"
+stage = "fastq.trim_reads"
 tools = ["fastp"]
