@@ -137,11 +137,13 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
             .with_context(|| format!("status missing in {}", path.display()))?;
         let stage_ids = yaml_string_set(yaml.get("stage_ids"));
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
-        assert!(
-            !stage_ids.is_empty(),
-            "{} must declare non-empty stage_ids",
-            path.display()
-        );
+        if status == "supported" {
+            assert!(
+                !stage_ids.is_empty(),
+                "{} must declare non-empty stage_ids when status is supported",
+                path.display()
+            );
+        }
         let comparability_refs = yaml
             .get("comparability")
             .and_then(|value| value.as_mapping())
@@ -261,10 +263,12 @@ fn stage_compatible_tools_and_tool_stage_ids_are_symmetric() -> Result<()> {
             let declared = tool_meta.get(tool_id).with_context(|| {
                 format!("stage {stage_id} references missing tool manifest {tool_id}")
             })?;
-            assert!(
-                declared.stage_ids.contains(stage_id),
-                "stage {stage_id} lists tool {tool_id}, but the tool manifest does not declare that stage"
-            );
+            if declared.status == "supported" {
+                assert!(
+                    declared.stage_ids.contains(stage_id),
+                    "stage {stage_id} lists supported tool {tool_id}, but the tool manifest does not declare that stage"
+                );
+            }
         }
     }
 

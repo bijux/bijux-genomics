@@ -93,7 +93,6 @@ stage_tool_compatibility:
   fastq.extract_umis:
   - umi_tools
   fastq.filter_low_complexity:
-  - dustmasker
   - prinseq
   - bbduk
   fastq.filter_reads:
@@ -113,14 +112,12 @@ stage_tool_compatibility:
   - flash2
   - leehom
   fastq.normalize_abundance:
-  - seqfu
   - seqkit
   fastq.normalize_primers:
   - cutadapt
   - seqkit
   fastq.profile_overrepresented_sequences:
   - fastqc
-  - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
   - seqkit_stats
@@ -136,7 +133,6 @@ stage_tool_compatibility:
   fastq.report_qc:
   - multiqc
   fastq.screen_taxonomy:
-  - diamond
   - kraken2
   - krakenuniq
   - centrifuge
@@ -152,7 +148,6 @@ stage_tool_compatibility:
   - adapterremoval
   - trimmomatic
   - trim_galore
-  - seqpurge
   - prinseq
   - seqkit
   - skewer
@@ -164,7 +159,6 @@ stage_tool_compatibility:
   - seqkit
   fastq.validate_reads:
   - fastqvalidator
-  - fastq_scan
   - seqtk
   - fqtools
 active_defaults:
@@ -419,18 +413,12 @@ stage_default_settings:
       profile: adna_sane_default
       notes: UMI extraction preset with barcode-pattern-aware header propagation
   fastq.filter_low_complexity:
-    dustmasker:
-      profile: adna_sane_default
-      notes: DUST-based complexity masking preset
     prinseq:
       profile: adna_sane_default
       notes: sequence-complexity filtering preset
     bbduk:
       profile: adna_sane_default
       notes: entropy and homopolymer filtering preset
-    fastp:
-      profile: adna_sane_default
-      notes: single-pass low-complexity filtering preset
   fastq.filter_reads:
     fastp:
       profile: adna_sane_default
@@ -448,18 +436,9 @@ stage_default_settings:
     star:
       profile: adna_sane_default
       notes: splice-aware reference indexing preset
-    bwa-mem2:
-      profile: adna_sane_default
-      notes: BWA-MEM2 reference indexing preset
     bowtie2_build:
       profile: adna_sane_default
       notes: Bowtie2 host-screen index preset
-    minimap2:
-      profile: adna_sane_default
-      notes: minimap2 reference sketch preset
-    hisat2-build:
-      profile: adna_sane_default
-      notes: HISAT2 reference index preset
   fastq.infer_asvs:
     dada2:
       profile: adna_sane_default
@@ -481,9 +460,6 @@ stage_default_settings:
       profile: adna_sane_default
       notes: short-fragment collapse merge preset
   fastq.normalize_abundance:
-    seqfu:
-      profile: adna_sane_default
-      notes: abundance table normalization preset
     seqkit:
       profile: adna_sane_default
       notes: deterministic table normalization helper preset
@@ -505,9 +481,6 @@ stage_default_settings:
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic read-length histogram preset
-    seqfu:
-      profile: adna_sane_default
-      notes: auxiliary read-length summary preset
     prinseq:
       profile: adna_sane_default
       notes: legacy read-length profiling preset
@@ -540,21 +513,12 @@ stage_default_settings:
     krakenuniq:
       profile: adna_sane_default
       notes: unique-kmer taxonomy preset
-    diamond:
-      profile: adna_sane_default
-      notes: protein-space screening preset
     centrifuge:
       profile: adna_sane_default
       notes: compressed-index taxonomy preset
-    metaphlan:
-      profile: adna_sane_default
-      notes: marker-gene profiling preset
     kaiju:
       profile: adna_sane_default
       notes: translated-search taxonomy preset
-    fastq_screen:
-      profile: adna_sane_default
-      notes: reference-panel origin screening preset
   fastq.trim_polyg_tails:
     fastp:
       profile: adna_sane_default
@@ -584,9 +548,6 @@ stage_default_settings:
     trim_galore:
       profile: adna_sane_default
       notes: wrapper-based trim preset
-    seqpurge:
-      profile: adna_sane_default
-      notes: paired-end purge preset
     prinseq:
       profile: adna_sane_default
       notes: read quality trimming preset

@@ -57,7 +57,6 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - fastqvalidator
-  - fastq_scan
   - seqtk
   - fqtools
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"

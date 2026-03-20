@@ -45,7 +45,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.profile_overrepresented_sequences",
   "tool_ids": [
     "fastqc",
-    "fastq_scan",
     "seqkit"
   ]
 }
