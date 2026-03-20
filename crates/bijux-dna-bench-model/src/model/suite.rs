@@ -76,6 +76,28 @@ pub struct BenchmarkStageSpec {
     pub upstream_stage_instance_ids: Vec<String>,
 }
 
+impl BenchmarkStageSpec {
+    #[must_use]
+    pub fn stage_node_id(&self) -> &str {
+        self.stage_instance_id
+            .as_deref()
+            .unwrap_or(self.stage.as_str())
+    }
+
+    #[must_use]
+    pub fn tool_node_id(&self, tool: &str) -> String {
+        format!("{}.tool.{tool}", self.stage_node_id())
+    }
+
+    #[must_use]
+    pub fn tool_node_ids(&self) -> Vec<String> {
+        self.tools
+            .iter()
+            .map(|tool| self.tool_node_id(tool))
+            .collect()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageEdge {
@@ -172,14 +194,14 @@ impl BenchmarkSuiteSpec {
 
     #[must_use]
     pub fn stage_node_ids(&self) -> Vec<&str> {
+        self.stages.iter().map(BenchmarkStageSpec::stage_node_id).collect()
+    }
+
+    #[must_use]
+    pub fn stage_tool_node_ids(&self) -> Vec<String> {
         self.stages
             .iter()
-            .map(|stage| {
-                stage
-                    .stage_instance_id
-                    .as_deref()
-                    .unwrap_or(stage.stage.as_str())
-            })
+            .flat_map(BenchmarkStageSpec::tool_node_ids)
             .collect()
     }
 

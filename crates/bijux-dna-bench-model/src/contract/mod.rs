@@ -47,6 +47,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         )));
     }
     let mut seen_stage_nodes = std::collections::BTreeSet::new();
+    let mut seen_stage_tool_nodes = std::collections::BTreeSet::new();
     let mut declared_stage_nodes = Vec::new();
     for stage in &suite.stages {
         if stage.stage.trim().is_empty() {
@@ -98,6 +99,13 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                     stage.stage, tool
                 )));
             }
+            let tool_node_id = stage.tool_node_id(tool);
+            if !seen_stage_tool_nodes.insert(tool_node_id.clone()) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite must not repeat stage-tool node {}",
+                    tool_node_id
+                )));
+            }
         }
         validate_stage_tools(&stage.stage, &stage.tools)?;
         let mut seen_params = std::collections::BTreeSet::new();
@@ -116,11 +124,22 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             }
         }
         for binding in &stage.param_bindings {
+            let binding_targets = stage
+                .tool_node_ids()
+                .into_iter()
+                .chain(std::iter::once(node_id.to_string()))
+                .collect::<std::collections::BTreeSet<_>>();
             if let Some(stage_instance_id) = binding.stage_instance_id.as_ref() {
                 if stage_instance_id.trim().is_empty() {
                     return Err(BenchError::InvalidPolicy(format!(
                         "suite stage {} must not include blank stage_instance_id in param_bindings",
                         stage.stage
+                    )));
+                }
+                if !binding_targets.contains(stage_instance_id) {
+                    return Err(BenchError::InvalidPolicy(format!(
+                        "suite stage {} param binding target {} must match the stage node or one of its stage-tool nodes",
+                        stage.stage, stage_instance_id
                     )));
                 }
             }
@@ -560,7 +579,7 @@ mod tests {
             tools: vec!["fastp".to_string()],
             params: vec!["threads=4".to_string()],
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                stage_instance_id: Some("fastq.trim_reads.tool.fastp".to_string()),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -583,7 +602,7 @@ mod tests {
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                stage_instance_id: Some("fastq.trim_reads.tool.fastp".to_string()),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -593,6 +612,29 @@ mod tests {
             upstream_stage_instance_ids: Vec::new(),
         });
         validate_suite(&suite).expect("structured param bindings should validate");
+    }
+
+    #[test]
+    fn suite_validation_rejects_param_binding_targets_outside_stage_tool_nodes() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.detect_adapters.tool.fastqc".to_string()),
+                tool: Some("fastp".to_string()),
+                values: std::collections::BTreeMap::from([(
+                    "threads".to_string(),
+                    serde_json::json!(4),
+                )]),
+            }],
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error = validate_suite(&suite).expect_err("foreign param binding targets must fail");
+        assert!(error
+            .to_string()
+            .contains("must match the stage node or one of its stage-tool nodes"));
     }
 
     #[test]
