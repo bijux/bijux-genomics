@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ae504fd9551a4974300b25774593c7a1babec003
+# source_commit: 0dd5f20b1727e35b58782eac0c217216fc33c600
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -10,7 +10,7 @@
 # last_updated = 2026-02-14
 
 [adapterremoval]
-version = "latest-pinned"
+version = "2.3.3"
 
 [addeam]
 version = "latest-pinned"
@@ -23,7 +23,7 @@ version = "0.940"
 enabled = false
 
 [atropos]
-version = "latest-pinned"
+version = "1.1.31"
 
 [authenticct]
 version = "latest-pinned"
@@ -211,7 +211,7 @@ version = "planned"
 enabled = false
 
 [skewer]
-version = "latest-pinned"
+version = "978e8e46cba4"
 
 [sortmerna]
 version = "latest-pinned"
@@ -220,10 +220,10 @@ version = "latest-pinned"
 version = "latest-pinned"
 
 [trim_galore]
-version = "latest-pinned"
+version = "0.6.10"
 
 [trimmomatic]
-version = "latest-pinned"
+version = "0.39"
 
 [umi_tools]
 version = "latest-pinned"

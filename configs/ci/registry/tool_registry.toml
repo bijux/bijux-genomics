@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ae504fd9551a4974300b25774593c7a1babec003
+# source_commit: 0dd5f20b1727e35b58782eac0c217216fc33c600
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -8,6 +8,40 @@
 # authority = bijux-dna-domain-compiler
 # stability = stable
 # last_updated = 2026-02-14
+
+[[tools]]
+id = "adapterremoval"
+tool_id = "adapterremoval"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads"]
+bindings = ["fastq.trim_reads"]
+tool_role = "trimmer"
+version = "2.3.3"
+default_version = "2.3.3"
+upstream = "https://github.com/MikkelSchubert/adapterremoval"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/MikkelSchubert/adapterremoval"
+pinned_commit = "sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "adapterremoval --version"
+help_cmd = "adapterremoval --help"
+smoke_version_cmd = "adapterremoval --version"
+smoke_help_cmd = "adapterremoval --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "adapterremoval --help"
+expected_bin = "adapterremoval"
+expected_artifacts = ["trimmed_reads", "report_json"]
+metrics_schema = "bijux.fastq.trim_reads.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
+apptainer_def = "containers/apptainer/lunarc/adapterremoval.def"
+require_labels = true
 
 [[tools]]
 id = "alientrimmer"
@@ -75,6 +109,40 @@ metrics_schema = "bijux.bam.population.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.angsd"
 apptainer_def = "containers/apptainer/lunarc/angsd.def"
+require_labels = true
+
+[[tools]]
+id = "atropos"
+tool_id = "atropos"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads"]
+bindings = ["fastq.trim_reads"]
+tool_role = "trimmer"
+version = "1.1.31"
+default_version = "1.1.31"
+upstream = "https://github.com/jdidion/atropos"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/jdidion/atropos"
+pinned_commit = "sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/atropos@sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "atropos --version"
+help_cmd = "atropos --help"
+smoke_version_cmd = "atropos --version"
+smoke_help_cmd = "atropos --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "atropos --help"
+expected_bin = "atropos"
+expected_artifacts = ["trimmed_reads", "report_json"]
+metrics_schema = "bijux.fastq.trim_reads.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.atropos"
+apptainer_def = "containers/apptainer/lunarc/atropos.def"
 require_labels = true
 
 [[tools]]
@@ -1438,6 +1506,40 @@ apptainer_def = "containers/apptainer/lunarc/seqtk.def"
 require_labels = true
 
 [[tools]]
+id = "skewer"
+tool_id = "skewer"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads"]
+bindings = ["fastq.trim_reads"]
+tool_role = "trimmer"
+version = "978e8e46cba4"
+default_version = "978e8e46cba4"
+upstream = "https://github.com/relipmoc/skewer"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/relipmoc/skewer"
+pinned_commit = "git:978e8e46cba44595ece623e5387749284a86b74b"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/skewer:978e8e46cba4"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "skewer --version"
+help_cmd = "skewer --help"
+smoke_version_cmd = "skewer --version"
+smoke_help_cmd = "skewer --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "skewer --help"
+expected_bin = "skewer"
+expected_artifacts = ["trimmed_reads", "report_json"]
+metrics_schema = "bijux.fastq.trim_reads.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.skewer"
+apptainer_def = "containers/apptainer/lunarc/skewer.def"
+require_labels = true
+
+[[tools]]
 id = "sortmerna"
 tool_id = "sortmerna"
 domain = "fastq"
@@ -1503,6 +1605,74 @@ metrics_schema = "bijux.fastq.index.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.star"
 apptainer_def = "containers/apptainer/lunarc/star.def"
+require_labels = true
+
+[[tools]]
+id = "trim_galore"
+tool_id = "trim_galore"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads"]
+bindings = ["fastq.trim_reads"]
+tool_role = "trimmer"
+version = "0.6.10"
+default_version = "0.6.10"
+upstream = "https://github.com/FelixKrueger/TrimGalore"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:https://github.com/FelixKrueger/TrimGalore"
+pinned_commit = "sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/trim_galore@sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "trim_galore --version"
+help_cmd = "trim_galore --help"
+smoke_version_cmd = "trim_galore --version"
+smoke_help_cmd = "trim_galore --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "trim_galore --help"
+expected_bin = "trim_galore"
+expected_artifacts = ["trimmed_reads", "report_json"]
+metrics_schema = "bijux.fastq.trim_reads.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
+apptainer_def = "containers/apptainer/lunarc/trim_galore.def"
+require_labels = true
+
+[[tools]]
+id = "trimmomatic"
+tool_id = "trimmomatic"
+domain = "fastq"
+domains = ["fastq"]
+status = "production"
+stage_ids = ["fastq.trim_reads"]
+bindings = ["fastq.trim_reads"]
+tool_role = "trimmer"
+version = "0.39"
+default_version = "0.39"
+upstream = "http://www.usadellab.org/cms/?page=trimmomatic"
+version_rule = "pinned"
+license = "GPL-3.0"
+citation = "upstream:http://www.usadellab.org/cms/?page=trimmomatic"
+pinned_commit = "sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4"
+pin_strategy = "pinned"
+container_ref = "bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "trimmomatic --version"
+help_cmd = "trimmomatic --help"
+smoke_version_cmd = "trimmomatic --version"
+smoke_help_cmd = "trimmomatic --help"
+expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+healthcheck_cmd = "trimmomatic --help"
+expected_bin = "trimmomatic"
+expected_artifacts = ["trimmed_reads", "report_json"]
+metrics_schema = "bijux.fastq.trim_reads.v1"
+comparability_notes = "Comparable only within same stage contract and input constraints."
+dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
+apptainer_def = "containers/apptainer/lunarc/trimmomatic.def"
 require_labels = true
 
 [[tools]]
@@ -2067,7 +2237,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["alientrimmer", "bbduk", "cutadapt", "fastx_clipper", "leehom", "seqkit"]
+optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
