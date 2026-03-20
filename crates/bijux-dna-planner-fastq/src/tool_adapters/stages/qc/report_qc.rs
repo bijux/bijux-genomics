@@ -3,8 +3,7 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
-    StageVersion,
-    ToolExecutionSpecV1,
+    StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     qc_post::{
@@ -87,6 +86,11 @@ pub fn plan_qc_post_with_qc_inputs(
     if normalize_qc_post_tool_list(std::slice::from_ref(&tool_id))?.is_empty() {
         return Err(anyhow!("unsupported report_qc tool"));
     }
+    if qc_inputs.is_empty() {
+        return Err(anyhow!(
+            "fastq.report_qc requires governed QC artifacts and cannot aggregate raw FASTQ inputs"
+        ));
+    }
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
         "qc_inputs": qc_inputs
@@ -160,10 +164,7 @@ fn qc_post_command(
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
-            let mut multiqc_inputs = qc_inputs
-                .iter()
-                .map(qc_input_scan_path)
-                .collect::<Vec<_>>();
+            let mut multiqc_inputs = qc_inputs.iter().map(qc_input_scan_path).collect::<Vec<_>>();
             multiqc_inputs.sort();
             multiqc_inputs.dedup();
             let mut command = vec![
