@@ -730,7 +730,9 @@ fn report_qc_input_artifact(
 fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
         stage if stage == STAGE_VALIDATE_READS.as_str() => &["validation_report"],
-        stage if stage == STAGE_DETECT_ADAPTERS.as_str() => &["adapter_report"],
+        stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
+            &["adapter_report", "adapter_evidence_dir"]
+        }
         stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
             &["length_distribution_tsv", "length_distribution_json"]
         }
