@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use super::{DamageMode, PairedMode};
 
+pub const TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION: &str =
+    "bijux.fastq.params.trim_terminal_damage.v1";
+pub const TRIM_POLYG_TAILS_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_polyg_tails.v1";
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct TrimEffectiveParams {
@@ -109,6 +113,87 @@ pub enum TrimToolParamsV1 {
     LeeHom(LeeHomTrimParamsV1),
     AlienTrimmer(AlienTrimmerParamsV1),
     FastxClipper(FastxClipperParamsV1),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct TrimTerminalDamageParams {
+    pub schema_version: String,
+    pub paired_mode: PairedMode,
+    pub threads: u32,
+    pub damage_mode: DamageMode,
+    pub trim_5p_bases: u32,
+    pub trim_3p_bases: u32,
+}
+
+impl TrimTerminalDamageParams {
+    #[must_use]
+    pub fn missing_required_fields(&self) -> Vec<&'static str> {
+        let mut missing = Vec::new();
+        if self.schema_version.trim().is_empty() {
+            missing.push("schema_version");
+        }
+        if self.paired_mode == PairedMode::Unknown {
+            missing.push("paired_mode");
+        }
+        if self.threads == 0 {
+            missing.push("threads");
+        }
+        missing
+    }
+
+    #[must_use]
+    pub fn retention_conditions(&self) -> serde_json::Value {
+        serde_json::json!({
+            "schema_version": self.schema_version,
+            "paired_mode": self.paired_mode,
+            "threads": self.threads,
+            "damage_mode": self.damage_mode,
+            "trim_5p_bases": self.trim_5p_bases,
+            "trim_3p_bases": self.trim_3p_bases,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct TrimPolygTailsParams {
+    pub schema_version: String,
+    pub paired_mode: PairedMode,
+    pub threads: u32,
+    pub trim_polyg: bool,
+    pub min_polyg_run: u32,
+}
+
+impl TrimPolygTailsParams {
+    #[must_use]
+    pub fn missing_required_fields(&self) -> Vec<&'static str> {
+        let mut missing = Vec::new();
+        if self.schema_version.trim().is_empty() {
+            missing.push("schema_version");
+        }
+        if self.paired_mode == PairedMode::Unknown {
+            missing.push("paired_mode");
+        }
+        if self.threads == 0 {
+            missing.push("threads");
+        }
+        if self.min_polyg_run == 0 {
+            missing.push("min_polyg_run");
+        }
+        missing
+    }
+
+    #[must_use]
+    pub fn retention_conditions(&self) -> serde_json::Value {
+        serde_json::json!({
+            "schema_version": self.schema_version,
+            "paired_mode": self.paired_mode,
+            "threads": self.threads,
+            "trim_polyg": self.trim_polyg,
+            "min_polyg_run": self.min_polyg_run,
+        })
+    }
 }
 
 impl TrimEffectiveParams {
