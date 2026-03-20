@@ -72,6 +72,19 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         "benchmark.compare_stage_tools"
     );
     assert!(compare_step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--scenario", "trim_fairness"]));
+    let trim_contract_hash = bijux_dna_domain_fastq::stage_contract_hash("fastq.trim_reads")
+        .expect("trim contract hash should be available")
+        .expect("trim contract hash should compute");
+    assert!(compare_step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--stage-contract-hash", trim_contract_hash.as_str()]));
+    assert!(compare_step
         .expected_artifact_ids
         .iter()
         .any(|artifact_id| artifact_id.as_str() == "trim_tool_comparison_json"));
