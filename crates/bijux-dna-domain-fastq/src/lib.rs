@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod domain_adapter;
+pub mod execution_support;
 pub mod id_catalog;
 pub mod invariants;
 pub mod metrics;
@@ -41,6 +42,13 @@ pub use banks::{
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
 pub use bench_repository::BenchResultsRepository;
+pub use execution_support::{
+    admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
+    closed_stage_ids as execution_closed_stage_ids,
+    declared_only_stage_ids as execution_declared_only_stage_ids,
+    default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
+    ExecutionStatus, StageExecutionSupport,
+};
 pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
@@ -66,8 +74,8 @@ pub use params::{
     StageParamDescriptor,
 };
 pub use pipeline_contract::{
-    canonical_amplicon_stage_order, canonical_stage_order, forbidden_transitions, optional_branches, FastqPipelineMode,
-    StageCriticality,
+    canonical_amplicon_stage_order, canonical_stage_order, forbidden_transitions,
+    optional_branches, FastqPipelineMode, StageCriticality,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
@@ -77,11 +85,12 @@ pub use stages::{
     stage_contract_json, HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
 pub use stages::{
-    bench_dir_name, STAGES, STAGE_NORMALIZE_ABUNDANCE, STAGE_INFER_ASVS,
-    STAGE_REMOVE_CHIMERAS, STAGE_CORRECT_ERRORS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_REMOVE_DUPLICATES,
-    STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_MERGE_PAIRS, STAGE_CLUSTER_OTUS,
-    STAGE_PREFIX, STAGE_NORMALIZE_PRIMERS, STAGE_REPORT_QC, STAGE_DEPLETE_RRNA,
-    STAGE_SCREEN_TAXONOMY, STAGE_PROFILE_READS, STAGE_TRIM_READS, STAGE_EXTRACT_UMIS, STAGE_VALIDATE_READS,
+    bench_dir_name, STAGES, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_RRNA,
+    STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS,
+    STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
+    STAGE_PREFIX, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
+    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
+    STAGE_VALIDATE_READS,
 };
 pub use stages::{
     canonical_contract_for_stage, infer_input_kind, qc_class_for_stage, FastqStage,
