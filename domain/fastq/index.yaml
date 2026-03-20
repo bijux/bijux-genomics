@@ -1080,7 +1080,7 @@ stage_output_size_estimates_mb:
     screen_report_tsv: 25.0
     classification_report_json: 5.0
   fastq.trim_polyg_tails:
-    trimmed_reads: 1900.0
+    trimmed_reads_r1: 1900.0
     report_json: 6.0
   fastq.trim_reads:
     trimmed_reads_r1: 2000.0

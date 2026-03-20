@@ -44,7 +44,6 @@ stage_ids:
   - "fastq.filter_low_complexity"
   - "fastq.trim_polyg_tails"
 expected_artifacts:
-  - "trimmed_reads"
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
   - "filtered_reads_r1"

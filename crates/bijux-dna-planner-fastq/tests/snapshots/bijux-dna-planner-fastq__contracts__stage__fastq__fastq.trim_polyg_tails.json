@@ -48,13 +48,13 @@
     ],
     "outputs": [
       {
-        "name": "trimmed_reads",
+        "name": "trimmed_reads_r1",
         "path": "out/R1.polyg.fastp.fastq.gz",
         "role": "trimmed_reads",
         "optional": false
       },
       {
-        "name": "trimmed_reads",
+        "name": "trimmed_reads_r2",
         "path": "out/R2.polyg.fastp.fastq.gz",
         "role": "trimmed_reads",
         "optional": false

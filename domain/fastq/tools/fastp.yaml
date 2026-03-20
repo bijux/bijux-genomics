@@ -47,7 +47,6 @@ stage_ids:
   - "fastq.profile_read_lengths"
   - "fastq.trim_polyg_tails"
 expected_artifacts:
-  - "trimmed_reads"
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
   - "report_json"
