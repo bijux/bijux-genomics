@@ -159,6 +159,77 @@ stage_tool_compatibility:
   - samtools
   - bedtools
   - bamtools
+stage_tool_integration:
+  bam.align:
+    bowtie2: governed_contract
+    bwa: governed_contract
+  bam.authenticity:
+    authenticct: governed_contract
+    damageprofiler: governed_contract
+    pmdtools: governed_contract
+  bam.bias_mitigation:
+    samtools: governed_contract
+  bam.complexity:
+    samtools: governed_contract
+  bam.contamination:
+    contammix: governed_contract
+    schmutzi: governed_contract
+    verifybamid2: governed_contract
+  bam.coverage:
+    mosdepth: governed_contract
+    samtools: governed_contract
+  bam.damage:
+    addeam: governed_contract
+    damageprofiler: governed_contract
+    mapdamage2: governed_contract
+    ngsbriggs: governed_contract
+    pmdtools: governed_contract
+    pydamage: governed_contract
+  bam.duplication_metrics:
+    picard: governed_contract
+    samtools: governed_contract
+  bam.endogenous_content:
+    samtools: governed_contract
+  bam.filter:
+    bamtools: governed_contract
+    bedtools: governed_contract
+    samtools: governed_contract
+  bam.gc_bias:
+    picard: governed_contract
+  bam.genotyping:
+    samtools: governed_contract
+  bam.haplogroups:
+    samtools: governed_contract
+  bam.insert_size:
+    picard: governed_contract
+  bam.kinship:
+    angsd: governed_contract
+    king: governed_contract
+  bam.length_filter:
+    picard: governed_contract
+    samtools: governed_contract
+  bam.mapping_summary:
+    samtools: governed_contract
+  bam.mapq_filter:
+    bamtools: governed_contract
+    samtools: governed_contract
+  bam.markdup:
+    picard: governed_contract
+    samtools: governed_contract
+  bam.overlap_correction:
+    bamutil: governed_contract
+  bam.qc_pre:
+    samtools: governed_contract
+  bam.recalibration:
+    samtools: governed_contract
+  bam.sex:
+    angsd: governed_contract
+    rxy: governed_contract
+    yleaf: governed_contract
+  bam.validate:
+    bamtools: governed_contract
+    bedtools: governed_contract
+    samtools: governed_contract
 active_defaults:
   bam.align: bwa
   bam.validate: samtools

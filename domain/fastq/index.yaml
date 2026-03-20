@@ -225,6 +225,100 @@ stage_tool_compatibility:
   - fastqvalidator
   - seqtk
   - fqtools
+stage_tool_integration:
+  fastq.cluster_otus:
+    vsearch: governed_contract
+  fastq.correct_errors:
+    bayeshammer: governed_contract
+    lighter: governed_contract
+    musket: governed_contract
+    rcorrector: governed_contract
+  fastq.deplete_host:
+    bowtie2: governed_contract
+  fastq.deplete_reference_contaminants:
+    bowtie2: governed_contract
+  fastq.deplete_rrna:
+    sortmerna: governed_contract
+  fastq.detect_adapters:
+    fastqc: governed_contract
+  fastq.extract_umis:
+    umi_tools: governed_contract
+  fastq.filter_low_complexity:
+    bbduk: governed_contract
+    dustmasker: planned_contract
+    prinseq: governed_contract
+  fastq.filter_reads:
+    bbduk: governed_contract
+    fastp: governed_contract
+    prinseq: governed_contract
+    seqkit: governed_contract
+  fastq.index_reference:
+    bowtie2_build: governed_contract
+    star: governed_contract
+  fastq.infer_asvs:
+    dada2: planned_contract
+  fastq.merge_pairs:
+    bbmerge: governed_contract
+    flash2: governed_contract
+    leehom: governed_contract
+    pear: governed_contract
+    vsearch: governed_contract
+  fastq.normalize_abundance:
+    seqfu: planned_contract
+    seqkit: governed_contract
+  fastq.normalize_primers:
+    cutadapt: governed_contract
+    seqkit: governed_contract
+  fastq.profile_overrepresented_sequences:
+    fastq_scan: planned_contract
+    fastqc: governed_contract
+    seqkit: governed_contract
+  fastq.profile_read_lengths:
+    fastp: governed_contract
+    prinseq: governed_contract
+    seqfu: planned_contract
+    seqkit_stats: governed_contract
+  fastq.profile_reads:
+    seqkit_stats: governed_contract
+  fastq.remove_chimeras:
+    vsearch: governed_contract
+  fastq.remove_duplicates:
+    clumpify: governed_contract
+    fastuniq: governed_contract
+  fastq.report_qc:
+    multiqc: governed_contract
+  fastq.screen_taxonomy:
+    centrifuge: governed_contract
+    diamond: planned_contract
+    kaiju: governed_contract
+    kraken2: governed_contract
+    krakenuniq: governed_contract
+  fastq.trim_polyg_tails:
+    bbduk: governed_contract
+    fastp: governed_contract
+  fastq.trim_reads:
+    adapterremoval: governed_contract
+    alientrimmer: governed_contract
+    atropos: governed_contract
+    bbduk: governed_contract
+    cutadapt: governed_contract
+    fastp: governed_contract
+    fastx_clipper: governed_contract
+    leehom: governed_contract
+    prinseq: governed_contract
+    seqkit: governed_contract
+    seqpurge: planned_contract
+    skewer: governed_contract
+    trim_galore: governed_contract
+    trimmomatic: governed_contract
+  fastq.trim_terminal_damage:
+    cutadapt: governed_contract
+    seqkit: governed_contract
+  fastq.validate_reads:
+    fastq_scan: planned_contract
+    fastqvalidator: governed_contract
+    fqtools: governed_contract
+    seqtk: governed_contract
 active_defaults:
   fastq.cluster_otus: vsearch
   fastq.index_reference: bowtie2_build
