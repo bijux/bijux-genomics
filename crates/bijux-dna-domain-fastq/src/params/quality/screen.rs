@@ -223,8 +223,14 @@ pub struct ReferenceContaminantEffectiveParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
     pub threads: u32,
+    pub reference_catalog_id: String,
     pub contaminant_reference: String,
     pub index_artifact: String,
+    pub reference_index_backend: String,
+    #[serde(default)]
+    pub reference_build_id: Option<String>,
+    #[serde(default)]
+    pub reference_digest: Option<String>,
     pub retain_unmapped_pairs: bool,
 }
 
@@ -247,6 +253,12 @@ impl ReferenceContaminantEffectiveParams {
         if self.index_artifact.trim().is_empty() {
             missing.push("index_artifact");
         }
+        if self.reference_catalog_id.trim().is_empty() {
+            missing.push("reference_catalog_id");
+        }
+        if self.reference_index_backend.trim().is_empty() {
+            missing.push("reference_index_backend");
+        }
         missing
     }
 
@@ -256,8 +268,12 @@ impl ReferenceContaminantEffectiveParams {
             "schema_version": self.schema_version,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
+            "reference_catalog_id": self.reference_catalog_id,
             "contaminant_reference": self.contaminant_reference,
             "index_artifact": self.index_artifact,
+            "reference_index_backend": self.reference_index_backend,
+            "reference_build_id": self.reference_build_id,
+            "reference_digest": self.reference_digest,
             "retain_unmapped_pairs": self.retain_unmapped_pairs,
         })
     }
