@@ -102,3 +102,16 @@ fn closed_screen_taxonomy_is_not_marked_experimental() {
         "closed FASTQ taxonomy screening must not be labeled experimental"
     );
 }
+
+#[test]
+fn semantic_stage_criticality_matches_pipeline_contract() {
+    for stage_id in bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG {
+        let stage_id = bijux_dna_core::ids::StageId::new(*stage_id);
+        assert_eq!(
+            bijux_dna_domain_fastq::stage_criticality(&stage_id),
+            bijux_dna_domain_fastq::pipeline_contract::stage_criticality(&stage_id),
+            "semantic criticality drifted from pipeline contract for {}",
+            stage_id.as_str()
+        );
+    }
+}
