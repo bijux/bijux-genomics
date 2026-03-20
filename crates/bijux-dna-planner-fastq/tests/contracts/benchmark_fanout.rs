@@ -67,7 +67,10 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.trim_reads.compare")
         .expect("benchmark fanout graph must include a comparison fan-in step");
-    assert_eq!(compare_step.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(
+        compare_step.stage_id.as_str(),
+        "benchmark.compare_stage_tools"
+    );
     assert!(compare_step
         .expected_artifact_ids
         .iter()

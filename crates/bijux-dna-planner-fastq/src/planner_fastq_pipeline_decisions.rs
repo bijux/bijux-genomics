@@ -241,7 +241,7 @@ impl FastqPlanner {
                 .collect::<Vec<_>>();
             steps.push(ExecutionStep {
                 step_id: compare_step_id,
-                stage_id: stage_id.clone(),
+                stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
                 command: CommandSpecV1 {
                     template: vec![
                         "stage-tool-compare".to_string(),
