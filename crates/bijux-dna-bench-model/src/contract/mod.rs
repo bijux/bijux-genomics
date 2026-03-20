@@ -177,6 +177,38 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             }
         }
     }
+    let mut seen_edges = std::collections::BTreeSet::new();
+    for edge in &suite.edges {
+        if edge.from.trim().is_empty() || edge.to.trim().is_empty() {
+            return Err(BenchError::InvalidPolicy(
+                "suite edges must include non-empty from/to nodes".to_string(),
+            ));
+        }
+        if edge.from == edge.to {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite edge {} -> {} must not reference itself",
+                edge.from, edge.to
+            )));
+        }
+        if !declared_stage_nodes.contains(&edge.from) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite edge references unknown source node {}",
+                edge.from
+            )));
+        }
+        if !declared_stage_nodes.contains(&edge.to) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite edge references unknown target node {}",
+                edge.to
+            )));
+        }
+        if !seen_edges.insert((edge.from.as_str(), edge.to.as_str())) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite must not repeat edge {} -> {}",
+                edge.from, edge.to
+            )));
+        }
+    }
     let mut classes = std::collections::BTreeSet::new();
     let mut layouts = std::collections::BTreeSet::new();
     for dataset in &suite.datasets {
@@ -243,7 +275,8 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
 mod tests {
     use super::validate_suite;
     use crate::{
-        AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
+        AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
+        BenchmarkSuiteSpec, DatasetSpec,
         DiversityRequirements, ReplicatePolicy, StratificationRequirement,
     };
 
@@ -415,6 +448,88 @@ mod tests {
         });
         let error = validate_suite(&suite).expect_err("unknown upstream stage must fail");
         assert!(error.to_string().contains("unknown upstream stage node"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_unknown_explicit_edge_nodes() {
+        let mut suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        suite.edges = vec![BenchmarkStageEdge {
+            from: "fastq.trim_reads.fastp".to_string(),
+            to: "missing.node".to_string(),
+        }];
+        let error = validate_suite(&suite).expect_err("unknown explicit edge target must fail");
+        assert!(error.to_string().contains("unknown target node"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_duplicate_explicit_edges() {
+        let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![
+                BenchmarkStageSpec {
+                    stage: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    tools: vec!["fastqvalidator".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+                BenchmarkStageSpec {
+                    stage: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    tools: vec!["fastp".to_string()],
+                    params: Vec::new(),
+                    param_bindings: Vec::new(),
+                    upstream_stage_instance_ids: Vec::new(),
+                },
+            ],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+        suite.edges = vec![
+            BenchmarkStageEdge {
+                from: "fastq.validate_reads.validator".to_string(),
+                to: "fastq.trim_reads.fastp".to_string(),
+            },
+            BenchmarkStageEdge {
+                from: "fastq.validate_reads.validator".to_string(),
+                to: "fastq.trim_reads.fastp".to_string(),
+            },
+        ];
+        let error = validate_suite(&suite).expect_err("duplicate explicit edges must fail");
+        assert!(error.to_string().contains("must not repeat edge"));
     }
 }
 
