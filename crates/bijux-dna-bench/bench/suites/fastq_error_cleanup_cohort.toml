@@ -39,14 +39,31 @@ stage_instance_id = "fastq.correct_errors.error_correction"
 tools = ["rcorrector", "musket", "lighter", "bayeshammer"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
+[[stages.param_bindings]]
+stage_instance_id = "fastq.correct_errors.error_correction"
+[stages.param_bindings.values]
+threads = 4
+
 [[stages]]
 stage = "fastq.filter_low_complexity"
 stage_instance_id = "fastq.filter_low_complexity.low_complexity_screen"
 tools = ["prinseq", "bbduk"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
+[[stages.param_bindings]]
+stage_instance_id = "fastq.filter_low_complexity.low_complexity_screen"
+[stages.param_bindings.values]
+entropy_threshold = 0.55
+polyx_threshold = 20
+
 [[stages]]
 stage = "fastq.remove_duplicates"
 stage_instance_id = "fastq.remove_duplicates.duplicate_collapse"
 tools = ["fastuniq", "clumpify"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.remove_duplicates.duplicate_collapse"
+[stages.param_bindings.values]
+dedup_mode = "exact"
+keep_order = true

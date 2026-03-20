@@ -39,8 +39,21 @@ stage_instance_id = "fastq.trim_terminal_damage.damage_trimming"
 tools = ["cutadapt", "seqkit"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
+[[stages.param_bindings]]
+stage_instance_id = "fastq.trim_terminal_damage.damage_trimming"
+[stages.param_bindings.values]
+damage_mode = "ancient"
+trim_5p_bases = 2
+trim_3p_bases = 2
+
 [[stages]]
 stage = "fastq.trim_polyg_tails"
 stage_instance_id = "fastq.trim_polyg_tails.polyg_cleanup"
 tools = ["fastp", "bbduk"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.trim_polyg_tails.polyg_cleanup"
+[stages.param_bindings.values]
+trim_polyg = true
+min_polyg_run = 12

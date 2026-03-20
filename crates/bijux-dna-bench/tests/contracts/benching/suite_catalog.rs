@@ -118,6 +118,33 @@ fn checked_in_suite_catalog_exercises_structured_param_bindings() -> Result<()> 
 }
 
 #[test]
+fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<()> {
+    let mut has_stage_scoped = false;
+    let mut has_tool_scoped = false;
+    for (_path, suite) in checked_in_suites()? {
+        for stage in suite.stages {
+            for binding in stage.param_bindings {
+                if binding.tool.is_some() {
+                    has_tool_scoped = true;
+                }
+                if binding.tool.is_none() && binding.stage_instance_id.is_some() {
+                    has_stage_scoped = true;
+                }
+            }
+        }
+    }
+    assert!(
+        has_stage_scoped,
+        "checked-in suites must exercise stage-scoped param_bindings"
+    );
+    assert!(
+        has_tool_scoped,
+        "checked-in suites must exercise tool-scoped param_bindings"
+    );
+    Ok(())
+}
+
+#[test]
 fn checked_in_fastq_suite_catalog_exercises_multi_tool_validation_cohorts() -> Result<()> {
     let has_multi_tool_validation_suite = checked_in_suites()?.into_iter().any(|(_path, suite)| {
         suite.stages.into_iter().any(|stage| {
