@@ -62,7 +62,6 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
         "fastq.trim_terminal_damage",
         "fastq.normalize_primers",
         "fastq.remove_chimeras",
-        "fastq.infer_asvs",
         "fastq.cluster_otus",
         "fastq.normalize_abundance",
     ] {
@@ -71,6 +70,10 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
             "planner registry missing stage {required}"
         );
     }
+    assert!(
+        !stages.contains("fastq.infer_asvs"),
+        "planner registry must not expose declared-only ASV inference",
+    );
 }
 
 #[test]
