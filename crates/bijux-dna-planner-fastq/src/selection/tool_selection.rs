@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use bijux_dna_core::ids::{StageId, ToolId};
 
-fn experimental_registry_enabled() -> bool {
+pub(crate) fn experimental_registry_enabled() -> bool {
     ["BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "BIJUX_EXPERIMENTAL_TOOLS"]
         .into_iter()
         .filter_map(|key| std::env::var(key).ok())

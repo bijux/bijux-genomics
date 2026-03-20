@@ -16,7 +16,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let mut allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
-    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
+    if !crate::selection::experimental_registry_enabled() {
         allowlist.retain(|tool| tool.as_str() == "rcorrector");
     }
     normalize_tools_with_allowlist(tools, &allowlist)
