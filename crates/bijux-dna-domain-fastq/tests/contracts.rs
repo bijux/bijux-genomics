@@ -9,6 +9,8 @@ mod mod_contracts_contract_harness_rs;
 mod mod_contracts_detect_adapters_manifest_rs;
 #[path = "contracts/domain_manifest_parity.rs"]
 mod mod_contracts_domain_manifest_parity_rs;
+#[path = "contracts/executable_tool_manifests.rs"]
+mod mod_contracts_executable_tool_manifests_rs;
 #[path = "contracts/execution_support_parity.rs"]
 mod mod_contracts_execution_support_parity_rs;
 #[path = "contracts/index_dependencies.rs"]
