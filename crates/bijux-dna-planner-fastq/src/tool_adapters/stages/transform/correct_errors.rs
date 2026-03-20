@@ -35,11 +35,12 @@ pub fn plan_correct(
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
     let report_json = out_dir.join("correct_report.json");
+    let correction_engine = correction_engine_for_tool(&tool.tool_id.0)?;
     let effective_params = FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
-        correction_engine: correction_engine_for_tool(&tool.tool_id.0)?,
+        correction_engine: correction_engine.clone(),
         quality_encoding: QualityEncoding::Phred33,
         kmer_size: None,
         max_memory_gb: None,
@@ -57,18 +58,27 @@ pub fn plan_correct(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: crate::tool_adapters::template_render::render_command_template(
-                &tool.command.template,
-                &[
-                    ("reads", Some(r1.display().to_string())),
-                    ("reads_r1", Some(r1.display().to_string())),
-                    ("reads_r2", Some(r2.display().to_string())),
-                    ("corrected_reads_r1", Some(output_r1.display().to_string())),
-                    ("corrected_reads_r2", Some(output_r2.display().to_string())),
-                    ("report_json", Some(report_json.display().to_string())),
-                    ("threads", Some(tool.resources.threads.to_string())),
-                ],
-            )?,
+            template: wrap_correction_command_with_report(
+                &tool.tool_id.0,
+                crate::tool_adapters::template_render::render_command_template(
+                    &tool.command.template,
+                    &[
+                        ("reads", Some(r1.display().to_string())),
+                        ("reads_r1", Some(r1.display().to_string())),
+                        ("reads_r2", Some(r2.display().to_string())),
+                        ("corrected_reads_r1", Some(output_r1.display().to_string())),
+                        ("corrected_reads_r2", Some(output_r2.display().to_string())),
+                        ("report_json", Some(report_json.display().to_string())),
+                        ("threads", Some(tool.resources.threads.to_string())),
+                    ],
+                )?,
+                &report_json,
+                r1,
+                r2,
+                &output_r1,
+                &output_r2,
+                &correction_engine,
+            ),
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -121,6 +131,51 @@ pub fn plan_correct(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn wrap_correction_command_with_report(
+    tool_id: &str,
+    command: Vec<String>,
+    report_json: &Path,
+    input_r1: &Path,
+    input_r2: &Path,
+    output_r1: &Path,
+    output_r2: &Path,
+    correction_engine: &CorrectionEngine,
+) -> Vec<String> {
+    let report_payload = serde_json::json!({
+        "schema_version": "bijux.fastq.correct_errors.report.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "input_r1": input_r1,
+        "input_r2": input_r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2,
+        "correction_engine": correction_engine,
+    });
+    let script = format!(
+        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
+        shell_join(&command),
+        shell_quote_str(&report_payload.to_string()),
+        shell_quote_path(report_json),
+    );
+    vec!["sh".to_string(), "-lc".to_string(), script]
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 fn correction_engine_for_tool(tool_id: &str) -> Result<CorrectionEngine> {
