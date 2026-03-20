@@ -10,9 +10,9 @@ use bijux_dna_core::ids::{
 };
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
-    correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults,
-    qc_post_defaults, screen_defaults, stats_defaults, trim_defaults, umi_defaults,
-    validate_defaults,
+    correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults, qc_post_defaults,
+    screen_defaults, stats_defaults, trim_defaults, trim_polyg_tails_defaults,
+    trim_terminal_damage_defaults, umi_defaults, validate_defaults,
 };
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
@@ -45,7 +45,9 @@ fn default_shotgun_required_stages() -> Vec<&'static str> {
             "fastq.profile_reads" => id_catalog::FASTQ_STATS_NEUTRAL,
             "fastq.profile_overrepresented_sequences" => "fastq.profile_overrepresented_sequences",
             "fastq.report_qc" => id_catalog::FASTQ_QC_POST,
-            other => panic!("unsupported default shotgun FASTQ stage in pipelines profile: {other}"),
+            other => {
+                panic!("unsupported default shotgun FASTQ stage in pipelines profile: {other}")
+            }
         })
         .collect()
 }
@@ -138,17 +140,13 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         StageId::from_static("fastq.trim_reads"),
         DefaultParams::FastqTrim(trim_defaults(paired)),
     );
-    let mut trim_polyg_defaults = trim_defaults(paired);
-    trim_polyg_defaults.polyx_policy = Some("trim".to_string());
     params.insert(
         StageId::from_static("fastq.trim_polyg_tails"),
-        DefaultParams::FastqTrim(trim_polyg_defaults),
+        DefaultParams::FastqTrimPolygTails(trim_polyg_tails_defaults(paired)),
     );
-    let mut trim_terminal_damage_defaults = trim_defaults(paired);
-    trim_terminal_damage_defaults.adapter_policy = "terminal_damage".to_string();
     params.insert(
         StageId::from_static("fastq.trim_terminal_damage"),
-        DefaultParams::FastqTrim(trim_terminal_damage_defaults),
+        DefaultParams::FastqTrimTerminalDamage(trim_terminal_damage_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.filter_reads"),
