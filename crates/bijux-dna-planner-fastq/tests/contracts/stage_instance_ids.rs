@@ -1,4 +1,6 @@
-use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId};
+use bijux_dna_core::prelude::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+};
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -26,13 +28,12 @@ fn preprocess_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Resul
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
 
-    let validate_plan =
-        bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
-            &tool("fastqvalidator"),
-            &r1,
-            None,
-            temp.path(),
-        )?;
+    let validate_plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
+        &tool("fastqvalidator"),
+        &r1,
+        None,
+        temp.path(),
+    )?;
     assert_eq!(
         validate_plan
             .stage_instance_id
@@ -41,13 +42,12 @@ fn preprocess_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Resul
         Some("fastq.validate_reads.tool.fastqvalidator")
     );
 
-    let detect_plan =
-        bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters::plan(
-            &tool("fastqc"),
-            &r1,
-            None,
-            temp.path(),
-        )?;
+    let detect_plan = bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters::plan(
+        &tool("fastqc"),
+        &r1,
+        None,
+        temp.path(),
+    )?;
     assert_eq!(
         detect_plan
             .stage_instance_id
@@ -122,15 +122,16 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
         Some("fastq.profile_reads.tool.seqkit_stats")
     );
 
-    let report_plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post(
-        &tool("multiqc"),
-        &r1,
-        None,
-        temp.path(),
-        std::collections::BTreeMap::new(),
-        None,
-        None,
-    )?;
+    let report_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_from_fastq_inputs(
+            &tool("multiqc"),
+            &r1,
+            None,
+            temp.path(),
+            std::collections::BTreeMap::new(),
+            None,
+            None,
+        )?;
     assert_eq!(
         report_plan
             .stage_instance_id
@@ -206,12 +207,11 @@ fn amplicon_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<
 
     let abundance_input = temp.path().join("otu_abundance.tsv");
     std::fs::write(&abundance_input, b"otu\tcount\nOTU_1\t1\n")?;
-    let abundance_plan =
-        bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
-            &tool("seqkit"),
-            &abundance_input,
-            temp.path(),
-        )?;
+    let abundance_plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
+        &tool("seqkit"),
+        &abundance_input,
+        temp.path(),
+    )?;
     assert_eq!(
         abundance_plan
             .stage_instance_id

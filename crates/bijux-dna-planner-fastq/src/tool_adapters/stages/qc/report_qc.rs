@@ -27,11 +27,11 @@ pub fn aux_tool_ids() -> &'static [&'static str] {
     &["fastqc"]
 }
 
-/// Build a QC reporting plan.
+/// Build a QC reporting plan from FASTQ inputs for synthetic QC aggregation helpers.
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_qc_post(
+pub fn plan_qc_post_from_fastq_inputs(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
     r2: Option<&Path>,

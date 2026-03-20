@@ -18,7 +18,9 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_qc_post_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{aux_tool_ids, plan_qc_post};
+use bijux_dna_planner_fastq::stage_api::fastq::report_qc::{
+    aux_tool_ids, plan_qc_post_from_fastq_inputs,
+};
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
@@ -53,8 +55,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_REPORT_QC.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_REPORT_QC.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_qc_post_bench(catalog, platform, runner_override, args)?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_REPORT_QC.as_str());
@@ -112,10 +114,15 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_REPORT_QC.as_str(), tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_REPORT_QC.as_str(),
+            tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_qc_post(
+        let plan = plan_qc_post_from_fastq_inputs(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
@@ -124,8 +131,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             None,
             None,
         )?;
-        let params_hash =
-            params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -146,7 +152,9 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -168,10 +176,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: STAGE_REPORT_QC.as_str().to_string(),
                 tool: tool.clone(),
-                reason: format!(
-                    "tool {tool} failed with status {}",
-                    execution.exit_code
-                ),
+                reason: format!("tool {tool} failed with status {}", execution.exit_code),
                 category: ErrorCategory::ToolError,
             });
         }
