@@ -19,7 +19,7 @@ Authority for planner-stage bindings lives in `src/tool_adapters/fastq.rs` plus 
 | fastq.remove_duplicates | fastuniq, clumpify | deduplicated FASTQ | dedup_rate |
 | fastq.deplete_host | bowtie2 | host-depleted FASTQ, host depletion report | host_fraction_removed |
 | fastq.deplete_rrna | sortmerna | rRNA-filtered FASTQ, rRNA report | rrna_fraction |
-| fastq.correct_errors | rcorrector, musket, lighter, bayeshammer | corrected FASTQ | correction_rate |
+| fastq.correct_errors | rcorrector (admitted default); musket, lighter, bayeshammer (experimental registry) | corrected FASTQ | correction_rate |
 | fastq.extract_umis | umi_tools | UMI-tagged FASTQ | umi_stats |
 | fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, kaiju | screen report, classification report | contamination_rate |
 | fastq.profile_reads | seqkit_stats | stats report | read_count, base_count |
