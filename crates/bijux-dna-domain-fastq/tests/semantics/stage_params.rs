@@ -2,7 +2,10 @@ use bijux_dna_domain_fastq::params::correct::{
     CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
-use bijux_dna_domain_fastq::params::defaults::{correct_defaults, stats_defaults, umi_defaults};
+use bijux_dna_domain_fastq::params::defaults::{
+    correct_defaults, stats_defaults, trim_polyg_tails_defaults,
+    trim_terminal_damage_defaults, umi_defaults,
+};
 use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
@@ -24,6 +27,10 @@ use bijux_dna_domain_fastq::params::screen::{
     RRNA_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::trim::{
+    TrimPolygTailsParams, TrimTerminalDamageParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
+    TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::PairedMode;
 
@@ -68,6 +75,29 @@ fn detect_adapters_params_roundtrip_and_remain_inspection_only() {
     assert_eq!(decoded.schema_version, DETECT_ADAPTERS_SCHEMA_VERSION);
     assert_eq!(decoded.inspection_mode, AdapterInspectionMode::EvidenceOnly);
     assert!(decoded.report_only);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
+    let params = trim_terminal_damage_defaults(true);
+    let decoded: TrimTerminalDamageParams = roundtrip(&params);
+    assert_eq!(
+        decoded.schema_version,
+        TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION
+    );
+    assert_eq!(decoded.trim_5p_bases, 2);
+    assert_eq!(decoded.trim_3p_bases, 2);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn trim_polyg_tails_params_roundtrip_with_stage_specific_schema() {
+    let params = trim_polyg_tails_defaults(true);
+    let decoded: TrimPolygTailsParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, TRIM_POLYG_TAILS_SCHEMA_VERSION);
+    assert!(decoded.trim_polyg);
+    assert_eq!(decoded.min_polyg_run, 10);
     assert!(decoded.missing_required_fields().is_empty());
 }
 

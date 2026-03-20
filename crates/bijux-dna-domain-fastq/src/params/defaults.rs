@@ -1,12 +1,12 @@
-use super::correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION};
+use super::correct::{
+    CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
+};
 use super::detect_adapters::{
     AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
     DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
 use super::filter::FilterEffectiveParams;
-use super::merge::{
-    MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION,
-};
+use super::merge::{MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION};
 use super::preprocess::LibraryDamageTreatment;
 use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::{
@@ -17,7 +17,10 @@ use super::screen::{
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
-use super::trim::TrimEffectiveParams;
+use super::trim::{
+    TrimEffectiveParams, TrimPolygTailsParams, TrimTerminalDamageParams,
+    TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+};
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use super::validate::ValidateEffectiveParams;
 use super::PairedMode;
@@ -102,6 +105,29 @@ pub fn trim_defaults(paired: bool) -> TrimEffectiveParams {
         polyx_policy: None,
         n_policy: None,
         contaminant_policy: None,
+    }
+}
+
+#[must_use]
+pub fn trim_terminal_damage_defaults(paired: bool) -> TrimTerminalDamageParams {
+    TrimTerminalDamageParams {
+        schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+        damage_mode: super::DamageMode::Ancient,
+        trim_5p_bases: 2,
+        trim_3p_bases: 2,
+    }
+}
+
+#[must_use]
+pub fn trim_polyg_tails_defaults(paired: bool) -> TrimPolygTailsParams {
+    TrimPolygTailsParams {
+        schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+        trim_polyg: true,
+        min_polyg_run: 10,
     }
 }
 
