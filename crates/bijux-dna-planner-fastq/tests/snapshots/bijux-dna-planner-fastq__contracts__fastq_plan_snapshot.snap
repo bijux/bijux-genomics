@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 107
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -10,8 +11,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "deterministic_scheduler": true,
   "edges": [
     {
-      "from": "fastq.validate_reads",
-      "to": "fastq.trim_reads"
+      "from": "fastq.validate_reads.tool.fastqvalidator",
+      "to": "fastq.trim_reads.tool.fastp"
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
@@ -82,7 +83,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.trim_reads",
-      "step_id": "fastq.trim_reads"
+      "step_id": "fastq.trim_reads.tool.fastp"
     },
     {
       "aux_images": {},
@@ -127,7 +128,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "tmp_gb": 1
       },
       "stage_id": "fastq.validate_reads",
-      "step_id": "fastq.validate_reads"
+      "step_id": "fastq.validate_reads.tool.fastqvalidator"
     }
   ]
 }

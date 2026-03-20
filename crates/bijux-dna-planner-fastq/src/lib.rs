@@ -16,7 +16,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{
     assess_merge_suitability, canonical_amplicon_stage_order, canonical_stage_order,
-    pipeline_contract, StageCriticality,
+    default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
 };
 use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_HOST},
@@ -51,14 +51,8 @@ pub use selection::args;
 pub mod stage_api;
 
 fn required_id_catalog() -> Vec<String> {
-    canonical_stage_order()
+    default_shotgun_preprocess_stage_order()
         .into_iter()
-        .filter(|stage| {
-            matches!(
-                pipeline_contract::stage_criticality(stage),
-                Some(StageCriticality::Essential)
-            )
-        })
         .map(|stage| stage.as_str().to_string())
         .collect()
 }
@@ -102,13 +96,16 @@ impl Default for DefaultPipelineOptions {
 
 #[must_use]
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
-    let mut stages = if options.mode == FastqPipelineMode::Amplicon {
-        canonical_amplicon_stage_order()
+    let mut stages: Vec<String> = if options.mode == FastqPipelineMode::Amplicon {
+        default_amplicon_preprocess_stage_order()
             .into_iter()
             .map(|stage| stage.as_str().to_string())
             .collect()
     } else {
-        required_id_catalog()
+        default_shotgun_preprocess_stage_order()
+            .into_iter()
+            .map(|stage| stage.as_str().to_string())
+            .collect()
     };
     if options.paired && options.enable_correct {
         stages.push(STAGE_CORRECT_ERRORS.as_str().to_string());
