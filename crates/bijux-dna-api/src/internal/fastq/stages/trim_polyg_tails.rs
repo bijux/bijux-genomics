@@ -5,6 +5,7 @@ use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_polyg_v1, insert_fastq_trim_polyg_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimPolygMetrics};
+use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -30,12 +31,21 @@ use crate::internal::handlers::fastq::{
 
 fn normalize_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
-        return vec!["fastp".to_string(), "bbduk".to_string()];
+        return admitted_stage_tools();
     }
     if raw.len() == 1 && raw[0] == "all" {
-        return vec!["fastp".to_string(), "bbduk".to_string()];
+        return admitted_stage_tools();
     }
     raw.to_vec()
+}
+
+fn admitted_stage_tools() -> Vec<String> {
+    bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&StageId::new(
+        STAGE_TRIM_POLYG_TAILS.as_str(),
+    ))
+    .into_iter()
+    .map(|tool_id| tool_id.to_string())
+    .collect()
 }
 
 /// # Errors
@@ -310,5 +320,18 @@ fn combine_seqkit_metrics(
         bases: total_bases,
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{admitted_stage_tools, normalize_tools};
+
+    #[test]
+    fn normalize_tools_uses_execution_support_for_auto_and_all() {
+        let expected = admitted_stage_tools();
+        assert_eq!(normalize_tools(&[]), expected);
+        assert_eq!(normalize_tools(&["auto".to_string()]), expected);
+        assert_eq!(normalize_tools(&["all".to_string()]), expected);
     }
 }
