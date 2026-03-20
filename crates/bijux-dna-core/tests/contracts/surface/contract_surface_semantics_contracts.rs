@@ -170,9 +170,22 @@ fn metric_id_as_str_roundtrip_covers_all_variants() {
 #[test]
 fn execution_graph_getters_and_edge_accessors_are_stable() {
     let policy = PlanPolicy::default();
-    let edge = ExecutionEdge::new(StepId::new("a"), StepId::new("b"));
+    let edge = ExecutionEdge::with_artifact_binding(
+        StepId::new("a"),
+        StepId::new("b"),
+        ArtifactId::new("out"),
+        ArtifactId::new("in"),
+    );
     assert_eq!(edge.from().as_str(), "a");
     assert_eq!(edge.to().as_str(), "b");
+    assert_eq!(
+        edge.from_output_id().map(|artifact| artifact.as_str()),
+        Some("out")
+    );
+    assert_eq!(
+        edge.to_input_id().map(|artifact| artifact.as_str()),
+        Some("in")
+    );
 
     let graph = ExecutionGraph::new(
         "fastq-to-fastq__default__v1",
@@ -195,5 +208,17 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
     assert_eq!(graph.edges().len(), 1);
     assert_eq!(graph.edges()[0].from().as_str(), "a");
     assert_eq!(graph.edges()[0].to().as_str(), "b");
+    assert_eq!(
+        graph.edges()[0]
+            .from_output_id()
+            .map(|artifact| artifact.as_str()),
+        Some("out")
+    );
+    assert_eq!(
+        graph.edges()[0]
+            .to_input_id()
+            .map(|artifact| artifact.as_str()),
+        Some("in")
+    );
     assert!(graph.retry_policy().max_attempts >= 1);
 }
