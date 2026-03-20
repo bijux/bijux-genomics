@@ -40,6 +40,56 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             suite.diversity.min_dataset_count
         )));
     }
+    let mut seen_stages = std::collections::BTreeSet::new();
+    for stage in &suite.stages {
+        if stage.stage.trim().is_empty() {
+            return Err(BenchError::InvalidPolicy(
+                "suite stages must include non-empty stage ids".to_string(),
+            ));
+        }
+        if !seen_stages.insert(stage.stage.as_str()) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite must not repeat stage {}",
+                stage.stage
+            )));
+        }
+        if stage.tools.is_empty() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} must include at least one tool",
+                stage.stage
+            )));
+        }
+        let mut seen_tools = std::collections::BTreeSet::new();
+        for tool in &stage.tools {
+            if tool.trim().is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not include blank tool ids",
+                    stage.stage
+                )));
+            }
+            if !seen_tools.insert(tool.as_str()) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not repeat tool {}",
+                    stage.stage, tool
+                )));
+            }
+        }
+        let mut seen_params = std::collections::BTreeSet::new();
+        for params in &stage.params {
+            if params.trim().is_empty() {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not include blank params entries",
+                    stage.stage
+                )));
+            }
+            if !seen_params.insert(params.as_str()) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite stage {} must not repeat params entry {}",
+                    stage.stage, params
+                )));
+            }
+        }
+    }
     let mut classes = std::collections::BTreeSet::new();
     let mut layouts = std::collections::BTreeSet::new();
     for dataset in &suite.datasets {
@@ -100,6 +150,71 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_suite;
+    use crate::{
+        AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
+        DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+    };
+
+    fn suite_with_stage(stage: BenchmarkStageSpec) -> BenchmarkSuiteSpec {
+        BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![stage],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        )
+    }
+
+    #[test]
+    fn suite_validation_rejects_duplicate_stage_tools() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            tools: vec!["fastp".to_string(), "fastp".to_string()],
+            params: Vec::new(),
+        });
+        let error = validate_suite(&suite).expect_err("duplicate tools must fail");
+        assert!(error.to_string().contains("must not repeat tool"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_blank_stage_params() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            tools: vec!["fastp".to_string()],
+            params: vec!["".to_string()],
+        });
+        let error = validate_suite(&suite).expect_err("blank params must fail");
+        assert!(error.to_string().contains("blank params entries"));
+    }
 }
 
 /// # Errors
