@@ -4,12 +4,13 @@ use std::path::PathBuf;
 
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StageId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_planner_fastq::{
     apply_tool_overrides, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs, FastqPlanConfig, FastqPlanner,
 };
+use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 
 fn snapshot_settings() -> insta::Settings {
     let mut settings = insta::Settings::clone_current();
@@ -20,6 +21,29 @@ fn snapshot_settings() -> insta::Settings {
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-planner-fastq__{group}__{name}")
+}
+
+fn default_stage_tool(stage: &str) -> ToolExecutionSpecV1 {
+    let stage_id = StageId::new(stage);
+    let tool_id = default_tool_for_stage(&stage_id)
+        .map_or_else(|| "echo".to_string(), |tool| tool.to_string());
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new(tool_id),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test".to_string(),
+            digest: Some("sha256:plan".to_string()),
+        },
+        command: CommandSpecV1 {
+            template: vec!["echo".to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
 }
 
 #[test]
@@ -102,44 +126,11 @@ fn tool_override_precedence_is_stable() {
 #[test]
 fn default_pipeline_plan_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
-    let stages = [
-        "fastq.validate_reads",
-        "fastq.detect_adapters",
-        "fastq.trim_reads",
-        "fastq.filter_reads",
-        "fastq.profile_reads",
-        "fastq.report_qc",
-    ];
-    let tool_id_for_stage = |stage: &str| -> &'static str {
-        match stage {
-            "fastq.validate_reads" => "fastqvalidator",
-            "fastq.detect_adapters" => "fastqc",
-            "fastq.trim_reads" => "fastp",
-            "fastq.filter_reads" => "fastp",
-            "fastq.profile_reads" => "seqkit_stats",
-            "fastq.report_qc" => "multiqc",
-            _ => "echo",
-        }
-    };
+    let stages = bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default())
+        .stages;
     let tools: Vec<ToolExecutionSpecV1> = stages
         .iter()
-        .map(|stage| ToolExecutionSpecV1 {
-            tool_id: ToolId::new(tool_id_for_stage(stage)),
-            tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test".to_string(),
-                digest: Some("sha256:plan".to_string()),
-            },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        })
+        .map(|stage| default_stage_tool(stage))
         .collect();
     let inputs = FastqPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,

@@ -113,3 +113,38 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "planner default amplicon order drifted from domain canonical order"
     );
 }
+
+#[test]
+fn single_end_default_pipeline_uses_contract_essentials_only() {
+    let spec = default_pipeline_spec(DefaultPipelineOptions::default());
+
+    assert!(
+        !spec.stages.iter().any(|stage| stage == "fastq.merge_pairs"),
+        "single-end default pipeline must not schedule paired merge"
+    );
+    assert!(
+        !spec.stages.iter().any(|stage| stage == "fastq.correct_errors"),
+        "single-end default pipeline must not schedule paired correction"
+    );
+    assert!(
+        !spec.stages.iter().any(|stage| stage == "fastq.extract_umis"),
+        "single-end default pipeline must not schedule paired UMI extraction"
+    );
+
+    let expected = vec![
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.detect_adapters",
+        "fastq.trim_polyg_tails",
+        "fastq.trim_terminal_damage",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.profile_overrepresented_sequences",
+        "fastq.report_qc",
+    ];
+    assert_eq!(
+        spec.stages, expected,
+        "single-end default pipeline must come from FASTQ pipeline-contract essentials"
+    );
+}
