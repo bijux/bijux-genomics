@@ -33,6 +33,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    let report_path = out_dir.join("validation.json");
     let effective_params = ValidateEffectiveParams {
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
@@ -54,7 +55,7 @@ pub fn plan(
             ArtifactRole::Reads,
         ));
     }
-    let command_template = validation_command(&tool.tool_id.0, r1, r2)?;
+    let command_template = validation_command(&tool.tool_id.0, r1, r2, &report_path, out_dir)?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -73,7 +74,7 @@ pub fn plan(
             inputs,
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("validation_report"),
-                out_dir.join("validation.json"),
+                report_path.clone(),
                 ArtifactRole::ReportJson,
             )],
         },
@@ -83,7 +84,7 @@ pub fn plan(
             "input_r1": r1,
             "input_r2": r2,
             "out_dir": out_dir,
-            "report_json": out_dir.join("validation.json"),
+            "report_json": report_path,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -113,22 +114,57 @@ pub fn plan_from_config(
     plan(tool, &config.r1, config.r2.as_deref(), &config.out_dir)
 }
 
-fn validation_command(tool_id: &str, r1: &Path, r2: Option<&Path>) -> Result<Vec<String>> {
-    let single_command = |reads: &Path| -> Result<String> {
+fn validation_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    report_path: &Path,
+    out_dir: &Path,
+) -> Result<Vec<String>> {
+    let single_command = |reads: &Path, log_path: &Path| -> Result<String> {
         let quoted_reads = shell_quote(reads);
         let command = match tool_id {
-            "fastqvalidator" => format!("fastqvalidator --file {quoted_reads}"),
-            "seqtk" => format!("seqtk seq {quoted_reads}"),
-            "fqtools" => format!("fqtools validate {quoted_reads}"),
+            "fastqvalidator" => format!(
+                "fastqvalidator --file {quoted_reads} > {} 2>&1",
+                shell_quote(log_path)
+            ),
+            "seqtk" => format!("seqtk seq {quoted_reads} > {} 2>&1", shell_quote(log_path)),
+            "fqtools" => format!(
+                "fqtools validate {quoted_reads} > {} 2>&1",
+                shell_quote(log_path)
+            ),
             _ => return Err(anyhow!("unsupported validation tool: {tool_id}")),
         };
         Ok(command)
     };
 
-    let mut commands = vec![single_command(r1)?];
+    let r1_log = out_dir.join("validation_r1.log");
+    let mut commands = vec![single_command(r1, &r1_log)?];
+    let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
-        commands.push(single_command(r2)?);
+        commands.push(single_command(
+            r2,
+            r2_log
+                .as_deref()
+                .ok_or_else(|| anyhow!("paired validation log path missing"))?,
+        )?);
     }
+    let report_payload = serde_json::json!({
+        "schema_version": "bijux.fastq.validate.report.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "validation_log_r1": r1_log,
+        "validation_log_r2": r2_log,
+        "validated_inputs": if r2.is_some() { 2 } else { 1 },
+        "strict_pass": true,
+    });
+    commands.push(format!(
+        "printf '%s\\n' {} > {}",
+        shell_quote_str(&report_payload.to_string()),
+        shell_quote(report_path),
+    ));
     Ok(vec![
         "sh".to_string(),
         "-lc".to_string(),
@@ -137,7 +173,11 @@ fn validation_command(tool_id: &str, r1: &Path, r2: Option<&Path>) -> Result<Vec
 }
 
 fn shell_quote(path: &Path) -> String {
-    format!("'{}'", path.display().to_string().replace('\'', "'\"'\"'"))
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 fn normalize_tools_with_allowlist(
@@ -208,6 +248,29 @@ mod tests {
         assert_eq!(plan.command.template[1], "-lc");
         assert!(plan.command.template[2].contains("reads_R1.fastq.gz"));
         assert!(plan.command.template[2].contains("reads_R2.fastq.gz"));
+        assert!(plan.command.template[2].contains("validation_r1.log"));
+        assert!(plan.command.template[2].contains("validation_r2.log"));
+        assert!(plan.command.template[2].contains("\"validated_inputs\":2"));
+        assert_eq!(plan.params["report_json"], serde_json::json!("out/validation.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn plan_writes_governed_validation_report_for_seqtk() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("seqtk"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+        )?;
+
+        assert_eq!(plan.command.template[0], "sh");
+        assert_eq!(plan.command.template[1], "-lc");
+        let script = &plan.command.template[2];
+        assert!(script.contains("seqtk seq 'reads.fastq.gz' > 'out/validation_r1.log' 2>&1"));
+        assert!(script.contains("out/validation.json"));
+        assert!(script.contains("\"tool_id\":\"seqtk\""));
+        assert!(script.contains("\"validated_inputs\":1"));
         Ok(())
     }
 }
