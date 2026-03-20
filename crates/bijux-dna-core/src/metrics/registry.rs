@@ -102,11 +102,6 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
-        stage_id: "fastq.infer_asvs",
-        schema: "fastq_infer_asvs_v1",
-        version: 1,
-    },
-    MetricsSchemaId {
         stage_id: "fastq.normalize_abundance",
         schema: "fastq_normalize_abundance_v1",
         version: 1,

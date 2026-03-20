@@ -10,3 +10,11 @@ fn metrics_registry_resolves_all_fastq_schemas() {
         assert_eq!(resolved.version, schema.version);
     }
 }
+
+#[test]
+fn metrics_registry_omits_declared_only_fastq_stages() {
+    assert!(
+        metrics_schema_for_stage("fastq.infer_asvs").is_none(),
+        "declared-only FASTQ stages must not advertise governed metrics schemas"
+    );
+}
