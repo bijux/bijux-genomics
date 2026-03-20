@@ -52,6 +52,21 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
         bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
     );
 
+    let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
+    let seqkit_profile = bijux_dna_planner_fastq::stage_api::benchmark_profile_for_stage_tool(
+        &overrepresented_stage,
+        &ToolId::from_static("seqkit"),
+    )
+    .expect("seqkit profile");
+    assert_eq!(
+        seqkit_profile.runtime_interpretation,
+        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::GenericEnvelope
+    );
+    assert_eq!(
+        seqkit_profile.readiness,
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
+    );
+
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let profiles = bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&screen_stage);
     assert!(

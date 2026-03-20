@@ -50,7 +50,10 @@ impl StagePlugin for FastqStagePlugin {
             .map(|output| output.path.clone())
             .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
-        let interpretation_level = crate::runtime_interpretation_for_stage(&plan.stage_id)
+        let interpretation_level = crate::runtime_interpretation_for_stage_tool(
+            &plan.stage_id,
+            &plan.tool_id,
+        )
             .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
         let observer_covered =
             interpretation_level == crate::RuntimeInterpretationLevel::ObserverSpecialized;
