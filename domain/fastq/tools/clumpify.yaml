@@ -1,5 +1,42 @@
-schema_version: "bijux.tool.v2"
+schema_version: "bijux.tool.v1"
 tool_id: "clumpify"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+capabilities:
+  - "SE"
+  - "PE"
+container:
+  image: "bijuxdna/clumpify"
+  digest: "sha256:pending"
+command_template:
+  - "sh"
+  - "-lc"
+  - "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' in2='{{reads_r2}}' out='{{dedup_reads_r1}}' out2='{{dedup_reads_r2}}' dedupe=t > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n"
+outputs:
+  - name: "dedup_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "dedup_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+metrics_parser: "deduplicate_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 8
+  tmp_gb: 4
+  threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "dedup_reads_r1"
+    - "dedup_reads_r2"
+    - "report_json"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 upstream: "https://jgi.doe.gov/data-and-tools/software-tools/bbtools/"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
@@ -16,9 +53,7 @@ stage_contracts:
       - "dedup_reads_r1"
       - "dedup_reads_r2"
       - "report_json"
-    notes: "Duplicate-removal execution emits governed deduplicated reads and the normalized duplicate report."
-status: "supported"
-scope: "pre_hpc_pre_vcf"
+    notes: "Clumpify duplicate removal emits governed deduplicated reads and the normalized duplicate report."
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
@@ -28,6 +63,3 @@ comparability:
   comparable_with: ["fastuniq"]
   non_comparable_with: []
 comparability_notes: "Comparable when duplicate model and optical-duplicate handling are harmonized."
-capabilities:
-  - SE
-  - PE
