@@ -728,35 +728,7 @@ fn report_qc_input_artifact(
 }
 
 fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
-    match stage_id {
-        stage if stage == STAGE_VALIDATE_READS.as_str() => &["validation_report"],
-        stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
-            &["adapter_report", "adapter_evidence_dir"]
-        }
-        stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
-            &["length_distribution_tsv", "length_distribution_json"]
-        }
-        stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => &[
-            "overrepresented_sequences_tsv",
-            "overrepresented_sequences_json",
-        ],
-        stage if stage == STAGE_PROFILE_READS.as_str() => &["qc_json", "qc_tsv", "qc_plots_dir"],
-        stage if stage == STAGE_DEPLETE_RRNA.as_str() => &["rrna_report_tsv", "rrna_report_json"],
-        stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
-            &["screen_report_tsv", "classification_report_json"]
-        }
-        stage if stage == STAGE_MERGE_PAIRS.as_str() => &["report_json"],
-        stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => &["report_json"],
-        stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => &["filter_report_json"],
-        stage if stage == STAGE_DEPLETE_HOST.as_str() => &["host_depletion_report_json"],
-        stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
-            &["contaminant_screen_report_json"]
-        }
-        stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => &["report_json"],
-        stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => &["report_json"],
-        stage if stage == STAGE_EXTRACT_UMIS.as_str() => &["report_json"],
-        _ => &[],
-    }
+    crate::qc_contract::governed_qc_output_ids_for_stage(stage_id)
 }
 
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
