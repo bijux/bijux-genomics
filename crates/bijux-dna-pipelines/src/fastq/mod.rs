@@ -11,10 +11,9 @@ use bijux_dna_core::ids::{
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
     correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults,
-    preprocess_defaults, qc_post_defaults, screen_defaults, stats_defaults, trim_defaults,
-    umi_defaults, validate_defaults,
+    qc_post_defaults, screen_defaults, stats_defaults, trim_defaults, umi_defaults,
+    validate_defaults,
 };
-use bijux_dna_domain_fastq::params::preprocess::LibraryDamageTreatment;
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
 use crate::{
@@ -26,6 +25,25 @@ pub use invariants::{
     validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
 
+const ESSENTIAL_SHOTGUN_STAGES: &[&str] = &[
+    id_catalog::FASTQ_VALIDATE_PRE,
+    "fastq.profile_read_lengths",
+    id_catalog::FASTQ_DETECT_ADAPTERS,
+    "fastq.trim_polyg_tails",
+    "fastq.trim_terminal_damage",
+    id_catalog::FASTQ_TRIM,
+    id_catalog::FASTQ_FILTER,
+    id_catalog::FASTQ_STATS_NEUTRAL,
+    "fastq.profile_overrepresented_sequences",
+    id_catalog::FASTQ_QC_POST,
+];
+
+fn append_stage_once(stages: &mut Vec<&'static str>, stage_id: &'static str) {
+    if !stages.contains(&stage_id) {
+        stages.push(stage_id);
+    }
+}
+
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     let tools = BTreeMap::from([
         (
@@ -34,6 +52,10 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         ),
         (
             StageId::from_static("fastq.profile_reads"),
+            ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
+        ),
+        (
+            StageId::from_static("fastq.profile_read_lengths"),
             ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
         ),
         (
@@ -53,20 +75,28 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             ToolId::from_static(id_catalog::TOOL_FASTP),
         ),
         (
+            StageId::from_static("fastq.trim_polyg_tails"),
+            ToolId::from_static(id_catalog::TOOL_FASTP),
+        ),
+        (
+            StageId::from_static("fastq.trim_terminal_damage"),
+            ToolId::from_static("cutadapt"),
+        ),
+        (
             StageId::from_static("fastq.filter_reads"),
-            ToolId::from_static(id_catalog::TOOL_SEQKIT),
+            ToolId::from_static(id_catalog::TOOL_FASTP),
+        ),
+        (
+            StageId::from_static("fastq.profile_overrepresented_sequences"),
+            ToolId::from_static(id_catalog::TOOL_FASTQC),
         ),
         (
             StageId::from_static("fastq.report_qc"),
             ToolId::from_static(id_catalog::TOOL_MULTIQC),
         ),
         (
-            StageId::from_static("fastq.preprocess"),
-            ToolId::from_static(id_catalog::TOOL_PLANNER),
-        ),
-        (
             StageId::from_static("fastq.merge_pairs"),
-            ToolId::from_static(id_catalog::TOOL_VSEARCH),
+            ToolId::from_static("pear"),
         ),
         (
             StageId::from_static("fastq.screen_taxonomy"),
@@ -80,6 +110,10 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     );
     params.insert(
         StageId::from_static("fastq.profile_reads"),
+        DefaultParams::FastqStats(stats_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.profile_read_lengths"),
         DefaultParams::FastqStats(stats_defaults(paired)),
     );
     params.insert(
@@ -98,17 +132,29 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         StageId::from_static("fastq.trim_reads"),
         DefaultParams::FastqTrim(trim_defaults(paired)),
     );
+    let mut trim_polyg_defaults = trim_defaults(paired);
+    trim_polyg_defaults.polyx_policy = Some("trim".to_string());
+    params.insert(
+        StageId::from_static("fastq.trim_polyg_tails"),
+        DefaultParams::FastqTrim(trim_polyg_defaults),
+    );
+    let mut trim_terminal_damage_defaults = trim_defaults(paired);
+    trim_terminal_damage_defaults.adapter_policy = "terminal_damage".to_string();
+    params.insert(
+        StageId::from_static("fastq.trim_terminal_damage"),
+        DefaultParams::FastqTrim(trim_terminal_damage_defaults),
+    );
     params.insert(
         StageId::from_static("fastq.filter_reads"),
         DefaultParams::FastqFilter(filter_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.report_qc"),
-        DefaultParams::FastqQcPost(qc_post_defaults(paired)),
+        StageId::from_static("fastq.profile_overrepresented_sequences"),
+        DefaultParams::FastqStats(stats_defaults(paired)),
     );
     params.insert(
-        StageId::from_static("fastq.preprocess"),
-        DefaultParams::FastqPreprocess(preprocess_defaults(paired)),
+        StageId::from_static("fastq.report_qc"),
+        DefaultParams::FastqQcPost(qc_post_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.merge_pairs"),
@@ -188,20 +234,6 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         );
     }
 
-    if let Some(DefaultParams::FastqPreprocess(mut params)) = defaults
-        .params
-        .get(&StageId::from_static("fastq.preprocess"))
-        .cloned()
-    {
-        params.paired_mode = PairedMode::PairedEnd;
-        params.library_declared_paired = true;
-        params.library_damage_treatment = LibraryDamageTreatment::NoUdg;
-        defaults.params.insert(
-            StageId::from_static("fastq.preprocess"),
-            DefaultParams::FastqPreprocess(params),
-        );
-    }
-
     if let Some(DefaultParams::FastqMerge(mut params)) = defaults
         .params
         .get(&StageId::from_static("fastq.merge_pairs"))
@@ -213,6 +245,19 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         defaults.params.insert(
             StageId::from_static("fastq.merge_pairs"),
             DefaultParams::FastqMerge(params),
+        );
+    }
+
+    if let Some(DefaultParams::FastqTrim(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.trim_terminal_damage"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.damage_mode = Some(DamageMode::Ancient);
+        defaults.params.insert(
+            StageId::from_static("fastq.trim_terminal_damage"),
+            DefaultParams::FastqTrim(params),
         );
     }
 
@@ -295,6 +340,7 @@ fn reference_adna_fastq_defaults() -> EffectiveDefaults {
 
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
+    let required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_MINIMAL),
         description: "Minimal FASTQ pipeline",
@@ -320,14 +366,7 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
             report_sections: vec!["fastq"],
             required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
-            required_stages: vec![
-                "fastq.validate_reads",
-                "fastq.detect_adapters",
-                "fastq.trim_reads",
-                "fastq.filter_reads",
-                "fastq.profile_reads",
-                "fastq.report_qc",
-            ],
+            required_stages,
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec![
                 "report.json",
@@ -342,14 +381,7 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn fastq_default_profile() -> PipelineProfile {
-    let required_stages = vec![
-        "fastq.validate_reads",
-        "fastq.detect_adapters",
-        "fastq.trim_reads",
-        "fastq.filter_reads",
-        "fastq.profile_reads",
-        "fastq.report_qc",
-    ];
+    let required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_DEFAULT),
         description: "Default FASTQ pipeline",
@@ -391,6 +423,8 @@ pub fn fastq_default_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
     let defaults = adna_fastq_defaults();
+    let mut required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    append_stage_once(&mut required_stages, id_catalog::FASTQ_MERGE);
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),
         description: "aDNA-oriented FASTQ pipeline defaults",
@@ -416,15 +450,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
             report_sections: vec!["fastq"],
             required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
-            required_stages: vec![
-                "fastq.validate_reads",
-                "fastq.detect_adapters",
-                "fastq.trim_reads",
-                "fastq.filter_reads",
-                "fastq.merge_pairs",
-                "fastq.profile_reads",
-                "fastq.report_qc",
-            ],
+            required_stages,
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec![
                 "report.json",
@@ -440,6 +466,9 @@ pub fn fastq_adna_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_reference_adna_profile() -> PipelineProfile {
     let defaults = reference_adna_fastq_defaults();
+    let mut required_stages = ESSENTIAL_SHOTGUN_STAGES.to_vec();
+    append_stage_once(&mut required_stages, id_catalog::FASTQ_LOW_COMPLEXITY);
+    append_stage_once(&mut required_stages, id_catalog::FASTQ_MERGE);
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_REFERENCE_ADNA),
         description: "Reference-grade aDNA FASTQ pipeline defaults",
@@ -465,16 +494,7 @@ pub fn fastq_reference_adna_profile() -> PipelineProfile {
             report_sections: vec!["fastq"],
             required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
-            required_stages: vec![
-                id_catalog::FASTQ_VALIDATE_PRE,
-                id_catalog::FASTQ_DETECT_ADAPTERS,
-                id_catalog::FASTQ_TRIM,
-                id_catalog::FASTQ_LOW_COMPLEXITY,
-                id_catalog::FASTQ_MERGE,
-                id_catalog::FASTQ_FILTER,
-                id_catalog::FASTQ_STATS_NEUTRAL,
-                id_catalog::FASTQ_QC_POST,
-            ],
+            required_stages,
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec![
                 "report.json",

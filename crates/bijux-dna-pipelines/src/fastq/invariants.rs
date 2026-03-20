@@ -7,7 +7,6 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
-use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use serde::Serialize;
@@ -141,13 +140,6 @@ fn detect_adapters_params(profile: &PipelineProfile) -> Option<&DetectAdaptersEf
 fn merge_params(profile: &PipelineProfile) -> Option<&MergeEffectiveParams> {
     match default_params_for(profile, id_catalog::FASTQ_MERGE) {
         Some(DefaultParams::FastqMerge(params)) => Some(params),
-        _ => None,
-    }
-}
-
-fn preprocess_params(profile: &PipelineProfile) -> Option<&PreprocessEffectiveParams> {
-    match default_params_for(profile, id_catalog::FASTQ_PREPROCESS) {
-        Some(DefaultParams::FastqPreprocess(params)) => Some(params),
         _ => None,
     }
 }
@@ -347,6 +339,15 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
     }
 
     if profile.invariants_preset == Some(InvariantsPreset::ReferenceAdna) {
+        if profile.library_model.layout != LibraryLayout::PairedEnd {
+            violations.push(violation(
+                "reference_library_layout_invalid",
+                None,
+                InvariantSeverity::Hard,
+                "reference-grade aDNA profile must declare paired-end library layout",
+            ));
+        }
+
         for stage in [
             id_catalog::FASTQ_LOW_COMPLEXITY,
             id_catalog::FASTQ_STATS_NEUTRAL,
@@ -360,26 +361,6 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                     format!("reference-grade aDNA profile requires stage `{stage}`"),
                 ));
             }
-        }
-
-        if let Some(preprocess) = preprocess_params(profile) {
-            if preprocess.library_declared_paired
-                && !required_stages.contains(id_catalog::FASTQ_MERGE)
-            {
-                violations.push(violation(
-                    "paired_library_requires_merge",
-                    Some(id_catalog::FASTQ_MERGE),
-                    InvariantSeverity::Hard,
-                    "paired library declaration requires fastq.merge_pairs unless explicitly disabled with justification",
-                ));
-            }
-        } else {
-            violations.push(violation(
-                "required_params_missing",
-                Some(id_catalog::FASTQ_PREPROCESS),
-                InvariantSeverity::Hard,
-                "reference-grade profile requires preprocess library declaration params",
-            ));
         }
 
         if required_stages.contains(id_catalog::FASTQ_SCREEN) {

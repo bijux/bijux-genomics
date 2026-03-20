@@ -110,8 +110,8 @@ schema_version = "bijux.fastq.params.deplete_host.v1"
 
 [[entries]]
 stage_id = "fastq.profile_read_lengths"
-param_type_id = "paramless"
-schema_version = "none"
+param_type_id = "fastq.profile_read_lengths"
+schema_version = "bijux.fastq.params.stats.v1"
 
 [[entries]]
 stage_id = "fastq.merge_pairs"
@@ -120,13 +120,18 @@ schema_version = "bijux.fastq.params.merge_pairs.v1"
 
 [[entries]]
 stage_id = "fastq.profile_overrepresented_sequences"
-param_type_id = "paramless"
-schema_version = "none"
+param_type_id = "fastq.profile_overrepresented_sequences"
+schema_version = "bijux.fastq.params.stats.v1"
 
 [[entries]]
 stage_id = "fastq.trim_polyg_tails"
 param_type_id = "fastq.trim_polyg_tails"
 schema_version = "bijux.fastq.params.trim_polyg_tails.v1"
+
+[[entries]]
+stage_id = "fastq.remove_duplicates"
+param_type_id = "paramless"
+schema_version = "none"
 
 [[entries]]
 stage_id = "fastq.index_reference"
@@ -157,6 +162,11 @@ schema_version = "bijux.fastq.params.stats.v1"
 stage_id = "fastq.trim_reads"
 param_type_id = "fastq.trim_reads"
 schema_version = "bijux.fastq.params.trim_reads.v1"
+
+[[entries]]
+stage_id = "fastq.filter_low_complexity"
+param_type_id = "fastq.filter_low_complexity"
+schema_version = "bijux.fastq.params.filter_low_complexity.v1"
 
 [[entries]]
 stage_id = "fastq.extract_umis"
