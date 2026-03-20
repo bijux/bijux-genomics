@@ -47,9 +47,13 @@ struct DomainPortYaml {
 struct DomainToolYaml {
     tool_id: String,
     #[serde(default)]
+    status: Option<String>,
+    #[serde(default)]
     stage_id: Option<String>,
     #[serde(default)]
     stage_ids: Vec<String>,
+    #[serde(default)]
+    planned_stage_ids: Vec<String>,
     #[serde(default)]
     role: Option<String>,
     #[serde(default)]
@@ -185,8 +189,20 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                     stage_ids.push(stage_id);
                 }
                 stage_ids.extend(tool.stage_ids);
-                if stage_ids.is_empty() {
+                let mut declared_stage_ids = stage_ids.clone();
+                declared_stage_ids.extend(tool.planned_stage_ids);
+                if declared_stage_ids.is_empty() {
                     return Err(anyhow!("{} missing stage_id(s)", path.display()));
+                }
+                if matches!(tool.status.as_deref(), Some("supported")) && stage_ids.is_empty() {
+                    return Err(anyhow!(
+                        "{} missing governed stage_ids for supported tool {}",
+                        path.display(),
+                        tool.tool_id
+                    ));
+                }
+                if stage_ids.is_empty() {
+                    continue;
                 }
                 for stage_id_raw in stage_ids {
                     let stage_id = StageId::try_from(stage_id_raw.as_str())
@@ -337,10 +353,13 @@ fn find_domain_dir(path: &Path) -> Option<PathBuf> {
 }
 
 fn experimental_manifests_enabled() -> bool {
-    ["BIJUX_INCLUDE_EXPERIMENTAL_TOOLS", "BIJUX_EXPERIMENTAL_TOOLS"]
-        .into_iter()
-        .filter_map(|key| std::env::var(key).ok())
-        .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+    [
+        "BIJUX_INCLUDE_EXPERIMENTAL_TOOLS",
+        "BIJUX_EXPERIMENTAL_TOOLS",
+    ]
+    .into_iter()
+    .filter_map(|key| std::env::var(key).ok())
+    .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
 }
 
 /// # Errors

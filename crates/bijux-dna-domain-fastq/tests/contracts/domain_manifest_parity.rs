@@ -9,8 +9,19 @@ use serde_yaml::Value;
 struct ToolManifestMeta {
     status: String,
     stage_ids: BTreeSet<String>,
+    planned_stage_ids: BTreeSet<String>,
     expected_artifacts: BTreeSet<String>,
     comparability_refs: BTreeSet<String>,
+}
+
+impl ToolManifestMeta {
+    fn declared_stage_ids(&self) -> BTreeSet<String> {
+        self.stage_ids
+            .iter()
+            .chain(self.planned_stage_ids.iter())
+            .cloned()
+            .collect()
+    }
 }
 
 fn workspace_root() -> Result<PathBuf> {
@@ -22,8 +33,7 @@ fn workspace_root() -> Result<PathBuf> {
 }
 
 fn parse_yaml(path: &Path) -> Result<Value> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
@@ -32,7 +42,8 @@ fn yaml_string(value: Option<&Value>) -> Option<String> {
 }
 
 fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
-    value.and_then(Value::as_sequence)
+    value
+        .and_then(Value::as_sequence)
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
@@ -41,7 +52,8 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
 }
 
 fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
-    value.and_then(Value::as_sequence)
+    value
+        .and_then(Value::as_sequence)
         .into_iter()
         .flatten()
         .filter_map(|item| match item {
@@ -136,11 +148,19 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
         let status = yaml_string(yaml.get("status"))
             .with_context(|| format!("status missing in {}", path.display()))?;
         let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let planned_stage_ids = yaml_string_set(yaml.get("planned_stage_ids"));
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         if status == "supported" {
             assert!(
                 !stage_ids.is_empty(),
                 "{} must declare non-empty stage_ids when status is supported",
+                path.display()
+            );
+        }
+        if status != "supported" {
+            assert!(
+                !stage_ids.is_empty() || !planned_stage_ids.is_empty(),
+                "{} must declare governed stage_ids or planned_stage_ids",
                 path.display()
             );
         }
@@ -164,6 +184,7 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
             ToolManifestMeta {
                 status,
                 stage_ids,
+                planned_stage_ids,
                 expected_artifacts,
                 comparability_refs,
             },
@@ -243,7 +264,7 @@ fn tool_stage_ids_reference_known_fastq_stages() -> Result<()> {
         .map(|stage| stage.to_string())
         .collect::<BTreeSet<_>>();
     for (tool_id, meta) in tool_manifest_meta()? {
-        for stage_id in meta.stage_ids {
+        for stage_id in meta.declared_stage_ids() {
             assert!(
                 known_stages.contains(&stage_id),
                 "tool {tool_id} declares unknown fastq stage {stage_id}"

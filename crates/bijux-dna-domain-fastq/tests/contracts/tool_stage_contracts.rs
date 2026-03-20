@@ -31,6 +31,12 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
         .collect()
 }
 
+fn declared_stage_ids(yaml: &Value) -> BTreeSet<String> {
+    let mut stage_ids = yaml_string_set(yaml.get("stage_ids"));
+    stage_ids.extend(yaml_string_set(yaml.get("planned_stage_ids")));
+    stage_ids
+}
+
 fn stage_required_inputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
     let stages_dir = workspace_root()?.join("domain/fastq/stages");
     let mut out = BTreeMap::new();
@@ -103,7 +109,7 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
             .get("stage_contracts")
             .and_then(Value::as_mapping)
             .with_context(|| format!("{tool_name} missing stage_contracts"))?;
-        let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let stage_ids = declared_stage_ids(&yaml);
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
             stage_contracts
@@ -184,7 +190,7 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
         let Some(stage_contracts) = yaml.get("stage_contracts").and_then(Value::as_mapping) else {
             continue;
         };
-        let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let stage_ids = declared_stage_ids(&yaml);
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
             stage_contracts
