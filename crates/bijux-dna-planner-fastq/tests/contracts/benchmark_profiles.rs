@@ -220,4 +220,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .all(|tool_id| tool_id.as_str() != "dustmasker")
     );
+
+    let dedup_stage = StageId::from_static("fastq.remove_duplicates");
+    let dedup_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&dedup_stage);
+    assert_eq!(dedup_cohorts.len(), 1);
+    assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
+    assert!(
+        dedup_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastuniq")
+    );
+    assert!(
+        dedup_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "clumpify")
+    );
 }

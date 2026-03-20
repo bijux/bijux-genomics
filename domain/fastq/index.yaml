@@ -1814,6 +1814,15 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_complexity_policy
+  dedup_fairness:
+    stage_id: fastq.remove_duplicates
+    description: Compare duplicate-removal tools on identical filtered inputs and duplicate
+      retention policy.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_dedup_policy
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.

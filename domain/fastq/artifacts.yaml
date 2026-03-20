@@ -16,6 +16,9 @@ artifact_ids:
   - corrected_reads_r2
   - dedup_reads_r1
   - dedup_reads_r2
+  - dedup_tool_benchmark_cohort_json
+  - dedup_tool_comparison_json
+  - dedup_tool_normalization_json
   - filter_report_json
   - filter_tool_benchmark_cohort_json
   - filter_tool_comparison_json

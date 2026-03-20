@@ -73,6 +73,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "low_complexity_tool_normalization_json",
         ]
     );
+
+    let dedup_stage = StageId::from_static("fastq.remove_duplicates");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&dedup_stage),
+        vec![
+            "dedup_tool_benchmark_cohort_json",
+            "dedup_tool_comparison_json",
+            "dedup_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]
