@@ -88,6 +88,12 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .expected_artifact_ids
         .iter()
         .any(|artifact_id| artifact_id.as_str() == "trim_tool_comparison_json"));
+    assert!(compare_step.io.outputs.iter().any(|artifact| {
+        artifact.name.as_str() == "trim_tool_comparison_json"
+            && artifact
+                .path
+                .ends_with(std::path::Path::new("compare/trim_tool_comparison.json"))
+    }));
     assert!(graph.edges().iter().any(|edge| {
         edge.from().as_str() == "fastq.trim_reads.tool.fastp"
             && edge.to().as_str() == "fastq.trim_reads.compare"

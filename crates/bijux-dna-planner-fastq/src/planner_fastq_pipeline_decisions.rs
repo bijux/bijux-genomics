@@ -398,58 +398,9 @@ fn comparison_command_for_stage(
     Ok(command)
 }
 
-fn comparison_artifact_file_name(artifact_id: &str) -> &'static str {
-    match artifact_id {
-        "trim_tool_benchmark_cohort_json" => "trim_tool_benchmark_cohort.json",
-        "trim_tool_comparison_json" => "trim_tool_comparison.json",
-        "trim_tool_normalization_json" => "trim_tool_normalization.json",
-        "filter_tool_benchmark_cohort_json" => "filter_tool_benchmark_cohort.json",
-        "filter_tool_comparison_json" => "filter_tool_comparison.json",
-        "filter_tool_normalization_json" => "filter_tool_normalization.json",
-        "merge_tool_benchmark_cohort_json" => "merge_tool_benchmark_cohort.json",
-        "merge_tool_comparison_json" => "merge_tool_comparison.json",
-        "merge_tool_normalization_json" => "merge_tool_normalization.json",
-        "low_complexity_tool_benchmark_cohort_json" => "low_complexity_tool_benchmark_cohort.json",
-        "low_complexity_tool_comparison_json" => "low_complexity_tool_comparison.json",
-        "low_complexity_tool_normalization_json" => "low_complexity_tool_normalization.json",
-        "dedup_tool_benchmark_cohort_json" => "dedup_tool_benchmark_cohort.json",
-        "dedup_tool_comparison_json" => "dedup_tool_comparison.json",
-        "dedup_tool_normalization_json" => "dedup_tool_normalization.json",
-        "read_length_tool_benchmark_cohort_json" => "read_length_tool_benchmark_cohort.json",
-        "read_length_tool_comparison_json" => "read_length_tool_comparison.json",
-        "read_length_tool_normalization_json" => "read_length_tool_normalization.json",
-        "correction_tool_benchmark_cohort_json" => "correction_tool_benchmark_cohort.json",
-        "correction_tool_comparison_json" => "correction_tool_comparison.json",
-        "correction_tool_normalization_json" => "correction_tool_normalization.json",
-        "primer_normalization_tool_benchmark_cohort_json" => {
-            "primer_normalization_tool_benchmark_cohort.json"
-        }
-        "primer_normalization_tool_comparison_json" => "primer_normalization_tool_comparison.json",
-        "primer_normalization_tool_normalization_json" => {
-            "primer_normalization_tool_normalization.json"
-        }
-        "terminal_damage_tool_benchmark_cohort_json" => {
-            "terminal_damage_tool_benchmark_cohort.json"
-        }
-        "terminal_damage_tool_comparison_json" => "terminal_damage_tool_comparison.json",
-        "terminal_damage_tool_normalization_json" => "terminal_damage_tool_normalization.json",
-        "overrepresented_sequence_tool_benchmark_cohort_json" => {
-            "overrepresented_sequence_tool_benchmark_cohort.json"
-        }
-        "overrepresented_sequence_tool_comparison_json" => {
-            "overrepresented_sequence_tool_comparison.json"
-        }
-        "overrepresented_sequence_tool_normalization_json" => {
-            "overrepresented_sequence_tool_normalization.json"
-        }
-        "validation_tool_benchmark_cohort_json" => "validation_tool_benchmark_cohort.json",
-        "validation_tool_comparison_json" => "validation_tool_comparison.json",
-        "validation_tool_normalization_json" => "validation_tool_normalization.json",
-        "taxonomy_tool_benchmark_cohort_json" => "taxonomy_tool_benchmark_cohort.json",
-        "taxonomy_tool_comparison_json" => "taxonomy_tool_comparison.json",
-        "taxonomy_tool_normalization_json" => "taxonomy_tool_normalization.json",
-        _ => "comparison.json",
-    }
+fn comparison_artifact_file_name(artifact_id: &str) -> String {
+    let stem = artifact_id.strip_suffix("_json").unwrap_or(artifact_id);
+    format!("{stem}.json")
 }
 
 fn normalize_stage_bindings(config: &FastqPlanConfig) -> Result<Vec<FastqStageBinding>> {
