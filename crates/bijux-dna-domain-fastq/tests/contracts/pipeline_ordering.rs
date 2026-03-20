@@ -92,3 +92,13 @@ fn canonical_amplicon_order_uses_supported_feature_stage() {
         "canonical amplicon order must not default to planned ASV inference"
     );
 }
+
+#[test]
+fn closed_screen_taxonomy_is_not_marked_experimental() {
+    let stage_id = bijux_dna_core::ids::StageId::from_static("fastq.screen_taxonomy");
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_criticality(&stage_id),
+        Some(bijux_dna_domain_fastq::StageCriticality::Optional),
+        "closed FASTQ taxonomy screening must not be labeled experimental"
+    );
+}
