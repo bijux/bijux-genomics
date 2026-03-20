@@ -47,3 +47,21 @@ fn stage_status_comes_from_domain_execution_support() {
     assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("planned"));
     assert!(stage_status("fastq.unknown_stage").is_none());
 }
+
+#[test]
+fn benchmark_query_context_uses_stage_contract_hash_for_governed_stages() {
+    let context = bench_query_context_for_stage(&StageId::from_static("fastq.trim_reads"))
+        .expect("governed stage contract hash should be available");
+
+    assert!(context.params_hash.is_none());
+    assert!(context.image_digest.is_none());
+    assert!(context.stage_contract_hash.is_some());
+}
+
+#[test]
+fn benchmark_query_context_stays_empty_for_unknown_stages() {
+    let context = bench_query_context_for_stage(&StageId::new("fastq.unknown".to_string()))
+        .expect("unknown stages should not fail benchmark query context construction");
+
+    assert!(context.is_empty());
+}

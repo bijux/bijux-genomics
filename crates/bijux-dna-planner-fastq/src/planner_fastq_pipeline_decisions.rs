@@ -860,6 +860,7 @@ pub fn select_preprocess_tools(
         let mut selections = Vec::new();
         for stage in &pipeline.stages {
             let stage_id = bijux_dna_core::ids::StageId::new(stage.clone());
+            let query_context = bench_query_context_for_stage(&stage_id)?;
             let tool_ids: Vec<String> = registry
                 .tools_for_stage(&stage_id)
                 .iter()
@@ -871,7 +872,7 @@ pub fn select_preprocess_tools(
                     &stage_id,
                     tool,
                     &corpus,
-                    &bijux_dna_domain_fastq::BenchQueryContext::default(),
+                    &query_context,
                 )?;
                 tool_records.push((tool.clone(), records));
             }
@@ -898,6 +899,23 @@ pub fn select_preprocess_tools(
 
     Ok(selected_tools)
 }
+
+fn bench_query_context_for_stage(
+    stage_id: &bijux_dna_core::ids::StageId,
+) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::default();
+    if let Some(contract_hash) = bijux_dna_domain_fastq::stage_contract_hash(stage_id.as_str()) {
+        context =
+            context.with_stage_contract_hash(contract_hash.map_err(|err| {
+                anyhow!(
+                    "compute stage contract hash for {}: {err}",
+                    stage_id.as_str()
+                )
+            })?);
+    }
+    Ok(context)
+}
+
 include!("tool_selection_facade.rs");
 
 #[must_use]
