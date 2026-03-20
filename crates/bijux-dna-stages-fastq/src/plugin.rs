@@ -1,8 +1,6 @@
 use anyhow::Result;
 use bijux_dna_core::id_catalog;
-use bijux_dna_core::prelude::invariants::{
-    InvariantResultV1, InvariantStatusV1, StageVerdictV1,
-};
+use bijux_dna_core::prelude::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{
     StageEventHintV1, StageInvocationV1, StagePlugin, StagePluginOutputV1, StageReportPartV1,
@@ -50,14 +48,13 @@ impl StagePlugin for FastqStagePlugin {
             .map(|output| output.path.clone())
             .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
-        let interpretation_level = crate::runtime_interpretation_for_stage_tool(
-            &plan.stage_id,
-            &plan.tool_id,
-        )
-            .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
+        let interpretation_level =
+            crate::runtime_interpretation_for_stage_tool(&plan.stage_id, &plan.tool_id)
+                .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
         let observer_covered =
             interpretation_level == crate::RuntimeInterpretationLevel::ObserverSpecialized;
-        let benchmark_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&plan.stage_id);
+        let benchmark_scenarios =
+            bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&plan.stage_id);
         let comparison_artifact_ids =
             bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&plan.stage_id);
         let semantic_loss = match interpretation_level {
@@ -305,7 +302,7 @@ mod tests {
             .parse_outputs(&plan, &plan.io.outputs)
             .expect("parse outputs");
         assert_eq!(output.artifacts.len(), 1);
-        assert_eq!(output.report_parts.len(), 1);
+        assert_eq!(output.report_parts.len(), 2);
         assert_eq!(output.event_hints.len(), 1);
         assert!(output.warnings.is_empty());
         assert_eq!(output.invariants.len(), 3);
@@ -314,7 +311,14 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],
+            serde_json::json!("detect_adapters_fairness")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .map(|verdict| verdict.verdict.clone()),
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
         );
     }
@@ -335,7 +339,11 @@ mod tests {
         );
         assert_eq!(
             output.report_parts[1].payload["comparison_artifact_ids"],
-            serde_json::json!(["trim_tool_benchmark_cohort_json", "trim_tool_comparison_json", "trim_tool_normalization_json"])
+            serde_json::json!([
+                "trim_tool_benchmark_cohort_json",
+                "trim_tool_comparison_json",
+                "trim_tool_normalization_json"
+            ])
         );
         assert_eq!(
             output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],
@@ -349,7 +357,10 @@ mod tests {
         assert!(output.warnings[1].contains("semantic loss tags"));
         assert_eq!(output.invariants.len(), 3);
         assert_eq!(
-            output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            output
+                .verdict
+                .as_ref()
+                .map(|verdict| verdict.verdict.clone()),
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Warn)
         );
     }
