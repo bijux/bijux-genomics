@@ -19,7 +19,7 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | fastq.remove_duplicates | Optional | FASTQ | deduplicated FASTQ | dedup_rate |
 | fastq.deplete_host | Optional | FASTQ + host reference index | host-depleted FASTQ | host_fraction_removed |
 | fastq.deplete_rrna | Optional | FASTQ | rRNA-filtered FASTQ | rrna_fraction |
-| fastq.correct_errors | Optional | paired FASTQ | corrected FASTQ | correction_rate |
+| fastq.correct_errors | Optional | paired FASTQ | corrected FASTQ | correction_rate; `rcorrector` is the admitted default and `musket`/`lighter`/`bayeshammer` remain experimental-registry backends |
 | fastq.extract_umis | Optional | paired FASTQ | UMI-tagged FASTQ | umi_stats |
 | fastq.screen_taxonomy | Optional | FASTQ | screening reports | contaminant_rate |
 | fastq.profile_reads | Optional | FASTQ | stats report | read_count, base_count |
