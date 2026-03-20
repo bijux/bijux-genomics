@@ -9,6 +9,13 @@ license: "GPL-3.0"
 citation: "upstream:https://github.com/BenLangmead/bowtie2"
 stage_ids:
   - "fastq.index_reference"
+stage_contracts:
+  fastq.index_reference:
+    required_inputs:
+      - "reference_fasta"
+    expected_artifacts:
+      - "reference_index"
+    notes: "Reference indexing emits the governed mapper-ready reference index directory."
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts:

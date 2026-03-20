@@ -47,6 +47,15 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["fastq.correct_errors"]
+stage_contracts:
+  fastq.correct_errors:
+    required_inputs:
+      - "reads_r1"
+      - "reads_r2"
+    expected_artifacts:
+      - "corrected_reads_r1"
+      - "corrected_reads_r2"
+    notes: "Error correction emits governed corrected read artifacts for both mates."
 expected_artifacts: ["corrected_reads_r1", "corrected_reads_r2"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
