@@ -31,10 +31,8 @@ pub fn normalize_low_complexity_tool_list(tools: &[String]) -> Result<Vec<String
 
 fn low_complexity_output_name(tool: &str) -> Option<&'static str> {
     match tool {
-        "dustmasker" => Some("dustmasker.fastq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "bbduk" => Some("bbduk.fastq.gz"),
-        "fastp" => Some("fastp.fastq.gz"),
         _ => None,
     }
 }
@@ -143,4 +141,15 @@ pub fn plan_low_complexity(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::low_complexity_output_name;
+
+    #[test]
+    fn low_complexity_output_names_reject_planned_only_tools() {
+        assert_eq!(low_complexity_output_name("dustmasker"), None);
+        assert_eq!(low_complexity_output_name("fastp"), None);
+    }
 }
