@@ -46,8 +46,8 @@ pub use banks::{
 pub use bench_repository::{BenchQueryContext, BenchResultsRepository};
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
-    comparison_input_artifact_ids_for_stage,
-    comparison_contract_for_stage, StageComparisonContract,
+    comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
+    StageComparisonContract,
 };
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
@@ -110,9 +110,9 @@ pub use stages::{
     FastqStageContract, QcClass, StageContract, StageIO,
 };
 pub use stages::{
-    fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
-    stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
-    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
+    fastq_stage_is_stable, stage_criticality, stage_input_ids, stage_kind, stage_metric_classes,
+    stage_metric_invariants, stage_output_ids, stage_semantics, BoundaryInvariant, FastqStageKind,
+    StageDefinition, StageSemantics, STAGE_BOUNDARY_INVARIANTS,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
