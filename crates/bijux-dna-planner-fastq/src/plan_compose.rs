@@ -4,7 +4,8 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
 use bijux_dna_domain_fastq::stages::ids::{
-    STAGE_PROFILE_READ_LENGTHS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_TRIM_POLYG_TAILS,
+    STAGE_INDEX_REFERENCE, STAGE_PROFILE_READ_LENGTHS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    STAGE_TRIM_POLYG_TAILS,
 };
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
@@ -50,6 +51,7 @@ where
     let mut current_r2 = r2.map(|path| path.to_path_buf());
     let raw_r2 = r2.map(|path| path.to_path_buf());
     let mut current_feature_table: Option<PathBuf> = None;
+    let mut current_reference_index: Option<PathBuf> = None;
     let mut plans = Vec::new();
     for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
@@ -162,10 +164,14 @@ where
                 (plan, next_r1, next_r2, current_feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_HOST.as_str() => {
+                let reference_index = current_reference_index
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("host depletion requires a prior reference index stage"))?;
                 let plan = crate::tool_adapters::fastq::deplete_host::plan_host_depletion(
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
+                    reference_index,
                     &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
@@ -174,7 +180,12 @@ where
                 } else {
                     None
                 };
-                (plan, next_r1, next_r2, current_feature_table.clone())
+                (
+                    plan,
+                    next_r1,
+                    next_r2,
+                    current_feature_table.clone(),
+                )
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
@@ -453,6 +464,9 @@ where
             );
         }
         plans.push(plan);
+        if stage_id == STAGE_INDEX_REFERENCE.as_str() {
+            current_reference_index = Some(plans.last().expect("stage just pushed").io.outputs[0].path.clone());
+        }
         current_r1 = next_r1;
         current_r2 = next_r2;
         current_feature_table = next_feature_table;

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     screen::{HostDepletionEffectiveParams, HOST_DEPLETION_SCHEMA_VERSION},
@@ -35,6 +35,7 @@ pub fn plan_host_depletion(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
     r2: Option<&Path>,
+    reference_index: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
@@ -58,10 +59,16 @@ pub fn plan_host_depletion(
         r1.to_path_buf(),
         ArtifactRole::Reads,
     )];
+    inputs.push(ArtifactRef::required(
+        ArtifactId::from_static("reference_index"),
+        reference_index.to_path_buf(),
+        ArtifactRole::Index,
+    ));
     let mut outputs = Vec::new();
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
         "input_r1": r1,
+        "reference_index": reference_index,
         "report_json": report,
     });
     if let Some(r2) = r2 {
@@ -105,8 +112,15 @@ pub fn plan_host_depletion(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: host_depletion_command(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                reference_index,
+                out_dir,
+                report.as_path(),
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO { inputs, outputs },
@@ -117,4 +131,52 @@ pub fn plan_host_depletion(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn host_depletion_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    out_dir: &Path,
+    report_json: &Path,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "bowtie2" => {
+            let mut command = vec![
+                "bowtie2".to_string(),
+                "-x".to_string(),
+                reference_index.display().to_string(),
+                "--threads".to_string(),
+                "1".to_string(),
+                "-S".to_string(),
+                "/dev/null".to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.extend([
+                    "-1".to_string(),
+                    r1.display().to_string(),
+                    "-2".to_string(),
+                    r2.display().to_string(),
+                    "--un-conc-gz".to_string(),
+                    out_dir.join("host_depleted_R%.fastq.gz").display().to_string(),
+                ]);
+            } else {
+                command.extend([
+                    "-U".to_string(),
+                    r1.display().to_string(),
+                    "--un-gz".to_string(),
+                    out_dir.join("host_depleted.fastq.gz").display().to_string(),
+                ]);
+            }
+            command.extend([
+                "--met-file".to_string(),
+                report_json.display().to_string(),
+            ]);
+            Ok(command)
+        }
+        _ => Err(anyhow!(
+            "unsupported host depletion tool for stage planning: {tool_id}"
+        )),
+    }
 }

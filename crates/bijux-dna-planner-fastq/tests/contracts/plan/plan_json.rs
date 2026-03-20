@@ -125,9 +125,14 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         &dummy_tool("bowtie2"),
         r1,
         Some(r2),
+        Path::new("host_reference_index"),
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.deplete_host", &plan)?;
+    assert_eq!(plan.io.inputs[1].name.as_str(), "reference_index");
+    assert_eq!(plan.command.template[0], "bowtie2");
+    assert!(plan.command.template.iter().any(|part| part == "host_reference_index"));
+    assert!(plan.command.template.iter().any(|part| part == "--un-conc-gz"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen(
         &dummy_tool("bowtie2"),
