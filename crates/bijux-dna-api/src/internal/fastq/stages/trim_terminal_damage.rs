@@ -4,7 +4,10 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_terminal_damage_v1, insert_fastq_trim_terminal_damage_v1,
 };
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimTerminalDamageMetrics};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqTrimTerminalDamageMetrics,
+};
+use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -31,12 +34,21 @@ use crate::internal::handlers::fastq::{
 
 fn normalize_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
-        return vec!["cutadapt".to_string(), "seqkit".to_string()];
+        return admitted_stage_tools();
     }
     if raw.len() == 1 && raw[0] == "all" {
-        return vec!["cutadapt".to_string(), "seqkit".to_string()];
+        return admitted_stage_tools();
     }
     raw.to_vec()
+}
+
+fn admitted_stage_tools() -> Vec<String> {
+    bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&StageId::new(
+        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
+    ))
+    .into_iter()
+    .map(|tool_id| tool_id.to_string())
+    .collect()
 }
 
 /// # Errors
@@ -57,8 +69,8 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(
         STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
         &requested,
@@ -84,7 +96,12 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -117,8 +134,18 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(
+        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
+        &tools,
+        platform,
+        catalog,
+    )?;
+    ensure_tool_qa_passed(
+        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
+        &tools,
+        platform,
+        catalog,
+    )?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -169,7 +196,9 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -200,15 +229,20 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         } else {
             None
         };
-        let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
+        let before_stats =
+            combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
         let metrics = FastqTrimTerminalDamageMetrics {
             reads_in: before_stats.reads,
             reads_out: after_stats.reads,
             bases_in: before_stats.bases,
             bases_out: after_stats.bases,
-            pairs_in: input_stats_r2.as_ref().map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
-            pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
+            pairs_in: input_stats_r2
+                .as_ref()
+                .map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
+            pairs_out: output_stats_r2
+                .as_ref()
+                .map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
@@ -258,8 +292,11 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
         });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("trim_terminal_damage_report.json"), &report)
-            .context("write trim terminal damage report")?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("trim_terminal_damage_report.json"),
+            &report,
+        )
+        .context("write trim terminal damage report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
             .context("write trim terminal damage metrics")?;
@@ -284,8 +321,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         };
         record.validate()?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
-        insert_fastq_trim_terminal_damage_v1(&conn, &record)
-            .context("insert bench sqlite")?;
+        insert_fastq_trim_terminal_damage_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
 
@@ -297,7 +333,10 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> SeqkitMetrics {
+fn combine_seqkit_metrics(
+    primary: &SeqkitMetrics,
+    secondary: Option<&SeqkitMetrics>,
+) -> SeqkitMetrics {
     let secondary_reads = secondary.map_or(0, |stats| stats.reads);
     let secondary_bases = secondary.map_or(0, |stats| stats.bases);
     let total_bases = primary.bases + secondary_bases;
@@ -320,5 +359,18 @@ fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetr
         bases: total_bases,
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{admitted_stage_tools, normalize_tools};
+
+    #[test]
+    fn normalize_tools_uses_execution_support_for_auto_and_all() {
+        let expected = admitted_stage_tools();
+        assert_eq!(normalize_tools(&[]), expected);
+        assert_eq!(normalize_tools(&["auto".to_string()]), expected);
+        assert_eq!(normalize_tools(&["all".to_string()]), expected);
     }
 }
