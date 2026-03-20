@@ -90,9 +90,12 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
         "fastp",
         "fastqc",
         "bbduk",
+        "cutadapt",
         "leehom",
         "prinseq",
+        "seqkit",
         "seqkit_stats",
+        "vsearch",
     ] {
         let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
         let yaml = parse_yaml(&tool_path)?;
@@ -101,6 +104,7 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
             .and_then(Value::as_mapping)
             .with_context(|| format!("{tool_name} missing stage_contracts"))?;
         let stage_ids = yaml_string_set(yaml.get("stage_ids"));
+        let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
             stage_contracts
                 .keys()
@@ -146,6 +150,17 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
                 "{tool_name} stage_contract notes must stay non-empty for {stage_id}"
             );
         }
+        let union = stage_contracts
+            .values()
+            .filter_map(Value::as_mapping)
+            .flat_map(|stage_contract| {
+                yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())))
+            })
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            union, expected_artifacts,
+            "{tool_name} expected_artifacts must remain the union of stage_contract expected_artifacts"
+        );
     }
     Ok(())
 }
