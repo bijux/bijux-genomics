@@ -1,31 +1,57 @@
 schema_version = "bijux.bench.suite.v1"
 suite_id = "fastq_hpc_01"
-corpus = "corpus-01"
-repetitions = 3
+[[datasets]]
+id = "synthetic_fastq_hpc_01"
+hash = "fixture-fastq-hpc-01"
+size = 1
+origin = "synthetic"
+class_label = "trueseq"
+read_layout = "paired"
 
-[fairness]
-threads = 16
-mem_gb = 64
-tmp_policy = "unique-per-run-id"
-cold_runs = 1
-warm_runs = 3
+[replicate_policy]
+count = 3
+warmup = 1
+seeds = [101, 102, 103]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["trueseq"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = true
+min_replicates_for_bootstrap = 5
 
 [[stages]]
 stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
 tools = ["fastqvalidator"]
 
 [[stages]]
 stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.trim_cohort"
 tools = ["fastp", "bbduk", "seqkit"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
 [[stages]]
 stage = "fastq.filter_reads"
+stage_instance_id = "fastq.filter_reads.filter_cohort"
 tools = ["fastp", "seqkit"]
+upstream_stage_instance_ids = ["fastq.trim_reads.trim_cohort"]
 
 [[stages]]
 stage = "fastq.profile_reads"
+stage_instance_id = "fastq.profile_reads.stats"
 tools = ["seqkit_stats"]
+upstream_stage_instance_ids = ["fastq.filter_reads.filter_cohort"]
 
 [[stages]]
 stage = "fastq.report_qc"
+stage_instance_id = "fastq.report_qc.aggregate"
 tools = ["multiqc"]
+upstream_stage_instance_ids = ["fastq.profile_reads.stats"]
