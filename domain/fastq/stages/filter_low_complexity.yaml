@@ -55,6 +55,7 @@ invariants:
 allowed_missingness:
   - "reads_r2"
 compatible_tools:
+  - dustmasker
   - prinseq
   - bbduk
   - fastp

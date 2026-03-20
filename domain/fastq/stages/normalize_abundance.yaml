@@ -43,6 +43,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
+  - seqfu
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
