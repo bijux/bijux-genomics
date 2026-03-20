@@ -22,8 +22,8 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("stage_id: "))
@@ -37,9 +37,36 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
     Ok(out)
 }
 
+fn stage_manifest_planned_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+        let stage_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("stage_id: "))
+            .map(|value| value.trim().trim_matches('"').to_string())
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        let planned_tools = block_list(&raw, "planned_out_of_scope")
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+        out.insert(stage_id, planned_tools);
+    }
+    Ok(out)
+}
+
 fn execution_support_manifest() -> Result<Vec<(String, String, Option<String>, BTreeSet<String>)>> {
-    let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
-        .context("read domain/fastq/execution_support.yaml")?;
+    let raw =
+        std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
+            .context("read domain/fastq/execution_support.yaml")?;
     let yaml: serde_yaml::Value =
         serde_yaml::from_str(&raw).context("parse domain/fastq/execution_support.yaml")?;
     let stages = yaml
@@ -89,7 +116,11 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
+        out.push(
+            line.trim_start_matches("  - ")
+                .trim_matches('"')
+                .to_string(),
+        );
     }
     out
 }
@@ -97,7 +128,8 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
 #[test]
 fn execution_support_stays_inside_stage_tool_contracts() -> Result<()> {
     let stage_tools = stage_manifest_tools()?;
-    for (stage_id, _execution_status, default_tool, admitted_tools) in execution_support_manifest()? {
+    for (stage_id, _execution_status, default_tool, admitted_tools) in execution_support_manifest()?
+    {
         let compatible = stage_tools
             .get(&stage_id)
             .with_context(|| format!("missing stage manifest compatible_tools for {stage_id}"))?;
@@ -124,7 +156,8 @@ fn execution_support_stays_inside_stage_tool_contracts() -> Result<()> {
 #[test]
 fn closed_stage_contracts_match_execution_support_surface() -> Result<()> {
     let stage_tools = stage_manifest_tools()?;
-    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()? {
+    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()?
+    {
         if execution_status != "closed" {
             continue;
         }
@@ -134,6 +167,36 @@ fn closed_stage_contracts_match_execution_support_surface() -> Result<()> {
         assert_eq!(
             compatible, &admitted_tools,
             "closed runtime stage {stage_id} must keep compatible_tools aligned with execution_support admitted_tools"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn declared_only_stage_manifests_keep_runtime_tools_out_of_compatible_tools() -> Result<()> {
+    let stage_tools = stage_manifest_tools()?;
+    let planned_tools = stage_manifest_planned_tools()?;
+    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()? {
+        if execution_status != "declared_only" {
+            continue;
+        }
+        let compatible = stage_tools
+            .get(&stage_id)
+            .with_context(|| format!("missing stage manifest compatible_tools for {stage_id}"))?;
+        assert!(
+            compatible.is_empty(),
+            "declared-only stage {stage_id} must not expose governed compatible_tools",
+        );
+        assert!(
+            admitted_tools.is_empty(),
+            "declared-only stage {stage_id} must not admit runtime tools",
+        );
+        let planned = planned_tools
+            .get(&stage_id)
+            .with_context(|| format!("missing stage manifest planned_out_of_scope for {stage_id}"))?;
+        assert!(
+            !planned.is_empty(),
+            "declared-only stage {stage_id} should keep planned tool intent in planned_out_of_scope",
         );
     }
     Ok(())
