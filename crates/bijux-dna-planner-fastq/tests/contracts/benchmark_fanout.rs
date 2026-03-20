@@ -85,9 +85,20 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .windows(2)
         .any(|window| window == ["--stage-contract-hash", trim_contract_hash.as_str()]));
     assert!(compare_step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--comparison-input", "report_json"]));
+    assert!(compare_step
         .expected_artifact_ids
         .iter()
         .any(|artifact_id| artifact_id.as_str() == "trim_tool_comparison_json"));
+    assert_eq!(compare_step.io.inputs.len(), 2);
+    assert!(compare_step
+        .io
+        .inputs
+        .iter()
+        .all(|artifact| artifact.name.as_str().ends_with("__report_json")));
     assert!(compare_step.io.outputs.iter().any(|artifact| {
         artifact.name.as_str() == "trim_tool_comparison_json"
             && artifact
