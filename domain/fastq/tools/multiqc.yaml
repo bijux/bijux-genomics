@@ -30,9 +30,7 @@ constraints:
   threads: 2
 execution_contract:
   required_inputs:
-    - "validation_report"
-    - "adapter_report"
-    - "qc_json"
+    - "qc_artifacts"
   expected_outputs:
     - "multiqc_report"
     - "multiqc_data"
