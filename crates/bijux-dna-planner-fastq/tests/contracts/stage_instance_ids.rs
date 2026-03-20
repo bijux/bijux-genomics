@@ -100,3 +100,44 @@ fn transform_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result
 
     Ok(())
 }
+
+#[test]
+fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-qc-stage-instance-ids")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let profile_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads::plan_stats_neutral(
+            &tool("seqkit_stats"),
+            &r1,
+            None,
+            temp.path(),
+        )?;
+    assert_eq!(
+        profile_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.profile_reads.tool.seqkit_stats")
+    );
+
+    let report_plan = bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post(
+        &tool("multiqc"),
+        &r1,
+        None,
+        temp.path(),
+        std::collections::BTreeMap::new(),
+        None,
+        None,
+    )?;
+    assert_eq!(
+        report_plan
+            .stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
+        Some("fastq.report_qc.tool.multiqc")
+    );
+
+    Ok(())
+}
