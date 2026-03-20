@@ -261,7 +261,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_eq!(plan.io.outputs[1].name.as_str(), "chimera_filtered_reads_r2");
     assert_eq!(
         plan.io.outputs[3].role.as_str(),
-        "reference",
+        "reads",
         "chimera sequence FASTA must be typed as a sequence artifact",
     );
 

@@ -60,7 +60,7 @@ pub fn plan(
     outputs.push(ArtifactRef::optional(
         ArtifactId::from_static("chimeras_fasta"),
         chimeras.clone(),
-        ArtifactRole::Reference,
+        ArtifactRole::Reads,
     ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
