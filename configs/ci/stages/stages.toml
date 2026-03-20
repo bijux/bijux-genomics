@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 32b04fa9655406c2c5c5faf9492c1f0a0bbfa951
+# source_commit: 78eadbd928261097252df20dc314a7f7b277d5eb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -425,7 +425,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "fastp", "prinseq"]
+tools = ["bbduk", "prinseq"]
 
 [[stages]]
 id = "fastq.filter_reads"
@@ -762,3 +762,4 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim_reads"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
+
