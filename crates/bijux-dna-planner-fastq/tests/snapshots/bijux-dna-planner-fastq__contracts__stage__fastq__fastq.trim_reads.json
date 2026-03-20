@@ -11,9 +11,9 @@
     "template": [
       "fastp",
       "--in1",
-      "{{reads}}",
+      "reads_R1.fastq.gz",
       "--out1",
-      "{{trimmed_reads}}"
+      "out/fastp.fastq.gz"
     ]
   },
   "resources": {

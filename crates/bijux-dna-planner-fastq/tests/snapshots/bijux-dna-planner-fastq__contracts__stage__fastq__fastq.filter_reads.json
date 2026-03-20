@@ -14,8 +14,8 @@
       "-m",
       "1",
       "-o",
-      "{{filtered_reads}}",
-      "{{reads}}"
+      "out/seqkit.fastq.gz",
+      "reads_R1.fastq.gz"
     ]
   },
   "resources": {
