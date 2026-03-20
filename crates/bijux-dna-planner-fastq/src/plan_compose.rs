@@ -29,6 +29,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     enable_contaminant_removal: bool,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
 ) -> Result<Vec<StagePlanV1>>
 where
@@ -80,6 +81,16 @@ where
                     tool,
                     &current_r1,
                     current_r2.as_deref(),
+                    &out_dir,
+                )?;
+                (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
+            }
+            stage if stage == STAGE_INDEX_REFERENCE.as_str() => {
+                let reference_fasta = reference_fasta
+                    .ok_or_else(|| anyhow!("reference indexing requires reference_fasta input"))?;
+                let plan = crate::tool_adapters::fastq::index_reference::plan(
+                    tool,
+                    reference_fasta,
                     &out_dir,
                 )?;
                 (plan, current_r1.clone(), current_r2.clone(), current_feature_table.clone())
@@ -469,7 +480,8 @@ where
         }
         plans.push(plan);
         if stage_id == STAGE_INDEX_REFERENCE.as_str() {
-            current_reference_index = Some(plans.last().expect("stage just pushed").io.outputs[0].path.clone());
+            current_reference_index =
+                Some(plans.last().expect("stage just pushed").io.outputs[0].path.clone());
         }
         current_r1 = next_r1;
         current_r2 = next_r2;

@@ -41,6 +41,7 @@ fn rrna_stage_feeds_filtered_reads_to_next_stage() -> Result<()> {
         false,
         Path::new("reads_R1.fastq.gz"),
         None,
+        None,
         |stage, tool, _r1, _r2| Ok(PathBuf::from("out").join(stage).join(tool.tool_id.as_str())),
     )?;
     assert_eq!(plans.len(), 2);

@@ -724,6 +724,8 @@ pub struct BenchFastqPreprocessArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub r2: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", help = "Reference FASTA for reference-guided FASTQ stages")]
+    pub reference_fasta: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(long)]

@@ -216,6 +216,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         enable_contaminant_removal: args.enable_contaminant_removal,
         r1: args.r1.clone(),
         r2: args.r2.clone(),
+        reference_fasta: args.reference_fasta.clone(),
         out_dir: bench_tools_dir(&args.out, bench_dir_name, &args.sample_id),
         tool_reasons: Some(tool_reasons),
         allow_planned: args.allow_planned,
