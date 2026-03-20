@@ -58,6 +58,12 @@ const STAGE_COMPARISON_CONTRACTS: &[(&str, &str, &str, &str)] = &[
         "primer_normalization_tool_normalization_json",
     ),
     (
+        "fastq.trim_terminal_damage",
+        "terminal_damage_tool_benchmark_cohort_json",
+        "terminal_damage_tool_comparison_json",
+        "terminal_damage_tool_normalization_json",
+    ),
+    (
         "fastq.screen_taxonomy",
         "taxonomy_tool_benchmark_cohort_json",
         "taxonomy_tool_comparison_json",
