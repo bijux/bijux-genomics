@@ -41,14 +41,58 @@ pub fn plan_qc_post(
     raw_r1: Option<&Path>,
     raw_r2: Option<&Path>,
 ) -> Result<StagePlanV1> {
+    let mut qc_inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        qc_inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    plan_qc_post_with_qc_inputs(
+        tool,
+        &qc_inputs,
+        out_dir,
+        aux_images,
+        if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        QcAggregationScope::FastqQcInputs,
+        raw_r1,
+        raw_r2,
+    )
+}
+
+/// Build a QC reporting plan from governed upstream QC artifacts.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_qc_post_with_qc_inputs(
+    tool: &ToolExecutionSpecV1,
+    qc_inputs: &[ArtifactRef],
+    out_dir: &Path,
+    aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
+    paired_mode: PairedMode,
+    aggregation_scope: QcAggregationScope,
+    raw_r1: Option<&Path>,
+    raw_r2: Option<&Path>,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     if normalize_qc_post_tool_list(std::slice::from_ref(&tool_id))?.is_empty() {
         return Err(anyhow!("unsupported report_qc tool"));
     }
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
-        "input_r1": r1,
-        "input_r2": r2,
+        "qc_inputs": qc_inputs
+            .iter()
+            .map(|artifact| artifact.path.clone())
+            .collect::<Vec<_>>(),
         "out_dir": out_dir
     });
     if let Some(raw) = raw_r1 {
@@ -59,29 +103,13 @@ pub fn plan_qc_post(
     }
     let effective_params = QcPostEffectiveParams {
         schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode,
         threads: tool.resources.threads,
         aggregation_engine: QcAggregationEngine::Multiqc,
-        aggregation_scope: QcAggregationScope::FastqQcInputs,
+        aggregation_scope,
     };
     let multiqc_data = out_dir.join("multiqc_data");
-    let command_template = qc_post_command(&tool.tool_id.0, r1, r2, &multiqc_data)?;
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(r2) = r2 {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
+    let command_template = qc_post_command(&tool.tool_id.0, qc_inputs, &multiqc_data)?;
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
             ArtifactRef::required(
@@ -113,7 +141,7 @@ pub fn plan_qc_post(
         },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs,
+            inputs: qc_inputs.to_vec(),
             outputs,
         },
         out_dir: out_dir.to_path_buf(),
@@ -127,26 +155,37 @@ pub fn plan_qc_post(
 
 fn qc_post_command(
     tool_id: &str,
-    r1: &Path,
-    r2: Option<&Path>,
+    qc_inputs: &[ArtifactRef],
     multiqc_data: &Path,
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
+            let mut multiqc_inputs = qc_inputs
+                .iter()
+                .map(qc_input_scan_path)
+                .collect::<Vec<_>>();
+            multiqc_inputs.sort();
+            multiqc_inputs.dedup();
             let mut command = vec![
                 "multiqc".to_string(),
                 "-o".to_string(),
                 multiqc_data.display().to_string(),
                 "-n".to_string(),
                 "multiqc_report.html".to_string(),
-                r1.display().to_string(),
             ];
-            if let Some(r2) = r2 {
-                command.push(r2.display().to_string());
+            for input in multiqc_inputs {
+                command.push(input.display().to_string());
             }
             Ok(command)
         }
         _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
+    }
+}
+
+fn qc_input_scan_path(artifact: &ArtifactRef) -> std::path::PathBuf {
+    match artifact.path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
+        _ => artifact.path.clone(),
     }
 }
 

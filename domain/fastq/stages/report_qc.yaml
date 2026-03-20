@@ -4,11 +4,8 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
-  - name: "reads_r1"
-    data_type: "fastq"
-    cardinality: "Many"
-  - name: "reads_r2"
-    data_type: "fastq"
+  - name: "qc_artifacts"
+    data_type: "dir"
     cardinality: "Many"
 outputs:
   - name: "multiqc_report"
@@ -56,7 +53,7 @@ image_requirements:
   forbids:
     - network
 required_inputs:
-  - reads_r1
+  - qc_artifacts
 required_outputs:
   - multiqc_report
   - multiqc_data
@@ -70,8 +67,8 @@ compatible_tools:
   - multiqc
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "single-end input omits reads_r2; paired-end input contributes both mates to the aggregated QC report."
   - "the stage aggregates existing FASTQ QC inputs rather than recomputing primary read statistics."
+  - "governed QC artifacts may come from read profiling, adapter inspection, or overrepresented-sequence analysis."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
