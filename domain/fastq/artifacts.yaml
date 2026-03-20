@@ -56,6 +56,9 @@ artifact_ids:
   - qc_json
   - qc_plots_dir
   - qc_tsv
+  - read_length_tool_benchmark_cohort_json
+  - read_length_tool_comparison_json
+  - read_length_tool_normalization_json
   - reference_index
   - report_json
   - rrna_filtered_reads_r1

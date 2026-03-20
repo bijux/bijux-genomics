@@ -238,4 +238,34 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .any(|tool_id| tool_id.as_str() == "clumpify")
     );
+
+    let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
+    let read_length_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&read_length_stage);
+    assert_eq!(read_length_cohorts.len(), 1);
+    assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
+    assert!(
+        read_length_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "seqkit_stats")
+    );
+    assert!(
+        read_length_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "fastp")
+    );
+    assert!(
+        read_length_cohorts[0]
+            .tool_ids
+            .iter()
+            .any(|tool_id| tool_id.as_str() == "prinseq")
+    );
+    assert!(
+        read_length_cohorts[0]
+            .tool_ids
+            .iter()
+            .all(|tool_id| tool_id.as_str() != "seqfu")
+    );
 }

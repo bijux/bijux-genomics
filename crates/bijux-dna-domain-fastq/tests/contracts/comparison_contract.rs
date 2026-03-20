@@ -83,6 +83,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "dedup_tool_normalization_json",
         ]
     );
+
+    let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&read_length_stage),
+        vec![
+            "read_length_tool_benchmark_cohort_json",
+            "read_length_tool_comparison_json",
+            "read_length_tool_normalization_json",
+        ]
+    );
 }
 
 #[test]
