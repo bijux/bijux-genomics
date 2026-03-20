@@ -61,13 +61,13 @@ pub fn plan_trim_terminal_damage(
         ));
     }
     let mut outputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("trimmed_reads"),
+        ArtifactId::from_static("trimmed_reads_r1"),
         output_r1.clone(),
         ArtifactRole::TrimmedReads,
     )];
     if let Some(output_r2) = &output_r2 {
         outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("trimmed_reads"),
+            ArtifactId::from_static("trimmed_reads_r2"),
             output_r2.clone(),
             ArtifactRole::TrimmedReads,
         ));

@@ -45,7 +45,6 @@ stage_ids:
   - "fastq.normalize_primers"
   - "fastq.trim_terminal_damage"
 expected_artifacts:
-  - "trimmed_reads"
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
   - "report_json"

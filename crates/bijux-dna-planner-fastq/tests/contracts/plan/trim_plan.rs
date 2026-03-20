@@ -127,3 +127,22 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
     Ok(())
 }
+
+#[test]
+fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        "ancient",
+        2,
+        2,
+    )?;
+
+    assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
+    assert!(plan.command.template.iter().any(|part| part == "-p"));
+    Ok(())
+}

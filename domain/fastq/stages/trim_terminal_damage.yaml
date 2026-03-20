@@ -11,7 +11,10 @@ inputs:
     data_type: "fastq"
     cardinality: "Many"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "trimmed_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
   - name: "report_json"
@@ -54,7 +57,7 @@ image_requirements:
 required_inputs:
   - "reads_r1"
 required_outputs:
-  - "trimmed_reads"
+  - "trimmed_reads_r1"
   - "report_json"
 tool_capability_requirements: []
 invariants:
@@ -63,6 +66,7 @@ invariants:
   - "damage_policy_report_emitted_before_stage_complete"
 allowed_missingness:
   - "reads_r2"
+  - "trimmed_reads_r2"
 compatible_tools:
   - cutadapt
   - seqkit
@@ -71,7 +75,7 @@ assumptions:
   - "UDG classification is provided via config/env or inferred deterministically from sample metadata."
   - "Terminal masking/trimming policy is explicit and reproducible."
   - "Refusal occurs when downstream aligner requires untrimmed reads."
-  - "single-end input omits reads_r2; paired-end input preserves mate synchronization during terminal trimming."
+  - "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during terminal trimming."
 bank_hooks:
   - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"

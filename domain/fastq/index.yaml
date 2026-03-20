@@ -1086,7 +1086,7 @@ stage_output_size_estimates_mb:
     trimmed_reads_r1: 2000.0
     report_json: 10.0
   fastq.trim_terminal_damage:
-    trimmed_reads: 1800.0
+    trimmed_reads_r1: 1800.0
     report_json: 4.0
   fastq.validate_reads:
     validation_report: 5.0

@@ -47,13 +47,13 @@
     ],
     "outputs": [
       {
-        "name": "trimmed_reads",
+        "name": "trimmed_reads_r1",
         "path": "out/R1.trim_terminal_damage.cutadapt.fastq.gz",
         "role": "trimmed_reads",
         "optional": false
       },
       {
-        "name": "trimmed_reads",
+        "name": "trimmed_reads_r2",
         "path": "out/R2.trim_terminal_damage.cutadapt.fastq.gz",
         "role": "trimmed_reads",
         "optional": false
