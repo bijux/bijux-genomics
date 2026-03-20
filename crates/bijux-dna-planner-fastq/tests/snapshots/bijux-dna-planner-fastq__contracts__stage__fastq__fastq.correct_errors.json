@@ -10,11 +10,9 @@
   },
   "command": {
     "template": [
-      "rcorrector",
-      "-1",
-      "{{reads_r1}}",
-      "-2",
-      "{{reads_r2}}"
+      "sh",
+      "-lc",
+      "set -euo pipefail\n'rcorrector' '-1' 'reads_R1.fastq.gz' '-2' 'reads_R2.fastq.gz'\nprintf '%s\\n' '{\"correction_engine\":\"rcorrector\",\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"output_r1\":\"out/reads_r1.fastq.gz\",\"output_r2\":\"out/reads_r2.fastq.gz\",\"schema_version\":\"bijux.fastq.correct_errors.report.v1\",\"stage_id\":\"fastq.correct_errors\",\"tool_id\":\"rcorrector\"}' > 'out/correct_report.json'\n"
     ]
   },
   "resources": {
@@ -50,6 +48,12 @@
         "path": "out/reads_r2.fastq.gz",
         "role": "reads",
         "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "out/correct_report.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
@@ -60,6 +64,7 @@
     "output_r2": "out/reads_r2.fastq.gz",
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
+    "report_json": "out/correct_report.json",
     "tool": "rcorrector"
   },
   "effective_params": {
