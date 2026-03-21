@@ -11,13 +11,12 @@ container:
 command_template:
   - "spades.py"
   - "--only-error-correction"
-  - "--careful"
   - "-1"
   - "{{reads_r1}}"
   - "-2"
   - "{{reads_r2}}"
   - "-o"
-  - "{{corrected_reads_r1}}"
+  - "{{corrected_reads_dir}}"
 outputs:
   - name: "corrected_reads_r1"
     data_type: "fastq"
