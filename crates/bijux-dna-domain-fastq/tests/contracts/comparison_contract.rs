@@ -186,7 +186,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     let report_qc_stage = StageId::from_static("fastq.report_qc");
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&report_qc_stage),
-        vec!["multiqc_report", "multiqc_data"]
+        vec![
+            "multiqc_report",
+            "multiqc_data",
+            "governed_qc_inputs_manifest"
+        ]
     );
 }
 

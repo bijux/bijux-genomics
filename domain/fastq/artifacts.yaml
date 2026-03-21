@@ -117,6 +117,7 @@ artifact_ids:
   - umi_extraction_tool_benchmark_cohort_json
   - umi_extraction_tool_comparison_json
   - umi_extraction_tool_normalization_json
+  - governed_qc_inputs_manifest
   - validation_tool_benchmark_cohort_json
   - validation_tool_comparison_json
   - validation_tool_normalization_json

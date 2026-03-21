@@ -126,7 +126,11 @@ fn report_qc_exposes_stage_family_comparison_contract() {
     );
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &["multiqc_report", "multiqc_data"]
+        &[
+            "multiqc_report",
+            "multiqc_data",
+            "governed_qc_inputs_manifest",
+        ]
     );
 }
 

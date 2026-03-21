@@ -56,6 +56,10 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
         )?;
 
     assert_eq!(plan.io.inputs.len(), 2);
+    assert!(plan.io.outputs.iter().any(|artifact| {
+        artifact.name.as_str() == "governed_qc_inputs_manifest"
+            && artifact.path == Path::new("out/governed_qc_inputs_manifest.json")
+    }));
     assert_eq!(plan.params["qc_input_count"], serde_json::json!(2));
     assert_eq!(
         plan.params["qc_input_paths"],
@@ -111,6 +115,11 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         .iter()
         .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
         .expect("report_qc stage");
+    assert!(report_plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest"));
     assert!(report_plan
         .io
         .inputs

@@ -86,6 +86,11 @@ pub fn plan_qc_post_with_qc_inputs(
                 multiqc_data.clone(),
                 ArtifactRole::Index,
             ),
+            ArtifactRef::required(
+                ArtifactId::from_static("governed_qc_inputs_manifest"),
+                out_dir.join("governed_qc_inputs_manifest.json"),
+                ArtifactRole::SummaryJson,
+            ),
         ]
     } else {
         Vec::new()

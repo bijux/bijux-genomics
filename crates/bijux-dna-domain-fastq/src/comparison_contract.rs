@@ -104,7 +104,7 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.report_qc",
-        &["multiqc_report", "multiqc_data"],
+        &["multiqc_report", "multiqc_data", "governed_qc_inputs_manifest"],
         "qc_aggregation_tool_benchmark_cohort_json",
         "qc_aggregation_tool_comparison_json",
         "qc_aggregation_tool_normalization_json",
