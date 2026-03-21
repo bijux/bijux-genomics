@@ -1796,6 +1796,15 @@ benchmark_scenarios:
     - same_input_hash
     - same_previous_stage_defaults
     - same_dataset_class
+  polyg_trim_fairness:
+    stage_id: fastq.trim_polyg_tails
+    description: Compare polyG-tail trimming backends on identical reads and governed
+      polyG-tail policy.
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_polyg_trim_policy
   filter_fairness:
     stage_id: fastq.filter_reads
     description: Compare read-filtering tools on identical trimmed inputs and governed
