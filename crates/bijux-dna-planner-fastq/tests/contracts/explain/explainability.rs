@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_planner_fastq::compose_fastq_pipeline_steps;
+use bijux_dna_planner_fastq::{compose_fastq_stage_bindings, FastqStageBinding};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
 
 #[test]
@@ -48,11 +48,16 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         }),
     };
 
-    let plans = compose_fastq_pipeline_steps(
-        std::slice::from_ref(&stage),
-        &[tool],
+    let binding = FastqStageBinding {
+        stage_id: stage.clone(),
+        stage_instance_id: None,
+        tool,
+        reason: Some(reason.clone()),
+        params: None,
+    };
+    let plans = compose_fastq_stage_bindings(
+        std::slice::from_ref(&binding),
         &BTreeMap::new(),
-        Some(std::slice::from_ref(&reason)),
         None,
         None,
         None,
@@ -61,7 +66,11 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            temp.path()
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
 
     let plan_reason = &plans[0].reason;
@@ -104,41 +113,43 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
     };
 
     let stages = vec![
-        bijux_dna_domain_fastq::STAGE_TRIM_READS
-            .as_str()
-            .to_string(),
-        bijux_dna_domain_fastq::STAGE_PROFILE_READS
-            .as_str()
-            .to_string(),
-        bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY
-            .as_str()
-            .to_string(),
+        (
+            bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(),
+            tool_for("fastp"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_PROFILE_READS.as_str().to_string(),
+            tool_for("seqkit_stats"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(),
+            tool_for("krakenuniq"),
+        ),
     ];
-    let tool_reasons: Vec<PlanDecisionReason> = stages
+    let bindings: Vec<FastqStageBinding> = stages
         .iter()
-        .map(|stage| PlanDecisionReason {
-            kind: PlanReasonKind::Default,
-            summary: format!("default selection for {stage}"),
-            details: serde_json::json!({
-                "defaults_diff": {},
-                "contract_hash": bijux_dna_domain_fastq::stage_contract_hash(stage)
-                    .and_then(|hash| hash.ok())
-                    .unwrap_or_else(|| "missing".to_string()),
+        .map(|(stage_id, tool)| FastqStageBinding {
+            stage_id: stage_id.clone(),
+            stage_instance_id: None,
+            tool: tool.clone(),
+            reason: Some(PlanDecisionReason {
+                kind: PlanReasonKind::Default,
+                summary: format!("default selection for {stage_id}"),
+                details: serde_json::json!({
+                    "defaults_diff": {},
+                    "contract_hash": bijux_dna_domain_fastq::stage_contract_hash(stage_id)
+                        .and_then(|hash| hash.ok())
+                        .unwrap_or_else(|| "missing".to_string()),
+                }),
             }),
+            params: None,
         })
         .collect();
-    let tools = vec![
-        tool_for("fastp"),
-        tool_for("seqkit_stats"),
-        tool_for("krakenuniq"),
-    ];
 
     let mk_plan = || {
-        compose_fastq_pipeline_steps(
-            &stages,
-            &tools,
+        compose_fastq_stage_bindings(
+            &bindings,
             &BTreeMap::new(),
-            Some(&tool_reasons),
             None,
             None,
             None,
@@ -147,11 +158,11 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
             None,
             None,
             None,
-            |stage_id, tool, _r1, _r2| {
+            |binding, _r1, _r2| {
                 Ok(temp
                     .path()
-                    .join(stage_id.replace('.', "_"))
-                    .join(tool.tool_id.as_str()))
+                    .join(binding.stage_id.replace('.', "_"))
+                    .join(binding.tool.tool_id.as_str()))
             },
         )
     };
