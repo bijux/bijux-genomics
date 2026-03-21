@@ -33,6 +33,7 @@ execution_contract:
     - "reads_r1"
   expected_outputs:
     - "dedup_reads_r1"
+    - "dedup_reads_r2"
     - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
@@ -50,9 +51,10 @@ stage_contracts:
       - "reads_r1"
     expected_artifacts:
       - "dedup_reads_r1"
+      - "dedup_reads_r2"
       - "report_json"
-    notes: "Clumpify duplicate removal emits governed deduplicated reads and the normalized duplicate report."
-expected_artifacts: ["dedup_reads_r1", "report_json"]
+    notes: "Clumpify duplicate removal emits governed deduplicated reads for single-end and paired-end layouts; paired runs produce both mate artifacts plus the normalized duplicate report."
+expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "clumpify.sh --version"

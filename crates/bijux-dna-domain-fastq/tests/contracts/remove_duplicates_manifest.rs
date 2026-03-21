@@ -66,7 +66,7 @@ fn fastuniq_manifest_requires_paired_remove_duplicates_inputs() -> Result<()> {
 }
 
 #[test]
-fn clumpify_manifest_keeps_single_end_remove_duplicates_contract() -> Result<()> {
+fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()> {
     let manifest = tool_manifest("clumpify")?;
     let expected_outputs = manifest
         .get("execution_contract")
@@ -76,7 +76,10 @@ fn clumpify_manifest_keeps_single_end_remove_duplicates_contract() -> Result<()>
         .iter()
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
-    assert_eq!(expected_outputs, vec!["dedup_reads_r1", "report_json"]);
+    assert_eq!(
+        expected_outputs,
+        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+    );
 
     let stage_expected_artifacts = manifest
         .get("stage_contracts")
@@ -87,6 +90,9 @@ fn clumpify_manifest_keeps_single_end_remove_duplicates_contract() -> Result<()>
         .iter()
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
-    assert_eq!(stage_expected_artifacts, vec!["dedup_reads_r1", "report_json"]);
+    assert_eq!(
+        stage_expected_artifacts,
+        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+    );
     Ok(())
 }
