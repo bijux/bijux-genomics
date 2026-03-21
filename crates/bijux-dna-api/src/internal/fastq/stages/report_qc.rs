@@ -326,7 +326,9 @@ fn build_qc_post_record(
 
     let report = serde_json::json!({
         "schema_version": "bijux.fastq.report_qc.report.v1",
+        "stage": STAGE_REPORT_QC.as_str(),
         "stage_id": STAGE_REPORT_QC.as_str(),
+        "tool": tool,
         "tool_id": tool,
         "input_fastq_r1": bench_inputs.r1,
         "input_fastq_r2": bench_inputs.r2,
@@ -340,6 +342,8 @@ fn build_qc_post_record(
         "contamination_rate": metrics.contamination_rate,
         "raw_fastqc_dir": metrics.raw_fastqc_dir,
         "trimmed_fastqc_dir": metrics.trimmed_fastqc_dir,
+        "report_html": metrics.multiqc_report,
+        "report_data_dir": metrics.multiqc_data,
         "multiqc_report": metrics.multiqc_report,
         "multiqc_data": metrics.multiqc_data,
         "runtime_s": execution.runtime_s,
