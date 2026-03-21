@@ -38,10 +38,19 @@ fn select_trim_tools_keeps_contract_even_when_opt_in_flag_is_set() {
 
 #[test]
 fn select_trim_tools_rejects_backends_without_governed_runtime_support() {
-    let tools = vec!["seqkit".to_string()];
+    let tools = vec!["seqpurge".to_string()];
     match select_trim_tools(&tools, false) {
         Ok(_) => panic!("expected failure"),
         Err(err) => assert!(err.to_string().contains("unsupported tool")),
+    }
+}
+
+#[test]
+fn select_trim_tools_accepts_newly_governed_streaming_backends() {
+    let tools = vec!["seqkit".to_string(), "prinseq".to_string()];
+    match select_trim_tools(&tools, false) {
+        Ok(normalized) => assert_eq!(normalized, vec!["prinseq".to_string(), "seqkit".to_string()]),
+        Err(err) => panic!("expected governed trim tools to normalize: {err}"),
     }
 }
 
