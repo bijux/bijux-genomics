@@ -863,7 +863,7 @@ fn inherited_lineage(
 
     if binding.stage_id == STAGE_REPORT_QC.as_str() {
         let mut qc_inputs = upstream_lineages
-            .into_iter()
+            .iter()
             .flat_map(|lineage| lineage.qc_inputs.clone())
             .collect::<Vec<_>>();
         qc_inputs.sort_by(|left, right| {
@@ -915,7 +915,7 @@ fn inherited_lineage(
             .collect(),
     )?;
     let mut qc_inputs = upstream_lineages
-        .into_iter()
+        .iter()
         .flat_map(|lineage| lineage.qc_inputs.clone())
         .collect::<Vec<_>>();
     qc_inputs.sort_by(|left, right| {
