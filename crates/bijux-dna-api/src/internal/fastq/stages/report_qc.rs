@@ -588,11 +588,21 @@ fn bench_governed_qc_contributor_bindings(
     let mut bindings = bench_governed_qc_contributor_stage_ids(paired_end)
         .into_iter()
         .flat_map(|stage_id| {
+            let stage_id_for_filter = stage_id.clone();
             bijux_dna_planner_fastq::stage_api::toolset_for_stage(
                 &stage_id,
                 bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
             )
             .into_iter()
+            .filter(move |tool_id| {
+                if stage_id_for_filter.as_str() != "fastq.remove_duplicates" {
+                    return true;
+                }
+                bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::deduplicate_tool_supports_paired_mode(
+                    tool_id.as_str(),
+                    paired_end,
+                )
+            })
             .map(move |tool_id| (stage_id.clone(), tool_id))
         })
         .collect::<Vec<_>>();
@@ -670,9 +680,6 @@ fn plan_governed_qc_contributor(
             )?
         }
         "fastq.remove_duplicates" => {
-            if tool_spec.tool_id.as_str() == "fastuniq" && r2.is_none() {
-                return Ok(None);
-            }
             bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
                 tool_spec, r1, r2, out_dir,
             )?
@@ -785,6 +792,17 @@ mod tests {
         }));
         assert!(paired.iter().any(|(stage, tool)| {
             stage.as_str() == "fastq.remove_duplicates" && tool.as_str() == "clumpify"
+        }));
+    }
+
+    #[test]
+    fn bench_qc_contributor_bindings_skip_paired_only_dedup_tools_for_single_end() {
+        let single_end = bench_governed_qc_contributor_bindings(false);
+        assert!(single_end.iter().any(|(stage, tool)| {
+            stage.as_str() == "fastq.remove_duplicates" && tool.as_str() == "clumpify"
+        }));
+        assert!(!single_end.iter().any(|(stage, tool)| {
+            stage.as_str() == "fastq.remove_duplicates" && tool.as_str() == "fastuniq"
         }));
     }
 

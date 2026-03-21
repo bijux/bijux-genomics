@@ -44,6 +44,15 @@ pub fn normalize_deduplicate_tool_list(tools: &[String]) -> Result<Vec<String>> 
     Ok(normalized)
 }
 
+#[must_use]
+pub fn deduplicate_tool_supports_paired_mode(tool_id: &str, paired_mode: bool) -> bool {
+    match tool_id {
+        "fastuniq" => paired_mode,
+        "clumpify" => true,
+        _ => false,
+    }
+}
+
 fn deduplicate_output_name(tool: &str) -> Option<&'static str> {
     match tool {
         "fastuniq" => Some("fastuniq.fastq.gz"),
@@ -256,7 +265,7 @@ fn validate_deduplicate_options(
     paired_mode: bool,
     options: &RemoveDuplicatesPlanOptions,
 ) -> Result<()> {
-    if tool_id == "fastuniq" && !paired_mode {
+    if !deduplicate_tool_supports_paired_mode(tool_id, paired_mode) {
         return Err(anyhow!("fastuniq requires paired-end reads"));
     }
     if options.dedup_mode != DedupMode::Exact {
@@ -302,6 +311,14 @@ mod tests {
     #[test]
     fn deduplicate_output_name_rejects_unadmitted_tools() {
         assert!(deduplicate_output_name("prinseq").is_none());
+    }
+
+    #[test]
+    fn deduplicate_tool_supports_paired_mode_reflects_backend_capabilities() {
+        assert!(!deduplicate_tool_supports_paired_mode("fastuniq", false));
+        assert!(deduplicate_tool_supports_paired_mode("fastuniq", true));
+        assert!(deduplicate_tool_supports_paired_mode("clumpify", false));
+        assert!(deduplicate_tool_supports_paired_mode("clumpify", true));
     }
 
     #[test]
