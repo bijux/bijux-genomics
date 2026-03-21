@@ -23,7 +23,9 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use bijux_dna_runner::step_runner::StageResultV1;
 use uuid::Uuid;
 
-use crate::internal::fastq::stages::trim_bench_common::{build_benchmark_context, observe_fastq_stats};
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, observe_fastq_stats,
+};
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -41,8 +43,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
     log_header_warnings(STAGE_MERGE_PAIRS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_MERGE_PAIRS.as_str(), &tools, &registry, false)?;
 
     let runner = ensure_bench_runner(platform, runner_override)?;
@@ -55,7 +57,13 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
 
     if args.explain {
         write_explain_md(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &registry, None)?;
+        write_explain_plan_json(
+            &bench_dir,
+            STAGE_MERGE_PAIRS.as_str(),
+            &tools,
+            &registry,
+            None,
+        )?;
     }
 
     ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), &tools, platform, catalog)?;
@@ -74,8 +82,13 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_MERGE_PAIRS.as_str(), tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_MERGE_PAIRS.as_str(),
+            tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -99,7 +112,9 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?

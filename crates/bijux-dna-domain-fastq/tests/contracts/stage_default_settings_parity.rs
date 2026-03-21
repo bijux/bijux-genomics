@@ -62,8 +62,9 @@ fn indexed_stage_tool_compatibility() -> Result<BTreeMap<String, BTreeSet<String
             break;
         }
         if line.starts_with("  ") && !line.starts_with("  - ") {
-            let Some((stage, inline_value)) =
-                line.strip_prefix("  ").and_then(|rest| rest.split_once(':'))
+            let Some((stage, inline_value)) = line
+                .strip_prefix("  ")
+                .and_then(|rest| rest.split_once(':'))
             else {
                 continue;
             };

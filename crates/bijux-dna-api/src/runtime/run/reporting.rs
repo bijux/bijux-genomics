@@ -27,7 +27,12 @@ pub fn status(run_dir: &Path) -> Result<RunStatus> {
         std::fs::read_to_string(&envelope_path)
             .ok()
             .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
-            .and_then(|value| value.get("manifest_json").and_then(serde_json::Value::as_str).map(PathBuf::from))
+            .and_then(|value| {
+                value
+                    .get("manifest_json")
+                    .and_then(serde_json::Value::as_str)
+                    .map(PathBuf::from)
+            })
             .or_else(|| manifest_path.exists().then_some(manifest_path.clone()))
     } else if manifest_path.exists() {
         Some(manifest_path.clone())

@@ -19,11 +19,11 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen;
-use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -46,8 +46,8 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(
         STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
         &tools,
@@ -73,7 +73,12 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -134,7 +139,8 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             &args.reference_index,
             &out_dir,
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+        let params_hash =
+            params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -156,7 +162,9 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -173,60 +181,53 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let (
-            reads_in,
-            reads_out,
-            bases_in,
-            bases_out,
-            pairs_in,
-            pairs_out,
-            depletion_summary,
-        ) = if let Some(input_stats_r2) = &input_stats_r2 {
-            let output_r1 = plan.io.outputs[0].path.clone();
-            let output_r2 = plan.io.outputs[1].path.clone();
-            let report_json = plan.io.outputs[2].path.clone();
-            let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
-            let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
-            let reads_in = bench_inputs.input_stats.reads + input_stats_r2.reads;
-            let reads_out = output_stats_r1.reads + output_stats_r2.reads;
-            let bases_in = bench_inputs.input_stats.bases + input_stats_r2.bases;
-            let bases_out = output_stats_r1.bases + output_stats_r2.bases;
-            let pairs_in = bench_inputs.input_stats.reads.min(input_stats_r2.reads);
-            let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
-            (
-                reads_in,
-                reads_out,
-                bases_in,
-                bases_out,
-                pairs_in,
-                pairs_out,
-                serde_json::json!({
-                    "reads_removed": reads_in.saturating_sub(reads_out),
-                    "bases_removed": bases_in.saturating_sub(bases_out),
-                    "output_r1": output_r1,
-                    "output_r2": output_r2,
-                    "report_json": report_json,
-                }),
-            )
-        } else {
-            let output_fastq = plan.io.outputs[0].path.clone();
-            let report_json = plan.io.outputs[1].path.clone();
-            let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
-            (
-                bench_inputs.input_stats.reads,
-                output_stats.reads,
-                bench_inputs.input_stats.bases,
-                output_stats.bases,
-                0,
-                0,
-                serde_json::json!({
-                    "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
-                    "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
-                    "output_fastq": output_fastq,
-                    "report_json": report_json,
-                }),
-            )
-        };
+        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, depletion_summary) =
+            if let Some(input_stats_r2) = &input_stats_r2 {
+                let output_r1 = plan.io.outputs[0].path.clone();
+                let output_r2 = plan.io.outputs[1].path.clone();
+                let report_json = plan.io.outputs[2].path.clone();
+                let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+                let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
+                let reads_in = bench_inputs.input_stats.reads + input_stats_r2.reads;
+                let reads_out = output_stats_r1.reads + output_stats_r2.reads;
+                let bases_in = bench_inputs.input_stats.bases + input_stats_r2.bases;
+                let bases_out = output_stats_r1.bases + output_stats_r2.bases;
+                let pairs_in = bench_inputs.input_stats.reads.min(input_stats_r2.reads);
+                let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
+                (
+                    reads_in,
+                    reads_out,
+                    bases_in,
+                    bases_out,
+                    pairs_in,
+                    pairs_out,
+                    serde_json::json!({
+                        "reads_removed": reads_in.saturating_sub(reads_out),
+                        "bases_removed": bases_in.saturating_sub(bases_out),
+                        "output_r1": output_r1,
+                        "output_r2": output_r2,
+                        "report_json": report_json,
+                    }),
+                )
+            } else {
+                let output_fastq = plan.io.outputs[0].path.clone();
+                let report_json = plan.io.outputs[1].path.clone();
+                let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
+                (
+                    bench_inputs.input_stats.reads,
+                    output_stats.reads,
+                    bench_inputs.input_stats.bases,
+                    output_stats.bases,
+                    0,
+                    0,
+                    serde_json::json!({
+                        "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
+                        "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
+                        "output_fastq": output_fastq,
+                        "report_json": report_json,
+                    }),
+                )
+            };
         let contaminant_fraction_removed = if reads_in == 0 {
             0.0
         } else {

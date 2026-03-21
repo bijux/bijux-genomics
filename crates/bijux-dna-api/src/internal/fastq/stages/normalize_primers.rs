@@ -6,9 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_normalize_primers_v1, insert_fastq_normalize_primers_v1,
 };
-use bijux_dna_analyze::{
-    append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics,
-};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
@@ -38,8 +36,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
 ) -> Result<BenchOutcome<FastqNormalizePrimersMetrics>> {
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_normalize_primers_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
@@ -67,8 +65,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         hash_file_sha256(&args.r1).context("hash normalize primers input")?
     };
 
-    let bench_dir_name = bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS)
-        .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
+    let bench_dir_name =
+        bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS)
+            .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
     let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&bench_dir)?;
@@ -155,7 +154,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         };
         let metrics = FastqNormalizePrimersMetrics {
             reads_in: input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads),
-            reads_out: output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads),
+            reads_out: output_stats_r1.reads
+                + output_stats_r2.as_ref().map_or(0, |stats| stats.reads),
             primer_trimmed_fraction: payload
                 .get("primer_trimmed_fraction")
                 .and_then(serde_json::Value::as_f64)
@@ -180,8 +180,14 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
         });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("normalize_primers_report.json"), &report)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &serde_json::to_value(&metric_set)?)?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("normalize_primers_report.json"),
+            &report,
+        )?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,

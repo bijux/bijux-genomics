@@ -152,7 +152,9 @@ impl BenchmarkObservation {
             .as_deref()
             .is_some_and(|value| value.trim().is_empty())
         {
-            return Err(BenchError::MissingConfounder { field: "lineage_id" });
+            return Err(BenchError::MissingConfounder {
+                field: "lineage_id",
+            });
         }
         if self.cpu.trim().is_empty() {
             return Err(BenchError::MissingConfounder { field: "cpu" });

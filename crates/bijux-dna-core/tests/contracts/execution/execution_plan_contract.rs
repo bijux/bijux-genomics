@@ -44,7 +44,11 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
-        vec![mk_step("fastq.trim_reads", "fastq.trim_reads", "sha256:abc")],
+        vec![mk_step(
+            "fastq.trim_reads",
+            "fastq.trim_reads",
+            "sha256:abc",
+        )],
         vec![ExecutionEdge::new(
             StepId::from_static("fastq.trim_reads"),
             StepId::from_static("fastq.trim_reads"),

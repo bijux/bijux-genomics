@@ -11,5 +11,5 @@ pub(crate) mod sections;
 
 mod bench;
 
-pub use build::*;
 pub use self::bench::*;
+pub use build::*;

@@ -136,7 +136,12 @@ pub fn stage_tool_governance_profile(
             == Some(tool_id),
         admitted_runtime_tool: support
             .as_ref()
-            .map(|record| record.admitted_tools.iter().any(|candidate| candidate == tool_id))
+            .map(|record| {
+                record
+                    .admitted_tools
+                    .iter()
+                    .any(|candidate| candidate == tool_id)
+            })
             .unwrap_or(false),
         benchmark_scenario_ids: benchmark_governance
             .as_ref()
@@ -160,7 +165,9 @@ pub fn stage_tool_governance_profile(
 }
 
 #[must_use]
-pub fn stage_tool_governance_profiles_for_stage(stage_id: &StageId) -> Vec<StageToolGovernanceProfile> {
+pub fn stage_tool_governance_profiles_for_stage(
+    stage_id: &StageId,
+) -> Vec<StageToolGovernanceProfile> {
     stage_tool_bindings()
         .into_iter()
         .filter(|binding| binding.stage_id == *stage_id)

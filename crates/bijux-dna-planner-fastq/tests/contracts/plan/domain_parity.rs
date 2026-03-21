@@ -1,6 +1,6 @@
 use anyhow::Result;
-use bijux_dna_domain_fastq::{canonical_amplicon_stage_order, FastqPipelineMode};
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
+use bijux_dna_domain_fastq::{canonical_amplicon_stage_order, FastqPipelineMode};
 use bijux_dna_planner_fastq::{default_pipeline_spec, DefaultPipelineOptions};
 use std::collections::BTreeSet;
 
@@ -123,11 +123,17 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         "single-end default pipeline must not schedule paired merge"
     );
     assert!(
-        !spec.stages.iter().any(|stage| stage == "fastq.correct_errors"),
+        !spec
+            .stages
+            .iter()
+            .any(|stage| stage == "fastq.correct_errors"),
         "single-end default pipeline must not schedule paired correction"
     );
     assert!(
-        !spec.stages.iter().any(|stage| stage == "fastq.extract_umis"),
+        !spec
+            .stages
+            .iter()
+            .any(|stage| stage == "fastq.extract_umis"),
         "single-end default pipeline must not schedule paired UMI extraction"
     );
 

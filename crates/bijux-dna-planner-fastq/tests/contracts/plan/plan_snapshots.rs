@@ -6,11 +6,11 @@ use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, StageId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
     apply_tool_overrides, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs, FastqPlanConfig, FastqPlanner,
 };
-use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 
 fn snapshot_settings() -> insta::Settings {
     let mut settings = insta::Settings::clone_current();
@@ -88,7 +88,10 @@ fn fastq_plan_snapshot() {
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: None,
         stage_bindings: Vec::new(),
-        stages: vec!["fastq.validate_reads".to_string(), "fastq.trim_reads".to_string()],
+        stages: vec![
+            "fastq.validate_reads".to_string(),
+            "fastq.trim_reads".to_string(),
+        ],
         tools: vec![tool_validate, tool_trim],
         aux_images: BTreeMap::new(),
         adapter_bank: None,
@@ -128,8 +131,8 @@ fn tool_override_precedence_is_stable() {
 #[test]
 fn default_pipeline_plan_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
-    let stages = bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default())
-        .stages;
+    let stages =
+        bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default()).stages;
     let tools: Vec<ToolExecutionSpecV1> = stages
         .iter()
         .map(|stage| default_stage_tool(stage))

@@ -12,10 +12,10 @@ pub mod telemetry;
 
 pub use observability::{
     attrs_from_json, redact_key, redacted_attrs, validate_stage_telemetry, AssetsProvenanceV1,
-    AttrMap, AttrValue, EffectiveConfigV1, FailureCode, FactsRowV1, FilterReportV1,
-    MergeReportV1, MetricSemanticsV1, PipelineVerdictV1, QcPostReportV1, ReportCompletenessV1,
-    ReportContractV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
-    RetentionContextV1, RetentionDefinitionV1, RetentionReportV1, RunContextV1, RunProvenanceV1,
+    AttrMap, AttrValue, EffectiveConfigV1, FactsRowV1, FailureCode, FilterReportV1, MergeReportV1,
+    MetricSemanticsV1, PipelineVerdictV1, QcPostReportV1, ReportCompletenessV1, ReportContractV1,
+    ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
+    RetentionDefinitionV1, RetentionReportV1, RunContextV1, RunProvenanceV1,
     StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1, TelemetryEventName,
     TelemetryEventV1, TrimReportV1, ValidateReportV1,
 };

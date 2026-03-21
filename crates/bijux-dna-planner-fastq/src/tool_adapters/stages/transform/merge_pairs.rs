@@ -38,7 +38,8 @@ pub fn plan_merge(
         merge_overlap: None,
         min_len: None,
         merge_engine,
-        unmerged_read_policy: if outputs.unmerged_reads_r1.is_some() && outputs.unmerged_reads_r2.is_some()
+        unmerged_read_policy: if outputs.unmerged_reads_r1.is_some()
+            && outputs.unmerged_reads_r2.is_some()
         {
             UnmergedReadPolicy::EmitUnmergedPairs
         } else {

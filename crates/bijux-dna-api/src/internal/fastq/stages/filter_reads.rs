@@ -4,9 +4,7 @@ use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_filter_v2, insert_fastq_filter_v2};
-use bijux_dna_analyze::{
-    append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics,
-};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -20,13 +18,13 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use bijux_dna_runner::step_runner::StageResultV1;
 use uuid::Uuid;
 
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
+};
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_READS,
-};
-use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
@@ -48,8 +46,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_READS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_FILTER_READS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(
         catalog,
@@ -70,7 +68,12 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -114,10 +117,21 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_FILTER_READS.as_str(), tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_FILTER_READS.as_str(),
+            tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &filter_options)?;
+        let plan = plan_filter(
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            &filter_options,
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -139,7 +153,9 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -156,7 +172,10 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             &input_hash,
             &plan.params,
             &plan.io.outputs[0].path,
-            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
+            plan.io
+                .outputs
+                .get(1)
+                .map(|artifact| artifact.path.as_path()),
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;

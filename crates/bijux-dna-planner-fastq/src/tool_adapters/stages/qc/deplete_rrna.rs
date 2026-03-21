@@ -6,8 +6,7 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
-        RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine,
-        RRNA_DEPLETION_SCHEMA_VERSION,
+        RrnaEffectiveParams, RrnaReportFormat, RrnaScreeningEngine, RRNA_DEPLETION_SCHEMA_VERSION,
     },
     PairedMode,
 };

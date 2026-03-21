@@ -157,7 +157,9 @@ impl ExecutionGraph {
 
     #[must_use]
     pub fn step_by_id(&self, step_id: &str) -> Option<&ExecutionStep> {
-        self.steps.iter().find(|step| step.step_id.as_str() == step_id)
+        self.steps
+            .iter()
+            .find(|step| step.step_id.as_str() == step_id)
     }
 
     /// # Errors
@@ -511,10 +513,7 @@ mod tests {
         )
         .expect("graph");
         assert_eq!(
-            graph
-                .step_by_id("a")
-                .expect("step")
-                .stage_id,
+            graph.step_by_id("a").expect("step").stage_id,
             StageId::new("fastq.validate_reads".to_string())
         );
         assert!(graph.step_by_id("missing").is_none());

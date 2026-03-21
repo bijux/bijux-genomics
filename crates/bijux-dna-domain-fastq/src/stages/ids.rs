@@ -1,8 +1,7 @@
 use bijux_dna_core::ids::StageId;
 
 pub const STAGE_VALIDATE_READS: StageId = StageId::from_static("fastq.validate_reads");
-pub const STAGE_PROFILE_READ_LENGTHS: StageId =
-    StageId::from_static("fastq.profile_read_lengths");
+pub const STAGE_PROFILE_READ_LENGTHS: StageId = StageId::from_static("fastq.profile_read_lengths");
 pub const STAGE_DETECT_ADAPTERS: StageId = StageId::from_static("fastq.detect_adapters");
 pub const STAGE_TRIM_TERMINAL_DAMAGE: StageId = StageId::from_static("fastq.trim_terminal_damage");
 pub const STAGE_TRIM_POLYG_TAILS: StageId = StageId::from_static("fastq.trim_polyg_tails");
@@ -11,9 +10,11 @@ pub const STAGE_FILTER_READS: StageId = StageId::from_static("fastq.filter_reads
 pub const STAGE_PROFILE_READS: StageId = StageId::from_static("fastq.profile_reads");
 pub const STAGE_MERGE_PAIRS: StageId = StageId::from_static("fastq.merge_pairs");
 pub const STAGE_REMOVE_DUPLICATES: StageId = StageId::from_static("fastq.remove_duplicates");
-pub const STAGE_FILTER_LOW_COMPLEXITY: StageId = StageId::from_static("fastq.filter_low_complexity");
+pub const STAGE_FILTER_LOW_COMPLEXITY: StageId =
+    StageId::from_static("fastq.filter_low_complexity");
 pub const STAGE_DEPLETE_HOST: StageId = StageId::from_static("fastq.deplete_host");
-pub const STAGE_DEPLETE_REFERENCE_CONTAMINANTS: StageId = StageId::from_static("fastq.deplete_reference_contaminants");
+pub const STAGE_DEPLETE_REFERENCE_CONTAMINANTS: StageId =
+    StageId::from_static("fastq.deplete_reference_contaminants");
 pub const STAGE_CORRECT_ERRORS: StageId = StageId::from_static("fastq.correct_errors");
 pub const STAGE_REPORT_QC: StageId = StageId::from_static("fastq.report_qc");
 pub const STAGE_EXTRACT_UMIS: StageId = StageId::from_static("fastq.extract_umis");
@@ -26,8 +27,7 @@ pub const STAGE_NORMALIZE_PRIMERS: StageId = StageId::from_static("fastq.normali
 pub const STAGE_REMOVE_CHIMERAS: StageId = StageId::from_static("fastq.remove_chimeras");
 pub const STAGE_INFER_ASVS: StageId = StageId::from_static("fastq.infer_asvs");
 pub const STAGE_CLUSTER_OTUS: StageId = StageId::from_static("fastq.cluster_otus");
-pub const STAGE_NORMALIZE_ABUNDANCE: StageId =
-    StageId::from_static("fastq.normalize_abundance");
+pub const STAGE_NORMALIZE_ABUNDANCE: StageId = StageId::from_static("fastq.normalize_abundance");
 
 pub const STAGE_PREFIX: &str = "fastq.";
 

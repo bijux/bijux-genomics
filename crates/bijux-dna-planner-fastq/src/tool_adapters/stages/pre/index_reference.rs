@@ -88,7 +88,10 @@ pub fn plan(
 
 fn reference_index_output(tool_id: &str, out_dir: &Path) -> Result<std::path::PathBuf> {
     match tool_id {
-        "bowtie2_build" => Ok(out_dir.join("reference_index").join("bowtie2").join("reference")),
+        "bowtie2_build" => Ok(out_dir
+            .join("reference_index")
+            .join("bowtie2")
+            .join("reference")),
         "star" => Ok(out_dir.join("reference_index").join("star")),
         _ => Err(anyhow!(
             "unsupported reference indexing tool for stage planning: {tool_id}"

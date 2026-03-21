@@ -4,7 +4,9 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{stats::FastqStatsParams, stats::STATS_SCHEMA_VERSION, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    stats::FastqStatsParams, stats::STATS_SCHEMA_VERSION, PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_PROFILE_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 

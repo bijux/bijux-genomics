@@ -168,10 +168,7 @@ fn filter_command_template(
             .or(options.entropy_threshold)
         {
             command.push("--low_complexity_filter".to_string());
-            command.extend([
-                "--complexity_threshold".to_string(),
-                threshold.to_string(),
-            ]);
+            command.extend(["--complexity_threshold".to_string(), threshold.to_string()]);
         }
         if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
             command.extend([

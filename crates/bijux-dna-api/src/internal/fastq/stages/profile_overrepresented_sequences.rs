@@ -26,9 +26,7 @@ use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::build_benchmark_context;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
-use crate::internal::handlers::fastq::{
-    write_explain_md, write_explain_plan_json, BenchOutcome,
-};
+use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.profile_overrepresented_sequences";
 
@@ -47,14 +45,16 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_profile_overrepresented_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
 
-    let bench_dir_name = bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES)
-        .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
+    let bench_dir_name = bench_dir_name(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    )
+    .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
     let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
@@ -110,7 +110,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -129,7 +131,12 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         let output_tsv = &plan.io.outputs[0].path;
         let output_json = &plan.io.outputs[1].path;
         if !output_tsv.exists() || !output_json.exists() {
-            materialize_overrepresented_outputs(&args.r1, args.r2.as_deref(), output_tsv, output_json)?;
+            materialize_overrepresented_outputs(
+                &args.r1,
+                args.r2.as_deref(),
+                output_tsv,
+                output_json,
+            )?;
         }
         let metrics = read_metrics(output_json)?;
         let metric_set = metric_set(metrics);
@@ -203,7 +210,8 @@ fn materialize_overrepresented_outputs(
     let top_fraction = if total == 0 {
         0.0
     } else {
-        top.first().map_or(0.0, |(_, count)| *count as f64 / total as f64)
+        top.first()
+            .map_or(0.0, |(_, count)| *count as f64 / total as f64)
     };
     let flagged_sequences = top
         .iter()
@@ -212,8 +220,16 @@ fn materialize_overrepresented_outputs(
 
     let mut rows = String::from("sequence\tcount\tfraction\tflag\n");
     for (seq, count) in &top {
-        let fraction = if total == 0 { 0.0 } else { *count as f64 / total as f64 };
-        let flag = if fraction >= 0.01 { "overrepresented" } else { "background" };
+        let fraction = if total == 0 {
+            0.0
+        } else {
+            *count as f64 / total as f64
+        };
+        let flag = if fraction >= 0.01 {
+            "overrepresented"
+        } else {
+            "background"
+        };
         rows.push_str(&format!("{seq}\t{count}\t{fraction:.6}\t{flag}\n"));
     }
     bijux_dna_infra::atomic_write_bytes(output_tsv, rows.as_bytes())?;
@@ -239,19 +255,30 @@ fn materialize_overrepresented_outputs(
 }
 
 fn read_metrics(path: &Path) -> Result<FastqOverrepresentedMetrics> {
-    let value: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(path).with_context(|| format!("read {}", path.display()))?)?;
+    let value: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
+    )?;
     let metrics = FastqOverrepresentedMetrics {
-        sequence_count: value.get("sequence_count").and_then(serde_json::Value::as_u64).unwrap_or(0),
-        flagged_sequences: value.get("flagged_sequences").and_then(serde_json::Value::as_u64).unwrap_or(0),
-        top_fraction: value.get("top_fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+        sequence_count: value
+            .get("sequence_count")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        flagged_sequences: value
+            .get("flagged_sequences")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        top_fraction: value
+            .get("top_fraction")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
     };
     metrics.validate()?;
     Ok(metrics)
 }
 
 fn open_fastq_lines(path: &Path) -> Result<Vec<String>> {
-    let file = std::fs::File::open(path).with_context(|| format!("open fastq {}", path.display()))?;
+    let file =
+        std::fs::File::open(path).with_context(|| format!("open fastq {}", path.display()))?;
     if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
         let decoder = flate2::read::MultiGzDecoder::new(file);
         let reader = BufReader::new(decoder);

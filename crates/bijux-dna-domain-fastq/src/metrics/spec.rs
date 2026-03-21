@@ -47,7 +47,8 @@ pub const FASTQ_CORRECT_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::QualityShift];
 pub const FASTQ_UMI_CLASSES: [MetricClass; 2] = [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_SCREEN_CLASSES: [MetricClass; 1] = [MetricClass::Contamination];
-pub const FASTQ_RRNA_CLASSES: [MetricClass; 2] = [MetricClass::Contamination, MetricClass::Retention];
+pub const FASTQ_RRNA_CLASSES: [MetricClass; 2] =
+    [MetricClass::Contamination, MetricClass::Retention];
 pub const FASTQ_QC_POST_CLASSES: [MetricClass; 2] =
     [MetricClass::QualityShift, MetricClass::Contamination];
 pub const FASTQ_STATS_CLASSES: [MetricClass; 2] =

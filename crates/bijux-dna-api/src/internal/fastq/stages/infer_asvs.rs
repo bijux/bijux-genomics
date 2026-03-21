@@ -3,7 +3,9 @@ use std::collections::{BTreeSet, HashMap};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_infer_asvs_v1, insert_fastq_infer_asvs_v1};
+use bijux_dna_analyze::load::sqlite::bench::{
+    fetch_fastq_infer_asvs_v1, insert_fastq_infer_asvs_v1,
+};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqInferAsvsMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
@@ -41,8 +43,8 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             ));
         }
     }
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_infer_asvs_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
@@ -133,7 +135,10 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
         let sample_count = infer_sample_count(&plan.io.outputs[0].path)?;
         let metrics = FastqInferAsvsMetrics {
-            asv_count: payload.get("asv_count").and_then(serde_json::Value::as_u64).unwrap_or(0),
+            asv_count: payload
+                .get("asv_count")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(0),
             sample_count,
         };
         let metric_set = metric_set(metrics);
@@ -152,7 +157,10 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             "exit_code": execution.exit_code,
         });
         bijux_dna_infra::atomic_write_json(&out_dir.join("infer_asvs_report.json"), &report)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &serde_json::to_value(&metric_set)?)?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,

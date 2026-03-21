@@ -32,8 +32,8 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
 ) -> Result<BenchOutcome<FastqReadLengthMetrics>> {
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_profile_read_lengths_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
@@ -75,7 +75,10 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
-            &tool_spec, &args.r1, args.r2.as_deref(), &out_dir,
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -99,7 +102,9 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -137,8 +142,14 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
         });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("profile_read_lengths_report.json"), &report)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &serde_json::to_value(&metric_set)?)?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("profile_read_lengths_report.json"),
+            &report,
+        )?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,

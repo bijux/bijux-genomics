@@ -93,13 +93,14 @@ pub fn summarize(
     if suite.replicate_policy.count < 3 {
         warnings.push("low_power".to_string());
     }
-    let mut stage_dataset_inputs: BTreeMap<(String, String, Option<String>, Option<String>), BTreeSet<String>> =
-        BTreeMap::new();
+    let mut stage_dataset_inputs: BTreeMap<
+        (String, String, Option<String>, Option<String>),
+        BTreeSet<String>,
+    > = BTreeMap::new();
     let mut stage_dataset_tool_params: BTreeMap<
         (String, String, Option<String>, Option<String>, String),
         BTreeSet<String>,
-    > =
-        BTreeMap::new();
+    > = BTreeMap::new();
     for obs in observations {
         stage_dataset_inputs
             .entry((
@@ -126,7 +127,12 @@ pub fn summarize(
             scientifically_invalid = true;
             let warning = format!(
                 "fairness_input_mismatch:{}",
-                stage_scope_label(stage_id, stage_instance_id.as_deref(), lineage_id.as_deref(), dataset_id)
+                stage_scope_label(
+                    stage_id,
+                    stage_instance_id.as_deref(),
+                    lineage_id.as_deref(),
+                    dataset_id
+                )
             );
             warnings.push(warning.clone());
             invalid_reasons.push(warning);
@@ -153,10 +159,16 @@ pub fn summarize(
     }
 
     let mut groups: BTreeMap<
-        (String, String, Option<String>, Option<String>, String, String),
+        (
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+            String,
+            String,
+        ),
         Vec<&BenchmarkObservation>,
-    > =
-        BTreeMap::new();
+    > = BTreeMap::new();
     for obs in observations {
         groups
             .entry((
@@ -172,7 +184,9 @@ pub fn summarize(
     }
 
     let mut rows = Vec::new();
-    for ((dataset_id, stage_id, stage_instance_id, lineage_id, tool_id, params_hash), group) in groups {
+    for ((dataset_id, stage_id, stage_instance_id, lineage_id, tool_id, params_hash), group) in
+        groups
+    {
         let tool = tool_id.as_str();
         let runtimes: Vec<f64> = group.iter().map(|o| o.runtime_s).collect();
         let memories: Vec<f64> = group.iter().map(|o| o.memory_mb).collect();
@@ -320,13 +334,13 @@ pub fn summarize(
             &a.params_hash,
         )
             .cmp(&(
-            &b.dataset_id,
-            &b.stage_id,
-            &b.stage_instance_id,
-            &b.lineage_id,
-            &b.tool_id,
-            &b.params_hash,
-        ))
+                &b.dataset_id,
+                &b.stage_id,
+                &b.stage_instance_id,
+                &b.lineage_id,
+                &b.tool_id,
+                &b.params_hash,
+            ))
     });
     let mut strata_map: BTreeMap<(String, Option<String>, Option<String>, String), (usize, usize)> =
         BTreeMap::new();

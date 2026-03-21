@@ -6,8 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
-        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
-        TaxonomyDatabaseScope, TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+        TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
     },
     PairedMode,
 };

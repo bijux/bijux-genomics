@@ -12,8 +12,7 @@ fn workspace_root() -> Result<PathBuf> {
 }
 
 fn parse_yaml(path: &Path) -> Result<Value> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
@@ -39,10 +38,7 @@ fn index_dependencies_match_reference_guided_fastq_stages() -> Result<()> {
         "fastq.validate_reads must not depend on reference indexing"
     );
 
-    for stage_id in [
-        "fastq.deplete_host",
-        "fastq.deplete_reference_contaminants",
-    ] {
+    for stage_id in ["fastq.deplete_host", "fastq.deplete_reference_contaminants"] {
         let prereqs = string_list(&index, "stage_prerequisites", stage_id);
         assert!(
             prereqs.iter().any(|stage| stage == "fastq.index_reference"),

@@ -9,12 +9,12 @@ use super::super::{
 use crate::aggregate::metrics::{ImageQaRecord, IMAGE_QA_SCHEMA_VERSION};
 use crate::aggregate::BenchmarkRecord;
 use crate::{
-    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
-    FastqDepleteRrnaMetrics,
-    FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
-    FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics,
-    FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics, FastqQcPostMetrics,
-    FastqReadLengthMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqUmiMetrics,
+    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDepleteHostMetrics,
+    FastqDepleteReferenceContaminantsMetrics, FastqDepleteRrnaMetrics, FastqDetectAdaptersMetrics,
+    FastqDuplicateMetrics, FastqIndexReferenceMetrics, FastqInferAsvsMetrics,
+    FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics,
+    FastqQcPostMetrics, FastqReadLengthMetrics, FastqScreenMetrics, FastqStatsMetrics,
+    FastqUmiMetrics,
 };
 /// Insert a FASTQ detect-adapters benchmark record into the v1 table.
 ///

@@ -55,11 +55,13 @@ pub fn stage_tool_bindings() -> Vec<StageToolBinding> {
         .stage_tool_integration
         .iter()
         .flat_map(|(stage_id, bindings)| {
-            bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
-                stage_id: StageId::new(stage_id.clone()),
-                tool_id: ToolId::new(tool_id.clone()),
-                integration_level: *integration_level,
-            })
+            bindings
+                .iter()
+                .map(move |(tool_id, integration_level)| StageToolBinding {
+                    stage_id: StageId::new(stage_id.clone()),
+                    tool_id: ToolId::new(tool_id.clone()),
+                    integration_level: *integration_level,
+                })
         })
         .collect()
 }
@@ -114,10 +116,7 @@ pub fn reference_index_backends_for_tool(tool_id: &ToolId) -> Vec<ToolId> {
 }
 
 #[must_use]
-pub fn is_reference_index_backend_compatible(
-    tool_id: &ToolId,
-    index_tool_id: &ToolId,
-) -> bool {
+pub fn is_reference_index_backend_compatible(tool_id: &ToolId, index_tool_id: &ToolId) -> bool {
     reference_index_backends_for_tool(tool_id)
         .into_iter()
         .any(|backend| backend == *index_tool_id)
