@@ -106,7 +106,7 @@ fn plan_trim_rejects_unknown_tool() {
 }
 
 #[test]
-fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
+fn plan_from_config_preserves_layout_without_enabling_bank_policies() -> Result<()> {
     let config = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
             tool: "fastp".to_string(),
@@ -127,16 +127,16 @@ fn plan_from_config_preserves_layout_and_bank_policies() -> Result<()> {
     assert_eq!(plan.io.inputs.len(), 2);
     assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
     assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
-    assert_eq!(plan.params["adapter_bank"]["preset"], "illumina");
-    assert_eq!(plan.params["polyx_bank"]["enabled"], true);
-    assert_eq!(plan.params["contaminant_bank"]["catalog"], "decoys");
     assert_eq!(plan.effective_params["paired_mode"], "paired_end");
-    assert_eq!(plan.effective_params["adapter_policy"], "bank");
-    assert_eq!(plan.effective_params["polyx_policy"], "bank");
-    assert_eq!(plan.effective_params["contaminant_policy"], "bank");
+    assert_eq!(plan.effective_params["adapter_policy"], "none");
+    assert_eq!(plan.effective_params["polyx_policy"], "none");
+    assert_eq!(plan.effective_params["contaminant_policy"], "none");
+    assert!(plan.params.get("adapter_bank").is_none());
+    assert!(plan.params.get("polyx_bank").is_none());
+    assert!(plan.params.get("contaminant_bank").is_none());
     assert!(plan.command.template.iter().any(|part| part == "--in2"));
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
-    assert!(plan
+    assert!(!plan
         .command
         .template
         .iter()
@@ -337,8 +337,8 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
 }
 
 #[test]
-fn plan_trim_with_options_preserves_explicit_bank_policy_bindings() -> Result<()> {
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+fn plan_trim_with_options_rejects_contaminant_handoffs_without_execution_support() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("fastp"),
         std::path::Path::new("reads.fastq.gz"),
         None,
@@ -354,18 +354,117 @@ fn plan_trim_with_options_preserves_explicit_bank_policy_bindings() -> Result<()
             polyx_policy: Some("none".to_string()),
             contaminant_policy: Some("bank".to_string()),
         },
+    )
+    .expect_err("trim_reads should reject contaminant handoffs that do not drive execution");
+
+    assert!(error
+        .to_string()
+        .contains("use fastq.deplete_reference_contaminants"));
+}
+
+#[test]
+fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        Some(&serde_json::json!({
+            "enabled_entries": [
+                {"sequence": "ACGTACGT"},
+                {"sequence": "TGCATGCA"}
+            ]
+        })),
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: Some("bank".to_string()),
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
     )?;
 
-    assert_eq!(plan.params["adapter_policy"], serde_json::json!("none"));
-    assert_eq!(plan.params["polyx_policy"], serde_json::json!("none"));
-    assert_eq!(plan.params["contaminant_policy"], serde_json::json!("bank"));
-    assert_eq!(plan.effective_params["adapter_policy"], serde_json::json!("none"));
-    assert_eq!(plan.effective_params["polyx_policy"], serde_json::json!("none"));
-    assert_eq!(
-        plan.effective_params["contaminant_policy"],
-        serde_json::json!("bank")
-    );
+    assert_eq!(plan.params["adapter_policy"], serde_json::json!("bank"));
+    assert_eq!(plan.params["adapter_bank"]["enabled_entries"][0]["sequence"], "ACGTACGT");
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--adapter_sequence"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "ACGTACGT"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--adapter_sequence_r2"));
+    assert!(!plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--detect_adapter_for_pe"));
     Ok(())
+}
+
+#[test]
+fn plan_trim_with_polyx_trim_enables_fastp_polyx_mode() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: Some("trim".to_string()),
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert_eq!(plan.params["polyx_policy"], serde_json::json!("trim"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--trim_poly_x"));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_rejects_contaminant_policy_without_a_contaminant_stage() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        Some(&serde_json::json!({"preset": "host"})),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: Some("bank".to_string()),
+        },
+    )
+    .expect_err("trim_reads should refuse contaminant_policy handoffs that do not change execution");
+
+    assert!(error
+        .to_string()
+        .contains("use fastq.deplete_reference_contaminants"));
 }
 
 #[test]

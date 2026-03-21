@@ -26,24 +26,16 @@ impl TrimPlanOptions {
         self.min_length.unwrap_or(30)
     }
 
-    fn resolved_adapter_policy(&self, adapter_bank: Option<&serde_json::Value>) -> String {
-        self.adapter_policy.clone().unwrap_or_else(|| {
-            if adapter_bank.is_some() {
-                "bank".to_string()
-            } else {
-                "none".to_string()
-            }
-        })
+    fn resolved_adapter_policy(&self) -> String {
+        self.adapter_policy
+            .clone()
+            .unwrap_or_else(|| "none".to_string())
     }
 
-    fn resolved_polyx_policy(&self, polyx_bank: Option<&serde_json::Value>) -> String {
-        self.polyx_policy.clone().unwrap_or_else(|| {
-            if polyx_bank.is_some() {
-                "bank".to_string()
-            } else {
-                "none".to_string()
-            }
-        })
+    fn resolved_polyx_policy(&self) -> String {
+        self.polyx_policy
+            .clone()
+            .unwrap_or_else(|| "none".to_string())
     }
 
     fn resolved_n_policy(&self) -> String {
@@ -52,14 +44,10 @@ impl TrimPlanOptions {
             .unwrap_or_else(|| "retain".to_string())
     }
 
-    fn resolved_contaminant_policy(&self, contaminant_bank: Option<&serde_json::Value>) -> String {
-        self.contaminant_policy.clone().unwrap_or_else(|| {
-            if contaminant_bank.is_some() {
-                "bank".to_string()
-            } else {
-                "none".to_string()
-            }
-        })
+    fn resolved_contaminant_policy(&self) -> String {
+        self.contaminant_policy
+            .clone()
+            .unwrap_or_else(|| "none".to_string())
     }
 }
 
@@ -169,23 +157,29 @@ pub fn plan_with_options(
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
         "n_policy": options.resolved_n_policy(),
-        "adapter_policy": options.resolved_adapter_policy(adapter_bank),
-        "polyx_policy": options.resolved_polyx_policy(polyx_bank),
-        "contaminant_policy": options.resolved_contaminant_policy(contaminant_bank),
+        "adapter_policy": options.resolved_adapter_policy(),
+        "polyx_policy": options.resolved_polyx_policy(),
+        "contaminant_policy": options.resolved_contaminant_policy(),
     });
-    if let Some(adapter_bank) = adapter_bank {
-        if let Some(map) = params.as_object_mut() {
-            map.insert("adapter_bank".to_string(), adapter_bank.clone());
+    if options.resolved_adapter_policy() != "none" {
+        if let Some(adapter_bank) = adapter_bank {
+            if let Some(map) = params.as_object_mut() {
+                map.insert("adapter_bank".to_string(), adapter_bank.clone());
+            }
         }
     }
-    if let Some(polyx_bank) = polyx_bank {
-        if let Some(map) = params.as_object_mut() {
-            map.insert("polyx_bank".to_string(), polyx_bank.clone());
+    if options.resolved_polyx_policy() != "none" {
+        if let Some(polyx_bank) = polyx_bank {
+            if let Some(map) = params.as_object_mut() {
+                map.insert("polyx_bank".to_string(), polyx_bank.clone());
+            }
         }
     }
-    if let Some(contaminant_bank) = contaminant_bank {
-        if let Some(map) = params.as_object_mut() {
-            map.insert("contaminant_bank".to_string(), contaminant_bank.clone());
+    if options.resolved_contaminant_policy() != "none" {
+        if let Some(contaminant_bank) = contaminant_bank {
+            if let Some(map) = params.as_object_mut() {
+                map.insert("contaminant_bank".to_string(), contaminant_bank.clone());
+            }
         }
     }
     let effective_params = TrimEffectiveParams {
@@ -197,11 +191,11 @@ pub fn plan_with_options(
         threads: tool.resources.threads,
         min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
-        adapter_policy: options.resolved_adapter_policy(adapter_bank),
+        adapter_policy: options.resolved_adapter_policy(),
         damage_mode: None,
-        polyx_policy: Some(options.resolved_polyx_policy(polyx_bank)),
+        polyx_policy: Some(options.resolved_polyx_policy()),
         n_policy: Some(options.resolved_n_policy()),
-        contaminant_policy: Some(options.resolved_contaminant_policy(contaminant_bank)),
+        contaminant_policy: Some(options.resolved_contaminant_policy()),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -240,6 +234,8 @@ pub fn plan_with_options(
         &output_r1,
         output_r2.as_deref(),
         &report_json,
+        adapter_bank,
+        polyx_bank,
         options,
     )?;
     Ok(StagePlanV1 {
@@ -292,8 +288,13 @@ fn trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
+    let adapter_policy = options.resolved_adapter_policy();
+    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
+    let polyx_policy = options.resolved_polyx_policy();
     if tool.tool_id.as_str() == "fastp" {
         let mut command = vec![
             "fastp".to_string(),
@@ -315,22 +316,60 @@ fn trim_command_template(
                 quality_cutoff.to_string(),
             ]);
         }
+        if let Some(adapter_sequence) = adapter_sequences.first() {
+            if adapter_policy != "none" && adapter_policy != "auto" {
+                command.extend([
+                    "--adapter_sequence".to_string(),
+                    adapter_sequence.clone(),
+                ]);
+                if r2.is_some() {
+                    command.extend([
+                        "--adapter_sequence_r2".to_string(),
+                        adapter_sequences
+                            .get(1)
+                            .cloned()
+                            .unwrap_or_else(|| adapter_sequence.clone()),
+                    ]);
+                }
+            }
+        }
+        if polyx_policy == "trim" || (polyx_policy == "bank" && polyx_bank.is_some()) {
+            command.push("--trim_poly_x".to_string());
+        }
         if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
             command.extend([
                 "--in2".to_string(),
                 r2.display().to_string(),
                 "--out2".to_string(),
                 output_r2.display().to_string(),
-                "--detect_adapter_for_pe".to_string(),
             ]);
+            if adapter_policy == "auto" && adapter_sequences.is_empty() {
+                command.push("--detect_adapter_for_pe".to_string());
+            }
         }
         return Ok(command);
     }
     if tool.tool_id.as_str() == "cutadapt" {
-        return cutadapt_command_template(r1, r2, output_r1, output_r2, report_json, options);
+        return cutadapt_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            adapter_bank,
+            options,
+        );
     }
     if tool.tool_id.as_str() == "atropos" {
-        return atropos_command_template(r1, r2, output_r1, output_r2, report_json, options);
+        return atropos_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            adapter_bank,
+            options,
+        );
     }
     if tool.tool_id.as_str() == "bbduk" {
         return bbduk_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
@@ -342,6 +381,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            adapter_bank,
             options,
         );
     }
@@ -358,7 +398,15 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "trim_galore" {
-        return trim_galore_command_template(r1, r2, output_r1, output_r2, report_json, options);
+        return trim_galore_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            adapter_bank,
+            options,
+        );
     }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
@@ -398,18 +446,40 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
             ));
         }
     }
-    for (policy_name, policy) in [
-        ("adapter_policy", options.adapter_policy.as_deref()),
-        ("polyx_policy", options.polyx_policy.as_deref()),
-        (
-            "contaminant_policy",
-            options.contaminant_policy.as_deref(),
-        ),
-    ] {
-        if let Some(policy) = policy {
-            if policy != "none" && policy != "bank" {
+    if let Some(policy) = options.adapter_policy.as_deref() {
+        match policy {
+            "none" | "auto" | "bank" | "ancient_strict" => {}
+            _ => {
                 return Err(anyhow!(
-                    "trim planning does not yet support {policy_name}={policy} for {tool_id}"
+                    "trim planning does not yet support adapter_policy={policy} for {tool_id}"
+                ));
+            }
+        }
+    }
+    if let Some(policy) = options.polyx_policy.as_deref() {
+        match policy {
+            "none" | "trim" | "bank" if tool_id == "fastp" => {}
+            "none" => {}
+            _ => {
+                return Err(anyhow!(
+                    "trim planning does not yet support polyx_policy={policy} for {tool_id}"
+                ));
+            }
+        }
+    }
+    if let Some(policy) = options.contaminant_policy.as_deref() {
+        if policy != "none" {
+            return Err(anyhow!(
+                "trim planning does not execute contaminant_policy={policy} for {tool_id}; use fastq.deplete_reference_contaminants"
+            ));
+        }
+    }
+    if matches!(options.adapter_policy.as_deref(), Some("bank" | "ancient_strict")) {
+        match tool_id {
+            "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "trim_galore" => {}
+            _ => {
+                return Err(anyhow!(
+                    "trim planning does not yet execute adapter bank policies for {tool_id}"
                 ));
             }
         }
@@ -433,9 +503,21 @@ fn cutadapt_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec!["cutadapt".to_string()];
+    if matches!(
+        options.resolved_adapter_policy().as_str(),
+        "bank" | "ancient_strict"
+    ) {
+        for adapter in enabled_adapter_sequences(adapter_bank) {
+            command.extend(["-a".to_string(), adapter.clone()]);
+            if r2.is_some() {
+                command.extend(["-A".to_string(), adapter]);
+            }
+        }
+    }
     if let Some(min_length) = options.min_length {
         command.extend(["-m".to_string(), min_length.to_string()]);
     }
@@ -505,9 +587,21 @@ fn atropos_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec!["atropos".to_string(), "trim".to_string()];
+    if matches!(
+        options.resolved_adapter_policy().as_str(),
+        "bank" | "ancient_strict"
+    ) {
+        for adapter in enabled_adapter_sequences(adapter_bank) {
+            command.extend(["-a".to_string(), adapter.clone()]);
+            if r2.is_some() {
+                command.extend(["-A".to_string(), adapter]);
+            }
+        }
+    }
     if let Some(quality_cutoff) = options.quality_cutoff {
         command.extend(["-q".to_string(), quality_cutoff.to_string()]);
     }
@@ -550,6 +644,7 @@ fn adapterremoval_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec![
@@ -566,6 +661,22 @@ fn adapterremoval_command_template(
             "--output2".to_string(),
             output_r2.display().to_string(),
         ]);
+    }
+    if matches!(
+        options.resolved_adapter_policy().as_str(),
+        "bank" | "ancient_strict"
+    ) {
+        let adapters = enabled_adapter_sequences(adapter_bank);
+        if let Some(adapter_1) = adapters.first() {
+            command.extend(["--adapter1".to_string(), adapter_1.clone()]);
+            command.extend([
+                "--adapter2".to_string(),
+                adapters
+                    .get(1)
+                    .cloned()
+                    .unwrap_or_else(|| adapter_1.clone()),
+            ]);
+        }
     }
     if let Some(min_length) = options.min_length {
         command.extend(["--minlength".to_string(), min_length.to_string()]);
@@ -641,6 +752,7 @@ fn trim_galore_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let output_dir = output_r1
@@ -657,6 +769,14 @@ fn trim_galore_command_template(
     }
     if let Some(quality_cutoff) = options.quality_cutoff {
         script.push_str(&format!(" -q {quality_cutoff}"));
+    }
+    if matches!(
+        options.resolved_adapter_policy().as_str(),
+        "bank" | "ancient_strict"
+    ) {
+        if let Some(adapter_sequence) = enabled_adapter_sequences(adapter_bank).first() {
+            script.push_str(&format!(" --adapter {}", shell_quote_str(adapter_sequence)));
+        }
     }
     if r2.is_some() {
         script.push_str(" --paired");
@@ -729,6 +849,21 @@ fn wrap_trim_command_with_report(
         report_json,
     ));
     vec!["sh".to_string(), "-lc".to_string(), script]
+}
+
+fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<String> {
+    adapter_bank
+        .and_then(|bank| bank.get("enabled_entries"))
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            entry
+                .get("sequence")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string)
+        })
+        .collect()
 }
 
 fn write_trim_report_script(
