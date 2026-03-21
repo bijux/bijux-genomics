@@ -6,6 +6,7 @@ use serde_json::Value as JsonValue;
 
 use bijux_dna_core::contract::{BenchResultRecord, BenchResultStatus};
 use bijux_dna_core::ids::StageId;
+use bijux_dna_domain_fastq::bench_repository::BenchQueryContextMatch;
 use bijux_dna_domain_fastq::{BenchCorpus, BenchQueryContext, BenchResultsRepository};
 
 #[derive(Debug, Clone)]
@@ -150,10 +151,22 @@ mod tests {
         }
     }
 
+    #[derive(Debug, Clone)]
+    struct BenchRowFixture {
+        tool: String,
+        input_hash: String,
+        image_digest: String,
+        params_hash: String,
+        parameters_json: String,
+        runtime_s: f64,
+        memory_mb: f64,
+        exit_code: i64,
+    }
+
     fn create_bench_db(
         path: &PathBuf,
         table: &str,
-        rows: &[(&str, &str, &str, &str, f64, f64, i64)],
+        rows: &[BenchRowFixture],
     ) -> Result<(), Box<dyn std::error::Error>> {
         let conn = Connection::open(path)?;
         conn.execute(
@@ -178,9 +191,7 @@ mod tests {
             [],
         )?;
 
-        for (idx, (tool, input_hash, image_digest, params_hash, runtime_s, memory_mb, exit_code)) in
-            rows.iter().enumerate()
-        {
+        for (idx, row) in rows.iter().enumerate() {
             conn.execute(
                 &format!(
                     "INSERT INTO {table} (record_id, tool, tool_version, image_digest, runner, platform, input_hash, params_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json, inserted_at)\
@@ -188,17 +199,17 @@ mod tests {
                 ),
                 params![
                     i64::try_from(idx).unwrap_or(i64::MAX) + 1,
-                    tool,
+                    &row.tool,
                     "1.0",
-                    image_digest,
+                    &row.image_digest,
                     "docker",
                     "test",
-                    input_hash,
-                    params_hash,
-                    "{}",
-                    runtime_s,
-                    memory_mb,
-                    exit_code,
+                    &row.input_hash,
+                    &row.params_hash,
+                    &row.parameters_json,
+                    row.runtime_s,
+                    row.memory_mb,
+                    row.exit_code,
                     "{\"metrics\":{\"delta_metrics\":{\"read_retention\":0.9}}}",
                     "2024-01-01T00:00:00Z"
                 ],
@@ -237,24 +248,26 @@ mod tests {
             &bench_dir.join("bench.sqlite"),
             "bench_fastq_trim_v2",
             &[
-                (
-                    "fastp",
-                    corpus.datasets[0].sha256_r1,
-                    "sha256:image-a",
-                    "params-a",
-                    1.0,
-                    128.0,
-                    0,
-                ),
-                (
-                    "fastp",
-                    corpus.datasets[0].sha256_r1,
-                    "sha256:image-a",
-                    "params-b",
-                    4.0,
-                    128.0,
-                    0,
-                ),
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: "{}".to_string(),
+                    runtime_s: 1.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-b".to_string(),
+                    parameters_json: "{}".to_string(),
+                    runtime_s: 4.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
             ],
         )?;
 
@@ -286,24 +299,26 @@ mod tests {
             &bench_dir.join("bench.sqlite"),
             "bench_fastq_trim_v2",
             &[
-                (
-                    "fastp",
-                    corpus.datasets[0].sha256_r1,
-                    "sha256:image-a",
-                    "params-a",
-                    1.0,
-                    128.0,
-                    0,
-                ),
-                (
-                    "fastp",
-                    corpus.datasets[0].sha256_r1,
-                    "sha256:image-b",
-                    "params-a",
-                    3.0,
-                    128.0,
-                    0,
-                ),
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: "{}".to_string(),
+                    runtime_s: 1.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-b".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: "{}".to_string(),
+                    runtime_s: 3.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
             ],
         )?;
 
@@ -317,6 +332,112 @@ mod tests {
 
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].runtime_s, Some(3.0));
+        Ok(())
+    }
+
+    #[test]
+    fn sqlite_repository_prefers_exact_bench_query_context_matches(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-query-context");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_TRIM_READS).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+
+        let exact_parameters = BenchQueryContext::new()
+            .with_stage_contract_hash("contract-a")
+            .with_reference_hash("reference-a")
+            .with_bank_hash("adapter_bank", "bank-a")
+            .embed_in_parameters(&serde_json::json!({"min_length": 50}));
+        let mismatch_parameters = BenchQueryContext::new()
+            .with_stage_contract_hash("contract-b")
+            .with_reference_hash("reference-b")
+            .with_bank_hash("adapter_bank", "bank-b")
+            .embed_in_parameters(&serde_json::json!({"min_length": 50}));
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_trim_v2",
+            &[
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: serde_json::to_string(&mismatch_parameters)?,
+                    runtime_s: 9.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+                BenchRowFixture {
+                    tool: "fastp".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: serde_json::to_string(&exact_parameters)?,
+                    runtime_s: 2.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+            ],
+        )?;
+
+        let repo = SqliteBenchResultsRepository::new(root_dir.clone());
+        let records = repo.bench_results(
+            &STAGE_TRIM_READS,
+            "fastp",
+            &corpus,
+            &BenchQueryContext::new()
+                .with_stage_contract_hash("contract-a")
+                .with_reference_hash("reference-a")
+                .with_bank_hash("adapter_bank", "bank-a"),
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(2.0));
+        Ok(())
+    }
+
+    #[test]
+    fn sqlite_repository_falls_back_to_legacy_rows_without_embedded_query_context(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-legacy-query-context");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_TRIM_READS).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_trim_v2",
+            &[BenchRowFixture {
+                tool: "fastp".to_string(),
+                input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                image_digest: "sha256:image-a".to_string(),
+                params_hash: "params-a".to_string(),
+                parameters_json: "{}".to_string(),
+                runtime_s: 7.0,
+                memory_mb: 128.0,
+                exit_code: 0,
+            }],
+        )?;
+
+        let repo = SqliteBenchResultsRepository::new(root_dir.clone());
+        let records = repo.bench_results(
+            &STAGE_TRIM_READS,
+            "fastp",
+            &corpus,
+            &BenchQueryContext::new().with_stage_contract_hash("contract-a"),
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(7.0));
         Ok(())
     }
 }
@@ -356,14 +477,14 @@ pub fn get_results_from_sqlite(
         let conn = Connection::open(&sqlite_path)
             .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
         let mut stmt = conn.prepare(&format!(
-            "SELECT runtime_s, memory_mb, exit_code, metrics_json \
+            "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
              FROM {table} \
              WHERE tool = ?1 AND input_hash = ?2 \
                AND (?3 IS NULL OR image_digest = ?3) \
                AND (?4 IS NULL OR params_hash = ?4) \
-             ORDER BY record_id DESC, inserted_at DESC LIMIT 1"
+             ORDER BY record_id DESC, inserted_at DESC"
         ))?;
-        let row = stmt.query_row(
+        let rows = stmt.query_map(
             params![
                 tool,
                 dataset.sha256_r1,
@@ -375,11 +496,31 @@ pub fn get_results_from_sqlite(
                 let memory_mb: f64 = row.get(1)?;
                 let exit_code: i64 = row.get(2)?;
                 let metrics_json: String = row.get(3)?;
-                Ok((runtime_s, memory_mb, exit_code, metrics_json))
+                let parameters_json: String = row.get(4)?;
+                Ok((runtime_s, memory_mb, exit_code, metrics_json, parameters_json))
             },
         );
-        match row {
-            Ok((runtime_s, memory_mb, exit_code, metrics_json)) => {
+        let mut legacy_candidate = None;
+        let mut exact_candidate = None;
+        for row in rows? {
+            let (runtime_s, memory_mb, exit_code, metrics_json, parameters_json) = row?;
+            let parameters: JsonValue = serde_json::from_str(&parameters_json)
+                .with_context(|| format!("parse benchmark parameters for {}", dataset.id))?;
+            let candidate = (runtime_s, memory_mb, exit_code, metrics_json);
+            match context.match_against_parameters(&parameters) {
+                BenchQueryContextMatch::Exact => {
+                    exact_candidate = Some(candidate);
+                    break;
+                }
+                BenchQueryContextMatch::LegacyCompatible => {
+                    legacy_candidate.get_or_insert(candidate);
+                }
+                BenchQueryContextMatch::NoMatch => {}
+            }
+        }
+
+        match exact_candidate.or(legacy_candidate) {
+            Some((runtime_s, memory_mb, exit_code, metrics_json)) => {
                 let metrics: JsonValue = serde_json::from_str(&metrics_json)
                     .with_context(|| format!("parse metrics for {}", dataset.id))?;
                 let status = if exit_code == 0 {
@@ -397,7 +538,7 @@ pub fn get_results_from_sqlite(
                     status,
                 });
             }
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
+            None => {
                 records.push(BenchResultRecord {
                     dataset_id: dataset.id.to_string(),
                     tool: tool.to_string(),
@@ -408,7 +549,6 @@ pub fn get_results_from_sqlite(
                     status: BenchResultStatus::Missing,
                 });
             }
-            Err(err) => return Err(err.into()),
         }
     }
 
