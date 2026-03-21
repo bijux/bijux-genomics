@@ -8,7 +8,7 @@ use crate::execution_support::{
 use crate::integration_matrix::{
     benchmark_scenarios_for_stage, stage_tool_binding, stage_tool_bindings, ToolIntegrationLevel,
 };
-use crate::BenchmarkScenario;
+use crate::{BenchmarkScenario, FastqArtifactKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RuntimeNormalizationLevel {
@@ -261,12 +261,24 @@ pub fn stage_tool_governance_profiles_for_stage(
 
 #[must_use]
 pub fn tool_supports_input_layout(stage_id: &StageId, tool_id: &ToolId, paired_end: bool) -> bool {
-    if paired_end {
-        return true;
+    let Some(contract) = crate::contract_for_stage(stage_id.as_str()) else {
+        return false;
+    };
+    let required_kind = if paired_end {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    if !contract
+        .accepted_input_kinds
+        .iter()
+        .any(|kind| kind == &required_kind)
+    {
+        return false;
     }
     !matches!(
-        (stage_id.as_str(), tool_id.as_str()),
-        ("fastq.remove_duplicates", "fastuniq")
+        (stage_id.as_str(), tool_id.as_str(), paired_end),
+        ("fastq.remove_duplicates", "fastuniq", false)
     )
 }
 

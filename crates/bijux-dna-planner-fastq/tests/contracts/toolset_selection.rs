@@ -297,3 +297,20 @@ fn layout_filter_keeps_fastuniq_only_for_paired_remove_duplicates() {
         vec!["fastuniq".to_string(), "clumpify".to_string()]
     );
 }
+
+#[test]
+fn layout_filter_excludes_paired_only_correction_family_for_single_end_inputs() {
+    let stage_id = bijux_dna_core::ids::StageId::new("fastq.correct_errors".to_string());
+    let tools = vec![
+        bijux_dna_core::ids::ToolId::new("rcorrector".to_string()),
+        bijux_dna_core::ids::ToolId::new("musket".to_string()),
+    ];
+
+    let single_end = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+        &stage_id,
+        tools,
+        false,
+    );
+
+    assert!(single_end.is_empty());
+}
