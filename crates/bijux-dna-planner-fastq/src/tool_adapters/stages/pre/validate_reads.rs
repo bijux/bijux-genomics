@@ -32,11 +32,26 @@ pub struct ValidateReadsEffectiveConfig {
     pub out_dir: std::path::PathBuf,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ValidateReadsPlanOptions {
+    pub q_cutoff: Option<u32>,
+}
+
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
+) -> Result<StagePlanV1> {
+    plan_with_options(tool, r1, r2, out_dir, &ValidateReadsPlanOptions::default())
+}
+
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &ValidateReadsPlanOptions,
 ) -> Result<StagePlanV1> {
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
@@ -48,6 +63,7 @@ pub fn plan(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
+        q_cutoff: options.q_cutoff,
         validation_mode: ValidationMode::Strict,
         pair_sync_policy: if r2.is_some() {
             PairSyncPolicy::RequireHeaderSync
@@ -74,6 +90,7 @@ pub fn plan(
         &report_path,
         &validated_reads_manifest,
         out_dir,
+        options.q_cutoff,
     )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -112,6 +129,7 @@ pub fn plan(
             "out_dir": out_dir,
             "report_json": report_path,
             "validated_reads_manifest": validated_reads_manifest,
+            "q_cutoff": options.q_cutoff,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -148,6 +166,7 @@ fn validation_command(
     report_path: &Path,
     validated_reads_manifest: &Path,
     out_dir: &Path,
+    q_cutoff: Option<u32>,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
@@ -226,7 +245,7 @@ fn validation_command(
         ));
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
@@ -235,10 +254,11 @@ fn validation_command(
         } else {
             "not_applicable"
         })?,
+        json_u32_or_null(q_cutoff)?,
         if r2.is_some() { 2 } else { 1 },
     );
     let lineage_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
         json_string_literal(if r2.is_some() {
@@ -246,6 +266,7 @@ fn validation_command(
         } else {
             "not_applicable"
         })?,
+        json_u32_or_null(q_cutoff)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
         if r2.is_some() {
             "[\"reads_r1\",\"reads_r2\"]".to_string()
@@ -293,6 +314,11 @@ fn json_path_token(path: &Path) -> Result<String> {
 fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
     serde_json::to_string(&path.map(|value| value.display().to_string()))
         .map_err(|error| anyhow!("serialize optional path token for validation report: {error}"))
+}
+
+fn json_u32_or_null(value: Option<u32>) -> Result<String> {
+    serde_json::to_string(&value)
+        .map_err(|error| anyhow!("serialize optional q_cutoff for validation report: {error}"))
 }
 
 fn escape_printf_format(value: &str) -> String {
@@ -475,7 +501,7 @@ mod tests {
     }
 
     #[test]
-    fn validation_lineage_omits_unmapped_quality_cutoff_knob() -> Result<()> {
+    fn validation_lineage_carries_quality_cutoff_even_when_unset() -> Result<()> {
         let plan = plan(
             &dummy_tool("fastqvalidator"),
             std::path::Path::new("reads.fastq.gz"),
@@ -483,10 +509,10 @@ mod tests {
             std::path::Path::new("out"),
         )?;
 
-        assert!(plan.params.get("q_cutoff").is_none());
-        assert!(plan.effective_params.get("q_cutoff").is_none());
+        assert_eq!(plan.params["q_cutoff"], serde_json::Value::Null);
+        assert_eq!(plan.effective_params["q_cutoff"], serde_json::Value::Null);
         let script = &plan.command.template[2];
-        assert!(!script.contains("\"q_cutoff\""));
+        assert!(script.contains("\"q_cutoff\":null"));
         Ok(())
     }
 }
