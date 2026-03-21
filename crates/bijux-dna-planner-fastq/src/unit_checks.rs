@@ -1,7 +1,7 @@
 use super::*;
 use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::ids::ToolId;
-use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
 
 #[test]
 fn select_trim_tools_dedup_and_sort() {
@@ -142,6 +142,102 @@ fn preprocess_benchmark_query_context_tracks_lineage_hash() {
         context.lineage_hash.as_deref(),
         Some("fastq.validate_reads=fastqvalidator")
     );
+}
+
+#[test]
+fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
+    let bindings = vec![
+        FastqStageBinding {
+            stage_id: "fastq.validate_reads".to_string(),
+            stage_instance_id: Some("fastq.validate_reads.fastqvalidator".to_string()),
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("fastqvalidator"),
+                tool_version: "fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec![
+                        "fastqvalidator".to_string(),
+                        "--file".to_string(),
+                        "{{reads}}".to_string(),
+                    ],
+                },
+                resources: bijux_dna_core::contract::ToolConstraints::default(),
+            },
+            reason: None,
+            params: None,
+        },
+        FastqStageBinding {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("fastp"),
+                tool_version: "fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["fastp".to_string()],
+                },
+                resources: bijux_dna_core::contract::ToolConstraints::default(),
+            },
+            reason: None,
+            params: None,
+        },
+    ];
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.fastqvalidator".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            },
+        ],
+        vec![PipelineEdgeSpec {
+            from: "fastq.validate_reads.fastqvalidator".to_string(),
+            to: "fastq.trim_reads.fastp".to_string(),
+            from_output_id: None,
+            to_input_id: None,
+        }],
+    );
+
+    let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
+        &bindings,
+        &std::collections::BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        None,
+        Some(&stage_artifact_input_policy(&pipeline)),
+        None,
+        Some(&stage_dependency_policy(&pipeline)),
+        |binding, _r1, _r2| Ok(std::path::PathBuf::from("out").join(&binding.stage_id)),
+    )
+    .expect("compose plans");
+    let edges = execution_edges_for_stage_plans(&pipeline, &plans, &std::collections::BTreeMap::new())
+        .expect("derive execution edges");
+
+    assert!(edges.iter().any(|edge| {
+        edge.from().as_str() == "fastq.validate_reads.fastqvalidator"
+            && edge.to().as_str() == "fastq.trim_reads.fastp"
+            && edge.from_output_id().is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
+            && edge.to_input_id().is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
+    }));
+    assert!(!edges.iter().any(|edge| {
+        edge.from().as_str() == "fastq.validate_reads.fastqvalidator"
+            && edge.to().as_str() == "fastq.trim_reads.fastp"
+            && edge.from_output_id().is_none()
+            && edge.to_input_id().is_none()
+    }));
 }
 
 #[test]
