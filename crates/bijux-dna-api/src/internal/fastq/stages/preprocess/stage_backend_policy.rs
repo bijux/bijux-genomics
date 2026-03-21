@@ -149,7 +149,7 @@ mod tests {
 
     use anyhow::Result;
 
-    use super::{fastq_backend_allowlist, workspace_root_path};
+    use super::{fastq_backend_allowlist, required_metrics_keys, workspace_root_path};
 
     fn env_lock() -> &'static Mutex<()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -242,6 +242,14 @@ mod tests {
             "API allowlist must include experimental trim backends when the registry toggle is enabled"
         );
     }
+
+    #[test]
+    fn report_qc_uses_stage_specific_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.report_qc"),
+            &["schema_version", "stage", "report_html", "report_data_dir"]
+        );
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -312,6 +320,7 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.screen_taxonomy" => &["schema_version", "stage", "tool", "taxonomy_profile"],
         "fastq.deplete_reference_contaminants" => &["schema_version", "stage", "tool", "screening_results"],
         "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
+        "fastq.report_qc" => &["schema_version", "stage", "report_html", "report_data_dir"],
         _ => &["schema_version", "stage"],
     }
 }
