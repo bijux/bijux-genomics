@@ -62,6 +62,20 @@ fn validation_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
             .and_then(|value| value.get("notes"))
             .and_then(serde_json::Value::as_str)
             .with_context(|| format!("stage notes missing for {tool_id}"))?;
+        let stage_optional_inputs = manifest
+            .get("stage_contracts")
+            .and_then(|value| value.get("fastq.validate_reads"))
+            .and_then(|value| value.get("optional_inputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("stage optional_inputs missing for {tool_id}"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            stage_optional_inputs,
+            vec!["reads_r2"],
+            "{tool_id} must publish reads_r2 as an optional stage-family validation input"
+        );
         assert!(
             notes.contains("optional reads_r2 mate"),
             "{tool_id} must document optional mate handling in the governed validation contract"
