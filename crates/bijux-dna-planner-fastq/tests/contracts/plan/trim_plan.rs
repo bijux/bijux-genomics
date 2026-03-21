@@ -209,6 +209,39 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("atropos"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(42),
+            quality_cutoff: Some(18),
+            n_policy: Some("retain".to_string()),
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("'atropos' 'trim'"));
+    assert!(script.contains("'-q' '18'"));
+    assert!(script.contains("'-m' '42'"));
+    assert!(script.contains("'-pe1' 'reads_R1.fastq.gz'"));
+    assert!(script.contains("'-pe2' 'reads_R2.fastq.gz'"));
+    assert!(script.contains("'-o' 'out/R1.atropos.fastq.gz'"));
+    assert!(script.contains("'-p' 'out/R2.atropos.fastq.gz'"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
     let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &templated_tool("seqkit", &["seqkit", "seq", "{{reads_r1}}"]),
