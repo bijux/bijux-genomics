@@ -418,13 +418,6 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(
-        long,
-        help = "Duplicate model: exact | sequence_identity | optical_aware"
-    )]
-    pub dedup_mode: Option<String>,
-    #[arg(long, help = "Preserve input order in deduplicated output")]
-    pub keep_order: Option<bool>,
 }
 
 #[derive(Debug, Args)]
