@@ -25,7 +25,9 @@ use super::trim::{
     TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
-use super::validate::ValidateEffectiveParams;
+use super::validate::{
+    PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
+};
 use super::{DamageMode, PairedMode};
 use crate::pipeline_contract::FastqPipelineMode;
 
@@ -40,8 +42,15 @@ fn paired_mode(paired: bool) -> PairedMode {
 #[must_use]
 pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
     ValidateEffectiveParams {
+        schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
+        validation_mode: ValidationMode::Strict,
+        pair_sync_policy: if paired {
+            PairSyncPolicy::RequireHeaderSync
+        } else {
+            PairSyncPolicy::NotApplicable
+        },
     }
 }
 

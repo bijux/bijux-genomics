@@ -4,7 +4,12 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    validate::{
+        PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::STAGE_VALIDATE_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -36,12 +41,19 @@ pub fn plan(
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
     let effective_params = ValidateEffectiveParams {
+        schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
+        validation_mode: ValidationMode::Strict,
+        pair_sync_policy: if r2.is_some() {
+            PairSyncPolicy::RequireHeaderSync
+        } else {
+            PairSyncPolicy::NotApplicable
+        },
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
