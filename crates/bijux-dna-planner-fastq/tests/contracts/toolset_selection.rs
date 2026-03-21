@@ -312,5 +312,11 @@ fn layout_filter_excludes_paired_only_correction_family_for_single_end_inputs() 
         false,
     );
 
-    assert!(single_end.is_empty());
+    assert_eq!(
+        single_end,
+        vec![
+            bijux_dna_core::ids::ToolId::new("rcorrector".to_string()),
+            bijux_dna_core::ids::ToolId::new("musket".to_string()),
+        ]
+    );
 }

@@ -17,7 +17,7 @@ fn tool_manifest(tool_id: &str) -> Result<serde_json::Value> {
 }
 
 #[test]
-fn correction_tool_manifests_require_paired_inputs_for_current_runtime_contract() -> Result<()> {
+fn correction_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
     for tool_id in ["rcorrector", "musket", "lighter", "bayeshammer"] {
         let manifest = tool_manifest(tool_id)?;
         let required_inputs = manifest
@@ -28,10 +28,23 @@ fn correction_tool_manifests_require_paired_inputs_for_current_runtime_contract(
             .iter()
             .filter_map(serde_json::Value::as_str)
             .collect::<Vec<_>>();
+        let optional_inputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("optional_inputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} execution optional_inputs"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
         assert_eq!(
             required_inputs,
-            vec!["reads_r1", "reads_r2"],
-            "{tool_id} execution contract must match the current paired-end correct_errors runtime"
+            vec!["reads_r1"],
+            "{tool_id} execution contract must require only reads_r1 for the governed correction stage"
+        );
+        assert_eq!(
+            optional_inputs,
+            vec!["reads_r2"],
+            "{tool_id} execution contract must admit reads_r2 as an optional mate input"
         );
     }
     Ok(())
@@ -50,8 +63,8 @@ fn correction_tool_capabilities_match_current_stage_runtime_surface() -> Result<
             .collect::<Vec<_>>();
         assert_eq!(
             capabilities,
-            vec!["PE"],
-            "{tool_id} capability declaration must match the current paired-end correct_errors stage contract"
+            vec!["SE", "PE"],
+            "{tool_id} capability declaration must match the governed single-end and paired-end correct_errors stage contract"
         );
     }
     Ok(())

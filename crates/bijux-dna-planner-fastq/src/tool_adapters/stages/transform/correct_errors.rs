@@ -20,6 +20,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub struct CorrectPlanOptions {
     pub quality_encoding: QualityEncoding,
     pub kmer_size: Option<u32>,
+    pub genome_size: Option<u64>,
     pub max_memory_gb: Option<u32>,
     pub trusted_kmer_artifact: Option<std::path::PathBuf>,
     pub conservative_mode: bool,
@@ -30,6 +31,7 @@ impl Default for CorrectPlanOptions {
         Self {
             quality_encoding: QualityEncoding::Phred33,
             kmer_size: None,
+            genome_size: None,
             max_memory_gb: None,
             trusted_kmer_artifact: None,
             conservative_mode: false,
@@ -69,23 +71,54 @@ pub fn plan_correct_with_options(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
-    let r2 = r2.ok_or_else(|| anyhow!("fastq.correct_errors requires paired-end reads"))?;
     validate_correct_options(&tool_id, options)?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
     let report_json = out_dir.join("correct_report.json");
     let correction_engine = correction_engine_for_tool(&tool.tool_id.0)?;
     let effective_params = FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::PairedEnd,
+        paired_mode: PairedMode::from_has_r2(r2.is_some()),
         threads: tool.resources.threads,
         correction_engine: correction_engine.clone(),
         quality_encoding: options.quality_encoding.clone(),
         kmer_size: options.kmer_size,
+        genome_size: options.genome_size,
         max_memory_gb: options.max_memory_gb,
         trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
         conservative_mode: options.conservative_mode,
     };
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    let mut outputs = vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("corrected_reads_r1"),
+            output_r1.clone(),
+            ArtifactRole::Reads,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("report_json"),
+            report_json.clone(),
+            ArtifactRole::ReportJson,
+        ),
+    ];
+    if let Some(output_r2) = &output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("corrected_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -97,75 +130,32 @@ pub fn plan_correct_with_options(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: wrap_correction_command_with_report(
+            template: correct_command_template(
                 &tool.tool_id.0,
-                crate::tool_adapters::template_render::render_command_template(
-                    &tool.command.template,
-                    &[
-                        ("reads", Some(r1.display().to_string())),
-                        ("reads_r1", Some(r1.display().to_string())),
-                        ("reads_r2", Some(r2.display().to_string())),
-                        ("corrected_reads_r1", Some(output_r1.display().to_string())),
-                        ("corrected_reads_r2", Some(output_r2.display().to_string())),
-                        ("report_json", Some(report_json.display().to_string())),
-                        ("threads", Some(tool.resources.threads.to_string())),
-                    ],
-                )?,
-                &report_json,
                 r1,
                 r2,
                 &output_r1,
-                &output_r2,
+                output_r2.as_deref(),
+                &report_json,
+                tool.resources.threads,
+                options,
                 &correction_engine,
-            ),
+            )?,
         },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: {
-                vec![
-                    ArtifactRef::required(
-                        ArtifactId::from_static("reads_r1"),
-                        r1.to_path_buf(),
-                        ArtifactRole::Reads,
-                    ),
-                    ArtifactRef::required(
-                        ArtifactId::from_static("reads_r2"),
-                        r2.to_path_buf(),
-                        ArtifactRole::Reads,
-                    ),
-                ]
-            },
-            outputs: {
-                vec![
-                    ArtifactRef::required(
-                        ArtifactId::from_static("corrected_reads_r1"),
-                        output_r1.clone(),
-                        ArtifactRole::Reads,
-                    ),
-                    ArtifactRef::required(
-                        ArtifactId::from_static("corrected_reads_r2"),
-                        output_r2.clone(),
-                        ArtifactRole::Reads,
-                    ),
-                    ArtifactRef::required(
-                        ArtifactId::from_static("report_json"),
-                        report_json.clone(),
-                        ArtifactRole::ReportJson,
-                    ),
-                ]
-            },
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
-            "r1": r1,
-            "r2": r2,
+            "input_r1": r1,
+            "input_r2": r2,
             "out_dir": out_dir,
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report_json,
             "quality_encoding": options.quality_encoding,
             "kmer_size": options.kmer_size,
+            "genome_size": options.genome_size,
             "max_memory_gb": options.max_memory_gb,
             "trusted_kmer_artifact": options.trusted_kmer_artifact,
             "conservative_mode": options.conservative_mode,
@@ -183,9 +173,24 @@ fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Resu
             "{tool_id} error-correction planning currently supports only quality_encoding=phred33"
         ));
     }
-    if options.kmer_size.is_some() {
+    if options.kmer_size.is_some() && !matches!(tool_id, "musket" | "lighter") {
         return Err(anyhow!(
             "{tool_id} error-correction planning does not yet map kmer_size into backend execution"
+        ));
+    }
+    if options.genome_size.is_some() && tool_id != "lighter" {
+        return Err(anyhow!(
+            "{tool_id} error-correction planning does not yet map genome_size into backend execution"
+        ));
+    }
+    if tool_id == "lighter" && options.genome_size.is_none() {
+        return Err(anyhow!(
+            "lighter error-correction planning requires genome_size to build the governed command"
+        ));
+    }
+    if options.max_memory_gb.is_some() && tool_id != "bayeshammer" {
+        return Err(anyhow!(
+            "{tool_id} error-correction planning does not yet map max_memory_gb into backend execution"
         ));
     }
     if options.trusted_kmer_artifact.is_some() {
@@ -201,16 +206,185 @@ fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Resu
     Ok(())
 }
 
-fn wrap_correction_command_with_report(
+fn correct_command_template(
     tool_id: &str,
-    command: Vec<String>,
+    input_r1: &Path,
+    input_r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    options: &CorrectPlanOptions,
+    correction_engine: &CorrectionEngine,
+) -> Result<Vec<String>> {
+    let work_dir = report_json
+        .parent()
+        .ok_or_else(|| anyhow!("correction report path must have a parent directory"))?
+        .join(format!("{tool_id}_work"));
+    let mut script = format!(
+        "set -euo pipefail\nmkdir -p {}\nnormalize_fastq_output() {{ src=\"$1\"; dest=\"$2\"; case \"$src\" in *.gz) mv -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }}\n",
+        shell_quote_path(&work_dir),
+    );
+    match tool_id {
+        "rcorrector" => {
+            script.push_str("run_rcorrector.pl");
+            script.push_str(&format!(" -t {threads} -od {}", shell_quote_path(&work_dir)));
+            if let Some(input_r2) = input_r2 {
+                script.push_str(&format!(
+                    " -1 {} -2 {}",
+                    shell_quote_path(input_r1),
+                    shell_quote_path(input_r2),
+                ));
+            } else {
+                script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
+            }
+            script.push('\n');
+            script.push_str(&move_corrected_outputs_script(
+                &work_dir,
+                output_r1,
+                output_r2,
+                true,
+            ));
+        }
+        "musket" => {
+            let kmer_size = options.kmer_size.unwrap_or(21);
+            let prefix = work_dir.join("corrected");
+            script.push_str(&format!("musket -p {threads} -k {kmer_size}"));
+            if let Some(input_r2) = input_r2 {
+                script.push_str(&format!(
+                    " -omulti {} -inorder {} {}",
+                    shell_quote_path(&prefix),
+                    shell_quote_path(input_r1),
+                    shell_quote_path(input_r2),
+                ));
+            } else {
+                script.push_str(&format!(
+                    " -o {} {}",
+                    shell_quote_path(&prefix),
+                    shell_quote_path(input_r1),
+                ));
+            }
+            script.push('\n');
+            if let Some(output_r2) = output_r2 {
+                script.push_str(&format!(
+                    "normalize_fastq_output {} {}\nnormalize_fastq_output {} {}\n",
+                    shell_quote_path(&prefix.with_extension("0")),
+                    shell_quote_path(output_r1),
+                    shell_quote_path(&prefix.with_extension("1")),
+                    shell_quote_path(output_r2),
+                ));
+            } else {
+                script.push_str(&format!(
+                    "normalize_fastq_output {} {}\n",
+                    shell_quote_path(&prefix),
+                    shell_quote_path(output_r1),
+                ));
+            }
+        }
+        "lighter" => {
+            let kmer_size = options.kmer_size.unwrap_or(21);
+            let genome_size = options
+                .genome_size
+                .ok_or_else(|| anyhow!("lighter requires genome_size"))?;
+            script.push_str(&format!(
+                "lighter -K {kmer_size} {genome_size} -t {threads} -od {} -r {}",
+                shell_quote_path(&work_dir),
+                shell_quote_path(input_r1),
+            ));
+            if let Some(input_r2) = input_r2 {
+                script.push_str(&format!(" -r {}", shell_quote_path(input_r2)));
+            }
+            script.push('\n');
+            script.push_str(&move_corrected_outputs_script(
+                &work_dir,
+                output_r1,
+                output_r2,
+                false,
+            ));
+        }
+        "bayeshammer" => {
+            script.push_str("spades.py --only-error-correction");
+            script.push_str(&format!(" --threads {threads}"));
+            if let Some(max_memory_gb) = options.max_memory_gb {
+                script.push_str(&format!(" -m {max_memory_gb}"));
+            }
+            if let Some(input_r2) = input_r2 {
+                script.push_str(&format!(
+                    " -1 {} -2 {}",
+                    shell_quote_path(input_r1),
+                    shell_quote_path(input_r2),
+                ));
+            } else {
+                script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
+            }
+            script.push_str(&format!(" -o {}\n", shell_quote_path(&work_dir)));
+            script.push_str(&move_corrected_outputs_script(
+                &work_dir.join("corrected"),
+                output_r1,
+                output_r2,
+                false,
+            ));
+        }
+        _ => return Err(anyhow!("unsupported tool: {tool_id}")),
+    }
+    script.push_str(&write_correction_report_script(
+        tool_id,
+        report_json,
+        input_r1,
+        input_r2,
+        output_r1,
+        output_r2,
+        correction_engine,
+        options,
+    ));
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn move_corrected_outputs_script(
+    search_dir: &Path,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    cor_suffix_only: bool,
+) -> String {
+    let patterns = if cor_suffix_only {
+        "\\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\)"
+    } else {
+        "\\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' -o -name '*.fq' -o -name '*.fastq' -o -name '*.fq.gz' -o -name '*.fastq.gz' \\)"
+    };
+    let expected_count = if output_r2.is_some() { 2 } else { 1 };
+    let list_path = search_dir.join("corrected_outputs.list");
+    let mut script = format!(
+        "find {} -type f {} | LC_ALL=C sort > {}\nactual_outputs=$(wc -l < {} | tr -d '[:space:]')\nif [ \"$actual_outputs\" -ne {} ]; then echo \"expected {} corrected outputs in {} but found $actual_outputs\" >&2; exit 64; fi\nnormalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
+        shell_quote_path(search_dir),
+        patterns,
+        shell_quote_path(&list_path),
+        shell_quote_path(&list_path),
+        expected_count,
+        expected_count,
+        shell_quote_path(search_dir),
+        shell_quote_path(&list_path),
+        shell_quote_path(output_r1),
+    );
+    if let Some(output_r2) = output_r2 {
+        script.push_str(&format!(
+            "normalize_fastq_output \"$(sed -n '2p' {})\" {}\n",
+            shell_quote_path(&list_path),
+            shell_quote_path(output_r2),
+        ));
+    }
+    script
+}
+
+fn write_correction_report_script(
+    tool_id: &str,
     report_json: &Path,
     input_r1: &Path,
-    input_r2: &Path,
+    input_r2: Option<&Path>,
     output_r1: &Path,
-    output_r2: &Path,
+    output_r2: Option<&Path>,
     correction_engine: &CorrectionEngine,
-) -> Vec<String> {
+    options: &CorrectPlanOptions,
+) -> String {
     let report_payload = serde_json::json!({
         "schema_version": "bijux.fastq.correct_errors.report.v1",
         "stage_id": STAGE_ID.as_str(),
@@ -220,22 +394,15 @@ fn wrap_correction_command_with_report(
         "output_r1": output_r1,
         "output_r2": output_r2,
         "correction_engine": correction_engine,
+        "kmer_size": options.kmer_size,
+        "genome_size": options.genome_size,
+        "max_memory_gb": options.max_memory_gb,
     });
-    let script = format!(
-        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
-        shell_join(&command),
+    format!(
+        "printf '%s\\n' {} > {}\n",
         shell_quote_str(&report_payload.to_string()),
         shell_quote_path(report_json),
-    );
-    vec!["sh".to_string(), "-lc".to_string(), script]
-}
-
-fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    )
 }
 
 fn shell_quote_path(path: &Path) -> String {
@@ -335,5 +502,37 @@ mod tests {
         .expect_err("unsupported quality encoding must fail");
 
         assert!(error.to_string().contains("quality_encoding=phred33"));
+    }
+
+    #[test]
+    fn plan_correct_supports_single_end_rcorrector() {
+        let plan = plan_correct(
+            &tool("rcorrector"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+        )
+        .expect("single-end correction plan should build");
+
+        assert_eq!(plan.io.inputs.len(), 1);
+        assert_eq!(plan.io.outputs.len(), 2);
+        assert_eq!(plan.effective_params["paired_mode"], "single_end");
+        let script = &plan.command.template[2];
+        assert!(script.contains("run_rcorrector.pl"));
+        assert!(script.contains(" -s "));
+    }
+
+    #[test]
+    fn plan_correct_requires_genome_size_for_lighter() {
+        let error = plan_correct_with_options(
+            &tool("lighter"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions::default(),
+        )
+        .expect_err("lighter must require genome_size");
+
+        assert!(error.to_string().contains("genome_size"));
     }
 }
