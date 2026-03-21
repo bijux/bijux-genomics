@@ -75,6 +75,14 @@ pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
             bijux_dna_domain_fastq::STAGE_REPORT_QC,
             ToolId::from_static("multiqc"),
         ),
+        (
+            bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES,
+            ToolId::from_static("fastuniq"),
+        ),
+        (
+            bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES,
+            ToolId::from_static("clumpify"),
+        ),
     ]
 }
 
@@ -171,6 +179,10 @@ mod tests {
             runtime_interpretation_for_stage(&StageId::from_static("fastq.validate_reads")),
             Some(RuntimeInterpretationLevel::GenericEnvelope)
         );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.remove_duplicates")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
     }
 
     #[test]
@@ -186,6 +198,9 @@ mod tests {
         let observer_specialized = observer_specialized_stage_ids();
         assert!(observer_specialized.contains(&StageId::from_static("fastq.detect_adapters")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.report_qc")));
+        assert!(observer_specialized.contains(&StageId::from_static(
+            "fastq.remove_duplicates"
+        )));
         assert!(!observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(!observer_specialized.contains(&StageId::from_static(
             "fastq.profile_overrepresented_sequences"

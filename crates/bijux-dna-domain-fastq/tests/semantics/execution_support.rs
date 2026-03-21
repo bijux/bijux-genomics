@@ -142,6 +142,12 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
             .map(|support| support.normalization_support),
         Some(NormalizationSupport::GenericEnvelope),
     );
+    assert_eq!(
+        by_stage
+            .remove("fastq.remove_duplicates")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::ObserverSpecialized),
+    );
 }
 
 #[test]
