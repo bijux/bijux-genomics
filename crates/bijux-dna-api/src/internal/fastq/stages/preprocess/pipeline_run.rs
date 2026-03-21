@@ -76,11 +76,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-    if args.auto && args.run_all_governed_tools {
-        return Err(anyhow!(
-            "--auto and --run-all-governed-tools cannot be combined; automatic selection chooses one tool per stage while governed fan-out expands all admitted runtime tools"
-        ));
-    }
     let jobs = bench_jobs(args.jobs);
     let runtime_pipeline = pipeline.clone();
     let paired_end = args.r2.is_some();
@@ -829,6 +824,11 @@ fn planner_selection_surfaces(
     if !planner_stage_toolsets.is_empty() {
         return planner_stage_toolsets;
     }
+    assert_eq!(
+        selected_stage_tools.len(),
+        tool_specs.len(),
+        "selected preprocess stage tools and tool specs must stay aligned"
+    );
 
     selected_stage_tools
         .iter()
@@ -1190,5 +1190,18 @@ mod pipeline_run_tests {
         let planned_toolsets = planner_selection_surfaces(&[], &[], toolsets);
 
         assert_eq!(planned_toolsets.len(), 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "selected preprocess stage tools and tool specs must stay aligned")]
+    fn planner_selection_surfaces_reject_mismatched_selected_tools_and_specs() {
+        let selected = vec![StageToolSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("trim.fastp".to_string()),
+            tool_id: "fastp".to_string(),
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+        }];
+
+        let _ = planner_selection_surfaces(&selected, &[], Vec::new());
     }
 }
