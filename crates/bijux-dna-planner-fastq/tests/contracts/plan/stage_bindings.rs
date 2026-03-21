@@ -896,6 +896,212 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
 }
 
 #[test]
+fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-select-rejoin")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__select_rejoin__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "benchmark.select_stage_tool".to_string(),
+                    stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.filter_reads".to_string(),
+                    stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.fastp_branch".to_string(),
+                    to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.cutadapt_branch".to_string(),
+                    to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("cutadapt_trimmed_reads_r1".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    to: "fastq.filter_reads.selected".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("reads_r1".to_string()),
+                },
+            ],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tool: tool("fastp"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                tool: tool("cutadapt"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                tool: tool("seqkit"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stage_toolsets: Vec::new(),
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let select_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "benchmark.select_stage_tool.trim_reads")
+        .expect("select step");
+    let filter_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.filter_reads.selected")
+        .expect("rejoin stage");
+    assert_eq!(select_step.stage_id.as_str(), "benchmark.select_stage_tool");
+    assert_eq!(select_step.io.inputs.len(), 2);
+    assert_eq!(select_step.io.outputs.len(), 1);
+    assert_eq!(filter_step.io.inputs[0].path, select_step.io.outputs[0].path);
+    assert!(plan.edges().iter().any(|edge| {
+        edge.from().as_str() == "benchmark.select_stage_tool.trim_reads"
+            && edge.to().as_str() == "fastq.filter_reads.selected"
+            && edge.from_output_id().is_some()
+            && edge.to_input_id().is_some()
+    }));
+    Ok(())
+}
+
+#[test]
+fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-select-rejoin-invalid")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__select_rejoin_invalid__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "benchmark.select_stage_tool".to_string(),
+                    stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.filter_reads".to_string(),
+                    stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.fastp_branch".to_string(),
+                    to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.cutadapt_branch".to_string(),
+                    to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("cutadapt_trimmed_reads_r1".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    to: "fastq.filter_reads.selected".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+            ],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tool: tool("fastp"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                tool: tool("cutadapt"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                tool: tool("seqkit"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stage_toolsets: Vec::new(),
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })
+    .expect_err("selection rejoin should require artifact-bound edges");
+
+    assert!(error
+        .to_string()
+        .contains("requires artifact-bound outgoing rejoin edges"));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -> anyhow::Result<()>
 {
     let temp = bijux_dna_infra::temp_dir("fastq-explicit-reference-index")?;
