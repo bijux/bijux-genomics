@@ -227,26 +227,26 @@ fn validation_command(
     }
     let report_format = format!(
         "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
-        json_string_literal(STAGE_ID.as_str()),
-        json_string_literal(STAGE_ID.as_str()),
-        json_string_literal(tool.tool_id.as_str()),
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(tool.tool_id.as_str())?,
         json_string_literal(if r2.is_some() {
             "require_header_sync"
         } else {
             "not_applicable"
-        }),
+        })?,
         if r2.is_some() { 2 } else { 1 },
     );
     let lineage_format = format!(
         "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
-        json_string_literal(STAGE_ID.as_str()),
-        json_string_literal(tool.tool_id.as_str()),
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(tool.tool_id.as_str())?,
         json_string_literal(if r2.is_some() {
             "require_header_sync"
         } else {
             "not_applicable"
-        }),
-        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" }),
+        })?,
+        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
         if r2.is_some() {
             "[\"reads_r1\",\"reads_r2\"]".to_string()
         } else {
@@ -280,8 +280,9 @@ fn validation_command(
     ])
 }
 
-fn json_string_literal(value: &str) -> String {
-    serde_json::to_string(value).expect("serialize static json string literal")
+fn json_string_literal(value: &str) -> Result<String> {
+    serde_json::to_string(value)
+        .map_err(|error| anyhow!("serialize validation string literal: {error}"))
 }
 
 fn json_path_token(path: &Path) -> Result<String> {
