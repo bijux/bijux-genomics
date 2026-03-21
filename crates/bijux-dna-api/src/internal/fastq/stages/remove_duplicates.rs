@@ -7,6 +7,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_duplicates_v1, insert_fastq_duplicates_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics};
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -64,6 +65,42 @@ fn ensure_remove_duplicates_tools_support_input_mode(
     ))
 }
 
+fn resolve_remove_duplicates_tools(
+    requested_tools: &[String],
+    tools_resolved_implicitly: bool,
+    paired_mode: bool,
+) -> Result<Vec<String>> {
+    let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(requested_tools)?;
+    if !tools_resolved_implicitly {
+        ensure_remove_duplicates_tools_support_input_mode(&tools, paired_mode)?;
+        return Ok(tools);
+    }
+
+    let compatible = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+        &StageId::new(STAGE_ID),
+        tools
+            .iter()
+            .cloned()
+            .map(ToolId::new)
+            .collect::<Vec<_>>(),
+        paired_mode,
+    )
+    .into_iter()
+    .map(|tool_id| tool_id.to_string())
+    .collect::<Vec<_>>();
+    if compatible.is_empty() {
+        return Err(anyhow!(
+            "fastq.remove_duplicates has no governed tools for {} input layout",
+            if paired_mode {
+                "paired-end"
+            } else {
+                "single-end"
+            }
+        ));
+    }
+    Ok(compatible)
+}
+
 pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -72,9 +109,12 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<FastqDuplicateMetrics>> {
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(&args.tools)?;
+    let tools = resolve_remove_duplicates_tools(
+        &args.tools,
+        args.tools_resolved_implicitly,
+        args.r2.is_some(),
+    )?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    ensure_remove_duplicates_tools_support_input_mode(&tools, args.r2.is_some())?;
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
     } else {
@@ -313,7 +353,10 @@ fn build_deduplicate_report_json(
 mod tests {
     use std::path::PathBuf;
 
-    use super::{build_deduplicate_report_json, deduplicate_report_counts, DuplicateReportCounts};
+    use super::{
+        build_deduplicate_report_json, deduplicate_report_counts, resolve_remove_duplicates_tools,
+        DuplicateReportCounts,
+    };
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolConstraints, ToolId,
     };
@@ -413,5 +456,23 @@ mod tests {
             report["report_json"],
             serde_json::json!("out/deduplicate_report.json")
         );
+    }
+
+    #[test]
+    fn implicit_single_end_dedup_selection_filters_paired_only_tools() {
+        let tools = resolve_remove_duplicates_tools(
+            &["fastuniq".to_string(), "clumpify".to_string()],
+            true,
+            false,
+        )
+            .expect("single-end auto selection should keep only compatible tools");
+        assert_eq!(tools, vec!["clumpify".to_string()]);
+    }
+
+    #[test]
+    fn explicit_single_end_fastuniq_request_still_fails() {
+        let error = resolve_remove_duplicates_tools(&["fastuniq".to_string()], false, false)
+            .expect_err("explicit incompatible tool request must fail");
+        assert!(error.to_string().contains("single-end"));
     }
 }
