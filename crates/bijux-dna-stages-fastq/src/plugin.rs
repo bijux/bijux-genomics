@@ -7,7 +7,7 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::metrics;
-use crate::observer::parse_deduplicate_report;
+use crate::observer::{parse_deduplicate_report, parse_multiqc_general_stats_metrics};
 
 #[allow(dead_code)]
 pub struct FastqStagePlugin;
@@ -267,6 +267,13 @@ impl StagePlugin for FastqStagePlugin {
 #[allow(dead_code)]
 fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> serde_json::Value {
     if plan.stage_id.as_str() == "fastq.report_qc" {
+        let multiqc_metrics = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "multiqc_data")
+            .map(|artifact| artifact.path.join("multiqc_general_stats.json"))
+            .filter(|path| path.exists())
+            .and_then(|path| std::fs::read_to_string(path).ok())
+            .and_then(|raw| parse_multiqc_general_stats_metrics(&raw).ok());
         if let Some(manifest_path) = artifacts
             .iter()
             .find(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest")
@@ -306,6 +313,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "contributor_stage_ids": contributor_stage_ids,
                         "contributor_tool_ids": contributor_tool_ids,
                         "raw_fastqc_dir": manifest.get("raw_fastqc_dir").cloned().unwrap_or(serde_json::Value::Null),
+                        "multiqc_sample_count": multiqc_metrics.as_ref().map(|metrics| metrics.sample_count),
+                        "multiqc_module_count": multiqc_metrics.as_ref().map(|metrics| metrics.module_count),
                     });
                 }
             }
@@ -940,6 +949,12 @@ mod tests {
         let data_dir = temp.path().join("multiqc_data");
         let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
         std::fs::write(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
+        std::fs::create_dir_all(&data_dir).expect("multiqc data dir");
+        std::fs::write(
+            data_dir.join("multiqc_general_stats.json"),
+            include_str!("../tests/fixtures/tool_metrics/default/multiqc_general_stats.json"),
+        )
+        .expect("write multiqc general stats");
         std::fs::write(
             &manifest_path,
             serde_json::json!({
@@ -993,10 +1008,7 @@ mod tests {
         };
 
         let output = plugin
-            .parse_outputs(
-                &plan,
-                &[plan.io.outputs[2].clone()],
-            )
+            .parse_outputs(&plan, &plan.io.outputs)
             .expect("parse outputs");
 
         assert!(output.warnings.is_empty());
@@ -1011,6 +1023,14 @@ mod tests {
         assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["contributor_tool_ids"],
             serde_json::json!(["fastp", "fastqvalidator"])
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["multiqc_sample_count"],
+            serde_json::json!(2)
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["multiqc_module_count"],
+            serde_json::json!(2)
         );
         assert_eq!(
             output
