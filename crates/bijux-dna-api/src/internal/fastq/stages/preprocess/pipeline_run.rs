@@ -80,7 +80,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let runtime_pipeline = pipeline.clone();
     let paired_end = args.r2.is_some();
     let mut planner_stage_toolsets = Vec::new();
-    let mut selected_stage_tools = if args.run_all_governed_tools {
+    let mut selected_stage_tools = match preprocess_selection_mode(args) {
+        PreprocessSelectionMode::RunAllGovernedTools => {
         let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
             &runtime_pipeline,
             bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
@@ -146,7 +147,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 &filtered_toolsets,
             )?;
         expanded_stage_tools
-    } else if !args.auto {
+        }
+        PreprocessSelectionMode::DefaultChoice => {
         let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
             &runtime_pipeline,
             bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::DefaultChoice,
@@ -223,15 +225,15 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 })
             })
             .collect::<Result<Vec<_>>>()?
-    } else {
-        select_preprocess_stage_tools(
+        }
+        PreprocessSelectionMode::AutoSelect => select_preprocess_stage_tools(
             &registry,
             &runtime_pipeline,
             args,
             bench_repo
                 .as_ref()
                 .map(|repo| repo as &dyn bijux_dna_planner_fastq::BenchResultsRepository),
-        )?
+        )?,
     };
     let mut filtered_stage_tools = Vec::new();
     for selection in &selected_stage_tools {
@@ -742,6 +744,25 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     Ok(())
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PreprocessSelectionMode {
+    RunAllGovernedTools,
+    DefaultChoice,
+    AutoSelect,
+}
+
+fn preprocess_selection_mode(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
+) -> PreprocessSelectionMode {
+    if args.run_all_governed_tools {
+        PreprocessSelectionMode::RunAllGovernedTools
+    } else if args.auto {
+        PreprocessSelectionMode::AutoSelect
+    } else {
+        PreprocessSelectionMode::DefaultChoice
+    }
+}
+
 fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<ExecutionStep>>> {
     let mut incoming = std::collections::BTreeMap::<String, usize>::new();
     let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
@@ -982,11 +1003,15 @@ fn execute_preprocess_batch(
 
 #[cfg(test)]
 mod pipeline_run_tests {
-    use super::{execution_step_batches, planner_selection_surfaces, terminal_step_ids};
+    use super::{
+        execution_step_batches, planner_selection_surfaces, preprocess_selection_mode,
+        terminal_step_ids, PreprocessSelectionMode,
+    };
     use anyhow::Result;
     use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
     use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolId};
     use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_planner_fastq::stage_api::args::{BenchFastqPreprocessArgs, FastqPlannerMode};
     use bijux_dna_planner_fastq::StageToolSelection;
     use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
 
@@ -1043,6 +1068,40 @@ mod pipeline_run_tests {
                 tmp_gb: 1,
                 threads: 1,
             },
+        }
+    }
+
+    fn preprocess_args() -> BenchFastqPreprocessArgs {
+        BenchFastqPreprocessArgs {
+            sample_id: "sample".to_string(),
+            profile: None,
+            r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+            r2: None,
+            reference_fasta: None,
+            out: std::path::PathBuf::from("out"),
+            strict: false,
+            auto: false,
+            objective: bijux_dna_core::contract::Objective::default(),
+            bench_corpus: None,
+            allow_partial: false,
+            dry_run: false,
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+            adapter_bank_preset: None,
+            adapter_bank: None,
+            adapter_bank_file: None,
+            enable_adapters: Vec::new(),
+            disable_adapters: Vec::new(),
+            polyx_preset: None,
+            contaminant_preset: None,
+            enable_contaminant_removal: false,
+            no_qc_post: false,
+            force_merge: false,
+            enable_correct: false,
+            run_all_governed_tools: false,
+            allow_planned: false,
+            mode: FastqPlannerMode::Shotgun,
         }
     }
 
@@ -1203,5 +1262,28 @@ mod pipeline_run_tests {
         }];
 
         let _ = planner_selection_surfaces(&selected, &[], Vec::new());
+    }
+
+    #[test]
+    fn preprocess_selection_mode_prefers_governed_fanout_over_auto() {
+        let mut args = preprocess_args();
+        args.auto = true;
+        args.run_all_governed_tools = true;
+
+        assert_eq!(
+            preprocess_selection_mode(&args),
+            PreprocessSelectionMode::RunAllGovernedTools
+        );
+    }
+
+    #[test]
+    fn preprocess_selection_mode_uses_auto_when_governed_fanout_is_disabled() {
+        let mut args = preprocess_args();
+        args.auto = true;
+
+        assert_eq!(
+            preprocess_selection_mode(&args),
+            PreprocessSelectionMode::AutoSelect
+        );
     }
 }
