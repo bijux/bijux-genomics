@@ -42,6 +42,7 @@ fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::err
 
     let contract = ExecutionContract {
         required_inputs: vec![],
+        optional_inputs: vec![],
         expected_outputs: vec!["out.fastq.gz".to_string()],
         forbidden_outputs: vec!["bad.fastq".to_string()],
         forbid_unexpected_outputs: true,

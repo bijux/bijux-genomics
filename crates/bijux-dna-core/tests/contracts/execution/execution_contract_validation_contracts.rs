@@ -56,6 +56,7 @@ fn validate_execution_outputs_covers_contract_paths() {
 
     let ok_contract = ExecutionContract {
         required_inputs: Vec::new(),
+        optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string(), "nested/*.fastq.gz".to_string()],
         forbidden_outputs: vec!["*.tmp".to_string()],
         forbid_unexpected_outputs: false,
@@ -64,6 +65,7 @@ fn validate_execution_outputs_covers_contract_paths() {
 
     let missing_expected = ExecutionContract {
         required_inputs: Vec::new(),
+        optional_inputs: Vec::new(),
         expected_outputs: vec!["missing.json".to_string()],
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: false,
@@ -72,6 +74,7 @@ fn validate_execution_outputs_covers_contract_paths() {
 
     let forbidden = ExecutionContract {
         required_inputs: Vec::new(),
+        optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string(), "nested/*.fastq.gz".to_string()],
         forbidden_outputs: vec!["*.fastq.gz".to_string()],
         forbid_unexpected_outputs: false,
@@ -80,6 +83,7 @@ fn validate_execution_outputs_covers_contract_paths() {
 
     let strict = ExecutionContract {
         required_inputs: Vec::new(),
+        optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string()],
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: true,
