@@ -151,6 +151,83 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 &filtered_toolsets,
             )?;
         expanded_stage_tools
+    } else if !args.auto {
+        let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
+            &runtime_pipeline,
+            bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::DefaultChoice,
+            args.allow_planned,
+        )?;
+        let filtered_toolsets = toolsets
+            .into_iter()
+            .map(|toolset| {
+                let filtered = filter_tools_by_role(
+                    &toolset.stage_id,
+                    &toolset.tool_ids,
+                    &registry,
+                    false,
+                )?;
+                let filtered = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+                    &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
+                    filtered
+                        .into_iter()
+                        .map(bijux_dna_core::ids::ToolId::new)
+                        .collect(),
+                    paired_end,
+                )
+                .into_iter()
+                .map(|tool_id| tool_id.to_string())
+                .collect::<Vec<_>>();
+                Ok(bijux_dna_planner_fastq::ToolsetSelection {
+                    stage_id: toolset.stage_id,
+                    stage_instance_id: toolset.stage_instance_id,
+                    tool_ids: filtered,
+                    reason: toolset.reason,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        planner_stage_toolsets = filtered_toolsets
+            .iter()
+            .map(|toolset| {
+                let tools = toolset
+                    .tool_ids
+                    .iter()
+                    .map(|tool_id| {
+                        let spec = build_tool_execution_spec(
+                            toolset.stage_id.as_str(),
+                            tool_id.as_str(),
+                            &registry,
+                            catalog,
+                            platform,
+                        )?;
+                        Ok(scale_tool_spec_for_jobs(&spec, jobs))
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
+                    stage_id: toolset.stage_id.clone(),
+                    stage_instance_id: toolset.stage_instance_id.clone(),
+                    tools,
+                    reason: Some(toolset.reason.clone()),
+                    params: None,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        filtered_toolsets
+            .into_iter()
+            .map(|toolset| {
+                let tool_id = toolset.tool_ids.into_iter().next().ok_or_else(|| {
+                    anyhow!(
+                        "default preprocess toolset for {} did not resolve to a runnable tool",
+                        toolset.stage_id
+                    )
+                })?;
+                Ok(StageToolSelection {
+                    stage_id: toolset.stage_id,
+                    stage_instance_id: toolset.stage_instance_id,
+                    tool_id,
+                    reason: toolset.reason,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?
     } else {
         select_preprocess_stage_tools(
             &registry,
