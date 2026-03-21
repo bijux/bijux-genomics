@@ -5,7 +5,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    qc_post::{QcAggregationEngine, QcAggregationScope},
+    PairedMode,
+};
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS,
@@ -468,6 +471,7 @@ where
                     &out_dir,
                     stage_aux_images,
                     paired_mode,
+                    QcAggregationEngine::Multiqc,
                     QcAggregationScope::GovernedQcArtifacts,
                     Some(raw_r1.as_path()),
                     raw_r2.as_deref(),

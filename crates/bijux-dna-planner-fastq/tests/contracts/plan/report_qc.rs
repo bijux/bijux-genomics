@@ -7,7 +7,10 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    qc_post::{QcAggregationEngine, QcAggregationScope},
+    PairedMode,
+};
 use bijux_dna_planner_fastq::{compose_fastq_stage_bindings, FastqStageBinding};
 use bijux_dna_stage_contract::PlanDecisionReason;
 
@@ -61,6 +64,7 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
             Path::new("out"),
             BTreeMap::new(),
             PairedMode::SingleEnd,
+            QcAggregationEngine::Multiqc,
             QcAggregationScope::GovernedQcArtifacts,
             None,
             None,

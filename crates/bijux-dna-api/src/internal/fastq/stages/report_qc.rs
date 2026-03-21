@@ -12,7 +12,10 @@ use bijux_dna_analyze::{
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ArtifactRef;
-use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    qc_post::{QcAggregationEngine, QcAggregationScope},
+    PairedMode,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_qc_post_tools;
@@ -45,6 +48,15 @@ fn parse_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope>
     }
 }
 
+fn parse_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngine> {
+    match value.unwrap_or("multiqc") {
+        "multiqc" => Ok(QcAggregationEngine::Multiqc),
+        other => Err(anyhow!(
+            "unsupported fastq.report_qc aggregation_engine `{other}`; expected: multiqc"
+        )),
+    }
+}
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
@@ -53,6 +65,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqQcPostMetrics>> {
+    let aggregation_engine =
+        parse_qc_aggregation_engine(args.aggregation_engine.as_deref())?;
     let aggregation_scope = parse_qc_aggregation_scope(args.aggregation_scope.as_deref())?;
     if aggregation_scope != QcAggregationScope::GovernedQcArtifacts {
         return Err(anyhow!(
@@ -129,6 +143,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             &out_dir,
             std::collections::BTreeMap::new(),
             paired_mode_for_bench_inputs(&bench_inputs),
+            aggregation_engine.clone(),
             aggregation_scope.clone(),
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
@@ -648,7 +663,8 @@ mod tests {
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
         governed_qc_contributors, governed_qc_inputs_manifest_path,
         load_governed_qc_inputs_manifest, load_required_governed_qc_inputs_manifest,
-        parse_qc_aggregation_scope, validate_governed_qc_contributors,
+        parse_qc_aggregation_engine, parse_qc_aggregation_scope,
+        validate_governed_qc_contributors,
         GovernedQcContributor, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
@@ -660,7 +676,7 @@ mod tests {
     use bijux_dna_core::prelude::{
         ArtifactRef, CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1,
     };
-    use bijux_dna_domain_fastq::params::qc_post::QcAggregationScope;
+    use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
     use bijux_dna_environment::api::{PlatformSpec, RuntimeKind};
     use bijux_dna_runner::step_runner::StageResultV1;
 
@@ -682,6 +698,18 @@ mod tests {
         assert_eq!(
             parse_qc_aggregation_scope(Some("fastq_qc_inputs")).expect("explicit scope"),
             QcAggregationScope::FastqQcInputs
+        );
+    }
+
+    #[test]
+    fn qc_post_engine_parser_defaults_to_multiqc() {
+        assert_eq!(
+            parse_qc_aggregation_engine(None).expect("default engine"),
+            QcAggregationEngine::Multiqc
+        );
+        assert_eq!(
+            parse_qc_aggregation_engine(Some("multiqc")).expect("explicit engine"),
+            QcAggregationEngine::Multiqc
         );
     }
 

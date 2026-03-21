@@ -275,6 +275,7 @@ pub struct BenchFastqQcPostArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub aggregation_engine: Option<String>,
     pub aggregation_scope: Option<String>,
     pub governed_qc_manifest: Option<PathBuf>,
 }

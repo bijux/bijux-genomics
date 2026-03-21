@@ -52,6 +52,7 @@ pub fn plan_qc_post_with_qc_inputs(
     out_dir: &Path,
     aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
     paired_mode: PairedMode,
+    aggregation_engine: QcAggregationEngine,
     aggregation_scope: QcAggregationScope,
     raw_r1: Option<&Path>,
     raw_r2: Option<&Path>,
@@ -83,7 +84,7 @@ pub fn plan_qc_post_with_qc_inputs(
     let effective_params = QcPostEffectiveParams {
         schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode,
-        aggregation_engine: QcAggregationEngine::Multiqc,
+        aggregation_engine,
         aggregation_scope,
     };
     let multiqc_data = out_dir.join("multiqc_data");

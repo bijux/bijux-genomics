@@ -450,6 +450,7 @@ pub fn bench_args_qc_post(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        aggregation_engine: args.aggregation_engine.clone(),
         aggregation_scope: args.aggregation_scope.clone(),
         governed_qc_manifest: args.governed_qc_manifest.clone(),
     })
