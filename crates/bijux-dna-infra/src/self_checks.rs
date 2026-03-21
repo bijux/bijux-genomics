@@ -140,3 +140,21 @@ fn bounded_read_rejects_files_larger_than_limit() -> Result<(), IoError> {
     assert_eq!(err.kind, IoErrorKind::Corruption);
     Ok(())
 }
+
+#[cfg(unix)]
+#[test]
+fn remove_path_if_exists_removes_broken_symlink() -> Result<(), IoError> {
+    use std::os::unix::fs::symlink;
+
+    let dir = temp_dir("bijux")?;
+    let link = dir.path().join("dangling-link");
+    symlink(dir.path().join("missing-target"), &link).map_err(IoError::from_io)?;
+
+    crate::remove_path_if_exists(&link)?;
+
+    assert!(
+        std::fs::symlink_metadata(&link).is_err(),
+        "broken symlink should be removed"
+    );
+    Ok(())
+}

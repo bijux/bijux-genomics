@@ -214,13 +214,15 @@ pub fn remove_dir_all(path: &Path) -> Result<(), IoError> {
 /// # Errors
 /// Returns an IO error if removal fails.
 pub fn remove_path_if_exists(path: &Path) -> Result<(), IoError> {
-    if !path.exists() {
-        return Ok(());
-    }
-    if path.is_dir() {
+    let metadata = match std::fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(err) => return Err(IoError::from_io(err)),
+    };
+    if metadata.file_type().is_dir() && !metadata.file_type().is_symlink() {
         remove_dir_all(path)
     } else {
-        remove_file(path)
+        remove_file_if_exists(path)
     }
 }
 
