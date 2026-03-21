@@ -120,7 +120,7 @@ pub struct TrimTerminalDamageParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
     pub threads: u32,
-    pub damage_mode: String,
+    pub damage_mode: DamageMode,
     pub trim_5p_bases: u32,
     pub trim_3p_bases: u32,
 }

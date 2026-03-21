@@ -2,6 +2,7 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::DamageMode;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -361,7 +362,10 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
         plan.effective_params["schema_version"],
         "bijux.fastq.params.trim_terminal_damage.v1"
     );
-    assert_eq!(plan.effective_params["damage_mode"], "ancient");
+    assert_eq!(
+        serde_json::from_value::<DamageMode>(plan.effective_params["damage_mode"].clone())?,
+        DamageMode::Ancient
+    );
     assert_eq!(plan.effective_params["trim_5p_bases"], 2);
     assert_eq!(plan.effective_params["trim_3p_bases"], 2);
     Ok(())
@@ -388,6 +392,22 @@ fn plan_trim_terminal_damage_seqkit_respects_terminal_trim_settings() -> Result<
     assert!(script.contains("trim_terminal_damage_report.json"));
     assert!(script.contains("\"damage_mode\":\"udg_trimmed\""));
     Ok(())
+}
+
+#[test]
+fn plan_trim_terminal_damage_rejects_unknown_damage_mode() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        "partial_udg",
+        2,
+        2,
+    )
+    .expect_err("unknown damage_mode must fail fast");
+
+    assert!(error.to_string().contains("invalid fastq.trim_terminal_damage damage_mode"));
 }
 
 #[test]

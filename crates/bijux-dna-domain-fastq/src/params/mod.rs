@@ -3,6 +3,7 @@
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::stages::ids::{
     STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
@@ -230,6 +231,31 @@ impl PairedMode {
 #[serde(rename_all = "snake_case")]
 pub enum DamageMode {
     Ancient,
+    UdgTrimmed,
+}
+
+impl DamageMode {
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Ancient => "ancient",
+            Self::UdgTrimmed => "udg_trimmed",
+        }
+    }
+}
+
+impl FromStr for DamageMode {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "ancient" => Ok(Self::Ancient),
+            "udg_trimmed" => Ok(Self::UdgTrimmed),
+            _ => Err(format!(
+                "unsupported damage_mode `{value}`; expected one of: ancient, udg_trimmed"
+            )),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

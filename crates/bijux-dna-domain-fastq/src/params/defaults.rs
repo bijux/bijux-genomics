@@ -26,7 +26,7 @@ use super::trim::{
 };
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use super::validate::ValidateEffectiveParams;
-use super::PairedMode;
+use super::{DamageMode, PairedMode};
 use crate::pipeline_contract::FastqPipelineMode;
 
 fn paired_mode(paired: bool) -> PairedMode {
@@ -117,7 +117,7 @@ pub fn trim_terminal_damage_defaults(paired: bool) -> TrimTerminalDamageParams {
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
-        damage_mode: "ancient".to_string(),
+        damage_mode: DamageMode::Ancient,
         trim_5p_bases: 2,
         trim_3p_bases: 2,
     }

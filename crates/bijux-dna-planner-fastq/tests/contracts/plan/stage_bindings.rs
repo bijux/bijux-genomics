@@ -5,6 +5,7 @@ use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_planner_fastq::{
     DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
     FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
@@ -526,7 +527,7 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
             reason: None,
             params: Some(FastqStageParameters::TrimTerminalDamage(
                 TrimTerminalDamageStageParams {
-                    damage_mode: "udg_trimmed".to_string(),
+                    damage_mode: DamageMode::UdgTrimmed,
                     trim_5p_bases: 5,
                     trim_3p_bases: 3,
                 },
