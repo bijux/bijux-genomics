@@ -38,3 +38,34 @@ fn validation_tools_use_generic_reads_placeholder() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn validation_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
+    for tool_id in ["fastqvalidator", "seqtk", "fqtools"] {
+        let manifest = tool_manifest(tool_id)?;
+        let optional_inputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("optional_inputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("optional_inputs missing for {tool_id}"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            optional_inputs,
+            vec!["reads_r2"],
+            "{tool_id} must publish reads_r2 as an optional admitted validation input"
+        );
+        let notes = manifest
+            .get("stage_contracts")
+            .and_then(|value| value.get("fastq.validate_reads"))
+            .and_then(|value| value.get("notes"))
+            .and_then(serde_json::Value::as_str)
+            .with_context(|| format!("stage notes missing for {tool_id}"))?;
+        assert!(
+            notes.contains("optional reads_r2 mate"),
+            "{tool_id} must document optional mate handling in the governed validation contract"
+        );
+    }
+    Ok(())
+}
