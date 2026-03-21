@@ -211,7 +211,9 @@ pub fn benchmark_profiles_for_stage(stage_id: &StageId) -> Vec<StageToolBenchmar
 #[must_use]
 pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
     let profiles = benchmark_profiles_for_stage(stage_id);
-    benchmark_scenarios_for_stage(stage_id)
+    bijux_dna_domain_fastq::stage_benchmark_governance(stage_id)
+        .map(|governance| governance.scenarios)
+        .unwrap_or_default()
         .into_iter()
         .map(|scenario| {
             let cohort_profiles = profiles

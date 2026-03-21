@@ -117,8 +117,9 @@ pub use stages::{
     STAGE_BOUNDARY_INVARIANTS,
 };
 pub use stage_tool_governance::{
+    stage_benchmark_governance,
     stage_tool_governance_profile, stage_tool_governance_profiles_for_stage,
-    StageToolGovernanceProfile,
+    StageBenchmarkGovernance, StageToolGovernanceProfile,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,

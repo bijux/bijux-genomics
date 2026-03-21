@@ -227,6 +227,28 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
 }
 
 #[test]
+fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
+    let report_qc = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
+        "fastq.report_qc",
+    ))
+    .expect("report_qc benchmark governance");
+    assert!(report_qc.has_governed_benchmark_contract());
+    assert_eq!(report_qc.scenarios.len(), 1);
+    assert_eq!(report_qc.scenarios[0].scenario_id, "qc_aggregation_fairness");
+    assert_eq!(
+        report_qc.comparison_input_artifact_ids,
+        vec!["multiqc_data", "multiqc_report"]
+    );
+
+    let polyg = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
+        "fastq.trim_polyg_tails",
+    ))
+    .expect("trim_polyg benchmark governance");
+    assert!(polyg.has_governed_benchmark_contract());
+    assert_eq!(polyg.scenarios[0].scenario_id, "polyg_trim_fairness");
+}
+
+#[test]
 fn reference_index_compatibility_is_queryable_from_domain_api() {
     let bowtie2 = ToolId::from_static("bowtie2");
     let backends = bijux_dna_domain_fastq::reference_index_backends_for_tool(&bowtie2);
