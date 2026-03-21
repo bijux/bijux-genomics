@@ -180,6 +180,31 @@ fn plan_trim_prinseq_preserves_paired_outputs() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_prinseq_maps_min_length() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("prinseq"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(55),
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert!(plan.command.template[2].contains("-min_len"));
+    assert!(plan.command.template[2].contains("55"));
+    Ok(())
+}
+
+#[test]
 fn plan_from_config_preserves_layout_without_enabling_bank_policies() -> Result<()> {
     let config = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
