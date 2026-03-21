@@ -124,3 +124,19 @@ fn temp_dir_is_created() -> Result<(), IoError> {
     assert!(dir.path().exists());
     Ok(())
 }
+
+#[test]
+fn bounded_read_rejects_files_larger_than_limit() -> Result<(), IoError> {
+    let dir = temp_dir("bijux")?;
+    let path = dir.path().join("payload.bin");
+    atomic_write_bytes(&path, b"abcdef")?;
+
+    let exact = crate::read_to_end_bounded(&path, 6)?;
+    assert_eq!(exact, b"abcdef");
+
+    let err = crate::read_to_end_bounded(&path, 5)
+        .err()
+        .ok_or_else(|| IoError::new(IoErrorKind::Other, "expected bounded read failure"))?;
+    assert_eq!(err.kind, IoErrorKind::Corruption);
+    Ok(())
+}
