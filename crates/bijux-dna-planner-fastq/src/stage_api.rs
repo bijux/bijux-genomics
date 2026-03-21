@@ -94,45 +94,30 @@ pub enum StageToolMaturityLevel {
 
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
-    let governance = bijux_dna_domain_fastq::stage_tool_governance_profile(stage_id, tool_id)?;
     let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
         .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
-    let declared = true;
-    let plannable = governance.is_plannable();
-    let runnable = governance.is_runnable();
-    let parse_normalized = match governance.normalization_maturity() {
-        bijux_dna_domain_fastq::StageToolNormalizationMaturity::None => false,
-        bijux_dna_domain_fastq::StageToolNormalizationMaturity::GenericEnvelope => true,
-        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized => {
-            runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-        }
-    };
-    let benchmark_contract_maturity = governance.benchmark_contract_maturity();
-    let benchmark_normalized = parse_normalized
-        && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-        && matches!(
-            benchmark_contract_maturity,
-            bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::GovernedBenchmarkCohort
-                | bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable
-        );
-    let comparable = parse_normalized
-        && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-        && benchmark_contract_maturity
-            == bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable;
+    let runtime_normalization =
+        if runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
+        } else {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
+        };
+    let capability =
+        bijux_dna_domain_fastq::stage_tool_capability_contract(stage_id, tool_id, runtime_normalization)?;
 
     Some(StageToolCapability {
-        stage_id: governance.stage_id,
-        tool_id: governance.tool_id,
-        integration_level: governance.integration_level,
-        execution_status: governance.execution_status,
+        stage_id: capability.stage_id,
+        tool_id: capability.tool_id,
+        integration_level: capability.integration_level,
+        execution_status: capability.execution_status,
         runtime_interpretation,
-        benchmark_scenarios: governance.benchmark_scenario_ids,
-        declared,
-        plannable,
-        runnable,
-        parse_normalized,
-        benchmark_normalized,
-        comparable,
+        benchmark_scenarios: capability.benchmark_scenario_ids,
+        declared: capability.declared,
+        plannable: capability.plannable,
+        runnable: capability.runnable,
+        parse_normalized: capability.parse_normalized,
+        benchmark_normalized: capability.benchmark_normalized,
+        comparable: capability.comparable,
     })
 }
 
@@ -158,15 +143,31 @@ pub fn benchmark_profile_for_stage_tool(
     tool_id: &ToolId,
 ) -> Option<StageToolBenchmarkProfile> {
     let capability = stage_tool_capability(stage_id, tool_id)?;
-    let readiness = if !capability.runnable {
-        BenchmarkReadinessLevel::PlannedContract
-    } else if capability.comparable {
-        BenchmarkReadinessLevel::ObserverSpecializedBenchmark
-    } else if capability.benchmark_normalized {
-        BenchmarkReadinessLevel::GovernedBenchmarkCohort
-    } else {
-        BenchmarkReadinessLevel::GovernedExecution
-    };
+    let readiness =
+        bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
+            stage_id,
+            tool_id,
+            if capability.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+            {
+                bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
+            } else {
+                bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
+            },
+        )
+        .map(|level| match level {
+            bijux_dna_domain_fastq::BenchmarkReadinessLevel::PlannedContract => {
+                BenchmarkReadinessLevel::PlannedContract
+            }
+            bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution => {
+                BenchmarkReadinessLevel::GovernedExecution
+            }
+            bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedBenchmarkCohort => {
+                BenchmarkReadinessLevel::GovernedBenchmarkCohort
+            }
+            bijux_dna_domain_fastq::BenchmarkReadinessLevel::ObserverSpecializedBenchmark => {
+                BenchmarkReadinessLevel::ObserverSpecializedBenchmark
+            }
+        })?;
     Some(StageToolBenchmarkProfile {
         stage_id: capability.stage_id,
         tool_id: capability.tool_id,
@@ -260,17 +261,33 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
 
 #[must_use]
 pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
-    let capability = stage_tool_capability(stage_id, tool_id)?;
-    Some(if !capability.runnable {
-        StageToolMaturityLevel::PlannedBinding
-    } else if capability.comparable {
-        StageToolMaturityLevel::BenchmarkComparable
-    } else if capability.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
-        StageToolMaturityLevel::ObserverNormalized
-    } else if capability.benchmark_normalized {
-        StageToolMaturityLevel::GenericNormalized
-    } else {
-        StageToolMaturityLevel::GovernedExecution
+    let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
+        .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
+    bijux_dna_domain_fastq::stage_tool_maturity(
+        stage_id,
+        tool_id,
+        if runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
+        } else {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
+        },
+    )
+    .map(|level| match level {
+        bijux_dna_domain_fastq::StageToolMaturityLevel::PlannedBinding => {
+            StageToolMaturityLevel::PlannedBinding
+        }
+        bijux_dna_domain_fastq::StageToolMaturityLevel::GovernedExecution => {
+            StageToolMaturityLevel::GovernedExecution
+        }
+        bijux_dna_domain_fastq::StageToolMaturityLevel::GenericNormalized => {
+            StageToolMaturityLevel::GenericNormalized
+        }
+        bijux_dna_domain_fastq::StageToolMaturityLevel::ObserverNormalized => {
+            StageToolMaturityLevel::ObserverNormalized
+        }
+        bijux_dna_domain_fastq::StageToolMaturityLevel::BenchmarkComparable => {
+            StageToolMaturityLevel::BenchmarkComparable
+        }
     })
 }
 
