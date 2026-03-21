@@ -7,7 +7,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_fastq::params::trim::{
     TrimTerminalDamageParams, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -37,13 +37,16 @@ pub fn plan_trim_terminal_damage(
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> Result<StagePlanV1> {
+    let damage_mode = damage_mode.parse::<DamageMode>().map_err(|error| {
+        anyhow!("invalid fastq.trim_terminal_damage damage_mode `{damage_mode}`: {error}")
+    })?;
     plan_trim_terminal_damage_with_options(
         tool,
         r1,
         r2,
         out_dir,
         &TrimTerminalDamagePlanOptions {
-            damage_mode: damage_mode.to_string(),
+            damage_mode,
             trim_5p_bases,
             trim_3p_bases,
         },
@@ -75,7 +78,7 @@ pub fn plan_trim_terminal_damage_with_options(
         &output_r1,
         output_r2.as_deref(),
         &report,
-        &options.damage_mode,
+        options.damage_mode,
         options.trim_5p_bases,
         options.trim_3p_bases,
     )?;
@@ -83,7 +86,7 @@ pub fn plan_trim_terminal_damage_with_options(
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
         threads: tool.resources.threads,
-        damage_mode: options.damage_mode.clone(),
+        damage_mode: options.damage_mode,
         trim_5p_bases: options.trim_5p_bases,
         trim_3p_bases: options.trim_3p_bases,
     };
@@ -153,7 +156,7 @@ fn trim_terminal_damage_command(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report: &Path,
-    damage_mode: &str,
+    damage_mode: DamageMode,
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> Result<Vec<String>> {

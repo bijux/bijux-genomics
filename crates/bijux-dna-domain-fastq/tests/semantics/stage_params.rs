@@ -36,7 +36,7 @@ use bijux_dna_domain_fastq::params::trim::{
     TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
-use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::{parse_effective_params, stage_param_descriptor, EffectiveParams};
 
 fn roundtrip<T>(value: &T) -> T
@@ -88,7 +88,7 @@ fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
     let params = trim_terminal_damage_defaults(true);
     let decoded: TrimTerminalDamageParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION);
-    assert_eq!(decoded.damage_mode, "ancient");
+    assert_eq!(decoded.damage_mode, DamageMode::Ancient);
     assert_eq!(decoded.trim_5p_bases, 2);
     assert_eq!(decoded.trim_3p_bases, 2);
     assert!(decoded.missing_required_fields().is_empty());

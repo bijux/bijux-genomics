@@ -83,7 +83,7 @@ pub enum FastqStageParameters {
 
 #[derive(Debug, Clone)]
 pub struct TrimTerminalDamageStageParams {
-    pub damage_mode: String,
+    pub damage_mode: bijux_dna_domain_fastq::params::DamageMode,
     pub trim_5p_bases: u32,
     pub trim_3p_bases: u32,
 }
@@ -91,7 +91,7 @@ pub struct TrimTerminalDamageStageParams {
 impl Default for TrimTerminalDamageStageParams {
     fn default() -> Self {
         Self {
-            damage_mode: "ancient".to_string(),
+            damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
             trim_5p_bases: 2,
             trim_3p_bases: 2,
         }
