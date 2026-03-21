@@ -87,16 +87,10 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
         plan.effective_params["aggregation_scope"],
         serde_json::json!("governed_qc_artifacts")
     );
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "profile_reads/qc.json"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "detect_adapters/adapter_report.json"));
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    assert!(plan.command.template[2].contains("profile_reads/qc.json"));
+    assert!(plan.command.template[2].contains("detect_adapters/adapter_report.json"));
     Ok(())
 }
 
