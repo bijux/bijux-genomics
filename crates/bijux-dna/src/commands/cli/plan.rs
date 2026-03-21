@@ -313,6 +313,8 @@ pub fn bench_args_remove_duplicates(
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.remove_duplicates", &args.tools)?,
         explain: args.explain,
+        dedup_mode: args.dedup_mode.clone(),
+        keep_order: args.keep_order,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
