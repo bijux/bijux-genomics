@@ -489,6 +489,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
             ("retain", _)
                 | ("drop", "fastp")
                 | ("drop", "cutadapt")
+                | ("drop", "prinseq")
                 | ("drop", "bbduk")
         ) {
             return Err(anyhow!(
@@ -658,6 +659,9 @@ fn prinseq_trim_command_template(
             "-trim_qual_right".to_string(),
             quality_cutoff.to_string(),
         ]);
+    }
+    if options.resolved_n_policy() == "drop" {
+        command.extend(["-ns_max_n".to_string(), "0".to_string()]);
     }
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
