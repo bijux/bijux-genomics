@@ -1,5 +1,11 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, require_existing_benchmark_output,
+};
+use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
+use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Result};
@@ -13,29 +19,15 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
-    parse_dedup_mode, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
-};
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
-use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, require_existing_benchmark_output,
+use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
+    parse_dedup_mode, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
-use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
-
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DeduplicatePlannerReport {
-    reads_in: u64,
-    reads_out: u64,
-    duplicates_removed: u64,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 struct DuplicateReportCounts {
@@ -53,11 +45,7 @@ fn resolve_remove_duplicates_tools(
     let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(requested_tools)?;
     let compatible = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
         &StageId::new(STAGE_ID),
-        tools
-            .iter()
-            .cloned()
-            .map(ToolId::new)
-            .collect::<Vec<_>>(),
+        tools.iter().cloned().map(ToolId::new).collect::<Vec<_>>(),
         paired_mode,
     )
     .into_iter()
@@ -157,9 +145,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
                     .as_deref()
                     .map(parse_dedup_mode)
                     .transpose()?
-                    .unwrap_or(
-                        bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact,
-                    ),
+                    .unwrap_or(bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact),
                 keep_order: args.keep_order.unwrap_or(true),
             },
         )?;
@@ -285,29 +271,41 @@ fn deduplicate_report_counts(
 }
 
 fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<DuplicateReportCounts> {
-    let report: DeduplicatePlannerReport = serde_json::from_str(
-        &std::fs::read_to_string(report_path).map_err(|error| {
-            anyhow!(
-                "read governed remove-duplicates report {}: {error}",
-                report_path.display()
-            )
-        })?,
-    )
-    .map_err(|error| {
+    let raw = std::fs::read_to_string(report_path).map_err(|error| {
         anyhow!(
-            "parse governed remove-duplicates report {}: {error}",
+            "read governed remove-duplicates report {}: {error}",
             report_path.display()
         )
     })?;
-    let dedup_rate = if report.reads_in == 0 {
+    let (reads_in, reads_out) =
+        bijux_dna_stages_fastq::observer::parse_deduplicate_report(&raw).map_err(|error| {
+            anyhow!(
+                "parse governed remove-duplicates report {}: {error}",
+                report_path.display()
+            )
+        })?;
+    let duplicate_reads = raw
+        .parse::<serde_json::Value>()
+        .ok()
+        .and_then(|value| value.get("duplicates_removed").and_then(serde_json::Value::as_u64))
+        .unwrap_or_else(|| reads_in.saturating_sub(reads_out));
+    let derived_duplicate_reads = reads_in.saturating_sub(reads_out);
+    if duplicate_reads != derived_duplicate_reads {
+        return Err(anyhow!(
+            "governed remove-duplicates report {} is inconsistent: duplicates_removed={} but reads_in-reads_out={derived_duplicate_reads}",
+            report_path.display(),
+            duplicate_reads,
+        ));
+    }
+    let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        report.duplicates_removed as f64 / report.reads_in as f64
+        duplicate_reads as f64 / reads_in as f64
     };
     Ok(DuplicateReportCounts {
-        reads_in: report.reads_in,
-        reads_out: report.reads_out,
-        duplicate_reads: report.duplicates_removed,
+        reads_in,
+        reads_out,
+        duplicate_reads,
         dedup_rate,
     })
 }
@@ -425,6 +423,41 @@ mod tests {
     }
 
     #[test]
+    fn deduplicate_metrics_accept_legacy_key_value_reports() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.txt");
+        std::fs::write(&report_path, "reads_in=200\nreads_out=160\n")
+            .expect("write report");
+
+        let counts =
+            load_deduplicate_report_counts(&report_path).expect("load parser-backed dedup report");
+        assert_eq!(counts.reads_in, 200);
+        assert_eq!(counts.reads_out, 160);
+        assert_eq!(counts.duplicate_reads, 40);
+        assert_eq!(counts.dedup_rate, 0.2);
+    }
+
+    #[test]
+    fn deduplicate_metrics_reject_inconsistent_duplicate_counts() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "reads_in": 200,
+                "reads_out": 160,
+                "duplicates_removed": 35
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let error = load_deduplicate_report_counts(&report_path)
+            .expect_err("inconsistent duplicate counts must fail");
+        assert!(error.to_string().contains("inconsistent"));
+    }
+
+    #[test]
     fn required_plan_output_path_uses_governed_report_artifact() {
         let plan = plan_with_outputs(true);
         assert_eq!(
@@ -440,7 +473,7 @@ mod tests {
             true,
             false,
         )
-            .expect("single-end auto selection should keep only compatible tools");
+        .expect("single-end auto selection should keep only compatible tools");
         assert_eq!(tools, vec!["clumpify".to_string()]);
     }
 
