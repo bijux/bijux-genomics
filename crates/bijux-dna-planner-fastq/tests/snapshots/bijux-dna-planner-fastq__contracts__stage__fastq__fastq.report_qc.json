@@ -85,8 +85,7 @@
     "aggregation_engine": "multiqc",
     "aggregation_scope": "governed_qc_artifacts",
     "paired_mode": "paired_end",
-    "schema_version": "bijux.fastq.params.report_qc.v1",
-    "threads": 2
+    "schema_version": "bijux.fastq.params.report_qc.v1"
   },
   "aux_images": {},
   "reason": {
