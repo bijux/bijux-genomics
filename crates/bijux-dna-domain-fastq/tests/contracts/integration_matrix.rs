@@ -277,6 +277,53 @@ fn governed_qc_contract_is_owned_by_domain() {
 }
 
 #[test]
+fn stage_tool_capability_contract_is_owned_by_domain() {
+    let trim_stage = StageId::from_static("fastq.trim_reads");
+    let fastp = ToolId::from_static("fastp");
+    let trim_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &trim_stage,
+        &fastp,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+    )
+    .expect("trim capability");
+    assert!(trim_capability.runnable);
+    assert!(trim_capability.parse_normalized);
+    assert!(!trim_capability.benchmark_normalized);
+    assert!(!trim_capability.comparable);
+
+    let detect_stage = StageId::from_static("fastq.detect_adapters");
+    let fastqc = ToolId::from_static("fastqc");
+    let detect_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &detect_stage,
+        &fastqc,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
+    )
+    .expect("detect capability");
+    assert!(detect_capability.benchmark_normalized);
+    assert!(detect_capability.comparable);
+
+    let infer_stage = StageId::from_static("fastq.infer_asvs");
+    let dada2 = ToolId::from_static("dada2");
+    let infer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &infer_stage,
+        &dada2,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+    )
+    .expect("infer capability");
+    assert!(!infer_capability.runnable);
+    assert!(!infer_capability.parse_normalized);
+
+    assert_eq!(
+        bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
+            &trim_stage,
+            &fastp,
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+        ),
+        Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution)
+    );
+}
+
+#[test]
 fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     let report_qc = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
         "fastq.report_qc",
