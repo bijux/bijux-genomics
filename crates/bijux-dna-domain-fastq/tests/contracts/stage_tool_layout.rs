@@ -42,5 +42,5 @@ fn domain_layout_filter_excludes_paired_only_correction_backends_for_single_end_
         ],
         false,
     );
-    assert!(filtered.is_empty());
+    assert_eq!(filtered.len(), 2);
 }

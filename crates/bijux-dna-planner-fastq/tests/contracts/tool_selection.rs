@@ -64,16 +64,16 @@ fn correct_errors_planning_accepts_closed_backends() {
     assert_eq!(plan.command.template[0], "sh");
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
-    assert!(script.contains("'musket'"));
+    assert!(script.contains("musket -p"));
     assert!(script.contains("correct_report.json"));
     assert!(script.contains("\"tool_id\":\"musket\""));
     assert!(script.contains("\"correction_engine\":\"musket\""));
 }
 
 #[test]
-fn correct_errors_planning_rejects_single_end_inputs() {
+fn correct_errors_planning_accepts_single_end_inputs() {
     let tool = ToolExecutionSpecV1 {
-        tool_id: ToolId::new("musket"),
+        tool_id: ToolId::new("rcorrector"),
         tool_version: "99.99.99+fixture".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/test:latest".to_string(),
@@ -90,14 +90,16 @@ fn correct_errors_planning_rejects_single_end_inputs() {
         },
     };
 
-    let error = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
         &tool,
         std::path::Path::new("reads_R1.fastq.gz"),
         None,
         std::path::Path::new("out"),
     )
-    .expect_err("paired-only correction stage must reject single-end planning");
-    assert!(error.to_string().contains("paired-end reads"));
+    .expect("single-end correction planning must be admitted");
+    assert_eq!(plan.io.inputs.len(), 1);
+    assert_eq!(plan.io.outputs.len(), 2);
+    assert_eq!(plan.effective_params["paired_mode"], "single_end");
 }
 
 #[test]
