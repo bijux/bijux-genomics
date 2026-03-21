@@ -440,16 +440,18 @@ where
                 )
             }
             stage if stage == STAGE_REPORT_QC.as_str() => {
+                let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)
+                    .unwrap_or_else(|| inherited.qc_inputs.clone());
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
-                    for aux_tool in crate::tool_adapters::fastq::report_qc::aux_tool_ids() {
+                    for aux_tool in crate::tool_adapters::fastq::report_qc::aux_tool_ids_for_qc_inputs(
+                        &report_qc_inputs,
+                    ) {
                         if let Some(image) = aux_images.get(aux_tool.as_str()) {
                             stage_aux_images.insert(aux_tool, image.clone());
                         }
                     }
                 }
-                let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)
-                    .unwrap_or_else(|| inherited.qc_inputs.clone());
                 let paired_mode = if stage_r2.is_some() {
                     PairedMode::PairedEnd
                 } else {
