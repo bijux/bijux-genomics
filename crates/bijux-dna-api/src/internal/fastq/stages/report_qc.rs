@@ -121,6 +121,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         .as_deref()
         .map(load_governed_qc_inputs_manifest)
         .transpose()?;
+    let default_governed_qc_lineage = governed_qc_contributor_lineage(bench_inputs.r2.is_some());
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
@@ -136,6 +137,11 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
                 &bench_inputs,
                 &out_dir,
             )?
+        };
+        let benchmark_lineage = if provided_governed_qc.is_some() {
+            None
+        } else {
+            default_governed_qc_lineage.as_deref()
         };
         let tool_spec = build_tool_execution_spec(
             STAGE_REPORT_QC.as_str(),
@@ -155,7 +161,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
         )?;
-        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
+        let bench_params =
+            benchmark_query_context(benchmark_lineage)?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -616,6 +623,15 @@ fn bench_governed_qc_contributor_bindings(
     bindings
 }
 
+fn governed_qc_contributor_lineage(paired_end: bool) -> Option<String> {
+    let lineage = bench_governed_qc_contributor_bindings(paired_end)
+        .into_iter()
+        .map(|(stage_id, tool_id)| format!("{}={}", stage_id.as_str(), tool_id.as_str()))
+        .collect::<Vec<_>>()
+        .join("|");
+    (!lineage.is_empty()).then_some(lineage)
+}
+
 fn plan_governed_qc_contributor(
     stage_id: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -744,16 +760,23 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
     bijux_dna_planner_fastq::stage_api::governed_qc_output_ids_for_stage(stage_id)
 }
 
-fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
-    bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_REPORT_QC.as_str())
+fn benchmark_query_context(
+    lineage_hash: Option<&str>,
+) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    let mut context =
+        bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_REPORT_QC.as_str())?;
+    if let Some(lineage_hash) = lineage_hash {
+        context = context.with_lineage_hash(lineage_hash.to_string());
+    }
+    Ok(context)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
         bench_governed_qc_contributor_bindings, bench_governed_qc_contributor_stage_ids,
-        derive_qc_post_metrics, governed_qc_artifacts_for_plan, load_governed_qc_inputs_manifest,
-        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        derive_qc_post_metrics, governed_qc_artifacts_for_plan, governed_qc_contributor_lineage,
+        load_governed_qc_inputs_manifest, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -783,6 +806,15 @@ mod tests {
         assert!(!single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
         assert!(!single_end.contains(&StageId::from_static("fastq.extract_umis")));
+    }
+
+    #[test]
+    fn governed_qc_contributor_lineage_is_deterministic() {
+        let lineage = governed_qc_contributor_lineage(true).expect("lineage");
+
+        assert!(lineage.contains("fastq.detect_adapters=fastqc"));
+        assert!(lineage.contains("fastq.trim_reads=bbduk"));
+        assert!(lineage.contains("fastq.trim_reads=fastp"));
     }
 
     #[test]
