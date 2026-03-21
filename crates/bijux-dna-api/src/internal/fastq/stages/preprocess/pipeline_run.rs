@@ -259,40 +259,21 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .as_deref()
         .unwrap_or("fastq-to-fastq__default__v1")
         .to_string();
+    let (stage_bindings, planner_stage_toolsets, legacy_stages, legacy_tools) =
+        planner_selection_surfaces(
+            args.run_all_governed_tools,
+            &selected_stage_tools,
+            &tool_specs,
+            planner_stage_toolsets,
+        );
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(runtime_pipeline.clone()),
-        stage_bindings: if planner_stage_toolsets.is_empty() {
-            selected_stage_tools
-                .iter()
-                .zip(tool_specs.iter())
-                .map(|(selection, tool)| FastqStageBinding {
-                    stage_id: selection.stage_id.clone(),
-                    stage_instance_id: selection.stage_instance_id.clone(),
-                    tool: tool.clone(),
-                    reason: Some(selection.reason.clone()),
-                    params: None,
-                })
-                .collect()
-        } else {
-            Vec::new()
-        },
+        stage_bindings,
         stage_toolsets: planner_stage_toolsets,
-        stages: if args.run_all_governed_tools {
-            Vec::new()
-        } else {
-            policy
-                .pipeline_stages
-                .iter()
-                .map(|stage| stage.as_str().to_string())
-                .collect()
-        },
-        tools: if args.run_all_governed_tools {
-            Vec::new()
-        } else {
-            tool_specs.clone()
-        },
+        stages: legacy_stages,
+        tools: legacy_tools,
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
         polyx_bank: polyx_bank.clone(),
@@ -756,6 +737,40 @@ fn terminal_step_ids(graph: &ExecutionGraph) -> Vec<bijux_dna_core::prelude::Ste
         .collect()
 }
 
+fn planner_selection_surfaces(
+    run_all_governed_tools: bool,
+    selected_stage_tools: &[StageToolSelection],
+    tool_specs: &[bijux_dna_core::prelude::ToolExecutionSpecV1],
+    planner_stage_toolsets: Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding>,
+) -> (
+    Vec<bijux_dna_planner_fastq::FastqStageBinding>,
+    Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding>,
+    Vec<String>,
+    Vec<bijux_dna_core::prelude::ToolExecutionSpecV1>,
+) {
+    if !planner_stage_toolsets.is_empty() {
+        return (Vec::new(), planner_stage_toolsets, Vec::new(), Vec::new());
+    }
+
+    let stage_bindings = selected_stage_tools
+        .iter()
+        .zip(tool_specs.iter())
+        .map(|(selection, tool)| bijux_dna_planner_fastq::FastqStageBinding {
+            stage_id: selection.stage_id.clone(),
+            stage_instance_id: selection.stage_instance_id.clone(),
+            tool: tool.clone(),
+            reason: Some(selection.reason.clone()),
+            params: None,
+        })
+        .collect::<Vec<_>>();
+
+    if run_all_governed_tools {
+        return (stage_bindings, Vec::new(), Vec::new(), Vec::new());
+    }
+
+    (stage_bindings, Vec::new(), Vec::new(), Vec::new())
+}
+
 fn execute_preprocess_batch(
     batch: &[ExecutionStep],
     runner: RuntimeKind,
@@ -895,10 +910,13 @@ fn execute_preprocess_batch(
 
 #[cfg(test)]
 mod pipeline_run_tests {
-    use super::{execution_step_batches, terminal_step_ids};
+    use super::{execution_step_batches, planner_selection_surfaces, terminal_step_ids};
     use anyhow::Result;
     use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
-    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolId};
+    use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_planner_fastq::StageToolSelection;
+    use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
 
     fn step(id: &str) -> bijux_dna_core::contract::ExecutionStep {
         bijux_dna_core::contract::ExecutionStep {
@@ -933,6 +951,26 @@ mod pipeline_run_tests {
             aux_images: std::collections::BTreeMap::new(),
             expected_artifact_ids: vec![ArtifactId::new("report_json".to_string())],
             metrics_schema_ids: Vec::new(),
+        }
+    }
+
+    fn tool_spec(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: format!("bijux/{tool_id}:latest"),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
         }
     }
 
@@ -1044,5 +1082,42 @@ mod pipeline_run_tests {
             vec!["filter.selected"]
         );
         Ok(())
+    }
+
+    #[test]
+    fn planner_selection_surfaces_keep_stage_bindings_exclusive() {
+        let selected = vec![StageToolSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("trim.fastp".to_string()),
+            tool_id: "fastp".to_string(),
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+        }];
+        let tool_specs = vec![tool_spec("fastp")];
+        let (bindings, toolsets, legacy_stages, legacy_tools) =
+            planner_selection_surfaces(false, &selected, &tool_specs, Vec::new());
+
+        assert_eq!(bindings.len(), 1);
+        assert!(toolsets.is_empty());
+        assert!(legacy_stages.is_empty());
+        assert!(legacy_tools.is_empty());
+    }
+
+    #[test]
+    fn planner_selection_surfaces_keep_toolsets_exclusive() {
+        let toolsets = vec![bijux_dna_planner_fastq::FastqStageToolsetBinding {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("trim.branch".to_string()),
+            tools: vec![tool_spec("fastp")],
+            reason: Some(PlanDecisionReason::new(PlanReasonKind::Default, "fanout")),
+            params: None,
+        }];
+
+        let (bindings, planned_toolsets, legacy_stages, legacy_tools) =
+            planner_selection_surfaces(false, &[], &[], toolsets);
+
+        assert!(bindings.is_empty());
+        assert_eq!(planned_toolsets.len(), 1);
+        assert!(legacy_stages.is_empty());
+        assert!(legacy_tools.is_empty());
     }
 }

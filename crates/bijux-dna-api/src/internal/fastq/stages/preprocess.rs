@@ -18,8 +18,7 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
-    select_preprocess_stage_tools, FastqPlanConfig, FastqPlanner, FastqStageBinding,
-    StageToolSelection,
+    select_preprocess_stage_tools, FastqPlanConfig, FastqPlanner, StageToolSelection,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
