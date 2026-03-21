@@ -97,7 +97,9 @@ pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_tool_governance::{
     stage_benchmark_governance, stage_tool_governance_profile,
-    stage_tool_governance_profiles_for_stage, StageBenchmarkGovernance, StageToolGovernanceProfile,
+    stage_tool_governance_profiles_for_stage, StageBenchmarkGovernance,
+    StageToolBenchmarkContractMaturity, StageToolGovernanceProfile,
+    StageToolNormalizationMaturity,
 };
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
