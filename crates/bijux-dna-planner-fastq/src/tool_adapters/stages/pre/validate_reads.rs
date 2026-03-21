@@ -32,8 +32,22 @@ pub struct ValidateReadsEffectiveConfig {
     pub out_dir: std::path::PathBuf,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct ValidateReadsPlanOptions;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValidateReadsPlanOptions {
+    pub threads: Option<u32>,
+    pub validation_mode: ValidationMode,
+    pub pair_sync_policy: PairSyncPolicy,
+}
+
+impl Default for ValidateReadsPlanOptions {
+    fn default() -> Self {
+        Self {
+            threads: None,
+            validation_mode: ValidationMode::Strict,
+            pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+        }
+    }
+}
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -49,10 +63,13 @@ pub fn plan_with_options(
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
-    _options: &ValidateReadsPlanOptions,
+    options: &ValidateReadsPlanOptions,
 ) -> Result<StagePlanV1> {
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
+    let effective_validation_mode = options.validation_mode.clone();
+    let effective_pair_sync_policy = effective_pair_sync_policy(&options.pair_sync_policy, r2);
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ValidateEffectiveParams {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -60,13 +77,9 @@ pub fn plan_with_options(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
-        validation_mode: ValidationMode::Strict,
-        pair_sync_policy: if r2.is_some() {
-            PairSyncPolicy::RequireHeaderSync
-        } else {
-            PairSyncPolicy::NotApplicable
-        },
+        threads: effective_threads,
+        validation_mode: effective_validation_mode.clone(),
+        pair_sync_policy: effective_pair_sync_policy.clone(),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -87,7 +100,10 @@ pub fn plan_with_options(
         &report_path,
         &validated_reads_manifest,
         out_dir,
+        &effective_params,
     )?;
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -101,7 +117,7 @@ pub fn plan_with_options(
         command: bijux_dna_core::prelude::CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
@@ -125,6 +141,9 @@ pub fn plan_with_options(
             "out_dir": out_dir,
             "report_json": report_path,
             "validated_reads_manifest": validated_reads_manifest,
+            "threads": effective_threads,
+            "validation_mode": effective_validation_mode,
+            "pair_sync_policy": effective_pair_sync_policy,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -154,6 +173,41 @@ pub fn plan_from_config(
     plan(tool, &config.r1, config.r2.as_deref(), &config.out_dir)
 }
 
+#[must_use]
+pub fn effective_pair_sync_policy(
+    requested: &PairSyncPolicy,
+    r2: Option<&Path>,
+) -> PairSyncPolicy {
+    if r2.is_none() {
+        PairSyncPolicy::NotApplicable
+    } else if *requested == PairSyncPolicy::NotApplicable {
+        PairSyncPolicy::SkipHeaderSync
+    } else {
+        requested.clone()
+    }
+}
+
+/// # Errors
+/// Returns an error if the requested validation mode is unsupported.
+pub fn parse_validation_mode(value: &str) -> Result<ValidationMode> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "strict" => Ok(ValidationMode::Strict),
+        "report_only" => Ok(ValidationMode::ReportOnly),
+        _ => Err(anyhow!("unsupported validation_mode: {value}")),
+    }
+}
+
+/// # Errors
+/// Returns an error if the requested pair sync policy is unsupported.
+pub fn parse_pair_sync_policy(value: &str) -> Result<PairSyncPolicy> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "not_applicable" => Ok(PairSyncPolicy::NotApplicable),
+        "require_header_sync" => Ok(PairSyncPolicy::RequireHeaderSync),
+        "skip_header_sync" => Ok(PairSyncPolicy::SkipHeaderSync),
+        _ => Err(anyhow!("unsupported pair_sync_policy: {value}")),
+    }
+}
+
 fn validation_command(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -161,6 +215,7 @@ fn validation_command(
     report_path: &Path,
     validated_reads_manifest: &Path,
     out_dir: &Path,
+    effective_params: &ValidateEffectiveParams,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
@@ -218,61 +273,69 @@ fn validation_command(
             .to_string(),
     );
     if let Some(r2) = r2 {
-        let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
-        let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
-        commands.push("pair_sync_checked=true".to_string());
-        commands.push("pair_sync_pass=true".to_string());
-        commands.push("pair_count_match=true".to_string());
         commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
-            shell_quote(r1),
-            shell_quote(&pair_sync_r1),
-        ));
-        commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
+            "validated_reads_r2=$(count_fastq_reads {})",
             shell_quote(r2),
-            shell_quote(&pair_sync_r2),
-        ));
-        commands.push(format!(
-            "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
-            shell_quote(&pair_sync_r2),
         ));
         commands.push("validated_pairs=$validated_reads_r1".to_string());
-        commands.push(
-            "if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi".to_string(),
-        );
-        commands.push(format!(
-            "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
-            shell_quote(&pair_sync_r1),
-            shell_quote(&pair_sync_r2),
-        ));
-        commands.push(format!(
-            "rm -f {} {}",
-            shell_quote(&pair_sync_r1),
-            shell_quote(&pair_sync_r2),
-        ));
+        if effective_params.pair_sync_policy == PairSyncPolicy::RequireHeaderSync {
+            let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
+            let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
+            commands.push("pair_sync_checked=true".to_string());
+            commands.push("pair_sync_pass=true".to_string());
+            commands.push("pair_count_match=true".to_string());
+            commands.push(format!(
+                "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
+                shell_quote(r1),
+                shell_quote(&pair_sync_r1),
+            ));
+            commands.push(format!(
+                "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
+                shell_quote(r2),
+                shell_quote(&pair_sync_r2),
+            ));
+            commands.push(format!(
+                "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
+                shell_quote(&pair_sync_r2),
+            ));
+            commands.push("validated_pairs=$validated_reads_r1".to_string());
+            commands.push(
+                "if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi".to_string(),
+            );
+            commands.push(format!(
+                "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
+                shell_quote(&pair_sync_r1),
+                shell_quote(&pair_sync_r2),
+            ));
+            commands.push(format!(
+                "rm -f {} {}",
+                shell_quote(&pair_sync_r1),
+                shell_quote(&pair_sync_r2),
+            ));
+        }
+    }
+    if effective_params.validation_mode == ValidationMode::ReportOnly {
+        commands.push("exit_code=0".to_string());
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
-        json_string_literal(if r2.is_some() {
-            "require_header_sync"
-        } else {
-            "not_applicable"
-        })?,
+        serde_json::to_string(&effective_params.validation_mode)
+            .map_err(|error| anyhow!("serialize validation_mode for report: {error}"))?,
+        serde_json::to_string(&effective_params.pair_sync_policy)
+            .map_err(|error| anyhow!("serialize pair_sync_policy for report: {error}"))?,
         if r2.is_some() { 2 } else { 1 },
     );
     let lineage_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
-        json_string_literal(if r2.is_some() {
-            "require_header_sync"
-        } else {
-            "not_applicable"
-        })?,
+        serde_json::to_string(&effective_params.validation_mode)
+            .map_err(|error| anyhow!("serialize validation_mode for lineage: {error}"))?,
+        serde_json::to_string(&effective_params.pair_sync_policy)
+            .map_err(|error| anyhow!("serialize pair_sync_policy for lineage: {error}"))?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
         if r2.is_some() {
             "[\"reads_r1\",\"reads_r2\"]".to_string()
@@ -551,6 +614,56 @@ mod tests {
         let script = &plan.command.template[2];
         assert!(script.contains("sub(/\\/[12]$/, \"\", header)"));
         assert!(script.contains("sub(/([._-]R?[12])$/, \"\", header)"));
+        Ok(())
+    }
+
+    #[test]
+    fn plan_validate_maps_explicit_policy_overrides() -> Result<()> {
+        let plan = plan_with_options(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+            &ValidateReadsPlanOptions {
+                threads: Some(7),
+                validation_mode: ValidationMode::ReportOnly,
+                pair_sync_policy: PairSyncPolicy::SkipHeaderSync,
+            },
+        )?;
+
+        let script = &plan.command.template[2];
+        assert_eq!(plan.resources.threads, 7);
+        assert_eq!(plan.params["threads"], serde_json::json!(7));
+        assert_eq!(
+            plan.effective_params["validation_mode"],
+            serde_json::json!("report_only")
+        );
+        assert_eq!(
+            plan.effective_params["pair_sync_policy"],
+            serde_json::json!("skip_header_sync")
+        );
+        assert!(script.contains("\"validation_mode\":\"report_only\""));
+        assert!(script.contains("\"pair_sync_policy\":\"skip_header_sync\""));
+        assert!(script.contains("exit_code=0"));
+        assert!(!script.contains("cmp -s"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_validate_policy_literals_accept_governed_surface() -> Result<()> {
+        assert_eq!(parse_validation_mode("strict")?, ValidationMode::Strict);
+        assert_eq!(
+            parse_validation_mode("report_only")?,
+            ValidationMode::ReportOnly
+        );
+        assert_eq!(
+            parse_pair_sync_policy("require_header_sync")?,
+            PairSyncPolicy::RequireHeaderSync
+        );
+        assert_eq!(
+            parse_pair_sync_policy("skip_header_sync")?,
+            PairSyncPolicy::SkipHeaderSync
+        );
         Ok(())
     }
 }
