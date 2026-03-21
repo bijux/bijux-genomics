@@ -133,6 +133,8 @@ pub struct FastqPreprocessArgs {
     pub force_merge: bool,
     #[arg(long, help = "Enable error correction stage (paired-end only)")]
     pub enable_correct: bool,
+    #[arg(long, help = "Expand each preprocess stage into all governed runtime tools")]
+    pub run_all_governed_tools: bool,
     #[arg(long, value_name = "PATH", help = "Alignment boundary BAM path (cross-domain profiles)")]
     pub alignment_bam: Option<PathBuf>,
     #[arg(long, value_name = "PATH", help = "Alignment boundary BAI path (optional)")]

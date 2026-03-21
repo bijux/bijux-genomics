@@ -76,14 +76,52 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-    let mut selected_stage_tools = select_preprocess_stage_tools(
-        &registry,
-        &pipeline,
-        args,
-        bench_repo
-            .as_ref()
-            .map(|repo| repo as &dyn bijux_dna_planner_fastq::BenchResultsRepository),
-    )?;
+    if args.auto && args.run_all_governed_tools {
+        return Err(anyhow!(
+            "--auto and --run-all-governed-tools cannot be combined; automatic selection chooses one tool per stage while governed fan-out expands all admitted runtime tools"
+        ));
+    }
+    let mut runtime_pipeline = pipeline.clone();
+    let mut selected_stage_tools = if args.run_all_governed_tools {
+        let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
+            &runtime_pipeline,
+            bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
+            args.allow_planned,
+        )?;
+        let filtered_toolsets = toolsets
+            .into_iter()
+            .map(|toolset| {
+                let filtered = filter_tools_by_role(
+                    &toolset.stage_id,
+                    &toolset.tool_ids,
+                    &registry,
+                    false,
+                )?;
+                Ok(bijux_dna_planner_fastq::ToolsetSelection {
+                    stage_id: toolset.stage_id,
+                    stage_instance_id: toolset.stage_instance_id,
+                    tool_ids: filtered,
+                    reason: toolset.reason,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let (expanded_pipeline, expanded_stage_tools) =
+            bijux_dna_planner_fastq::expand_pipeline_stage_tool_routes(
+                &runtime_pipeline,
+                &filtered_toolsets,
+            )?;
+        runtime_pipeline = expanded_pipeline;
+        expanded_stage_tools
+    } else {
+        select_preprocess_stage_tools(
+            &registry,
+            &runtime_pipeline,
+            args,
+            bench_repo
+                .as_ref()
+                .map(|repo| repo as &dyn bijux_dna_planner_fastq::BenchResultsRepository),
+        )?
+    };
     let mut filtered_stage_tools = Vec::new();
     for selection in &selected_stage_tools {
         let mut allowed =
@@ -199,7 +237,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
-        pipeline_spec: Some(pipeline.clone()),
+        pipeline_spec: Some(runtime_pipeline.clone()),
         stage_bindings: selected_stage_tools
             .iter()
             .zip(tool_specs.iter())
