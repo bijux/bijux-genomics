@@ -134,7 +134,7 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
         by_stage
             .remove("fastq.validate_reads")
             .map(|support| support.normalization_support),
-        Some(NormalizationSupport::Mixed),
+        Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
         by_stage

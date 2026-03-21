@@ -14,8 +14,8 @@ stages:
     execution_status: "closed"
     planning_support: "stage_family"
     runtime_support: "runnable"
-    normalization_support: "mixed"
-    benchmark_support: "mixed"
+    normalization_support: "observer_specialized"
+    benchmark_support: "comparable"
     default_tool: "fastqvalidator"
     admitted_tools:
       - "fastqvalidator"
