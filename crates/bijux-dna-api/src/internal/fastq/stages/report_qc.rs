@@ -40,6 +40,8 @@ use crate::internal::handlers::fastq::{
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_stage_contract::StagePlanV1;
 
+const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
@@ -114,18 +116,27 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
 
     let mut failures = Vec::<RawFailure>::new();
     let mut records = Vec::<BenchmarkRecord<FastqQcPostMetrics>>::new();
+    let provided_governed_qc = args
+        .governed_qc_manifest
+        .as_deref()
+        .map(load_governed_qc_inputs_manifest)
+        .transpose()?;
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let governed_qc = prepare_governed_qc_inputs(
-            catalog,
-            platform,
-            &registry,
-            bench_inputs.runner,
-            jobs,
-            &bench_inputs,
-            &out_dir,
-        )?;
+        let governed_qc = if let Some(manifest) = provided_governed_qc.as_ref() {
+            manifest.clone()
+        } else {
+            prepare_governed_qc_inputs(
+                catalog,
+                platform,
+                &registry,
+                bench_inputs.runner,
+                jobs,
+                &bench_inputs,
+                &out_dir,
+            )?
+        };
         let tool_spec = build_tool_execution_spec(
             STAGE_REPORT_QC.as_str(),
             tool,
@@ -220,6 +231,15 @@ struct QcPostBenchInputs {
 #[derive(Debug, Clone)]
 struct GovernedQcInputs {
     qc_inputs: Vec<ArtifactRef>,
+    raw_fastqc_dir: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GovernedQcInputsManifest {
+    schema_version: String,
+    qc_inputs: Vec<ArtifactRef>,
+    #[serde(default)]
     raw_fastqc_dir: Option<PathBuf>,
 }
 
@@ -426,6 +446,55 @@ fn paired_mode_for_bench_inputs(bench_inputs: &QcPostBenchInputs) -> PairedMode 
     } else {
         PairedMode::SingleEnd
     }
+}
+
+fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("read governed QC input manifest {}", path.display()))?;
+    let manifest: GovernedQcInputsManifest = serde_json::from_str(&raw)
+        .with_context(|| format!("parse governed QC input manifest {}", path.display()))?;
+    if manifest.schema_version != GOVERNED_QC_INPUTS_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "unsupported governed QC input manifest schema `{}` in {}",
+            manifest.schema_version,
+            path.display()
+        ));
+    }
+    if manifest.qc_inputs.is_empty() {
+        return Err(anyhow!(
+            "governed QC input manifest {} must declare at least one qc_inputs entry",
+            path.display()
+        ));
+    }
+    for artifact in &manifest.qc_inputs {
+        if !artifact.path.exists() {
+            return Err(anyhow!(
+                "governed QC input artifact {} does not exist at {}",
+                artifact.name.as_str(),
+                artifact.path.display()
+            ));
+        }
+    }
+    if let Some(raw_fastqc_dir) = manifest.raw_fastqc_dir.as_ref() {
+        if !raw_fastqc_dir.exists() {
+            return Err(anyhow!(
+                "governed QC raw_fastqc_dir does not exist at {}",
+                raw_fastqc_dir.display()
+            ));
+        }
+    }
+    let mut qc_inputs = manifest.qc_inputs;
+    qc_inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    Ok(GovernedQcInputs {
+        qc_inputs,
+        raw_fastqc_dir: manifest.raw_fastqc_dir,
+    })
 }
 
 fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
@@ -652,6 +721,7 @@ mod tests {
     use super::{
         bench_governed_qc_contributor_stage_ids, derive_qc_post_metrics,
         governed_qc_artifacts_for_plan,
+        load_governed_qc_inputs_manifest, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -761,5 +831,68 @@ mod tests {
         );
         assert!(metrics.multiqc_report.is_some());
         assert!(metrics.multiqc_data.is_some());
+    }
+
+    #[test]
+    fn governed_qc_manifest_loader_keeps_existing_artifacts() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let artifact_path = temp.path().join("trim_report.json");
+        let fastqc_dir = temp.path().join("raw_fastqc");
+        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        std::fs::create_dir_all(&fastqc_dir).expect("fastqc dir");
+        let manifest_path = temp.path().join("qc_inputs.json");
+        std::fs::write(
+            &manifest_path,
+            serde_json::json!({
+                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "qc_inputs": [
+                    {
+                        "name": "fastq.trim_reads.fastp_branch.report_json",
+                        "path": artifact_path,
+                        "role": "report_json",
+                        "optional": false
+                    }
+                ],
+                "raw_fastqc_dir": fastqc_dir,
+            })
+            .to_string(),
+        )
+        .expect("manifest");
+
+        let loaded = load_governed_qc_inputs_manifest(&manifest_path).expect("load manifest");
+        assert_eq!(loaded.qc_inputs.len(), 1);
+        assert_eq!(
+            loaded.qc_inputs[0].name.as_str(),
+            "fastq.trim_reads.fastp_branch.report_json"
+        );
+        assert_eq!(loaded.raw_fastqc_dir.as_deref(), Some(fastqc_dir.as_path()));
+    }
+
+    #[test]
+    fn governed_qc_manifest_loader_rejects_unknown_schema() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let artifact_path = temp.path().join("trim_report.json");
+        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        let manifest_path = temp.path().join("qc_inputs.json");
+        std::fs::write(
+            &manifest_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.report_qc.inputs.v0",
+                "qc_inputs": [
+                    {
+                        "name": "fastq.trim_reads.fastp_branch.report_json",
+                        "path": artifact_path,
+                        "role": "report_json",
+                        "optional": false
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("manifest");
+
+        let error = load_governed_qc_inputs_manifest(&manifest_path)
+            .expect_err("unknown schema must be rejected");
+        assert!(error.to_string().contains("unsupported governed QC input manifest schema"));
     }
 }
