@@ -52,30 +52,6 @@ impl<'de> serde::Deserialize<'de> for PipelineSpec {
 
 impl PipelineSpec {
     #[must_use]
-    pub fn chain(stages: Vec<String>) -> Self {
-        let nodes = stages
-            .iter()
-            .map(|stage_id| PipelineNodeSpec {
-                stage_id: stage_id.clone(),
-                stage_instance_id: None,
-            })
-            .collect::<Vec<_>>();
-        let edges = stages
-            .windows(2)
-            .map(|window| PipelineEdgeSpec {
-                from: window[0].clone(),
-                to: window[1].clone(),
-                from_output_id: None,
-                to_input_id: None,
-            })
-            .collect::<Vec<_>>();
-        Self {
-            nodes,
-            edges,
-        }
-    }
-
-    #[must_use]
     pub fn graph(nodes: Vec<PipelineNodeSpec>, edges: Vec<PipelineEdgeSpec>) -> Self {
         Self { nodes, edges }
     }
@@ -145,12 +121,30 @@ pub trait PipelineDomain {
 mod tests {
     use super::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 
+    fn explicit_linear_graph(stage_ids: &[&str]) -> PipelineSpec {
+        PipelineSpec::graph(
+            stage_ids
+                .iter()
+                .map(|stage_id| PipelineNodeSpec {
+                    stage_id: (*stage_id).to_string(),
+                    stage_instance_id: None,
+                })
+                .collect(),
+            stage_ids
+                .windows(2)
+                .map(|window| PipelineEdgeSpec {
+                    from: window[0].to_string(),
+                    to: window[1].to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                })
+                .collect(),
+        )
+    }
+
     #[test]
-    fn chain_pipeline_spec_materializes_nodes_and_edges() {
-        let spec = PipelineSpec::chain(vec![
-            "fastq.validate_reads".to_string(),
-            "fastq.trim_reads".to_string(),
-        ]);
+    fn graph_pipeline_spec_materializes_nodes_and_edges() {
+        let spec = explicit_linear_graph(&["fastq.validate_reads", "fastq.trim_reads"]);
         assert_eq!(spec.nodes.len(), 2);
         assert_eq!(spec.edges.len(), 1);
         assert!(spec.declares_graph_topology());
@@ -201,11 +195,8 @@ mod tests {
     }
 
     #[test]
-    fn chain_pipeline_spec_can_materialize_ordered_nodes() {
-        let spec = PipelineSpec::chain(vec![
-            "fastq.validate_reads".to_string(),
-            "fastq.trim_reads".to_string(),
-        ]);
+    fn graph_pipeline_spec_can_materialize_ordered_nodes() {
+        let spec = explicit_linear_graph(&["fastq.validate_reads", "fastq.trim_reads"]);
         let nodes = spec.ordered_nodes();
         assert_eq!(nodes.len(), 2);
         assert_eq!(nodes[0].stage_id, "fastq.validate_reads");

@@ -93,6 +93,101 @@ fn default_edges_use_stage_instance_ids_when_present() {
 }
 
 #[test]
+fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
+    let validate = StagePlanV1 {
+        stage_id: StageId::from_static("fastq.validate_reads"),
+        stage_instance_id: Some(StepId::new("fastq.validate_reads.fastqvalidator")),
+        stage_version: StageVersion(1),
+        tool_id: ToolId::new("fastqvalidator".to_string()),
+        tool_version: "test".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["fastqvalidator".to_string()],
+        },
+        resources: ToolConstraints::default(),
+        io: StageIO {
+            inputs: vec![ArtifactRef::required(
+                ArtifactId::from_static("reads_r1"),
+                PathBuf::from("reads_R1.fastq.gz"),
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                ArtifactId::from_static("validated_reads_manifest"),
+                PathBuf::from("validated_reads_manifest.json"),
+                ArtifactRole::StageReport,
+            )],
+        },
+        out_dir: PathBuf::from("out"),
+        params: serde_json::json!({}),
+        effective_params: serde_json::json!({}),
+        aux_images: BTreeMap::new(),
+        reason: PlanDecisionReason::default(),
+    };
+    let trim = trim_plan(
+        "fastq.trim_reads.tool.fastp",
+        "fastp",
+        "trimmed_reads_r1",
+    );
+    let report = StagePlanV1 {
+        stage_id: StageId::from_static("fastq.report_qc"),
+        stage_instance_id: Some(StepId::new("fastq.report_qc.multiqc")),
+        stage_version: StageVersion(1),
+        tool_id: ToolId::new("multiqc".to_string()),
+        tool_version: "test".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["multiqc".to_string()],
+        },
+        resources: ToolConstraints::default(),
+        io: StageIO {
+            inputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("validated_reads_manifest"),
+                    PathBuf::from("validated_reads_manifest.json"),
+                    ArtifactRole::StageReport,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("trimmed_reads_r1"),
+                    PathBuf::from("trimmed_reads_r1.fastq.gz"),
+                    ArtifactRole::TrimmedReads,
+                ),
+            ],
+            outputs: vec![ArtifactRef::required(
+                ArtifactId::new("qc_report".to_string()),
+                PathBuf::from("qc_report.json"),
+                ArtifactRole::ReportJson,
+            )],
+        },
+        out_dir: PathBuf::from("out"),
+        params: serde_json::json!({}),
+        effective_params: serde_json::json!({}),
+        aux_images: BTreeMap::new(),
+        reason: PlanDecisionReason::default(),
+    };
+
+    let edges = default_edges_for_stages(&[validate, trim, report]);
+
+    assert_eq!(edges.len(), 3);
+    assert_eq!(edges[0].from(), "fastq.trim_reads.tool.fastp");
+    assert_eq!(edges[0].to(), "fastq.report_qc.multiqc");
+    assert_eq!(edges[0].from_output_id(), Some("trimmed_reads_r1"));
+    assert_eq!(edges[0].to_input_id(), Some("trimmed_reads_r1"));
+    assert_eq!(edges[1].from(), "fastq.validate_reads.fastqvalidator");
+    assert_eq!(edges[1].to(), "fastq.report_qc.multiqc");
+    assert_eq!(edges[1].from_output_id(), Some("validated_reads_manifest"));
+    assert_eq!(edges[1].to_input_id(), Some("validated_reads_manifest"));
+    assert_eq!(edges[2].from(), "fastq.validate_reads.fastqvalidator");
+    assert_eq!(edges[2].to(), "fastq.trim_reads.tool.fastp");
+    assert_eq!(edges[2].from_output_id(), None);
+}
+
+#[test]
 fn execution_plan_accepts_artifact_bound_edges() {
     let left = trim_plan(
         "fastq.trim_reads.tool.fastp",

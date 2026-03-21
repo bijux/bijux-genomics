@@ -159,6 +159,8 @@ pub struct FastqStageBenchmarkConfig {
 
 pub struct FastqPlanner;
 
+const DEFAULT_MAX_ROUTE_SPECIFIC_PIPELINES: usize = 4096;
+
 impl FastqPlanner {
     /// # Errors
     /// Returns an error if planning fails or the plan lint fails.
@@ -1947,9 +1949,10 @@ pub fn expand_pipeline_stage_tool_routes(
             anyhow!("preprocess tool route expansion overflowed route count")
         })
     })?;
-    if route_count > 256 {
+    let max_route_specific_pipelines = max_route_specific_pipelines()?;
+    if route_count > max_route_specific_pipelines {
         return Err(anyhow!(
-            "preprocess tool route expansion would create {route_count} route-specific pipelines; narrow the stage toolsets before fan-out"
+            "preprocess tool route expansion would create {route_count} route-specific pipelines; configured limit is {max_route_specific_pipelines}. Narrow the stage toolsets or raise BIJUX_FASTQ_MAX_ROUTE_PIPELINES"
         ));
     }
 
@@ -2097,6 +2100,26 @@ pub fn expand_pipeline_stage_tool_routes(
     });
 
     Ok((PipelineSpec::graph(nodes, edges), selections))
+}
+
+fn max_route_specific_pipelines() -> Result<usize> {
+    let Some(raw) = std::env::var_os("BIJUX_FASTQ_MAX_ROUTE_PIPELINES") else {
+        return Ok(DEFAULT_MAX_ROUTE_SPECIFIC_PIPELINES);
+    };
+    let parsed = raw
+        .to_string_lossy()
+        .parse::<usize>()
+        .map_err(|error| {
+            anyhow!(
+                "BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be a positive integer: {error}"
+            )
+        })?;
+    if parsed == 0 {
+        return Err(anyhow!(
+            "BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be greater than zero"
+        ));
+    }
+    Ok(parsed)
 }
 
 fn predecessor_context_sets(

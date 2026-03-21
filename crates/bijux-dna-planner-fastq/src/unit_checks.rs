@@ -337,20 +337,42 @@ fn expand_pipeline_stage_tool_routes_keys_repeated_stage_nodes_by_instance_id() 
 
 #[test]
 fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
-    let pipeline = PipelineSpec::chain(vec![
-        "fastq.validate_reads".to_string(),
-        "fastq.trim_reads".to_string(),
-        "fastq.filter_reads".to_string(),
-        "fastq.remove_duplicates".to_string(),
-        "fastq.profile_reads".to_string(),
-    ]);
+    let pipeline = PipelineSpec::graph(
+        vec![
+            "fastq.validate_reads",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.remove_duplicates",
+            "fastq.profile_reads",
+        ]
+        .into_iter()
+        .map(|stage_id| PipelineNodeSpec {
+            stage_id: stage_id.to_string(),
+            stage_instance_id: None,
+        })
+        .collect(),
+        vec![
+            ("fastq.validate_reads", "fastq.trim_reads"),
+            ("fastq.trim_reads", "fastq.filter_reads"),
+            ("fastq.filter_reads", "fastq.remove_duplicates"),
+            ("fastq.remove_duplicates", "fastq.profile_reads"),
+        ]
+        .into_iter()
+        .map(|(from, to)| PipelineEdgeSpec {
+            from: from.to_string(),
+            to: to.to_string(),
+            from_output_id: None,
+            to_input_id: None,
+        })
+        .collect(),
+    );
     let toolsets = pipeline
         .ordered_nodes()
         .into_iter()
         .map(|node| ToolsetSelection {
             stage_id: node.stage_id,
             stage_instance_id: node.stage_instance_id,
-            tool_ids: (0..4).map(|idx| format!("tool_{idx}")).collect(),
+            tool_ids: (0..6).map(|idx| format!("tool_{idx}")).collect(),
             reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
         })
         .collect::<Vec<_>>();
@@ -361,6 +383,7 @@ fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
         .to_string()
         .contains("preprocess tool route expansion would create"));
 }
+
 
 #[test]
 fn expand_pipeline_stage_tool_routes_collapses_selected_stage_context() {
