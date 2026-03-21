@@ -165,9 +165,12 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                     )));
                 }
                 if let Some(target_node_id) = binding.stage_instance_id.as_ref() {
-                    let target_node = binding_targets.get(target_node_id).expect(
-                        "validated stage param binding target must resolve to a declared graph node",
-                    );
+                    let target_node = binding_targets.get(target_node_id).ok_or_else(|| {
+                        BenchError::InvalidPolicy(format!(
+                            "suite stage {} param binding target {} must resolve to a declared graph node",
+                            stage.stage, target_node_id
+                        ))
+                    })?;
                     match target_node.tool_id.as_deref() {
                         Some(target_tool) if target_tool == tool => {}
                         Some(target_tool) => {
