@@ -17,6 +17,13 @@ outputs:
   - name: "governed_qc_inputs_manifest"
     data_type: "json"
     cardinality: "One"
+parameters:
+  - name: "aggregation_engine"
+    param_type: "string"
+    default: "multiqc"
+  - name: "aggregation_scope"
+    param_type: "string"
+    default: "governed_qc_artifacts"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"

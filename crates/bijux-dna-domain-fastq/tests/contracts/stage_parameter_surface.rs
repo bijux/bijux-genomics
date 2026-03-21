@@ -87,8 +87,8 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
 fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
     assert_eq!(
         stage_parameter_names("report_qc")?,
-        Vec::<String>::new(),
-        "fastq.report_qc must not expose stage parameters that the governed multiqc execution path cannot honor"
+        vec!["aggregation_engine", "aggregation_scope"],
+        "fastq.report_qc must expose the governed aggregation surface used to plan and compare multiqc runs"
     );
     Ok(())
 }
