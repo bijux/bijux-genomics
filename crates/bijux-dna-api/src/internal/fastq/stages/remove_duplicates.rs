@@ -121,21 +121,11 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let dedup_mode = args
-            .dedup_mode
-            .as_deref()
-            .map(bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::parse_dedup_mode)
-            .transpose()?
-            .unwrap_or(bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact);
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate_with_options(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
-            &bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::RemoveDuplicatesPlanOptions {
-                dedup_mode,
-                keep_order: args.keep_order.unwrap_or(true),
-            },
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());

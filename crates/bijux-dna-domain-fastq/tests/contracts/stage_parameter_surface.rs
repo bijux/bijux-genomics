@@ -77,8 +77,8 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
     );
     assert_eq!(
         stage_parameter_names("remove_duplicates")?,
-        vec!["dedup_mode", "keep_order"],
-        "fastq.remove_duplicates must keep its duplicate-collapsing parameter surface"
+        Vec::<String>::new(),
+        "fastq.remove_duplicates must not expose duplicate semantics the governed runtime cannot honor"
     );
     Ok(())
 }
