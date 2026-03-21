@@ -311,6 +311,7 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
         policy: bijux_dna_core::contract::PlanPolicy::default(),
         pipeline_spec: None,
         stage_bindings: Vec::new(),
+        stage_toolsets: Vec::new(),
         stages: vec![
             "fastq.index_reference".to_string(),
             "fastq.deplete_host".to_string(),

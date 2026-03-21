@@ -8,6 +8,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_planner_fastq::{
     DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
     FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
+    FastqStageToolsetBinding,
     TrimTerminalDamageStageParams,
 };
 
@@ -57,6 +58,7 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -110,6 +112,81 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
 }
 
 #[test]
+fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-stage-toolsets")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+        ],
+        vec![PipelineEdgeSpec {
+            from: "fastq.validate_reads.entry".to_string(),
+            to: "fastq.trim_reads.cleanup".to_string(),
+            from_output_id: None,
+            to_input_id: None,
+        }],
+    );
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__stage_toolsets__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(pipeline),
+        stage_bindings: Vec::new(),
+        stage_toolsets: vec![
+            FastqStageToolsetBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+                tools: vec![tool("fastqvalidator")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tools: vec![tool("fastp"), tool("bbduk")],
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    assert_eq!(plan.steps().len(), 4);
+    assert_eq!(plan.edges().len(), 2);
+    assert!(plan.steps().iter().any(|step| {
+        step.step_id
+            .as_str()
+            .contains("fastq.validate_reads=fastqvalidator")
+    }));
+    assert!(plan.steps().iter().any(|step| {
+        step.step_id.as_str().contains("fastq.trim_reads=fastp")
+            && step.step_id.as_str().contains(".tool.fastp")
+    }));
+    Ok(())
+}
+
+#[test]
 fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-stage-binding-collision")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -135,6 +212,7 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -180,6 +258,7 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
                 },
             )),
         }],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -222,6 +301,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
                 min_identity: 0.99,
             })),
         }],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -274,6 +354,7 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
                 })),
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -326,6 +407,7 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
                 )),
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -412,6 +494,7 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -509,6 +592,7 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -595,6 +679,7 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -669,6 +754,7 @@ fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -762,6 +848,7 @@ fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_bindi
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -838,6 +925,7 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -913,6 +1001,7 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
                 params: None,
             },
         ],
+        stage_toolsets: Vec::new(),
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),

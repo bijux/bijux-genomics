@@ -249,6 +249,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 params: None,
             })
             .collect(),
+        stage_toolsets: Vec::new(),
         stages: policy
             .pipeline_stages
             .iter()
