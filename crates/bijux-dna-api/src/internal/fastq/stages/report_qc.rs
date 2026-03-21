@@ -68,12 +68,10 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     let aggregation_engine =
         parse_qc_aggregation_engine(args.aggregation_engine.as_deref())?;
     let aggregation_scope = parse_qc_aggregation_scope(args.aggregation_scope.as_deref())?;
-    if aggregation_scope != QcAggregationScope::GovernedQcArtifacts {
-        return Err(anyhow!(
-            "fastq.report_qc benchmarking currently supports only aggregation_scope=governed_qc_artifacts because it consumes governed upstream QC artifacts rather than regenerating them from raw FASTQ inputs"
-        ));
-    }
-    let governed_qc = load_required_governed_qc_inputs_manifest(args.governed_qc_manifest.as_deref())?;
+    let governed_qc = load_required_qc_inputs_manifest(
+        aggregation_scope,
+        args.governed_qc_manifest.as_deref(),
+    )?;
     let tools = select_qc_post_tools(&args.tools)?;
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
@@ -259,12 +257,17 @@ fn governed_qc_inputs_manifest_path(out_dir: &Path) -> PathBuf {
     out_dir.join("governed_qc_inputs_manifest.json")
 }
 
-fn load_required_governed_qc_inputs_manifest(
+fn load_required_qc_inputs_manifest(
+    aggregation_scope: QcAggregationScope,
     manifest_path: Option<&Path>,
 ) -> Result<GovernedQcInputs> {
     let manifest_path = manifest_path.ok_or_else(|| {
         anyhow!(
-            "fastq.report_qc benchmarking requires --governed-qc-manifest; this stage aggregates governed upstream QC artifacts and does not regenerate them from raw FASTQ inputs"
+            "fastq.report_qc benchmarking requires --governed-qc-manifest for aggregation_scope={}; this stage consumes the canonical QC input manifest rather than inferring contributor artifacts from raw FASTQ files alone",
+            match aggregation_scope {
+                QcAggregationScope::GovernedQcArtifacts => "governed_qc_artifacts",
+                QcAggregationScope::FastqQcInputs => "fastq_qc_inputs",
+            }
         )
     })?;
     load_governed_qc_inputs_manifest(manifest_path)
@@ -653,7 +656,7 @@ mod tests {
     use super::{
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
         governed_qc_contributors, governed_qc_inputs_manifest_path,
-        load_governed_qc_inputs_manifest, load_required_governed_qc_inputs_manifest,
+        load_governed_qc_inputs_manifest, load_required_qc_inputs_manifest,
         parse_qc_aggregation_engine, parse_qc_aggregation_scope,
         validate_governed_qc_contributors,
         GovernedQcContributor, GovernedQcInputs,
@@ -673,11 +676,20 @@ mod tests {
 
     #[test]
     fn required_governed_qc_manifest_is_enforced() {
-        let error = load_required_governed_qc_inputs_manifest(None)
+        let error = load_required_qc_inputs_manifest(QcAggregationScope::GovernedQcArtifacts, None)
             .expect_err("manifest requirement must be enforced");
         assert!(error
             .to_string()
             .contains("requires --governed-qc-manifest"));
+    }
+
+    #[test]
+    fn fastq_qc_input_scope_uses_same_manifest_contract() {
+        let error = load_required_qc_inputs_manifest(QcAggregationScope::FastqQcInputs, None)
+            .expect_err("manifest requirement must be enforced");
+        assert!(error
+            .to_string()
+            .contains("aggregation_scope=fastq_qc_inputs"));
     }
 
     #[test]

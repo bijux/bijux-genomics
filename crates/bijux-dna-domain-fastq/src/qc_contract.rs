@@ -68,28 +68,20 @@ fn stage_supports_governed_qc_bench_inputs(stage_id: &StageId, paired_end: bool)
 }
 
 fn is_governed_qc_output_id(output_id: &str) -> bool {
-    matches!(
-        output_id,
-        "validation_report"
-            | "validated_reads_manifest"
-            | "adapter_report"
-            | "adapter_evidence_dir"
-            | "length_distribution_tsv"
-            | "length_distribution_json"
-            | "overrepresented_sequences_tsv"
-            | "overrepresented_sequences_json"
-            | "qc_json"
-            | "qc_tsv"
-            | "qc_plots_dir"
-            | "rrna_report_tsv"
-            | "rrna_report_json"
-            | "screen_report_tsv"
-            | "classification_report_json"
-            | "report_json"
-            | "filter_report_json"
-            | "host_depletion_report_json"
-            | "contaminant_screen_report_json"
-    )
+    if output_id.contains("reads")
+        || output_id.contains("reference")
+        || output_id.contains("table")
+        || output_id.contains("fasta")
+    {
+        return false;
+    }
+    output_id.ends_with("_manifest")
+        || output_id.ends_with("_report")
+        || output_id.ends_with("_report_json")
+        || output_id.ends_with("_report_tsv")
+        || output_id.ends_with("_json")
+        || output_id.ends_with("_tsv")
+        || output_id.ends_with("_dir")
 }
 
 #[cfg(test)]
