@@ -614,7 +614,7 @@ pub struct BenchFastqQcPostArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long)]
+    #[arg(long, default_value = "auto", help = "Aggregation backend: auto | multiqc")]
     pub aggregation_engine: Option<String>,
     #[arg(long)]
     pub aggregation_scope: Option<String>,

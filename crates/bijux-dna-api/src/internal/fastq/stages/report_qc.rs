@@ -49,10 +49,10 @@ fn parse_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope>
 }
 
 fn parse_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngine> {
-    match value.unwrap_or("multiqc") {
-        "multiqc" => Ok(QcAggregationEngine::Multiqc),
+    match value.unwrap_or("auto") {
+        "auto" | "multiqc" => Ok(QcAggregationEngine::Multiqc),
         other => Err(anyhow!(
-            "unsupported fastq.report_qc aggregation_engine `{other}`; expected: multiqc"
+            "unsupported fastq.report_qc aggregation_engine `{other}`; expected one of: auto, multiqc"
         )),
     }
 }
@@ -785,6 +785,10 @@ mod tests {
     fn qc_post_engine_parser_defaults_to_multiqc() {
         assert_eq!(
             parse_qc_aggregation_engine(None).expect("default engine"),
+            QcAggregationEngine::Multiqc
+        );
+        assert_eq!(
+            parse_qc_aggregation_engine(Some("auto")).expect("auto engine"),
             QcAggregationEngine::Multiqc
         );
         assert_eq!(
