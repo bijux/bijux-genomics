@@ -354,6 +354,40 @@ fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
 }
 
 #[test]
+fn expand_pipeline_stage_tool_routes_rejects_planner_owned_select_nodes() {
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "benchmark.select_stage_tool".to_string(),
+                stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+            },
+        ],
+        vec![PipelineEdgeSpec {
+            from: "fastq.trim_reads.cleanup".to_string(),
+            to: "benchmark.select_stage_tool.trim_reads".to_string(),
+            from_output_id: Some("trimmed_reads_r1".to_string()),
+            to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
+        }],
+    );
+    let toolsets = vec![ToolsetSelection {
+        stage_id: "fastq.trim_reads".to_string(),
+        stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+        tool_ids: vec!["fastp".to_string(), "cutadapt".to_string()],
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+    }];
+
+    let error = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
+        .expect_err("planner-owned select nodes must not enter route expansion");
+    assert!(error
+        .to_string()
+        .contains("toolset route expansion does not support planner-owned node"));
+}
+
+#[test]
 fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__host_depletion__v1".to_string(),
