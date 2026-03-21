@@ -11,6 +11,11 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_VALIDATE_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+#[derive(Debug, Clone, Default)]
+pub struct ValidatePlanOptions {
+    pub q_cutoff: Option<u32>,
+}
+
 #[derive(Debug, Clone)]
 pub struct ValidateReadsUserConfig {
     pub tool: String,
@@ -33,6 +38,16 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_with_options(tool, r1, r2, out_dir, &ValidatePlanOptions::default())
+}
+
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &ValidatePlanOptions,
+) -> Result<StagePlanV1> {
     let report_path = out_dir.join("validation.json");
     let effective_params = ValidateEffectiveParams {
         paired_mode: if r2.is_some() {
@@ -41,7 +56,7 @@ pub fn plan(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        q_cutoff: None,
+        q_cutoff: options.q_cutoff,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -85,6 +100,7 @@ pub fn plan(
             "input_r2": r2,
             "out_dir": out_dir,
             "report_json": report_path,
+            "q_cutoff": options.q_cutoff,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -247,7 +263,10 @@ mod tests {
             out_dir: "out".into(),
         });
 
-        assert_eq!(config.r2.as_deref(), Some(std::path::Path::new("reads_R2.fastq.gz")));
+        assert_eq!(
+            config.r2.as_deref(),
+            Some(std::path::Path::new("reads_R2.fastq.gz"))
+        );
     }
 
     #[test]
@@ -268,7 +287,10 @@ mod tests {
         assert!(plan.command.template[2].contains("validation_r1.log"));
         assert!(plan.command.template[2].contains("validation_r2.log"));
         assert!(plan.command.template[2].contains("\"validated_inputs\":2"));
-        assert_eq!(plan.params["report_json"], serde_json::json!("out/validation.json"));
+        assert_eq!(
+            plan.params["report_json"],
+            serde_json::json!("out/validation.json")
+        );
         Ok(())
     }
 
@@ -288,6 +310,21 @@ mod tests {
         assert!(script.contains("out/validation.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
+        Ok(())
+    }
+
+    #[test]
+    fn plan_with_options_propagates_quality_cutoff_into_effective_params() -> Result<()> {
+        let plan = plan_with_options(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &ValidatePlanOptions { q_cutoff: Some(25) },
+        )?;
+
+        assert_eq!(plan.params["q_cutoff"], serde_json::json!(25));
+        assert_eq!(plan.effective_params["q_cutoff"], serde_json::json!(25));
         Ok(())
     }
 }
