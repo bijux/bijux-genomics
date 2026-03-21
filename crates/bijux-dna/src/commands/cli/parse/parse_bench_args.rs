@@ -609,7 +609,11 @@ pub struct BenchFastqQcPostArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, value_name = "PATH")]
+    #[arg(
+        long,
+        value_name = "PATH",
+        help = "Governed QC artifact manifest consumed by fastq.report_qc; required because report_qc aggregates upstream QC outputs and does not regenerate them from raw FASTQ inputs"
+    )]
     pub governed_qc_manifest: Option<PathBuf>,
 }
 
