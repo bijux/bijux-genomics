@@ -53,5 +53,7 @@ mod mod_contracts_tool_metrics_rs;
 mod mod_contracts_tool_stage_contracts_rs;
 #[path = "contracts/trim_manifest_optional_outputs.rs"]
 mod mod_contracts_trim_manifest_optional_outputs_rs;
+#[path = "contracts/trim_family_manifest_inputs.rs"]
+mod mod_contracts_trim_family_manifest_inputs_rs;
 #[path = "contracts/validate_reads_manifest.rs"]
 mod mod_contracts_validate_reads_manifest_rs;

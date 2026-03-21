@@ -35,6 +35,8 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "trimmed_reads_r1"
     - "report_json"
@@ -85,7 +87,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "fastp polyG trimming emits paired trimmed reads and a trim report under the polyG-tail stage contract."
+    notes: "fastp polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed trim report under the polyG-tail stage contract."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"

@@ -4,6 +4,7 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "SE"
+  - "PE"
   - "abundance"
   - "normalization"
 container:
@@ -36,6 +37,8 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "filtered_reads_r1"
     - "filtered_reads_r2"
@@ -95,7 +98,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "seqkit damage-aware trimming emits paired trimmed reads and a governed damage-trim report."
+    notes: "seqkit damage-aware trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report."
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
