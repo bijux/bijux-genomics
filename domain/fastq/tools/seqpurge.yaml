@@ -1,6 +1,6 @@
 schema_version: "bijux.tool.v1"
 tool_id: "seqpurge"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
@@ -12,8 +12,12 @@ command_template:
   - "seqpurge"
   - "-in1"
   - "{{reads_r1}}"
+  - "-in2"
+  - "{{reads_r2}}"
   - "-out1"
   - "{{trimmed_reads_r1}}"
+  - "-out2"
+  - "{{trimmed_reads_r2}}"
 outputs:
   - name: "trimmed_reads_r1"
     data_type: "fastq"
@@ -47,7 +51,7 @@ default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
-planned_stage_ids: ["fastq.trim_reads"]
+stage_ids: ["fastq.trim_reads"]
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -56,7 +60,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "Planned trim execution would emit governed trimmed-read artifacts together with the normalized stage report."
+    notes: "SeqPurge trim execution emits governed trimmed-read artifacts together with the normalized stage report."
 expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
 metrics_schema: "bijux.fastq.trim_reads.v1"

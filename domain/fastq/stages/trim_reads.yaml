@@ -98,6 +98,7 @@ compatible_tools:
   - trim_galore
   - prinseq
   - seqkit
+  - seqpurge
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "adapter, polyx, and contaminant trimming policies are explicit in effective params."
@@ -112,4 +113,3 @@ planned_out_of_scope:
   - "fastx_clipper"
   - "leehom"
   - "skewer"
-  - "seqpurge"
