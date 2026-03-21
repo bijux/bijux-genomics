@@ -120,6 +120,35 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
 }
 
 #[test]
+fn compose_fastq_pipeline_steps_rejects_mismatched_stage_and_tool_counts() {
+    let error = compose_fastq_pipeline_steps(
+        &[
+            "fastq.validate_reads".to_string(),
+            "fastq.trim_reads".to_string(),
+        ],
+        &[tool_for_stage("fastq.validate_reads")],
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        None,
+        false,
+        std::path::Path::new("reads_R1.fastq"),
+        None,
+        None,
+        None,
+        |stage_id, tool, _r1, _r2| {
+            Ok(std::path::PathBuf::from(stage_id).join(tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("mismatched stage/tool lists must fail loudly");
+
+    assert!(error
+        .to_string()
+        .contains("matching stage/tool lengths"));
+}
+
+#[test]
 fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<()> {
     let stages = vec![
         "fastq.index_reference".to_string(),

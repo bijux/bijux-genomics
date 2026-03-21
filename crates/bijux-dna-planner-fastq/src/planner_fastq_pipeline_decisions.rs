@@ -1680,6 +1680,22 @@ where
         Option<&std::path::Path>,
     ) -> Result<PathBuf>,
 {
+    if stages.len() != tools.len() {
+        return Err(anyhow!(
+            "compose_fastq_pipeline_steps requires matching stage/tool lengths, got {} stages and {} tools",
+            stages.len(),
+            tools.len()
+        ));
+    }
+    if let Some(reasons) = tool_reasons {
+        if reasons.len() != stages.len() {
+            return Err(anyhow!(
+                "compose_fastq_pipeline_steps requires matching stage/tool reason lengths, got {} stages and {} reasons",
+                stages.len(),
+                reasons.len()
+            ));
+        }
+    }
     let stage_bindings = stages
         .iter()
         .zip(tools.iter())
