@@ -19,9 +19,19 @@ fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
     })
 }
 
+fn single_stage_graph(stage_id: &str) -> PipelineSpec {
+    PipelineSpec::graph(
+        vec![PipelineNodeSpec {
+            stage_id: stage_id.to_string(),
+            stage_instance_id: Some(stage_id.to_string()),
+        }],
+        Vec::new(),
+    )
+}
+
 #[test]
 fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> anyhow::Result<()> {
-    let pipeline = PipelineSpec::chain(vec!["fastq.trim_reads".to_string()]);
+    let pipeline = single_stage_graph("fastq.trim_reads");
 
     let default = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &pipeline,
@@ -59,7 +69,7 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
 #[test]
 fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
 ) -> anyhow::Result<()> {
-    let trim_pipeline = PipelineSpec::chain(vec!["fastq.trim_reads".to_string()]);
+    let trim_pipeline = single_stage_graph("fastq.trim_reads");
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &trim_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
@@ -70,7 +80,7 @@ fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
         .iter()
         .any(|tool_id| tool_id == "seqpurge"));
 
-    let infer_pipeline = PipelineSpec::chain(vec!["fastq.infer_asvs".to_string()]);
+    let infer_pipeline = single_stage_graph("fastq.infer_asvs");
     let declared_only_error = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &infer_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
@@ -218,7 +228,7 @@ fn stage_tool_selection_skips_planner_owned_select_nodes() -> anyhow::Result<()>
 #[test]
 fn stage_tool_selection_filters_paired_only_dedup_backends_for_single_end_inputs(
 ) -> anyhow::Result<()> {
-    let pipeline = PipelineSpec::chain(vec!["fastq.remove_duplicates".to_string()]);
+    let pipeline = single_stage_graph("fastq.remove_duplicates");
     let args = BenchFastqPreprocessArgs {
         sample_id: "sample".to_string(),
         profile: None,
