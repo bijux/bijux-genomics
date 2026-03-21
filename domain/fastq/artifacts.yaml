@@ -120,4 +120,5 @@ artifact_ids:
   - validation_tool_benchmark_cohort_json
   - validation_tool_comparison_json
   - validation_tool_normalization_json
+  - validated_reads_manifest
   - validation_report

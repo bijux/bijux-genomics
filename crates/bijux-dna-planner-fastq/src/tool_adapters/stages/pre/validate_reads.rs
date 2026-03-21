@@ -49,6 +49,7 @@ pub fn plan_with_options(
     options: &ValidatePlanOptions,
 ) -> Result<StagePlanV1> {
     let report_path = out_dir.join("validation.json");
+    let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
     let effective_params = ValidateEffectiveParams {
         paired_mode: if r2.is_some() {
             PairedMode::PairedEnd
@@ -70,7 +71,15 @@ pub fn plan_with_options(
             ArtifactRole::Reads,
         ));
     }
-    let command_template = validation_command(tool, r1, r2, &report_path, out_dir)?;
+    let command_template = validation_command(
+        tool,
+        r1,
+        r2,
+        &report_path,
+        &validated_reads_manifest,
+        out_dir,
+        options,
+    )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -87,11 +96,18 @@ pub fn plan_with_options(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs,
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("validation_report"),
-                report_path.clone(),
-                ArtifactRole::ReportJson,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("validation_report"),
+                    report_path.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("validated_reads_manifest"),
+                    validated_reads_manifest.clone(),
+                    ArtifactRole::StageReport,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -100,6 +116,7 @@ pub fn plan_with_options(
             "input_r2": r2,
             "out_dir": out_dir,
             "report_json": report_path,
+            "validated_reads_manifest": validated_reads_manifest,
             "q_cutoff": options.q_cutoff,
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -135,7 +152,9 @@ fn validation_command(
     r1: &Path,
     r2: Option<&Path>,
     report_path: &Path,
+    validated_reads_manifest: &Path,
     out_dir: &Path,
+    options: &ValidatePlanOptions,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
@@ -174,10 +193,30 @@ fn validation_command(
         "validated_inputs": if r2.is_some() { 2 } else { 1 },
         "strict_pass": true,
     });
+    let lineage_payload = serde_json::json!({
+        "schema_version": "bijux.fastq.validate.lineage.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool.tool_id.as_str(),
+        "input_r1": r1,
+        "input_r2": r2,
+        "validation_report": report_path,
+        "q_cutoff": options.q_cutoff,
+        "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
+        "validated_stream_ids": if r2.is_some() {
+            vec!["reads_r1", "reads_r2"]
+        } else {
+            vec!["reads_r1"]
+        },
+    });
     commands.push(format!(
         "printf '%s\\n' {} > {}",
         shell_quote_str(&report_payload.to_string()),
         shell_quote(report_path),
+    ));
+    commands.push(format!(
+        "printf '%s\\n' {} > {}",
+        shell_quote_str(&lineage_payload.to_string()),
+        shell_quote(validated_reads_manifest),
     ));
     Ok(vec![
         "sh".to_string(),
@@ -287,10 +326,18 @@ mod tests {
         assert!(plan.command.template[2].contains("validation_r1.log"));
         assert!(plan.command.template[2].contains("validation_r2.log"));
         assert!(plan.command.template[2].contains("\"validated_inputs\":2"));
+        assert!(
+            plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\"")
+        );
         assert_eq!(
             plan.params["report_json"],
             serde_json::json!("out/validation.json")
         );
+        assert_eq!(
+            plan.params["validated_reads_manifest"],
+            serde_json::json!("out/validated_reads_manifest.json")
+        );
+        assert_eq!(plan.io.outputs.len(), 2);
         Ok(())
     }
 
@@ -308,6 +355,7 @@ mod tests {
         let script = &plan.command.template[2];
         assert!(script.contains("'seqtk' 'seq' 'reads.fastq.gz' > 'out/validation_r1.log' 2>&1"));
         assert!(script.contains("out/validation.json"));
+        assert!(script.contains("out/validated_reads_manifest.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
         Ok(())

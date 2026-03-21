@@ -16,6 +16,9 @@ outputs:
   - name: "validation_report"
     data_type: "json"
     cardinality: "One"
+  - name: "validated_reads_manifest"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_validate_v1"
 constraints:
   runtime: "local"
@@ -27,6 +30,7 @@ execution_contract:
     - "reads_r1"
   expected_outputs:
     - "validation_report"
+    - "validated_reads_manifest"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "unknown"
@@ -43,8 +47,9 @@ stage_contracts:
       - "reads_r1"
     expected_artifacts:
       - "validation_report"
-    notes: "Validation remains report-only and emits the governed validation report artifact."
-expected_artifacts: ["validation_report"]
+      - "validated_reads_manifest"
+    notes: "Validation remains report-only and emits both the governed validation report and a validated-reads lineage manifest."
+expected_artifacts: ["validation_report", "validated_reads_manifest"]
 metrics_schema_id: "bijux.fastq.validate.v1"
 metrics_schema: "bijux.fastq.validate.v1"
 version_cmd: "seqtk --version"

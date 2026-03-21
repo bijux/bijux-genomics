@@ -12,7 +12,7 @@
     "template": [
       "sh",
       "-lc",
-      "'fastqvalidator' '--file' 'reads_R1.fastq.gz' > 'out/validation_r1.log' 2>&1 && printf '%s\\n' '{\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage_id\":\"fastq.validate_reads\",\"strict_pass\":true,\"tool_id\":\"fastqvalidator\",\"validated_inputs\":1,\"validation_log_r1\":\"out/validation_r1.log\",\"validation_log_r2\":null}' > 'out/validation.json'"
+      "'fastqvalidator' '--file' 'reads_R1.fastq.gz' > 'out/validation_r1.log' 2>&1 && printf '%s\\n' '{\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage_id\":\"fastq.validate_reads\",\"strict_pass\":true,\"tool_id\":\"fastqvalidator\",\"validated_inputs\":1,\"validation_log_r1\":\"out/validation_r1.log\",\"validation_log_r2\":null}' > 'out/validation.json' && printf '%s\\n' '{\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"paired_mode\":\"single_end\",\"q_cutoff\":null,\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validated_stream_ids\":[\"reads_r1\"],\"validation_report\":\"out/validation.json\"}' > 'out/validated_reads_manifest.json'"
     ]
   },
   "resources": {
@@ -36,6 +36,12 @@
         "path": "out/validation.json",
         "role": "report_json",
         "optional": false
+      },
+      {
+        "name": "validated_reads_manifest",
+        "path": "out/validated_reads_manifest.json",
+        "role": "stage_report",
+        "optional": false
       }
     ]
   },
@@ -46,7 +52,8 @@
     "out_dir": "out",
     "q_cutoff": null,
     "report_json": "out/validation.json",
-    "tool": "fastqvalidator"
+    "tool": "fastqvalidator",
+    "validated_reads_manifest": "out/validated_reads_manifest.json"
   },
   "effective_params": {
     "paired_mode": "single_end",
