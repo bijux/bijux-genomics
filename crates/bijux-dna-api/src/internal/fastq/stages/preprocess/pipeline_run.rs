@@ -991,4 +991,58 @@ mod pipeline_run_tests {
         assert_eq!(terminals[0].as_str(), "trim.compare");
         Ok(())
     }
+
+    #[test]
+    fn execution_step_batches_keep_select_rejoin_after_branch_candidates() -> Result<()> {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__select_rejoin_batches__v1",
+            "planner.test",
+            PlanPolicy::default(),
+            vec![
+                step("trim.fastp"),
+                step("trim.cutadapt"),
+                step("trim.select"),
+                step("filter.selected"),
+            ],
+            vec![
+                ExecutionEdge::new(
+                    StepId::new("trim.fastp".to_string()),
+                    StepId::new("trim.select".to_string()),
+                ),
+                ExecutionEdge::new(
+                    StepId::new("trim.cutadapt".to_string()),
+                    StepId::new("trim.select".to_string()),
+                ),
+                ExecutionEdge::new(
+                    StepId::new("trim.select".to_string()),
+                    StepId::new("filter.selected".to_string()),
+                ),
+            ],
+        )?;
+
+        let batches = execution_step_batches(&graph)?;
+        assert_eq!(batches.len(), 3);
+        assert_eq!(
+            batches[0]
+                .iter()
+                .map(|step| step.step_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["trim.cutadapt", "trim.fastp"]
+        );
+        assert_eq!(
+            batches[1]
+                .iter()
+                .map(|step| step.step_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["trim.select"]
+        );
+        assert_eq!(
+            batches[2]
+                .iter()
+                .map(|step| step.step_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["filter.selected"]
+        );
+        Ok(())
+    }
 }
