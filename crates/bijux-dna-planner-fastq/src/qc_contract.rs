@@ -1,5 +1,4 @@
 use bijux_dna_core::ids::StageId;
-use bijux_dna_domain_fastq::types::FastqArtifactKind;
 
 #[must_use]
 pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
@@ -13,46 +12,12 @@ pub fn governed_qc_producer_stage_ids() -> Vec<StageId> {
 
 #[must_use]
 pub fn governed_qc_default_tool_ids() -> Vec<String> {
-    let mut tool_ids = governed_qc_producer_stage_ids()
-        .into_iter()
-        .filter_map(|stage_id| crate::selection::default_tool_for_stage(&stage_id))
-        .map(|tool_id| tool_id.to_string())
-        .collect::<Vec<_>>();
-    tool_ids.sort();
-    tool_ids.dedup();
-    tool_ids
+    bijux_dna_domain_fastq::governed_qc_default_tool_ids()
 }
 
 #[must_use]
 pub fn governed_qc_bench_contributor_stage_ids(paired_end: bool) -> Vec<StageId> {
-    governed_qc_producer_stage_ids()
-        .into_iter()
-        .filter(|stage_id| stage_supports_governed_qc_bench_inputs(stage_id, paired_end))
-        .collect()
-}
-
-fn stage_supports_governed_qc_bench_inputs(stage_id: &StageId, paired_end: bool) -> bool {
-    let Some(contract) = bijux_dna_domain_fastq::contract_for_stage(stage_id.as_str()) else {
-        return false;
-    };
-    let required_kind = if paired_end {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
-    if !contract
-        .accepted_input_kinds
-        .iter()
-        .any(|kind| kind == &required_kind)
-    {
-        return false;
-    }
-    let Some(input_ids) = bijux_dna_domain_fastq::stage_input_ids(stage_id.as_str()) else {
-        return false;
-    };
-    input_ids
-        .into_iter()
-        .all(|input_id| matches!(input_id.as_str(), "reads_r1" | "reads_r2"))
+    bijux_dna_domain_fastq::governed_qc_bench_contributor_stage_ids(paired_end)
 }
 
 #[cfg(test)]
