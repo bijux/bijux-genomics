@@ -55,12 +55,6 @@ pub struct StageParamDescriptor {
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
-    if stage_id == &STAGE_VALIDATE_READS {
-        return Some(StageParamDescriptor {
-            param_type_id: "fastq.validate_reads",
-            schema_version: "bijux.fastq.params.validate_reads.v1",
-        });
-    }
     if stage_id == &STAGE_PROFILE_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.profile_reads",
@@ -109,12 +103,6 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: trim::TRIM_POLYG_TAILS_SCHEMA_VERSION,
         });
     }
-    if stage_id == &STAGE_REMOVE_DUPLICATES {
-        return Some(StageParamDescriptor {
-            param_type_id: "fastq.remove_duplicates",
-            schema_version: remove_duplicates::REMOVE_DUPLICATES_SCHEMA_VERSION,
-        });
-    }
     if stage_id == &STAGE_FILTER_READS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.filter_reads",
@@ -161,12 +149,6 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
         return Some(StageParamDescriptor {
             param_type_id: "fastq.screen_taxonomy",
             schema_version: "bijux.fastq.params.screen_taxonomy.v1",
-        });
-    }
-    if stage_id == &STAGE_REPORT_QC {
-        return Some(StageParamDescriptor {
-            param_type_id: "fastq.report_qc",
-            schema_version: "bijux.fastq.params.report_qc.v1",
         });
     }
     if stage_id == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
