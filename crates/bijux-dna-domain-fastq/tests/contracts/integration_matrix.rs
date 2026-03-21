@@ -257,6 +257,26 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
 }
 
 #[test]
+fn governed_qc_contract_is_owned_by_domain() {
+    let validation_stage = StageId::from_static("fastq.validate_reads");
+    let validation_artifacts =
+        bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&validation_stage);
+    assert_eq!(
+        validation_artifacts,
+        vec!["validation_report", "validated_reads_manifest"]
+    );
+
+    let report_qc_stage = StageId::from_static("fastq.report_qc");
+    assert!(
+        bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&report_qc_stage).is_empty()
+    );
+
+    let producers = bijux_dna_domain_fastq::governed_qc_producer_stage_ids();
+    assert!(producers.contains(&validation_stage));
+    assert!(!producers.contains(&report_qc_stage));
+}
+
+#[test]
 fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     let report_qc = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
         "fastq.report_qc",
