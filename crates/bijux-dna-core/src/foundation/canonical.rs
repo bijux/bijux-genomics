@@ -31,6 +31,16 @@ fn looks_like_path(value: &str) -> bool {
     value.contains('/') || value.contains('\\')
 }
 
+fn looks_like_uri(value: &str) -> bool {
+    let Some((scheme, _rest)) = value.split_once("://") else {
+        return false;
+    };
+    !scheme.is_empty()
+        && scheme
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '-' | '.'))
+}
+
 fn looks_like_hostname(value: &str) -> bool {
     value.contains('.') && !value.contains(' ')
 }
@@ -119,7 +129,7 @@ fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
             }
         }
         serde_json::Value::String(s) => {
-            if looks_like_path(s) {
+            if looks_like_path(s) && !looks_like_uri(s) {
                 serde_json::Value::String(normalize_path_string(s))
             } else {
                 serde_json::Value::String(normalize_sensitive_string(s))
