@@ -168,7 +168,7 @@ pub fn plan_correct_with_options(
 }
 
 fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Result<()> {
-    if options.quality_encoding != QualityEncoding::Phred33 {
+    if options.quality_encoding != QualityEncoding::Phred33 && tool_id != "bayeshammer" {
         return Err(anyhow!(
             "{tool_id} error-correction planning currently supports only quality_encoding=phred33"
         ));
@@ -305,6 +305,11 @@ fn correct_command_template(
         "bayeshammer" => {
             script.push_str("spades.py --only-error-correction");
             script.push_str(&format!(" --threads {threads}"));
+            let phred_offset = match options.quality_encoding {
+                QualityEncoding::Phred33 => 33,
+                QualityEncoding::Phred64 => 64,
+            };
+            script.push_str(&format!(" --phred-offset {phred_offset}"));
             if let Some(max_memory_gb) = options.max_memory_gb {
                 script.push_str(&format!(" -m {max_memory_gb}"));
             }
@@ -488,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn plan_correct_rejects_non_phred33_quality_encoding() {
+    fn plan_correct_rejects_non_phred33_quality_encoding_for_unsupported_tools() {
         let error = plan_correct_with_options(
             &tool("rcorrector"),
             Path::new("reads_R1.fastq.gz"),
@@ -502,6 +507,27 @@ mod tests {
         .expect_err("unsupported quality encoding must fail");
 
         assert!(error.to_string().contains("quality_encoding=phred33"));
+    }
+
+    #[test]
+    fn plan_correct_maps_phred64_for_bayeshammer() {
+        let plan = plan_correct_with_options(
+            &tool("bayeshammer"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                quality_encoding: QualityEncoding::Phred64,
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect("bayeshammer should accept explicit phred64 encoding");
+
+        assert_eq!(
+            plan.effective_params["quality_encoding"],
+            serde_json::json!("phred64")
+        );
+        assert!(plan.command.template[2].contains("--phred-offset 64"));
     }
 
     #[test]
