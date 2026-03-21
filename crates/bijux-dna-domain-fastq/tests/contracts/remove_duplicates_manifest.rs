@@ -76,10 +76,19 @@ fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()>
         .iter()
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
+    let optional_outputs = manifest
+        .get("execution_contract")
+        .and_then(|value| value.get("optional_outputs"))
+        .and_then(serde_json::Value::as_array)
+        .context("clumpify execution optional_outputs")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
     assert_eq!(
         expected_outputs,
-        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+        vec!["dedup_reads_r1", "report_json"]
     );
+    assert_eq!(optional_outputs, vec!["dedup_reads_r2"]);
 
     let stage_expected_artifacts = manifest
         .get("stage_contracts")
