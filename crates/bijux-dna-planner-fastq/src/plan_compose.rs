@@ -116,6 +116,7 @@ where
     let raw_r2 = r2.map(|path| path.to_path_buf());
     let mut plans = Vec::new();
     let mut lineage_by_node_id = BTreeMap::<String, PlannedStageLineage>::new();
+    let mut latest_lineage_node_id = None::<String>;
     for binding in stage_bindings {
         let resolved_inputs = resolved_stage_input_artifacts(
             binding,
@@ -127,6 +128,7 @@ where
             binding,
             stage_dependencies,
             &lineage_by_node_id,
+            latest_lineage_node_id.as_deref(),
             &raw_r1,
             raw_r2.as_ref(),
         )?;
@@ -665,8 +667,9 @@ where
             inherited.reference_index.clone()
         };
         plans.push(plan);
+        let stage_node_id = stage_node_id_for_binding(binding);
         lineage_by_node_id.insert(
-            stage_node_id_for_binding(binding),
+            stage_node_id.clone(),
             PlannedStageLineage {
                 reads_r1: next_r1,
                 reads_r2: next_r2,
@@ -675,6 +678,7 @@ where
                 qc_inputs: next_qc_inputs,
             },
         );
+        latest_lineage_node_id = Some(stage_node_id);
     }
     Ok(plans)
 }
@@ -816,10 +820,16 @@ fn inherited_lineage(
     binding: &FastqStageBinding,
     stage_dependencies: Option<&StageDependencyPolicy>,
     lineage_by_node_id: &BTreeMap<String, PlannedStageLineage>,
+    latest_lineage_node_id: Option<&str>,
     raw_r1: &PathBuf,
     raw_r2: Option<&PathBuf>,
 ) -> Result<PlannedStageLineage> {
-    let upstream_lineages = upstream_lineages(binding, stage_dependencies, lineage_by_node_id);
+    let upstream_lineages = upstream_lineages(
+        binding,
+        stage_dependencies,
+        lineage_by_node_id,
+        latest_lineage_node_id,
+    );
     if upstream_lineages.is_empty() {
         return Ok(PlannedStageLineage {
             reads_r1: raw_r1.clone(),
@@ -906,6 +916,7 @@ fn upstream_lineages<'a>(
     binding: &FastqStageBinding,
     stage_dependencies: Option<&StageDependencyPolicy>,
     lineage_by_node_id: &'a BTreeMap<String, PlannedStageLineage>,
+    latest_lineage_node_id: Option<&str>,
 ) -> Vec<&'a PlannedStageLineage> {
     let node_id = stage_node_id_for_binding(binding);
     if let Some(policy) = stage_dependencies {
@@ -916,9 +927,8 @@ fn upstream_lineages<'a>(
             .filter_map(|upstream_node| lineage_by_node_id.get(upstream_node))
             .collect();
     }
-    lineage_by_node_id
-        .values()
-        .next_back()
+    latest_lineage_node_id
+        .and_then(|node_id| lineage_by_node_id.get(node_id))
         .into_iter()
         .collect()
 }
@@ -997,7 +1007,7 @@ fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<Artif
         .filter(|artifact| {
             governed_output_ids
                 .iter()
-                .any(|artifact_id| artifact.name.as_str() == *artifact_id)
+                .any(|artifact_id| artifact.name.as_str() == artifact_id)
         })
         .map(|artifact| report_qc_input_artifact(stage_node_id_for_plan(plan), artifact, None))
         .collect()
@@ -1019,7 +1029,7 @@ fn report_qc_input_artifact(
     }
 }
 
-fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
+fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<String> {
     crate::qc_contract::governed_qc_output_ids_for_stage(stage_id)
 }
 
