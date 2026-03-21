@@ -545,7 +545,7 @@ pub struct BenchFastqCorrectArgs {
     #[arg(long)]
     pub r1: PathBuf,
     #[arg(long)]
-    pub r2: PathBuf,
+    pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
     #[arg(
@@ -571,6 +571,8 @@ pub struct BenchFastqCorrectArgs {
     pub quality_encoding: Option<String>,
     #[arg(long)]
     pub kmer_size: Option<u32>,
+    #[arg(long)]
+    pub genome_size: Option<u64>,
     #[arg(long)]
     pub max_memory_gb: Option<u32>,
     #[arg(long)]
