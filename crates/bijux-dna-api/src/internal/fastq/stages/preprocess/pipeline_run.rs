@@ -271,21 +271,18 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .as_deref()
         .unwrap_or("fastq-to-fastq__default__v1")
         .to_string();
-    let (stage_bindings, planner_stage_toolsets, legacy_stages, legacy_tools) =
-        planner_selection_surfaces(
-            args.run_all_governed_tools,
-            &selected_stage_tools,
-            &tool_specs,
-            planner_stage_toolsets,
-        );
+    let (stage_bindings, planner_stage_toolsets) = planner_selection_surfaces(
+        args.run_all_governed_tools,
+        &selected_stage_tools,
+        &tool_specs,
+        planner_stage_toolsets,
+    );
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(runtime_pipeline.clone()),
         stage_bindings,
         stage_toolsets: planner_stage_toolsets,
-        stages: legacy_stages,
-        tools: legacy_tools,
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
         polyx_bank: polyx_bank.clone(),
@@ -295,7 +292,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         r2: args.r2.clone(),
         reference_fasta: args.reference_fasta.clone(),
         out_dir: bench_tools_dir(&args.out, bench_dir_name, &args.sample_id),
-        tool_reasons: None,
         allow_planned: args.allow_planned,
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
@@ -757,11 +753,9 @@ fn planner_selection_surfaces(
 ) -> (
     Vec<bijux_dna_planner_fastq::FastqStageBinding>,
     Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding>,
-    Vec<String>,
-    Vec<bijux_dna_core::prelude::ToolExecutionSpecV1>,
 ) {
     if !planner_stage_toolsets.is_empty() {
-        return (Vec::new(), planner_stage_toolsets, Vec::new(), Vec::new());
+        return (Vec::new(), planner_stage_toolsets);
     }
 
     let stage_bindings = selected_stage_tools
@@ -777,10 +771,10 @@ fn planner_selection_surfaces(
         .collect::<Vec<_>>();
 
     if run_all_governed_tools {
-        return (stage_bindings, Vec::new(), Vec::new(), Vec::new());
+        return (stage_bindings, Vec::new());
     }
 
-    (stage_bindings, Vec::new(), Vec::new(), Vec::new())
+    (stage_bindings, Vec::new())
 }
 
 fn execute_preprocess_batch(
@@ -1105,13 +1099,11 @@ mod pipeline_run_tests {
             reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
         }];
         let tool_specs = vec![tool_spec("fastp")];
-        let (bindings, toolsets, legacy_stages, legacy_tools) =
+        let (bindings, toolsets) =
             planner_selection_surfaces(false, &selected, &tool_specs, Vec::new());
 
         assert_eq!(bindings.len(), 1);
         assert!(toolsets.is_empty());
-        assert!(legacy_stages.is_empty());
-        assert!(legacy_tools.is_empty());
     }
 
     #[test]
@@ -1124,12 +1116,10 @@ mod pipeline_run_tests {
             params: None,
         }];
 
-        let (bindings, planned_toolsets, legacy_stages, legacy_tools) =
+        let (bindings, planned_toolsets) =
             planner_selection_surfaces(false, &[], &[], toolsets);
 
         assert!(bindings.is_empty());
         assert_eq!(planned_toolsets.len(), 1);
-        assert!(legacy_stages.is_empty());
-        assert!(legacy_tools.is_empty());
     }
 }

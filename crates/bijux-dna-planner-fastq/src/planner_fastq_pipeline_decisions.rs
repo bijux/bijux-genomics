@@ -40,8 +40,6 @@ pub struct FastqPlanConfig {
     pub pipeline_spec: Option<PipelineSpec>,
     pub stage_bindings: Vec<FastqStageBinding>,
     pub stage_toolsets: Vec<FastqStageToolsetBinding>,
-    pub stages: Vec<String>,
-    pub tools: Vec<ToolExecutionSpecV1>,
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
     pub adapter_bank: Option<serde_json::Value>,
     pub polyx_bank: Option<serde_json::Value>,
@@ -51,7 +49,6 @@ pub struct FastqPlanConfig {
     pub r2: Option<PathBuf>,
     pub reference_fasta: Option<PathBuf>,
     pub out_dir: PathBuf,
-    pub tool_reasons: Option<Vec<PlanDecisionReason>>,
     pub allow_planned: bool,
 }
 
@@ -166,16 +163,16 @@ impl FastqPlanner {
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
         let (pipeline_spec, stage_bindings) = normalize_stage_bindings(config)?;
-        validate_select_stage_nodes(pipeline_spec.as_ref(), &stage_bindings)?;
-        validate_reference_index_bindings(&stage_bindings, pipeline_spec.as_ref())?;
+        validate_select_stage_nodes(&pipeline_spec, &stage_bindings)?;
+        validate_reference_index_bindings(&stage_bindings, &pipeline_spec)?;
         for binding in &stage_bindings {
             enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
         let out_dir = config.out_dir.clone();
-        let explicit_stage_inputs = stage_artifact_input_policy(pipeline_spec.as_ref());
+        let explicit_stage_inputs = stage_artifact_input_policy(&pipeline_spec);
         let synthetic_stage_artifacts =
-            synthetic_stage_artifact_policy(pipeline_spec.as_ref(), &config.out_dir)?;
-        let stage_dependencies = stage_dependency_policy(pipeline_spec.as_ref());
+            synthetic_stage_artifact_policy(&pipeline_spec, &config.out_dir)?;
+        let stage_dependencies = stage_dependency_policy(&pipeline_spec);
         let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
             &stage_bindings,
             &config.aux_images,
@@ -205,12 +202,9 @@ impl FastqPlanner {
         let (compare_steps, compare_edges) =
             benchmark_compare_steps_for_toolsets(config, &plans)?;
         let (select_steps, select_edges, synthetic_step_nodes) =
-            benchmark_select_steps_for_pipeline(config, pipeline_spec.as_ref(), &plans)?;
-        let mut edges = execution_edges_for_stage_plans(
-            pipeline_spec.as_ref(),
-            &plans,
-            &synthetic_step_nodes,
-        )?;
+            benchmark_select_steps_for_pipeline(config, &pipeline_spec, &plans)?;
+        let mut edges =
+            execution_edges_for_stage_plans(&pipeline_spec, &plans, &synthetic_step_nodes)?;
         steps.extend(compare_steps);
         edges.extend(compare_edges);
         steps.extend(select_steps);
@@ -630,16 +624,16 @@ fn benchmark_compare_steps_for_toolsets(
 
 fn benchmark_select_steps_for_pipeline(
     config: &FastqPlanConfig,
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
     plans: &[StagePlanV1],
 ) -> Result<(
     Vec<ExecutionStep>,
     Vec<ExecutionEdge>,
     std::collections::BTreeMap<String, StepId>,
 )> {
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+    if !pipeline_spec.declares_graph_topology() {
         return Ok((Vec::new(), Vec::new(), std::collections::BTreeMap::new()));
-    };
+    }
 
     let plan_by_node_id = plans
         .iter()
@@ -849,12 +843,12 @@ fn step_id_for_plan(plan: &StagePlanV1) -> StepId {
 }
 
 fn validate_select_stage_nodes(
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
     stage_bindings: &[FastqStageBinding],
 ) -> Result<()> {
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+    if !pipeline_spec.declares_graph_topology() {
         return Ok(());
-    };
+    }
     let binding_by_node_id = stage_bindings
         .iter()
         .map(|binding| (binding_node_id(binding), binding))
@@ -934,13 +928,13 @@ fn planner_owned_graph_stage(stage_id: &str) -> bool {
 }
 
 fn synthetic_stage_artifact_policy(
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
     root_out_dir: &std::path::Path,
 ) -> Result<crate::plan_compose::SyntheticStageArtifactPolicy> {
     let mut artifacts = crate::plan_compose::SyntheticStageArtifactPolicy::new();
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+    if !pipeline_spec.declares_graph_topology() {
         return Ok(artifacts);
-    };
+    }
     for node in pipeline_spec
         .ordered_nodes()
         .into_iter()
@@ -975,25 +969,25 @@ fn synthetic_stage_artifact_policy(
 
 fn normalize_stage_bindings(
     config: &FastqPlanConfig,
-) -> Result<(Option<PipelineSpec>, Vec<FastqStageBinding>)> {
+) -> Result<(PipelineSpec, Vec<FastqStageBinding>)> {
     if !config.stage_bindings.is_empty() {
-        if !config.stage_toolsets.is_empty()
-            || !config.stages.is_empty()
-            || !config.tools.is_empty()
-            || config.tool_reasons.is_some()
-        {
+        if !config.stage_toolsets.is_empty() {
             return Err(anyhow!(
-                "FastqPlanConfig must use exactly one planning surface: stage_bindings, stage_toolsets, or legacy stages/tools"
+                "FastqPlanConfig must use exactly one graph planning surface: stage_bindings or stage_toolsets"
             ));
         }
         ensure_unique_stage_binding_nodes(&config.stage_bindings)?;
-        return Ok((config.pipeline_spec.clone(), config.stage_bindings.clone()));
+        let pipeline_spec = config
+            .pipeline_spec
+            .clone()
+            .unwrap_or_else(|| linear_pipeline_spec_from_bindings(&config.stage_bindings));
+        return Ok((pipeline_spec, config.stage_bindings.clone()));
     }
 
     if !config.stage_toolsets.is_empty() {
-        if !config.stages.is_empty() || !config.tools.is_empty() || config.tool_reasons.is_some() {
+        if !config.stage_bindings.is_empty() {
             return Err(anyhow!(
-                "FastqPlanConfig must use exactly one planning surface: stage_bindings, stage_toolsets, or legacy stages/tools"
+                "FastqPlanConfig must use exactly one graph planning surface: stage_bindings or stage_toolsets"
             ));
         }
         let base_pipeline = config
@@ -1063,44 +1057,38 @@ fn normalize_stage_bindings(
             })
             .collect::<Result<Vec<_>>>()?;
         ensure_unique_stage_binding_nodes(&stage_bindings)?;
-        return Ok((Some(expanded_pipeline), stage_bindings));
+        return Ok((expanded_pipeline, stage_bindings));
     }
 
-    if config.stages.len() != config.tools.len() {
-        return Err(anyhow!(
-            "pipeline stages/tools length mismatch: {} vs {}",
-            config.stages.len(),
-            config.tools.len()
-        ));
-    }
-    if let Some(reasons) = config.tool_reasons.as_ref() {
-        if reasons.len() != config.stages.len() {
-            return Err(anyhow!(
-                "pipeline stages/tool_reasons length mismatch: {} vs {}",
-                config.stages.len(),
-                reasons.len()
-            ));
-        }
-    }
+    Err(anyhow!(
+        "FastqPlanConfig requires a graph-backed planning surface via stage_bindings or stage_toolsets"
+    ))
+}
 
-    let bindings = config
-        .stages
+fn linear_pipeline_spec_from_bindings(bindings: &[FastqStageBinding]) -> PipelineSpec {
+    let nodes = bindings
         .iter()
-        .zip(config.tools.iter())
-        .enumerate()
-        .map(|(idx, (stage_id, tool))| FastqStageBinding {
-            stage_id: stage_id.clone(),
-            stage_instance_id: None,
-            tool: tool.clone(),
-            reason: config
-                .tool_reasons
-                .as_ref()
-                .and_then(|reasons| reasons.get(idx).cloned()),
-            params: None,
+        .map(|binding| PipelineNodeSpec {
+            stage_id: binding.stage_id.clone(),
+            stage_instance_id: binding.stage_instance_id.clone(),
         })
         .collect::<Vec<_>>();
-    ensure_unique_stage_binding_nodes(&bindings)?;
-    Ok((config.pipeline_spec.clone(), bindings))
+    let edges = nodes
+        .windows(2)
+        .map(|window| PipelineEdgeSpec {
+            from: PipelineSpec::stage_node_id(
+                &window[0].stage_id,
+                window[0].stage_instance_id.as_deref(),
+            ),
+            to: PipelineSpec::stage_node_id(
+                &window[1].stage_id,
+                window[1].stage_instance_id.as_deref(),
+            ),
+            from_output_id: None,
+            to_input_id: None,
+        })
+        .collect::<Vec<_>>();
+    PipelineSpec::graph(nodes, edges)
 }
 
 fn linear_pipeline_spec_from_toolsets(toolsets: &[FastqStageToolsetBinding]) -> PipelineSpec {
@@ -1154,7 +1142,7 @@ fn source_toolset_for_expanded_selection<'a>(
 
 fn validate_reference_index_bindings(
     bindings: &[FastqStageBinding],
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
 ) -> Result<()> {
     let explicit_stage_inputs = stage_artifact_input_policy(pipeline_spec);
     let binding_by_node_id = bindings
@@ -1226,12 +1214,12 @@ fn binding_node_id(binding: &FastqStageBinding) -> String {
 }
 
 fn stage_dependency_policy(
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
 ) -> std::collections::BTreeMap<String, Vec<String>> {
     let mut dependencies = std::collections::BTreeMap::<String, Vec<String>>::new();
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+    if !pipeline_spec.declares_graph_topology() {
         return dependencies;
-    };
+    }
     for node in pipeline_spec.ordered_nodes() {
         let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
         dependencies.entry(node_id).or_default();
@@ -1287,22 +1275,10 @@ fn dependency_reference_index_binding<'a>(
 }
 
 fn execution_edges_for_stage_plans(
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
     plans: &[StagePlanV1],
     synthetic_step_nodes: &std::collections::BTreeMap<String, StepId>,
 ) -> Result<Vec<ExecutionEdge>> {
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
-        return Ok(default_edges_for_stages(plans)
-            .into_iter()
-            .map(|edge| {
-                ExecutionEdge::new(
-                    StepId::new(edge.from().to_string()),
-                    StepId::new(edge.to().to_string()),
-                )
-            })
-            .collect());
-    };
-
     let mut plan_nodes = std::collections::BTreeMap::new();
     let mut stage_counts = std::collections::BTreeMap::new();
     for plan in plans {
@@ -1345,12 +1321,12 @@ fn execution_edges_for_stage_plans(
 }
 
 fn stage_artifact_input_policy(
-    pipeline_spec: Option<&PipelineSpec>,
+    pipeline_spec: &PipelineSpec,
 ) -> crate::plan_compose::StageArtifactInputPolicy {
     let mut policies = crate::plan_compose::StageArtifactInputPolicy::new();
-    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+    if !pipeline_spec.declares_graph_topology() {
         return policies;
-    };
+    }
     for edge in &pipeline_spec.edges {
         let (Some(from_output_id), Some(to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
         else {
@@ -1517,8 +1493,6 @@ pub fn plan_fastq_to_fastq__default__v1(
         pipeline_spec: Some(pipeline.clone()),
         stage_bindings,
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: inputs.aux_images.clone(),
         adapter_bank: inputs.adapter_bank.clone(),
         polyx_bank: inputs.polyx_bank.clone(),
@@ -1528,7 +1502,6 @@ pub fn plan_fastq_to_fastq__default__v1(
         r2: inputs.r2.clone(),
         reference_fasta: inputs.reference_fasta.clone(),
         out_dir: inputs.out_dir.clone(),
-        tool_reasons: inputs.tool_reasons.clone(),
         allow_planned: false,
     };
     FastqPlanner::plan(&config)

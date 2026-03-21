@@ -439,39 +439,63 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__host_depletion__v1".to_string(),
         policy: bijux_dna_core::contract::PlanPolicy::default(),
-        pipeline_spec: None,
-        stage_bindings: Vec::new(),
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: None,
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.deplete_host".to_string(),
+                    stage_instance_id: None,
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.index_reference".to_string(),
+                to: "fastq.deplete_host".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: None,
+                tool: ToolExecutionSpecV1 {
+                    tool_id: ToolId::from_static("star"),
+                    tool_version: "test".to_string(),
+                    image: bijux_dna_core::prelude::ContainerImageRefV1 {
+                        image: "bijux/test".to_string(),
+                        digest: None,
+                    },
+                    command: bijux_dna_core::prelude::CommandSpecV1 {
+                        template: vec!["star".to_string()],
+                    },
+                    resources: bijux_dna_core::contract::ToolConstraints::default(),
+                },
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.deplete_host".to_string(),
+                stage_instance_id: None,
+                tool: ToolExecutionSpecV1 {
+                    tool_id: ToolId::from_static("bowtie2"),
+                    tool_version: "test".to_string(),
+                    image: bijux_dna_core::prelude::ContainerImageRefV1 {
+                        image: "bijux/test".to_string(),
+                        digest: None,
+                    },
+                    command: bijux_dna_core::prelude::CommandSpecV1 {
+                        template: vec!["bowtie2".to_string()],
+                    },
+                    resources: bijux_dna_core::contract::ToolConstraints::default(),
+                },
+                reason: None,
+                params: None,
+            },
+        ],
         stage_toolsets: Vec::new(),
-        stages: vec![
-            "fastq.index_reference".to_string(),
-            "fastq.deplete_host".to_string(),
-        ],
-        tools: vec![
-            ToolExecutionSpecV1 {
-                tool_id: ToolId::from_static("star"),
-                tool_version: "test".to_string(),
-                image: bijux_dna_core::prelude::ContainerImageRefV1 {
-                    image: "bijux/test".to_string(),
-                    digest: None,
-                },
-                command: bijux_dna_core::prelude::CommandSpecV1 {
-                    template: vec!["star".to_string()],
-                },
-                resources: bijux_dna_core::contract::ToolConstraints::default(),
-            },
-            ToolExecutionSpecV1 {
-                tool_id: ToolId::from_static("bowtie2"),
-                tool_version: "test".to_string(),
-                image: bijux_dna_core::prelude::ContainerImageRefV1 {
-                    image: "bijux/test".to_string(),
-                    digest: None,
-                },
-                command: bijux_dna_core::prelude::CommandSpecV1 {
-                    template: vec!["bowtie2".to_string()],
-                },
-                resources: bijux_dna_core::contract::ToolConstraints::default(),
-            },
-        ],
         aux_images: std::collections::BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -481,7 +505,6 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
         r2: None,
         reference_fasta: Some(std::path::PathBuf::from("reference.fa")),
         out_dir: std::path::PathBuf::from("out"),
-        tool_reasons: None,
         allow_planned: false,
     })
     .expect_err("incompatible reference backends should fail before stage composition");
