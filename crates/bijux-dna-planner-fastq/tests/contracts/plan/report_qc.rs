@@ -311,6 +311,7 @@ fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::R
                     params: None,
                 },
             ],
+            stage_toolsets: Vec::new(),
             stages: Vec::new(),
             tools: Vec::new(),
             aux_images: BTreeMap::new(),

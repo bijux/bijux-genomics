@@ -88,6 +88,7 @@ fn fastq_plan_snapshot() {
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: None,
         stage_bindings: Vec::new(),
+        stage_toolsets: Vec::new(),
         stages: vec![
             "fastq.validate_reads".to_string(),
             "fastq.trim_reads".to_string(),
