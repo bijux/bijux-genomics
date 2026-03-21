@@ -30,11 +30,12 @@ Shared axes are modeled explicitly:
 `LeeHomTrimParamsV1` also captures overlap-specific controls for ancient-DNA style merge/collapse behavior.
 
 ## Stage Param Types
-FASTQ stage definitions use stage-specific parameter structs instead of a single validate model:
+FASTQ planning still uses stage-specific effective parameter structs internally, even when a
+governed stage manifest does not expose public stage-level knobs. The manifest remains the SSOT for
+user-settable stage parameters.
 
 | Stage ID | Param Type | Meaning |
 | --- | --- | --- |
-| `fastq.validate_reads` | `ValidateEffectiveParams` | input FASTQ structural validation controls |
 | `fastq.profile_reads` | `FastqStatsParams` | neutral read statistics collection controls |
 | `fastq.correct_errors` | `FastqCorrectParams` | error-correction controls for the currently governed paired-end engine surface |
 | `fastq.extract_umis` | `FastqUmiParams` | UMI extraction/normalization controls |
@@ -47,4 +48,6 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | `fastq.deplete_reference_contaminants` | `ReferenceContaminantEffectiveParams` | reference-contaminant depletion controls |
 | `fastq.deplete_rrna` | `RrnaEffectiveParams` | rRNA screen controls, including database identity and report shape |
 | `fastq.screen_taxonomy` | `ScreenEffectiveParams` | contaminant taxonomy screen controls, including database identity and confidence policy |
-| `fastq.report_qc` | `QcPostEffectiveParams` | post-processing QC report controls |
+| `fastq.validate_reads` | `ValidateEffectiveParams` | internal validation policy defaults for governed execution and lineage retention |
+| `fastq.remove_duplicates` | `RemoveDuplicatesEffectiveParams` | internal dedup defaults for the governed exact/stable-order runtime |
+| `fastq.report_qc` | `QcPostEffectiveParams` | internal QC aggregation defaults for the governed MultiQC runtime |

@@ -1,6 +1,6 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
-use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::pipeline_contract;
 use bijux_dna_pipelines::fastq::{
     fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
@@ -111,7 +111,7 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
     else {
         panic!("missing terminal damage params");
     };
-    assert_eq!(trim_terminal_damage.damage_mode, "ancient");
+    assert_eq!(trim_terminal_damage.damage_mode, DamageMode::Ancient);
 }
 
 #[test]

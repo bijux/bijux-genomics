@@ -130,8 +130,8 @@ schema_version = "bijux.fastq.params.trim_polyg_tails.v1"
 
 [[entries]]
 stage_id = "fastq.remove_duplicates"
-param_type_id = "fastq.remove_duplicates"
-schema_version = "bijux.fastq.params.remove_duplicates.v1"
+param_type_id = "paramless"
+schema_version = "none"
 
 [[entries]]
 stage_id = "fastq.index_reference"
@@ -140,8 +140,8 @@ schema_version = "bijux.fastq.params.index_reference.v1"
 
 [[entries]]
 stage_id = "fastq.report_qc"
-param_type_id = "fastq.report_qc"
-schema_version = "bijux.fastq.params.report_qc.v1"
+param_type_id = "paramless"
+schema_version = "none"
 
 [[entries]]
 stage_id = "fastq.deplete_rrna"
@@ -175,8 +175,8 @@ schema_version = "bijux.fastq.params.umi.v1"
 
 [[entries]]
 stage_id = "fastq.validate_reads"
-param_type_id = "fastq.validate_reads"
-schema_version = "bijux.fastq.params.validate_reads.v1"
+param_type_id = "paramless"
+schema_version = "none"
 
 [[entries]]
 stage_id = "fastq.normalize_primers"
