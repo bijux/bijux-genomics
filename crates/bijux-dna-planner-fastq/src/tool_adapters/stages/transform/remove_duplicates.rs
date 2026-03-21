@@ -103,6 +103,8 @@ pub fn plan_deduplicate_with_options(
     };
     let output_r2 = r2.map(|_| out_dir.join(format!("{}.dedup.R2.fastq.gz", tool.tool_id)));
     let report = out_dir.join("deduplicate_report.json");
+    let duplicate_classes_tsv = out_dir.join("duplicate_classes.tsv");
+    let duplicate_provenance_json = out_dir.join("duplicate_provenance.json");
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -127,6 +129,16 @@ pub fn plan_deduplicate_with_options(
             ArtifactRole::Reads,
         ));
     }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("duplicate_classes_tsv"),
+        duplicate_classes_tsv.clone(),
+        ArtifactRole::SummaryTsv,
+    ));
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("duplicate_provenance_json"),
+        duplicate_provenance_json.clone(),
+        ArtifactRole::SummaryJson,
+    ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
         report.clone(),
@@ -155,6 +167,8 @@ pub fn plan_deduplicate_with_options(
                 r2,
                 &output_r1,
                 output_r2.as_deref(),
+                &duplicate_classes_tsv,
+                &duplicate_provenance_json,
                 &report,
                 out_dir,
                 options,
@@ -169,6 +183,8 @@ pub fn plan_deduplicate_with_options(
             "input_r2": r2,
             "output_r1": output_r1,
             "output_r2": output_r2,
+            "duplicate_classes_tsv": duplicate_classes_tsv,
+            "duplicate_provenance_json": duplicate_provenance_json,
             "report_json": report,
             "dedup_mode": options.dedup_mode,
             "keep_order": options.keep_order,
@@ -186,6 +202,8 @@ fn deduplicate_command(
     r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    duplicate_classes_tsv: &Path,
+    duplicate_provenance_json: &Path,
     report: &Path,
     out_dir: &Path,
     options: &RemoveDuplicatesPlanOptions,
@@ -259,6 +277,31 @@ fn deduplicate_command(
     script.push_str(
         "duplicates_removed=$((reads_in - reads_out))\nif [ \"$reads_in\" -gt 0 ]; then dedup_rate=$(awk -v removed=\"$duplicates_removed\" -v total=\"$reads_in\" 'BEGIN { printf \"%.12f\", removed / total }'); else dedup_rate=0; fi\n",
     );
+    script.push_str(&format!(
+        "printf 'class\\treads_removed\\tpaired_mode\\n' > {}\nprintf 'duplicate\\t%s\\t%s\\n' \"$duplicates_removed\" {} >> {}\n",
+        shell_quote_path(duplicate_classes_tsv),
+        shell_quote_str(if r2.is_some() { "paired_end" } else { "single_end" }),
+        shell_quote_path(duplicate_classes_tsv),
+    ));
+    let provenance_format = format!(
+        "{{\"schema_version\":\"bijux.fastq.remove_duplicates.provenance.v1\",\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"dedup_mode\":{},\"keep_order\":{},\"duplicates_removed\":%s,\"dedup_rate\":%s,\"backend_log\":%s,\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s}}",
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(tool_id)?,
+        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
+        serde_json::to_string(&options.dedup_mode)
+            .map_err(|error| anyhow!("serialize dedup_mode for provenance: {error}"))?,
+        if options.keep_order { "true" } else { "false" },
+    );
+    script.push_str(&format!(
+        "printf '{}' \"$duplicates_removed\" \"$dedup_rate\" {} {} {} {} {} > {}\n",
+        escape_printf_format(&provenance_format),
+        shell_quote_str(&json_path_token(&backend_log)?),
+        shell_quote_str(&json_path_token(r1)?),
+        shell_quote_str(&json_optional_path_token(r2)?),
+        shell_quote_str(&json_path_token(output_r1)?),
+        shell_quote_str(&json_optional_path_token(output_r2)?),
+        shell_quote_path(duplicate_provenance_json),
+    ));
     let report_format = format!(
         "{{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"dedup_mode\":{},\"keep_order\":{},\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"backend_log\":%s,\"reads_in\":%s,\"reads_out\":%s,\"reads_in_r2\":%s,\"reads_out_r2\":%s,\"pairs_in\":%s,\"pairs_out\":%s,\"pair_count_match\":%s,\"duplicates_removed\":%s,\"dedup_rate\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
@@ -460,6 +503,8 @@ mod tests {
         assert!(script.contains("clumpify.sh"));
         assert!(script.contains("clumpify.log"));
         assert!(script.contains("\"tool_id\":\"clumpify\""));
+        assert!(script.contains("duplicate_classes.tsv"));
+        assert!(script.contains("duplicate_provenance.json"));
         assert!(!script.contains("{{paired_io_args}}"));
     }
 
@@ -496,5 +541,25 @@ mod tests {
 
         assert!(plan.command.template[2].contains("reorder=f"));
         assert_eq!(plan.effective_params["keep_order"], serde_json::json!(false));
+    }
+
+    #[test]
+    fn plan_deduplicate_emits_duplicate_provenance_outputs() {
+        let plan = plan_deduplicate(
+            &dummy_tool("clumpify"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+        )
+        .expect("deduplicate planner should emit provenance artifacts");
+
+        let output_ids = plan
+            .io
+            .outputs
+            .iter()
+            .map(|artifact| artifact.name.as_str().to_string())
+            .collect::<Vec<_>>();
+        assert!(output_ids.contains(&"duplicate_classes_tsv".to_string()));
+        assert!(output_ids.contains(&"duplicate_provenance_json".to_string()));
     }
 }

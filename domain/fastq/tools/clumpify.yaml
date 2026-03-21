@@ -19,6 +19,12 @@ outputs:
   - name: "dedup_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "duplicate_classes_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "duplicate_provenance_json"
+    data_type: "json"
+    cardinality: "One"
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
@@ -35,6 +41,8 @@ execution_contract:
     - "reads_r2"
   expected_outputs:
     - "dedup_reads_r1"
+    - "duplicate_classes_tsv"
+    - "duplicate_provenance_json"
     - "report_json"
   optional_outputs:
     - "dedup_reads_r2"
@@ -55,9 +63,11 @@ stage_contracts:
     expected_artifacts:
       - "dedup_reads_r1"
       - "dedup_reads_r2"
+      - "duplicate_classes_tsv"
+      - "duplicate_provenance_json"
       - "report_json"
     notes: "Clumpify duplicate removal admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits dedup_reads_r2 only when paired input is present."
-expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "clumpify.sh --version"
