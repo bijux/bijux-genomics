@@ -1211,6 +1211,7 @@ stage_output_size_estimates_mb:
     trimmed_reads_r1: 1800.0
     report_json: 4.0
   fastq.validate_reads:
+    validated_reads_manifest: 1.0
     validation_report: 5.0
 stage_sanity_metrics:
   fastq.cluster_otus:
