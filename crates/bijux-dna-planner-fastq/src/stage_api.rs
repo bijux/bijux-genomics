@@ -95,40 +95,16 @@ pub enum StageToolMaturityLevel {
 
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
-    let binding = stage_tool_binding(stage_id, tool_id)?;
-    let support = bijux_dna_domain_fastq::execution_support_for_stage(stage_id);
-    let execution_status = support.as_ref().map(|record| record.execution_status);
-    let admitted = support
-        .as_ref()
-        .map(|record| {
-            record
-                .admitted_tools
-                .iter()
-                .any(|candidate| candidate == tool_id)
-        })
-        .unwrap_or(false);
+    let governance = bijux_dna_domain_fastq::stage_tool_governance_profile(stage_id, tool_id)?;
     let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
         .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
-    let benchmark_scenarios = benchmark_scenarios_for_stage(stage_id)
-        .into_iter()
-        .map(|scenario| scenario.scenario_id)
-        .collect::<Vec<_>>();
     let declared = true;
-    let plannable = support
-        .as_ref()
-        .map(|record| record.is_plannable())
-        .unwrap_or(false)
-        && binding.integration_level == ToolIntegrationLevel::GovernedContract;
-    let runnable = support
-        .as_ref()
-        .map(|record| record.is_runnable())
-        .unwrap_or(false)
-        && binding.integration_level == ToolIntegrationLevel::GovernedContract
-        && admitted;
+    let plannable = governance.is_plannable();
+    let runnable = governance.is_runnable();
     let parse_normalized = runnable
-        && support
-            .as_ref()
-            .map(|record| match record.normalization_support {
+        && governance
+            .normalization_support
+            .map(|support| match support {
                 bijux_dna_domain_fastq::execution_support::NormalizationSupport::None => false,
                 bijux_dna_domain_fastq::execution_support::NormalizationSupport::GenericEnvelope => {
                     true
@@ -141,25 +117,39 @@ pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<Sta
             .unwrap_or(false);
     let benchmark_normalized = parse_normalized
         && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-        && support
-            .as_ref()
-            .map(|record| record.supports_benchmark_cohorts())
-            .unwrap_or(false)
-        && !benchmark_scenarios.is_empty();
+        && governance.has_governed_benchmark_contract()
+        && governance
+            .benchmark_support
+            .map(|support| {
+                matches!(
+                    support,
+                    bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Cohort
+                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Comparable
+                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Mixed
+                )
+            })
+            .unwrap_or(false);
     let comparable = parse_normalized
-        && support
-            .as_ref()
-            .map(|record| record.supports_comparable_benchmarks())
+        && governance.has_governed_benchmark_contract()
+        && governance
+            .benchmark_support
+            .map(|support| {
+                matches!(
+                    support,
+                    bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Comparable
+                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Mixed
+                )
+            })
             .unwrap_or(false)
         && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized;
 
     Some(StageToolCapability {
-        stage_id: stage_id.clone(),
-        tool_id: tool_id.clone(),
-        integration_level: binding.integration_level,
-        execution_status,
+        stage_id: governance.stage_id,
+        tool_id: governance.tool_id,
+        integration_level: governance.integration_level,
+        execution_status: governance.execution_status,
         runtime_interpretation,
-        benchmark_scenarios,
+        benchmark_scenarios: governance.benchmark_scenario_ids,
         declared,
         plannable,
         runnable,

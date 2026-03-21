@@ -25,6 +25,7 @@ pub mod run;
 pub mod stage_contract;
 pub mod stage_semantics;
 pub mod stage_specs;
+mod stage_tool_governance;
 pub mod stages;
 pub mod types;
 
@@ -114,6 +115,10 @@ pub use stages::{
     stage_metric_invariants, stage_output_ids, stage_parameter_ids, stage_semantics,
     BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics,
     STAGE_BOUNDARY_INVARIANTS,
+};
+pub use stage_tool_governance::{
+    stage_tool_governance_profile, stage_tool_governance_profiles_for_stage,
+    StageToolGovernanceProfile,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
