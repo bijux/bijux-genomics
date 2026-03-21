@@ -56,59 +56,6 @@ struct PlannedStageLineage {
     qc_inputs: Vec<ArtifactRef>,
 }
 
-#[allow(dead_code, clippy::too_many_arguments, clippy::too_many_lines)]
-pub fn compose_fastq_pipeline_steps<F>(
-    stages: &[String],
-    tools: &[ToolExecutionSpecV1],
-    aux_images: &BTreeMap<String, ContainerImageRefV1>,
-    tool_reasons: Option<&[PlanDecisionReason]>,
-    adapter_bank: Option<&serde_json::Value>,
-    polyx_bank: Option<&serde_json::Value>,
-    contaminant_bank: Option<&serde_json::Value>,
-    enable_contaminant_removal: bool,
-    r1: &std::path::Path,
-    r2: Option<&std::path::Path>,
-    reference_fasta: Option<&std::path::Path>,
-    explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
-    mut out_dir_for_stage: F,
-) -> Result<Vec<StagePlanV1>>
-where
-    F: FnMut(
-        &str,
-        &ToolExecutionSpecV1,
-        &std::path::Path,
-        Option<&std::path::Path>,
-    ) -> Result<PathBuf>,
-{
-    let stage_bindings = stages
-        .iter()
-        .zip(tools.iter())
-        .enumerate()
-        .map(|(idx, (stage_id, tool))| FastqStageBinding {
-            stage_id: stage_id.clone(),
-            stage_instance_id: None,
-            tool: tool.clone(),
-            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
-            params: None,
-        })
-        .collect::<Vec<_>>();
-    compose_fastq_stage_bindings(
-        &stage_bindings,
-        aux_images,
-        adapter_bank,
-        polyx_bank,
-        contaminant_bank,
-        enable_contaminant_removal,
-        r1,
-        r2,
-        reference_fasta,
-        explicit_stage_inputs,
-        |binding, current_r1, current_r2| {
-            out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
-        },
-    )
-}
-
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_stage_bindings<F>(
     stage_bindings: &[FastqStageBinding],

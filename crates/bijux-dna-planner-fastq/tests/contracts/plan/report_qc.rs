@@ -8,6 +8,7 @@ use bijux_dna_core::prelude::{
     ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
+use bijux_dna_planner_fastq::{compose_fastq_stage_bindings, FastqStageBinding};
 use bijux_dna_stage_contract::PlanDecisionReason;
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -27,6 +28,16 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
             tmp_gb: 1,
             threads: 1,
         },
+    }
+}
+
+fn binding(stage_id: &str, tool_id: &str) -> FastqStageBinding {
+    FastqStageBinding {
+        stage_id: stage_id.to_string(),
+        stage_instance_id: None,
+        tool: tool(tool_id),
+        reason: Some(PlanDecisionReason::default()),
+        params: None,
     }
 }
 
@@ -87,19 +98,13 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
 
 #[test]
 fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
-    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+    let plans = compose_fastq_stage_bindings(
         &[
-            "fastq.detect_adapters".to_string(),
-            "fastq.profile_reads".to_string(),
-            "fastq.report_qc".to_string(),
+            binding("fastq.detect_adapters", "fastqc"),
+            binding("fastq.profile_reads", "seqkit_stats"),
+            binding("fastq.report_qc", "multiqc"),
         ],
-        &[tool("fastqc"), tool("seqkit_stats"), tool("multiqc")],
         &BTreeMap::new(),
-        Some(&[
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-        ]),
         None,
         None,
         None,
@@ -108,7 +113,11 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            Path::new("out")
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
 
     let report_plan = plans
@@ -137,11 +146,9 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
 
 #[test]
 fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
-    let error = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
-        &["fastq.report_qc".to_string()],
-        &[tool("multiqc")],
+    let error = compose_fastq_stage_bindings(
+        &[binding("fastq.report_qc", "multiqc")],
         &BTreeMap::new(),
-        Some(&[PlanDecisionReason::default()]),
         None,
         None,
         None,
@@ -150,7 +157,11 @@ fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
         None,
         None,
         None,
-        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            Path::new("out")
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )
     .expect_err("report_qc should require governed QC artifacts");
 
@@ -161,19 +172,13 @@ fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
 
 #[test]
 fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()> {
-    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+    let plans = compose_fastq_stage_bindings(
         &[
-            "fastq.index_reference".to_string(),
-            "fastq.deplete_host".to_string(),
-            "fastq.report_qc".to_string(),
+            binding("fastq.index_reference", "bowtie2_build"),
+            binding("fastq.deplete_host", "bowtie2"),
+            binding("fastq.report_qc", "multiqc"),
         ],
-        &[tool("bowtie2_build"), tool("bowtie2"), tool("multiqc")],
         &BTreeMap::new(),
-        Some(&[
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-        ]),
         None,
         None,
         None,
@@ -182,7 +187,11 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         None,
         Some(Path::new("reference.fa")),
         None,
-        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            Path::new("out")
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
 
     let report_plan = plans
@@ -197,19 +206,13 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
 
 #[test]
 fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<()> {
-    let plans = bijux_dna_planner_fastq::compose_fastq_pipeline_steps(
+    let plans = compose_fastq_stage_bindings(
         &[
-            "fastq.profile_read_lengths".to_string(),
-            "fastq.filter_low_complexity".to_string(),
-            "fastq.report_qc".to_string(),
+            binding("fastq.profile_read_lengths", "seqkit"),
+            binding("fastq.filter_low_complexity", "prinseq"),
+            binding("fastq.report_qc", "multiqc"),
         ],
-        &[tool("seqkit"), tool("prinseq"), tool("multiqc")],
         &BTreeMap::new(),
-        Some(&[
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-            PlanDecisionReason::default(),
-        ]),
         None,
         None,
         None,
@@ -218,7 +221,11 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         None,
         None,
         None,
-        |stage_id, tool, _r1, _r2| Ok(Path::new("out").join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            Path::new("out")
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
 
     let report_plan = plans

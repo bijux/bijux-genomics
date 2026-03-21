@@ -276,11 +276,16 @@ impl FastqPlanner {
                     stage_id.as_str()
                 ));
             }
-            let stage_plans = compose_fastq_pipeline_steps(
-                &[config.stage_id.clone()],
-                std::slice::from_ref(tool),
+            let stage_bindings = [FastqStageBinding {
+                stage_id: config.stage_id.clone(),
+                stage_instance_id: None,
+                tool: tool.clone(),
+                reason: None,
+                params: None,
+            }];
+            let stage_plans = compose_fastq_stage_bindings(
+                &stage_bindings,
                 &config.aux_images,
-                None,
                 config.adapter_bank.as_ref(),
                 config.polyx_bank.as_ref(),
                 config.contaminant_bank.as_ref(),
@@ -289,9 +294,12 @@ impl FastqPlanner {
                 config.r2.as_deref(),
                 config.reference_fasta.as_deref(),
                 None,
-                |stage, tool, _r1, _r2| {
-                    let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
-                    Ok(config.out_dir.join(stage_dir).join(tool.tool_id.as_str()))
+                |binding, _r1, _r2| {
+                    let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
+                    Ok(config
+                        .out_dir
+                        .join(stage_dir)
+                        .join(binding.tool.tool_id.as_str()))
                 },
             )?;
             let Some(plan) = stage_plans.into_iter().next() else {
@@ -1685,75 +1693,6 @@ pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
         ],
         _ => Vec::new(),
     }
-}
-
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
-pub fn compose_fastq_pipeline_steps<F>(
-    stages: &[String],
-    tools: &[ToolExecutionSpecV1],
-    aux_images: &BTreeMap<String, ContainerImageRefV1>,
-    tool_reasons: Option<&[PlanDecisionReason]>,
-    adapter_bank: Option<&serde_json::Value>,
-    polyx_bank: Option<&serde_json::Value>,
-    contaminant_bank: Option<&serde_json::Value>,
-    enable_contaminant_removal: bool,
-    r1: &std::path::Path,
-    r2: Option<&std::path::Path>,
-    reference_fasta: Option<&std::path::Path>,
-    explicit_stage_inputs: Option<&crate::plan_compose::StageArtifactInputPolicy>,
-    mut out_dir_for_stage: F,
-) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
-where
-    F: FnMut(
-        &str,
-        &ToolExecutionSpecV1,
-        &std::path::Path,
-        Option<&std::path::Path>,
-    ) -> Result<PathBuf>,
-{
-    if stages.len() != tools.len() {
-        return Err(anyhow!(
-            "compose_fastq_pipeline_steps requires matching stage/tool lengths, got {} stages and {} tools",
-            stages.len(),
-            tools.len()
-        ));
-    }
-    if let Some(reasons) = tool_reasons {
-        if reasons.len() != stages.len() {
-            return Err(anyhow!(
-                "compose_fastq_pipeline_steps requires matching stage/tool reason lengths, got {} stages and {} reasons",
-                stages.len(),
-                reasons.len()
-            ));
-        }
-    }
-    let stage_bindings = stages
-        .iter()
-        .zip(tools.iter())
-        .enumerate()
-        .map(|(idx, (stage_id, tool))| FastqStageBinding {
-            stage_id: stage_id.clone(),
-            stage_instance_id: None,
-            tool: tool.clone(),
-            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
-            params: None,
-        })
-        .collect::<Vec<_>>();
-    compose_fastq_stage_bindings(
-        &stage_bindings,
-        aux_images,
-        adapter_bank,
-        polyx_bank,
-        contaminant_bank,
-        enable_contaminant_removal,
-        r1,
-        r2,
-        reference_fasta,
-        explicit_stage_inputs,
-        |binding, current_r1, current_r2| {
-            out_dir_for_stage(&binding.stage_id, &binding.tool, current_r1, current_r2)
-        },
-    )
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]

@@ -6,7 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
-    compose_fastq_pipeline_steps, default_pipeline_spec, DefaultPipelineOptions,
+    compose_fastq_stage_bindings, default_pipeline_spec, DefaultPipelineOptions,
+    FastqStageBinding,
 };
 use bijux_dna_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanValidationContext};
 
@@ -33,23 +34,31 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+fn binding_for_stage(stage: &str) -> FastqStageBinding {
+    FastqStageBinding {
+        stage_id: stage.to_string(),
+        stage_instance_id: None,
+        tool: tool_for_stage(stage),
+        reason: None,
+        params: None,
+    }
+}
+
 #[test]
 fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
     let stages = pipeline.ordered_stage_ids();
-    let tools = stages
+    let bindings = stages
         .iter()
-        .map(|stage| tool_for_stage(stage))
+        .map(|stage| binding_for_stage(stage))
         .collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-plan-handshake")?;
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
 
-    let plans = compose_fastq_pipeline_steps(
-        &stages,
-        &tools,
+    let plans = compose_fastq_stage_bindings(
+        &bindings,
         &BTreeMap::new(),
-        None,
         None,
         None,
         None,
@@ -58,7 +67,11 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            temp.path()
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
     let edges = default_edges_for_stages(&plans);
     let plan = ExecutionPlan::new(
@@ -69,9 +82,9 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         edges,
     )?;
     let allowed_id_catalog = stages.into_iter().collect::<HashSet<_>>();
-    let allowed_tool_ids = tools
+    let allowed_tool_ids = bindings
         .into_iter()
-        .map(|tool| tool.tool_id.to_string())
+        .map(|binding| binding.tool.tool_id.to_string())
         .collect::<HashSet<_>>();
     let context = PlanValidationContext {
         allowed_id_catalog: Some(&allowed_id_catalog),
@@ -87,9 +100,9 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
         "fastq.index_reference".to_string(),
         "fastq.deplete_host".to_string(),
     ];
-    let tools = stages
+    let bindings = stages
         .iter()
-        .map(|stage| tool_for_stage(stage))
+        .map(|stage| binding_for_stage(stage))
         .collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-plan-reference-handshake")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -97,11 +110,9 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
     std::fs::write(&reference, b">chr1\nA\n")?;
 
-    let plans = compose_fastq_pipeline_steps(
-        &stages,
-        &tools,
+    let plans = compose_fastq_stage_bindings(
+        &bindings,
         &BTreeMap::new(),
-        None,
         None,
         None,
         None,
@@ -110,7 +121,11 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
         None,
         Some(&reference),
         None,
-        |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            temp.path()
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )?;
 
     assert_eq!(plans[0].stage_id.as_str(), "fastq.index_reference");
@@ -120,59 +135,38 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
 }
 
 #[test]
-fn compose_fastq_pipeline_steps_rejects_mismatched_stage_and_tool_counts() {
-    let error = compose_fastq_pipeline_steps(
-        &[
-            "fastq.validate_reads".to_string(),
-            "fastq.trim_reads".to_string(),
-        ],
-        &[tool_for_stage("fastq.validate_reads")],
-        &BTreeMap::new(),
-        None,
-        None,
-        None,
-        None,
-        false,
-        std::path::Path::new("reads_R1.fastq"),
-        None,
-        None,
-        None,
-        |stage_id, tool, _r1, _r2| {
-            Ok(std::path::PathBuf::from(stage_id).join(tool.tool_id.as_str()))
-        },
-    )
-    .expect_err("mismatched stage/tool lists must fail loudly");
-
-    assert!(error
-        .to_string()
-        .contains("matching stage/tool lengths"));
-}
-
-#[test]
 fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<()> {
-    let stages = vec![
-        "fastq.index_reference".to_string(),
-        "fastq.deplete_host".to_string(),
-    ];
-    let tools = vec![
-        ToolExecutionSpecV1 {
-            tool_id: ToolId::new("star"),
-            tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/dummy:latest".to_string(),
-                digest: None,
+    let bindings = vec![
+        FastqStageBinding {
+            stage_id: "fastq.index_reference".to_string(),
+            stage_instance_id: None,
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("star"),
+                tool_version: "99.99.99+fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/dummy:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["echo".to_string(), "fastq.index_reference".to_string()],
+                },
+                resources: ToolConstraints {
+                    runtime: "docker".to_string(),
+                    mem_gb: 1,
+                    tmp_gb: 1,
+                    threads: 1,
+                },
             },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), "fastq.index_reference".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
+            reason: None,
+            params: None,
         },
-        tool_for_stage("fastq.deplete_host"),
+        FastqStageBinding {
+            stage_id: "fastq.deplete_host".to_string(),
+            stage_instance_id: None,
+            tool: tool_for_stage("fastq.deplete_host"),
+            reason: None,
+            params: None,
+        },
     ];
     let temp = bijux_dna_infra::temp_dir("fastq-plan-reference-mismatch")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -180,11 +174,9 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
     std::fs::write(&reference, b">chr1\nA\n")?;
 
-    let error = compose_fastq_pipeline_steps(
-        &stages,
-        &tools,
+    let error = compose_fastq_stage_bindings(
+        &bindings,
         &BTreeMap::new(),
-        None,
         None,
         None,
         None,
@@ -193,7 +185,11 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
         None,
         Some(&reference),
         None,
-        |stage_id, tool, _r1, _r2| Ok(temp.path().join(stage_id).join(tool.tool_id.as_str())),
+        |binding, _r1, _r2| Ok(
+            temp.path()
+                .join(binding.stage_id.as_str())
+                .join(binding.tool.tool_id.as_str())
+        ),
     )
     .expect_err("STAR index must not satisfy bowtie2 depletion");
 
