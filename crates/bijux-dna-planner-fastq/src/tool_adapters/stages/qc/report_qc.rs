@@ -68,7 +68,6 @@ pub fn plan_qc_post_with_qc_inputs(
     let effective_params = QcPostEffectiveParams {
         schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode,
-        threads: tool.resources.threads,
         aggregation_engine: QcAggregationEngine::Multiqc,
         aggregation_scope,
     };

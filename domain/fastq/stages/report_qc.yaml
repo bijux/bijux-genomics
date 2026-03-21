@@ -17,10 +17,6 @@ outputs:
   - name: "governed_qc_inputs_manifest"
     data_type: "json"
     cardinality: "One"
-parameters:
-  - name: "threads"
-    param_type: "int"
-    default: "2"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"

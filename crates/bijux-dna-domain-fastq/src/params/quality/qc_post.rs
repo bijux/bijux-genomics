@@ -23,7 +23,6 @@ pub enum QcAggregationScope {
 pub struct QcPostEffectiveParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
-    pub threads: u32,
     pub aggregation_engine: QcAggregationEngine,
     pub aggregation_scope: QcAggregationScope,
 }
@@ -38,9 +37,6 @@ impl QcPostEffectiveParams {
         if self.paired_mode == PairedMode::Unknown {
             missing.push("paired_mode");
         }
-        if self.threads == 0 {
-            missing.push("threads");
-        }
         missing
     }
 
@@ -49,7 +45,6 @@ impl QcPostEffectiveParams {
         serde_json::json!({
             "schema_version": self.schema_version,
             "paired_mode": self.paired_mode,
-            "threads": self.threads,
             "aggregation_engine": self.aggregation_engine,
             "aggregation_scope": self.aggregation_scope,
         })
