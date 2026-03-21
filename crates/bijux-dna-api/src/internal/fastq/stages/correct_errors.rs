@@ -15,7 +15,7 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_correct_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::{
-    plan_correct,
+    plan_correct_with_options, CorrectPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::FastqArtifactKind;
@@ -45,6 +45,29 @@ fn apply_thread_override(
         spec.resources.threads = threads.max(1);
     }
     spec
+}
+
+fn apply_memory_override(
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    max_memory_gb: Option<u32>,
+) -> bijux_dna_core::prelude::ToolExecutionSpecV1 {
+    let mut spec = tool_spec.clone();
+    if let Some(max_memory_gb) = max_memory_gb {
+        spec.resources.mem_gb = max_memory_gb.max(1);
+    }
+    spec
+}
+
+fn parse_quality_encoding(
+    value: Option<&str>,
+) -> Result<bijux_dna_domain_fastq::params::correct::QualityEncoding> {
+    match value.unwrap_or("phred33") {
+        "phred33" => Ok(bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33),
+        "phred64" => Ok(bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred64),
+        other => Err(anyhow!(
+            "unsupported fastq.correct_errors quality_encoding `{other}`; expected one of: phred33, phred64"
+        )),
+    }
 }
 
 /// # Errors
@@ -115,12 +138,20 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = apply_thread_override(&tool_spec, args.threads);
+        let tool_spec = apply_memory_override(&tool_spec, args.max_memory_gb);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_correct(
+        let plan = plan_correct_with_options(
             &tool_spec,
             &bench_inputs.r1,
             Some(&bench_inputs.r2),
             &out_dir,
+            &CorrectPlanOptions {
+                quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
+                kmer_size: args.kmer_size,
+                max_memory_gb: args.max_memory_gb,
+                trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
+                conservative_mode: args.conservative_mode.unwrap_or(false),
+            },
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
