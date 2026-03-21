@@ -35,6 +35,16 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
 const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 
+fn parse_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope> {
+    match value.unwrap_or("governed_qc_artifacts") {
+        "governed_qc_artifacts" => Ok(QcAggregationScope::GovernedQcArtifacts),
+        "fastq_qc_inputs" => Ok(QcAggregationScope::FastqQcInputs),
+        other => Err(anyhow!(
+            "unsupported fastq.report_qc aggregation_scope `{other}`; expected one of: governed_qc_artifacts, fastq_qc_inputs"
+        )),
+    }
+}
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
@@ -43,9 +53,13 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqQcPostMetrics>> {
-    let governed_qc = load_required_governed_qc_inputs_manifest(
-        args.governed_qc_manifest.as_deref(),
-    )?;
+    let aggregation_scope = parse_qc_aggregation_scope(args.aggregation_scope.as_deref())?;
+    if aggregation_scope != QcAggregationScope::GovernedQcArtifacts {
+        return Err(anyhow!(
+            "fastq.report_qc benchmarking currently supports only aggregation_scope=governed_qc_artifacts because it consumes governed upstream QC artifacts rather than regenerating them from raw FASTQ inputs"
+        ));
+    }
+    let governed_qc = load_required_governed_qc_inputs_manifest(args.governed_qc_manifest.as_deref())?;
     let tools = select_qc_post_tools(&args.tools)?;
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
@@ -115,7 +129,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             &out_dir,
             std::collections::BTreeMap::new(),
             paired_mode_for_bench_inputs(&bench_inputs),
-            QcAggregationScope::GovernedQcArtifacts,
+            aggregation_scope.clone(),
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
         )?;
@@ -529,7 +543,7 @@ mod tests {
     use super::{
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
         governed_qc_inputs_manifest_path, load_governed_qc_inputs_manifest,
-        load_required_governed_qc_inputs_manifest, GovernedQcInputs,
+        load_required_governed_qc_inputs_manifest, parse_qc_aggregation_scope, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::path::PathBuf;
@@ -540,6 +554,7 @@ mod tests {
     use bijux_dna_core::prelude::{
         ArtifactRef, CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1,
     };
+    use bijux_dna_domain_fastq::params::qc_post::QcAggregationScope;
     use bijux_dna_environment::api::{PlatformSpec, RuntimeKind};
     use bijux_dna_runner::step_runner::StageResultV1;
 
@@ -550,6 +565,18 @@ mod tests {
         assert!(error
             .to_string()
             .contains("requires --governed-qc-manifest"));
+    }
+
+    #[test]
+    fn qc_post_scope_parser_defaults_to_governed_artifacts() {
+        assert_eq!(
+            parse_qc_aggregation_scope(None).expect("default scope"),
+            QcAggregationScope::GovernedQcArtifacts
+        );
+        assert_eq!(
+            parse_qc_aggregation_scope(Some("fastq_qc_inputs")).expect("explicit scope"),
+            QcAggregationScope::FastqQcInputs
+        );
     }
 
     #[test]
