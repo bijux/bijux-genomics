@@ -9,6 +9,7 @@ pub const VALIDATE_SCHEMA_VERSION: &str = "bijux.fastq.params.validate_reads.v1"
 #[serde(rename_all = "snake_case")]
 pub enum ValidationMode {
     Strict,
+    ReportOnly,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -16,6 +17,7 @@ pub enum ValidationMode {
 pub enum PairSyncPolicy {
     NotApplicable,
     RequireHeaderSync,
+    SkipHeaderSync,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

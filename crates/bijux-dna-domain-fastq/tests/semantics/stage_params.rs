@@ -37,6 +37,7 @@ use bijux_dna_domain_fastq::params::trim::{
     TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::{parse_effective_params, stage_param_descriptor, EffectiveParams};
 
@@ -86,6 +87,21 @@ fn detect_adapters_params_roundtrip_and_remain_inspection_only() {
     assert_eq!(decoded.schema_version, DETECT_ADAPTERS_SCHEMA_VERSION);
     assert_eq!(decoded.inspection_mode, AdapterInspectionMode::EvidenceOnly);
     assert!(decoded.report_only);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn validate_params_roundtrip_supports_explicit_policy_variants() {
+    let params = bijux_dna_domain_fastq::params::defaults::validate_defaults(true);
+    let mut report_only = params.clone();
+    report_only.validation_mode = ValidationMode::ReportOnly;
+    report_only.pair_sync_policy = PairSyncPolicy::SkipHeaderSync;
+
+    let decoded: bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams =
+        roundtrip(&report_only);
+    assert_eq!(decoded.schema_version, bijux_dna_domain_fastq::params::validate::VALIDATE_SCHEMA_VERSION);
+    assert_eq!(decoded.validation_mode, ValidationMode::ReportOnly);
+    assert_eq!(decoded.pair_sync_policy, PairSyncPolicy::SkipHeaderSync);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
