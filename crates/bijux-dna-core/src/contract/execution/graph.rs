@@ -188,7 +188,12 @@ impl ExecutionGraph {
         while let Some(node_id) = ready.pop() {
             let step = self
                 .step_by_id(node_id)
-                .expect("validated graph must resolve step ids from topological walk");
+                .ok_or_else(|| {
+                    BijuxError::validation(format!(
+                        "execution graph topological walk could not resolve step {}",
+                        node_id
+                    ))
+                })?;
             order.push(&step.step_id);
             if let Some(children) = outgoing.get(node_id) {
                 let mut released = Vec::new();
@@ -380,11 +385,23 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
         let from_step = by_id
             .get(edge.from().as_str())
             .copied()
-            .expect("validated edge source step exists");
+            .ok_or_else(|| {
+                BijuxError::validation(format!(
+                    "edge {} -> {} could not resolve source step after validation",
+                    edge.from().0,
+                    edge.to().0
+                ))
+            })?;
         let to_step = by_id
             .get(edge.to().as_str())
             .copied()
-            .expect("validated edge target step exists");
+            .ok_or_else(|| {
+                BijuxError::validation(format!(
+                    "edge {} -> {} could not resolve target step after validation",
+                    edge.from().0,
+                    edge.to().0
+                ))
+            })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
                 if !from_step
@@ -549,5 +566,30 @@ mod tests {
             .map(|step_id| step_id.as_str().to_string())
             .collect::<Vec<_>>();
         assert_eq!(ordered, vec!["validate", "trim", "report"]);
+    }
+
+    #[test]
+    fn malformed_execution_graph_reports_unknown_edges_without_panicking() {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![step("trim", "fastq.trim_reads")],
+            vec![],
+        )
+        .expect("graph");
+        let mut encoded = serde_json::to_value(&graph).expect("serialize graph");
+        encoded["edges"] = serde_json::json!([{
+            "from": "trim",
+            "to": "report"
+        }]);
+        let malformed: ExecutionGraph =
+            serde_json::from_value(encoded).expect("deserialize malformed graph");
+        let error = malformed
+            .validate_strict()
+            .expect_err("unknown edges must fail validation");
+        assert!(error
+            .to_string()
+            .contains("edge references unknown step: trim -> report"));
     }
 }
