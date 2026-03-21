@@ -48,6 +48,18 @@ fn parameters_json_canonicalization_preserves_leading_parent_segments() {
 }
 
 #[test]
+fn parameters_json_canonicalization_leaves_urls_unchanged() {
+    let input = serde_json::json!({
+        "report_url": "https://example.org/results/sample.fastq.gz"
+    });
+    let canonical = parameters_json_canonicalization(&input);
+    assert_eq!(
+        canonical["report_url"],
+        serde_json::Value::String("https://example.org/results/sample.fastq.gz".to_string())
+    );
+}
+
+#[test]
 fn metrics_schema_resolves_stage() {
     let schema = metrics_schema_for_stage("fastq.trim_reads");
     assert!(schema.is_some());
