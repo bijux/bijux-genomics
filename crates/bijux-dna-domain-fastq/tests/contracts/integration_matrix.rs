@@ -213,6 +213,14 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
         vec!["validation_report"]
     );
     assert!(validation_profile.has_governed_benchmark_contract());
+    assert_eq!(
+        validation_profile.normalization_maturity(),
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized
+    );
+    assert_eq!(
+        validation_profile.benchmark_contract_maturity(),
+        bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable
+    );
 
     let infer_profile = bijux_dna_domain_fastq::stage_tool_governance_profile(
         &StageId::from_static("fastq.infer_asvs"),
@@ -224,6 +232,28 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     assert!(!infer_profile.is_plannable());
     assert!(!infer_profile.is_runnable());
     assert!(!infer_profile.has_governed_benchmark_contract());
+    assert_eq!(
+        infer_profile.normalization_maturity(),
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::None
+    );
+    assert_eq!(
+        infer_profile.benchmark_contract_maturity(),
+        bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::None
+    );
+
+    let trim_profile = bijux_dna_domain_fastq::stage_tool_governance_profile(
+        &StageId::from_static("fastq.trim_reads"),
+        &ToolId::from_static("fastp"),
+    )
+    .expect("trim governance profile");
+    assert_eq!(
+        trim_profile.normalization_maturity(),
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::GenericEnvelope
+    );
+    assert_eq!(
+        trim_profile.benchmark_contract_maturity(),
+        bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::GovernedBenchmarkCohort
+    );
 }
 
 #[test]

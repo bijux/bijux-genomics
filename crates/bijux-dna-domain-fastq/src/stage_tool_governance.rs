@@ -10,6 +10,20 @@ use crate::integration_matrix::{
 };
 use crate::BenchmarkScenario;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StageToolNormalizationMaturity {
+    None,
+    GenericEnvelope,
+    ObserverSpecialized,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StageToolBenchmarkContractMaturity {
+    None,
+    GovernedBenchmarkCohort,
+    BenchmarkComparable,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageBenchmarkGovernance {
     pub stage_id: StageId,
@@ -65,6 +79,38 @@ impl StageToolGovernanceProfile {
         stage_benchmark_governance(&self.stage_id)
             .map(|governance| governance.has_governed_benchmark_contract())
             .unwrap_or(false)
+    }
+
+    #[must_use]
+    pub fn normalization_maturity(self: &Self) -> StageToolNormalizationMaturity {
+        if !self.is_runnable() {
+            return StageToolNormalizationMaturity::None;
+        }
+        match self.normalization_support {
+            Some(NormalizationSupport::None) | None => StageToolNormalizationMaturity::None,
+            Some(NormalizationSupport::GenericEnvelope) => {
+                StageToolNormalizationMaturity::GenericEnvelope
+            }
+            Some(NormalizationSupport::ObserverSpecialized | NormalizationSupport::Mixed) => {
+                StageToolNormalizationMaturity::ObserverSpecialized
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn benchmark_contract_maturity(self: &Self) -> StageToolBenchmarkContractMaturity {
+        if !self.is_runnable() || !self.has_governed_benchmark_contract() {
+            return StageToolBenchmarkContractMaturity::None;
+        }
+        match self.benchmark_support {
+            Some(BenchmarkSupport::Comparable | BenchmarkSupport::Mixed) => {
+                StageToolBenchmarkContractMaturity::BenchmarkComparable
+            }
+            Some(BenchmarkSupport::Cohort) => {
+                StageToolBenchmarkContractMaturity::GovernedBenchmarkCohort
+            }
+            Some(BenchmarkSupport::None) | None => StageToolBenchmarkContractMaturity::None,
+        }
     }
 }
 

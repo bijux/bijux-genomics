@@ -101,47 +101,25 @@ pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<Sta
     let declared = true;
     let plannable = governance.is_plannable();
     let runnable = governance.is_runnable();
-    let parse_normalized = runnable
-        && governance
-            .normalization_support
-            .map(|support| match support {
-                bijux_dna_domain_fastq::execution_support::NormalizationSupport::None => false,
-                bijux_dna_domain_fastq::execution_support::NormalizationSupport::GenericEnvelope => {
-                    true
-                }
-                bijux_dna_domain_fastq::execution_support::NormalizationSupport::ObserverSpecialized
-                | bijux_dna_domain_fastq::execution_support::NormalizationSupport::Mixed => {
-                    runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-                }
-            })
-            .unwrap_or(false);
+    let parse_normalized = match governance.normalization_maturity() {
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::None => false,
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::GenericEnvelope => true,
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized => {
+            runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+        }
+    };
+    let benchmark_contract_maturity = governance.benchmark_contract_maturity();
     let benchmark_normalized = parse_normalized
         && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-        && governance.has_governed_benchmark_contract()
-        && governance
-            .benchmark_support
-            .map(|support| {
-                matches!(
-                    support,
-                    bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Cohort
-                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Comparable
-                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Mixed
-                )
-            })
-            .unwrap_or(false);
+        && matches!(
+            benchmark_contract_maturity,
+            bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::GovernedBenchmarkCohort
+                | bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable
+        );
     let comparable = parse_normalized
-        && governance.has_governed_benchmark_contract()
-        && governance
-            .benchmark_support
-            .map(|support| {
-                matches!(
-                    support,
-                    bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Comparable
-                        | bijux_dna_domain_fastq::execution_support::BenchmarkSupport::Mixed
-                )
-            })
-            .unwrap_or(false)
-        && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized;
+        && runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
+        && benchmark_contract_maturity
+            == bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable;
 
     Some(StageToolCapability {
         stage_id: governance.stage_id,
