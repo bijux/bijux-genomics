@@ -205,6 +205,7 @@ pub fn extract_version_from_dockerfile(dockerfile: &Path, tool: &str) -> Result<
         .ok_or_else(|| EnvError::Dockerfile("missing capture".to_string()))?
         .as_str()
         .trim()
+        .trim_matches(|ch| matches!(ch, '"' | '\''))
         .to_string())
 }
 
@@ -265,6 +266,18 @@ mod tests {
         assert!(error
             .to_string()
             .contains("no version ARG found for tool fastqvalidator"));
+        let _ = bijux_dna_infra::remove_file(&path);
+        Ok(())
+    }
+
+    #[test]
+    fn extract_version_from_dockerfile_strips_optional_quotes() -> Result<(), EnvError> {
+        let path = write_dockerfile(
+            "bijux_test_fastp_quoted_version.Dockerfile",
+            b"FROM ubuntu:20.04\nARG VERSION_FASTP=\"0.23.4\"\n",
+        )?;
+        let version = extract_version_from_dockerfile(&path, "fastp")?;
+        assert_eq!(version, "0.23.4");
         let _ = bijux_dna_infra::remove_file(&path);
         Ok(())
     }
