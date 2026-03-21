@@ -73,7 +73,6 @@ pub struct BenchmarkCohort {
     pub fairness_rules: Vec<String>,
     pub tool_ids: Vec<ToolId>,
     pub observer_specialized_tools: Vec<ToolId>,
-    pub generic_envelope_tools: Vec<ToolId>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -216,13 +215,6 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
                 })
                 .map(|profile| profile.tool_id.clone())
                 .collect::<Vec<_>>();
-            let generic_envelope_tools = cohort_profiles
-                .iter()
-                .filter(|profile| {
-                    profile.runtime_interpretation == RuntimeInterpretationLevel::GenericEnvelope
-                })
-                .map(|profile| profile.tool_id.clone())
-                .collect::<Vec<_>>();
             BenchmarkCohort {
                 scenario_id: scenario.scenario_id,
                 stage_id: scenario.stage_id,
@@ -233,7 +225,6 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
                     .map(|profile| profile.tool_id.clone())
                     .collect(),
                 observer_specialized_tools,
-                generic_envelope_tools,
             }
         })
         .collect()

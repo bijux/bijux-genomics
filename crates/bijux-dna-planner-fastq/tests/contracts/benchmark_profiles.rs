@@ -130,7 +130,6 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(trim_cohorts[0].scenario_id, "trim_fairness");
     assert!(trim_cohorts[0].tool_ids.is_empty());
     assert!(trim_cohorts[0].observer_specialized_tools.is_empty());
-    assert!(trim_cohorts[0].generic_envelope_tools.is_empty());
 
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
     let polyg_cohorts =
@@ -256,4 +255,8 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         .tool_ids
         .iter()
         .all(|tool_id| tool_id.as_str() != "fqtools"));
+    assert_eq!(
+        validation_cohorts[0].tool_ids,
+        validation_cohorts[0].observer_specialized_tools
+    );
 }
