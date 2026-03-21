@@ -53,13 +53,15 @@ pub struct InputAssessmentV1 {
 
 #[must_use]
 pub fn discover_fastq_files(root: &Path) -> Vec<PathBuf> {
-    WalkDir::new(root)
+    let mut files = WalkDir::new(root)
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .map(walkdir::DirEntry::into_path)
         .filter(|path| is_fastq_path(path))
-        .collect()
+        .collect::<Vec<_>>();
+    files.sort();
+    files
 }
 
 #[must_use]

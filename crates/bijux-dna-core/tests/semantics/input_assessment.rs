@@ -51,8 +51,7 @@ fn discover_fastq_files_finds_nested_inputs() -> Result<()> {
     write_file(&root.join("a.fastq"), b"@r1\nACGT\n+\n!!!!\n")?;
     write_file(&root.join("nested").join("b.fq.gz"), b"dummy")?;
     write_file(&root.join("notes.txt"), b"ignore")?;
-    let mut files = discover_fastq_files(&root);
-    files.sort();
+    let files = discover_fastq_files(&root);
     let expected = vec![root.join("a.fastq"), root.join("nested").join("b.fq.gz")];
     assert_eq!(files, expected);
     Ok(())
