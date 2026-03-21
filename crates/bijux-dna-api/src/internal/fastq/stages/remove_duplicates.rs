@@ -222,7 +222,16 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             continue;
         }
         let report_path = required_plan_output_path(&plan, "report_json")?;
+        let duplicate_classes_tsv = required_plan_output_path(&plan, "duplicate_classes_tsv")?;
+        let duplicate_provenance_json =
+            required_plan_output_path(&plan, "duplicate_provenance_json")?;
         let report_path = require_existing_benchmark_output(&report_path, "report_json")?;
+        let _duplicate_classes_tsv =
+            require_existing_benchmark_output(&duplicate_classes_tsv, "duplicate_classes_tsv")?;
+        let _duplicate_provenance_json = require_existing_benchmark_output(
+            &duplicate_provenance_json,
+            "duplicate_provenance_json",
+        )?;
         let counts = load_deduplicate_report_counts(report_path)?;
         let metrics = FastqDuplicateMetrics {
             reads_in: counts.reads_in,
