@@ -16,6 +16,9 @@ pub struct TrimPlanOptions {
     pub min_length: Option<u32>,
     pub quality_cutoff: Option<u32>,
     pub n_policy: Option<String>,
+    pub adapter_policy: Option<String>,
+    pub polyx_policy: Option<String>,
+    pub contaminant_policy: Option<String>,
 }
 
 impl TrimPlanOptions {
@@ -23,10 +26,40 @@ impl TrimPlanOptions {
         self.min_length.unwrap_or(30)
     }
 
+    fn resolved_adapter_policy(&self, adapter_bank: Option<&serde_json::Value>) -> String {
+        self.adapter_policy.clone().unwrap_or_else(|| {
+            if adapter_bank.is_some() {
+                "bank".to_string()
+            } else {
+                "none".to_string()
+            }
+        })
+    }
+
+    fn resolved_polyx_policy(&self, polyx_bank: Option<&serde_json::Value>) -> String {
+        self.polyx_policy.clone().unwrap_or_else(|| {
+            if polyx_bank.is_some() {
+                "bank".to_string()
+            } else {
+                "none".to_string()
+            }
+        })
+    }
+
     fn resolved_n_policy(&self) -> String {
         self.n_policy
             .clone()
             .unwrap_or_else(|| "retain".to_string())
+    }
+
+    fn resolved_contaminant_policy(&self, contaminant_bank: Option<&serde_json::Value>) -> String {
+        self.contaminant_policy.clone().unwrap_or_else(|| {
+            if contaminant_bank.is_some() {
+                "bank".to_string()
+            } else {
+                "none".to_string()
+            }
+        })
     }
 }
 
@@ -136,6 +169,9 @@ pub fn plan_with_options(
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
         "n_policy": options.resolved_n_policy(),
+        "adapter_policy": options.resolved_adapter_policy(adapter_bank),
+        "polyx_policy": options.resolved_polyx_policy(polyx_bank),
+        "contaminant_policy": options.resolved_contaminant_policy(contaminant_bank),
     });
     if let Some(adapter_bank) = adapter_bank {
         if let Some(map) = params.as_object_mut() {
@@ -161,15 +197,11 @@ pub fn plan_with_options(
         threads: tool.resources.threads,
         min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
-        adapter_policy: if adapter_bank.is_some() {
-            "bank".to_string()
-        } else {
-            "none".to_string()
-        },
+        adapter_policy: options.resolved_adapter_policy(adapter_bank),
         damage_mode: None,
-        polyx_policy: polyx_bank.as_ref().map(|_| "bank".to_string()),
+        polyx_policy: Some(options.resolved_polyx_policy(polyx_bank)),
         n_policy: Some(options.resolved_n_policy()),
-        contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),
+        contaminant_policy: Some(options.resolved_contaminant_policy(contaminant_bank)),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -339,6 +371,22 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
             return Err(anyhow!(
                 "trim planning does not yet support n_policy={policy} for {tool_id}"
             ));
+        }
+    }
+    for (policy_name, policy) in [
+        ("adapter_policy", options.adapter_policy.as_deref()),
+        ("polyx_policy", options.polyx_policy.as_deref()),
+        (
+            "contaminant_policy",
+            options.contaminant_policy.as_deref(),
+        ),
+    ] {
+        if let Some(policy) = policy {
+            if policy != "none" && policy != "bank" {
+                return Err(anyhow!(
+                    "trim planning does not yet support {policy_name}={policy} for {tool_id}"
+                ));
+            }
         }
     }
     let uses_length_or_quality = options.min_length.is_some() || options.quality_cutoff.is_some();

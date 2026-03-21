@@ -119,6 +119,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     )?;
     let polyx_context = polyx_bank_context(args.polyx_preset.as_deref())?;
     let contaminant_context = contaminant_bank_context(args.contaminant_preset.as_deref())?;
+    let adapter_context = apply_trim_bank_policy(
+        adapter_context,
+        args.adapter_policy.as_deref(),
+        "adapter_policy",
+    )?;
+    let polyx_context =
+        apply_trim_bank_policy(polyx_context, args.polyx_policy.as_deref(), "polyx_policy")?;
+    let contaminant_context = apply_trim_bank_policy(
+        contaminant_context,
+        args.contaminant_policy.as_deref(),
+        "contaminant_policy",
+    )?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -150,6 +162,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 min_length: args.min_length,
                 quality_cutoff: args.quality_cutoff,
                 n_policy: args.n_policy.clone(),
+                adapter_policy: args.adapter_policy.clone(),
+                polyx_policy: args.polyx_policy.clone(),
+                contaminant_policy: args.contaminant_policy.clone(),
             },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -331,5 +346,26 @@ fn combine_seqkit_metrics(
         bases: total_bases,
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
+    }
+}
+
+fn apply_trim_bank_policy(
+    context: Option<serde_json::Value>,
+    policy: Option<&str>,
+    policy_name: &str,
+) -> Result<Option<serde_json::Value>> {
+    match policy {
+        None => Ok(context),
+        Some("none") => Ok(None),
+        Some("bank") => {
+            if context.is_some() {
+                Ok(context)
+            } else {
+                Err(anyhow!("{policy_name}=bank requires a matching governed bank selection"))
+            }
+        }
+        Some(other) => Err(anyhow!(
+            "{policy_name} must be one of `none` or `bank`, received `{other}`"
+        )),
     }
 }

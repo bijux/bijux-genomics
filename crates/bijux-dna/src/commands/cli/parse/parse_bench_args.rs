@@ -127,6 +127,12 @@ pub struct BenchFastqTrimArgs {
     pub quality_cutoff: Option<u32>,
     #[arg(long)]
     pub n_policy: Option<String>,
+    #[arg(long)]
+    pub adapter_policy: Option<String>,
+    #[arg(long)]
+    pub polyx_policy: Option<String>,
+    #[arg(long)]
+    pub contaminant_policy: Option<String>,
 }
 
 #[derive(Debug, Args)]
