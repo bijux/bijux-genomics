@@ -36,6 +36,7 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT_ERRORS,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -164,7 +165,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec,
             &bench_params,
-            &out_dir,
+            &plan,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -261,11 +262,12 @@ fn build_correct_record(
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
     params: &serde_json::Value,
-    out_dir: &std::path::Path,
+    plan: &StagePlanV1,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
-    let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let out_dir = &plan.out_dir;
+    let output_r1 = required_plan_output_path(plan, "corrected_reads_r1")?;
+    let output_r2 = required_plan_output_path(plan, "corrected_reads_r2")?;
     let output_r1 = require_existing_benchmark_output(&output_r1, "corrected_reads_r1")?;
     let _output_r2 = require_existing_benchmark_output(&output_r2, "corrected_reads_r2")?;
     let output_stats = observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
@@ -337,6 +339,20 @@ fn build_correct_record(
     Ok(record)
 }
 
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "correct_errors plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
+}
+
 fn observe_fastq_stats(
     seqkit_image: &str,
     runner: RuntimeKind,
@@ -364,4 +380,101 @@ fn observe_fastq_stats(
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_CORRECT_ERRORS.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::required_plan_output_path;
+    use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    #[test]
+    fn correct_record_paths_follow_plan_outputs() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.correct_errors"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("musket"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["musket".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![
+                    bijux_dna_core::prelude::ArtifactRef::required(
+                        ArtifactId::from_static("corrected_reads_r1"),
+                        PathBuf::from("custom/r1.corrected.fastq.gz"),
+                        ArtifactRole::Reads,
+                    ),
+                    bijux_dna_core::prelude::ArtifactRef::required(
+                        ArtifactId::from_static("corrected_reads_r2"),
+                        PathBuf::from("custom/r2.corrected.fastq.gz"),
+                        ArtifactRole::Reads,
+                    ),
+                ],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        assert_eq!(
+            required_plan_output_path(&plan, "corrected_reads_r1").expect("r1 path"),
+            PathBuf::from("custom/r1.corrected.fastq.gz")
+        );
+        assert_eq!(
+            required_plan_output_path(&plan, "corrected_reads_r2").expect("r2 path"),
+            PathBuf::from("custom/r2.corrected.fastq.gz")
+        );
+    }
+
+    #[test]
+    fn missing_corrected_output_is_rejected_before_metrics() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.correct_errors"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("musket"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["musket".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![bijux_dna_core::prelude::ArtifactRef::required(
+                    ArtifactId::from_static("corrected_reads_r1"),
+                    PathBuf::from("custom/r1.corrected.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        let error = required_plan_output_path(&plan, "corrected_reads_r2")
+            .expect_err("missing governed output must be rejected");
+        assert!(error
+            .to_string()
+            .contains("missing governed output `corrected_reads_r2`"));
+    }
 }
