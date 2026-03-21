@@ -3,7 +3,7 @@ use bijux_dna_core::ids::StageId;
 #[must_use]
 pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
-        "fastq.validate_reads" => &["validation_report"],
+        "fastq.validate_reads" => &["validation_report", "validated_reads_manifest"],
         "fastq.detect_adapters" => &["adapter_report", "adapter_evidence_dir"],
         "fastq.profile_read_lengths" => &["length_distribution_tsv", "length_distribution_json"],
         "fastq.profile_overrepresented_sequences" => &[

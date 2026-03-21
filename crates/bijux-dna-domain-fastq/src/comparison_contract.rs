@@ -142,7 +142,7 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.validate_reads",
-        &["validation_report"],
+        &["validation_report", "validated_reads_manifest"],
         "validation_tool_benchmark_cohort_json",
         "validation_tool_comparison_json",
         "validation_tool_normalization_json",

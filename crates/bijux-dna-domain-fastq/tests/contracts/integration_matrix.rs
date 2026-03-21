@@ -210,7 +210,7 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     );
     assert_eq!(
         validation_profile.comparison_input_artifact_ids,
-        vec!["validation_report"]
+        vec!["validated_reads_manifest", "validation_report"]
     );
     assert!(validation_profile.has_governed_benchmark_contract());
     assert_eq!(
