@@ -155,7 +155,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
         )?;
-        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -744,14 +744,8 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
     bijux_dna_planner_fastq::stage_api::governed_qc_output_ids_for_stage(stage_id)
 }
 
-fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
-    if let Some(Ok(contract_hash)) =
-        bijux_dna_domain_fastq::stage_contract_hash(STAGE_REPORT_QC.as_str())
-    {
-        context = context.with_stage_contract_hash(contract_hash);
-    }
-    context
+fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_REPORT_QC.as_str())
 }
 
 #[cfg(test)]
