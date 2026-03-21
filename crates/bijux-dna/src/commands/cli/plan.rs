@@ -424,11 +424,6 @@ pub fn bench_args_correct(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-        quality_encoding: args.quality_encoding.clone(),
-        kmer_size: args.kmer_size,
-        max_memory_gb: args.max_memory_gb,
-        trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
-        conservative_mode: args.conservative_mode,
     })
 }
 
