@@ -201,13 +201,19 @@ fn validation_command(
         "cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; }"
             .to_string(),
     );
+    commands.push(
+        "count_fastq_reads() { cat_fastq \"$1\" | awk 'END { print NR / 4 }'; }".to_string(),
+    );
     commands.push("strict_pass=true".to_string());
     commands.push("exit_code=0".to_string());
     commands.push("pair_sync_checked=false".to_string());
     commands.push("pair_sync_pass=null".to_string());
     commands.push("pair_count_match=null".to_string());
-    commands.push("validated_pairs=0".to_string());
-    commands.push("validated_reads_r1=0".to_string());
+    commands.push("validated_pairs=null".to_string());
+    commands.push(format!(
+        "validated_reads_r1=$(count_fastq_reads {})",
+        shell_quote(r1),
+    ));
     commands.push("validated_reads_r2=null".to_string());
     commands.push(
         "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi"
@@ -234,10 +240,6 @@ fn validation_command(
             shell_quote(&pair_sync_r2),
         ));
         commands.push(format!(
-            "validated_reads_r1=$(wc -l < {} | tr -d '[:space:]')",
-            shell_quote(&pair_sync_r1),
-        ));
-        commands.push(format!(
             "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
             shell_quote(&pair_sync_r2),
         ));
@@ -257,7 +259,7 @@ fn validation_command(
         ));
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"validated_pairs\":%s,\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
@@ -295,7 +297,7 @@ fn validation_command(
         shell_quote(validated_reads_manifest),
     ));
     commands.push(format!(
-        "printf '{}' {} {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$validated_pairs\" \"$validated_reads_r1\" \"$validated_reads_r2\" \"$strict_pass\" \"$exit_code\" > {}",
+        "printf '{}' {} {} {} {} \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$strict_pass\" \"$exit_code\" > {}",
         escape_printf_format(&report_format),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
@@ -444,6 +446,7 @@ mod tests {
         assert!(
             plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\"")
         );
+        assert!(plan.command.template[2].contains("count_fastq_reads()"));
         assert!(plan.command.template[2].contains("validated_pairs=$(wc -l <"));
         assert!(plan.command.template[2].contains("cmp -s"));
         assert!(
@@ -478,6 +481,9 @@ mod tests {
         assert!(script.contains("out/validated_reads_manifest.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
+        assert!(script.contains("\"validated_reads_r1\":%%s"));
+        assert!(script.contains("\"status_r1\":%%s"));
+        assert!(script.contains("\"status_r2\":%%s"));
         assert!(script.contains("pair_sync_checked=false"));
         assert!(script.contains("pair_sync_pass=null"));
         assert!(script.contains("\"validation_mode\":\"strict\""));
@@ -542,6 +548,7 @@ mod tests {
         assert!(script.contains("validated_reads_r2"));
         assert!(script.contains("pair_count_match"));
         assert!(script.contains("exit_code=96"));
+        assert!(script.contains("\"status_r1\":%%s"));
         Ok(())
     }
 }
