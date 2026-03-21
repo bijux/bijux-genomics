@@ -8,6 +8,25 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkGraphNodeKind {
+    Stage,
+    StageTool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkGraphNode {
+    pub node_id: String,
+    pub kind: BenchmarkGraphNodeKind,
+    pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool_id: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DatasetSpec {
@@ -94,6 +113,35 @@ impl BenchmarkStageSpec {
         self.tools
             .iter()
             .map(|tool| self.tool_node_id(tool))
+            .collect()
+    }
+
+    #[must_use]
+    pub fn stage_node(&self) -> BenchmarkGraphNode {
+        BenchmarkGraphNode {
+            node_id: self.stage_node_id().to_string(),
+            kind: BenchmarkGraphNodeKind::Stage,
+            stage_id: self.stage.clone(),
+            stage_instance_id: self.stage_instance_id.clone(),
+            tool_id: None,
+        }
+    }
+
+    #[must_use]
+    pub fn tool_node(&self, tool: &str) -> BenchmarkGraphNode {
+        BenchmarkGraphNode {
+            node_id: self.tool_node_id(tool),
+            kind: BenchmarkGraphNodeKind::StageTool,
+            stage_id: self.stage.clone(),
+            stage_instance_id: self.stage_instance_id.clone(),
+            tool_id: Some(tool.to_string()),
+        }
+    }
+
+    #[must_use]
+    pub fn graph_nodes(&self) -> Vec<BenchmarkGraphNode> {
+        std::iter::once(self.stage_node())
+            .chain(self.tools.iter().map(|tool| self.tool_node(tool)))
             .collect()
     }
 }
@@ -209,6 +257,14 @@ impl BenchmarkSuiteSpec {
     }
 
     #[must_use]
+    pub fn graph_nodes(&self) -> Vec<BenchmarkGraphNode> {
+        self.stages
+            .iter()
+            .flat_map(BenchmarkStageSpec::graph_nodes)
+            .collect()
+    }
+
+    #[must_use]
     pub fn tool_ids(&self) -> Vec<&str> {
         let mut tool_ids = std::collections::BTreeSet::new();
         for stage in &self.stages {
@@ -233,5 +289,73 @@ impl BenchmarkSuiteSpec {
             }
         }
         params.into_iter().collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        AnalysisRequirements, BenchmarkGraphNodeKind, BenchmarkStageSpec, BenchmarkSuiteSpec,
+        DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+    };
+
+    #[test]
+    fn suite_graph_nodes_materialize_stage_and_stage_tool_identity() {
+        let suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![BenchmarkStageSpec {
+                stage: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tools: vec!["fastp".to_string(), "cutadapt".to_string()],
+                params: Vec::new(),
+                param_bindings: Vec::new(),
+                upstream_stage_instance_ids: Vec::new(),
+            }],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+
+        let nodes = suite.graph_nodes();
+        assert_eq!(nodes.len(), 3);
+        assert!(nodes.iter().any(|node| {
+            node.kind == BenchmarkGraphNodeKind::Stage
+                && node.node_id == "fastq.trim_reads.cleanup"
+                && node.tool_id.is_none()
+        }));
+        assert!(nodes.iter().any(|node| {
+            node.kind == BenchmarkGraphNodeKind::StageTool
+                && node.node_id == "fastq.trim_reads.cleanup.tool.fastp"
+                && node.tool_id.as_deref() == Some("fastp")
+        }));
+        assert!(nodes.iter().any(|node| {
+            node.kind == BenchmarkGraphNodeKind::StageTool
+                && node.node_id == "fastq.trim_reads.cleanup.tool.cutadapt"
+                && node.tool_id.as_deref() == Some("cutadapt")
+        }));
     }
 }
