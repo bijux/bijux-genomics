@@ -47,6 +47,8 @@ stage_contracts:
   fastq.validate_reads:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "validation_report"
       - "validated_reads_manifest"
