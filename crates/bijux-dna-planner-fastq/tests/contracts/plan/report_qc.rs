@@ -249,6 +249,7 @@ fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::R
         bijux_dna_planner_fastq::FastqPlanner::plan(&bijux_dna_planner_fastq::FastqPlanConfig {
             pipeline_id: "fastq-to-fastq__branch_lineage__v1".to_string(),
             policy: PlanPolicy::PreferAccuracy,
+            selection_objective: bijux_dna_core::contract::Objective::Balanced,
             pipeline_spec: Some(PipelineSpec::graph(
                 vec![
                     PipelineNodeSpec {

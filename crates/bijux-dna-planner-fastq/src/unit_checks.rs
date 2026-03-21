@@ -583,6 +583,7 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__host_depletion__v1".to_string(),
         policy: bijux_dna_core::contract::PlanPolicy::default(),
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {

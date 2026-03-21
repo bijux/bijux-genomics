@@ -37,6 +37,7 @@ fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result
 pub struct FastqPlanConfig {
     pub pipeline_id: String,
     pub policy: PlanPolicy,
+    pub selection_objective: bijux_dna_core::contract::Objective,
     pub pipeline_spec: Option<PipelineSpec>,
     pub stage_bindings: Vec<FastqStageBinding>,
     pub stage_toolsets: Vec<FastqStageToolsetBinding>,
@@ -771,7 +772,7 @@ fn benchmark_select_steps_for_pipeline(
                 template: selection_command_for_stage(
                     &source_stage_id,
                     &output_artifact_ids,
-                    bijux_dna_core::contract::Objective::Balanced,
+                    config.selection_objective,
                 ),
             },
             image: ContainerImageRefV1 {
@@ -1619,6 +1620,7 @@ pub fn plan_fastq_to_fastq__default__v1(
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: inputs.policy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(pipeline.clone()),
         stage_bindings: Vec::new(),
         stage_toolsets,

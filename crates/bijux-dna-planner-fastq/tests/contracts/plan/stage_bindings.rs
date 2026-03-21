@@ -44,6 +44,7 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -151,6 +152,7 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_toolsets__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(pipeline),
         stage_bindings: Vec::new(),
         stage_toolsets: vec![
@@ -225,6 +227,7 @@ fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_toolset_compare__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(pipeline),
         stage_bindings: Vec::new(),
         stage_toolsets: vec![
@@ -330,6 +333,7 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_toolset_compare_context__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(pipeline),
         stage_bindings: Vec::new(),
         stage_toolsets: vec![
@@ -402,6 +406,7 @@ fn graph_root_branches_do_not_inherit_previous_branch_reads() -> anyhow::Result<
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__root_branches__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -470,6 +475,7 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
@@ -516,6 +522,7 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__trim_terminal_damage__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.trim_terminal_damage".to_string(),
@@ -561,6 +568,7 @@ fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()>
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__validate_reads__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.validate_reads".to_string(),
@@ -606,6 +614,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__deplete_rrna__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![FastqStageBinding {
             stage_id: "fastq.deplete_rrna".to_string(),
@@ -647,6 +656,7 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__deplete_host__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
@@ -696,6 +706,7 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__reference_contaminants__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: None,
         stage_bindings: vec![
             FastqStageBinding {
@@ -748,6 +759,7 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__explicit_graph__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -851,6 +863,7 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__explicit_rejoin__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -932,6 +945,7 @@ fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__select_rejoin__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1043,6 +1057,7 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__select_rejoin_invalid__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1135,6 +1150,7 @@ fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__select_toolsets__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Retention,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1209,6 +1225,14 @@ fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
         .expect("collapsed downstream stage");
     assert_eq!(select_step.io.inputs.len(), 2);
     assert_eq!(select_step.io.outputs.len(), 1);
+    assert!(
+        select_step
+            .command
+            .template
+            .windows(2)
+            .any(|window| window == ["--objective", "retention"]),
+        "select command must carry the configured ranking objective"
+    );
     assert_eq!(
         filter_step.io.inputs[0].path,
         select_step.io.outputs[0].path
@@ -1234,6 +1258,7 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__explicit_reference_index__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1317,6 +1342,7 @@ fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__implicit_reference_index__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1389,6 +1415,7 @@ fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_bindi
     let error = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__ambiguous_reference_index__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1471,6 +1498,7 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__explicit_abundance__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1555,6 +1583,7 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__graph_aliases__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
