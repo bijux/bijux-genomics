@@ -1374,11 +1374,92 @@ fn execution_edges_for_stage_plans(
         }
     }
 
-    pipeline_spec
+    let mut edges = pipeline_spec
         .edges
         .iter()
         .map(|edge| execution_edge_from_pipeline_edge(edge, &plan_nodes))
-        .collect()
+        .collect::<Result<Vec<_>>>()?;
+    edges.extend(derived_lineage_execution_edges(plans, &plan_nodes));
+    edges.sort_by(|left, right| {
+        left.from()
+            .as_str()
+            .cmp(right.from().as_str())
+            .then_with(|| left.to().as_str().cmp(right.to().as_str()))
+            .then_with(|| left.from_output_id().cmp(&right.from_output_id()))
+            .then_with(|| left.to_input_id().cmp(&right.to_input_id()))
+    });
+    let artifact_bound_pairs = edges
+        .iter()
+        .filter(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some())
+        .map(|edge| {
+            (
+                edge.from().as_str().to_string(),
+                edge.to().as_str().to_string(),
+            )
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    edges.retain(|edge| {
+        edge.from_output_id().is_some()
+            || !artifact_bound_pairs.contains(&(
+                edge.from().as_str().to_string(),
+                edge.to().as_str().to_string(),
+            ))
+    });
+    edges.dedup_by(|left, right| {
+        left.from() == right.from()
+            && left.to() == right.to()
+            && left.from_output_id() == right.from_output_id()
+            && left.to_input_id() == right.to_input_id()
+    });
+    Ok(edges)
+}
+
+fn derived_lineage_execution_edges(
+    plans: &[StagePlanV1],
+    plan_nodes: &std::collections::BTreeMap<String, StepId>,
+) -> Vec<ExecutionEdge> {
+    let mut edges = Vec::new();
+    for (to_idx, to_plan) in plans.iter().enumerate() {
+        let Some(to_step_id) = plan_nodes.get(
+            to_plan
+                .stage_instance_id
+                .as_ref()
+                .map_or_else(|| to_plan.stage_id.as_str(), |step_id| step_id.as_str()),
+        ) else {
+            continue;
+        };
+        for input in &to_plan.io.inputs {
+            let Some((from_plan, output)) = plans[..to_idx]
+                .iter()
+                .rev()
+                .find_map(|candidate| {
+                    candidate
+                        .io
+                        .outputs
+                        .iter()
+                        .find(|output| output.name == input.name && output.path == input.path)
+                        .map(|output| (candidate, output))
+                })
+            else {
+                continue;
+            };
+            let Some(from_step_id) = plan_nodes.get(
+                from_plan
+                    .stage_instance_id
+                    .as_ref()
+                    .map_or_else(|| from_plan.stage_id.as_str(), |step_id| step_id.as_str()),
+            ) else {
+                continue;
+            };
+            edges.push(ExecutionEdge::with_artifact_binding(
+                from_step_id.clone(),
+                to_step_id.clone(),
+                ArtifactId::new(output.name.as_str().to_string()),
+                ArtifactId::new(input.name.as_str().to_string()),
+            ));
+        }
+    }
+    edges
 }
 
 fn stage_artifact_input_policy(

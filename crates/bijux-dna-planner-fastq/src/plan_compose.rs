@@ -59,6 +59,7 @@ struct PlannedStageLineage {
     feature_table: Option<PathBuf>,
     reference_index: Option<ReferenceIndexState>,
     qc_inputs: Vec<ArtifactRef>,
+    lineage_inputs: Vec<ArtifactRef>,
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -634,6 +635,7 @@ where
             }
         };
         let mut plan = plan;
+        merge_lineage_input_artifacts(&mut plan, &inherited.lineage_inputs);
         if let Some(reason) = binding.reason.as_ref() {
             plan.reason = reason.clone();
         } else {
@@ -654,6 +656,15 @@ where
                 .then_with(|| left.path.cmp(&right.path))
         });
         next_qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+        let mut next_lineage_inputs = inherited.lineage_inputs.clone();
+        next_lineage_inputs.extend(lineage_input_artifacts_for_stage(&plan));
+        next_lineage_inputs.sort_by(|left, right| {
+            left.name
+                .as_str()
+                .cmp(right.name.as_str())
+                .then_with(|| left.path.cmp(&right.path))
+        });
+        next_lineage_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
         let reference_index = if stage_id == STAGE_INDEX_REFERENCE.as_str() {
             let reference_index_artifact = plan
                 .io
@@ -684,6 +695,7 @@ where
                 feature_table: next_feature_table,
                 reference_index,
                 qc_inputs: next_qc_inputs,
+                lineage_inputs: next_lineage_inputs,
             },
         );
         latest_lineage_node_id = Some(stage_node_id);
@@ -845,6 +857,7 @@ fn inherited_lineage(
             feature_table: None,
             reference_index: None,
             qc_inputs: Vec::new(),
+            lineage_inputs: Vec::new(),
         });
     }
 
@@ -866,6 +879,7 @@ fn inherited_lineage(
             feature_table: None,
             reference_index: None,
             qc_inputs,
+            lineage_inputs: combine_lineage_inputs(&upstream_lineages),
         });
     }
 
@@ -917,7 +931,52 @@ fn inherited_lineage(
         feature_table,
         reference_index,
         qc_inputs,
+        lineage_inputs: combine_lineage_inputs(&upstream_lineages),
     })
+}
+
+fn combine_lineage_inputs(upstream_lineages: &[&PlannedStageLineage]) -> Vec<ArtifactRef> {
+    let mut lineage_inputs = upstream_lineages
+        .iter()
+        .flat_map(|lineage| lineage.lineage_inputs.clone())
+        .collect::<Vec<_>>();
+    lineage_inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    lineage_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    lineage_inputs
+}
+
+fn merge_lineage_input_artifacts(plan: &mut StagePlanV1, lineage_inputs: &[ArtifactRef]) {
+    for artifact in lineage_inputs {
+        if plan
+            .io
+            .inputs
+            .iter()
+            .any(|existing| existing.name == artifact.name && existing.path == artifact.path)
+        {
+            continue;
+        }
+        plan.io.inputs.push(artifact.clone());
+    }
+    plan.io.inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+}
+
+fn lineage_input_artifacts_for_stage(plan: &StagePlanV1) -> Vec<ArtifactRef> {
+    plan.io
+        .outputs
+        .iter()
+        .filter(|artifact| artifact.name.as_str() == "validated_reads_manifest")
+        .cloned()
+        .collect()
 }
 
 fn upstream_lineages<'a>(
