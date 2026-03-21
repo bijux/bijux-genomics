@@ -266,6 +266,26 @@ impl StagePlugin for FastqStagePlugin {
 
 #[allow(dead_code)]
 fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> serde_json::Value {
+    if plan.stage_id.as_str() == "fastq.validate_reads" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "validation_report")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                    return serde_json::json!({
+                        "strict_pass": report.get("strict_pass").cloned().unwrap_or(serde_json::Value::Null),
+                        "exit_code": report.get("exit_code").cloned().unwrap_or(serde_json::Value::Null),
+                        "validated_inputs": report.get("validated_inputs").cloned().unwrap_or(serde_json::Value::Null),
+                        "pair_sync_checked": report.get("pair_sync_checked").cloned().unwrap_or(serde_json::Value::Null),
+                        "pair_sync_pass": report.get("pair_sync_pass").cloned().unwrap_or(serde_json::Value::Null),
+                        "validated_pairs": report.get("validated_pairs").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
     if plan.stage_id.as_str() == "fastq.remove_duplicates" {
         if let Some(report_path) = artifacts
             .iter()
@@ -481,6 +501,67 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["dedup_rate"],
             serde_json::json!(0.25)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_observed_validation_semantics_for_seqtk() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let report_path = temp.path().join("validation_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "strict_pass": true,
+                "exit_code": 0,
+                "validated_inputs": 2_u64,
+                "pair_sync_checked": true,
+                "pair_sync_pass": true,
+                "validated_pairs": 1_u64
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.validate_reads"),
+            tool_id: ToolId::from_static("seqtk"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("validation_report"),
+                    report_path.clone(),
+                    ArtifactRole::SummaryJson,
+                )],
+            },
+            ..plan("fastq.validate_reads")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["validated_pairs"],
+            serde_json::json!(1_u64)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["pair_sync_pass"],
+            serde_json::json!(true)
         );
     }
 }
