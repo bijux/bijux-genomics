@@ -57,8 +57,15 @@ fn trim_reads_manifest_exposes_stage_level_cleanup_policy_surface() -> Result<()
 fn correct_errors_manifest_exposes_typed_error_correction_controls() -> Result<()> {
     assert_eq!(
         stage_parameter_names("correct_errors")?,
-        vec!["threads"],
-        "fastq.correct_errors manifest must avoid stage-level overrides that the current adapter does not map into backend execution"
+        vec![
+            "threads",
+            "quality_encoding",
+            "kmer_size",
+            "max_memory_gb",
+            "trusted_kmer_artifact",
+            "conservative_mode",
+        ],
+        "fastq.correct_errors manifest must expose the typed correction controls carried through governed planning"
     );
     Ok(())
 }
