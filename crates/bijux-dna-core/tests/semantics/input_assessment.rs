@@ -100,3 +100,28 @@ fn assess_input_dir_tracks_orphan_r2_files() -> Result<()> {
     assert_eq!(assessment.issues, vec!["sample sample missing R1"]);
     Ok(())
 }
+
+#[test]
+fn assess_input_dir_keeps_first_duplicate_read_candidate() -> Result<()> {
+    let root = temp_dir()?;
+    let preferred_r1 = root.join("sample_R1.fastq.gz");
+    let duplicate_r1 = root.join("sample_R1.fq.gz");
+    let r2 = root.join("sample_R2.fastq.gz");
+    write_file(&preferred_r1, b"r1")?;
+    write_file(&duplicate_r1, b"r1-dup")?;
+    write_file(&r2, b"r2")?;
+
+    let assessment = assess_input_dir(&root)?;
+    let sample = assessment
+        .samples
+        .iter()
+        .find(|sample| sample.id.sample_name == "sample")
+        .ok_or_else(|| anyhow!("sample entry"))?;
+
+    assert_eq!(sample.id.r1_path, preferred_r1);
+    assert_eq!(
+        sample.naming_warnings,
+        vec!["multiple R1 candidates for sample"]
+    );
+    Ok(())
+}
