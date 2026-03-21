@@ -53,22 +53,25 @@
   },
   "out_dir": "out",
   "params": {
+    "adapter_policy": "none",
+    "contaminant_policy": "none",
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
     "min_length": 30,
     "n_policy": "retain",
     "output_r1": "out/fastp.fastq.gz",
     "output_r2": null,
+    "polyx_policy": "none",
     "quality_cutoff": null,
     "tool": "fastp"
   },
   "effective_params": {
     "adapter_policy": "none",
-    "contaminant_policy": null,
+    "contaminant_policy": "none",
     "min_len": 30,
     "n_policy": "retain",
     "paired_mode": "single_end",
-    "polyx_policy": null,
+    "polyx_policy": "none",
     "q_cutoff": null,
     "threads": 4
   },

@@ -31,6 +31,9 @@ pub struct BenchFastqTrimArgs {
     pub min_length: Option<u32>,
     pub quality_cutoff: Option<u32>,
     pub n_policy: Option<String>,
+    pub adapter_policy: Option<String>,
+    pub polyx_policy: Option<String>,
+    pub contaminant_policy: Option<String>,
 }
 
 #[derive(Debug, Clone)]

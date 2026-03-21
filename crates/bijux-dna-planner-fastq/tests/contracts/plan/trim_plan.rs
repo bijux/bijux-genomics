@@ -180,6 +180,9 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
             min_length: Some(42),
             quality_cutoff: Some(18),
             n_policy: Some("retain".to_string()),
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
         },
     )?;
 
@@ -215,6 +218,9 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
             min_length: Some(42),
             quality_cutoff: None,
             n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
         },
     )
     .expect_err("seqkit trim planning should reject unmapped non-default stage controls");
@@ -222,6 +228,38 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
     assert!(error
         .to_string()
         .contains("does not yet map min_length/quality_cutoff"));
+}
+
+#[test]
+fn plan_trim_with_options_preserves_explicit_bank_policy_bindings() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        Some(&serde_json::json!({"preset": "illumina"})),
+        None,
+        Some(&serde_json::json!({"preset": "host"})),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: Some("none".to_string()),
+            polyx_policy: Some("none".to_string()),
+            contaminant_policy: Some("bank".to_string()),
+        },
+    )?;
+
+    assert_eq!(plan.params["adapter_policy"], serde_json::json!("none"));
+    assert_eq!(plan.params["polyx_policy"], serde_json::json!("none"));
+    assert_eq!(plan.params["contaminant_policy"], serde_json::json!("bank"));
+    assert_eq!(plan.effective_params["adapter_policy"], serde_json::json!("none"));
+    assert_eq!(plan.effective_params["polyx_policy"], serde_json::json!("none"));
+    assert_eq!(
+        plan.effective_params["contaminant_policy"],
+        serde_json::json!("bank")
+    );
+    Ok(())
 }
 
 #[test]
