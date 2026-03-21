@@ -78,7 +78,10 @@
   },
   "effective_params": {
     "damage_mode": "ancient",
+    "execution_policy": "explicit_terminal_trim",
     "paired_mode": "paired_end",
+    "requested_trim_3p_bases": 2,
+    "requested_trim_5p_bases": 2,
     "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
     "threads": 4,
     "trim_3p_bases": 2,
