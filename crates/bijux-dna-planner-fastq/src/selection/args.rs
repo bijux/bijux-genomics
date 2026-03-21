@@ -28,6 +28,9 @@ pub struct BenchFastqTrimArgs {
     pub disable_adapters: Vec<String>,
     pub polyx_preset: Option<String>,
     pub contaminant_preset: Option<String>,
+    pub min_length: Option<u32>,
+    pub quality_cutoff: Option<u32>,
+    pub n_policy: Option<String>,
 }
 
 #[derive(Debug, Clone)]

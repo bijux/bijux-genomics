@@ -163,6 +163,64 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(42),
+            quality_cutoff: Some(18),
+            n_policy: Some("retain".to_string()),
+        },
+    )?;
+
+    assert_eq!(plan.params["min_length"], serde_json::json!(42));
+    assert_eq!(plan.params["quality_cutoff"], serde_json::json!(18));
+    assert_eq!(plan.effective_params["min_len"], serde_json::json!(42));
+    assert_eq!(plan.effective_params["q_cutoff"], serde_json::json!(18));
+    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--length_required"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--qualified_quality_phred"));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &templated_tool("seqkit", &["seqkit", "seq", "{{reads_r1}}"]),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(42),
+            quality_cutoff: None,
+            n_policy: None,
+        },
+    )
+    .expect_err("seqkit trim planning should reject unmapped non-default stage controls");
+
+    assert!(error
+        .to_string()
+        .contains("does not yet map min_length/quality_cutoff"));
+}
+
+#[test]
 fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
     let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
         &dummy_tool("fastp"),

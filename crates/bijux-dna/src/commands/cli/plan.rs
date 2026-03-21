@@ -139,6 +139,9 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFa
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
+        min_length: args.min_length,
+        quality_cutoff: args.quality_cutoff,
+        n_policy: args.n_policy.clone(),
     })
 }
 
@@ -778,6 +781,9 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
+        min_length: args.min_length,
+        quality_cutoff: args.quality_cutoff,
+        n_policy: args.n_policy.clone(),
     })
 }
 
