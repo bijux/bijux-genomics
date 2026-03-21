@@ -421,6 +421,9 @@ fn trim_command_template(
             options,
         );
     }
+    if tool.tool_id.as_str() == "seqkit" {
+        return seqkit_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
+    }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -516,10 +519,52 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
         | "trim_galore" => Ok(()),
+        "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!(
             "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
         )),
     }
+}
+
+fn seqkit_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let min_length = options.min_length.unwrap_or(1);
+    let mut script = format!(
+        "set -euo pipefail\nseqkit seq -m {min_length} -o {} {}\n",
+        shell_quote_path(output_r1),
+        shell_quote_path(r1),
+    );
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        script.push_str(&format!(
+            "seqkit seq -m {min_length} -o {} {}\n",
+            shell_quote_path(output_r2),
+            shell_quote_path(r2),
+        ));
+    }
+    script.push_str(&format!(
+        "printf '%s\\n' {} > {}\n",
+        shell_quote_str(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.trim_reads.report.v1",
+                "tool_id": "seqkit",
+                "input_r1": r1,
+                "input_r2": r2,
+                "output_r1": output_r1,
+                "output_r2": output_r2,
+                "min_length": min_length,
+                "quality_cutoff": options.quality_cutoff,
+            })
+            .to_string(),
+        ),
+        shell_quote_path(report_json),
+    ));
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
 fn cutadapt_command_template(

@@ -238,6 +238,33 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_options_maps_min_length_for_seqkit() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("seqkit"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(75),
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    assert!(plan.command.template[2].contains("seqkit seq -m 75"));
+    assert!(plan.command.template[2].contains("out/seqkit.fastq.gz"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> {
     let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("fastp"),
