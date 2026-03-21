@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
@@ -200,6 +200,7 @@ struct CorrectBenchInputs {
     r2: PathBuf,
     input_hash: String,
     input_stats_r1: SeqkitMetrics,
+    input_stats_r2: SeqkitMetrics,
     bench_dir: PathBuf,
     tools_root: PathBuf,
     seqkit_image: String,
@@ -243,13 +244,34 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
             stats_output.stderr
         ));
     }
+    let input_stats_r1 = parse_seqkit_stats(&stats_output.stdout)?;
+
+    let r2_dir = r2
+        .parent()
+        .ok_or_else(|| anyhow!("r2 has no parent"))?
+        .to_path_buf();
+    let stats_spec_r2 = input_fastq_stats(&r2_dir, &r2)?;
+    let stats_output_r2 = execute_observer_command(
+        &seqkit_image.full_name,
+        stats_spec_r2.mount_dir.as_path(),
+        &stats_spec_r2.args,
+        runner,
+    )?;
+    if stats_output_r2.exit_code != 0 {
+        return Err(anyhow!(
+            "seqkit correction observer failed for r2: {}",
+            stats_output_r2.stderr
+        ));
+    }
+    let input_stats_r2 = parse_seqkit_stats(&stats_output_r2.stdout)?;
 
     Ok(CorrectBenchInputs {
         runner,
         r1,
         r2,
         input_hash: hash_file_sha256(&args.r1).context("hash correction input")?,
-        input_stats_r1: parse_seqkit_stats(&stats_output.stdout)?,
+        input_stats_r1,
+        input_stats_r2,
         bench_dir,
         tools_root,
         seqkit_image: seqkit_image.full_name,
@@ -269,19 +291,23 @@ fn build_correct_record(
     let output_r1 = required_plan_output_path(plan, "corrected_reads_r1")?;
     let output_r2 = required_plan_output_path(plan, "corrected_reads_r2")?;
     let output_r1 = require_existing_benchmark_output(&output_r1, "corrected_reads_r1")?;
-    let _output_r2 = require_existing_benchmark_output(&output_r2, "corrected_reads_r2")?;
-    let output_stats = observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
-    let metrics = FastqCorrectMetrics {
-        reads_in: bench_inputs.input_stats_r1.reads,
-        reads_out: output_stats.reads,
-        bases_in: bench_inputs.input_stats_r1.bases,
-        bases_out: output_stats.bases,
-        pairs_in: Some(bench_inputs.input_stats_r1.reads),
-        pairs_out: Some(output_stats.reads),
-        mean_q_before: bench_inputs.input_stats_r1.mean_q,
-        mean_q_after: output_stats.mean_q,
-        kmer_fix_rate: if execution.exit_code == 0 { 1.0 } else { 0.0 },
-    };
+    let output_r2 = require_existing_benchmark_output(&output_r2, "corrected_reads_r2")?;
+    let output_stats_r1 =
+        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
+    let output_stats_r2 =
+        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r2)?;
+    let metrics = correct_metrics_from_observed_stats(
+        &bench_inputs.input_stats_r1,
+        &bench_inputs.input_stats_r2,
+        &output_stats_r1,
+        &output_stats_r2,
+        input_output_content_changed(
+            &bench_inputs.r1,
+            &bench_inputs.r2,
+            output_r1,
+            output_r2,
+        )?,
+    );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -296,6 +322,8 @@ fn build_correct_record(
         "output_r1": output_r1,
         "output_r2": output_r2,
         "corrected_reads": metrics.reads_out,
+        "pairs_in": metrics.pairs_in,
+        "pairs_out": metrics.pairs_out,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "bases_in": metrics.bases_in,
@@ -353,6 +381,61 @@ fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<Path
         })
 }
 
+fn correct_metrics_from_observed_stats(
+    input_r1: &SeqkitMetrics,
+    input_r2: &SeqkitMetrics,
+    output_r1: &SeqkitMetrics,
+    output_r2: &SeqkitMetrics,
+    outputs_changed: bool,
+) -> FastqCorrectMetrics {
+    let reads_in = input_r1.reads + input_r2.reads;
+    let reads_out = output_r1.reads + output_r2.reads;
+    let bases_in = input_r1.bases + input_r2.bases;
+    let bases_out = output_r1.bases + output_r2.bases;
+    let mean_q_before = weighted_mean_q(input_r1, input_r2);
+    let mean_q_after = weighted_mean_q(output_r1, output_r2);
+    FastqCorrectMetrics {
+        reads_in,
+        reads_out,
+        bases_in,
+        bases_out,
+        pairs_in: Some(input_r1.reads.min(input_r2.reads)),
+        pairs_out: Some(output_r1.reads.min(output_r2.reads)),
+        mean_q_before,
+        mean_q_after,
+        kmer_fix_rate: kmer_fix_rate_proxy(mean_q_before, mean_q_after, outputs_changed),
+    }
+}
+
+fn weighted_mean_q(primary: &SeqkitMetrics, secondary: &SeqkitMetrics) -> f64 {
+    let total_bases = primary.bases + secondary.bases;
+    if total_bases == 0 {
+        return 0.0;
+    }
+    ((primary.mean_q * primary.bases as f64) + (secondary.mean_q * secondary.bases as f64))
+        / total_bases as f64
+}
+
+fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: bool) -> f64 {
+    if !outputs_changed {
+        return 0.0;
+    }
+    if mean_q_after <= mean_q_before {
+        return f64::EPSILON;
+    }
+    ((mean_q_after - mean_q_before) / mean_q_after.max(1.0)).clamp(f64::EPSILON, 1.0)
+}
+
+fn input_output_content_changed(
+    input_r1: &Path,
+    input_r2: &Path,
+    output_r1: &Path,
+    output_r2: &Path,
+) -> Result<bool> {
+    Ok(hash_file_sha256(input_r1)? != hash_file_sha256(output_r1)?
+        || hash_file_sha256(input_r2)? != hash_file_sha256(output_r2)?)
+}
+
 fn observe_fastq_stats(
     seqkit_image: &str,
     runner: RuntimeKind,
@@ -384,10 +467,11 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 
 #[cfg(test)]
 mod tests {
-    use super::required_plan_output_path;
+    use super::{correct_metrics_from_observed_stats, required_plan_output_path};
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -476,5 +560,45 @@ mod tests {
         assert!(error
             .to_string()
             .contains("missing governed output `corrected_reads_r2`"));
+    }
+
+    fn seqkit_metrics(reads: u64, bases: u64, mean_q: f64) -> SeqkitMetrics {
+        SeqkitMetrics {
+            reads,
+            bases,
+            mean_q,
+            gc_percent: 0.0,
+        }
+    }
+
+    #[test]
+    fn correct_metrics_aggregate_both_mates() {
+        let metrics = correct_metrics_from_observed_stats(
+            &seqkit_metrics(100, 10_000, 30.0),
+            &seqkit_metrics(100, 9_000, 31.0),
+            &seqkit_metrics(100, 9_800, 33.0),
+            &seqkit_metrics(100, 8_900, 34.0),
+            true,
+        );
+        assert_eq!(metrics.reads_in, 200);
+        assert_eq!(metrics.reads_out, 200);
+        assert_eq!(metrics.bases_in, 19_000);
+        assert_eq!(metrics.bases_out, 18_700);
+        assert_eq!(metrics.pairs_in, Some(100));
+        assert_eq!(metrics.pairs_out, Some(100));
+        assert!(metrics.mean_q_after > metrics.mean_q_before);
+        assert!(metrics.kmer_fix_rate > 0.0);
+    }
+
+    #[test]
+    fn unchanged_corrected_outputs_zero_the_fix_rate_proxy() {
+        let metrics = correct_metrics_from_observed_stats(
+            &seqkit_metrics(100, 10_000, 30.0),
+            &seqkit_metrics(100, 10_000, 30.0),
+            &seqkit_metrics(100, 10_000, 30.0),
+            &seqkit_metrics(100, 10_000, 30.0),
+            false,
+        );
+        assert_eq!(metrics.kmer_fix_rate, 0.0);
     }
 }
