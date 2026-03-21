@@ -26,6 +26,7 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_POLYG_TAILS,
 };
+use std::path::{Path, PathBuf};
 
 fn normalize_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
@@ -238,6 +239,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
+        let (raw_report_path, raw_report_format) = raw_polyg_report_artifact(&tool, &out_dir)?;
 
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
@@ -256,6 +258,8 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             "bases_trimmed_polyg": metrics.bases_in.saturating_sub(metrics.bases_out),
             "mean_q_before": metrics.mean_q_before,
             "mean_q_after": metrics.mean_q_after,
+            "raw_report_path": raw_report_path,
+            "raw_report_format": raw_report_format,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "polyx_bank": polyx_context,
@@ -342,9 +346,22 @@ fn benchmark_query_context(
     Ok(context)
 }
 
+fn raw_polyg_report_artifact(tool_id: &str, out_dir: &Path) -> Result<(PathBuf, &'static str)> {
+    match tool_id {
+        "fastp" => Ok((out_dir.join("trim_polyg_tails_report.fastp.json"), "fastp_json")),
+        "bbduk" => Ok((out_dir.join("trim_polyg_tails_report.stats.txt"), "bbduk_stats")),
+        _ => Err(anyhow!(
+            "unsupported trim_polyg_tails raw report artifact for tool {tool_id}"
+        )),
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{admitted_stage_tools, benchmark_query_context, normalize_tools};
+    use super::{
+        admitted_stage_tools, benchmark_query_context, normalize_tools, raw_polyg_report_artifact,
+    };
+    use std::path::Path;
 
     #[test]
     fn normalize_tools_uses_execution_support_for_auto_and_all() {
@@ -364,5 +381,26 @@ mod tests {
             context.bank_hashes.get("polyx_bank").map(String::as_str),
             Some("polyx-hash")
         );
+    }
+
+    #[test]
+    fn raw_polyg_report_artifact_uses_backend_specific_native_outputs() {
+        let out_dir = Path::new("out");
+
+        let (fastp_path, fastp_format) =
+            raw_polyg_report_artifact("fastp", out_dir).expect("fastp raw report");
+        assert_eq!(
+            fastp_path,
+            Path::new("out").join("trim_polyg_tails_report.fastp.json")
+        );
+        assert_eq!(fastp_format, "fastp_json");
+
+        let (bbduk_path, bbduk_format) =
+            raw_polyg_report_artifact("bbduk", out_dir).expect("bbduk raw report");
+        assert_eq!(
+            bbduk_path,
+            Path::new("out").join("trim_polyg_tails_report.stats.txt")
+        );
+        assert_eq!(bbduk_format, "bbduk_stats");
     }
 }
