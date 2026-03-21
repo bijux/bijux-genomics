@@ -37,6 +37,8 @@ mod mod_contracts_stage_contract_snapshots_rs;
 mod mod_contracts_stage_contract_tool_ids_parity_rs;
 #[path = "contracts/stage_default_settings_parity.rs"]
 mod mod_contracts_stage_default_settings_parity_rs;
+#[path = "contracts/stage_parameter_surface.rs"]
+mod mod_contracts_stage_parameter_surface_rs;
 #[path = "contracts/stage_output_size_estimates_parity.rs"]
 mod mod_contracts_stage_output_size_estimates_parity_rs;
 #[path = "contracts/taxonomy_screen_manifest.rs"]
