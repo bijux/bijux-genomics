@@ -47,7 +47,6 @@ pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 1,
-        q_cutoff: None,
         validation_mode: ValidationMode::Strict,
         pair_sync_policy: if paired {
             PairSyncPolicy::RequireHeaderSync
