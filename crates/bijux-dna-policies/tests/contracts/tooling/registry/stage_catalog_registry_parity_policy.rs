@@ -12,7 +12,8 @@ fn table_array<'a>(root: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
 }
 
 fn list(table: &toml::Value, key: &str) -> Vec<String> {
-    table.get(key)
+    table
+        .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
             values

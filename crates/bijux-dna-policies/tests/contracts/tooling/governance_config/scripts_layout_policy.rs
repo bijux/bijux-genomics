@@ -79,7 +79,9 @@ fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
             continue;
         }
         let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if raw.contains("cargo run -p bijux-dev-dna -- lab ") || raw.contains("cargo run -q -p bijux-dev-dna -- lab ") {
+        if raw.contains("cargo run -p bijux-dev-dna -- lab ")
+            || raw.contains("cargo run -q -p bijux-dev-dna -- lab ")
+        {
             offenders.push(entry.path().display().to_string());
         }
     }

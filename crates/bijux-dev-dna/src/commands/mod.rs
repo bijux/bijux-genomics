@@ -1,17 +1,17 @@
+mod automation_boundary;
+mod command_support;
 mod containers;
 mod domain;
 mod ops;
-mod automation_boundary;
-mod command_support;
 mod repo_checks;
 
 use anyhow::Result;
 
-use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckDefinition, CheckOutcome, NativeCheckKey};
 use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
 use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};
-use crate::model::ops::{OpsCommandOutcome, NativeOpsCommandKey};
+use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
+use crate::runtime::workspace::Workspace;
 
 /// # Errors
 /// Returns an error if the native check cannot run.
@@ -25,12 +25,8 @@ pub fn run_native_check(
         NativeCheckKey::ArtifactEnvContract => {
             repo_checks::check_artifact_env_contract(workspace, check)
         }
-        NativeCheckKey::ArtifactsLayout => {
-            repo_checks::check_artifacts_layout(workspace, check)
-        }
-        NativeCheckKey::ArtifactsTracked => {
-            repo_checks::check_artifacts_tracked(workspace, check)
-        }
+        NativeCheckKey::ArtifactsLayout => repo_checks::check_artifacts_layout(workspace, check),
+        NativeCheckKey::ArtifactsTracked => repo_checks::check_artifacts_tracked(workspace, check),
         NativeCheckKey::AssetsReferenceSchema => {
             repo_checks::check_assets_reference_schema(workspace, check)
         }
@@ -72,15 +68,11 @@ pub fn run_native_check(
         NativeCheckKey::FrontendMiniDomainValidation => {
             repo_checks::check_frontend_mini_domain_validation(workspace, check)
         }
-        NativeCheckKey::GeneratedConfigs => {
-            repo_checks::check_generated_configs(workspace, check)
-        }
+        NativeCheckKey::GeneratedConfigs => repo_checks::check_generated_configs(workspace, check),
         NativeCheckKey::GitignoreContract => {
             repo_checks::check_gitignore_contract(workspace, check)
         }
-        NativeCheckKey::HiddenTmpUsage => {
-            repo_checks::check_hidden_tmp_usage(workspace, check)
-        }
+        NativeCheckKey::HiddenTmpUsage => repo_checks::check_hidden_tmp_usage(workspace, check),
         NativeCheckKey::HpcSafety => repo_checks::check_hpc_safety(workspace, check),
         NativeCheckKey::HpcRsyncDocsParity => {
             repo_checks::check_hpc_rsync_docs_parity(workspace, check)
@@ -88,16 +80,12 @@ pub fn run_native_check(
         NativeCheckKey::AutomationBoundary => {
             automation_boundary::check_automation_boundary(workspace, check)
         }
-        NativeCheckKey::LoggingContract => {
-            repo_checks::check_logging_contract(workspace, check)
-        }
+        NativeCheckKey::LoggingContract => repo_checks::check_logging_contract(workspace, check),
         NativeCheckKey::MakeHelpSync => repo_checks::check_make_help_sync(workspace, check),
         NativeCheckKey::AutomationNetworkUsage => {
             automation_boundary::check_automation_network_usage(workspace, check)
         }
-        NativeCheckKey::NoFakeArtifacts => {
-            repo_checks::check_no_fake_artifacts(workspace, check)
-        }
+        NativeCheckKey::NoFakeArtifacts => repo_checks::check_no_fake_artifacts(workspace, check),
         NativeCheckKey::LegacyAutomationReferences => {
             automation_boundary::check_legacy_automation_references(workspace, check)
         }
@@ -154,9 +142,7 @@ pub fn run_native_check(
         NativeCheckKey::LegacyAutomationRemoved => {
             automation_boundary::check_legacy_automation_removed(workspace, check)
         }
-        NativeCheckKey::ToolRegistryLock => {
-            repo_checks::check_tool_registry_lock(workspace, check)
-        }
+        NativeCheckKey::ToolRegistryLock => repo_checks::check_tool_registry_lock(workspace, check),
         NativeCheckKey::AutomationIntent => {
             automation_boundary::check_automation_intent(workspace, check)
         }

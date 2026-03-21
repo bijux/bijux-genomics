@@ -36,7 +36,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "check-certification-schema-docs",
             NativeCheckKey::CertificationSchemaDocs,
         ),
-        native("check-ci-automation-surface", NativeCheckKey::CiAutomationSurface),
+        native(
+            "check-ci-automation-surface",
+            NativeCheckKey::CiAutomationSurface,
+        ),
         policy("check-cli-command-snapshot", "cli_command_snapshot_policy"),
         native(
             "check-clippy-allowlist-expiry",
@@ -115,7 +118,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "stage_executor_parity_policy",
         ),
         policy("check-executor-no-unwrap", "stage_executor_parity_policy"),
-        native("check-automation-exit-codes", NativeCheckKey::AutomationExitCodes),
+        native(
+            "check-automation-exit-codes",
+            NativeCheckKey::AutomationExitCodes,
+        ),
         policy("check-frontend-mini-artifacts", "artifacts_policy"),
         native(
             "check-frontend-mini-domain-validation",
@@ -161,17 +167,26 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             NativeCheckKey::HpcRsyncDocsParity,
         ),
         native("check-hpc-safety", NativeCheckKey::HpcSafety),
-        native("check-automation-boundary", NativeCheckKey::AutomationBoundary),
+        native(
+            "check-automation-boundary",
+            NativeCheckKey::AutomationBoundary,
+        ),
         native("check-logging-contract", NativeCheckKey::LoggingContract),
         native("check-make-help-sync", NativeCheckKey::MakeHelpSync),
         policy("check-map-locks", "vcf_support_gate_policy"),
-        native("check-automation-network-usage", NativeCheckKey::AutomationNetworkUsage),
+        native(
+            "check-automation-network-usage",
+            NativeCheckKey::AutomationNetworkUsage,
+        ),
         policy(
             "check-nextest-profile-contract",
             "nextest_determinism_policy",
         ),
         native("check-no-fake-artifacts", NativeCheckKey::NoFakeArtifacts),
-        native("check-legacy-automation-references", NativeCheckKey::LegacyAutomationReferences),
+        native(
+            "check-legacy-automation-references",
+            NativeCheckKey::LegacyAutomationReferences,
+        ),
         native(
             "check-no-parallel-accidental",
             NativeCheckKey::AutomationParallelism,
@@ -188,7 +203,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "check-no-target-paths-in-tests",
             NativeCheckKey::NoTargetPathsInTests,
         ),
-        native("check-automation-temp-discipline", NativeCheckKey::AutomationTempDiscipline),
+        native(
+            "check-automation-temp-discipline",
+            NativeCheckKey::AutomationTempDiscipline,
+        ),
         native(
             "check-no-user-path-literals",
             NativeCheckKey::NoUserPathLiterals,
@@ -223,13 +241,28 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "check-rustflags-consistency",
             NativeCheckKey::RustflagsConsistency,
         ),
-        native("check-automation-arg-style", NativeCheckKey::AutomationArgStyle),
-        native("check-automation-deps", NativeCheckKey::AutomationDependencies),
-        native("check-automation-entrypoints", NativeCheckKey::AutomationEntrypoints),
+        native(
+            "check-automation-arg-style",
+            NativeCheckKey::AutomationArgStyle,
+        ),
+        native(
+            "check-automation-deps",
+            NativeCheckKey::AutomationDependencies,
+        ),
+        native(
+            "check-automation-entrypoints",
+            NativeCheckKey::AutomationEntrypoints,
+        ),
         native("check-automation-help", NativeCheckKey::AutomationHelp),
-        native("check-automation-interface", NativeCheckKey::AutomationInterface),
+        native(
+            "check-automation-interface",
+            NativeCheckKey::AutomationInterface,
+        ),
         native("check-automation-writes", NativeCheckKey::AutomationWrites),
-        native("check-automation-portability", NativeCheckKey::AutomationPortability),
+        native(
+            "check-automation-portability",
+            NativeCheckKey::AutomationPortability,
+        ),
         native("check-species-aliases", NativeCheckKey::SpeciesAliases),
         native("check-ssot-guardrails", NativeCheckKey::SsotGuardrails),
         composite(
@@ -240,7 +273,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
             "check-stage-registry-governance",
             &["check-registry-ssot", "check-stage-registry-fixtures"],
         ),
-        native("check-legacy-automation-removed", NativeCheckKey::LegacyAutomationRemoved),
+        native(
+            "check-legacy-automation-removed",
+            NativeCheckKey::LegacyAutomationRemoved,
+        ),
         native("check-tool-registry-lock", NativeCheckKey::ToolRegistryLock),
         native(
             "check-vcf-compatibility-matrix",

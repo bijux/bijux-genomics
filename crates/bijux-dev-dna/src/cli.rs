@@ -10,12 +10,12 @@ use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
 use crate::application::ops::OpsApplication;
-use crate::runtime::workspace::Workspace;
-use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
 use crate::catalog::ops::{
-    assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry,
-    smoke_registry, test_registry, tooling_registry,
+    assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry, smoke_registry,
+    test_registry, tooling_registry,
 };
+use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
+use crate::runtime::workspace::Workspace;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -128,9 +128,7 @@ fn maybe_emit_native_help(group: &str, id: &str, err: &anyhow::Error) -> bool {
     if !message.starts_with("__help__:") {
         return false;
     }
-    println!(
-        "Usage: cargo run -p bijux-dev-dna -- {group} run {id} -- [args...]"
-    );
+    println!("Usage: cargo run -p bijux-dev-dna -- {group} run {id} -- [args...]");
     true
 }
 
@@ -291,7 +289,15 @@ where
     let ended_at = Utc::now();
     let exit_code = if result.is_ok() { 0 } else { 1 };
     let status = if exit_code == 0 { "ok" } else { "fail" };
-    write_timing(group, command, status, exit_code, started_at, ended_at, timer.elapsed().as_secs());
+    write_timing(
+        group,
+        command,
+        status,
+        exit_code,
+        started_at,
+        ended_at,
+        timer.elapsed().as_secs(),
+    );
     result
 }
 
@@ -334,6 +340,9 @@ fn write_timing(
     });
     let _ = fs::write(
         timing_dir.join(file_name),
-        format!("{}\n", serde_json::to_string_pretty(&payload).unwrap_or_default()),
+        format!(
+            "{}\n",
+            serde_json::to_string_pretty(&payload).unwrap_or_default()
+        ),
     );
 }

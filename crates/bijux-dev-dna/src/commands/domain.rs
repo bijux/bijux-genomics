@@ -9,9 +9,9 @@ use sha2::{Digest, Sha256};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
+use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
-use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};
 
 const DOMAIN_INDEX_REGENERATE_PREFIX: &str =
     "# Regenerate with: cargo run -p bijux-dev-dna -- domain run generate-index -- ";
@@ -143,17 +143,20 @@ fn write_utf8(path: &Path, content: &str) -> Result<()> {
 fn scalar_from_text(text: &str, key: &str) -> Result<Option<String>> {
     let pattern = format!(r#"(?m)^{}:\s*(.+?)\s*$"#, regex::escape(key));
     let re = regex(&pattern)?;
-    Ok(re.captures(text).and_then(|captures| captures.get(1)).map(|value| {
-        let mut raw = value.as_str().trim().to_string();
-        if (raw.starts_with('"') && raw.ends_with('"'))
-            || (raw.starts_with('\'') && raw.ends_with('\''))
-        {
-            raw = raw[1..raw.len() - 1].trim().to_string();
-        } else if let Some((before_comment, _)) = raw.split_once(" #") {
-            raw = before_comment.trim().to_string();
-        }
-        raw
-    }))
+    Ok(re
+        .captures(text)
+        .and_then(|captures| captures.get(1))
+        .map(|value| {
+            let mut raw = value.as_str().trim().to_string();
+            if (raw.starts_with('"') && raw.ends_with('"'))
+                || (raw.starts_with('\'') && raw.ends_with('\''))
+            {
+                raw = raw[1..raw.len() - 1].trim().to_string();
+            } else if let Some((before_comment, _)) = raw.split_once(" #") {
+                raw = before_comment.trim().to_string();
+            }
+            raw
+        }))
 }
 
 fn list_block(text: &str, key: &str) -> Result<Vec<String>> {
@@ -323,7 +326,10 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
     }
 
     let existing = read_utf8(&index_path)?;
-    let mut lines = existing.lines().map(ToString::to_string).collect::<Vec<_>>();
+    let mut lines = existing
+        .lines()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>();
     if lines
         .first()
         .is_some_and(|line| line == "# GENERATED FILE - DO NOT EDIT")
@@ -399,7 +405,10 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         .iter()
         .any(|line| line.starts_with("domain_version:"))
     {
-        let Some(domain_line_index) = body_lines.iter().position(|line| line.starts_with("domain:")) else {
+        let Some(domain_line_index) = body_lines
+            .iter()
+            .position(|line| line.starts_with("domain:"))
+        else {
             bail!("{}: missing domain: field", index_path.display());
         };
         let version = if dom == "vcf" { "v2" } else { "v1" };
@@ -411,7 +420,14 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         format!("{DOMAIN_INDEX_REGENERATE_PREFIX}{dom}"),
         String::new(),
     ];
-    Ok(format!("{}\n", header.into_iter().chain(body_lines).collect::<Vec<_>>().join("\n")))
+    Ok(format!(
+        "{}\n",
+        header
+            .into_iter()
+            .chain(body_lines)
+            .collect::<Vec<_>>()
+            .join("\n")
+    ))
 }
 
 fn render_stage_tool_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> {
@@ -587,7 +603,10 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
     fs::create_dir_all(&cargo_home).with_context(|| format!("create {}", cargo_home.display()))?;
     fs::create_dir_all(&tmpdir).with_context(|| format!("create {}", tmpdir.display()))?;
     Ok(vec![
-        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
+        (
+            "ARTIFACT_ROOT".to_string(),
+            artifact_root.display().to_string(),
+        ),
         ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
         (
             "CARGO_TARGET_DIR".to_string(),
@@ -778,11 +797,9 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             }
             let has_doc_rationale =
                 regex(&format!(r"{}.*rationale", regex::escape(&stage_lower)))?.is_match(&text);
-            let has_idx_default = regex(&format!(
-                r#"(?m)^\s{{2}}{}:\s*.+$"#,
-                regex::escape(&stage)
-            ))?
-            .is_match(&idx_text);
+            let has_idx_default =
+                regex(&format!(r#"(?m)^\s{{2}}{}:\s*.+$"#, regex::escape(&stage)))?
+                    .is_match(&idx_text);
 
             let mut has_idx_rationale = false;
             if let Some(start_index) = active_default_start {
@@ -957,7 +974,9 @@ fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         }
 
         let stage_ids = list_block(&actual, "stage_ids")?;
-        let tool_ids = list_block(&actual, "tool_ids")?.into_iter().collect::<BTreeSet<_>>();
+        let tool_ids = list_block(&actual, "tool_ids")?
+            .into_iter()
+            .collect::<BTreeSet<_>>();
 
         let mut stage_file_map = BTreeMap::<String, PathBuf>::new();
         for stage_file in yaml_files(&dom_dir.join("stages"))? {
@@ -1017,19 +1036,16 @@ fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                     .with_context(|| format!("read {}", stage_dir.display()))?
                     .filter_map(std::result::Result::ok)
                 {
-                    if fixture
-                        .path()
-                        .extension()
-                        .and_then(|ext| ext.to_str())
-                        != Some("txt")
-                    {
+                    if fixture.path().extension().and_then(|ext| ext.to_str()) != Some("txt") {
                         continue;
                     }
                     let tool_id = fixture
                         .path()
                         .file_stem()
                         .and_then(|name| name.to_str())
-                        .ok_or_else(|| anyhow!("invalid fixture file {}", fixture.path().display()))?
+                        .ok_or_else(|| {
+                            anyhow!("invalid fixture file {}", fixture.path().display())
+                        })?
                         .to_string();
                     if !declared_tools.contains(&tool_id) {
                         errors.push(format!(
@@ -1100,18 +1116,25 @@ fn check_domain_layout(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     {
         let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
         if rel.ends_with(".tmp") {
-            errors.push(format!("domain layout: forbidden *.tmp files under domain/\n{rel}"));
+            errors.push(format!(
+                "domain layout: forbidden *.tmp files under domain/\n{rel}"
+            ));
             continue;
         }
         if allowed.iter().all(|pattern| !pattern.is_match(&rel)) {
-            errors.push(format!("domain layout: unknown file not in allowlist: {rel}"));
+            errors.push(format!(
+                "domain layout: unknown file not in allowlist: {rel}"
+            ));
         }
     }
 
     if errors.is_empty() {
         return success_line("domain layout: OK");
     }
-    Ok(DomainCommandOutcome::failure(format!("{}\n", errors.join("\n"))))
+    Ok(DomainCommandOutcome::failure(format!(
+        "{}\n",
+        errors.join("\n")
+    )))
 }
 
 fn production_bindings(workspace: &Workspace) -> Result<BTreeSet<(String, String)>> {
@@ -1189,8 +1212,10 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                     downstream.display()
                 ));
             }
-            if !matches!(status.as_str(), "planned" | "experimental" | "production" | "supported")
-            {
+            if !matches!(
+                status.as_str(),
+                "planned" | "experimental" | "production" | "supported"
+            ) {
                 errors.push(format!(
                     "{}: invalid stage status '{status}' for {stage_id}",
                     downstream.display()
@@ -1291,7 +1316,10 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             }
 
             let scope = scalar_from_text(&text, "scope")?;
-            if required_scope.as_deref().is_some_and(|required| scope.as_deref() != Some(required)) {
+            if required_scope
+                .as_deref()
+                .is_some_and(|required| scope.as_deref() != Some(required))
+            {
                 errors.push(format!(
                     "{}: scope must be {} (got {})",
                     stage_file.display(),
@@ -1313,8 +1341,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             }
             let defaults_source = scalar_from_text(&text, "defaults_source")?;
             match defaults_source {
-                Some(value)
-                    if value.starts_with("citation:") || value.starts_with("doc_ref:") => {}
+                Some(value) if value.starts_with("citation:") || value.starts_with("doc_ref:") => {}
                 Some(value) => errors.push(format!(
                     "{}: defaults_source must start with citation: or doc_ref: (got {value})",
                     stage_file.display()
@@ -1541,12 +1568,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             .filter_map(std::result::Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
-            if fixture
-                .path()
-                .extension()
-                .and_then(|ext| ext.to_str())
-                != Some("txt")
-            {
+            if fixture.path().extension().and_then(|ext| ext.to_str()) != Some("txt") {
                 continue;
             }
             let stage_id = fixture
@@ -1682,12 +1704,7 @@ fn check_external_tool_policy(workspace: &Workspace) -> Result<DomainCommandOutc
             .filter_map(std::result::Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
-            if fixture
-                .path()
-                .extension()
-                .and_then(|ext| ext.to_str())
-                != Some("txt")
-            {
+            if fixture.path().extension().and_then(|ext| ext.to_str()) != Some("txt") {
                 continue;
             }
             let tool = fixture
@@ -2051,7 +2068,11 @@ fn render_inventory_markdown(rows: &[InventoryRow]) -> String {
 }
 
 fn yes_no(value: bool) -> &'static str {
-    if value { "yes" } else { "no" }
+    if value {
+        "yes"
+    } else {
+        "no"
+    }
 }
 
 fn check_inventory(workspace: &Workspace) -> Result<DomainCommandOutcome> {
@@ -2092,9 +2113,11 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         .with_context(|| format!("read {}", registry_dir.display()))?
         .filter_map(std::result::Result::ok)
         .filter(|entry| {
-            entry.path().file_name().and_then(|name| name.to_str()).is_some_and(|name| {
-                name.starts_with("tool_registry") && name.ends_with(".toml")
-            })
+            entry
+                .path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("tool_registry") && name.ends_with(".toml"))
         })
         .map(|entry| entry.path())
         .collect::<Vec<_>>();
@@ -2117,7 +2140,10 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            if tool_id.is_empty() || tool_id.contains('.') || !matches!(status.as_str(), "production" | "supported") {
+            if tool_id.is_empty()
+                || tool_id.contains('.')
+                || !matches!(status.as_str(), "production" | "supported")
+            {
                 continue;
             }
             for binding in table
@@ -2152,8 +2178,12 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             continue;
         }
         let text = read_utf8(&index)?;
-        let indexed_stages = list_block(&text, "stage_ids")?.into_iter().collect::<BTreeSet<_>>();
-        let indexed_tools = list_block(&text, "tool_ids")?.into_iter().collect::<BTreeSet<_>>();
+        let indexed_stages = list_block(&text, "stage_ids")?
+            .into_iter()
+            .collect::<BTreeSet<_>>();
+        let indexed_tools = list_block(&text, "tool_ids")?
+            .into_iter()
+            .collect::<BTreeSet<_>>();
         let mut fixture_tools = BTreeSet::new();
         for fixture in WalkDir::new(dom_dir.join("fixtures"))
             .into_iter()
@@ -2213,8 +2243,13 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             }
         }
 
-        for registry_tool in registry_tools_by_domain.get(&dom).cloned().unwrap_or_default() {
-            if !domain_tool_ids.contains(&registry_tool) && !external_tools.contains(&registry_tool) {
+        for registry_tool in registry_tools_by_domain
+            .get(&dom)
+            .cloned()
+            .unwrap_or_default()
+        {
+            if !domain_tool_ids.contains(&registry_tool) && !external_tools.contains(&registry_tool)
+            {
                 errors.push(format!(
                     "domain/{dom}/tools: missing tool yaml for registry-bound tool '{registry_tool}' (or declare external tool policy)"
                 ));
@@ -2308,7 +2343,8 @@ fn check_reference_bundle_lock(workspace: &Workspace) -> Result<DomainCommandOut
     let catalog = workspace.path("configs/runtime/reference_bundles.toml");
     let lock = workspace.path("configs/runtime/reference_bundles_lock.sha256");
     let materialization_lock_json = workspace.path("configs/runtime/references/locks/lock.json");
-    let materialization_lock_sha = workspace.path("configs/runtime/references/locks/lock.json.sha256");
+    let materialization_lock_sha =
+        workspace.path("configs/runtime/references/locks/lock.json.sha256");
 
     if !catalog.is_file() {
         return Ok(DomainCommandOutcome::failure(format!(
@@ -2322,7 +2358,8 @@ fn check_reference_bundle_lock(workspace: &Workspace) -> Result<DomainCommandOut
             lock.display()
         )));
     }
-    let expected = sha256_hex(&fs::read(&catalog).with_context(|| format!("read {}", catalog.display()))?);
+    let expected =
+        sha256_hex(&fs::read(&catalog).with_context(|| format!("read {}", catalog.display()))?);
     let actual = read_utf8(&lock)?.trim().to_string();
     if expected != actual {
         return Ok(DomainCommandOutcome::failure(format!(
@@ -2408,10 +2445,12 @@ fn check_rust_stage_catalog_parity(workspace: &Workspace) -> Result<DomainComman
 
     let mut errors = Vec::new();
     for (domain, path, const_name) in specs {
-        let domain_ids = list_block(&read_utf8(&workspace.path(&format!("domain/{domain}/index.yaml")))?,
-            "stage_ids")?
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let domain_ids = list_block(
+            &read_utf8(&workspace.path(&format!("domain/{domain}/index.yaml")))?,
+            "stage_ids",
+        )?
+        .into_iter()
+        .collect::<BTreeSet<_>>();
         let rust_ids = parse_stage_catalog(&path, const_name)?;
         for missing in domain_ids.difference(&rust_ids) {
             errors.push(format!(
@@ -2583,17 +2622,26 @@ fn check_ssot_authority(workspace: &Workspace) -> Result<DomainCommandOutcome> {
 fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external = external_tools(workspace)?;
     let docker_tools = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/docker/arm64").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             let name = entry.file_name();
             let name = name.to_string_lossy();
-            name.strip_prefix("Dockerfile.")
-                .map(ToString::to_string)
+            name.strip_prefix("Dockerfile.").map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
     let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer/lunarc"))
-        .with_context(|| format!("read {}", workspace.path("containers/apptainer/lunarc").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/apptainer/lunarc").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             if entry.path().extension().and_then(|ext| ext.to_str()) == Some("def") {
@@ -2625,10 +2673,7 @@ fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOut
             if let Some(tool_id_value) = tool_id.clone() {
                 declared_tools.insert(tool_id_value.clone());
                 if status != "out_of_scope" && !external.contains(&tool_id_value) {
-                    let candidates = [
-                        tool_id_value.clone(),
-                        tool_id_value.replace('-', "_"),
-                    ];
+                    let candidates = [tool_id_value.clone(), tool_id_value.replace('-', "_")];
                     if candidates
                         .iter()
                         .all(|candidate| !all_container_tools.contains(candidate))
@@ -2684,13 +2729,19 @@ fn generate_index(workspace: &Workspace, args: &[String]) -> Result<DomainComman
         return Ok(DomainCommandOutcome {
             exit_code: 2,
             stdout: String::new(),
-            stderr: "Usage: cargo run -p bijux-dev-dna -- domain run generate-index -- <domain>|--all\n".to_string(),
+            stderr:
+                "Usage: cargo run -p bijux-dev-dna -- domain run generate-index -- <domain>|--all\n"
+                    .to_string(),
         });
     }
     let domains = if args[0] == "--all" {
         domain_directories(workspace)?
             .into_iter()
-            .filter_map(|path| path.file_name().and_then(|name| name.to_str()).map(ToString::to_string))
+            .filter_map(|path| {
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .map(ToString::to_string)
+            })
             .collect::<Vec<_>>()
     } else {
         vec![args[0].clone()]
@@ -2715,12 +2766,14 @@ fn generate_inventory(workspace: &Workspace, args: &[String]) -> Result<DomainCo
             stderr: "Usage: cargo run -p bijux-dev-dna -- domain run generate-inventory -- [<json-path> [<markdown-path>]]\n".to_string(),
         });
     }
-    let out_json = args
-        .first()
-        .map_or_else(|| workspace.path("artifacts/domain/inventory.json"), PathBuf::from);
-    let out_md = args
-        .get(1)
-        .map_or_else(|| workspace.path("artifacts/domain/inventory.md"), PathBuf::from);
+    let out_json = args.first().map_or_else(
+        || workspace.path("artifacts/domain/inventory.json"),
+        PathBuf::from,
+    );
+    let out_md = args.get(1).map_or_else(
+        || workspace.path("artifacts/domain/inventory.md"),
+        PathBuf::from,
+    );
     let rows = build_inventory_rows(workspace)?;
     write_utf8(&out_json, &render_inventory_json(&rows)?)?;
     write_utf8(&out_md, &render_inventory_markdown(&rows))?;

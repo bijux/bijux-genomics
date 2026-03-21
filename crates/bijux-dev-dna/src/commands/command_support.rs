@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use walkdir::WalkDir;
 
+use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
-use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 
 pub(crate) fn pass(check: &CheckDefinition, detail: impl Into<String>) -> Result<CheckOutcome> {
     Ok(CheckOutcome::leaf(

@@ -1,6 +1,4 @@
-use crate::model::domain::{
-    DomainCommandDefinition, DomainCommandSpec, NativeDomainCommandKey,
-};
+use crate::model::domain::{DomainCommandDefinition, DomainCommandSpec, NativeDomainCommandKey};
 
 pub fn domain_registry() -> Vec<DomainCommandDefinition> {
     vec![

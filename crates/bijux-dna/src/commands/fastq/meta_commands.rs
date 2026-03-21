@@ -4,44 +4,39 @@ use super::api_bridge::{
 use super::debug_commands::handle_debug_command;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
-    anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct, bench_args_deplete_host,
-    bench_args_deplete_reference_contaminants, bench_args_deplete_rrna,
-    bench_args_detect_adapters,
-    bench_args_filter, bench_args_filter_low_complexity, bench_args_index_reference,
-    bench_args_infer_asvs, bench_args_merge, bench_args_normalize_abundance,
-    bench_args_normalize_primers, bench_args_preprocess, bench_args_profile_overrepresented,
-    bench_args_profile_read_lengths, bench_args_qc_post, bench_args_remove_chimeras,
-    bench_args_remove_duplicates, bench_args_screen, bench_args_stats, bench_args_trim,
-    bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
+    anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct,
+    bench_args_deplete_host, bench_args_deplete_reference_contaminants, bench_args_deplete_rrna,
+    bench_args_detect_adapters, bench_args_filter, bench_args_filter_low_complexity,
+    bench_args_index_reference, bench_args_infer_asvs, bench_args_merge,
+    bench_args_normalize_abundance, bench_args_normalize_primers, bench_args_preprocess,
+    bench_args_profile_overrepresented, bench_args_profile_read_lengths, bench_args_qc_post,
+    bench_args_remove_chimeras, bench_args_remove_duplicates, bench_args_screen, bench_args_stats,
+    bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage, bench_args_umi,
     bench_args_validate, bench_fastq_cluster_otus, bench_fastq_correct, bench_fastq_deplete_host,
     bench_fastq_deplete_reference_contaminants, bench_fastq_deplete_rrna,
-    bench_fastq_detect_adapters, bench_fastq_filter,
-    bench_fastq_filter_low_complexity, bench_fastq_index_reference, bench_fastq_infer_asvs,
-    bench_fastq_merge, bench_fastq_normalize_abundance, bench_fastq_normalize_primers,
-    bench_fastq_preprocess, bench_fastq_profile_overrepresented,
-    bench_fastq_profile_read_lengths, bench_fastq_qc_post, bench_fastq_remove_chimeras,
-    bench_fastq_remove_duplicates, bench_fastq_screen, bench_fastq_stats_neutral,
-    bench_fastq_trim,
-    bench_fastq_trim_polyg_tails, bench_fastq_trim_terminal_damage, bench_fastq_umi,
-    bench_fastq_validate_reads, cli,
+    bench_fastq_detect_adapters, bench_fastq_filter, bench_fastq_filter_low_complexity,
+    bench_fastq_index_reference, bench_fastq_infer_asvs, bench_fastq_merge,
+    bench_fastq_normalize_abundance, bench_fastq_normalize_primers, bench_fastq_preprocess,
+    bench_fastq_profile_overrepresented, bench_fastq_profile_read_lengths, bench_fastq_qc_post,
+    bench_fastq_remove_chimeras, bench_fastq_remove_duplicates, bench_fastq_screen,
+    bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_trim_polyg_tails,
+    bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
     load_manifests, load_platform, load_run_summary, objective_spec, print_bench_schema,
     print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
     qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
     run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_chimeras_report, write_cluster_otus_report, write_correct_report, write_deplete_host_report,
-    write_deplete_reference_contaminants_report, write_deplete_rrna_report,
-    write_detect_adapters_report,
-    write_duplicates_report, write_filter_low_complexity_report, write_filter_report,
-    write_index_reference_report, write_infer_asvs_report, write_merge_report,
-    write_normalize_abundance_report, write_normalize_primers_report,
-    write_overrepresented_report, write_qc_post_report, write_read_lengths_report,
-    write_screen_report,
-    write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
-    write_stats_report, write_trim_polyg_report, write_trim_report,
-    write_trim_terminal_damage_report, write_umi_report, write_validate_report, AnalyzeCommand,
-    BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand,
-    Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
+    write_chimeras_report, write_cluster_otus_report, write_correct_report,
+    write_deplete_host_report, write_deplete_reference_contaminants_report,
+    write_deplete_rrna_report, write_detect_adapters_report, write_duplicates_report,
+    write_filter_low_complexity_report, write_filter_report, write_index_reference_report,
+    write_infer_asvs_report, write_merge_report, write_normalize_abundance_report,
+    write_normalize_primers_report, write_overrepresented_report, write_qc_post_report,
+    write_read_lengths_report, write_run_report_from_facts, write_run_summary_from_facts,
+    write_screen_report, write_stage_summary_csv, write_stats_report, write_trim_polyg_report,
+    write_trim_report, write_trim_terminal_damage_report, write_umi_report, write_validate_report,
+    AnalyzeCommand, BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand,
+    EnvCommand, Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
 
 pub(crate) fn handle_meta_commands(
@@ -870,12 +865,8 @@ pub(crate) fn handle_meta_commands(
                     BenchFastqCommand::RemoveDuplicates(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_remove_duplicates(args)?;
-                        let outcome = bench_fastq_remove_duplicates(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args,
-                        )?;
+                        let outcome =
+                            bench_fastq_remove_duplicates(&catalog, &platform, None, &bench_args)?;
                         write_duplicates_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -889,12 +880,8 @@ pub(crate) fn handle_meta_commands(
                     BenchFastqCommand::RemoveChimeras(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
                         let bench_args = bench_args_remove_chimeras(args)?;
-                        let outcome = bench_fastq_remove_chimeras(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args,
-                        )?;
+                        let outcome =
+                            bench_fastq_remove_chimeras(&catalog, &platform, None, &bench_args)?;
                         write_chimeras_report(
                             &outcome.bench_dir,
                             &outcome.records,

@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 
-use crate::runtime::workspace::Workspace;
-use crate::model::container::{ContainerCommandDefinition, ContainerCommandOutcome, ContainerCommandSpec};
-use crate::commands::run_native_container_command;
 use crate::catalog::containers::container_registry;
+use crate::commands::run_native_container_command;
+use crate::model::container::{
+    ContainerCommandDefinition, ContainerCommandOutcome, ContainerCommandSpec,
+};
+use crate::runtime::workspace::Workspace;
 
 #[derive(Debug)]
 pub struct ContainerApplication {
@@ -34,7 +36,9 @@ impl ContainerApplication {
             .find(|candidate| candidate.id == id)
             .ok_or_else(|| anyhow!("unknown container command `{id}`"))?;
         match &command.command {
-            ContainerCommandSpec::Native { key } => run_native_container_command(key, &self.workspace, args),
+            ContainerCommandSpec::Native { key } => {
+                run_native_container_command(key, &self.workspace, args)
+            }
         }
     }
 }

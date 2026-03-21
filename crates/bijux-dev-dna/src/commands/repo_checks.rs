@@ -5,11 +5,11 @@ use regex::Regex;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
-use crate::runtime::workspace::Workspace;
+use crate::commands::command_support::{fail, pass, read, run_command};
+use crate::commands::run_native_ops_command;
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::model::ops::NativeOpsCommandKey;
-use crate::commands::run_native_ops_command;
-use crate::commands::command_support::{fail, pass, read, run_command};
+use crate::runtime::workspace::Workspace;
 
 pub(crate) fn check_audit_allowlist(
     workspace: &Workspace,
@@ -400,7 +400,10 @@ pub(crate) fn check_artifact_env_contract(
     let snapshots = workspace.path("crates");
     let path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
     let mut leaks = Vec::new();
-    for entry in WalkDir::new(&snapshots).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&snapshots)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -473,7 +476,9 @@ pub(crate) fn check_assets_reference_schema(
     }
     let mut errors = Vec::new();
     if !ref_root.join("SCHEMAS.md").exists() {
-        errors.push("assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string());
+        errors.push(
+            "assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string(),
+        );
     }
     let schema_re = Regex::new(r"(?m)^schema_version:\s*\S+").context("compile schema regex")?;
     let id_re =
@@ -606,7 +611,10 @@ pub(crate) fn check_assets_reference_schema(
     if errors.is_empty() {
         return pass(check, "asset reference validation completed");
     }
-    fail(check, format!("assets-reference-schema: FAILED\n{}", errors.join("\n")))
+    fail(
+        check,
+        format!("assets-reference-schema: FAILED\n{}", errors.join("\n")),
+    )
 }
 
 pub(crate) fn check_cargo_config_policy(
@@ -681,20 +689,19 @@ pub(crate) fn check_docs_build_contract(
     }
     if !native_ops.contains("artifacts/docs/.cache") {
         violations.push(
-            "docs-build-contract: native docs workflow must use artifacts/docs/.cache"
-                .to_string(),
+            "docs-build-contract: native docs workflow must use artifacts/docs/.cache".to_string(),
         );
     }
 
     if !native_ops.contains("PIP_CACHE_DIR") {
         violations.push(
-            "docs-build-contract: native docs venv workflow must set PIP_CACHE_DIR"
-                .to_string(),
+            "docs-build-contract: native docs venv workflow must set PIP_CACHE_DIR".to_string(),
         );
     }
     if !native_ops.contains("artifacts/docs/.cache/pip") {
         violations.push(
-            "docs-build-contract: native docs venv workflow must use artifacts/docs/.cache/pip".to_string(),
+            "docs-build-contract: native docs venv workflow must use artifacts/docs/.cache/pip"
+                .to_string(),
         );
     }
 
@@ -805,18 +812,14 @@ pub(crate) fn check_examples_runner_contract(
             std::fs::remove_dir_all(&output_dir)
                 .with_context(|| format!("remove {}", output_dir.display()))?;
         }
-        let output = run_native_ops_command(
-            &NativeOpsCommandKey::ExamplesRun,
-            workspace,
-            &[id.clone()],
-        )?;
+        let output =
+            run_native_ops_command(&NativeOpsCommandKey::ExamplesRun, workspace, &[id.clone()])?;
         if !output.is_success() {
             return fail(
                 check,
                 format!(
                     "examples runner failed:\n{}{}",
-                    output.stdout,
-                    output.stderr
+                    output.stdout, output.stderr
                 ),
             );
         }
@@ -952,7 +955,10 @@ pub(crate) fn check_hidden_tmp_usage(
     ];
     let mut violations = Vec::new();
     for root in roots {
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -985,7 +991,10 @@ pub(crate) fn check_hpc_safety(
         return pass(check, "legacy hpc automation surface is absent");
     }
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -1142,7 +1151,10 @@ pub(crate) fn check_no_fake_artifacts(
         Regex::new(r"placeholder|fake_artifact|dummy_artifact|stub_artifact").expect("regex");
     let mut hits = Vec::new();
     for root in source_roots {
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1160,7 +1172,10 @@ pub(crate) fn check_no_fake_artifacts(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1190,7 +1205,10 @@ pub(crate) fn check_no_target_paths_in_tests(
     let excluded: [&str; 0] = [];
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1228,7 +1246,10 @@ pub(crate) fn check_no_user_path_literals(
     let user_path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1466,10 +1487,7 @@ pub(crate) fn check_rustflags_consistency(
             }
         }
     }
-    for path in [
-        workspace.path("makes"),
-        workspace.path("Makefile"),
-    ] {
+    for path in [workspace.path("makes"), workspace.path("Makefile")] {
         if path.is_file() {
             let raw = read(&path)?;
             if raw.contains("RUSTFLAGS=") {
@@ -1477,7 +1495,10 @@ pub(crate) fn check_rustflags_consistency(
             }
             continue;
         }
-        for entry in WalkDir::new(&path).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&path)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1486,9 +1507,7 @@ pub(crate) fn check_rustflags_consistency(
                 continue;
             }
             let raw = read(entry.path())?;
-            if raw.contains("RUSTFLAGS=")
-                && rel != "crates/bijux-dev-dna/src/commands/ops.rs"
-            {
+            if raw.contains("RUSTFLAGS=") && rel != "crates/bijux-dev-dna/src/commands/ops.rs" {
                 violations.push(rel);
             }
         }
@@ -1514,14 +1533,7 @@ pub(crate) fn check_frontend_mini_domain_validation(
     if output.is_success() {
         return pass(check, "frontend mini domain validation completed");
     }
-    fail(
-        check,
-        format!(
-            "{}{}",
-            output.stdout,
-            output.stderr
-        ),
-    )
+    fail(check, format!("{}{}", output.stdout, output.stderr))
 }
 
 fn public_make_targets(readme: &str) -> BTreeSet<String> {

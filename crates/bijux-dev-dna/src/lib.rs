@@ -5,9 +5,9 @@
 
 mod application;
 mod catalog;
+mod cli;
 mod commands;
 mod model;
 mod runtime;
-mod cli;
 
 pub use cli::run;

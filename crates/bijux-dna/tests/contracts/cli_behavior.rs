@@ -104,9 +104,8 @@ fn cli_env_info_is_deterministic() {
     }
     assert!(stdout.contains("platform: test"));
     assert!(stdout.contains("runner: docker"));
-    let images_stdout =
-        run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
-            .unwrap_or_else(|err| panic!("cli images failed: {err}"));
+    let images_stdout = run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
+        .unwrap_or_else(|err| panic!("cli images failed: {err}"));
     let image_count = images_stdout.lines().count();
     assert!(stdout.contains(&format!("image count: {image_count}")));
     let expected_cache = workspace
@@ -123,8 +122,8 @@ fn cli_env_images_are_listed_in_order() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
 
-    let stdout = run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
-        .expect("cli ok");
+    let stdout =
+        run_cli_capture(&workspace, &["--platform", "test", "env", "images"]).expect("cli ok");
     let lines: Vec<&str> = stdout.lines().collect();
     if lines.is_empty() {
         return;
@@ -155,16 +154,10 @@ fastp = { version = "99.99.99+fixture" }
 "#,
     );
 
-    let stdout_a = run_cli_capture(
-        &workspace_a,
-        &["--platform", "test", "env", "images"],
-    )
-    .expect("cli ok");
-    let stdout_b = run_cli_capture(
-        &workspace_b,
-        &["--platform", "test", "env", "images"],
-    )
-    .expect("cli ok");
+    let stdout_a =
+        run_cli_capture(&workspace_a, &["--platform", "test", "env", "images"]).expect("cli ok");
+    let stdout_b =
+        run_cli_capture(&workspace_b, &["--platform", "test", "env", "images"]).expect("cli ok");
 
     assert_eq!(stdout_a, stdout_b);
 }

@@ -9,9 +9,9 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
+use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
-use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey};
 
 pub fn run_native_container_command(
     key: &NativeContainerCommandKey,
@@ -26,9 +26,7 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::ReleaseGate => run_release_gate(workspace, args),
         NativeContainerCommandKey::VulnScanHook => run_vuln_scan_hook(workspace, args),
         NativeContainerCommandKey::ApptainerBuildAll => run_apptainer_build_all(workspace, args),
-        NativeContainerCommandKey::BuildApptainerAll => {
-            run_build_apptainer_all(workspace, args)
-        }
+        NativeContainerCommandKey::BuildApptainerAll => run_build_apptainer_all(workspace, args),
         NativeContainerCommandKey::BuildApptainerHpcFrontend => {
             run_build_apptainer_hpc_frontend(workspace, args)
         }
@@ -68,7 +66,9 @@ pub fn run_native_container_command(
             ensure_no_args("check-tool-name-map-generated", args)?;
             check_tool_name_map_generated(workspace)
         }
-        NativeContainerCommandKey::GenerateContainerIndex => generate_container_index(workspace, args),
+        NativeContainerCommandKey::GenerateContainerIndex => {
+            generate_container_index(workspace, args)
+        }
         NativeContainerCommandKey::CheckContainerIndex => {
             ensure_no_args("check-index", args)?;
             check_container_index(workspace)
@@ -222,9 +222,7 @@ pub fn run_native_container_command(
             ensure_no_args("check-toolkit-bundles", args)?;
             check_toolkit_bundles(workspace)
         }
-        NativeContainerCommandKey::CheckHpcImageNaming => {
-            check_hpc_image_naming(workspace, args)
-        }
+        NativeContainerCommandKey::CheckHpcImageNaming => check_hpc_image_naming(workspace, args),
         NativeContainerCommandKey::CheckPlannedActionability => {
             ensure_no_args("check-planned-actionability", args)?;
             check_planned_actionability(workspace)
@@ -485,7 +483,10 @@ fn run_container_runtime_check() -> Result<ContainerCommandOutcome> {
 }
 
 fn success_line(line: impl Into<String>) -> Result<ContainerCommandOutcome> {
-    Ok(ContainerCommandOutcome::success(format!("{}\n", line.into())))
+    Ok(ContainerCommandOutcome::success(format!(
+        "{}\n",
+        line.into()
+    )))
 }
 
 fn failure_lines(title: &str, errors: &[String]) -> Result<ContainerCommandOutcome> {
@@ -571,7 +572,12 @@ fn registry_tool_map(
 fn governed_container_file_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
     let mut ids = BTreeSet::new();
     for entry in fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/docker/arm64").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
     {
         if let Some(tool_id) = entry
@@ -583,7 +589,12 @@ fn governed_container_file_ids(workspace: &Workspace) -> Result<BTreeSet<String>
         }
     }
     for entry in fs::read_dir(workspace.path("containers/apptainer/lunarc"))
-        .with_context(|| format!("read {}", workspace.path("containers/apptainer/lunarc").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/apptainer/lunarc").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
     {
         let path = entry.path();
@@ -725,7 +736,11 @@ fn parse_date(value: &str, field_name: &str) -> Result<NaiveDate> {
         .with_context(|| format!("invalid {field_name}: {value}"))
 }
 
-fn update_status_in_table_file(path: &std::path::Path, tool: &str, to_status: &str) -> Result<bool> {
+fn update_status_in_table_file(
+    path: &std::path::Path,
+    tool: &str,
+    to_status: &str,
+) -> Result<bool> {
     let text = read_utf8(path)?;
     let mut updated = false;
     let mut out = Vec::new();
@@ -735,7 +750,9 @@ fn update_status_in_table_file(path: &std::path::Path, tool: &str, to_status: &s
     }
     for chunk in chunks.iter().skip(1) {
         let mut block = format!("[[tools]]{chunk}");
-        if block.contains(&format!("id = \"{tool}\"")) || block.contains(&format!("tool_id = \"{tool}\"")) {
+        if block.contains(&format!("id = \"{tool}\""))
+            || block.contains(&format!("tool_id = \"{tool}\""))
+        {
             let mut lines = block.lines().map(ToOwned::to_owned).collect::<Vec<_>>();
             if let Some(index) = lines
                 .iter()
@@ -812,7 +829,8 @@ fn append_toml_table(path: &std::path::Path, content: &str, new_file_header: &st
 
 fn iso_root_path(workspace: &Workspace) -> PathBuf {
     PathBuf::from(
-        std::env::var("ISO_ROOT").unwrap_or_else(|_| workspace.path("artifacts").display().to_string()),
+        std::env::var("ISO_ROOT")
+            .unwrap_or_else(|_| workspace.path("artifacts").display().to_string()),
     )
 }
 
@@ -859,7 +877,9 @@ fn images_metadata(workspace: &Workspace) -> Result<toml::map::Map<String, toml:
         .ok_or_else(|| anyhow!("images.toml must be a TOML table"))
 }
 
-fn toolkit_bundles(workspace: &Workspace) -> Result<BTreeMap<String, toml::map::Map<String, toml::Value>>> {
+fn toolkit_bundles(
+    workspace: &Workspace,
+) -> Result<BTreeMap<String, toml::map::Map<String, toml::Value>>> {
     let value = load_toml(&workspace.path("configs/ci/tools/toolkit_bundles.toml"))?;
     let mut rows = BTreeMap::new();
     if let Some(table) = value.get("bundles").and_then(toml::Value::as_table) {
@@ -875,7 +895,12 @@ fn toolkit_bundles(workspace: &Workspace) -> Result<BTreeMap<String, toml::map::
 fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
     let mut ids = BTreeSet::new();
     for entry in fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/docker/arm64").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
     {
         if let Some(tool) = entry
@@ -891,7 +916,12 @@ fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
 
 fn dockerfile_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut paths = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/docker/arm64").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
         .filter(|path| {
@@ -907,7 +937,11 @@ fn dockerfile_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
 fn apptainer_tool_ids(workspace: &Workspace) -> BTreeSet<String> {
     apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .filter_map(|path| {
+            path.file_stem()
+                .and_then(|name| name.to_str())
+                .map(ToOwned::to_owned)
+        })
         .collect()
 }
 
@@ -944,10 +978,7 @@ fn table_bool(table: &toml::map::Map<String, toml::Value>, key: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn table_array_strings(
-    table: &toml::map::Map<String, toml::Value>,
-    key: &str,
-) -> Vec<String> {
+fn table_array_strings(table: &toml::map::Map<String, toml::Value>, key: &str) -> Vec<String> {
     table
         .get(key)
         .and_then(toml::Value::as_array)
@@ -979,7 +1010,8 @@ fn toml_value_string(value: &toml::Value) -> String {
 }
 
 fn markdown_code_value(value: &str) -> String {
-    value.replace('\\', "\\\\")
+    value
+        .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', "\\n")
 }
@@ -998,7 +1030,8 @@ fn line_has_network_command(line: &str) -> bool {
 }
 
 fn read_json(path: &std::path::Path) -> Result<serde_json::Value> {
-    serde_json::from_str(&read_utf8(path)?).with_context(|| format!("parse JSON {}", path.display()))
+    serde_json::from_str(&read_utf8(path)?)
+        .with_context(|| format!("parse JSON {}", path.display()))
 }
 
 fn json_string_pretty(value: &serde_json::Value) -> Result<String> {
@@ -1081,7 +1114,10 @@ fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerCommandOutco
     let expected_ids = actual
         .lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-        .filter_map(|line| line.split_once('\t').map(|(tool_id, _)| tool_id.to_string()))
+        .filter_map(|line| {
+            line.split_once('\t')
+                .map(|(tool_id, _)| tool_id.to_string())
+        })
         .collect::<BTreeSet<_>>();
     let file_ids = governed_container_file_ids(workspace)?;
     let unknown = file_ids
@@ -1135,12 +1171,7 @@ fn generate_tool_name_map(
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
-    let out = out_path_arg(
-        workspace,
-        args,
-        "containers/docs/TOOL_NAME_MAP.md",
-        usage,
-    )?;
+    let out = out_path_arg(workspace, args, "containers/docs/TOOL_NAME_MAP.md", usage)?;
     write_utf8(&out, &generate_tool_name_map_content(workspace)?)?;
     success_line(format!("generated {}", out.display()))
 }
@@ -1173,7 +1204,9 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let docker_arm64 = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
         let apptainer_source = if apptainer.exists() {
-            if read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
+            if read_utf8(&apptainer)
+                .unwrap_or_default()
+                .contains("NON_BIJUX_SOURCES.md")
                 || tool_id == "bcftools"
                 || tool_id == "beagle"
                 || tool_id == "eagle"
@@ -1199,7 +1232,12 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             (false, true) => "amd64",
             (false, false) => "none",
         };
-        rows.push((tool_id.to_string(), status.to_string(), apptainer_source.to_string(), docker_source.to_string()));
+        rows.push((
+            tool_id.to_string(),
+            status.to_string(),
+            apptainer_source.to_string(),
+            docker_source.to_string(),
+        ));
     }
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
@@ -1240,7 +1278,9 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "|---|---|---|---|".to_string(),
     ];
     for (tool_id, status, ap_src, docker_src) in rows {
-        lines.push(format!("| `{tool_id}` | `{status}` | `{ap_src}` | `{docker_src}` |"));
+        lines.push(format!(
+            "| `{tool_id}` | `{status}` | `{ap_src}` | `{docker_src}` |"
+        ));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -1316,7 +1356,10 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
         } else {
-            format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
+            format!(
+                "sha256:{}",
+                sha256_hex(format!("{tool}:{source}:{version}").as_bytes())
+            )
         };
         let spdx = version_row
             .map(|value| table_string(value, "upstream_license"))
@@ -1410,7 +1453,10 @@ fn generate_license_metadata(
             path_from_arg(workspace, dir),
             workspace.path("docs/30-operations/CONTAINER_LICENSE_INDEX.md"),
         ),
-        [dir, index] => (path_from_arg(workspace, dir), path_from_arg(workspace, index)),
+        [dir, index] => (
+            path_from_arg(workspace, dir),
+            path_from_arg(workspace, index),
+        ),
         _ => return Err(anyhow!(usage.to_string())),
     };
     let entries = license_metadata_entries(workspace)?;
@@ -1481,7 +1527,10 @@ fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutco
         }
         let value = load_toml(&meta)?;
         let Some(data) = value.as_table() else {
-            errors.push(format!("{} is not a TOML table", workspace.rel(&meta).display()));
+            errors.push(format!(
+                "{} is not a TOML table",
+                workspace.rel(&meta).display()
+            ));
             continue;
         };
         for key in [
@@ -1497,11 +1546,17 @@ fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutco
             "version",
         ] {
             if table_string(data, key).is_empty() {
-                errors.push(format!("{} missing key: {key}", workspace.rel(&meta).display()));
+                errors.push(format!(
+                    "{} missing key: {key}",
+                    workspace.rel(&meta).display()
+                ));
             }
         }
         if table_string(data, "tool_id") != *tool {
-            errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
+            errors.push(format!(
+                "{} tool_id mismatch",
+                workspace.rel(&meta).display()
+            ));
         }
         let upstream_url = table_string(data, "upstream_url");
         if !(upstream_url.starts_with("http://") || upstream_url.starts_with("https://")) {
@@ -1533,8 +1588,7 @@ fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutco
         }
 
         let apptainer_def = table_string(&row, "apptainer_def");
-        if apptainer_def.contains("/non-bijux/") || is_non_bijux_apptainer_source(workspace, tool)
-        {
+        if apptainer_def.contains("/non-bijux/") || is_non_bijux_apptainer_source(workspace, tool) {
             let version_row = versions.get(tool).cloned().unwrap_or_default();
             let source = table_string(&version_row, "source");
             let version = table_string(&version_row, "version");
@@ -1681,7 +1735,10 @@ fn check_network_disclosure(
     let tool_ids = read_utf8(&workspace.path("containers/TOOL_IDS.txt"))?
         .lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-        .filter_map(|line| line.split_once('\t').map(|(tool_id, _)| tool_id.to_string()))
+        .filter_map(|line| {
+            line.split_once('\t')
+                .map(|(tool_id, _)| tool_id.to_string())
+        })
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     let mut runtime_network_true = Vec::new();
@@ -1696,7 +1753,10 @@ fn check_network_disclosure(
         }
         let value = load_toml(&meta)?;
         let Some(data) = value.as_table() else {
-            errors.push(format!("{} must contain a TOML table", workspace.rel(&meta).display()));
+            errors.push(format!(
+                "{} must contain a TOML table",
+                workspace.rel(&meta).display()
+            ));
             continue;
         };
         for key in ["tool_id", "runtime_network", "build_network", "notes"] {
@@ -1708,7 +1768,10 @@ fn check_network_disclosure(
             }
         }
         if table_string(data, "tool_id") != tool_id {
-            errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
+            errors.push(format!(
+                "{} tool_id mismatch",
+                workspace.rel(&meta).display()
+            ));
         }
         if table_bool(data, "runtime_network") {
             runtime_network_true.push(tool_id);
@@ -1801,7 +1864,9 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             ) {
                 continue;
             }
-            let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default()) else {
+            let Ok(value) =
+                serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default())
+            else {
                 continue;
             };
             let tool = value
@@ -1813,7 +1878,8 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             if !tool.is_empty() {
                 status.insert(
                     tool,
-                    value.get("status")
+                    value
+                        .get("status")
                         .and_then(serde_json::Value::as_str)
                         .unwrap_or("unknown")
                         .to_string(),
@@ -1823,7 +1889,12 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     }
 
     let docker_ids = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/docker/arm64").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             entry
@@ -1834,9 +1905,20 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         })
         .collect::<BTreeSet<_>>();
     let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer/lunarc"))
-        .with_context(|| format!("read {}", workspace.path("containers/apptainer/lunarc").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/apptainer/lunarc").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
-        .filter_map(|entry| entry.path().file_stem().and_then(|name| name.to_str()).map(ToString::to_string))
+        .filter_map(|entry| {
+            entry
+                .path()
+                .file_stem()
+                .and_then(|name| name.to_str())
+                .map(ToString::to_string)
+        })
         .collect::<BTreeSet<_>>();
 
     let mut outputs = BTreeMap::new();
@@ -1876,22 +1958,19 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             "Purpose: generated per-tool container contract summary.".to_string(),
             String::new(),
             format!("- Version: `{}`", table_string(version_row, "version")),
-            format!(
-                "- License: `{}`",
-                {
-                    let spdx = table_string(&license_row, "spdx");
-                    if spdx.is_empty() {
-                        let upstream = table_string(&license_row, "upstream_license");
-                        if upstream.is_empty() {
-                            "unknown".to_string()
-                        } else {
-                            upstream
-                        }
+            format!("- License: `{}`", {
+                let spdx = table_string(&license_row, "spdx");
+                if spdx.is_empty() {
+                    let upstream = table_string(&license_row, "upstream_license");
+                    if upstream.is_empty() {
+                        "unknown".to_string()
                     } else {
-                        spdx
+                        upstream
                     }
+                } else {
+                    spdx
                 }
-            ),
+            }),
             format!(
                 "- Runtime support: `{}`",
                 if runtimes.is_empty() {
@@ -1916,7 +1995,10 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         outputs.insert(format!("{tool}.md"), format!("{}\n", lines.join("\n")));
         index_lines.push(format!("- `{tool}`: `containers/docs/tools/{tool}.md`"));
     }
-    outputs.insert("index.md".to_string(), format!("{}\n", index_lines.join("\n")));
+    outputs.insert(
+        "index.md".to_string(),
+        format!("{}\n", index_lines.join("\n")),
+    );
     Ok(outputs)
 }
 
@@ -2084,11 +2166,8 @@ fn load_summary_status(
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
-    let (
-        status_from_summary,
-        docker_digest_from_summary,
-        apptainer_digest_from_summary,
-    ) = load_summary_status(workspace)?;
+    let (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary) =
+        load_summary_status(workspace)?;
     let mut rows = Vec::new();
     for (tool, row) in registry {
         if !table_array_strings(&row, "runtimes")
@@ -2119,17 +2198,14 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
                     rationale
                 }
             },
-            status_from_summary
-                .get(&tool)
-                .cloned()
-                .unwrap_or_else(|| {
-                    let status = table_string(&row, "status");
-                    if status.is_empty() {
-                        "unknown".to_string()
-                    } else {
-                        status
-                    }
-                }),
+            status_from_summary.get(&tool).cloned().unwrap_or_else(|| {
+                let status = table_string(&row, "status");
+                if status.is_empty() {
+                    "unknown".to_string()
+                } else {
+                    status
+                }
+            }),
             docker_digest_from_summary
                 .get(&tool)
                 .cloned()
@@ -2241,12 +2317,36 @@ fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
         .into_iter()
         .map(|(tool, row)| VersionMapItem {
             tool,
-            version: row.get("version").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
-            status: row.get("status").and_then(toml::Value::as_str).unwrap_or("production").to_string(),
-            source: row.get("source").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
-            source_sha256: row.get("source_sha256").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
-            pinned_commit: row.get("pinned_commit").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
-            date_pinned: row.get("date_pinned").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
+            version: row
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            status: row
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .unwrap_or("production")
+                .to_string(),
+            source: row
+                .get("source")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            source_sha256: row
+                .get("source_sha256")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            pinned_commit: row
+                .get("pinned_commit")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            date_pinned: row
+                .get("date_pinned")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string(),
         })
         .collect::<Vec<_>>();
     Ok(format!(
@@ -2265,7 +2365,12 @@ fn extract_version_map(workspace: &Workspace, args: &[String]) -> Result<Contain
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
-    let out = out_path_arg(workspace, args, "artifacts/containers/version_map.json", usage)?;
+    let out = out_path_arg(
+        workspace,
+        args,
+        "artifacts/containers/version_map.json",
+        usage,
+    )?;
     write_utf8(&out, &extract_version_map_content(workspace)?)?;
     success_line(format!("generated {}", out.display()))
 }
@@ -2281,11 +2386,15 @@ fn generate_versions_index_sha_content(workspace: &Workspace) -> Result<String> 
         if !path.is_file() {
             continue;
         }
-        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default();
         if name == "index.sha256" {
             continue;
         }
-        let digest = sha256_hex(&fs::read(&path).with_context(|| format!("read {}", path.display()))?);
+        let digest =
+            sha256_hex(&fs::read(&path).with_context(|| format!("read {}", path.display()))?);
         rows.push((name.to_string(), digest));
     }
     rows.sort();
@@ -2384,7 +2493,9 @@ fn check_lock_schema(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
             errors.push(format!("missing top-level key: {key}"));
         }
     }
-    if lock.get("schema_version").and_then(serde_json::Value::as_str)
+    if lock
+        .get("schema_version")
+        .and_then(serde_json::Value::as_str)
         != Some("bijux.container.version_lock.v3")
     {
         errors.push("schema_version must be bijux.container.version_lock.v3".to_string());
@@ -2524,9 +2635,8 @@ fn check_version_immutability(workspace: &Workspace) -> Result<ContainerCommandO
         return success_line("version immutability: SKIP (no previous versions.toml)");
     }
     let previous_value: toml::Value =
-        toml::from_str(String::from_utf8_lossy(&show.stdout).as_ref()).with_context(|| {
-            "parse previous containers/versions/versions.toml".to_string()
-        })?;
+        toml::from_str(String::from_utf8_lossy(&show.stdout).as_ref())
+            .with_context(|| "parse previous containers/versions/versions.toml".to_string())?;
     let mut previous_rows = BTreeMap::new();
     if let Some(table) = previous_value.as_table() {
         for (tool, row) in table {
@@ -2637,7 +2747,9 @@ fn check_version_deprecations(workspace: &Workspace) -> Result<ContainerCommandO
                 }
             }
             if !lock_tools.contains(&tool) {
-                errors.push(format!("{tool}: missing from lock.json, breaks reproducibility"));
+                errors.push(format!(
+                    "{tool}: missing from lock.json, breaks reproducibility"
+                ));
             }
             match (
                 parse_date(&deprecated_since, "deprecated_since"),
@@ -2645,7 +2757,9 @@ fn check_version_deprecations(workspace: &Workspace) -> Result<ContainerCommandO
             ) {
                 (Ok(deprecated_since), Ok(sunset_date)) => {
                     if sunset_date <= deprecated_since {
-                        errors.push(format!("{tool}: sunset_date must be after deprecated_since"));
+                        errors.push(format!(
+                            "{tool}: sunset_date must be after deprecated_since"
+                        ));
                     }
                     if mode == "allowed" && today > sunset_date {
                         errors.push(format!(
@@ -2656,7 +2770,9 @@ fn check_version_deprecations(workspace: &Workspace) -> Result<ContainerCommandO
                 _ => errors.push(format!("{tool}: invalid dates in deprecations.toml")),
             }
             if mode != "allowed" && mode != "blocked" {
-                errors.push(format!("{tool}: compatibility_mode must be allowed|blocked"));
+                errors.push(format!(
+                    "{tool}: compatibility_mode must be allowed|blocked"
+                ));
             }
         }
     }
@@ -2801,17 +2917,42 @@ fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
             if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
                 continue;
             }
-            let name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
-            if matches!(name, "lock.json" | "summary.json" | "report.json") || !seen.insert(path.clone()) {
+            let name = path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or_default();
+            if matches!(name, "lock.json" | "summary.json" | "report.json")
+                || !seen.insert(path.clone())
+            {
                 continue;
             }
-            let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default()) else {
+            let Ok(value) =
+                serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default())
+            else {
                 continue;
             };
-            let tool = value.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().trim().to_string();
-            let runtime = value.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default().trim().to_string();
-            let digest = value.get("resolved_image_digest").and_then(serde_json::Value::as_str).unwrap_or_default().trim().to_string();
-            let size = value.get("image_size_bytes").and_then(serde_json::Value::as_i64).unwrap_or(0);
+            let tool = value
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let runtime = value
+                .get("runtime")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let digest = value
+                .get("resolved_image_digest")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let size = value
+                .get("image_size_bytes")
+                .and_then(serde_json::Value::as_i64)
+                .unwrap_or(0);
             if tool.is_empty() {
                 continue;
             }
@@ -2828,11 +2969,20 @@ fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
 
     let frontend_digests = workspace.path("artifacts/containers/hpc/frontend-sif-digests.json");
     if frontend_digests.is_file() {
-        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_digests)?) {
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_digests)?)
+        {
             if let Some(items) = value.get("items").and_then(serde_json::Value::as_array) {
                 for row in items {
-                    let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-                    let sha = row.get("sha256").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
+                    let tool = row
+                        .get("tool")
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or_default()
+                        .trim();
+                    let sha = row
+                        .get("sha256")
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or_default()
+                        .trim();
                     if !tool.is_empty() && !sha.is_empty() {
                         frontend_sif_sha256_by_tool.insert(tool.to_string(), sha.to_string());
                     }
@@ -2841,16 +2991,26 @@ fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
         }
     }
 
-    let frontend_smoke_summary = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
+    let frontend_smoke_summary =
+        workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
     if frontend_smoke_summary.is_file() {
-        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_smoke_summary)?) {
+        if let Ok(value) =
+            serde_json::from_str::<serde_json::Value>(&read_utf8(&frontend_smoke_summary)?)
+        {
             if let Some(items) = value.get("items").and_then(serde_json::Value::as_array) {
                 for row in items {
-                    let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
+                    let tool = row
+                        .get("tool")
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or_default()
+                        .trim();
                     let output = row
                         .get("normalized_version_output")
                         .and_then(serde_json::Value::as_str)
-                        .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+                        .or_else(|| {
+                            row.get("version_output")
+                                .and_then(serde_json::Value::as_str)
+                        })
                         .unwrap_or_default()
                         .trim()
                         .to_lowercase();
@@ -2864,8 +3024,17 @@ fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     }
 
     let mut items = Vec::new();
-    for row in version_map.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default() {
-        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
+    for row in version_map
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+    {
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string();
         let canonical = serde_json::to_string(&row)?;
         items.push(serde_json::json!({
             "tool": tool,
@@ -2927,7 +3096,17 @@ fn check_version_lock(workspace: &Workspace) -> Result<ContainerCommandOutcome> 
 fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let violations = std::process::Command::new("find")
         .arg(workspace.path("containers"))
-        .args(["-type", "f", "(", "-iname", "*version*", "-o", "-iname", "*lock*", ")"])
+        .args([
+            "-type",
+            "f",
+            "(",
+            "-iname",
+            "*version*",
+            "-o",
+            "-iname",
+            "*lock*",
+            ")",
+        ])
         .output()
         .with_context(|| "scan container version/lock files".to_string())?;
     let listing = String::from_utf8_lossy(&violations.stdout);
@@ -2954,8 +3133,9 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
         return Ok(ContainerCommandOutcome::failure(stderr));
     }
 
-    let lock: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path("containers/versions/lock.json"))?)?;
+    let lock: serde_json::Value = serde_json::from_str(&read_utf8(
+        &workspace.path("containers/versions/lock.json"),
+    )?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
     let generator_path = workspace.path("crates/bijux-dev-dna/src/commands/containers.rs");
     let mut errors = Vec::new();
@@ -2964,9 +3144,12 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
         .and_then(serde_json::Value::as_str)
         .is_none_or(|value| value != "bijux.container.version_lock.v3")
     {
-        errors.push("- lock.json schema_version must be bijux.container.version_lock.v3".to_string());
+        errors
+            .push("- lock.json schema_version must be bijux.container.version_lock.v3".to_string());
     }
-    if lock.get("source").and_then(serde_json::Value::as_str) != Some("containers/versions/versions.toml") {
+    if lock.get("source").and_then(serde_json::Value::as_str)
+        != Some("containers/versions/versions.toml")
+    {
         errors.push("- lock.json source must be containers/versions/versions.toml".to_string());
     }
     if lock
@@ -2978,25 +3161,48 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
     {
         errors.push("- lock.json must include build_date_utc".to_string());
     }
-    if lock.get("builder_platform").and_then(serde_json::Value::as_str) != Some("arm64") {
+    if lock
+        .get("builder_platform")
+        .and_then(serde_json::Value::as_str)
+        != Some("arm64")
+    {
         errors.push("- lock.json builder_platform must be arm64".to_string());
     }
-    if lock.get("generator_script").and_then(serde_json::Value::as_str)
+    if lock
+        .get("generator_script")
+        .and_then(serde_json::Value::as_str)
         != Some("cargo run -p bijux-dev-dna -- containers run generate-version-lock")
     {
         errors.push("- lock.json generator_script must reference bijux-dev-dna".to_string());
     }
-    let expected_gen_sha =
-        sha256_hex(&fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?);
-    if lock.get("generator_sha256").and_then(serde_json::Value::as_str) != Some(expected_gen_sha.as_str()) {
-        errors.push("- lock.json generator_sha256 does not match bijux-dev-dna container generator".to_string());
+    let expected_gen_sha = sha256_hex(
+        &fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?,
+    );
+    if lock
+        .get("generator_sha256")
+        .and_then(serde_json::Value::as_str)
+        != Some(expected_gen_sha.as_str())
+    {
+        errors.push(
+            "- lock.json generator_sha256 does not match bijux-dev-dna container generator"
+                .to_string(),
+        );
     }
-    let expected_sha =
-        sha256_hex(&fs::read(&versions_path).with_context(|| format!("read {}", versions_path.display()))?);
-    if lock.get("source_sha256").and_then(serde_json::Value::as_str) != Some(expected_sha.as_str()) {
+    let expected_sha = sha256_hex(
+        &fs::read(&versions_path).with_context(|| format!("read {}", versions_path.display()))?,
+    );
+    if lock
+        .get("source_sha256")
+        .and_then(serde_json::Value::as_str)
+        != Some(expected_sha.as_str())
+    {
         errors.push("- lock.json source_sha256 does not match versions.toml".to_string());
     }
-    if lock.get("items").and_then(serde_json::Value::as_array).is_none_or(|items| items.is_empty()) {
+    if lock
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+        .is_none_or(|items| items.is_empty())
+    {
         errors.push("- lock.json items must be a non-empty list".to_string());
     }
 
@@ -3011,7 +3217,11 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
             .filter(|entry| entry.file_type().is_file())
         {
             let ext = entry.path().extension().and_then(|ext| ext.to_str());
-            let file_name = entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default();
+            let file_name = entry
+                .path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or_default();
             if ext != Some("def") && !file_name.starts_with("Dockerfile.") {
                 continue;
             }
@@ -3074,8 +3284,18 @@ fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
     ];
     for command in commands {
         let argv = [
-            vec!["cargo".to_string(), "run".to_string(), "-q".to_string(), "-p".to_string(), "bijux-dev-dna".to_string(), "--".to_string()],
-            command.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
+            vec![
+                "cargo".to_string(),
+                "run".to_string(),
+                "-q".to_string(),
+                "-p".to_string(),
+                "bijux-dev-dna".to_string(),
+                "--".to_string(),
+            ],
+            command
+                .iter()
+                .map(|value| (*value).to_string())
+                .collect::<Vec<_>>(),
         ]
         .concat();
         let outcome = run_argv(workspace, &argv)?;
@@ -3432,8 +3652,16 @@ fn check_apptainer_frontend_reproducibility(
             .cloned()
             .unwrap_or_default()
             .into_iter()
-            .filter(|row| !row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false))
-            .filter_map(|row| row.get("tool").and_then(serde_json::Value::as_str).map(ToOwned::to_owned))
+            .filter(|row| {
+                !row.get("deterministic")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or(false)
+            })
+            .filter_map(|row| {
+                row.get("tool")
+                    .and_then(serde_json::Value::as_str)
+                    .map(ToOwned::to_owned)
+            })
             .collect::<Vec<_>>();
         if !bad.is_empty() {
             errors.push(format!("non-deterministic tools: {}", bad.join(", ")));
@@ -3548,7 +3776,11 @@ fn check_apptainer_frontend_smoke_proof(
     let versions = tool_versions(workspace)?;
     let apptainer_tools = apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .filter_map(|path| {
+            path.file_stem()
+                .and_then(|name| name.to_str())
+                .map(ToOwned::to_owned)
+        })
         .collect::<BTreeSet<_>>();
     let items = summary
         .get("items")
@@ -3578,7 +3810,10 @@ fn check_apptainer_frontend_smoke_proof(
             .get("normalized_version_output")
             .and_then(serde_json::Value::as_str)
             .filter(|value| !value.trim().is_empty())
-            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+            .or_else(|| {
+                row.get("version_output")
+                    .and_then(serde_json::Value::as_str)
+            })
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
@@ -3658,7 +3893,9 @@ fn check_apptainer_frontend_version_output_lock(
                 "frontend version-output lock check: missing frontend smoke summary in CI\n",
             ));
         }
-        return success_line("frontend version-output lock check: SKIP (no frontend smoke summary)");
+        return success_line(
+            "frontend version-output lock check: SKIP (no frontend smoke summary)",
+        );
     }
     let summary = read_json(&summary_path)?;
     let lock_rows = lock_items_by_tool(workspace)?;
@@ -3686,12 +3923,17 @@ fn check_apptainer_frontend_version_output_lock(
             .get("normalized_version_output")
             .and_then(serde_json::Value::as_str)
             .filter(|value| !value.trim().is_empty())
-            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+            .or_else(|| {
+                row.get("version_output")
+                    .and_then(serde_json::Value::as_str)
+            })
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
         if output.is_empty() {
-            errors.push(format!("{tool}: empty version output in frontend smoke summary"));
+            errors.push(format!(
+                "{tool}: empty version output in frontend smoke summary"
+            ));
             continue;
         }
         let current = sha256_hex(output.as_bytes());
@@ -3737,8 +3979,14 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
     let allowed_from_re = Regex::new(r"^(ubuntu|debian|python|quay\.io/)").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
-        let status = tool_status.get(tool_id).cloned().unwrap_or_else(|| "unknown".to_string());
+        let tool_id = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default();
+        let status = tool_status
+            .get(tool_id)
+            .cloned()
+            .unwrap_or_else(|| "unknown".to_string());
         let text = read_utf8(&path)?;
         let head = text.lines().take(24).collect::<Vec<_>>().join("\n");
         for marker in [
@@ -3758,11 +4006,23 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
         }
         for (alias, keys) in [
             ("tool", vec!["org.opencontainers.image.tool", "tool"]),
-            ("version", vec!["org.opencontainers.image.version", "version"]),
+            (
+                "version",
+                vec!["org.opencontainers.image.version", "version"],
+            ),
             ("source", vec!["org.opencontainers.image.source", "source"]),
-            ("license_ref", vec!["org.opencontainers.image.licenses", "license_ref"]),
-            ("build_date", vec!["org.opencontainers.image.created", "build_date"]),
-            ("git_sha", vec!["org.opencontainers.image.revision", "git_sha"]),
+            (
+                "license_ref",
+                vec!["org.opencontainers.image.licenses", "license_ref"],
+            ),
+            (
+                "build_date",
+                vec!["org.opencontainers.image.created", "build_date"],
+            ),
+            (
+                "git_sha",
+                vec!["org.opencontainers.image.revision", "git_sha"],
+            ),
         ] {
             if !keys.iter().any(|key| text.contains(key)) {
                 errors.push(format!("{rel}: missing label contract key '{alias}'"));
@@ -3805,13 +4065,17 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
                 errors.push(format!("{rel}: %post must set deterministic umask 022"));
             }
             if interactive_re.is_match(post) {
-                errors.push(format!("{rel}: %post contains interactive prompt constructs"));
+                errors.push(format!(
+                    "{rel}: %post contains interactive prompt constructs"
+                ));
             }
             if (post.contains("wget ") || post.contains("curl "))
                 && !text.contains("NETWORK_SOURCE_VERIFIED_BY_LOCK")
                 && !post.contains("sha256sum")
             {
-                errors.push(format!("{rel}: network download without checksum policy marker"));
+                errors.push(format!(
+                    "{rel}: network download without checksum policy marker"
+                ));
             }
             if post.contains("apt-get") && !post.contains("rm -rf /var/lib/apt/lists/*") {
                 errors.push(format!(
@@ -3844,7 +4108,10 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
             }
         }
         if let Some(captures) = from_re.captures(&text) {
-            let from_line = captures.get(1).map(|value| value.as_str().trim()).unwrap_or_default();
+            let from_line = captures
+                .get(1)
+                .map(|value| value.as_str().trim())
+                .unwrap_or_default();
             if !from_line.contains("@sha256:") {
                 errors.push(format!("{rel}: base image must be digest pinned"));
             }
@@ -3890,7 +4157,10 @@ fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOu
     let policy = load_toml(&workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml"))?;
     let host = command_hostname();
     let mut errors = Vec::new();
-    if let Some(pattern) = policy.get("compute_hostname_regex").and_then(toml::Value::as_str) {
+    if let Some(pattern) = policy
+        .get("compute_hostname_regex")
+        .and_then(toml::Value::as_str)
+    {
         let pattern = pattern.trim();
         if !pattern.is_empty()
             && !host.is_empty()
@@ -3905,7 +4175,11 @@ fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOu
     let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let tool = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_string();
         let text = read_utf8(&path)?;
         let post = text
             .split("%post")
@@ -3925,8 +4199,12 @@ fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOu
         if download_re.is_match(&post) {
             let has_sha = post.contains("sha256sum") || post.contains("shasum -a 256");
             let row = versions.get(&tool);
-            let source_sha = row.map(|row| table_string(row, "source_sha256")).unwrap_or_default();
-            let pin = row.map(|row| table_string(row, "pinned_commit")).unwrap_or_default();
+            let source_sha = row
+                .map(|row| table_string(row, "source_sha256"))
+                .unwrap_or_default();
+            let pin = row
+                .map(|row| table_string(row, "pinned_commit"))
+                .unwrap_or_default();
             if !has_sha {
                 errors.push(format!(
                     "{rel}: %post downloads without checksum verification command"
@@ -3951,10 +4229,15 @@ fn check_apptainer_version_label_sync(workspace: &Workspace) -> Result<Container
     }
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)").expect("regex");
+    let version_re =
+        Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let tool = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_string();
         let text = read_utf8(&path)?;
         let Some(row) = versions.get(&tool) else {
             errors.push(format!("{rel}: missing versions.toml entry"));
@@ -3962,12 +4245,21 @@ fn check_apptainer_version_label_sync(workspace: &Workspace) -> Result<Container
         };
         let expected = table_string(row, "version");
         let Some(captures) = version_re.captures(&text) else {
-            errors.push(format!("{rel}: missing org.opencontainers.image.version label"));
+            errors.push(format!(
+                "{rel}: missing org.opencontainers.image.version label"
+            ));
             continue;
         };
         let label_value = captures
             .get(1)
-            .map(|value| value.as_str().trim().trim_matches('"').trim_matches('\'').to_string())
+            .map(|value| {
+                value
+                    .as_str()
+                    .trim()
+                    .trim_matches('"')
+                    .trim_matches('\'')
+                    .to_string()
+            })
             .unwrap_or_default();
         let placeholder = matches!(
             label_value.as_str(),
@@ -4014,7 +4306,11 @@ fn check_bijux_apptainer_built(workspace: &Workspace) -> Result<ContainerCommand
     let bijux_defs = apptainer_def_paths(workspace)
         .into_iter()
         .filter(|path| path.starts_with(workspace.path("containers/apptainer/lunarc")))
-        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
+        .filter_map(|path| {
+            path.file_stem()
+                .and_then(|name| name.to_str())
+                .map(ToOwned::to_owned)
+        })
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     for tool in bijux_defs {
@@ -4032,7 +4328,10 @@ fn check_bijux_apptainer_built(workspace: &Workspace) -> Result<ContainerCommand
                 .unwrap_or_default(),
         );
         if !manifest_path.exists() {
-            errors.push(format!("{tool}: missing manifest at {}", manifest_path.display()));
+            errors.push(format!(
+                "{tool}: missing manifest at {}",
+                manifest_path.display()
+            ));
             continue;
         }
         let manifest = read_json(&manifest_path)?;
@@ -4082,7 +4381,10 @@ fn generate_local_apptainer_digests(
             .collect::<Vec<_>>();
         paths.sort();
         for path in paths {
-            let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
+            let tool = path
+                .file_stem()
+                .and_then(|name| name.to_str())
+                .unwrap_or_default();
             rows.push(serde_json::json!({
                 "tool": tool,
                 "sif_path": path.display().to_string(),
@@ -4187,11 +4489,19 @@ fn compare_frontend_local_sif_hash(
         .cloned()
         .collect::<Vec<_>>();
     if !missing_frontend.is_empty() {
-        lines.extend(["".to_string(), "## Missing On Frontend".to_string(), "".to_string()]);
+        lines.extend([
+            "".to_string(),
+            "## Missing On Frontend".to_string(),
+            "".to_string(),
+        ]);
         lines.extend(missing_frontend.iter().map(|tool| format!("- `{tool}`")));
     }
     if !missing_local.is_empty() {
-        lines.extend(["".to_string(), "## Missing Locally".to_string(), "".to_string()]);
+        lines.extend([
+            "".to_string(),
+            "## Missing Locally".to_string(),
+            "".to_string(),
+        ]);
         lines.extend(missing_local.iter().map(|tool| format!("- `{tool}`")));
     }
     let mismatch = shared
@@ -4253,14 +4563,35 @@ fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutc
             continue;
         };
         rows.insert(
-            captures.get(1).map(|value| value.as_str().to_string()).unwrap_or_default(),
+            captures
+                .get(1)
+                .map(|value| value.as_str().to_string())
+                .unwrap_or_default(),
             (
-                captures.get(2).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(3).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(4).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(5).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(6).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(7).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures
+                    .get(2)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+                captures
+                    .get(3)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+                captures
+                    .get(4)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+                captures
+                    .get(5)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+                captures
+                    .get(6)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
+                captures
+                    .get(7)
+                    .map(|value| value.as_str().to_string())
+                    .unwrap_or_default(),
             ),
         );
     }
@@ -4292,7 +4623,9 @@ fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutc
             errors.push(format!("{tool_id}: patching_rules must be non-empty"));
         }
         if !checksum.starts_with("sha256:") {
-            errors.push(format!("{tool_id}: upstream_checksum must start with sha256:"));
+            errors.push(format!(
+                "{tool_id}: upstream_checksum must start with sha256:"
+            ));
         } else {
             let digest = checksum.trim_start_matches("sha256:");
             if digest != "pending" && !checksum_re.is_match(digest) {
@@ -4358,9 +4691,14 @@ fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     for tool_id in tool_ids {
-        let matches = rows.iter().filter(|(pattern, _)| pattern == &tool_id).count();
+        let matches = rows
+            .iter()
+            .filter(|(pattern, _)| pattern == &tool_id)
+            .count();
         if matches != 1 {
-            errors.push(format!("{tool_id}: expected exactly one owner match, got {matches}"));
+            errors.push(format!(
+                "{tool_id}: expected exactly one owner match, got {matches}"
+            ));
         }
     }
     if errors.is_empty() {
@@ -4395,7 +4733,11 @@ fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerCommandOutco
         for line in read_utf8(&retired_doc)?.lines() {
             let trimmed = line.trim();
             if trimmed.starts_with("| `") {
-                let cols = trimmed.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
+                let cols = trimmed
+                    .trim_matches('|')
+                    .split('|')
+                    .map(str::trim)
+                    .collect::<Vec<_>>();
                 if let Some(tool) = cols.first() {
                     let tool = tool.trim_matches('`').trim().to_string();
                     if !tool.is_empty() {
@@ -4475,10 +4817,7 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
         let expected_bin = table_string(&row, "expected_bin");
         tools.insert(
             tool_id.clone(),
-            (
-                expected_bin.clone(),
-                table_string(&row, "status"),
-            ),
+            (expected_bin.clone(), table_string(&row, "status")),
         );
         if !expected_bin.is_empty() {
             if let Some(previous) = bin_to_tool.insert(expected_bin.clone(), tool_id.clone()) {
@@ -4495,19 +4834,29 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
         let Some(captures) = numeric_suffix_re.captures(tool_id) else {
             continue;
         };
-        let base = captures.get(1).map(|value| value.as_str()).unwrap_or_default();
+        let base = captures
+            .get(1)
+            .map(|value| value.as_str())
+            .unwrap_or_default();
         if !tools.contains_key(base) {
             continue;
         }
         for candidate in [base.to_string(), tool_id.clone()] {
             if !images.contains_key(&candidate) {
-                errors.push(format!("name-collision: missing images entry for '{candidate}'"));
+                errors.push(format!(
+                    "name-collision: missing images entry for '{candidate}'"
+                ));
             }
             if !versions.contains_key(&candidate) {
-                errors.push(format!("name-collision: missing versions entry for '{candidate}'"));
+                errors.push(format!(
+                    "name-collision: missing versions entry for '{candidate}'"
+                ));
             }
         }
-        let base_bin = tools.get(base).map(|(bin, _)| bin.clone()).unwrap_or_default();
+        let base_bin = tools
+            .get(base)
+            .map(|(bin, _)| bin.clone())
+            .unwrap_or_default();
         let suffixed_bin = tools
             .get(tool_id)
             .map(|(bin, _)| bin.clone())
@@ -4527,7 +4876,10 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
                 .filter_map(|(key, value)| value.is_table().then(|| key.clone()))
                 .collect::<BTreeSet<_>>(),
         ),
-        ("versions", versions.keys().cloned().collect::<BTreeSet<_>>()),
+        (
+            "versions",
+            versions.keys().cloned().collect::<BTreeSet<_>>(),
+        ),
         ("tool_ids", tool_ids),
         ("docker", docker_ids),
         ("apptainer", apptainer_ids),
@@ -4549,9 +4901,12 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
             .filter_map(|(name, ids)| ids.contains(tool_id).then_some(*name))
             .collect::<Vec<_>>();
         if !present.contains(&"registry")
-            && present
-                .iter()
-                .any(|name| matches!(*name, "images" | "versions" | "tool_ids" | "docker" | "apptainer"))
+            && present.iter().any(|name| {
+                matches!(
+                    *name,
+                    "images" | "versions" | "tool_ids" | "docker" | "apptainer"
+                )
+            })
         {
             errors.push(format!(
                 "id parity: '{tool_id}' present in {:?} but missing from registry",
@@ -4585,9 +4940,12 @@ fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerComma
         .and_then(toml::Value::as_table)
         .into_iter()
         .flat_map(|table| {
-            table
-                .iter()
-                .filter_map(|(tool_id, enabled)| enabled.as_bool().filter(|enabled| *enabled).map(|_| tool_id.clone()))
+            table.iter().filter_map(|(tool_id, enabled)| {
+                enabled
+                    .as_bool()
+                    .filter(|enabled| *enabled)
+                    .map(|_| tool_id.clone())
+            })
         })
         .chain(
             images
@@ -4596,7 +4954,10 @@ fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerComma
                 .into_iter()
                 .flat_map(|table| {
                     table.iter().filter_map(|(tool_id, enabled)| {
-                        enabled.as_bool().filter(|enabled| *enabled).map(|_| tool_id.clone())
+                        enabled
+                            .as_bool()
+                            .filter(|enabled| *enabled)
+                            .map(|_| tool_id.clone())
                     })
                 }),
         )
@@ -4653,22 +5014,30 @@ fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerComma
                 errors.push(format!("{tool_id} apptainer def missing: {apptainer_def}"));
             }
             let expected = format!("{tool_id}.def");
-            if apptainer_path.file_name().and_then(|name| name.to_str()) != Some(expected.as_str()) {
+            if apptainer_path.file_name().and_then(|name| name.to_str()) != Some(expected.as_str())
+            {
                 errors.push(format!(
                     "{tool_id} apptainer naming mismatch: expected {expected}"
                 ));
             }
         }
-        if !dockerfile.is_empty() && apptainer_def.is_empty() && !parity_exemptions.contains(&tool_id) {
+        if !dockerfile.is_empty()
+            && apptainer_def.is_empty()
+            && !parity_exemptions.contains(&tool_id)
+        {
             errors.push(format!(
                 "{tool_id} has dockerfile but no apptainer_def and is not exempt (set configs/ci/tools/images.toml [parity_exemptions].{tool_id} = true)"
             ));
         }
         if !dockerfile.is_empty() && !docker_ids.contains(&tool_id) {
-            errors.push(format!("{tool_id}: docker coverage missing concrete Dockerfile"));
+            errors.push(format!(
+                "{tool_id}: docker coverage missing concrete Dockerfile"
+            ));
         }
         if !apptainer_def.is_empty() && !apptainer_ids.contains(&tool_id) {
-            errors.push(format!("{tool_id}: apptainer coverage missing concrete definition"));
+            errors.push(format!(
+                "{tool_id}: apptainer coverage missing concrete definition"
+            ));
         }
     }
     if errors.is_empty() {
@@ -4714,11 +5083,15 @@ fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCommandOutcom
                 continue;
             };
             let Some(image_meta) = images.get(&tool).and_then(toml::Value::as_table) else {
-                errors.push(format!("{bundle_id}: tool '{tool}' missing images.toml metadata"));
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' missing images.toml metadata"
+                ));
                 continue;
             };
             if table_string(image_meta, "version").is_empty() {
-                errors.push(format!("{bundle_id}: tool '{tool}' images.toml entry missing version"));
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' images.toml entry missing version"
+                ));
             }
             let status = table_string(registry_row, "status");
             if !matches!(status.as_str(), "production" | "experimental" | "planned") {
@@ -4933,7 +5306,10 @@ fn check_planned_actionability(workspace: &Workspace) -> Result<ContainerCommand
     if errors.is_empty() {
         return success_line(format!(
             "planned actionability: OK ({})",
-            text.lines().filter(|line| line.trim().starts_with('|')).count().saturating_sub(2)
+            text.lines()
+                .filter(|line| line.trim().starts_with('|'))
+                .count()
+                .saturating_sub(2)
         ));
     }
     failure_lines("planned actionability: FAILED", &errors)
@@ -4943,10 +5319,16 @@ fn check_bijux_template_markers(workspace: &Workspace) -> Result<ContainerComman
     let template = workspace.path("containers/apptainer/lunarc/TEMPLATE.def.inc");
     let mut errors = Vec::new();
     if !template.exists() {
-        errors.push("missing template file containers/apptainer/lunarc/TEMPLATE.def.inc".to_string());
+        errors
+            .push("missing template file containers/apptainer/lunarc/TEMPLATE.def.inc".to_string());
     }
     for path in fs::read_dir(workspace.path("containers/apptainer/lunarc"))
-        .with_context(|| format!("read {}", workspace.path("containers/apptainer/lunarc").display()))?
+        .with_context(|| {
+            format!(
+                "read {}",
+                workspace.path("containers/apptainer/lunarc").display()
+            )
+        })?
         .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("def"))
@@ -5078,12 +5460,16 @@ fn check_docker_arch_policy(workspace: &Workspace) -> Result<ContainerCommandOut
     }
     for marker in ["build strategy", "publish strategy", "promotion criteria"] {
         if !text.to_ascii_lowercase().contains(marker) {
-            errors.push(format!("policy doc missing required multiarch marker: {marker}"));
+            errors.push(format!(
+                "policy doc missing required multiarch marker: {marker}"
+            ));
         }
     }
     for marker in ["cross-build", "buildx", "naming convention", "amd64"] {
         if !text.to_ascii_lowercase().contains(marker) {
-            errors.push(format!("policy doc missing required amd64-plan marker: {marker}"));
+            errors.push(format!(
+                "policy doc missing required amd64-plan marker: {marker}"
+            ));
         }
     }
     if amd64_dir.is_dir()
@@ -5172,7 +5558,10 @@ fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<ContainerCom
 
 fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
-    let scan_roots = [workspace.path("makes"), workspace.path("crates/bijux-dev-dna/src")];
+    let scan_roots = [
+        workspace.path("makes"),
+        workspace.path("crates/bijux-dev-dna/src"),
+    ];
     let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$").expect("regex");
     let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)").expect("regex");
     for root in scan_roots {
@@ -5185,7 +5574,10 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
             .filter(|entry| entry.file_type().is_file())
         {
             let path = entry.path();
-            let ext = path.extension().and_then(|ext| ext.to_str()).unwrap_or_default();
+            let ext = path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or_default();
             if ext != "sh" && ext != "mk" {
                 continue;
             }
@@ -5204,7 +5596,9 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
                         index + 1
                     ));
                 }
-                if trimmed.contains("-f containers/docker/") && !trimmed.contains(" containers/docker/") {
+                if trimmed.contains("-f containers/docker/")
+                    && !trimmed.contains(" containers/docker/")
+                {
                     errors.push(format!(
                         "{}:{}: docker build should use containers/docker/<arch> as context",
                         workspace.rel(path).display(),
@@ -5222,7 +5616,14 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
         );
     } else {
         let dockerignore_text = read_utf8(&dockerignore)?;
-        for pattern in [".git", "artifacts", "assets", "**/*.pem", "**/*.key", ".env"] {
+        for pattern in [
+            ".git",
+            "artifacts",
+            "assets",
+            "**/*.pem",
+            "**/*.key",
+            ".env",
+        ] {
             if !dockerignore_text.contains(pattern) {
                 errors.push(format!(
                     "containers/docker/arm64/.dockerignore: missing pattern '{pattern}'"
@@ -5233,7 +5634,10 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
     for path in dockerfile_paths(workspace)? {
         for (index, line) in read_utf8(&path)?.lines().enumerate() {
             let trimmed = line.trim();
-            if Regex::new(r"^(COPY|ADD)\s+\.\s").expect("regex").is_match(trimmed) {
+            if Regex::new(r"^(COPY|ADD)\s+\.\s")
+                .expect("regex")
+                .is_match(trimmed)
+            {
                 errors.push(format!(
                     "{}:{}: forbidden broad context copy ('COPY . ...' or 'ADD . ...')",
                     workspace.rel(&path).display(),
@@ -5307,8 +5711,9 @@ fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutco
                 errors.push(format!("{rel}: missing label {label}"));
             }
         }
-        let pipe_shell_re = Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")
-            .expect("regex");
+        let pipe_shell_re =
+            Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")
+                .expect("regex");
         if pipe_shell_re.is_match(&text) {
             errors.push(format!("{rel}: forbidden curl|bash or wget|sh pattern"));
         }
@@ -5323,14 +5728,19 @@ fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutco
         }
         let has_entrypoint = text.lines().any(|line| entrypoint_re.is_match(line.trim()));
         let has_cmd = text.lines().any(|line| cmd_re.is_match(line.trim()));
-        let entrypoint_exempt = entrypoint_allowed.contains(&tool_id) || entrypoint_allowed.contains("*");
+        let entrypoint_exempt =
+            entrypoint_allowed.contains(&tool_id) || entrypoint_allowed.contains("*");
         if !has_cmd && !entrypoint_exempt {
             errors.push(format!("{rel}: missing JSON-form CMD"));
         } else if has_cmd {
             let cmd_text = text
                 .lines()
                 .find_map(|line| cmd_line_re.captures(line.trim()))
-                .and_then(|captures| captures.get(1).map(|value| value.as_str().to_ascii_lowercase()))
+                .and_then(|captures| {
+                    captures
+                        .get(1)
+                        .map(|value| value.as_str().to_ascii_lowercase())
+                })
                 .unwrap_or_default();
             if !entrypoint_exempt
                 && !["--help", "-h", "--version"]
@@ -5345,16 +5755,22 @@ fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutco
                 "{rel}: ENTRYPOINT is forbidden unless listed in ENTRYPOINT_EXCEPTIONS.md"
             ));
         }
-        if sh_entrypoint_re
-            .is_match(text.lines().find(|line| line.trim().starts_with("ENTRYPOINT")).unwrap_or_default())
-            && !entrypoint_exempt
+        if sh_entrypoint_re.is_match(
+            text.lines()
+                .find(|line| line.trim().starts_with("ENTRYPOINT"))
+                .unwrap_or_default(),
+        ) && !entrypoint_exempt
         {
             errors.push(format!("{rel}: ENTRYPOINT must not use /bin/sh -c wrapper"));
         }
         let nonroot = text
             .lines()
             .filter_map(|line| user_re.captures(line.trim()))
-            .filter_map(|captures| captures.get(1).map(|value| value.as_str().trim().to_string()))
+            .filter_map(|captures| {
+                captures
+                    .get(1)
+                    .map(|value| value.as_str().trim().to_string())
+            })
             .any(|user| user != "root" && user != "0");
         if !nonroot && !allowed.contains(&tool_id) && !allowed.contains("*") {
             errors.push(format!(
@@ -5418,7 +5834,10 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
             .unwrap_or_default()
             .to_string();
         if let Some(captures) = tool_re.captures(&text) {
-            let label = captures.get(1).map(|value| value.as_str()).unwrap_or_default();
+            let label = captures
+                .get(1)
+                .map(|value| value.as_str())
+                .unwrap_or_default();
             if label != tool_id {
                 errors.push(format!("{rel} tool label mismatch: {label} != {tool_id}"));
             }
@@ -5434,7 +5853,11 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
         }
     }
     for path in apptainer_def_paths(workspace) {
-        let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let tool_id = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_string();
         let Some(docker_version) = docker_versions.get(&tool_id) else {
             continue;
         };
@@ -5481,13 +5904,18 @@ fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<ContainerCommandOu
             let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?").expect("regex");
             segment = option_re.replace_all(&segment, " ").into_owned();
             segment = segment.replace("&&", " ").replace('\\', " ");
-            for token in segment
-                .split_whitespace()
-                .filter(|token| !token.is_empty())
-            {
+            for token in segment.split_whitespace().filter(|token| !token.is_empty()) {
                 if matches!(
                     token,
-                    "install" | "apt-get" | "apt" | "update" | "rm" | "-rf" | "/var/lib/apt/lists/*" | ";" | "|"
+                    "install"
+                        | "apt-get"
+                        | "apt"
+                        | "update"
+                        | "rm"
+                        | "-rf"
+                        | "/var/lib/apt/lists/*"
+                        | ";"
+                        | "|"
                 ) {
                     continue;
                 }
@@ -5531,7 +5959,16 @@ fn check_docker_version_sync(workspace: &Workspace) -> Result<ContainerCommandOu
         let Some(docker_version) = text
             .lines()
             .find_map(|line| arg_re.captures(line.trim()))
-            .and_then(|captures| captures.get(1).map(|value| value.as_str().trim().trim_matches('"').trim_matches('\'').to_string()))
+            .and_then(|captures| {
+                captures.get(1).map(|value| {
+                    value
+                        .as_str()
+                        .trim()
+                        .trim_matches('"')
+                        .trim_matches('\'')
+                        .to_string()
+                })
+            })
         else {
             errors.push(format!(
                 "{}: missing ARG TOOL_VERSION=<version>",
@@ -5596,7 +6033,9 @@ fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutc
         .cloned()
         .unwrap_or_default()
         .into_iter()
-        .filter(|row| row.get("runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64"))
+        .filter(|row| {
+            row.get("runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64")
+        })
         .filter_map(|row| {
             let tool = row
                 .get("tool")
@@ -5621,7 +6060,10 @@ fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutc
                 .unwrap_or_default(),
         );
         if !manifest_path.exists() {
-            errors.push(format!("{tool}: manifest missing at {}", manifest_path.display()));
+            errors.push(format!(
+                "{tool}: manifest missing at {}",
+                manifest_path.display()
+            ));
             continue;
         }
         let manifest = read_json(&manifest_path)?;
@@ -5693,12 +6135,20 @@ fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutc
             let tool_id = value
                 .get("tool_id")
                 .and_then(toml::Value::as_str)
-                .unwrap_or_else(|| entry.file_stem().and_then(|name| name.to_str()).unwrap_or_default())
+                .unwrap_or_else(|| {
+                    entry
+                        .file_stem()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or_default()
+                })
                 .trim()
                 .to_string();
             runtime_allowed.insert(
                 tool_id,
-                value.get("runtime_network").and_then(toml::Value::as_bool).unwrap_or(false),
+                value
+                    .get("runtime_network")
+                    .and_then(toml::Value::as_bool)
+                    .unwrap_or(false),
             );
         }
     }
@@ -5706,7 +6156,11 @@ fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutc
     let mut errors = Vec::new();
     for path in apptainer_def_paths(workspace) {
         let text = read_utf8(&path)?;
-        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
+        let tool = path
+            .file_stem()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default()
+            .to_string();
         let mut chunks = Vec::new();
         if let Some(runscript) = text
             .split("%runscript")
@@ -5723,7 +6177,8 @@ fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutc
             chunks.push(environment.to_string());
         }
         for chunk in chunks {
-            if download_re.is_match(&chunk) && !runtime_allowed.get(&tool).copied().unwrap_or(false) {
+            if download_re.is_match(&chunk) && !runtime_allowed.get(&tool).copied().unwrap_or(false)
+            {
                 errors.push(format!(
                     "{}: runtime curl/wget forbidden unless runtime_network=true",
                     workspace.rel(&path).display()
@@ -5875,7 +6330,10 @@ fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
                 errors.push(format!("{tool}: missing vuln scan item for promoted tool"));
                 continue;
             };
-            let status = row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
+            let status = row
+                .get("status")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default();
             if !matches!(status, "ok" | "not_scanned") {
                 errors.push(format!("{tool}: vuln scan status is {status}"));
             }
@@ -5920,7 +6378,10 @@ fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome
         .map(|entry| entry.path())
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("json"))
     {
-        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default();
         if matches!(name, "summary.json" | "report.json") {
             continue;
         }
@@ -5963,10 +6424,14 @@ fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome
         }
         let ok_rows = rows
             .into_iter()
-            .filter(|(_, data)| data.get("status").and_then(serde_json::Value::as_str) == Some("ok"))
+            .filter(|(_, data)| {
+                data.get("status").and_then(serde_json::Value::as_str) == Some("ok")
+            })
             .collect::<Vec<_>>();
         if ok_rows.is_empty() {
-            errors.push(format!("{tool}: has manifests but no successful status=ok result"));
+            errors.push(format!(
+                "{tool}: has manifests but no successful status=ok result"
+            ));
             continue;
         }
         for (manifest_path, data) in ok_rows {
@@ -6000,7 +6465,10 @@ fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome
                     manifest_path.display()
                 ));
             } else if sbom_path.metadata().map(|meta| meta.len()).unwrap_or(0) == 0 {
-                errors.push(format!("{}: sbom_path is empty: {sbom}", manifest_path.display()));
+                errors.push(format!(
+                    "{}: sbom_path is empty: {sbom}",
+                    manifest_path.display()
+                ));
             } else if !sbom_path
                 .display()
                 .to_string()
@@ -6064,7 +6532,10 @@ fn check_tool_invocation_normalization(workspace: &Workspace) -> Result<Containe
     let mut errors = Vec::new();
     for row in registry_tool_rows(workspace)? {
         let runtimes = table_array_strings(&row, "runtimes");
-        if !runtimes.iter().any(|runtime| runtime == "apptainer" || runtime == "docker") {
+        if !runtimes
+            .iter()
+            .any(|runtime| runtime == "apptainer" || runtime == "docker")
+        {
             continue;
         }
         let tool = {
@@ -6165,7 +6636,11 @@ fn load_runtime_manifest_rows(
             .unwrap_or_default();
         if matches!(
             name,
-            "summary.json" | "report.json" | "lock.json" | "security_summary.json" | "sbom_index.json"
+            "summary.json"
+                | "report.json"
+                | "lock.json"
+                | "security_summary.json"
+                | "sbom_index.json"
         ) {
             continue;
         }
@@ -6188,7 +6663,10 @@ fn load_runtime_manifest_rows(
 fn normalized_version_output(row: &serde_json::Value) -> String {
     row.get("normalized_version_output")
         .and_then(serde_json::Value::as_str)
-        .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
+        .or_else(|| {
+            row.get("version_output")
+                .and_then(serde_json::Value::as_str)
+        })
         .unwrap_or_default()
         .split_whitespace()
         .collect::<Vec<_>>()
@@ -6206,10 +6684,20 @@ fn registry_tool_id(row: &toml::map::Map<String, toml::Value>) -> String {
 }
 
 fn check_cross_runtime_representative(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let docker_dir =
-        PathBuf::from(env_or_default("DOCKER_DIR", &workspace.path("artifacts/containers/docker-arm64").display().to_string()));
-    let apptainer_dir =
-        PathBuf::from(env_or_default("APPTAINER_DIR", &workspace.path("artifacts/containers/apptainer").display().to_string()));
+    let docker_dir = PathBuf::from(env_or_default(
+        "DOCKER_DIR",
+        &workspace
+            .path("artifacts/containers/docker-arm64")
+            .display()
+            .to_string(),
+    ));
+    let apptainer_dir = PathBuf::from(env_or_default(
+        "APPTAINER_DIR",
+        &workspace
+            .path("artifacts/containers/apptainer")
+            .display()
+            .to_string(),
+    ));
     check_cross_runtime_representative_at_paths(workspace, docker_dir, apptainer_dir)
 }
 
@@ -6257,7 +6745,10 @@ fn check_cross_runtime_representative_at_paths(
         let docker_row = &docker_rows[tool];
         let apptainer_row = &apptainer_rows[tool];
         if docker_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
-            || apptainer_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
+            || apptainer_row
+                .get("status")
+                .and_then(serde_json::Value::as_str)
+                != Some("ok")
         {
             errors.push(format!(
                 "{tool}: non-ok status docker={} apptainer={}",
@@ -6274,7 +6765,10 @@ fn check_cross_runtime_representative_at_paths(
         }
         let docker_version = normalized_version_output(docker_row);
         let apptainer_version = normalized_version_output(apptainer_row);
-        if docker_version.is_empty() || apptainer_version.is_empty() || docker_version != apptainer_version {
+        if docker_version.is_empty()
+            || apptainer_version.is_empty()
+            || docker_version != apptainer_version
+        {
             errors.push(format!(
                 "{tool}: version_output mismatch docker='{docker_version}' apptainer='{apptainer_version}'"
             ));
@@ -6291,10 +6785,20 @@ fn check_cross_runtime_representative_at_paths(
 }
 
 fn check_cross_runtime_smoke(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let docker_dir =
-        PathBuf::from(env_or_default("DOCKER_DIR", &workspace.path("artifacts/containers/docker-arm64").display().to_string()));
-    let apptainer_dir =
-        PathBuf::from(env_or_default("APPTAINER_DIR", &workspace.path("artifacts/containers/apptainer").display().to_string()));
+    let docker_dir = PathBuf::from(env_or_default(
+        "DOCKER_DIR",
+        &workspace
+            .path("artifacts/containers/docker-arm64")
+            .display()
+            .to_string(),
+    ));
+    let apptainer_dir = PathBuf::from(env_or_default(
+        "APPTAINER_DIR",
+        &workspace
+            .path("artifacts/containers/apptainer")
+            .display()
+            .to_string(),
+    ));
     check_cross_runtime_smoke_at_paths(workspace, docker_dir, apptainer_dir)
 }
 
@@ -6341,7 +6845,10 @@ fn check_cross_runtime_smoke_at_paths(
         let docker_row = &docker_rows[&tool];
         let apptainer_row = &apptainer_rows[&tool];
         if docker_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
-            || apptainer_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
+            || apptainer_row
+                .get("status")
+                .and_then(serde_json::Value::as_str)
+                != Some("ok")
         {
             errors.push(format!(
                 "{tool}: non-ok status docker={} apptainer={}",
@@ -6423,9 +6930,7 @@ fn check_cross_runtime_smoke_at_paths(
     failure_lines("container runtime parity: FAILED", &errors)
 }
 
-fn check_smoke_failure_classification(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
+fn check_smoke_failure_classification(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let manifests = workspace.path("artifacts/containers/manifests");
     if !manifests.exists() {
         return success_line("smoke failure classification: SKIP (no manifests)");
@@ -6483,7 +6988,10 @@ fn check_smoke_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome
     let mut exempt = BTreeSet::new();
     if images_path.exists() {
         let images = load_toml(&images_path)?;
-        if let Some(table) = images.get("smoke_exemptions").and_then(toml::Value::as_table) {
+        if let Some(table) = images
+            .get("smoke_exemptions")
+            .and_then(toml::Value::as_table)
+        {
             for (tool, value) in table {
                 if value.as_bool() == Some(true) {
                     exempt.insert(tool.clone());
@@ -6492,10 +7000,7 @@ fn check_smoke_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome
         }
     }
 
-    let allowed_statuses = BTreeSet::from([
-        "production".to_string(),
-        "supported".to_string(),
-    ]);
+    let allowed_statuses = BTreeSet::from(["production".to_string(), "supported".to_string()]);
     let mut errors = Vec::new();
     for rel in [
         "configs/ci/registry/tool_registry.toml",
@@ -6569,19 +7074,29 @@ fn check_smoke_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome
                 errors.push(format!("{rel}: {tool_id} smoke_help_exit_code must be 0"));
             }
             if expected_bin.is_empty() {
-                errors.push(format!("{rel}: {tool_id} missing expected_bin tool binary contract"));
+                errors.push(format!(
+                    "{rel}: {tool_id} missing expected_bin tool binary contract"
+                ));
             }
             if minimal_cmd.is_empty() {
-                errors.push(format!("{rel}: {tool_id} resolved smoke_minimal_cmd is empty"));
+                errors.push(format!(
+                    "{rel}: {tool_id} resolved smoke_minimal_cmd is empty"
+                ));
             }
             if minimal_exit.is_none() {
-                errors.push(format!("{rel}: {tool_id} smoke_minimal_exit_code must be integer"));
+                errors.push(format!(
+                    "{rel}: {tool_id} smoke_minimal_exit_code must be integer"
+                ));
             }
             if negative_cmd.is_empty() {
-                errors.push(format!("{rel}: {tool_id} resolved smoke_negative_cmd is empty"));
+                errors.push(format!(
+                    "{rel}: {tool_id} resolved smoke_negative_cmd is empty"
+                ));
             }
             if negative_exit.is_none() {
-                errors.push(format!("{rel}: {tool_id} smoke_negative_exit_code must be integer"));
+                errors.push(format!(
+                    "{rel}: {tool_id} smoke_negative_exit_code must be integer"
+                ));
             }
             if negative_pattern.is_empty() {
                 errors.push(format!(
@@ -6685,7 +7200,9 @@ fn check_smoke_contract_lock(workspace: &Workspace) -> Result<ContainerCommandOu
             .replace('\\', "/")
             .contains(&format!("/smoke/{tool}/"))
         {
-            errors.push(format!("{tool}: smoke_log_dir not in required layout: {log_dir}"));
+            errors.push(format!(
+                "{tool}: smoke_log_dir not in required layout: {log_dir}"
+            ));
         }
     }
 
@@ -6697,14 +7214,7 @@ fn check_smoke_contract_lock(workspace: &Workspace) -> Result<ContainerCommandOu
 
 fn vcf_imputation_core_tools() -> [&'static str; 8] {
     [
-        "glimpse",
-        "impute5",
-        "minimac4",
-        "shapeit5",
-        "beagle",
-        "eagle",
-        "bcftools",
-        "plink2",
+        "glimpse", "impute5", "minimac4", "shapeit5", "beagle", "eagle", "bcftools", "plink2",
     ]
 }
 
@@ -6743,8 +7253,10 @@ fn normalized_parity_output(value: &str) -> String {
 }
 
 fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let required = load_toml(&workspace.path("configs/ci/tools/required_tools_vcf_downstream.toml"))?;
-    let registry = load_toml(&workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"))?;
+    let required =
+        load_toml(&workspace.path("configs/ci/tools/required_tools_vcf_downstream.toml"))?;
+    let registry =
+        load_toml(&workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"))?;
     let registry_vcf = load_toml(&workspace.path("configs/ci/registry/tool_registry_vcf.toml"))?;
 
     let required_set = required
@@ -6788,8 +7300,14 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
         .collect::<BTreeMap<_, _>>();
 
     let mut errors = Vec::new();
-    let missing_in_required = registry_ids.difference(&required_set).cloned().collect::<Vec<_>>();
-    let missing_in_registry = required_set.difference(&registry_ids).cloned().collect::<Vec<_>>();
+    let missing_in_required = registry_ids
+        .difference(&required_set)
+        .cloned()
+        .collect::<Vec<_>>();
+    let missing_in_registry = required_set
+        .difference(&registry_ids)
+        .cloned()
+        .collect::<Vec<_>>();
     if !missing_in_required.is_empty() {
         errors.push(format!(
             "required_tools_vcf_downstream missing registry ids: {:?}",
@@ -6810,7 +7328,9 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
             continue;
         };
         if !table_bool(row, "container") {
-            errors.push(format!("{tool}: container=false in vcf downstream registry"));
+            errors.push(format!(
+                "{tool}: container=false in vcf downstream registry"
+            ));
         }
         let runtimes = table_array_strings(row, "runtimes")
             .into_iter()
@@ -6821,7 +7341,13 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
                 runtimes
             ));
         }
-        for key in ["smoke_version_cmd", "smoke_help_cmd", "version_cmd", "help_cmd", "expected_bin"] {
+        for key in [
+            "smoke_version_cmd",
+            "smoke_help_cmd",
+            "version_cmd",
+            "help_cmd",
+            "expected_bin",
+        ] {
             if table_string(row, key).is_empty() {
                 errors.push(format!("{tool}: missing {key}"));
             }
@@ -6831,7 +7357,11 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
         if dockerfile.is_empty() || !workspace.path(&dockerfile).exists() {
             errors.push(format!(
                 "{tool}: dockerfile missing: {}",
-                if dockerfile.is_empty() { "<empty>" } else { &dockerfile }
+                if dockerfile.is_empty() {
+                    "<empty>"
+                } else {
+                    &dockerfile
+                }
             ));
         }
         if apptainer_def.is_empty() || !workspace.path(&apptainer_def).exists() {
@@ -6970,11 +7500,17 @@ fn check_imputation_hardening(workspace: &Workspace) -> Result<ContainerCommandO
 fn check_imputation_release_smoke(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let docker_summary = PathBuf::from(env_or_default(
         "DOCKER_SUMMARY",
-        &workspace.path("artifacts/containers/docker-arm64/summary.json").display().to_string(),
+        &workspace
+            .path("artifacts/containers/docker-arm64/summary.json")
+            .display()
+            .to_string(),
     ));
     let apptainer_summary = PathBuf::from(env_or_default(
         "APPTAINER_SUMMARY",
-        &workspace.path("artifacts/containers/apptainer/summary.json").display().to_string(),
+        &workspace
+            .path("artifacts/containers/apptainer/summary.json")
+            .display()
+            .to_string(),
     ));
     if !docker_summary.is_file() || !apptainer_summary.is_file() {
         if !env_or_empty("CI").is_empty() {
@@ -7012,9 +7548,13 @@ fn check_imputation_release_smoke(workspace: &Workspace) -> Result<ContainerComm
                     .trim()
                     .to_string();
                 if output_path.is_empty() {
-                    errors.push(format!("{runtime}:{tool}: missing smoke_output_paths.{key}"));
+                    errors.push(format!(
+                        "{runtime}:{tool}: missing smoke_output_paths.{key}"
+                    ));
                 } else if !PathBuf::from(&output_path).exists() {
-                    errors.push(format!("{runtime}:{tool}: missing output file {output_path}"));
+                    errors.push(format!(
+                        "{runtime}:{tool}: missing output file {output_path}"
+                    ));
                 }
             }
             if row
@@ -7043,16 +7583,20 @@ fn check_imputation_release_smoke(workspace: &Workspace) -> Result<ContainerComm
     failure_lines("imputation release smoke: FAILED", &errors)
 }
 
-fn check_imputation_cross_runtime_parity(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
+fn check_imputation_cross_runtime_parity(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let docker_summary = PathBuf::from(env_or_default(
         "DOCKER_SUMMARY",
-        &workspace.path("artifacts/containers/docker-arm64/summary.json").display().to_string(),
+        &workspace
+            .path("artifacts/containers/docker-arm64/summary.json")
+            .display()
+            .to_string(),
     ));
     let apptainer_summary = PathBuf::from(env_or_default(
         "APPTAINER_SUMMARY",
-        &workspace.path("artifacts/containers/apptainer/summary.json").display().to_string(),
+        &workspace
+            .path("artifacts/containers/apptainer/summary.json")
+            .display()
+            .to_string(),
     ));
     if !docker_summary.is_file() || !apptainer_summary.is_file() {
         if !env_or_empty("CI").is_empty() {
@@ -7224,13 +7768,19 @@ fn check_build_provenance(workspace: &Workspace) -> Result<ContainerCommandOutco
         for tool in promoted {
             let manifest_path = artifacts.join(format!("{tool}.json"));
             if !manifest_path.exists() {
-                errors.push(format!("{tool}: missing manifest artifact {}", manifest_path.display()));
+                errors.push(format!(
+                    "{tool}: missing manifest artifact {}",
+                    manifest_path.display()
+                ));
                 continue;
             }
             let payload = match read_json(&manifest_path) {
                 Ok(payload) => payload,
                 Err(_) => {
-                    errors.push(format!("{tool}: invalid json in {}", manifest_path.display()));
+                    errors.push(format!(
+                        "{tool}: invalid json in {}",
+                        manifest_path.display()
+                    ));
                     continue;
                 }
             };
@@ -7281,7 +7831,8 @@ fn check_build_provenance(workspace: &Workspace) -> Result<ContainerCommandOutco
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            if !source_hash.is_empty() && source_hash != "unknown" && !hex64.is_match(&source_hash) {
+            if !source_hash.is_empty() && source_hash != "unknown" && !hex64.is_match(&source_hash)
+            {
                 errors.push(format!("{tool}: tool_source_hash must be 64 hex chars"));
             }
             let script_hash = payload
@@ -7314,7 +7865,11 @@ fn check_digest_changes_on_version_change(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.trim().to_string();
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)?
+                .trim()
+                .to_string();
             let digest = row
                 .get("resolved_image_digest")
                 .and_then(serde_json::Value::as_str)
@@ -7338,8 +7893,11 @@ fn check_digest_changes_on_version_change(
     if !prev_rev_output.status.success() {
         return success_line("digest/version coupling: SKIP (no previous commit)");
     }
-    let prev_rev = String::from_utf8_lossy(&prev_rev_output.stdout).trim().to_string();
-    let prev_versions_text = git_show_file(workspace, &prev_rev, "containers/versions/versions.toml")?;
+    let prev_rev = String::from_utf8_lossy(&prev_rev_output.stdout)
+        .trim()
+        .to_string();
+    let prev_versions_text =
+        git_show_file(workspace, &prev_rev, "containers/versions/versions.toml")?;
     let prev_lock_text = git_show_file(workspace, &prev_rev, "containers/versions/lock.json")?;
     if prev_versions_text.is_empty() || prev_lock_text.is_empty() {
         return success_line("digest/version coupling: SKIP (previous lock/version file missing)");
@@ -7353,7 +7911,11 @@ fn check_digest_changes_on_version_change(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.trim().to_string();
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)?
+                .trim()
+                .to_string();
             let digest = row
                 .get("resolved_image_digest")
                 .and_then(serde_json::Value::as_str)
@@ -7410,11 +7972,13 @@ fn check_digest_output_policy(workspace: &Workspace) -> Result<ContainerCommandO
     let mut errors = Vec::new();
     for path in walk_paths(&containers_root)? {
         let rel = workspace.rel(&path).display().to_string();
-        let name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
-        let forbidden_name =
-            path.extension().and_then(|ext| ext.to_str()) == Some("digest")
-                || path.extension().and_then(|ext| ext.to_str()) == Some("sha256")
-                || name.contains("digests") && name.ends_with(".json");
+        let name = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        let forbidden_name = path.extension().and_then(|ext| ext.to_str()) == Some("digest")
+            || path.extension().and_then(|ext| ext.to_str()) == Some("sha256")
+            || name.contains("digests") && name.ends_with(".json");
         if forbidden_name && !path.starts_with(&versions_root) {
             errors.push(format!(
                 "generated digest artifacts must not live under containers/ tree: {rel}"
@@ -7485,9 +8049,7 @@ fn check_digest_output_policy(workspace: &Workspace) -> Result<ContainerCommandO
     failure_lines("digest output policy failed:", &errors)
 }
 
-fn check_runtime_tool_digest_recording(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
+fn check_runtime_tool_digest_recording(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let stage_file = workspace.path("crates/bijux-dna-stages-vcf/src/pipeline.rs");
     let stage_text = read_utf8(&stage_file)?;
     let runtime_contract =
@@ -7518,7 +8080,8 @@ fn check_runtime_tool_digest_recording(
 }
 
 fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run check-rebuild-repro -- <tool-id>";
+    let usage =
+        "Usage: cargo run -p bijux-dev-dna -- containers run check-rebuild-repro -- <tool-id>";
     let tool = match args {
         [flag] if flag == "--help" || flag == "-h" => return success_line(usage),
         [tool] => tool.clone(),
@@ -7633,8 +8196,20 @@ fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<Contain
         return Ok(version_file2);
     }
 
-    let line1 = version1.stdout.lines().next().unwrap_or_default().trim().to_string();
-    let line2 = version2.stdout.lines().next().unwrap_or_default().trim().to_string();
+    let line1 = version1
+        .stdout
+        .lines()
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    let line2 = version2
+        .stdout
+        .lines()
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_string();
     if line1 != line2 {
         return Ok(ContainerCommandOutcome::failure(format!(
             "rebuild-repro: version mismatch: '{line1}' vs '{line2}'\n"
@@ -7747,9 +8322,7 @@ fn check_apptainer_bijux_header(workspace: &Workspace) -> Result<ContainerComman
     )
 }
 
-fn check_hpc_frontend_policy_enforcement(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
+fn check_hpc_frontend_policy_enforcement(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let policy = workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml");
     if !policy.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -7816,7 +8389,10 @@ fn check_image_size_regression(workspace: &Workspace) -> Result<ContainerCommand
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.to_string();
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)?
+                .to_string();
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
@@ -7832,14 +8408,21 @@ fn check_image_size_regression(workspace: &Workspace) -> Result<ContainerCommand
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.to_string();
+            let tool = row
+                .get("tool")
+                .and_then(serde_json::Value::as_str)?
+                .to_string();
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
     let mut checked = 0usize;
     let mut errors = Vec::new();
     for (tool, current_row) in current_items {
-        if current_row.get("status").and_then(serde_json::Value::as_str) != Some("production") {
+        if current_row
+            .get("status")
+            .and_then(serde_json::Value::as_str)
+            != Some("production")
+        {
             continue;
         }
         let Some(previous_row) = previous_items.get(&tool) else {
@@ -7919,7 +8502,10 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
     let lock_rows = lock_items
         .into_iter()
         .filter_map(|item| {
-            let tool = item.get("tool").and_then(serde_json::Value::as_str)?.to_string();
+            let tool = item
+                .get("tool")
+                .and_then(serde_json::Value::as_str)?
+                .to_string();
             Some((tool, item))
         })
         .collect::<BTreeMap<_, _>>();
@@ -7972,7 +8558,10 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             .unwrap_or_default()
             .trim()
             .to_string();
-        let manifest = item.get("manifest").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let manifest = item
+            .get("manifest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
         if tool.is_empty() || manifest.is_empty() {
             continue;
         }
@@ -7998,7 +8587,9 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
     let mut errors = Vec::new();
     for (tool, expected_version) in production {
         if !lock_tools.contains(&tool) {
-            errors.push(format!("{tool}: missing from containers/versions/lock.json"));
+            errors.push(format!(
+                "{tool}: missing from containers/versions/lock.json"
+            ));
         }
         let Some(docker_manifest) = docker_manifest_by_tool.get(&tool) else {
             if strict_missing {
@@ -8008,7 +8599,11 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             }
             continue;
         };
-        if docker_manifest.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
+        if docker_manifest
+            .get("status")
+            .and_then(serde_json::Value::as_str)
+            != Some("ok")
+        {
             errors.push(format!("{tool}: docker manifest status is not ok"));
         }
         let declared_version = docker_manifest
@@ -8017,7 +8612,10 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             .unwrap_or_default()
             .trim()
             .to_string();
-        if !declared_version.is_empty() && !expected_version.is_empty() && declared_version != expected_version {
+        if !declared_version.is_empty()
+            && !expected_version.is_empty()
+            && declared_version != expected_version
+        {
             errors.push(format!(
                 "{tool}: declared_version '{declared_version}' != registry version '{expected_version}'"
             ));
@@ -8029,7 +8627,10 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             .unwrap_or_default()
             .trim()
             .to_string();
-        if !lock_version.is_empty() && !declared_version.is_empty() && lock_version != declared_version {
+        if !lock_version.is_empty()
+            && !declared_version.is_empty()
+            && lock_version != declared_version
+        {
             errors.push(format!(
                 "{tool}: lock version '{lock_version}' != declared_version '{declared_version}'"
             ));
@@ -8040,10 +8641,17 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             .unwrap_or_default()
             .trim()
             .to_string();
-        if !lock_version.is_empty() && !matches!(lock_version.as_str(), "0.0.0" | "planned" | "unknown") {
+        if !lock_version.is_empty()
+            && !matches!(lock_version.as_str(), "0.0.0" | "planned" | "unknown")
+        {
             if version_output.is_empty() {
-                errors.push(format!("{tool}: missing version_output for lock/version comparison"));
-            } else if !version_output.to_ascii_lowercase().contains(&lock_version.to_ascii_lowercase()) {
+                errors.push(format!(
+                    "{tool}: missing version_output for lock/version comparison"
+                ));
+            } else if !version_output
+                .to_ascii_lowercase()
+                .contains(&lock_version.to_ascii_lowercase())
+            {
                 errors.push(format!(
                     "{tool}: version_output '{version_output}' does not contain lock version '{lock_version}'"
                 ));
@@ -8056,7 +8664,9 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
             .trim()
             .to_string();
         if digest.is_empty() {
-            errors.push(format!("{tool}: missing resolved_image_digest in docker manifest"));
+            errors.push(format!(
+                "{tool}: missing resolved_image_digest in docker manifest"
+            ));
         }
         let lock_digest = lock_rows
             .get(&tool)
@@ -8084,7 +8694,8 @@ fn check_lock_matches_built_output(workspace: &Workspace) -> Result<ContainerCom
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            if !lock_sif.is_empty() && !apptainer_digest.is_empty() && lock_sif != apptainer_digest {
+            if !lock_sif.is_empty() && !apptainer_digest.is_empty() && lock_sif != apptainer_digest
+            {
                 errors.push(format!(
                     "{tool}: built apptainer sif digest '{apptainer_digest}' does not match lock sif_digest_sha256 '{lock_sif}'"
                 ));
@@ -8107,10 +8718,8 @@ fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutc
     }
     let checklist = read_utf8(&checklist_path)?;
     let registry = crate::catalog::containers::container_registry(workspace)?;
-    let command_regex = Regex::new(
-        r"cargo run -p bijux-dev-dna -- containers run ([a-z0-9-]+)",
-    )
-    .expect("regex");
+    let command_regex =
+        Regex::new(r"cargo run -p bijux-dev-dna -- containers run ([a-z0-9-]+)").expect("regex");
     let missing = command_regex
         .captures_iter(&checklist)
         .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
@@ -8136,14 +8745,22 @@ fn check_toolkit_bundle_buildable(workspace: &Workspace) -> Result<ContainerComm
     let image_table = images.as_table().cloned().unwrap_or_default();
     let apptainer = apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
+        .filter_map(|path| {
+            path.file_stem()
+                .and_then(|value| value.to_str())
+                .map(ToOwned::to_owned)
+        })
         .collect::<BTreeSet<_>>();
     let docker = dockerfile_paths(workspace)?
         .into_iter()
         .filter_map(|path| {
             path.file_name()
                 .and_then(|value| value.to_str())
-                .and_then(|value| value.split_once("Dockerfile.").map(|(_, tool)| tool.to_string()))
+                .and_then(|value| {
+                    value
+                        .split_once("Dockerfile.")
+                        .map(|(_, tool)| tool.to_string())
+                })
         })
         .collect::<BTreeSet<_>>();
     let mut errors = Vec::new();
@@ -8188,9 +8805,7 @@ fn check_toolkit_bundle_buildable(workspace: &Workspace) -> Result<ContainerComm
     failure_lines("toolkit bundle buildable: FAILED", &errors)
 }
 
-fn check_vcf_downstream_bundle_coverage(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
+fn check_vcf_downstream_bundle_coverage(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let bundles = load_toml(&workspace.path("configs/ci/tools/toolkit_bundles.toml"))?;
     let tools = bundles
         .get("bundles")
@@ -8208,7 +8823,11 @@ fn check_vcf_downstream_bundle_coverage(
         .into_iter()
         .filter_map(|path| {
             (path.extension().and_then(|ext| ext.to_str()) == Some("yaml"))
-                .then(|| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
+                .then(|| {
+                    path.file_stem()
+                        .and_then(|value| value.to_str())
+                        .map(ToOwned::to_owned)
+                })
                 .flatten()
         })
         .collect::<BTreeSet<_>>();
@@ -8298,12 +8917,26 @@ fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
         if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
             continue;
         }
-        let Ok(data) = serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default()) else {
+        let Ok(data) =
+            serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default())
+        else {
             continue;
         };
-        let tool = data.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
-        let runtime = data.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
-        let status = data.get("status").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
+        let tool = data
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string();
+        let runtime = data
+            .get("runtime")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string();
+        let status = data
+            .get("status")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string();
         if tool.is_empty() || runtime.is_empty() {
             continue;
         }
@@ -8329,24 +8962,50 @@ fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
     }
     rows.sort_by(|left, right| {
         let left_key = (
-            left.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            left.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default(),
+            left.get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+            left.get("runtime")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
         );
         let right_key = (
-            right.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            right.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default(),
+            right
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+            right
+                .get("runtime")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
         );
         left_key.cmp(&right_key)
     });
     let mut stdout = String::from("tool\truntime\tresult\tlog\n");
     for row in &rows {
-        stdout.push_str(row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default());
+        stdout.push_str(
+            row.get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
         stdout.push('\t');
-        stdout.push_str(row.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default());
+        stdout.push_str(
+            row.get("runtime")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
         stdout.push('\t');
-        stdout.push_str(row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default());
+        stdout.push_str(
+            row.get("status")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
         stdout.push('\t');
-        stdout.push_str(row.get("log").and_then(serde_json::Value::as_str).unwrap_or_default());
+        stdout.push_str(
+            row.get("log")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+        );
         stdout.push('\n');
     }
     if let Some(json_out_path) = json_out {
@@ -8354,7 +9013,10 @@ fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
             "schema_version": "bijux.container.summary.v1",
             "items": rows,
         });
-        write_utf8(&json_out_path, &format!("{}\n", serde_json::to_string_pretty(&payload)?))?;
+        write_utf8(
+            &json_out_path,
+            &format!("{}\n", serde_json::to_string_pretty(&payload)?),
+        )?;
     }
     Ok(ContainerCommandOutcome::success(stdout))
 }
@@ -8479,7 +9141,12 @@ fn run_containers_smoke(workspace: &Workspace, args: &[String]) -> Result<Contai
 
 fn run_build_contract(workspace: &Workspace, tools_csv: &str) -> Result<ContainerCommandOutcome> {
     let container_type = checked_container_type()?;
-    run_environment_prep_for(workspace, &container_type, Some(tools_csv.to_string()), None)
+    run_environment_prep_for(
+        workspace,
+        &container_type,
+        Some(tools_csv.to_string()),
+        None,
+    )
 }
 
 fn run_test_images(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -8679,44 +9346,132 @@ fn run_container_lint(workspace: &Workspace, args: &[String]) -> Result<Containe
     ensure_no_args("lint", args)?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
 
-    append_named_outcome(&mut aggregate, "check-tool-id-manifest", check_tool_id_manifest(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-id-manifest",
+        check_tool_id_manifest(workspace)?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-tool-name-map-generated",
         check_tool_name_map_generated(workspace)?,
     );
-    append_named_outcome(&mut aggregate, "check-index", check_container_index(workspace)?);
-    append_named_outcome(&mut aggregate, "check-license-metadata", check_license_metadata(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-index",
+        check_container_index(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-license-metadata",
+        check_license_metadata(workspace)?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-license-index-generated",
         check_license_index_generated(workspace)?,
     );
-    append_named_outcome(&mut aggregate, "check-qa-matrix-generated", check_qa_matrix_generated(workspace)?);
-    append_named_outcome(&mut aggregate, "check-tool-docs-generated", check_tool_docs_generated(workspace)?);
-    append_named_outcome(&mut aggregate, "check-network-disclosure", check_network_disclosure(workspace, &[])?);
-    append_named_outcome(&mut aggregate, "check-version-lock", check_version_lock(workspace)?);
-    append_named_outcome(&mut aggregate, "check-version-authority", check_version_authority(workspace)?);
-    append_named_outcome(&mut aggregate, "check-lock-schema", check_lock_schema(workspace)?);
-    append_named_outcome(&mut aggregate, "check-version-completeness", check_version_completeness(workspace)?);
-    append_named_outcome(&mut aggregate, "check-version-hash-pin", check_version_hash_pin(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-qa-matrix-generated",
+        check_qa_matrix_generated(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-docs-generated",
+        check_tool_docs_generated(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-network-disclosure",
+        check_network_disclosure(workspace, &[])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-version-lock",
+        check_version_lock(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-version-authority",
+        check_version_authority(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-lock-schema",
+        check_lock_schema(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-version-completeness",
+        check_version_completeness(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-version-hash-pin",
+        check_version_hash_pin(workspace)?,
+    );
     append_named_outcome(&mut aggregate, "check-owners", check_owners(workspace)?);
-    append_named_outcome(&mut aggregate, "check-tool-name-collision", check_tool_name_collision(workspace)?);
-    append_named_outcome(&mut aggregate, "check-tool-id-contract", check_tool_id_contract(workspace)?);
-    append_named_outcome(&mut aggregate, "check-docker-context", check_docker_context(workspace)?);
-    append_named_outcome(&mut aggregate, "check-docker-hardening", check_docker_hardening(workspace)?);
-    append_named_outcome(&mut aggregate, "check-docker-labels", check_docker_labels(workspace)?);
-    append_named_outcome(&mut aggregate, "check-docker-unpinned-apt", check_docker_unpinned_apt(workspace)?);
-    append_named_outcome(&mut aggregate, "check-docker-version-sync", check_docker_version_sync(workspace)?);
-    append_named_outcome(&mut aggregate, "check-apptainer-hardening", check_apptainer_hardening(workspace)?);
-    append_named_outcome(&mut aggregate, "check-apptainer-post-pins", check_apptainer_post_pins(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-name-collision",
+        check_tool_name_collision(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-tool-id-contract",
+        check_tool_id_contract(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-docker-context",
+        check_docker_context(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-docker-hardening",
+        check_docker_hardening(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-docker-labels",
+        check_docker_labels(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-docker-unpinned-apt",
+        check_docker_unpinned_apt(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-docker-version-sync",
+        check_docker_version_sync(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-hardening",
+        check_apptainer_hardening(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-apptainer-post-pins",
+        check_apptainer_post_pins(workspace)?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-apptainer-version-label-sync",
         check_apptainer_version_label_sync(workspace)?,
     );
-    append_named_outcome(&mut aggregate, "check-no-secrets", check_no_secrets(workspace)?);
-    append_named_outcome(&mut aggregate, "check-runtime-downloads", check_runtime_downloads(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-no-secrets",
+        check_no_secrets(workspace)?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-runtime-downloads",
+        check_runtime_downloads(workspace)?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-time-locale-determinism",
@@ -8727,7 +9482,11 @@ fn run_container_lint(workspace: &Workspace, args: &[String]) -> Result<Containe
         "check-tool-invocation-normalization",
         check_tool_invocation_normalization(workspace)?,
     );
-    append_named_outcome(&mut aggregate, "check-hpc-image-naming", check_hpc_image_naming(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-hpc-image-naming",
+        check_hpc_image_naming(workspace, &[])?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-hpc-frontend-policy-enforcement",
@@ -8787,8 +9546,16 @@ fn run_ensure_images(workspace: &Workspace, args: &[String]) -> Result<Container
     let smoke = run_runtime_smoke_contract(workspace, "apptainer", tools)?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     append_named_outcome(&mut aggregate, "smoke-containers-apptainer", smoke);
-    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
-    append_named_outcome(&mut aggregate, "check-hpc-image-naming", check_hpc_image_naming(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "generate-version-lock",
+        generate_version_lock(workspace, &[])?,
+    );
+    append_named_outcome(
+        &mut aggregate,
+        "check-hpc-image-naming",
+        check_hpc_image_naming(workspace, &[])?,
+    );
 
     let lock_sha_path = workspace.path("configs/ci/registry/tool_registry_lock.sha256");
     let snapshot = workspace.path("artifacts/containers/ensure-images/last_lock.sha256");
@@ -8797,9 +9564,9 @@ fn run_ensure_images(workspace: &Workspace, args: &[String]) -> Result<Container
         write_utf8(&snapshot, sha.trim())?;
     }
     if changed_only && aggregate.is_success() {
-        aggregate
-            .stdout
-            .push_str("ensure-images: changed selection resolved through the governed primary tool set\n");
+        aggregate.stdout.push_str(
+            "ensure-images: changed selection resolved through the governed primary tool set\n",
+        );
     }
     Ok(aggregate)
 }
@@ -8826,7 +9593,11 @@ fn run_container_doctor(workspace: &Workspace, args: &[String]) -> Result<Contai
                 tool = Some(value.clone());
                 index += 2;
             }
-            other => return Err(anyhow!("unknown arg for container-doctor: {other}\n{usage}")),
+            other => {
+                return Err(anyhow!(
+                    "unknown arg for container-doctor: {other}\n{usage}"
+                ))
+            }
         }
     }
 
@@ -8839,14 +9610,16 @@ fn run_container_doctor(workspace: &Workspace, args: &[String]) -> Result<Contai
         let version_lock = lock_items_by_tool(workspace)?
             .remove(&tool_id)
             .unwrap_or_else(|| serde_json::json!({}));
-        let smoke_summary_path = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
+        let smoke_summary_path =
+            workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
         let smoke = if smoke_summary_path.is_file() {
             read_json(&smoke_summary_path)?
                 .get("items")
                 .and_then(serde_json::Value::as_array)
                 .and_then(|items| {
                     items.iter().find(|row| {
-                        row.get("tool").and_then(serde_json::Value::as_str) == Some(tool_id.as_str())
+                        row.get("tool").and_then(serde_json::Value::as_str)
+                            == Some(tool_id.as_str())
                     })
                 })
                 .cloned()
@@ -8939,18 +9712,29 @@ fn run_vuln_scan_hook(workspace: &Workspace, args: &[String]) -> Result<Containe
     let sbom_root = args
         .first()
         .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("containers/sbom"));
+        .unwrap_or_else(|| {
+            artifact_root_path(workspace)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+                .join("containers/sbom")
+        });
     let out = args
         .get(1)
         .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("containers/vuln_scan_report.json"));
+        .unwrap_or_else(|| {
+            artifact_root_path(workspace)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+                .join("containers/vuln_scan_report.json")
+        });
     let toolkit = env_or_empty("TOOLKIT");
     let promoted_only = env_or_default("PROMOTED_ONLY", "1") != "0";
     write_vuln_hook_report(workspace, &sbom_root, &out, &toolkit, promoted_only)?;
     success_line(format!("vuln-scan-hook: wrote {}", out.display()))
 }
 
-fn run_apptainer_build_all(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+fn run_apptainer_build_all(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     ensure_no_args("apptainer-build-all", args)?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     append_named_outcome(
@@ -8958,14 +9742,24 @@ fn run_apptainer_build_all(workspace: &Workspace, args: &[String]) -> Result<Con
         "smoke-apptainer",
         run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)?,
     );
-    let summary_rel = format!("{}/hpc/frontend-smoke/summary.json", container_artifact_dir());
+    let summary_rel = format!(
+        "{}/hpc/frontend-smoke/summary.json",
+        container_artifact_dir()
+    );
     let summary_path = workspace.path(&summary_rel);
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+        summary(
+            workspace,
+            &[String::from("--json"), summary_path.display().to_string()],
+        )?,
     );
-    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "generate-version-lock",
+        generate_version_lock(workspace, &[])?,
+    );
     append_named_outcome(
         &mut aggregate,
         "check-smoke-contract-lock",
@@ -8987,7 +9781,10 @@ fn run_docker_build_all(workspace: &Workspace, args: &[String]) -> Result<Contai
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+        summary(
+            workspace,
+            &[String::from("--json"), summary_path.display().to_string()],
+        )?,
     );
     append_named_outcome(
         &mut aggregate,
@@ -9012,9 +9809,19 @@ fn current_host_name(workspace: &Workspace) -> String {
     run_program_with_env(workspace, "hostname", &["-f".to_string()], &[])
         .ok()
         .filter(|out| out.is_success())
-        .and_then(|out| out.stdout.lines().next().map(str::trim).map(ToOwned::to_owned))
+        .and_then(|out| {
+            out.stdout
+                .lines()
+                .next()
+                .map(str::trim)
+                .map(ToOwned::to_owned)
+        })
         .filter(|value| !value.is_empty())
-        .or_else(|| std::env::var("HOSTNAME").ok().filter(|value| !value.is_empty()))
+        .or_else(|| {
+            std::env::var("HOSTNAME")
+                .ok()
+                .filter(|value| !value.is_empty())
+        })
         .unwrap_or_else(|| "unknown".to_string())
 }
 
@@ -9055,7 +9862,11 @@ fn selected_apptainer_tools(
     let selected = apptainer_def_paths(workspace)
         .into_iter()
         .filter(|path| defs_dir.is_none_or(|root| path.starts_with(root)))
-        .filter_map(|path| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
+        .filter_map(|path| {
+            path.file_stem()
+                .and_then(|value| value.to_str())
+                .map(ToOwned::to_owned)
+        })
         .collect::<BTreeSet<_>>();
     if selected.is_empty() {
         return primary_tools_csv(workspace);
@@ -9063,13 +9874,12 @@ fn selected_apptainer_tools(
     Ok(selected.into_iter().collect::<Vec<_>>().join(","))
 }
 
-fn write_frontend_sif_digests(
-    sif_dir: &Path,
-    out: &Path,
-    host: &str,
-) -> Result<()> {
+fn write_frontend_sif_digests(sif_dir: &Path, out: &Path, host: &str) -> Result<()> {
     let mut items = Vec::new();
-    for entry in WalkDir::new(sif_dir).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(sif_dir)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("sif")
         {
@@ -9164,7 +9974,8 @@ fn run_build_apptainer_all(
         envs.push(("BIJUX_WORKERS".to_string(), value.clone()));
         envs.push(("JOBS".to_string(), value));
     }
-    let build = run_environment_prep_for_with_env(workspace, "apptainer", Some(tools), None, &envs)?;
+    let build =
+        run_environment_prep_for_with_env(workspace, "apptainer", Some(tools), None, &envs)?;
     if !build.is_success() {
         return Ok(build);
     }
@@ -9197,7 +10008,11 @@ fn run_build_apptainer_hpc_frontend(
         return Ok(host_policy);
     }
     let mut aggregate = ContainerCommandOutcome::success(String::new());
-    append_named_outcome(&mut aggregate, "check-version-hash-pin", check_version_hash_pin(workspace)?);
+    append_named_outcome(
+        &mut aggregate,
+        "check-version-hash-pin",
+        check_version_hash_pin(workspace)?,
+    );
     let build = run_build_apptainer_all(workspace, &[])?;
     append_named_outcome(&mut aggregate, "build-apptainer-all", build.clone());
     if !build.is_success() {
@@ -9207,7 +10022,11 @@ fn run_build_apptainer_hpc_frontend(
     fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let host = current_host_name(workspace);
     let frontend_json = out_dir.join("frontend-sif-digests.json");
-    write_frontend_sif_digests(&workspace.path("artifacts/containers/apptainer"), &frontend_json, &host)?;
+    write_frontend_sif_digests(
+        &workspace.path("artifacts/containers/apptainer"),
+        &frontend_json,
+        &host,
+    )?;
     append_named_outcome(
         &mut aggregate,
         "generate-local-apptainer-digests",
@@ -9228,7 +10047,11 @@ fn run_build_apptainer_hpc_frontend(
             ],
         )?,
     );
-    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "generate-version-lock",
+        generate_version_lock(workspace, &[])?,
+    );
     Ok(aggregate)
 }
 
@@ -9254,7 +10077,10 @@ fn run_apptainer_frontend_smoke(
         None,
         &[
             ("ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
-            ("CONTAINER_ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
+            (
+                "CONTAINER_ARTIFACT_DIR".to_string(),
+                proof_root.display().to_string(),
+            ),
             ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
             ("SMOKE_LEVEL".to_string(), "contract".to_string()),
             ("SMOKE_DISABLE_NETWORK".to_string(), "1".to_string()),
@@ -9269,17 +10095,21 @@ fn run_apptainer_frontend_smoke(
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
+        summary(
+            workspace,
+            &[String::from("--json"), summary_path.display().to_string()],
+        )?,
     );
     append_named_outcome(
         &mut aggregate,
         "check-apptainer-frontend-smoke-proof",
-        check_apptainer_frontend_smoke_proof(
-            workspace,
-            &[proof_root.display().to_string()],
-        )?,
+        check_apptainer_frontend_smoke_proof(workspace, &[proof_root.display().to_string()])?,
     );
-    append_named_outcome(&mut aggregate, "generate-version-lock", generate_version_lock(workspace, &[])?);
+    append_named_outcome(
+        &mut aggregate,
+        "generate-version-lock",
+        generate_version_lock(workspace, &[])?,
+    );
     Ok(aggregate)
 }
 
@@ -9301,9 +10131,15 @@ fn run_apptainer_frontend_security(
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     for (name, outcome) in [
         ("check-version-hash-pin", check_version_hash_pin(workspace)?),
-        ("check-apptainer-hardening", check_apptainer_hardening(workspace)?),
+        (
+            "check-apptainer-hardening",
+            check_apptainer_hardening(workspace)?,
+        ),
         ("check-no-secrets", check_no_secrets(workspace)?),
-        ("check-network-disclosure", check_network_disclosure(workspace, &[])?),
+        (
+            "check-network-disclosure",
+            check_network_disclosure(workspace, &[])?,
+        ),
     ] {
         append_named_outcome(&mut aggregate, name, outcome.clone());
         if !outcome.is_success() {
@@ -9317,7 +10153,10 @@ fn run_apptainer_frontend_security(
         None,
         &[
             ("ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
-            ("CONTAINER_ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
+            (
+                "CONTAINER_ARTIFACT_DIR".to_string(),
+                out_dir.display().to_string(),
+            ),
             ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
             ("SMOKE_LEVEL".to_string(), "contract".to_string()),
         ],
@@ -9352,13 +10191,17 @@ fn run_apptainer_frontend_reproducibility(
     if !host_policy.is_success() {
         return Ok(host_policy);
     }
-    let policy = load_toml(&workspace.path("configs/ci/tools/apptainer_reproducibility_policy.toml"))?;
+    let policy =
+        load_toml(&workspace.path("configs/ci/tools/apptainer_reproducibility_policy.toml"))?;
     let sample_count = policy
         .get("tool_sample_count")
         .and_then(toml::Value::as_integer)
         .unwrap_or(10)
         .max(0) as usize;
-    let seed = env_or_default("REPRO_SEED", &env_or_default("ISO_RUN_ID", "frontend-repro"));
+    let seed = env_or_default(
+        "REPRO_SEED",
+        &env_or_default("ISO_RUN_ID", "frontend-repro"),
+    );
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
     fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let sample = sampled_apptainer_defs(workspace, &seed, sample_count);
@@ -9709,10 +10552,15 @@ fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerCommandOutcome>
             {
                 continue;
             }
-            let payload: serde_json::Value =
-                serde_json::from_str(&std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?)
-                    .with_context(|| format!("parse {}", path.display()))?;
-            let tool = payload.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+            let payload: serde_json::Value = serde_json::from_str(
+                &std::fs::read_to_string(&path)
+                    .with_context(|| format!("read {}", path.display()))?,
+            )
+            .with_context(|| format!("parse {}", path.display()))?;
+            let tool = payload
+                .get("tool")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default();
             let status = payload
                 .get("status")
                 .and_then(serde_json::Value::as_str)
@@ -9762,7 +10610,10 @@ fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerCommandOutcome>
     }
     let mut stdout = String::from("smoke mode mismatch detected\n");
     if !missing_left.is_empty() {
-        stdout.push_str(&format!("missing in bijux-run: {}\n", missing_left.join(",")));
+        stdout.push_str(&format!(
+            "missing in bijux-run: {}\n",
+            missing_left.join(",")
+        ));
     }
     if !missing_right.is_empty() {
         stdout.push_str(&format!(
@@ -9818,7 +10669,12 @@ fn write_frontend_repro_summary(
                 .map(|checks| {
                     ["same_cache_twice", "clean_cache_match", "purge_cache_match"]
                         .into_iter()
-                        .filter(|key| checks.get(*key).and_then(serde_json::Value::as_bool).unwrap_or(false))
+                        .filter(|key| {
+                            checks
+                                .get(*key)
+                                .and_then(serde_json::Value::as_bool)
+                                .unwrap_or(false)
+                        })
                         .count()
                 })
                 .unwrap_or(0)
@@ -9829,9 +10685,11 @@ fn write_frontend_repro_summary(
     } else {
         passed_checks as f64 / total_checks as f64
     };
-    let all_ok = items
-        .iter()
-        .all(|row| row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false));
+    let all_ok = items.iter().all(|row| {
+        row.get("deterministic")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+    });
     let ok = confidence >= threshold && (!require_all || all_ok);
     write_utf8(
         summary_path,
@@ -9867,13 +10725,31 @@ fn write_frontend_repro_summary(
         "|---|---:|---:|---:|---:|---|".to_string(),
     ];
     for row in items {
-        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
         let checks = row.get("checks").and_then(serde_json::Value::as_object);
-        let same = checks.and_then(|value| value.get("same_cache_twice")).and_then(serde_json::Value::as_bool).unwrap_or(false);
-        let clean = checks.and_then(|value| value.get("clean_cache_match")).and_then(serde_json::Value::as_bool).unwrap_or(false);
-        let purge = checks.and_then(|value| value.get("purge_cache_match")).and_then(serde_json::Value::as_bool).unwrap_or(false);
-        let deterministic = row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false);
-        let cause = row.get("nondeterministic_cause").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let same = checks
+            .and_then(|value| value.get("same_cache_twice"))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let clean = checks
+            .and_then(|value| value.get("clean_cache_match"))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let purge = checks
+            .and_then(|value| value.get("purge_cache_match"))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let deterministic = row
+            .get("deterministic")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let cause = row
+            .get("nondeterministic_cause")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
         lines.push(format!(
             "| `{tool}` | `{same}` | `{clean}` | `{purge}` | `{deterministic}` | `{cause}` |"
         ));
@@ -9900,7 +10776,11 @@ fn write_frontend_security_summary(
             .cloned()
             .unwrap_or_default()
             .into_iter()
-            .filter_map(|row| row.get("cve").and_then(toml::Value::as_str).map(|cve| cve.to_ascii_uppercase()))
+            .filter_map(|row| {
+                row.get("cve")
+                    .and_then(toml::Value::as_str)
+                    .map(|cve| cve.to_ascii_uppercase())
+            })
             .collect::<BTreeSet<_>>()
     } else {
         BTreeSet::new()
@@ -9926,7 +10806,9 @@ fn write_frontend_security_summary(
         None
     };
     if scanner.is_none() && ((is_ci && require_scanner_ci) || (!is_ci && require_scanner_local)) {
-        return Err(anyhow!("frontend security summary requires grype or trivy per policy"));
+        return Err(anyhow!(
+            "frontend security summary requires grype or trivy per policy"
+        ));
     }
     let manifests = WalkDir::new(out_dir)
         .max_depth(1)
@@ -9936,8 +10818,15 @@ fn write_frontend_security_summary(
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("json"))
         .filter(|entry| {
             !matches!(
-                entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default(),
-                "summary.json" | "security_summary.json" | "vuln_scan_report.json" | "sbom_index.json"
+                entry
+                    .path()
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_default(),
+                "summary.json"
+                    | "security_summary.json"
+                    | "vuln_scan_report.json"
+                    | "sbom_index.json"
             )
         })
         .collect::<Vec<_>>();
@@ -9972,9 +10861,13 @@ fn write_frontend_security_summary(
         if !sbom_path.is_file() {
             continue;
         }
-        let sbom_sha256 = sha256_hex(&fs::read(&sbom_path).with_context(|| format!("read {}", sbom_path.display()))?);
+        let sbom_sha256 = sha256_hex(
+            &fs::read(&sbom_path).with_context(|| format!("read {}", sbom_path.display()))?,
+        );
         let sif_sha256 = if sif_path.is_file() {
-            sha256_hex(&fs::read(&sif_path).with_context(|| format!("read {}", sif_path.display()))?)
+            sha256_hex(
+                &fs::read(&sif_path).with_context(|| format!("read {}", sif_path.display()))?,
+            )
         } else {
             String::new()
         };
@@ -9988,8 +10881,14 @@ fn write_frontend_security_summary(
     }
 
     for row in &sbom_rows {
-        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
-        let sbom = row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let tool = row
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
+        let sbom = row
+            .get("sbom_path")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
         let mut counts = BTreeMap::from([
             ("critical".to_string(), 0usize),
             ("high".to_string(), 0usize),
@@ -10009,7 +10908,12 @@ fn write_frontend_security_summary(
                 run_program_with_env(
                     workspace,
                     "trivy",
-                    &["sbom".to_string(), "--format".to_string(), "json".to_string(), sbom.to_string()],
+                    &[
+                        "sbom".to_string(),
+                        "--format".to_string(),
+                        "json".to_string(),
+                        sbom.to_string(),
+                    ],
                     &[],
                 )?
             };
@@ -10018,27 +10922,54 @@ fn write_frontend_security_summary(
             } else {
                 output.stdout.clone()
             };
-            let suffix = if scanner_name == "grype" { "grype" } else { "trivy" };
+            let suffix = if scanner_name == "grype" {
+                "grype"
+            } else {
+                "trivy"
+            };
             write_utf8(&vuln_dir.join(format!("{tool}.{suffix}.json")), &raw)?;
-            let payload = serde_json::from_str::<serde_json::Value>(&raw).unwrap_or_else(|_| serde_json::json!({}));
+            let payload = serde_json::from_str::<serde_json::Value>(&raw)
+                .unwrap_or_else(|_| serde_json::json!({}));
             let mut parsed = Vec::new();
             if scanner_name == "grype" {
-                if let Some(matches) = payload.get("matches").and_then(serde_json::Value::as_array) {
+                if let Some(matches) = payload.get("matches").and_then(serde_json::Value::as_array)
+                {
                     for item in matches {
                         let vuln = item.get("vulnerability").unwrap_or(item);
-                        let cve = vuln.get("id").and_then(serde_json::Value::as_str).unwrap_or_default().to_ascii_uppercase();
-                        let sev = vuln.get("severity").and_then(serde_json::Value::as_str).unwrap_or("UNKNOWN").to_ascii_uppercase();
+                        let cve = vuln
+                            .get("id")
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or_default()
+                            .to_ascii_uppercase();
+                        let sev = vuln
+                            .get("severity")
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or("UNKNOWN")
+                            .to_ascii_uppercase();
                         if !cve.is_empty() {
                             parsed.push((cve, sev));
                         }
                     }
                 }
-            } else if let Some(results) = payload.get("Results").and_then(serde_json::Value::as_array) {
+            } else if let Some(results) =
+                payload.get("Results").and_then(serde_json::Value::as_array)
+            {
                 for result in results {
-                    if let Some(vulns) = result.get("Vulnerabilities").and_then(serde_json::Value::as_array) {
+                    if let Some(vulns) = result
+                        .get("Vulnerabilities")
+                        .and_then(serde_json::Value::as_array)
+                    {
                         for vuln in vulns {
-                            let cve = vuln.get("VulnerabilityID").and_then(serde_json::Value::as_str).unwrap_or_default().to_ascii_uppercase();
-                            let sev = vuln.get("Severity").and_then(serde_json::Value::as_str).unwrap_or("UNKNOWN").to_ascii_uppercase();
+                            let cve = vuln
+                                .get("VulnerabilityID")
+                                .and_then(serde_json::Value::as_str)
+                                .unwrap_or_default()
+                                .to_ascii_uppercase();
+                            let sev = vuln
+                                .get("Severity")
+                                .and_then(serde_json::Value::as_str)
+                                .unwrap_or("UNKNOWN")
+                                .to_ascii_uppercase();
                             if !cve.is_empty() {
                                 parsed.push((cve, sev));
                             }
@@ -10071,11 +11002,23 @@ fn write_frontend_security_summary(
         }));
         let license_file = workspace.path(&format!("containers/licenses/{tool}.license.toml"));
         if !license_file.is_file() {
-            license_mismatches.push(format!("{tool}: missing {}", workspace.rel(&license_file).display()));
+            license_mismatches.push(format!(
+                "{tool}: missing {}",
+                workspace.rel(&license_file).display()
+            ));
         } else {
             let license = load_toml(&license_file)?;
-            if license.get("spdx").and_then(toml::Value::as_str).unwrap_or_default().trim().is_empty() {
-                license_mismatches.push(format!("{tool}: empty spdx in {}", workspace.rel(&license_file).display()));
+            if license
+                .get("spdx")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+            {
+                license_mismatches.push(format!(
+                    "{tool}: empty spdx in {}",
+                    workspace.rel(&license_file).display()
+                ));
             }
         }
     }
@@ -10121,14 +11064,25 @@ fn write_frontend_security_summary(
         "| tool | sif_sha256 | sbom_sha256 | sbom_path |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    if let Some(items) = summary_json.get("items").and_then(serde_json::Value::as_array) {
+    if let Some(items) = summary_json
+        .get("items")
+        .and_then(serde_json::Value::as_array)
+    {
         for row in items {
             lines.push(format!(
                 "| `{}` | `{}` | `{}` | `{}` |",
-                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
-                row.get("sif_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
-                row.get("sbom_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
-                row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("tool")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
+                row.get("sif_sha256")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
+                row.get("sbom_sha256")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
+                row.get("sbom_path")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
             ));
         }
     }
@@ -10139,16 +11093,31 @@ fn write_frontend_security_summary(
         "| tool | critical | high | medium | low | unknown |".to_string(),
         "|---|---:|---:|---:|---:|---:|".to_string(),
     ]);
-    if let Some(items) = summary_json.get("vulnerabilities").and_then(serde_json::Value::as_array) {
+    if let Some(items) = summary_json
+        .get("vulnerabilities")
+        .and_then(serde_json::Value::as_array)
+    {
         for row in items {
             lines.push(format!(
                 "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
-                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
-                row.get("critical").and_then(serde_json::Value::as_u64).unwrap_or(0),
-                row.get("high").and_then(serde_json::Value::as_u64).unwrap_or(0),
-                row.get("medium").and_then(serde_json::Value::as_u64).unwrap_or(0),
-                row.get("low").and_then(serde_json::Value::as_u64).unwrap_or(0),
-                row.get("unknown").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("tool")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
+                row.get("critical")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
+                row.get("high")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
+                row.get("medium")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
+                row.get("low")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
+                row.get("unknown")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0),
             ));
         }
     }
@@ -10174,7 +11143,10 @@ fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
         .to_string();
     let combined_sha = {
         use sha2::{Digest, Sha256};
-        format!("{:x}", Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes()))
+        format!(
+            "{:x}",
+            Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes())
+        )
     };
     let images: toml::Value = toml::from_str(&std::fs::read_to_string(&images_toml)?)?;
     let naming: toml::Value = toml::from_str(&std::fs::read_to_string(&hpc_naming_toml)?)?;
@@ -10213,8 +11185,8 @@ fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
                 .unwrap_or_default()
                 .trim()
                 .to_string();
-            (!version.is_empty() && tool_re.is_match(&tool) && version_re.is_match(&version))
-                .then(|| {
+            (!version.is_empty() && tool_re.is_match(&tool) && version_re.is_match(&version)).then(
+                || {
                     let tag = tag_format
                         .replace("{tool}", &tool)
                         .replace("{version}", &version);
@@ -10223,7 +11195,8 @@ fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
                         "version": version,
                         "hpc_image_ref": format!("{prefix}/{tool}:{tag}"),
                     })
-                })
+                },
+            )
         })
         .collect::<Vec<_>>();
     write_utf8(
@@ -10290,7 +11263,10 @@ fn write_vuln_hook_report(
     std::fs::create_dir_all(&per_tool_dir)
         .with_context(|| format!("create {}", per_tool_dir.display()))?;
     let mut rows = Vec::new();
-    for entry in WalkDir::new(sbom_root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(sbom_root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
             || !entry
@@ -10322,7 +11298,11 @@ fn write_vuln_hook_report(
         if let Some(scanner) = scanner {
             let output = if scanner == "grype" {
                 std::process::Command::new("grype")
-                    .args([format!("sbom:{}", entry.path().display()), "-o".to_string(), "json".to_string()])
+                    .args([
+                        format!("sbom:{}", entry.path().display()),
+                        "-o".to_string(),
+                        "json".to_string(),
+                    ])
                     .current_dir(&workspace.root)
                     .output()
             } else {

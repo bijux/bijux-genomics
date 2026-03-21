@@ -18,8 +18,8 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
     ];
 
     let mut offenders = Vec::new();
-    let raw = std::fs::read_to_string(&source)
-        .unwrap_or_else(|_| panic!("read {}", source.display()));
+    let raw =
+        std::fs::read_to_string(&source).unwrap_or_else(|_| panic!("read {}", source.display()));
     for token in required_tokens {
         if !raw.contains(token) {
             offenders.push(format!(

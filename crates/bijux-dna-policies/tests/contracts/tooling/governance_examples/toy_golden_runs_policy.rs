@@ -52,7 +52,9 @@ fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_fla
         .arg("--out")
         .arg(root.join("artifacts/toy_policy_check_refresh"))
         .status()
-        .unwrap_or_else(|err| panic!("run bijux-dev-dna test run toy-runs refresh without accept: {err}"));
+        .unwrap_or_else(|err| {
+            panic!("run bijux-dev-dna test run toy-runs refresh without accept: {err}")
+        });
     assert!(
         !status.success(),
         "toy golden refresh must fail without --accept"
