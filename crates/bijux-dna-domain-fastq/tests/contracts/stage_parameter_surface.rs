@@ -77,8 +77,8 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
     );
     assert_eq!(
         stage_parameter_names("remove_duplicates")?,
-        Vec::<String>::new(),
-        "fastq.remove_duplicates must not expose duplicate semantics the governed runtime cannot honor"
+        vec!["dedup_mode", "keep_order"],
+        "fastq.remove_duplicates must expose the governed duplicate semantics used by benchmark cohorts and stage plans"
     );
     Ok(())
 }
@@ -97,8 +97,8 @@ fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
 fn validate_reads_manifest_avoids_unmapped_quality_cutoff() -> Result<()> {
     assert_eq!(
         stage_parameter_names("validate_reads")?,
-        Vec::<String>::new(),
-        "fastq.validate_reads must not expose q_cutoff until a governed backend-native validation mapping exists"
+        vec!["threads", "validation_mode", "pair_sync_policy"],
+        "fastq.validate_reads must expose its governed validation controls while keeping q_cutoff out of the public manifest until backend-native mapping exists"
     );
     Ok(())
 }
