@@ -177,10 +177,12 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
     assert!(plan.steps().iter().any(|step| {
         step.step_id
             .as_str()
-            .contains("fastq.validate_reads=fastqvalidator")
+            .contains("fastq.validate_reads.entry=fastqvalidator")
     }));
     assert!(plan.steps().iter().any(|step| {
-        step.step_id.as_str().contains("fastq.trim_reads=fastp")
+        step.step_id
+            .as_str()
+            .contains("fastq.trim_reads.cleanup=fastp")
             && step.step_id.as_str().contains(".tool.fastp")
     }));
     Ok(())
