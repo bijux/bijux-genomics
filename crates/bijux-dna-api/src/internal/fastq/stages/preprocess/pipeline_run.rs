@@ -353,6 +353,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: args.objective,
         pipeline_spec: Some(runtime_pipeline.clone()),
         stage_bindings: Vec::new(),
         stage_toolsets: planner_stage_toolsets,

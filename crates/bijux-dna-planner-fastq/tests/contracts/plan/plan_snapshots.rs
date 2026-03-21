@@ -87,6 +87,7 @@ fn fastq_plan_snapshot() {
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
