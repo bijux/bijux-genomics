@@ -440,6 +440,68 @@ mod tests {
         assert_eq!(records[0].runtime_s, Some(7.0));
         Ok(())
     }
+
+    #[test]
+    fn sqlite_repository_honors_embedded_lineage_hash() -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-lineage-query-context");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_REPORT_QC).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+
+        let fastp_lineage = BenchQueryContext::new()
+            .with_stage_contract_hash("contract-a")
+            .with_lineage_hash("fastq.trim_reads=fastp")
+            .embed_in_parameters(&serde_json::json!({}));
+        let bbduk_lineage = BenchQueryContext::new()
+            .with_stage_contract_hash("contract-a")
+            .with_lineage_hash("fastq.trim_reads=bbduk")
+            .embed_in_parameters(&serde_json::json!({}));
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_qc_post_v1",
+            &[
+                BenchRowFixture {
+                    tool: "multiqc".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: serde_json::to_string(&bbduk_lineage)?,
+                    runtime_s: 8.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+                BenchRowFixture {
+                    tool: "multiqc".to_string(),
+                    input_hash: corpus.datasets[0].sha256_r1.to_string(),
+                    image_digest: "sha256:image-a".to_string(),
+                    params_hash: "params-a".to_string(),
+                    parameters_json: serde_json::to_string(&fastp_lineage)?,
+                    runtime_s: 3.0,
+                    memory_mb: 128.0,
+                    exit_code: 0,
+                },
+            ],
+        )?;
+
+        let repo = SqliteBenchResultsRepository::new(root_dir.clone());
+        let records = repo.bench_results(
+            &STAGE_REPORT_QC,
+            "multiqc",
+            &corpus,
+            &BenchQueryContext::new()
+                .with_stage_contract_hash("contract-a")
+                .with_lineage_hash("fastq.trim_reads=fastp"),
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(3.0));
+        Ok(())
+    }
 }
 
 /// Load bench results for a stage/tool across the corpus.
