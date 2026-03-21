@@ -74,7 +74,14 @@ fn normalize_path_string(value: &str) -> String {
             }
             Component::CurDir => {}
             Component::ParentDir => {
-                components.pop();
+                let can_pop = components
+                    .last()
+                    .is_some_and(|part| !part.is_empty() && part != "..");
+                if can_pop {
+                    components.pop();
+                } else if prefix.is_none() && !path.is_absolute() {
+                    components.push("..".to_string());
+                }
             }
             Component::Normal(part) => {
                 components.push(part.to_string_lossy().to_string());

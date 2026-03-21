@@ -36,6 +36,18 @@ fn parameters_json_canonicalization_normalizes_numbers() {
 }
 
 #[test]
+fn parameters_json_canonicalization_preserves_leading_parent_segments() {
+    let input = serde_json::json!({
+        "path": "../../reads/sample.fastq.gz"
+    });
+    let canonical = parameters_json_canonicalization(&input);
+    assert_eq!(
+        canonical["path"],
+        serde_json::Value::String("../../reads/sample.fastq.gz".to_string())
+    );
+}
+
+#[test]
 fn metrics_schema_resolves_stage() {
     let schema = metrics_schema_for_stage("fastq.trim_reads");
     assert!(schema.is_some());
