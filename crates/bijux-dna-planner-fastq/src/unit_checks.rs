@@ -354,7 +354,7 @@ fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
 }
 
 #[test]
-fn expand_pipeline_stage_tool_routes_rejects_planner_owned_select_nodes() {
+fn expand_pipeline_stage_tool_routes_collapses_selected_stage_context() {
     let pipeline = PipelineSpec::graph(
         vec![
             PipelineNodeSpec {
@@ -365,26 +365,73 @@ fn expand_pipeline_stage_tool_routes_rejects_planner_owned_select_nodes() {
                 stage_id: "benchmark.select_stage_tool".to_string(),
                 stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
             },
+            PipelineNodeSpec {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+            },
         ],
-        vec![PipelineEdgeSpec {
-            from: "fastq.trim_reads.cleanup".to_string(),
-            to: "benchmark.select_stage_tool.trim_reads".to_string(),
-            from_output_id: Some("trimmed_reads_r1".to_string()),
-            to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
-        }],
+        vec![
+            PipelineEdgeSpec {
+                from: "fastq.trim_reads.cleanup".to_string(),
+                to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("candidate_trimmed_reads_r1".to_string()),
+            },
+            PipelineEdgeSpec {
+                from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                to: "fastq.filter_reads.selected".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("reads_r1".to_string()),
+            },
+        ],
     );
     let toolsets = vec![ToolsetSelection {
         stage_id: "fastq.trim_reads".to_string(),
         stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
         tool_ids: vec!["fastp".to_string(), "cutadapt".to_string()],
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+    }, ToolsetSelection {
+        stage_id: "fastq.filter_reads".to_string(),
+        stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+        tool_ids: vec!["seqkit".to_string()],
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
     }];
 
-    let error = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
-        .expect_err("planner-owned select nodes must not enter route expansion");
-    assert!(error
-        .to_string()
-        .contains("toolset route expansion does not support planner-owned node"));
+    let (expanded_pipeline, expanded_selections) = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
+        .expect("planner-owned select nodes should collapse route context");
+
+    let select_nodes = expanded_pipeline
+        .nodes
+        .iter()
+        .filter(|node| node.stage_id == "benchmark.select_stage_tool")
+        .collect::<Vec<_>>();
+    assert_eq!(select_nodes.len(), 1);
+    assert_eq!(
+        select_nodes[0].stage_instance_id.as_deref(),
+        Some("benchmark.select_stage_tool.trim_reads")
+    );
+
+    let downstream_nodes = expanded_pipeline
+        .nodes
+        .iter()
+        .filter(|node| node.stage_id == "fastq.filter_reads")
+        .collect::<Vec<_>>();
+    assert_eq!(downstream_nodes.len(), 1);
+    assert!(downstream_nodes[0]
+        .stage_instance_id
+        .as_deref()
+        .is_some_and(|node_id| node_id.ends_with(".tool.seqkit")));
+    assert!(downstream_nodes[0]
+        .stage_instance_id
+        .as_deref()
+        .is_some_and(|node_id| !node_id.contains("fastq.trim_reads.cleanup=")));
+    assert_eq!(
+        expanded_selections
+            .iter()
+            .filter(|selection| selection.stage_id == "fastq.filter_reads")
+            .count(),
+        1
+    );
 }
 
 #[test]

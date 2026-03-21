@@ -8,8 +8,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_planner_fastq::{
     DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
     FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding,
-    TrimTerminalDamageStageParams,
+    FastqStageToolsetBinding, TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -263,20 +262,20 @@ fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<
         "benchmark.compare_stage_tools"
     );
     assert_eq!(compare_step.io.inputs.len(), 4);
-    assert!(compare_step
-        .io
-        .inputs
-        .iter()
-        .all(|artifact| {
-            let name = artifact.name.as_str();
-            name.ends_with("__trimmed_reads_r1") || name.ends_with("__report_json")
-        }));
+    assert!(compare_step.io.inputs.iter().all(|artifact| {
+        let name = artifact.name.as_str();
+        name.ends_with("__trimmed_reads_r1") || name.ends_with("__report_json")
+    }));
     assert!(plan.edges().iter().any(|edge| {
-        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
+        edge.to()
+            .as_str()
+            .starts_with("fastq.trim_reads.cleanup.compare.route.")
             && edge.from().as_str().contains(".tool.fastp")
     }));
     assert!(plan.edges().iter().any(|edge| {
-        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
+        edge.to()
+            .as_str()
+            .starts_with("fastq.trim_reads.cleanup.compare.route.")
             && edge.from().as_str().contains(".tool.cutadapt")
     }));
     Ok(())
@@ -374,7 +373,9 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
         })
         .collect::<Vec<_>>();
     assert_eq!(trim_compare_steps.len(), 2);
-    assert!(trim_compare_steps.iter().all(|step| step.io.inputs.len() == 6));
+    assert!(trim_compare_steps
+        .iter()
+        .all(|step| step.io.inputs.len() == 6));
     assert!(trim_compare_steps.iter().any(|step| {
         step.step_id
             .as_str()
@@ -996,7 +997,10 @@ fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<
     assert_eq!(select_step.stage_id.as_str(), "benchmark.select_stage_tool");
     assert_eq!(select_step.io.inputs.len(), 2);
     assert_eq!(select_step.io.outputs.len(), 1);
-    assert_eq!(filter_step.io.inputs[0].path, select_step.io.outputs[0].path);
+    assert_eq!(
+        filter_step.io.inputs[0].path,
+        select_step.io.outputs[0].path
+    );
     assert!(plan.edges().iter().any(|edge| {
         edge.from().as_str() == "benchmark.select_stage_tool.trim_reads"
             && edge.to().as_str() == "fastq.filter_reads.selected"
@@ -1102,13 +1106,13 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
 }
 
 #[test]
-fn planner_rejects_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
-    let temp = bijux_dna_infra::temp_dir("fastq-select-toolsets-unsupported")?;
+fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-select-toolsets")?;
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
 
-    let error = FastqPlanner::plan(&FastqPlanConfig {
-        pipeline_id: "fastq-to-fastq__select_toolsets_invalid__v1".to_string(),
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__select_toolsets__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(PipelineSpec::graph(
             vec![
@@ -1120,22 +1124,43 @@ fn planner_rejects_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
                     stage_id: "benchmark.select_stage_tool".to_string(),
                     stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
                 },
+                PipelineNodeSpec {
+                    stage_id: "fastq.filter_reads".to_string(),
+                    stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                },
             ],
-            vec![PipelineEdgeSpec {
-                from: "fastq.trim_reads.cleanup".to_string(),
-                to: "benchmark.select_stage_tool.trim_reads".to_string(),
-                from_output_id: Some("trimmed_reads_r1".to_string()),
-                to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
-            }],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.cleanup".to_string(),
+                    to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("candidate_trimmed_reads_r1".to_string()),
+                },
+                PipelineEdgeSpec {
+                    from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                    to: "fastq.filter_reads.selected".to_string(),
+                    from_output_id: Some("trimmed_reads_r1".to_string()),
+                    to_input_id: Some("reads_r1".to_string()),
+                },
+            ],
         )),
         stage_bindings: Vec::new(),
-        stage_toolsets: vec![FastqStageToolsetBinding {
-            stage_id: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
-            tools: vec![tool("fastp"), tool("cutadapt")],
-            reason: None,
-            params: None,
-        }],
+        stage_toolsets: vec![
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tools: vec![tool("fastp"), tool("cutadapt")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+                tools: vec![tool("seqkit")],
+                reason: None,
+                params: None,
+            },
+        ],
         stages: Vec::new(),
         tools: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -1149,12 +1174,33 @@ fn planner_rejects_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
         out_dir: temp.path().join("out"),
         tool_reasons: None,
         allow_planned: false,
-    })
-    .expect_err("planner-owned select nodes should reject stage_toolsets");
+    })?;
 
-    assert!(error
-        .to_string()
-        .contains("stage_toolsets cannot be combined with planner-owned select nodes yet"));
+    let select_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "benchmark.select_stage_tool.trim_reads")
+        .expect("select step");
+    let filter_step = plan
+        .steps()
+        .iter()
+        .find(|step| {
+            step.stage_id.as_str() == "fastq.filter_reads"
+                && !step.step_id.as_str().contains("fastq.trim_reads.cleanup=")
+        })
+        .expect("collapsed downstream stage");
+    assert_eq!(select_step.io.inputs.len(), 2);
+    assert_eq!(select_step.io.outputs.len(), 1);
+    assert_eq!(
+        filter_step.io.inputs[0].path,
+        select_step.io.outputs[0].path
+    );
+    assert!(plan.edges().iter().any(|edge| {
+        edge.from().as_str() == "benchmark.select_stage_tool.trim_reads"
+            && edge.to().as_str() == filter_step.step_id.as_str()
+            && edge.from_output_id().is_some()
+            && edge.to_input_id().is_some()
+    }));
     Ok(())
 }
 
