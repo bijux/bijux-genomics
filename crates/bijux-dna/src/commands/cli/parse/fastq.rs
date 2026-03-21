@@ -321,5 +321,9 @@ pub struct FastqValidateArgs {
     #[arg(long)]
     pub strict: bool,
     #[arg(long)]
-    pub q_cutoff: Option<u32>,
+    pub threads: Option<u32>,
+    #[arg(long)]
+    pub validation_mode: Option<String>,
+    #[arg(long)]
+    pub pair_sync_policy: Option<String>,
 }

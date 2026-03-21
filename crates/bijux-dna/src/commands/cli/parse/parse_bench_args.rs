@@ -234,6 +234,12 @@ pub struct BenchFastqValidateArgs {
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
     pub strict: bool,
+    #[arg(long)]
+    pub threads: Option<u32>,
+    #[arg(long)]
+    pub validation_mode: Option<String>,
+    #[arg(long)]
+    pub pair_sync_policy: Option<String>,
 }
 
 #[derive(Debug, Args)]

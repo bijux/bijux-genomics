@@ -206,6 +206,9 @@ pub fn bench_args_validate(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
+        validation_mode: args.validation_mode.clone(),
+        pair_sync_policy: args.pair_sync_policy.clone(),
     })
 }
 
@@ -698,8 +701,9 @@ pub fn bench_args_preprocess(
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_stage_tool;
-    use crate::commands::cli::parse::{CommonArgs, DnaCommand, FastqCommand};
+    use super::{bench_args_from_validate, resolve_stage_tool};
+    use crate::commands::cli::parse::{CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs};
+    use std::path::PathBuf;
 
     #[test]
     fn fastq_command_routing_uses_canonical_stage_ids() {
@@ -771,6 +775,28 @@ mod tests {
         assert_eq!(stage.as_str(), "fastq.report_qc");
         assert_eq!(tool.as_str(), "multiqc");
     }
+
+    #[test]
+    fn validate_bench_args_preserve_configured_policy_flags() {
+        let args = FastqValidateArgs {
+            common: CommonArgs::default(),
+            sample_id: Some("sample".to_string()),
+            r1: Some(PathBuf::from("reads_R1.fastq.gz")),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: Some(PathBuf::from("out")),
+            tools: vec!["fastqvalidator".to_string()],
+            strict: true,
+            threads: Some(6),
+            validation_mode: Some("report_only".to_string()),
+            pair_sync_policy: Some("skip_header_sync".to_string()),
+        };
+
+        let bench = bench_args_from_validate(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(6));
+        assert_eq!(bench.validation_mode.as_deref(), Some("report_only"));
+        assert_eq!(bench.pair_sync_policy.as_deref(), Some("skip_header_sync"));
+        assert!(bench.strict);
+    }
 }
 
 /// # Errors
@@ -836,6 +862,9 @@ pub fn bench_args_from_validate(
         replicates: 1,
         jobs: 1,
         ci_bootstrap: None,
+        threads: args.threads,
+        validation_mode: args.validation_mode.clone(),
+        pair_sync_policy: args.pair_sync_policy.clone(),
     })
 }
 
