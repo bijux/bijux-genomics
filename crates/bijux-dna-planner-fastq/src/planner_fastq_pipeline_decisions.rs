@@ -1028,6 +1028,25 @@ fn normalize_stage_bindings(
                 })
             })
             .collect::<Result<Vec<_>>>()?;
+        if config
+            .stage_toolsets
+            .iter()
+            .all(|binding| binding.tools.len() == 1)
+        {
+            let stage_bindings = config
+                .stage_toolsets
+                .iter()
+                .map(|binding| FastqStageBinding {
+                    stage_id: binding.stage_id.clone(),
+                    stage_instance_id: binding.stage_instance_id.clone(),
+                    tool: binding.tools[0].clone(),
+                    reason: binding.reason.clone(),
+                    params: binding.params.clone(),
+                })
+                .collect::<Vec<_>>();
+            ensure_unique_stage_binding_nodes(&stage_bindings)?;
+            return Ok((base_pipeline, stage_bindings));
+        }
         let (expanded_pipeline, expanded_stage_tools) =
             expand_pipeline_stage_tool_routes(&base_pipeline, &toolsets)?;
         let stage_bindings = expanded_stage_tools
@@ -1436,7 +1455,7 @@ fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
 #[derive(Debug, Clone)]
 pub struct FastqPipelineInputs {
     pub policy: PlanPolicy,
-    pub tools: Vec<ToolExecutionSpecV1>,
+    pub stage_toolsets: Vec<FastqStageToolsetBinding>,
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
     pub adapter_bank: Option<serde_json::Value>,
     pub polyx_bank: Option<serde_json::Value>,
@@ -1446,44 +1465,35 @@ pub struct FastqPipelineInputs {
     pub r2: Option<PathBuf>,
     pub reference_fasta: Option<PathBuf>,
     pub out_dir: PathBuf,
-    pub tool_reasons: Option<Vec<PlanDecisionReason>>,
 }
 
-fn stage_bindings_for_pipeline_nodes(
+fn stage_toolsets_for_pipeline_nodes(
     pipeline: &PipelineSpec,
-    tools: &[ToolExecutionSpecV1],
-    tool_reasons: Option<&[PlanDecisionReason]>,
-) -> Result<Vec<FastqStageBinding>> {
+    stage_toolsets: &[FastqStageToolsetBinding],
+) -> Result<Vec<FastqStageToolsetBinding>> {
     let ordered_nodes = pipeline.ordered_nodes();
-    if ordered_nodes.len() != tools.len() {
+    if ordered_nodes.len() != stage_toolsets.len() {
         return Err(anyhow!(
-            "pipeline nodes/tools length mismatch: {} vs {}",
+            "pipeline nodes/toolset length mismatch: {} vs {}",
             ordered_nodes.len(),
-            tools.len()
+            stage_toolsets.len()
         ));
-    }
-    if let Some(reasons) = tool_reasons {
-        if reasons.len() != ordered_nodes.len() {
-            return Err(anyhow!(
-                "pipeline nodes/tool_reasons length mismatch: {} vs {}",
-                ordered_nodes.len(),
-                reasons.len()
-            ));
-        }
     }
 
     Ok(ordered_nodes
         .into_iter()
-        .zip(tools.iter())
-        .enumerate()
-        .map(|(idx, (node, tool))| FastqStageBinding {
-            stage_id: node.stage_id,
-            stage_instance_id: node.stage_instance_id,
-            tool: tool.clone(),
-            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
-            params: None,
+        .zip(stage_toolsets.iter())
+        .map(|(node, toolset)| {
+            if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id {
+                return Err(anyhow!(
+                    "graph toolsets must stay node-aligned; got pipeline node {} and toolset {}",
+                    PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
+                    PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref()),
+                ));
+            }
+            Ok(toolset.clone())
         })
-        .collect())
+        .collect::<Result<Vec<_>>>()?)
 }
 
 /// # Errors
@@ -1494,17 +1504,13 @@ pub fn plan_fastq_to_fastq__default__v1(
     options: DefaultPipelineOptions,
 ) -> Result<ExecutionGraph> {
     let pipeline = default_pipeline_spec(options);
-    let stage_bindings = stage_bindings_for_pipeline_nodes(
-        &pipeline,
-        &inputs.tools,
-        inputs.tool_reasons.as_deref(),
-    )?;
+    let stage_toolsets = stage_toolsets_for_pipeline_nodes(&pipeline, &inputs.stage_toolsets)?;
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: inputs.policy,
         pipeline_spec: Some(pipeline.clone()),
-        stage_bindings,
-        stage_toolsets: Vec::new(),
+        stage_bindings: Vec::new(),
+        stage_toolsets,
         aux_images: inputs.aux_images.clone(),
         adapter_bank: inputs.adapter_bank.clone(),
         polyx_bank: inputs.polyx_bank.clone(),
@@ -1521,7 +1527,7 @@ pub fn plan_fastq_to_fastq__default__v1(
 
 #[cfg(test)]
 mod tests {
-    use super::stage_bindings_for_pipeline_nodes;
+    use super::{stage_toolsets_for_pipeline_nodes, FastqStageToolsetBinding};
     use anyhow::Result;
     use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
     use bijux_dna_core::prelude::{
@@ -1545,7 +1551,7 @@ mod tests {
     }
 
     #[test]
-    fn stage_bindings_for_pipeline_nodes_preserves_node_identity() -> Result<()> {
+    fn stage_toolsets_for_pipeline_nodes_preserves_node_identity() -> Result<()> {
         let pipeline = PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1564,32 +1570,40 @@ mod tests {
                 to_input_id: None,
             }],
         );
-        let reasons = vec![
-            PlanDecisionReason::new(PlanReasonKind::Default, "validate"),
-            PlanDecisionReason::new(PlanReasonKind::Default, "trim"),
+        let toolsets = vec![
+            FastqStageToolsetBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.first".to_string()),
+                tools: vec![dummy_tool("fastqvalidator")],
+                reason: Some(PlanDecisionReason::new(PlanReasonKind::Default, "validate")),
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tools: vec![dummy_tool("fastp")],
+                reason: Some(PlanDecisionReason::new(PlanReasonKind::Default, "trim")),
+                params: None,
+            },
         ];
 
-        let bindings = stage_bindings_for_pipeline_nodes(
-            &pipeline,
-            &[dummy_tool("fastqvalidator"), dummy_tool("fastp")],
-            Some(&reasons),
-        )?;
+        let toolsets = stage_toolsets_for_pipeline_nodes(&pipeline, &toolsets)?;
 
-        assert_eq!(bindings.len(), 2);
+        assert_eq!(toolsets.len(), 2);
         assert_eq!(
-            bindings[0].stage_instance_id.as_deref(),
+            toolsets[0].stage_instance_id.as_deref(),
             Some("fastq.validate_reads.first")
         );
         assert_eq!(
-            bindings[1].stage_instance_id.as_deref(),
+            toolsets[1].stage_instance_id.as_deref(),
             Some("fastq.trim_reads.fastp_branch")
         );
-        assert_eq!(bindings[1].tool.tool_id.as_str(), "fastp");
+        assert_eq!(toolsets[1].tools[0].tool_id.as_str(), "fastp");
         Ok(())
     }
 
     #[test]
-    fn stage_bindings_for_pipeline_nodes_rejects_tool_mismatch() {
+    fn stage_toolsets_for_pipeline_nodes_rejects_toolset_mismatch() {
         let pipeline = PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
@@ -1604,16 +1618,21 @@ mod tests {
             Vec::new(),
         );
 
-        let error = stage_bindings_for_pipeline_nodes(
+        let error = stage_toolsets_for_pipeline_nodes(
             &pipeline,
-            &[dummy_tool("fastqvalidator")],
-            None,
+            &[FastqStageToolsetBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: None,
+                tools: vec![dummy_tool("fastqvalidator")],
+                reason: None,
+                params: None,
+            }],
         )
         .expect_err("node/tool mismatch must fail");
 
         assert!(error
             .to_string()
-            .contains("pipeline nodes/tools length mismatch"));
+            .contains("pipeline nodes/toolset length mismatch"));
     }
 }
 
