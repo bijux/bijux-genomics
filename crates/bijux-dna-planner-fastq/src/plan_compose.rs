@@ -1055,7 +1055,7 @@ fn report_qc_input_artifact(
     }
 }
 
-fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
+fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     crate::qc_contract::governed_qc_output_ids_for_stage(stage_id)
 }
 

@@ -21,6 +21,7 @@ pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
+mod qc_contract;
 pub mod run;
 pub mod stage_contract;
 pub mod stage_semantics;
@@ -88,6 +89,7 @@ pub use params::{
     parse_effective_params, stage_param_descriptor, EffectiveParams, PairedMode,
     StageParamDescriptor,
 };
+pub use qc_contract::{governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids};
 pub use pipeline_contract::{
     canonical_amplicon_stage_order, canonical_stage_order, default_amplicon_preprocess_stage_order,
     default_shotgun_preprocess_stage_order, forbidden_transitions, optional_branches,
