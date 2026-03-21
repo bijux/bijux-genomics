@@ -412,6 +412,10 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long)]
+    pub dedup_mode: Option<String>,
+    #[arg(long)]
+    pub keep_order: Option<bool>,
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
