@@ -234,6 +234,11 @@ fn deduplicate_command(
     } else {
         String::new()
     };
+    let dedup_mode_args = match (tool_id, &options.dedup_mode) {
+        ("clumpify", DedupMode::Exact) => "dedupe=t".to_string(),
+        ("clumpify", DedupMode::OpticalAware) => "dedupe=t optical dupedist=40".to_string(),
+        _ => String::new(),
+    };
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -249,6 +254,7 @@ fn deduplicate_command(
             ("out_dir", Some(out_dir.display().to_string())),
             ("paired_io_args", Some(paired_io_args)),
             ("keep_order_args", Some(keep_order_args)),
+            ("dedup_mode_args", Some(dedup_mode_args)),
         ],
     )?;
     let mut script = format!(
@@ -332,9 +338,16 @@ fn validate_deduplicate_options(
     if !deduplicate_tool_supports_paired_mode(tool_id, paired_mode) {
         return Err(anyhow!("fastuniq requires paired-end reads"));
     }
-    if options.dedup_mode != DedupMode::Exact {
+    if options.dedup_mode != DedupMode::Exact
+        && !(tool_id == "clumpify" && options.dedup_mode == DedupMode::OpticalAware)
+    {
         return Err(anyhow!(
-            "{tool_id} remove-duplicates adapter currently supports only dedup_mode=exact"
+            "{tool_id} remove-duplicates adapter currently supports dedup_mode=exact{}",
+            if tool_id == "clumpify" {
+                " or dedup_mode=optical_aware"
+            } else {
+                ""
+            }
         ));
     }
     if !options.keep_order && tool_id != "clumpify" {
@@ -413,7 +426,7 @@ mod tests {
                     "clumpify" => vec![
                         "sh".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' dedupe=t {{keep_order_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
+                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
                     ],
                     _ => vec!["unused".to_string()],
                 },
@@ -522,7 +535,7 @@ mod tests {
         )
         .expect_err("non-exact dedup mode must fail until backend mapping exists");
 
-        assert!(error.to_string().contains("dedup_mode=exact"));
+        assert!(error.to_string().contains("optical_aware"));
     }
 
     #[test]
@@ -541,6 +554,28 @@ mod tests {
 
         assert!(plan.command.template[2].contains("reorder=f"));
         assert_eq!(plan.effective_params["keep_order"], serde_json::json!(false));
+    }
+
+    #[test]
+    fn plan_deduplicate_clumpify_maps_optical_aware_mode() {
+        let plan = plan_deduplicate_with_options(
+            &dummy_tool("clumpify"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &RemoveDuplicatesPlanOptions {
+                dedup_mode: DedupMode::OpticalAware,
+                keep_order: true,
+            },
+        )
+        .expect("clumpify should map optical-aware dedup mode");
+
+        assert!(plan.command.template[2].contains("optical"));
+        assert!(plan.command.template[2].contains("dupedist=40"));
+        assert_eq!(
+            plan.effective_params["dedup_mode"],
+            serde_json::json!("optical_aware")
+        );
     }
 
     #[test]
