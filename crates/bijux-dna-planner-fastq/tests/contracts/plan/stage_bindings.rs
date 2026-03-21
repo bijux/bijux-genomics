@@ -41,7 +41,19 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
     let plan = FastqPlanner::plan(&FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__stage_bindings__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
-        pipeline_spec: None,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                },
+            ],
+            Vec::new(),
+        )),
         stage_bindings: vec![
             FastqStageBinding {
                 stage_id: "fastq.trim_reads".to_string(),
