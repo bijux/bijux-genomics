@@ -22,7 +22,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&trim_stage),
-        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+        vec![
+            "trimmed_reads_r1".to_string(),
+            "trimmed_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
@@ -94,7 +98,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&dedup_stage),
-        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+        vec![
+            "dedup_reads_r1".to_string(),
+            "dedup_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
     );
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
@@ -118,7 +126,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&correction_stage),
-        vec!["corrected_reads_r1", "corrected_reads_r2", "report_json"]
+        vec![
+            "corrected_reads_r1".to_string(),
+            "corrected_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
     );
 
     let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
@@ -142,7 +154,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&terminal_damage_stage),
-        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+        vec![
+            "trimmed_reads_r1".to_string(),
+            "trimmed_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
     );
 
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
@@ -156,7 +172,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&polyg_stage),
-        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+        vec![
+            "trimmed_reads_r1".to_string(),
+            "trimmed_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
     );
 
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
@@ -180,16 +200,19 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&validation_stage),
-        vec!["validation_report", "validated_reads_manifest"]
+        vec![
+            "validation_report".to_string(),
+            "validated_reads_manifest".to_string()
+        ]
     );
 
     let report_qc_stage = StageId::from_static("fastq.report_qc");
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&report_qc_stage),
         vec![
-            "multiqc_report",
-            "multiqc_data",
-            "governed_qc_inputs_manifest"
+            "multiqc_report".to_string(),
+            "multiqc_data".to_string(),
+            "governed_qc_inputs_manifest".to_string()
         ]
     );
 }
@@ -235,7 +258,7 @@ fn comparison_inputs_remain_inside_governed_stage_outputs() {
         );
         for artifact_id in comparison_inputs {
             assert!(
-                output_ids.contains(artifact_id),
+                output_ids.contains(&artifact_id),
                 "comparison input {artifact_id} must remain a governed output of {stage_id}",
             );
         }
