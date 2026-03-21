@@ -17,33 +17,79 @@ pub struct PipelineEdgeSpec {
     pub to_input_id: Option<String>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct PipelineSpec {
-    pub stages: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nodes: Vec<PipelineNodeSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub edges: Vec<PipelineEdgeSpec>,
 }
 
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PipelineSpecSerde {
+    #[serde(default)]
+    stages: Vec<String>,
+    #[serde(default)]
+    nodes: Vec<PipelineNodeSpec>,
+    #[serde(default)]
+    edges: Vec<PipelineEdgeSpec>,
+}
+
+impl<'de> serde::Deserialize<'de> for PipelineSpec {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let repr = PipelineSpecSerde::deserialize(deserializer)?;
+        if !repr.nodes.is_empty() {
+            if !repr.stages.is_empty() && stage_catalog_from_nodes(&repr.nodes) != repr.stages {
+                return Err(serde::de::Error::custom(
+                    "PipelineSpec stages do not match node stage catalog",
+                ));
+            }
+            return Ok(Self {
+                nodes: repr.nodes,
+                edges: repr.edges,
+            });
+        }
+        if repr.stages.is_empty() {
+            return Err(serde::de::Error::custom(
+                "PipelineSpec requires nodes or legacy stages",
+            ));
+        }
+        Ok(Self::chain(repr.stages))
+    }
+}
+
 impl PipelineSpec {
     #[must_use]
-    pub fn linear(stages: Vec<String>) -> Self {
+    pub fn chain(stages: Vec<String>) -> Self {
+        let nodes = stages
+            .iter()
+            .map(|stage_id| PipelineNodeSpec {
+                stage_id: stage_id.clone(),
+                stage_instance_id: None,
+            })
+            .collect::<Vec<_>>();
+        let edges = stages
+            .windows(2)
+            .map(|window| PipelineEdgeSpec {
+                from: window[0].clone(),
+                to: window[1].clone(),
+                from_output_id: None,
+                to_input_id: None,
+            })
+            .collect::<Vec<_>>();
         Self {
-            stages,
-            nodes: Vec::new(),
-            edges: Vec::new(),
+            nodes,
+            edges,
         }
     }
 
     #[must_use]
     pub fn graph(nodes: Vec<PipelineNodeSpec>, edges: Vec<PipelineEdgeSpec>) -> Self {
-        let stages = stage_catalog_from_nodes(&nodes);
-        Self {
-            stages,
-            nodes,
-            edges,
-        }
+        Self { nodes, edges }
     }
 
     #[must_use]
@@ -53,40 +99,26 @@ impl PipelineSpec {
 
     #[must_use]
     pub fn ordered_nodes(&self) -> Vec<PipelineNodeSpec> {
-        if !self.nodes.is_empty() {
-            return self.nodes.clone();
-        }
-        self.stages
+        self.nodes.clone()
+    }
+
+    #[must_use]
+    pub fn ordered_stage_ids(&self) -> Vec<String> {
+        self.nodes
             .iter()
-            .map(|stage_id| PipelineNodeSpec {
-                stage_id: stage_id.clone(),
-                stage_instance_id: None,
-            })
+            .map(|node| node.stage_id.clone())
             .collect()
     }
 
     #[must_use]
     pub fn stage_catalog(&self) -> Vec<String> {
-        if self.declares_graph_topology() {
-            return stage_catalog_from_nodes(&self.ordered_nodes());
-        }
-        self.stages.clone()
+        stage_catalog_from_nodes(&self.nodes)
     }
 
     pub fn retain_nodes<F>(&mut self, mut keep: F)
     where
         F: FnMut(&PipelineNodeSpec) -> bool,
     {
-        if !self.declares_graph_topology() {
-            self.stages.retain(|stage_id| {
-                keep(&PipelineNodeSpec {
-                    stage_id: stage_id.clone(),
-                    stage_instance_id: None,
-                })
-            });
-            return;
-        }
-
         self.nodes.retain(|node| keep(node));
         let retained_node_ids = self
             .nodes
@@ -98,7 +130,6 @@ impl PipelineSpec {
         self.edges.retain(|edge| {
             retained_node_ids.contains(&edge.from) && retained_node_ids.contains(&edge.to)
         });
-        self.stages = stage_catalog_from_nodes(&self.nodes);
     }
 
     #[must_use]
@@ -127,19 +158,14 @@ mod tests {
     use super::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 
     #[test]
-    fn linear_pipeline_spec_stays_compact() {
-        let spec = PipelineSpec::linear(vec![
+    fn chain_pipeline_spec_materializes_nodes_and_edges() {
+        let spec = PipelineSpec::chain(vec![
             "fastq.validate_reads".to_string(),
             "fastq.trim_reads".to_string(),
         ]);
-        assert_eq!(
-            spec.stages,
-            vec![
-                "fastq.validate_reads".to_string(),
-                "fastq.trim_reads".to_string()
-            ]
-        );
-        assert!(!spec.declares_graph_topology());
+        assert_eq!(spec.nodes.len(), 2);
+        assert_eq!(spec.edges.len(), 1);
+        assert!(spec.declares_graph_topology());
     }
 
     #[test]
@@ -187,8 +213,8 @@ mod tests {
     }
 
     #[test]
-    fn linear_pipeline_spec_can_materialize_ordered_nodes() {
-        let spec = PipelineSpec::linear(vec![
+    fn chain_pipeline_spec_can_materialize_ordered_nodes() {
+        let spec = PipelineSpec::chain(vec![
             "fastq.validate_reads".to_string(),
             "fastq.trim_reads".to_string(),
         ]);
@@ -198,6 +224,22 @@ mod tests {
         assert_eq!(nodes[0].stage_instance_id, None);
         assert_eq!(nodes[1].stage_id, "fastq.trim_reads");
         assert_eq!(nodes[1].stage_instance_id, None);
+    }
+
+    #[test]
+    fn legacy_stage_only_serialization_deserializes_into_chain_pipeline() {
+        let spec: PipelineSpec = serde_json::from_value(serde_json::json!({
+            "stages": ["fastq.validate_reads", "fastq.trim_reads"]
+        }))
+        .expect("legacy stage list should remain readable");
+        assert_eq!(
+            spec.ordered_stage_ids(),
+            vec![
+                "fastq.validate_reads".to_string(),
+                "fastq.trim_reads".to_string()
+            ]
+        );
+        assert_eq!(spec.edges.len(), 1);
     }
 
     #[test]
