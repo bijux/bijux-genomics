@@ -213,8 +213,19 @@ struct QcPostBenchInputs {
 #[derive(Debug, Clone)]
 struct GovernedQcInputs {
     qc_inputs: Vec<ArtifactRef>,
+    contributors: Vec<GovernedQcContributor>,
     raw_fastqc_dir: Option<PathBuf>,
     lineage_hash: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+struct GovernedQcContributor {
+    contributor_id: String,
+    stage_id: String,
+    artifact_id: String,
+    artifact_role: bijux_dna_core::contract::ArtifactRole,
+    path: PathBuf,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -222,6 +233,8 @@ struct GovernedQcInputs {
 struct GovernedQcInputsManifest {
     schema_version: String,
     qc_inputs: Vec<ArtifactRef>,
+    #[serde(default)]
+    contributors: Vec<GovernedQcContributor>,
     #[serde(default)]
     raw_fastqc_dir: Option<PathBuf>,
     #[serde(default)]
@@ -376,6 +389,7 @@ fn build_qc_post_record(
     let governed_qc_manifest = GovernedQcInputsManifest {
         schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
         qc_inputs: governed_qc.qc_inputs.clone(),
+        contributors: governed_qc.contributors.clone(),
         raw_fastqc_dir: governed_qc.raw_fastqc_dir.clone(),
         lineage_hash: governed_qc.lineage_hash.clone(),
     };
@@ -452,6 +466,34 @@ fn path_if_exists(path: &Path) -> Option<String> {
     path.exists().then(|| path.display().to_string())
 }
 
+fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
+    qc_inputs
+        .iter()
+        .map(|artifact| {
+            let name = artifact.name.as_str();
+            let parts = name.split('.').collect::<Vec<_>>();
+            let stage_id = if parts.len() >= 2 {
+                format!("{}.{}", parts[0], parts[1])
+            } else {
+                name.to_string()
+            };
+            let artifact_id = parts.last().copied().unwrap_or(name).to_string();
+            let contributor_id = if parts.len() >= 2 {
+                parts[..parts.len().saturating_sub(1)].join(".")
+            } else {
+                name.to_string()
+            };
+            GovernedQcContributor {
+                contributor_id,
+                stage_id,
+                artifact_id,
+                artifact_role: artifact.role,
+                path: artifact.path.clone(),
+            }
+        })
+        .collect()
+}
+
 fn paired_mode_for_bench_inputs(bench_inputs: &QcPostBenchInputs) -> PairedMode {
     if bench_inputs.r2.is_some() {
         PairedMode::PairedEnd
@@ -503,11 +545,17 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
             .then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    let contributors = if manifest.contributors.is_empty() {
+        governed_qc_contributors(&qc_inputs)
+    } else {
+        manifest.contributors
+    };
     Ok(GovernedQcInputs {
         lineage_hash: manifest.lineage_hash.or_else(|| {
             derived_governed_qc_lineage_hash(&qc_inputs, manifest.raw_fastqc_dir.as_deref())
         }),
         qc_inputs,
+        contributors,
         raw_fastqc_dir: manifest.raw_fastqc_dir,
     })
 }
@@ -542,8 +590,9 @@ fn benchmark_query_context(
 mod tests {
     use super::{
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
-        governed_qc_inputs_manifest_path, load_governed_qc_inputs_manifest,
-        load_required_governed_qc_inputs_manifest, parse_qc_aggregation_scope, GovernedQcInputs,
+        governed_qc_contributors, governed_qc_inputs_manifest_path,
+        load_governed_qc_inputs_manifest, load_required_governed_qc_inputs_manifest,
+        parse_qc_aggregation_scope, GovernedQcContributor, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::path::PathBuf;
@@ -639,9 +688,20 @@ mod tests {
 
         let loaded = load_governed_qc_inputs_manifest(&manifest_path).expect("load manifest");
         assert_eq!(loaded.qc_inputs.len(), 1);
+        assert_eq!(loaded.contributors.len(), 1);
         assert_eq!(
             loaded.qc_inputs[0].name.as_str(),
             "fastq.trim_reads.fastp_branch.report_json"
+        );
+        assert_eq!(
+            loaded.contributors[0],
+            GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp_branch".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                artifact_id: "report_json".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: artifact_path.clone(),
+            }
         );
         assert_eq!(loaded.raw_fastqc_dir.as_deref(), Some(fastqc_dir.as_path()));
         assert!(loaded
@@ -723,6 +783,13 @@ mod tests {
                 input_artifact.clone(),
                 ArtifactRole::ReportJson,
             )],
+            contributors: vec![GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                artifact_id: "report_json".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: input_artifact.clone(),
+            }],
             raw_fastqc_dir: Some(raw_fastqc_dir.clone()),
             lineage_hash: Some("fastq.trim_reads=fastp".to_string()),
         };
@@ -794,6 +861,26 @@ mod tests {
             serde_json::json!(GOVERNED_QC_INPUTS_SCHEMA_VERSION)
         );
         assert_eq!(manifest["lineage_hash"], serde_json::json!("fastq.trim_reads=fastp"));
+        assert_eq!(
+            manifest["contributors"][0]["stage_id"],
+            serde_json::json!("fastq.trim_reads")
+        );
         assert_eq!(manifest["qc_inputs"][0]["path"], serde_json::json!(input_artifact));
+    }
+
+    #[test]
+    fn governed_qc_contributors_capture_stage_and_artifact_ids() {
+        let contributors = governed_qc_contributors(&[ArtifactRef::required(
+            ArtifactId::from_static("fastq.validate_reads.fastqvalidator.validation_report"),
+            PathBuf::from("/tmp/validation.json"),
+            ArtifactRole::ReportJson,
+        )]);
+        assert_eq!(contributors.len(), 1);
+        assert_eq!(contributors[0].stage_id, "fastq.validate_reads");
+        assert_eq!(
+            contributors[0].contributor_id,
+            "fastq.validate_reads.fastqvalidator"
+        );
+        assert_eq!(contributors[0].artifact_id, "validation_report");
     }
 }
