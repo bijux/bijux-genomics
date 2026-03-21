@@ -166,8 +166,15 @@ fn validation_command(
     } else {
         commands.push("status_r2=0".to_string());
     }
+    commands.push(
+        "cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; }"
+            .to_string(),
+    );
     commands.push("strict_pass=true".to_string());
     commands.push("exit_code=0".to_string());
+    commands.push("pair_sync_checked=false".to_string());
+    commands.push("pair_sync_pass=null".to_string());
+    commands.push("validated_pairs=0".to_string());
     commands.push(
         "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi"
             .to_string(),
@@ -176,34 +183,64 @@ fn validation_command(
         "if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi"
             .to_string(),
     );
+    if let Some(r2) = r2 {
+        let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
+        let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
+        commands.push("pair_sync_checked=true".to_string());
+        commands.push("pair_sync_pass=true".to_string());
+        commands.push(format!(
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); print header }}' > {}",
+            shell_quote(r1),
+            shell_quote(&pair_sync_r1),
+        ));
+        commands.push(format!(
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); print header }}' > {}",
+            shell_quote(r2),
+            shell_quote(&pair_sync_r2),
+        ));
+        commands.push(format!(
+            "validated_pairs=$(wc -l < {} | tr -d '[:space:]')",
+            shell_quote(&pair_sync_r1),
+        ));
+        commands.push(format!(
+            "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
+            shell_quote(&pair_sync_r1),
+            shell_quote(&pair_sync_r2),
+        ));
+        commands.push(format!(
+            "rm -f {} {}",
+            shell_quote(&pair_sync_r1),
+            shell_quote(&pair_sync_r2),
+        ));
+    }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str()),
         json_string_literal(STAGE_ID.as_str()),
         json_string_literal(tool.tool_id.as_str()),
         if r2.is_some() { 2 } else { 1 },
     );
-    let lineage_payload = serde_json::json!({
-        "schema_version": "bijux.fastq.validate.lineage.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool.tool_id.as_str(),
-        "input_r1": r1,
-        "input_r2": r2,
-        "validation_report": report_path,
-        "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-        "validated_stream_ids": if r2.is_some() {
-            vec!["reads_r1", "reads_r2"]
+    let lineage_format = format!(
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        json_string_literal(STAGE_ID.as_str()),
+        json_string_literal(tool.tool_id.as_str()),
+        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" }),
+        if r2.is_some() {
+            "[\"reads_r1\",\"reads_r2\"]".to_string()
         } else {
-            vec!["reads_r1"]
+            "[\"reads_r1\"]".to_string()
         },
-    });
+    );
     commands.push(format!(
-        "printf '%s\\n' {} > {}",
-        shell_quote_str(&lineage_payload.to_string()),
+        "printf '{}' {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > {}",
+        escape_printf_format(&lineage_format),
+        shell_quote_str(&json_path_token(r1)?),
+        shell_quote_str(&json_optional_path_token(r2)?),
+        shell_quote_str(&json_path_token(report_path)?),
         shell_quote(validated_reads_manifest),
     ));
     commands.push(format!(
-        "printf '{}' {} {} {} {} \"$strict_pass\" \"$exit_code\" > {}",
+        "printf '{}' {} {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" \"$strict_pass\" \"$exit_code\" > {}",
         escape_printf_format(&report_format),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
@@ -340,6 +377,10 @@ mod tests {
         assert!(plan.command.template[2].contains("validation_r1.log"));
         assert!(plan.command.template[2].contains("validation_r2.log"));
         assert!(plan.command.template[2].contains("\"validated_inputs\":2"));
+        assert!(plan.command.template[2].contains("\"pair_sync_checked\":"));
+        assert!(plan.command.template[2].contains("\"pair_sync_pass\":"));
+        assert!(plan.command.template[2].contains("validated_pairs=$(wc -l <"));
+        assert!(plan.command.template[2].contains("cmp -s"));
         assert!(
             plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\"")
         );
@@ -372,6 +413,10 @@ mod tests {
         assert!(script.contains("out/validated_reads_manifest.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
+        assert!(script.contains("pair_sync_checked=false"));
+        assert!(script.contains("pair_sync_pass=null"));
+        assert!(script.contains("\"pair_sync_checked\":%%s"));
+        assert!(script.contains("\"pair_sync_pass\":%%s"));
         assert!(script.contains("\"stage\":\"fastq.validate_reads\""));
         assert!(script.contains("\"$strict_pass\""));
         assert!(script.contains("\"$exit_code\""));
@@ -390,7 +435,10 @@ mod tests {
         let script = &plan.command.template[2];
         assert!(script.contains("status_r1=$?"));
         assert!(script.contains("status_r2=$?"));
+        assert!(script.contains("pair_sync_checked=true"));
+        assert!(script.contains("pair_sync_pass=true"));
         assert!(script.contains("exit_code=$status_r1"));
+        assert!(script.contains("exit_code=97"));
         assert!(script.contains("exit \"$exit_code\""));
         assert!(!script.contains("\"strict_pass\":true"));
         Ok(())
