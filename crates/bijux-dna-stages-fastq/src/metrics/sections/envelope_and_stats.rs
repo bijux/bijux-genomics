@@ -210,10 +210,7 @@ fn stats_for_paths(
     for worker in workers {
         let _ = worker.join();
     }
-    let results = Arc::try_unwrap(results)
-        .map_err(|_| anyhow!("observer results still shared"))?
-        .into_inner()
-        .unwrap_or_default();
+    let results = finalize_observer_results(results)?;
     let mut out = Vec::with_capacity(results.len());
     for entry in results {
         let value = entry.unwrap_or_else(|| Err(anyhow!("observer result missing")))?;
@@ -222,7 +219,39 @@ fn stats_for_paths(
     Ok(out)
 }
 
+fn finalize_observer_results(
+    results: Arc<Mutex<Vec<Option<Result<bijux_dna_core::prelude::measure::SeqkitMetrics>>>>>,
+) -> Result<Vec<Option<Result<bijux_dna_core::prelude::measure::SeqkitMetrics>>>> {
+    Arc::try_unwrap(results)
+        .map_err(|_| anyhow!("observer results still shared"))?
+        .into_inner()
+        .map_err(|_| anyhow!("observer results lock poisoned"))
+}
+
 type LengthGcDistributions = (Vec<(u64, u64)>, Vec<(u8, u64)>);
+
+#[cfg(test)]
+mod tests {
+    use super::finalize_observer_results;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn finalize_observer_results_rejects_poisoned_mutex() {
+        let results = Arc::new(Mutex::new(Vec::new()));
+        let poisoned = Arc::clone(&results);
+        let _ = std::thread::spawn(move || {
+            let _guard = poisoned.lock().expect("lock");
+            panic!("poison observer results");
+        })
+        .join();
+
+        let error =
+            finalize_observer_results(results).expect_err("poisoned observer results must fail");
+        assert!(error
+            .to_string()
+            .contains("observer results lock poisoned"));
+    }
+}
 
 fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> {
     let Some(path) = path else {
