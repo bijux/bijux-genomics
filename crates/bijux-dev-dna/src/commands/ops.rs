@@ -12,10 +12,10 @@ use walkdir::WalkDir;
 use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
-use crate::runtime::process::ProcessRunner;
-use crate::runtime::workspace::Workspace;
 use crate::model::check::{CheckSelection, CheckStatus};
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::workspace::Workspace;
 
 pub fn run_native_ops_command(
     key: &NativeOpsCommandKey,
@@ -116,12 +116,18 @@ pub fn run_native_ops_command(
             tooling_generate_policy_index(workspace, args)
         }
         NativeOpsCommandKey::ToolingGenerateDocs => tooling_generate_docs(workspace, args),
-        NativeOpsCommandKey::ToolingGenerateDocsGraph => tooling_generate_docs_graph(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateDocsGraph => {
+            tooling_generate_docs_graph(workspace, args)
+        }
         NativeOpsCommandKey::ToolingGenerateDomainCoverageDoc => {
             tooling_generate_domain_coverage_doc(workspace, args)
         }
-        NativeOpsCommandKey::ToolingGenerateRepoRootMap => tooling_generate_repo_root_map(workspace, args),
-        NativeOpsCommandKey::ToolingGenerateToolIndex => tooling_generate_tool_index(workspace, args),
+        NativeOpsCommandKey::ToolingGenerateRepoRootMap => {
+            tooling_generate_repo_root_map(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingGenerateToolIndex => {
+            tooling_generate_tool_index(workspace, args)
+        }
         NativeOpsCommandKey::ToolingImageQa => tooling_image_qa(workspace, args),
         NativeOpsCommandKey::ToolingInventory => tooling_inventory(workspace, args),
         NativeOpsCommandKey::ToolingLintFast => tooling_lint_fast(workspace, args),
@@ -224,7 +230,8 @@ fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     let report_path = workspace.path("artifacts/assets-refresh/toy/report.json");
 
     if stage_dir.exists() {
-        fs::remove_dir_all(&stage_dir).with_context(|| format!("remove {}", stage_dir.display()))?;
+        fs::remove_dir_all(&stage_dir)
+            .with_context(|| format!("remove {}", stage_dir.display()))?;
     }
     fs::create_dir_all(stage_dir.join("fastq"))
         .with_context(|| format!("create {}", stage_dir.join("fastq").display()))?;
@@ -312,7 +319,9 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 
     let mut errors = Vec::new();
     if !ref_root.join("SCHEMAS.md").is_file() {
-        errors.push("assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string());
+        errors.push(
+            "assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string(),
+        );
     }
 
     let schema_re = Regex::new(r"(?m)^schema_version:\s*\S+")?;
@@ -443,7 +452,9 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
                     }
                     let candidate = next_trimmed.trim_start_matches('-').trim();
                     if !candidate.is_empty() && !bank_ids.contains(candidate) {
-                        errors.push(format!("{rel}: unresolved preset reference id: {candidate}"));
+                        errors.push(format!(
+                            "{rel}: unresolved preset reference id: {candidate}"
+                        ));
                     }
                     lines.next();
                 }
@@ -584,24 +595,65 @@ fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         "unit-contract-fast" => run_programs_with_env(
             workspace,
             &[
-                ("cargo", vec!["test", "-p", "bijux-dna-runner", "--lib", "--", "--nocapture"]),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-planner-fastq", "--lib", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-runner",
+                        "--lib",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-planner-bam", "--lib", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-planner-fastq",
+                        "--lib",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-stages-fastq", "--lib", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-planner-bam",
+                        "--lib",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-stages-bam", "--lib", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-stages-fastq",
+                        "--lib",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
-                ("cargo", vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"]),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-stages-bam",
+                        "--lib",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"],
+                ),
             ],
             &common_envs,
         ),
@@ -640,7 +692,11 @@ fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         "policy-full" => run_program_with_env(
             workspace,
             "cargo",
-            &["test".to_string(), "-p".to_string(), "bijux-dna-policies".to_string()],
+            &[
+                "test".to_string(),
+                "-p".to_string(),
+                "bijux-dna-policies".to_string(),
+            ],
             &envs,
         ),
         "domain-coverage" => run_program_with_env(
@@ -663,18 +719,29 @@ fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         "snapshots" => run_program_with_env(
             workspace,
             "cargo",
-            &["insta".to_string(), "test".to_string(), "--workspace".to_string()],
+            &[
+                "insta".to_string(),
+                "test".to_string(),
+                "--workspace".to_string(),
+            ],
             &envs,
         ),
         "snapshots-accept" => run_program_with_env(
             workspace,
             "cargo",
-            &["insta".to_string(), "accept".to_string(), "--workspace".to_string()],
+            &[
+                "insta".to_string(),
+                "accept".to_string(),
+                "--workspace".to_string(),
+            ],
             &envs,
         ),
-        "snapshots-review" => {
-            run_program_with_env(workspace, "cargo", &["insta".to_string(), "review".to_string()], &envs)
-        }
+        "snapshots-review" => run_program_with_env(
+            workspace,
+            "cargo",
+            &["insta".to_string(), "review".to_string()],
+            &envs,
+        ),
         "fix-snapshots" => run_programs_with_env(
             workspace,
             &[
@@ -704,7 +771,15 @@ fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
                 ),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-core", "--test", "contracts", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-core",
+                        "--test",
+                        "contracts",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
                 (
                     "cargo",
@@ -720,7 +795,15 @@ fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
                 ),
                 (
                     "cargo",
-                    vec!["test", "-p", "bijux-dna-runtime", "--test", "contracts", "--", "--nocapture"],
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-runtime",
+                        "--test",
+                        "contracts",
+                        "--",
+                        "--nocapture",
+                    ],
                 ),
             ],
             &common_envs,
@@ -971,17 +1054,22 @@ fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsComm
     let artifact_root = artifact_root_path(workspace)?;
     let coverage_root = artifact_root.join("coverage");
     if coverage_root.exists() {
-        fs::remove_dir_all(&coverage_root).with_context(|| format!("remove {}", coverage_root.display()))?;
+        fs::remove_dir_all(&coverage_root)
+            .with_context(|| format!("remove {}", coverage_root.display()))?;
     }
-    fs::create_dir_all(&coverage_root).with_context(|| format!("create {}", coverage_root.display()))?;
+    fs::create_dir_all(&coverage_root)
+        .with_context(|| format!("create {}", coverage_root.display()))?;
     let envs = ci_test_env(workspace, false)?;
-    let nextest_config = env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
+    let nextest_config =
+        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
     let test_features = env_or_default("TEST_FEATURES", "--all-features");
     let nextest_profile = std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "ci".to_string());
     let nextest_threads = std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "1".to_string());
     let run_ignored = resolved_run_ignored(false)?;
-    let no_cfg_coverage = read_coverage_runner_flag(workspace, "no_cfg_coverage", "--no-cfg-coverage")?;
-    let coverage_out = std::env::var("COVERAGE_OUT").unwrap_or_else(|_| "coverage.json".to_string());
+    let no_cfg_coverage =
+        read_coverage_runner_flag(workspace, "no_cfg_coverage", "--no-cfg-coverage")?;
+    let coverage_out =
+        std::env::var("COVERAGE_OUT").unwrap_or_else(|_| "coverage.json".to_string());
     let mut clean = run_program_with_env(
         workspace,
         "cargo",
@@ -1034,7 +1122,10 @@ fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsComm
         ],
         &envs,
     )?;
-    Ok(merge_outcomes(merge_outcomes(clean, json_report), html_report))
+    Ok(merge_outcomes(
+        merge_outcomes(clean, json_report),
+        html_report,
+    ))
 }
 
 fn tooling_certification_gate(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -1115,10 +1206,7 @@ fn tooling_certify_domains_with_mode(
                 execution,
                 examples_run(
                     workspace,
-                    &[
-                        "--allow-non-isolate".to_string(),
-                        example_id.to_string(),
-                    ],
+                    &["--allow-non-isolate".to_string(), example_id.to_string()],
                 )?,
             );
             if !execution.is_success() {
@@ -1302,7 +1390,11 @@ fn tooling_certify_domains_with_mode(
             ensure_exists(&report_path, &format!("{example_id} report"), &mut errors);
             ensure_exists(&explain_path, &format!("{example_id} explain"), &mut errors);
             ensure_exists(&metrics_path, &format!("{example_id} metrics"), &mut errors);
-            ensure_exists(&manifest_path, &format!("{example_id} manifest"), &mut errors);
+            ensure_exists(
+                &manifest_path,
+                &format!("{example_id} manifest"),
+                &mut errors,
+            );
             compare_json_key_drift(
                 &report_path,
                 &example_root.join("golden/report.json"),
@@ -1320,12 +1412,7 @@ fn tooling_certify_domains_with_mode(
                 let report = read_json_value(&report_path)?;
                 let report_schema = value_string(report.get("schema_version"));
                 if !report_schema.is_empty() {
-                    check_schema_doc(
-                        report_schema,
-                        &doc,
-                        &mut seen_schema_versions,
-                        &mut errors,
-                    );
+                    check_schema_doc(report_schema, &doc, &mut seen_schema_versions, &mut errors);
                 } else if manifest_path.exists() {
                     let manifest = read_json_value(&manifest_path)?;
                     let manifest_schema = value_string(manifest.get("schema_version"));
@@ -1425,9 +1512,7 @@ fn tooling_certify_domains_with_mode(
         if let Some(items) = bundle["errors"].as_array() {
             for item in items {
                 execution.stderr.push_str("- ");
-                execution
-                    .stderr
-                    .push_str(item.as_str().unwrap_or_default());
+                execution.stderr.push_str(item.as_str().unwrap_or_default());
                 execution.stderr.push('\n');
             }
         }
@@ -1488,8 +1573,11 @@ fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsComma
                 expr.clone(),
             ],
         )?;
-        fs::write(log_dir.join("last.log"), format!("{}{}", outcome.stdout, outcome.stderr))
-            .with_context(|| format!("write {}", log_dir.join("last.log").display()))?;
+        fs::write(
+            log_dir.join("last.log"),
+            format!("{}{}", outcome.stdout, outcome.stderr),
+        )
+        .with_context(|| format!("write {}", log_dir.join("last.log").display()))?;
         if outcome.is_success() {
             stdout.push_str("  PASS\n");
         } else {
@@ -1511,17 +1599,32 @@ fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsComma
 
 fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("lint-fast", args)?;
-    let base_ref = std::env::var("LINT_FAST_BASE_REF").ok().filter(|value| !value.is_empty()).unwrap_or_else(|| {
-        let head_prev = run_program(workspace, "git", &["rev-parse".to_string(), "--verify".to_string(), "HEAD~1".to_string()]);
-        match head_prev {
-            Ok(outcome) if outcome.is_success() => "HEAD~1".to_string(),
-            _ => "HEAD".to_string(),
-        }
-    });
+    let base_ref = std::env::var("LINT_FAST_BASE_REF")
+        .ok()
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| {
+            let head_prev = run_program(
+                workspace,
+                "git",
+                &[
+                    "rev-parse".to_string(),
+                    "--verify".to_string(),
+                    "HEAD~1".to_string(),
+                ],
+            );
+            match head_prev {
+                Ok(outcome) if outcome.is_success() => "HEAD~1".to_string(),
+                _ => "HEAD".to_string(),
+            }
+        });
     let diff = run_program(
         workspace,
         "git",
-        &["diff".to_string(), "--name-only".to_string(), format!("{base_ref}..HEAD")],
+        &[
+            "diff".to_string(),
+            "--name-only".to_string(),
+            format!("{base_ref}..HEAD"),
+        ],
     )?;
     let changed = diff
         .stdout
@@ -1530,7 +1633,10 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
         .collect::<Vec<_>>();
     let mut stdout = String::new();
     if changed.is_empty() {
-        run_check_ids(&mut stdout, &["check-config-schema", "check-automation-interface"])?;
+        run_check_ids(
+            &mut stdout,
+            &["check-config-schema", "check-automation-interface"],
+        )?;
         stdout.push_str("lint-fast: no changed files; running config+automation lint baseline\n");
         return Ok(OpsCommandOutcome::success(stdout));
     }
@@ -1540,7 +1646,11 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     let mut need_configs = false;
     let mut need_automation = false;
     for file in &changed {
-        if file.ends_with(".rs") || *file == "Cargo.toml" || *file == "Cargo.lock" || file.starts_with("crates/") {
+        if file.ends_with(".rs")
+            || *file == "Cargo.toml"
+            || *file == "Cargo.lock"
+            || file.starts_with("crates/")
+        {
             need_fmt = true;
             need_clippy = true;
         }
@@ -1570,13 +1680,13 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     }
     if need_docs {
         stdout.push_str("lint-fast: running docs checks\n");
-        let docs_outcome = run_native_ops_command(
-            &NativeOpsCommandKey::DocsCheckDocLinks,
-            workspace,
-            &[],
-        )?;
+        let docs_outcome =
+            run_native_ops_command(&NativeOpsCommandKey::DocsCheckDocLinks, workspace, &[])?;
         if !docs_outcome.is_success() {
-            return Ok(merge_outcomes(OpsCommandOutcome::success(stdout), docs_outcome));
+            return Ok(merge_outcomes(
+                OpsCommandOutcome::success(stdout),
+                docs_outcome,
+            ));
         }
         stdout.push_str(&docs_outcome.stdout);
         run_check_ids(&mut stdout, &["check-docs-build-contract"])?;
@@ -1600,7 +1710,10 @@ fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-fn tooling_generate_tool_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+fn tooling_generate_tool_index(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     let out = resolve_optional_output_arg(
         workspace,
         "generate-tool-index",
@@ -1729,7 +1842,10 @@ fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -1782,7 +1898,8 @@ fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         ));
     }
     if docs_root.exists() {
-        fs::remove_dir_all(&docs_root).with_context(|| format!("remove {}", docs_root.display()))?;
+        fs::remove_dir_all(&docs_root)
+            .with_context(|| format!("remove {}", docs_root.display()))?;
     }
     success_line(format!("removed {}", docs_root.display()))
 }
@@ -1835,8 +1952,9 @@ fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<O
         }
     }
 
-    let cfg =
-        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/runtime/reference_bank.toml"))?)?;
+    let cfg = toml::from_str::<TomlValue>(&read_utf8(
+        &workspace.path("configs/runtime/reference_bank.toml"),
+    )?)?;
     let references = cfg
         .get("reference")
         .and_then(TomlValue::as_array)
@@ -1966,7 +2084,9 @@ fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<O
     rows.sort_by(|left, right| {
         value_string(left.get("species_id"))
             .cmp(&value_string(right.get("species_id")))
-            .then_with(|| value_string(left.get("build_id")).cmp(&value_string(right.get("build_id"))))
+            .then_with(|| {
+                value_string(left.get("build_id")).cmp(&value_string(right.get("build_id")))
+            })
     });
     let payload = json!({
         "schema_version": 1,
@@ -2043,8 +2163,9 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
         }
     }
 
-    let cfg =
-        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/panels/panels.toml"))?)?;
+    let cfg = toml::from_str::<TomlValue>(&read_utf8(
+        &workspace.path("configs/vcf/panels/panels.toml"),
+    )?)?;
     let panels = cfg
         .get("panel")
         .and_then(TomlValue::as_array)
@@ -2144,7 +2265,8 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
             "file_count": file_count,
         }));
     }
-    lock_rows.sort_by(|left, right| value_string(left.get("id")).cmp(&value_string(right.get("id"))));
+    lock_rows
+        .sort_by(|left, right| value_string(left.get("id")).cmp(&value_string(right.get("id"))));
     let payload = json!({
         "schema_version": 2,
         "generated_at_utc": stable_now_utc_string(),
@@ -2217,7 +2339,8 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         }
     }
 
-    let cfg = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
+    let cfg =
+        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
     let maps = cfg
         .get("map")
         .and_then(TomlValue::as_array)
@@ -2276,7 +2399,10 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
                 "action": materialized.action,
             }));
         }
-        write_utf8(&derived_dir.join("chunk_index.tsv"), "chunk\tregion\n0\tall\n")?;
+        write_utf8(
+            &derived_dir.join("chunk_index.tsv"),
+            "chunk\tregion\n0\tall\n",
+        )?;
         rows.push(json!({
             "map_id": map_id,
             "species_id": species,
@@ -2307,14 +2433,21 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     let run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "manual".to_string());
     let out_dir = std::env::var("OUT_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("benchmarks").join(run_id));
+        .unwrap_or_else(|_| {
+            artifact_root_path(workspace)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+                .join("benchmarks")
+                .join(run_id)
+        });
     if out_dir.display().to_string().contains("/containers/smoke") {
         return Ok(OpsCommandOutcome::failure(format!(
             "benchmark out dir must not overlap smoke logs: {}\n",
             out_dir.display()
         )));
     }
-    let tools = std::env::var("TOOLS").ok().filter(|value| !value.is_empty());
+    let tools = std::env::var("TOOLS")
+        .ok()
+        .filter(|value| !value.is_empty());
     let allow_experimental = env_flag("ALLOW_EXPERIMENTAL");
     let sample_id = std::env::var("SAMPLE_ID").unwrap_or_default();
     let r1 = std::env::var("R1").unwrap_or_default();
@@ -2343,10 +2476,7 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         }
     }
 
-    fn run_bijux_bench(
-        workspace: &Workspace,
-        argv: Vec<String>,
-    ) -> Result<OpsCommandOutcome> {
+    fn run_bijux_bench(workspace: &Workspace, argv: Vec<String>) -> Result<OpsCommandOutcome> {
         tooling_run_bijux(workspace, &argv)
     }
 
@@ -2460,10 +2590,9 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
             }
             Ok(aggregate)
         }
-        "fastq-status" => run_bijux_bench(
-            workspace,
-            vec!["bench".to_string(), "status".to_string()],
-        ),
+        "fastq-status" => {
+            run_bijux_bench(workspace, vec!["bench".to_string(), "status".to_string()])
+        }
         "bam-stage" => run_bam_stage(workspace),
         "bam-pipeline" => run_bam_pipeline(workspace),
         "bam-all" => {
@@ -2585,7 +2714,8 @@ fn tooling_benchmark_integrity_mini(
         return Ok(second);
     }
 
-    let knobs = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/bench/knobs.toml"))?)?;
+    let knobs =
+        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/bench/knobs.toml"))?)?;
     let variance = knobs
         .get("variance")
         .and_then(TomlValue::as_table)
@@ -2602,7 +2732,10 @@ fn tooling_benchmark_integrity_mini(
     let mut errors = Vec::new();
     for path in [&run_a, &run_b] {
         if path.display().to_string().contains("containers/smoke") {
-            errors.push(format!("{}: benchmark output path overlaps smoke", path.display()));
+            errors.push(format!(
+                "{}: benchmark output path overlaps smoke",
+                path.display()
+            ));
         }
     }
     let m_a = find_first_named_file(&run_a, "metrics.json");
@@ -2620,12 +2753,15 @@ fn tooling_benchmark_integrity_mini(
         ("run_b", &h_b),
     ] {
         if path.is_none() {
-            errors.push(format!("{tag}: missing required artifact (metrics.json/telemetry.jsonl/report.html)"));
+            errors.push(format!(
+                "{tag}: missing required artifact (metrics.json/telemetry.jsonl/report.html)"
+            ));
         }
     }
     let mut runtime_values = Vec::new();
     let mut memory_values = Vec::new();
-    let number_re = Regex::new(r#""(?:runtime_s|runtime_ms|duration_ms)"\s*:\s*([0-9]+(?:\.[0-9]+)?)"#)?;
+    let number_re =
+        Regex::new(r#""(?:runtime_s|runtime_ms|duration_ms)"\s*:\s*([0-9]+(?:\.[0-9]+)?)"#)?;
     let memory_re = Regex::new(r#""memory_mb"\s*:\s*([0-9]+(?:\.[0-9]+)?)"#)?;
     for (tag, path) in [("run_a", m_a.as_ref()), ("run_b", m_b.as_ref())] {
         if let Some(path) = path {
@@ -2651,28 +2787,42 @@ fn tooling_benchmark_integrity_mini(
                 if line.trim().is_empty() {
                     continue;
                 }
-                let row: Value = serde_json::from_str(line)
-                    .with_context(|| format!("parse {} line {}", path.display(), line_number + 1))?;
+                let row: Value = serde_json::from_str(line).with_context(|| {
+                    format!("parse {} line {}", path.display(), line_number + 1)
+                })?;
                 let stage = value_string(row.get("stage_id"));
                 let trace = value_string(row.get("trace_id"));
                 if stage.is_empty() || trace.is_empty() {
-                    errors.push(format!("{tag}:{}: missing stage_id/trace_id", line_number + 1));
+                    errors.push(format!(
+                        "{tag}:{}: missing stage_id/trace_id",
+                        line_number + 1
+                    ));
                     continue;
                 }
                 if let Some(previous) = by_stage.insert(stage.clone(), trace.clone()) {
                     if previous != trace {
-                        errors.push(format!("{tag}:{}: trace_id drift within stage {stage}", line_number + 1));
+                        errors.push(format!(
+                            "{tag}:{}: trace_id drift within stage {stage}",
+                            line_number + 1
+                        ));
                     }
                 }
                 if Regex::new(r"/Users/|/home/|\btmp/")?.is_match(line) {
-                    errors.push(format!("{tag}:{}: telemetry leaks host path", line_number + 1));
+                    errors.push(format!(
+                        "{tag}:{}: telemetry leaks host path",
+                        line_number + 1
+                    ));
                 }
             }
         }
     }
     if let (Some(h_a), Some(h_b)) = (h_a.as_ref(), h_b.as_ref()) {
-        if normalize_benchmark_html(&read_utf8(h_a)?) != normalize_benchmark_html(&read_utf8(h_b)?) {
-            errors.push("report.html normalized structure differs across consecutive mini benchmark runs".to_string());
+        if normalize_benchmark_html(&read_utf8(h_a)?) != normalize_benchmark_html(&read_utf8(h_b)?)
+        {
+            errors.push(
+                "report.html normalized structure differs across consecutive mini benchmark runs"
+                    .to_string(),
+            );
         }
     }
     if runtime_values.len() == 2 {
@@ -2729,10 +2879,17 @@ fn tooling_validate_frontend_mini_domain_stacks(
     ensure_help_only("validate-frontend-mini-domain-stacks", args)?;
     let out_dir = std::env::var("OUT_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("domain/frontend-mini-validation"));
+        .unwrap_or_else(|_| {
+            artifact_root_path(workspace)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+                .join("domain/frontend-mini-validation")
+        });
     fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let examples = [
-        ("fastq_edna_mini", workspace.path("examples/fastq/edna-mini")),
+        (
+            "fastq_edna_mini",
+            workspace.path("examples/fastq/edna-mini"),
+        ),
         (
             "vcf_damage_aware_genotype_mini",
             workspace.path("examples/vcf/damage-aware-genotype-mini"),
@@ -2745,12 +2902,18 @@ fn tooling_validate_frontend_mini_domain_stacks(
             "vcf_downstream_demography_mini",
             workspace.path("examples/vcf/downstream-demography-mini"),
         ),
-        ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
+        (
+            "vcf_imputation_mini",
+            workspace.path("examples/vcf/imputation-mini"),
+        ),
     ];
     for (example_id, _) in &examples {
         let outcome = examples_run(
             workspace,
-            &["--allow-non-artifacts".to_string(), (*example_id).to_string()],
+            &[
+                "--allow-non-artifacts".to_string(),
+                (*example_id).to_string(),
+            ],
         )?;
         if !outcome.is_success() {
             return Ok(outcome);
@@ -2776,13 +2939,15 @@ fn tooling_validate_frontend_mini_domain_stacks(
         for json_file in ["plan.json", "explain.json", "report.json"] {
             let artifact_path = artifact_dir.join(json_file);
             let golden_path = example_dir.join("golden").join(json_file);
-            if artifact_path.is_file() && golden_path.is_file()
+            if artifact_path.is_file()
+                && golden_path.is_file()
                 && read_utf8(&artifact_path)? != read_utf8(&golden_path)?
             {
                 errors.push(format!("{example_id}: {json_file} differs from golden"));
             }
         }
-        let suite = toml::from_str::<TomlValue>(&read_utf8(&example_dir.join("bench-suite.toml"))?)?;
+        let suite =
+            toml::from_str::<TomlValue>(&read_utf8(&example_dir.join("bench-suite.toml"))?)?;
         let stages = suite
             .get("stages")
             .and_then(TomlValue::as_array)
@@ -2802,7 +2967,9 @@ fn tooling_validate_frontend_mini_domain_stacks(
             .collect::<Vec<_>>();
         for stage in stages {
             if !got_stages.contains(&stage) {
-                errors.push(format!("{example_id}: stage {stage} missing in plan.json stages"));
+                errors.push(format!(
+                    "{example_id}: stage {stage} missing in plan.json stages"
+                ));
             }
         }
         let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
@@ -2827,17 +2994,30 @@ fn tooling_validate_frontend_mini_domain_stacks(
         }
         if example_id.starts_with("vcf_") {
             for (doc_name, payload) in [
-                ("explain.json", read_json_value(&artifact_dir.join("explain.json"))?),
-                ("report.json", read_json_value(&artifact_dir.join("report.json"))?),
+                (
+                    "explain.json",
+                    read_json_value(&artifact_dir.join("explain.json"))?,
+                ),
+                (
+                    "report.json",
+                    read_json_value(&artifact_dir.join("report.json"))?,
+                ),
             ] {
-                let coverage = payload.get("coverage_regime").cloned().unwrap_or(Value::Null);
+                let coverage = payload
+                    .get("coverage_regime")
+                    .cloned()
+                    .unwrap_or(Value::Null);
                 let selected = value_string(coverage.get("selected"));
                 if !matches!(selected.as_str(), "gl" | "pseudohaploid" | "diploid") {
-                    errors.push(format!("{example_id}: {doc_name} coverage_regime.selected invalid"));
+                    errors.push(format!(
+                        "{example_id}: {doc_name} coverage_regime.selected invalid"
+                    ));
                 }
                 for key in ["thresholds_used", "observed_coverage_stats"] {
                     if coverage.get(key).is_none() {
-                        errors.push(format!("{example_id}: {doc_name} coverage_regime missing {key}"));
+                        errors.push(format!(
+                            "{example_id}: {doc_name} coverage_regime missing {key}"
+                        ));
                     }
                 }
             }
@@ -2857,10 +3037,16 @@ fn tooling_validate_frontend_mini_domain_stacks(
     ] {
         let outcome = tooling_simulate_coverage_regime(
             workspace,
-            &[depth.to_string(), "--profile".to_string(), profile.to_string()],
+            &[
+                depth.to_string(),
+                "--profile".to_string(),
+                profile.to_string(),
+            ],
         )?;
         if !outcome.is_success() {
-            errors.push(format!("coverage_regime simulate failed: profile={profile} depth={depth}"));
+            errors.push(format!(
+                "coverage_regime simulate failed: profile={profile} depth={depth}"
+            ));
             continue;
         }
         let payload: Value = serde_json::from_str(&outcome.stdout)
@@ -2883,7 +3069,11 @@ fn tooling_validate_frontend_mini_domain_stacks(
         }
         if in_tools {
             if raw.starts_with("  - ") {
-                tools.push(raw.split_once("- ").map(|(_, value)| value.trim().to_string()).unwrap_or_default());
+                tools.push(
+                    raw.split_once("- ")
+                        .map(|(_, value)| value.trim().to_string())
+                        .unwrap_or_default(),
+                );
                 continue;
             }
             if !raw.is_empty() && !raw.starts_with(' ') {
@@ -2892,12 +3082,17 @@ fn tooling_validate_frontend_mini_domain_stacks(
         }
     }
     tools.sort();
-    if tools != vec![
-        "authenticct".to_string(),
-        "damageprofiler".to_string(),
-        "pmdtools".to_string(),
-    ] {
-        errors.push(format!("bam.authenticity compatible_tools mismatch: {:?}", tools));
+    if tools
+        != vec![
+            "authenticct".to_string(),
+            "damageprofiler".to_string(),
+            "pmdtools".to_string(),
+        ]
+    {
+        errors.push(format!(
+            "bam.authenticity compatible_tools mismatch: {:?}",
+            tools
+        ));
     }
     for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
         .into_iter()
@@ -2915,7 +3110,10 @@ fn tooling_validate_frontend_mini_domain_stacks(
             }
         }
         if kv.get("stage").map(String::as_str) != Some("bam.authenticity") {
-            errors.push(format!("{}: stage must be bam.authenticity", entry.path().display()));
+            errors.push(format!(
+                "{}: stage must be bam.authenticity",
+                entry.path().display()
+            ));
         }
         if kv.get("domain").map(String::as_str) != Some("bam") {
             errors.push(format!("{}: domain must be bam", entry.path().display()));
@@ -3072,8 +3270,8 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
         }
     }
     let report = report.context("coverage-summary requires <report>")?;
-    let show_uncovered = show_uncovered
-        || std::env::var("COVERAGE_SHOW_UNCOVERED").ok().as_deref() == Some("1");
+    let show_uncovered =
+        show_uncovered || std::env::var("COVERAGE_SHOW_UNCOVERED").ok().as_deref() == Some("1");
     let show_worst =
         show_worst || std::env::var("COVERAGE_SHOW_WORST").ok().as_deref() == Some("1");
 
@@ -3204,8 +3402,19 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
         let delta = baseline_data
             .as_ref()
             .and_then(|baseline| baseline.get(crate_name))
-            .map(|baseline| percent(entry.lines_hit, entry.lines_total) - percent(baseline.lines_hit, baseline.lines_total));
-        rows.push((crate_name.clone(), lines_pct, funcs_pct, regions_pct, delta, top, entry.clone()));
+            .map(|baseline| {
+                percent(entry.lines_hit, entry.lines_total)
+                    - percent(baseline.lines_hit, baseline.lines_total)
+            });
+        rows.push((
+            crate_name.clone(),
+            lines_pct,
+            funcs_pct,
+            regions_pct,
+            delta,
+            top,
+            entry.clone(),
+        ));
     }
 
     for (crate_name, lines_pct, funcs_pct, regions_pct, delta, top, entry) in &rows {
@@ -3233,7 +3442,11 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
 
     if show_worst {
         let mut worst = rows.clone();
-        worst.sort_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
+        worst.sort_by(|left, right| {
+            left.1
+                .partial_cmp(&right.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         stdout.push_str("\nworst coverage (lines %):\n");
         for (crate_name, lines_pct, ..) in worst.into_iter().take(worst_count) {
             stdout.push_str(&format!("{crate_name}: {lines_pct:6.2}%\n"));
@@ -3250,7 +3463,10 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
         };
         let default_threshold = value["default"].as_f64().unwrap_or(0.0);
         let class_thresholds = value["classes"].as_object().cloned().unwrap_or_default();
-        let class_map = value["crate_class"].as_object().cloned().unwrap_or_default();
+        let class_map = value["crate_class"]
+            .as_object()
+            .cloned()
+            .unwrap_or_default();
         let overrides = value["overrides"].as_object().cloned().unwrap_or_default();
         let mut failures = Vec::new();
         for (crate_name, entry) in &data {
@@ -3302,7 +3518,8 @@ fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCo
     let stderr = payload["stderr_last_lines"]
         .as_array()
         .map(|items| {
-            items.iter()
+            items
+                .iter()
                 .filter_map(Value::as_str)
                 .collect::<Vec<_>>()
                 .join("\n")
@@ -3325,10 +3542,13 @@ fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCo
         causes.push((90, "resource_exhausted", "Process likely hit memory limit."));
     }
     if stderr.contains("header") || stderr.contains("contig") || stderr.contains("chromosome") {
-        causes.push((85, "reference_mismatch", "Header/contig/reference mismatch."));
+        causes.push((
+            85,
+            "reference_mismatch",
+            "Header/contig/reference mismatch.",
+        ));
     }
-    if stderr.contains("not compressed")
-        && (command.contains("tabix") || command.contains("bgzip"))
+    if stderr.contains("not compressed") && (command.contains("tabix") || command.contains("bgzip"))
     {
         causes.push((
             80,
@@ -3344,7 +3564,11 @@ fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCo
         ));
     }
     if causes.is_empty() {
-        causes.push((10, "unknown", "No high-confidence pattern found; inspect full logs."));
+        causes.push((
+            10,
+            "unknown",
+            "No high-confidence pattern found; inspect full logs.",
+        ));
     }
     causes.sort_by(|left, right| right.0.cmp(&left.0));
     let mut stdout = String::from("crash-triage: top causes\n");
@@ -3366,15 +3590,27 @@ fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<
         match args[index].as_str() {
             "--help" | "-h" => return success_line(usage),
             "--stage" => {
-                stage = Some(args.get(index + 1).cloned().context("missing value for --stage")?);
+                stage = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --stage")?,
+                );
                 index += 2;
             }
             "--knob" => {
-                knob = Some(args.get(index + 1).cloned().context("missing value for --knob")?);
+                knob = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --knob")?,
+                );
                 index += 2;
             }
             "--phase" => {
-                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
+                phase = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --phase")?,
+                );
                 index += 2;
             }
             "--replacement" => {
@@ -3393,7 +3629,11 @@ fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<
                 );
                 index += 2;
             }
-            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n"))),
+            other => {
+                return Ok(OpsCommandOutcome::failure(format!(
+                    "unknown arg: {other}\n{usage}\n"
+                )))
+            }
         }
     }
     let stage = stage.context(usage)?;
@@ -3437,11 +3677,19 @@ fn tooling_deprecate_vcf_panel(
         match args[index].as_str() {
             "--help" | "-h" => return success_line(usage),
             "--panel" => {
-                panel = Some(args.get(index + 1).cloned().context("missing value for --panel")?);
+                panel = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --panel")?,
+                );
                 index += 2;
             }
             "--phase" => {
-                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
+                phase = Some(
+                    args.get(index + 1)
+                        .cloned()
+                        .context("missing value for --phase")?,
+                );
                 index += 2;
             }
             "--replacement" => {
@@ -3460,7 +3708,11 @@ fn tooling_deprecate_vcf_panel(
                 );
                 index += 2;
             }
-            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n"))),
+            other => {
+                return Ok(OpsCommandOutcome::failure(format!(
+                    "unknown arg: {other}\n{usage}\n"
+                )))
+            }
         }
     }
     let panel = panel.context(usage)?;
@@ -3497,9 +3749,17 @@ fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         );
     }
     let cfg_path = PathBuf::from(env_or_default("DOCS_CFG", "configs/docs/mkdocs.toml"));
-    let cfg_path = if cfg_path.is_absolute() { cfg_path } else { workspace.path(cfg_path.to_string_lossy().as_ref()) };
+    let cfg_path = if cfg_path.is_absolute() {
+        cfg_path
+    } else {
+        workspace.path(cfg_path.to_string_lossy().as_ref())
+    };
     let docs_venv = PathBuf::from(env_or_default("DOCS_VENV", "artifacts/docs/.venv"));
-    let docs_venv = if docs_venv.is_absolute() { docs_venv } else { workspace.path(docs_venv.to_string_lossy().as_ref()) };
+    let docs_venv = if docs_venv.is_absolute() {
+        docs_venv
+    } else {
+        workspace.path(docs_venv.to_string_lossy().as_ref())
+    };
     let mkdocs_bin = docs_venv.join("bin/mkdocs");
     if !cfg_path.is_file() || !mkdocs_bin.is_file() {
         return Ok(OpsCommandOutcome::failure(
@@ -3524,9 +3784,9 @@ fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         .and_then(TomlValue::as_str)
         .unwrap_or("127.0.0.1:8000");
     if site_dir != "artifacts/docs/site" {
-        return Ok(OpsCommandOutcome::failure(
-            format!("docs-build: site_dir must be artifacts/docs/site (got: {site_dir})\n"),
-        ));
+        return Ok(OpsCommandOutcome::failure(format!(
+            "docs-build: site_dir must be artifacts/docs/site (got: {site_dir})\n"
+        )));
     }
     let cache_dir = workspace.path("artifacts/docs/.cache");
     fs::create_dir_all(&cache_dir).with_context(|| format!("create {}", cache_dir.display()))?;
@@ -3569,7 +3829,10 @@ fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         workspace,
         &program,
         &cmd_args,
-        &[("XDG_CACHE_HOME".to_string(), cache_dir.display().to_string())],
+        &[(
+            "XDG_CACHE_HOME".to_string(),
+            cache_dir.display().to_string(),
+        )],
     )
 }
 
@@ -3603,8 +3866,11 @@ fn tooling_generate_panel_compatibility_matrix(
         args,
         "docs/50-reference/PANEL_COMPATIBILITY_MATRIX.md",
     )?;
-    let panels = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/panels/panels.toml"))?)?;
-    let maps = toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
+    let panels = toml::from_str::<TomlValue>(&read_utf8(
+        &workspace.path("configs/vcf/panels/panels.toml"),
+    )?)?;
+    let maps =
+        toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
     let panel_rows = panels
         .get("panel")
         .and_then(TomlValue::as_array)
@@ -3618,17 +3884,32 @@ fn tooling_generate_panel_compatibility_matrix(
     let mut maps_by_sb = BTreeMap::<(String, String), Vec<TomlValue>>::new();
     for row in map_rows {
         let key = (
-            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
-            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("species_id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            row.get("build_id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .to_string(),
         );
         maps_by_sb.entry(key).or_default().push(row);
     }
     let mut panels_sorted = panel_rows;
     panels_sorted.sort_by_key(|row| {
         (
-            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
-            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
-            row.get("id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("species_id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            row.get("build_id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .to_string(),
+            row.get("id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .to_string(),
         )
     });
     let mut lines = vec![
@@ -3654,9 +3935,18 @@ fn tooling_generate_panel_compatibility_matrix(
         "|---|---|---|---|---|---|---|".to_string(),
     ];
     for panel in panels_sorted {
-        let species = panel.get("species_id").and_then(TomlValue::as_str).unwrap_or_default();
-        let build = panel.get("build_id").and_then(TomlValue::as_str).unwrap_or_default();
-        let panel_id = panel.get("id").and_then(TomlValue::as_str).unwrap_or_default();
+        let species = panel
+            .get("species_id")
+            .and_then(TomlValue::as_str)
+            .unwrap_or_default();
+        let build = panel
+            .get("build_id")
+            .and_then(TomlValue::as_str)
+            .unwrap_or_default();
+        let panel_id = panel
+            .get("id")
+            .and_then(TomlValue::as_str)
+            .unwrap_or_default();
         let compat = panel.get("compatibility").and_then(TomlValue::as_table);
         let tool_tags = compat
             .and_then(|table| table.get("tool_tags"))
@@ -3674,7 +3964,10 @@ fn tooling_generate_panel_compatibility_matrix(
             continue;
         }
         for map in maps_for.unwrap_or(&Vec::new()) {
-            let map_id = map.get("id").and_then(TomlValue::as_str).unwrap_or_default();
+            let map_id = map
+                .get("id")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default();
             let map_tool_tags = map
                 .get("compatibility")
                 .and_then(TomlValue::as_table)
@@ -3685,7 +3978,10 @@ fn tooling_generate_panel_compatibility_matrix(
                 .into_iter()
                 .filter_map(|value| value.as_str().map(ToOwned::to_owned))
                 .collect::<BTreeSet<_>>();
-            let union = tool_tags.union(&map_tool_tags).cloned().collect::<BTreeSet<_>>();
+            let union = tool_tags
+                .union(&map_tool_tags)
+                .cloned()
+                .collect::<BTreeSet<_>>();
             for tool in union {
                 let ok = tool_tags.contains(&tool) && map_tool_tags.contains(&tool);
                 let mut notes = Vec::new();
@@ -3699,7 +3995,11 @@ fn tooling_generate_panel_compatibility_matrix(
                         .unwrap_or_default();
                     notes.push(format!("GLIMPSE format={format}"));
                 }
-                let note = if notes.is_empty() { "-".to_string() } else { notes.join("; ") };
+                let note = if notes.is_empty() {
+                    "-".to_string()
+                } else {
+                    notes.join("; ")
+                };
                 lines.push(format!(
                     "| `{species}` | `{build}` | `{panel_id}` | `{map_id}` | `{tool}` | `{}` | {note} |",
                     if ok { "yes" } else { "no" }
@@ -3711,7 +4011,10 @@ fn tooling_generate_panel_compatibility_matrix(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-fn tooling_generate_policy_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+fn tooling_generate_policy_index(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("generate-policy-index", args)?;
     let out_file = workspace.path("artifacts/policies/index.md");
     let mut lines = vec![
@@ -3769,7 +4072,11 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     let assets_out = out_dir.join("assets_inventory.txt");
     let mut control_plane_lines = walk_file_list(workspace, "makes", Some("mk"))?;
     control_plane_lines.push('\n');
-    control_plane_lines.push_str(&walk_file_list(workspace, "crates/bijux-dev-dna/src", Some("rs"))?);
+    control_plane_lines.push_str(&walk_file_list(
+        workspace,
+        "crates/bijux-dev-dna/src",
+        Some("rs"),
+    )?);
     write_utf8(&control_plane_out, &control_plane_lines)?;
     write_utf8(&configs_out, &walk_file_list(workspace, "configs", None)?)?;
     write_utf8(&assets_out, &walk_file_list(workspace, "assets", None)?)?;
@@ -3783,7 +4090,11 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     dirs.sort();
     for dir in dirs {
         let rel = workspace.rel(&dir).to_string_lossy().to_string();
-        let present = if dir.join("index.md").is_file() { "present" } else { "missing" };
+        let present = if dir.join("index.md").is_file() {
+            "present"
+        } else {
+            "missing"
+        };
         lines.push(format!("{rel}/index.md:{present}"));
     }
     write_utf8(&docs_out, &format!("{}\n", lines.join("\n")))?;
@@ -3840,8 +4151,14 @@ fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsComman
             let Some(capture) = re.captures(line) else {
                 continue;
             };
-            let name = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
-            let desc = capture.get(2).map(|value| value.as_str()).unwrap_or_default();
+            let name = capture
+                .get(1)
+                .map(|value| value.as_str())
+                .unwrap_or_default();
+            let desc = capture
+                .get(2)
+                .map(|value| value.as_str())
+                .unwrap_or_default();
             if name.starts_with('_') || matches!(name, "domain-validate" | "examples-validate") {
                 internal.push((name.to_string(), desc.to_string()));
             }
@@ -3883,15 +4200,9 @@ fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsComm
             )))
         }
     };
-    run_check_ids(
-        &mut aggregate,
-        &check_ids,
-    )?;
-    let docs_graph = run_native_ops_command(
-        &NativeOpsCommandKey::DocsCheckDocsGraph,
-        workspace,
-        &[],
-    )?;
+    run_check_ids(&mut aggregate, &check_ids)?;
+    let docs_graph =
+        run_native_ops_command(&NativeOpsCommandKey::DocsCheckDocsGraph, workspace, &[])?;
     if !docs_graph.is_success() {
         return Ok(docs_graph);
     }
@@ -3943,14 +4254,24 @@ fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsComman
 fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("setup-docs-venv", args)?;
     let docs_py = env_or_default("DOCS_PY", "python3");
-    let docs_venv = resolve_workspace_path(workspace, &env_or_default("DOCS_VENV", "artifacts/docs/.venv"));
-    let docs_req = resolve_workspace_path(workspace, &env_or_default("DOCS_REQ", "configs/docs/requirements.txt"));
+    let docs_venv = resolve_workspace_path(
+        workspace,
+        &env_or_default("DOCS_VENV", "artifacts/docs/.venv"),
+    );
+    let docs_req = resolve_workspace_path(
+        workspace,
+        &env_or_default("DOCS_REQ", "configs/docs/requirements.txt"),
+    );
     let docs_cache = workspace.path("artifacts/docs/.cache/pip");
     fs::create_dir_all(&docs_cache).with_context(|| format!("create {}", docs_cache.display()))?;
     let venv = run_program(
         workspace,
         &docs_py,
-        &["-m".to_string(), "venv".to_string(), docs_venv.display().to_string()],
+        &[
+            "-m".to_string(),
+            "venv".to_string(),
+            docs_venv.display().to_string(),
+        ],
     )?;
     if !venv.is_success() {
         return Ok(venv);
@@ -3959,8 +4280,15 @@ fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<Ops
     let upgrade = run_program_with_env(
         workspace,
         &pip,
-        &["install".to_string(), "--upgrade".to_string(), "pip".to_string()],
-        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
+        &[
+            "install".to_string(),
+            "--upgrade".to_string(),
+            "pip".to_string(),
+        ],
+        &[(
+            "PIP_CACHE_DIR".to_string(),
+            docs_cache.display().to_string(),
+        )],
     )?;
     if !upgrade.is_success() {
         return Ok(upgrade);
@@ -3973,7 +4301,10 @@ fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<Ops
             "-r".to_string(),
             docs_req.display().to_string(),
         ],
-        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
+        &[(
+            "PIP_CACHE_DIR".to_string(),
+            docs_cache.display().to_string(),
+        )],
     )
 }
 
@@ -3994,14 +4325,18 @@ fn tooling_simulate_coverage_regime(
     while index < args.len() {
         match args[index].as_str() {
             "--profile" => {
-                profile = args.get(index + 1).context("missing value for --profile")?.clone();
+                profile = args
+                    .get(index + 1)
+                    .context("missing value for --profile")?
+                    .clone();
                 index += 2;
             }
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let cfg: TomlValue =
-        toml::from_str(&read_utf8(&workspace.path("configs/runtime/coverage_regimes.toml"))?)?;
+    let cfg: TomlValue = toml::from_str(&read_utf8(
+        &workspace.path("configs/runtime/coverage_regimes.toml"),
+    )?)?;
     let decision = cfg
         .get("decision")
         .and_then(TomlValue::as_table)
@@ -4029,26 +4364,74 @@ fn tooling_simulate_coverage_regime(
     let gl_max = selected_profile
         .get("gl_max_depth")
         .and_then(TomlValue::as_float)
-        .or_else(|| selected_profile.get("gl_max_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .or_else(|| {
+            selected_profile
+                .get("gl_max_depth")
+                .and_then(TomlValue::as_integer)
+                .map(|v| v as f64)
+        })
         .context("missing gl_max_depth")?;
     let pseudo_max = selected_profile
         .get("pseudohaploid_max_depth")
         .and_then(TomlValue::as_float)
-        .or_else(|| selected_profile.get("pseudohaploid_max_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .or_else(|| {
+            selected_profile
+                .get("pseudohaploid_max_depth")
+                .and_then(TomlValue::as_integer)
+                .map(|v| v as f64)
+        })
         .context("missing pseudohaploid_max_depth")?;
     let dip_min = selected_profile
         .get("diploid_min_depth")
         .and_then(TomlValue::as_float)
-        .or_else(|| selected_profile.get("diploid_min_depth").and_then(TomlValue::as_integer).map(|v| v as f64))
+        .or_else(|| {
+            selected_profile
+                .get("diploid_min_depth")
+                .and_then(TomlValue::as_integer)
+                .map(|v| v as f64)
+        })
         .context("missing diploid_min_depth")?;
     let (selected, pipeline_path) = if mean_depth <= gl_max {
-        ("gl", vec!["vcf.call_gl", "vcf.damage_filter", "vcf.gl_propagation", "vcf.impute", "vcf.postprocess"])
+        (
+            "gl",
+            vec![
+                "vcf.call_gl",
+                "vcf.damage_filter",
+                "vcf.gl_propagation",
+                "vcf.impute",
+                "vcf.postprocess",
+            ],
+        )
     } else if mean_depth <= pseudo_max {
-        ("pseudohaploid", vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+        (
+            "pseudohaploid",
+            vec![
+                "vcf.call_pseudohaploid",
+                "vcf.damage_filter",
+                "vcf.impute",
+                "vcf.postprocess",
+            ],
+        )
     } else if mean_depth >= dip_min {
-        ("diploid", vec!["vcf.call_diploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+        (
+            "diploid",
+            vec![
+                "vcf.call_diploid",
+                "vcf.damage_filter",
+                "vcf.impute",
+                "vcf.postprocess",
+            ],
+        )
     } else {
-        ("pseudohaploid", vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
+        (
+            "pseudohaploid",
+            vec![
+                "vcf.call_pseudohaploid",
+                "vcf.damage_filter",
+                "vcf.impute",
+                "vcf.postprocess",
+            ],
+        )
     };
     write_json_pretty(
         &workspace.path("artifacts/tmp/simulate_coverage_regime.last.json"),
@@ -4065,9 +4448,9 @@ fn tooling_simulate_coverage_regime(
             "pipeline_path": pipeline_path,
         }),
     )?;
-    Ok(OpsCommandOutcome::success(read_utf8(
-        &workspace.path("artifacts/tmp/simulate_coverage_regime.last.json"),
-    )?))
+    Ok(OpsCommandOutcome::success(read_utf8(&workspace.path(
+        "artifacts/tmp/simulate_coverage_regime.last.json",
+    ))?))
 }
 
 fn tooling_generate_domain_coverage_doc(
@@ -4092,7 +4475,10 @@ fn tooling_generate_domain_coverage_doc(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-fn tooling_generate_repo_root_map(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+fn tooling_generate_repo_root_map(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     let out = resolve_optional_output_arg(
         workspace,
         "generate-repo-root-map",
@@ -4117,27 +4503,34 @@ fn tooling_generate_compatibility_matrix(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-fn tooling_generate_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    let out = resolve_optional_output_arg(workspace, "generate-docs-graph", args, "docs/DOCS_GRAPH.toml")?;
+fn tooling_generate_docs_graph(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let out = resolve_optional_output_arg(
+        workspace,
+        "generate-docs-graph",
+        args,
+        "docs/DOCS_GRAPH.toml",
+    )?;
     generate_docs_graph(workspace, &out)?;
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
 fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    let out_root = match args {
-        [] => workspace.path("docs"),
-        [flag] if flag == "--help" || flag == "-h" => {
-            return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]",
-            )
-        }
-        [out] => resolve_workspace_path(workspace, out),
-        _ => {
-            return Ok(OpsCommandOutcome::failure(
+    let out_root =
+        match args {
+            [] => workspace.path("docs"),
+            [flag] if flag == "--help" || flag == "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]",
+                )
+            }
+            [out] => resolve_workspace_path(workspace, out),
+            _ => return Ok(OpsCommandOutcome::failure(
                 "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]\n",
-            ))
-        }
-    };
+            )),
+        };
     fs::create_dir_all(out_root.join("00-intro"))
         .with_context(|| format!("create {}", out_root.join("00-intro").display()))?;
     fs::create_dir_all(out_root.join("20-science"))
@@ -4148,10 +4541,16 @@ fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         .with_context(|| format!("create {}", out_root.join("50-reference").display()))?;
 
     generate_tool_index(workspace, &out_root.join("20-science/TOOL_INDEX.md"))?;
-    generate_domain_coverage_doc(workspace, &out_root.join("20-science/DOMAIN_COVERAGE.generated.md"))?;
+    generate_domain_coverage_doc(
+        workspace,
+        &out_root.join("20-science/DOMAIN_COVERAGE.generated.md"),
+    )?;
     let container_outcome = ContainerApplication::new()?.run(
         "generate-qa-matrix",
-        &[out_root.join("30-operations/APPTAINER_QA_MATRIX.md").display().to_string()],
+        &[out_root
+            .join("30-operations/APPTAINER_QA_MATRIX.md")
+            .display()
+            .to_string()],
     )?;
     if !container_outcome.is_success() {
         return Ok(OpsCommandOutcome {
@@ -4160,8 +4559,14 @@ fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCo
             stderr: container_outcome.stderr,
         });
     }
-    generate_repo_root_map(workspace, &out_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
-    generate_compatibility_matrix(workspace, &out_root.join("50-reference/COMPATIBILITY_MATRIX.md"))?;
+    generate_repo_root_map(
+        workspace,
+        &out_root.join("00-intro/REPO_ROOT_MAP.generated.md"),
+    )?;
+    generate_compatibility_matrix(
+        workspace,
+        &out_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
+    )?;
     generate_docs_graph(workspace, &out_root.join("DOCS_GRAPH.toml"))?;
     success_line(format!("generated docs into {}", out_root.display()))
 }
@@ -4170,7 +4575,10 @@ fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     ensure_help_only("check-doc-assets", args)?;
     let docs_root = workspace.path("docs");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&docs_root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -4186,7 +4594,10 @@ fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     if offenders.is_empty() {
         return success_line("doc-assets: OK");
     }
-    failure_lines("doc-assets: images must live under docs/assets/", &offenders)
+    failure_lines(
+        "doc-assets: images must live under docs/assets/",
+        &offenders,
+    )
 }
 
 fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
@@ -4197,7 +4608,10 @@ fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let non_goals = Regex::new(r"(?mi)^##\s+Non-goals\s*$")?;
     let contracts = Regex::new(r"(?mi)^##\s+Contracts\s*$")?;
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&docs_root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -4247,7 +4661,10 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
     let mut missing = Vec::new();
     let mut publication = Vec::new();
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&docs_root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -4284,7 +4701,11 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
                 missing.push(format!("{rel} -> {target}"));
             }
             if target.contains("assets/publications/")
-                && !target.split('#').next().unwrap_or_default().ends_with("/index.md")
+                && !target
+                    .split('#')
+                    .next()
+                    .unwrap_or_default()
+                    .ends_with("/index.md")
             {
                 publication.push(format!(
                     "{rel} -> {target} (must link to assets/publications/<pub-id>/index.md)"
@@ -4300,9 +4721,11 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         "make policy-full",
     ] {
         let matches = rg_lines(workspace, "docs", target)?;
-        missing.extend(matches.into_iter().map(|line| {
-            format!("stale make target reference `{target}`: {line}")
-        }));
+        missing.extend(
+            matches
+                .into_iter()
+                .map(|line| format!("stale make target reference `{target}`: {line}")),
+        );
     }
     if missing.is_empty() && publication.is_empty() {
         return success_line("docs links: OK");
@@ -4313,10 +4736,7 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     failure_lines("docs link check failed:", &errors)
 }
 
-fn docs_check_doc_root_layout(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
+fn docs_check_doc_root_layout(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-root-layout", args)?;
     let allowed_dirs = BTreeSet::from([
         "00-intro",
@@ -4342,7 +4762,9 @@ fn docs_check_doc_root_layout(
     ]);
     let docs_root = workspace.path("docs");
     let mut violations = Vec::new();
-    for entry in fs::read_dir(&docs_root).with_context(|| format!("read {}", docs_root.display()))? {
+    for entry in
+        fs::read_dir(&docs_root).with_context(|| format!("read {}", docs_root.display()))?
+    {
         let entry = entry?;
         let path = entry.path();
         let base = path
@@ -4360,7 +4782,9 @@ fn docs_check_doc_root_layout(
     }
     for required in required_dirs {
         if !docs_root.join(required).is_dir() {
-            violations.push(format!("missing required docs root directory: docs/{required}"));
+            violations.push(format!(
+                "missing required docs root directory: docs/{required}"
+            ));
         }
     }
     if violations.is_empty() {
@@ -4425,7 +4849,10 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         }
     }
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
-    for entry in WalkDir::new(&docs_root).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(&docs_root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -4568,13 +4995,19 @@ fn docs_check_domain_doc_references(
     {
         let raw = read_utf8(entry.path())?;
         for capture in docs_stage_re.captures_iter(&raw) {
-            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            let token = capture
+                .get(1)
+                .map(|value| value.as_str())
+                .unwrap_or_default();
             if !token.is_empty() && !stage_ids.contains(token) {
                 errors.push(format!("unknown stage: {token}"));
             }
         }
         for capture in docs_tool_re.captures_iter(&raw) {
-            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            let token = capture
+                .get(1)
+                .map(|value| value.as_str())
+                .unwrap_or_default();
             if !token.is_empty() && !token.contains('*') && !tool_ids.contains(token) {
                 errors.push(format!("unknown tool: {token}"));
             }
@@ -4586,10 +5019,7 @@ fn docs_check_domain_doc_references(
     failure_lines("docs reference unknown stage/tool ids", &errors)
 }
 
-fn docs_check_generated_docs(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
+fn docs_check_generated_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-generated-docs", args)?;
     let required = [
         "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
@@ -4628,7 +5058,10 @@ fn docs_check_generated_docs(
         &read_utf8(&workspace.path("docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"))?,
     )?;
     generate_tool_index(workspace, &temp_root.join("20-science/TOOL_INDEX.md"))?;
-    generate_domain_coverage_doc(workspace, &temp_root.join("20-science/DOMAIN_COVERAGE.generated.md"))?;
+    generate_domain_coverage_doc(
+        workspace,
+        &temp_root.join("20-science/DOMAIN_COVERAGE.generated.md"),
+    )?;
     let qa_matrix = run_program(
         workspace,
         "cargo",
@@ -4651,7 +5084,10 @@ fn docs_check_generated_docs(
     if !qa_matrix.is_success() {
         return Ok(qa_matrix);
     }
-    generate_repo_root_map(workspace, &temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
+    generate_repo_root_map(
+        workspace,
+        &temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"),
+    )?;
     generate_compatibility_matrix(
         workspace,
         &temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
@@ -4747,20 +5183,23 @@ fn docs_check_root_pollution(workspace: &Workspace, args: &[String]) -> Result<O
     if offenders.is_empty() {
         return success_line("root-pollution: OK");
     }
-    failure_lines("root-pollution: forbidden repo-root outputs detected", &offenders)
+    failure_lines(
+        "root-pollution: forbidden repo-root outputs detected",
+        &offenders,
+    )
 }
 
-fn docs_check_doc_major_depth(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
+fn docs_check_doc_major_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-major-depth", args)?;
     let required = BTreeMap::from([
         ("purpose", Regex::new(r"(?mi)^##\s+Purpose:?\s*$")?),
         ("scope", Regex::new(r"(?mi)^##\s+Scope:?\s*$")?),
         ("contracts", Regex::new(r"(?mi)^##\s+Contracts:?\s*$")?),
         ("examples", Regex::new(r"(?mi)^##\s+Examples:?\s*$")?),
-        ("failure modes", Regex::new(r"(?mi)^##\s+Failure modes:?\s*$")?),
+        (
+            "failure modes",
+            Regex::new(r"(?mi)^##\s+Failure modes:?\s*$")?,
+        ),
     ]);
     let mut errors = Vec::new();
     for rel in [
@@ -4810,7 +5249,9 @@ fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<Ops
     }
     let mut rows = Vec::new();
     for example_toml in glob_paths(workspace, "examples/**/example.toml")? {
-        let example_dir = example_toml.parent().context("example.toml without parent")?;
+        let example_dir = example_toml
+            .parent()
+            .context("example.toml without parent")?;
         let rel = workspace.rel(example_dir).to_string_lossy().to_string();
         if rel.starts_with("examples/_template") {
             continue;
@@ -4860,7 +5301,11 @@ fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<Ops
         if outputs.is_empty() {
             lines.push("      - none".to_string());
         } else {
-            lines.extend(outputs.into_iter().map(|output| format!("      - {output}")));
+            lines.extend(
+                outputs
+                    .into_iter()
+                    .map(|output| format!("      - {output}")),
+            );
         }
         lines.push(format!("    path: {rel}"));
     }
@@ -4885,10 +5330,7 @@ fn examples_check_index(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let temp = temp_subdir(workspace, "examples-index")?;
     let outcome = examples_generate_index(
         workspace,
-        &[
-            "--out".to_string(),
-            temp.display().to_string(),
-        ],
+        &["--out".to_string(), temp.display().to_string()],
     )?;
     if !outcome.is_success() {
         return Ok(outcome);
@@ -4940,7 +5382,10 @@ fn examples_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutc
             workspace.rel(&example_dir.join("example.toml")).display()
         ));
     }
-    if !workspace.path(&format!("examples/data/{corpus_id}")).is_dir() {
+    if !workspace
+        .path(&format!("examples/data/{corpus_id}"))
+        .is_dir()
+    {
         return Err(anyhow!("example corpus missing: examples/data/{corpus_id}"));
     }
     let artifact_root = artifact_root_path(workspace)?;
@@ -5055,7 +5500,9 @@ fn examples_check_drift(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     }
     let example_dir = find_example_dir(workspace, example_id)?
         .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
-    let art_dir = artifact_root_path(workspace)?.join("examples").join(example_id);
+    let art_dir = artifact_root_path(workspace)?
+        .join("examples")
+        .join(example_id);
     for file in ["plan.json", "explain.json"] {
         if read_utf8(&example_dir.join("golden").join(file))? != read_utf8(&art_dir.join(file))? {
             return Ok(OpsCommandOutcome::failure(format!(
@@ -5071,7 +5518,10 @@ fn hpc_validate_frontend_constraints(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+    if args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    {
         return success_line(
             "Usage: cargo run -p bijux-dev-dna -- hpc run validate-frontend-constraints -- [--dry-run|--confirm]",
         );
@@ -5087,10 +5537,12 @@ fn hpc_validate_frontend_constraints(
     if dry_run {
         return success_line("[dry-run] validate-frontend-constraints (pass --confirm to execute)");
     }
-    let policy_path = PathBuf::from(
-        std::env::var("POLICY_TOML")
-            .unwrap_or_else(|_| workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml").display().to_string()),
-    );
+    let policy_path = PathBuf::from(std::env::var("POLICY_TOML").unwrap_or_else(|_| {
+        workspace
+            .path("configs/ci/tools/hpc_frontend_build_policy.toml")
+            .display()
+            .to_string()
+    }));
     let min_tmp_gb = std::env::var("MIN_TMP_GB")
         .ok()
         .and_then(|value| value.parse::<u64>().ok())
@@ -5115,7 +5567,8 @@ fn hpc_validate_frontend_constraints(
             .and_then(TomlValue::as_str)
             .unwrap_or_default(),
     )? {
-        if std::env::var("CI").is_ok() || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
+        if std::env::var("CI").is_ok()
+            || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
         {
             return Ok(OpsCommandOutcome::failure(format!(
                 "frontend constraints: refusing compute host '{host}'\n"
@@ -5128,13 +5581,16 @@ fn hpc_validate_frontend_constraints(
         .and_then(TomlValue::as_str)
         .unwrap_or_default();
     if !frontend_pattern.is_empty() && !host_matches_policy(&host, frontend_pattern)? {
-        if std::env::var("CI").is_ok() || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
+        if std::env::var("CI").is_ok()
+            || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
         {
             return Ok(OpsCommandOutcome::failure(format!(
                 "frontend constraints: host '{host}' does not match frontend pattern\n"
             )));
         }
-        return success_line(format!("frontend constraints: SKIP (host {host} not frontend)"));
+        return success_line(format!(
+            "frontend constraints: SKIP (host {host} not frontend)"
+        ));
     }
     let tmp_gb = free_space_gb(Path::new("/tmp"))?;
     let work_gb = free_space_gb(&work_dir)?;
@@ -5170,11 +5626,11 @@ fn hpc_validate_frontend_constraints(
     ))
 }
 
-fn hpc_run_frontend_mini_e2e(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
-    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+fn hpc_run_frontend_mini_e2e(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+    if args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    {
         return success_line(
             "Usage: cargo run -p bijux-dev-dna -- hpc run run-frontend-mini-e2e -- [--dry-run|--confirm]",
         );
@@ -5198,7 +5654,12 @@ fn hpc_run_frontend_mini_e2e(
         .unwrap_or_else(|_| Utc::now().format("%Y%m%dT%H%M%SZ").to_string());
     let out_dir = std::env::var("OUT_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| artifact_root_path(workspace).unwrap_or_else(|_| workspace.path("artifacts")).join("hpc/frontend-mini-e2e").join(&run_id));
+        .unwrap_or_else(|_| {
+            artifact_root_path(workspace)
+                .unwrap_or_else(|_| workspace.path("artifacts"))
+                .join("hpc/frontend-mini-e2e")
+                .join(&run_id)
+        });
     fs::create_dir_all(&out_dir)?;
     let mut status = 0;
     for (example_id, label) in [
@@ -5210,17 +5671,16 @@ fn hpc_run_frontend_mini_e2e(
         let start = Utc::now();
         let outcome = examples_run(
             workspace,
-            &[
-                "--allow-non-isolate".to_string(),
-                example_id.to_string(),
-            ],
+            &["--allow-non-isolate".to_string(), example_id.to_string()],
         )?;
         write_utf8(&example_out.join("runner.stdout.log"), &outcome.stdout)?;
         write_utf8(&example_out.join("runner.stderr.log"), &outcome.stderr)?;
         if !outcome.is_success() {
             status = 1;
         }
-        let src = artifact_root_path(workspace)?.join("examples").join(example_id);
+        let src = artifact_root_path(workspace)?
+            .join("examples")
+            .join(example_id);
         for name in [
             "plan.json",
             "explain.json",
@@ -5278,7 +5738,10 @@ fn hpc_run_frontend_mini_e2e(
 }
 
 fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+    if args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    {
         return success_line(
             "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>]",
         );
@@ -5298,11 +5761,17 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 index += 1;
             }
             "--include" | "--include-profile" => {
-                include_profile = args.get(index + 1).context("missing value for include profile")?.clone();
+                include_profile = args
+                    .get(index + 1)
+                    .context("missing value for include profile")?
+                    .clone();
                 index += 2;
             }
             "--exclude" | "--exclude-profile" => {
-                exclude_profile = args.get(index + 1).context("missing value for exclude profile")?.clone();
+                exclude_profile = args
+                    .get(index + 1)
+                    .context("missing value for exclude profile")?
+                    .clone();
                 index += 2;
             }
             other if other.starts_with("--include=") || other.starts_with("--include-profile=") => {
@@ -5389,13 +5858,19 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 &[
                     "-az".to_string(),
                     format!("{lunarc_host}:{lunarc_root}/bijux-dna-containers/manifest/"),
-                    dest.join("bijux-dna-containers/manifest").display().to_string(),
+                    dest.join("bijux-dna-containers/manifest")
+                        .display()
+                        .to_string(),
                 ],
             )?;
             pulled_paths.push(format!("{lunarc_root}/bijux-dna-containers/manifest/"));
         }
         if !data_manifest_glob.is_empty() {
-            for rel in data_manifest_glob.split(',').map(str::trim).filter(|value| !value.is_empty()) {
+            for rel in data_manifest_glob
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+            {
                 let clean_rel = rel.trim_start_matches('/');
                 let target = dest.join("bijux-dna-data").join(clean_rel);
                 if let Some(parent) = target.parent() {
@@ -5422,11 +5897,17 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             format!("cd '{lunarc_repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
         ],
     )?.stdout);
-    let remote_hostname = trim_newline(&run_program(
-        workspace,
-        "ssh",
-        &[lunarc_host.clone(), "hostname -f 2>/dev/null || hostname".to_string()],
-    )?.stdout);
+    let remote_hostname = trim_newline(
+        &run_program(
+            workspace,
+            "ssh",
+            &[
+                lunarc_host.clone(),
+                "hostname -f 2>/dev/null || hostname".to_string(),
+            ],
+        )?
+        .stdout,
+    );
     write_json_pretty(
         &dest.join("PULLED_FROM.json"),
         &json!({
@@ -5445,7 +5926,10 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
 }
 
 fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+    if args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    {
         return success_line(
             "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-push -- [--dry-run|--confirm] [--exclude-profile <name>]",
         );
@@ -5464,7 +5948,10 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 index += 1;
             }
             "--exclude" | "--exclude-profile" => {
-                exclude_profile = args.get(index + 1).context("missing value for exclude profile")?.clone();
+                exclude_profile = args
+                    .get(index + 1)
+                    .context("missing value for exclude profile")?
+                    .clone();
                 index += 2;
             }
             other if other.starts_with("--exclude=") || other.starts_with("--exclude-profile=") => {
@@ -5514,11 +6001,7 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     if clean_context {
         let temp_root = temp_subdir(workspace, "lunarc-push")?;
         let files_from = temp_root.join("files.txt");
-        let tracked = run_program(
-            workspace,
-            "git",
-            &["ls-files".to_string()],
-        )?;
+        let tracked = run_program(workspace, "git", &["ls-files".to_string()])?;
         if !tracked.is_success() {
             return Ok(tracked);
         }
@@ -5627,7 +6110,11 @@ fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     let output_dir = env_or_override("OUTPUT_DIR", &config, "output_dir")?;
     let pipeline_ids = env_or_override("PIPELINE_IDS", &config, "pipeline_ids")?;
     let mut aggregate = OpsCommandOutcome::success(String::new());
-    for pipeline in pipeline_ids.split(',').map(str::trim).filter(|value| !value.is_empty()) {
+    for pipeline in pipeline_ids
+        .split(',')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
         let outcome = run_program(
             workspace,
             "cargo",
@@ -5724,7 +6211,10 @@ fn smoke_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutco
             "--r1".to_string(),
             "assets/golden/smoke-inputs-v1/fastq/se/reads.fastq".to_string(),
             "--out".to_string(),
-            artifact_root_path(workspace)?.join("smoke_fastq").display().to_string(),
+            artifact_root_path(workspace)?
+                .join("smoke_fastq")
+                .display()
+                .to_string(),
             "--sample-id".to_string(),
             "smoke_fastq".to_string(),
             "--dry-run".to_string(),
@@ -5751,7 +6241,13 @@ fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<Op
         vec!["lab", "run", "run-bench", "--", "--help"],
         vec!["smoke", "run", "run", "--", "--help"],
         vec!["test", "run", "toy-runs", "--", "--help"],
-        vec!["hpc", "run", "validate-frontend-constraints", "--", "--help"],
+        vec![
+            "hpc",
+            "run",
+            "validate-frontend-constraints",
+            "--",
+            "--help",
+        ],
     ];
     let mut failures = Vec::new();
     for probe in probes {
@@ -5851,7 +6347,8 @@ fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutco
             || name.contains("containers")
         {
             "apptainer-policy"
-        } else if name.contains("spawn") || name.contains("process") || name.contains("command_new") {
+        } else if name.contains("spawn") || name.contains("process") || name.contains("command_new")
+        {
             "spawn-policy"
         } else {
             "other"
@@ -6046,7 +6543,11 @@ fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
     let selected = match profile.as_str() {
         "all" => vec!["fastq", "bam", "vcf"],
         "fastq" | "bam" | "vcf" => vec![profile.as_str()],
-        _ => return Ok(OpsCommandOutcome::failure(format!("unknown profile: {profile}\n"))),
+        _ => {
+            return Ok(OpsCommandOutcome::failure(format!(
+                "unknown profile: {profile}\n"
+            )))
+        }
     };
     let checksums = verify_toy_inputs(workspace)?;
     fs::create_dir_all(&out).with_context(|| format!("create {}", out.display()))?;
@@ -6089,7 +6590,9 @@ fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
             let report = build_combined_toy_report(&out, &selected)?;
             success_line(report.display().to_string())
         }
-        other => Ok(OpsCommandOutcome::failure(format!("unknown command: {other}\n"))),
+        other => Ok(OpsCommandOutcome::failure(format!(
+            "unknown command: {other}\n"
+        ))),
     }
 }
 
@@ -6134,7 +6637,10 @@ fn run_check_ids(stdout: &mut String, check_ids: &[&str]) -> Result<()> {
         let outcomes = app.run_selection(CheckSelection::Single((*check_id).to_string()))?;
         for outcome in outcomes {
             if outcome.status == CheckStatus::Failed {
-                return Err(anyhow!("check `{check_id}` failed: {}", outcome.detail.trim()));
+                return Err(anyhow!(
+                    "check `{check_id}` failed: {}",
+                    outcome.detail.trim()
+                ));
             }
             stdout.push_str(&format!("{}: passed\n", outcome.id));
             if !outcome.detail.trim().is_empty() {
@@ -6156,7 +6662,10 @@ fn run_programs_with_env(
         let outcome = run_program_with_env(
             workspace,
             program,
-            &args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
+            &args
+                .iter()
+                .map(|value| (*value).to_string())
+                .collect::<Vec<_>>(),
             envs,
         )?;
         aggregate = merge_outcomes(aggregate, outcome);
@@ -6182,11 +6691,7 @@ fn walk_file_list(workspace: &Workspace, root: &str, extension: Option<&str>) ->
     Ok(format!("{}\n", files.join("\n")))
 }
 
-fn run_program(
-    workspace: &Workspace,
-    program: &str,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
+fn run_program(workspace: &Workspace, program: &str, args: &[String]) -> Result<OpsCommandOutcome> {
     run_program_with_env(workspace, program, args, &[])
 }
 
@@ -6241,7 +6746,11 @@ fn ensure_exists(path: &Path, label: &str, errors: &mut Vec<String>) -> bool {
 }
 
 fn value_string(value: Option<&Value>) -> String {
-    value.and_then(Value::as_str).unwrap_or_default().trim().to_string()
+    value
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .trim()
+        .to_string()
 }
 
 fn check_schema_doc(
@@ -6307,7 +6816,9 @@ fn compare_json_key_drift(
         .cloned()
         .collect::<Vec<_>>();
     if !missing.is_empty() {
-        errors.push(format!("{label}: missing golden keys (key-drift): {missing:?}"));
+        errors.push(format!(
+            "{label}: missing golden keys (key-drift): {missing:?}"
+        ));
     }
     Ok(())
 }
@@ -6318,13 +6829,13 @@ fn collect_warning_strings_json(value: &Value, out: &mut Vec<String>) {
             for (key, nested) in map {
                 if key.to_lowercase().starts_with("warn") {
                     match nested {
-                        Value::Array(items) => out.extend(
-                            items.iter().filter_map(|item| match item {
+                        Value::Array(items) => {
+                            out.extend(items.iter().filter_map(|item| match item {
                                 Value::String(value) => Some(value.clone()),
                                 other if !other.is_null() => Some(other.to_string()),
                                 _ => None,
-                            }),
-                        ),
+                            }))
+                        }
                         Value::String(item) => out.push(item.clone()),
                         other if !other.is_null() => out.push(other.to_string()),
                         _ => {}
@@ -6383,7 +6894,9 @@ fn assert_no_excess_float_precision(value: &Value, tag: &str, errors: &mut Vec<S
                     .nth(1)
                     .map_or(0, str::len);
                 if decimals > 6 {
-                    errors.push(format!("{tag}: excessive float precision in metrics ({value})"));
+                    errors.push(format!(
+                        "{tag}: excessive float precision in metrics ({value})"
+                    ));
                 }
             }
         }
@@ -6392,8 +6905,7 @@ fn assert_no_excess_float_precision(value: &Value, tag: &str, errors: &mut Vec<S
 }
 
 fn normalize_benchmark_html(raw: &str) -> String {
-    let timestamp_re =
-        Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z").expect("valid regex");
+    let timestamp_re = Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z").expect("valid regex");
     let user_re = Regex::new(r#"/Users/[^"'< ]+"#).expect("valid regex");
     let home_re = Regex::new(r#"/home/[^"'< ]+"#).expect("valid regex");
     let run_re = Regex::new(r#"run[_-]id[:=][^"'< ]+"#).expect("valid regex");
@@ -6466,9 +6978,7 @@ fn stable_now_utc_string() -> String {
 }
 
 fn stable_now_utc_compact() -> String {
-    stable_now_utc_string()
-        .replace(':', "")
-        .replace('-', "")
+    stable_now_utc_string().replace(':', "").replace('-', "")
 }
 
 fn materialize_controlled_file(
@@ -6501,7 +7011,8 @@ fn materialize_controlled_file(
             observed = sha256_hex(path)?;
         } else if observed != expected_sha256 {
             action = "rewrite-synthetic".to_string();
-            fs::write(path, synthetic_bytes).with_context(|| format!("write {}", path.display()))?;
+            fs::write(path, synthetic_bytes)
+                .with_context(|| format!("write {}", path.display()))?;
             observed = sha256_hex(path)?;
         }
     } else if download {
@@ -6509,7 +7020,8 @@ fn materialize_controlled_file(
         if verbose {
             stdout.push_str(&format!("[download] {label} <- {url}\n"));
         }
-        fs::write(path, download_bytes(url)?).with_context(|| format!("write {}", path.display()))?;
+        fs::write(path, download_bytes(url)?)
+            .with_context(|| format!("write {}", path.display()))?;
         observed = sha256_hex(path)?;
     } else {
         action = "write-synthetic".to_string();
@@ -6550,9 +7062,8 @@ fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
 }
 
 fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
-    let configured = std::env::var("ARTIFACT_ROOT").unwrap_or_else(|_| {
-        std::env::var("ISO_ROOT").unwrap_or_else(|_| "artifacts".to_string())
-    });
+    let configured = std::env::var("ARTIFACT_ROOT")
+        .unwrap_or_else(|_| std::env::var("ISO_ROOT").unwrap_or_else(|_| "artifacts".to_string()));
     let path = if PathBuf::from(&configured).is_absolute() {
         PathBuf::from(&configured)
     } else {
@@ -6564,7 +7075,9 @@ fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
 fn ensure_artifact_root_inside_artifacts(workspace: &Workspace) -> Result<()> {
     let display = artifact_root_path(workspace)?.display().to_string();
     if !display.contains("/artifacts") && !display.ends_with("artifacts") {
-        return Err(anyhow!("artifact root must stay under artifacts/: {display}"));
+        return Err(anyhow!(
+            "artifact root must stay under artifacts/: {display}"
+        ));
     }
     Ok(())
 }
@@ -6576,7 +7089,10 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
         fs::create_dir_all(dir)?;
     }
     Ok(vec![
-        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
+        (
+            "ARTIFACT_ROOT".to_string(),
+            artifact_root.display().to_string(),
+        ),
         ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
         (
             "CARGO_TARGET_DIR".to_string(),
@@ -6639,11 +7155,17 @@ fn ci_test_env(workspace: &Workspace, slow: bool) -> Result<Vec<(String, String)
     ));
     envs.push((
         "TEST_PROFRAW_DIR".to_string(),
-        artifact_root.join("coverage/profraw-test").display().to_string(),
+        artifact_root
+            .join("coverage/profraw-test")
+            .display()
+            .to_string(),
     ));
     envs.push((
         "COV_PROFRAW_DIR".to_string(),
-        artifact_root.join("coverage/profraw-coverage").display().to_string(),
+        artifact_root
+            .join("coverage/profraw-coverage")
+            .display()
+            .to_string(),
     ));
     if slow {
         if let Ok(output) = std::process::Command::new("sh")
@@ -6683,7 +7205,9 @@ fn resolved_nextest_profile(slow: bool) -> Result<String> {
             return Ok(value);
         }
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    let cfg: TomlValue = toml::from_str(&read_utf8(
+        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
+    )?)?;
     if slow {
         return Ok("slow-integration".to_string());
     }
@@ -6703,7 +7227,9 @@ fn resolved_nextest_threads(slow: bool) -> Result<String> {
     if slow {
         return Ok("8".to_string());
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    let cfg: TomlValue = toml::from_str(&read_utf8(
+        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
+    )?)?;
     Ok(cfg
         .get("test_threads")
         .and_then(TomlValue::as_integer)
@@ -6720,33 +7246,32 @@ fn resolved_run_ignored(slow: bool) -> Result<String> {
     if slow {
         return Ok("--run-ignored all".to_string());
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
-    Ok(if cfg
-        .get("run_ignored")
-        .and_then(TomlValue::as_bool)
-        .unwrap_or(true)
-    {
-        "--run-ignored all".to_string()
-    } else {
-        String::new()
-    })
+    let cfg: TomlValue = toml::from_str(&read_utf8(
+        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
+    )?)?;
+    Ok(
+        if cfg
+            .get("run_ignored")
+            .and_then(TomlValue::as_bool)
+            .unwrap_or(true)
+        {
+            "--run-ignored all".to_string()
+        } else {
+            String::new()
+        },
+    )
 }
 
-fn read_coverage_runner_flag(
-    workspace: &Workspace,
-    key: &str,
-    flag: &str,
-) -> Result<String> {
-    let cfg: TomlValue = toml::from_str(&read_utf8(&workspace.path("configs/coverage/runner.toml"))?)?;
-    Ok(if cfg
-        .get(key)
-        .and_then(TomlValue::as_bool)
-        .unwrap_or(false)
-    {
-        flag.to_string()
-    } else {
-        String::new()
-    })
+fn read_coverage_runner_flag(workspace: &Workspace, key: &str, flag: &str) -> Result<String> {
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&workspace.path("configs/coverage/runner.toml"))?)?;
+    Ok(
+        if cfg.get(key).and_then(TomlValue::as_bool).unwrap_or(false) {
+            flag.to_string()
+        } else {
+            String::new()
+        },
+    )
 }
 
 fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
@@ -6896,7 +7421,9 @@ fn stable_toy_digest(path: &Path) -> Result<String> {
                 serde_json::to_string(&payload)?.as_bytes(),
             ))
         }
-        Some("html") => Ok(sha256_hex_bytes(normalize_toy_html(&read_utf8(path)?).as_bytes())),
+        Some("html") => Ok(sha256_hex_bytes(
+            normalize_toy_html(&read_utf8(path)?).as_bytes(),
+        )),
         _ => sha256_hex(path),
     }
 }
@@ -6914,9 +7441,7 @@ fn normalize_toy_json(value: &Value) -> Value {
                 .map(|(key, value)| (key.clone(), normalize_toy_json(value)))
                 .collect(),
         ),
-        Value::Array(items) => {
-            Value::Array(items.iter().map(normalize_toy_json).collect())
-        }
+        Value::Array(items) => Value::Array(items.iter().map(normalize_toy_json).collect()),
         _ => value.clone(),
     }
 }
@@ -6937,7 +7462,12 @@ fn compare_toy_goldens(workspace: &Workspace, run_root: &Path, selected: &[&str]
         let profile_id = toy_profile_id(profile);
         let produced = run_root.join(profile_id);
         let golden = golden_root.join(profile_id);
-        for name in ["manifest.json", "metrics.json", "report.html", "artifact_checksums.json"] {
+        for name in [
+            "manifest.json",
+            "metrics.json",
+            "report.html",
+            "artifact_checksums.json",
+        ] {
             let produced_path = produced.join(name);
             let golden_path = golden.join(name);
             if !produced_path.exists() || !golden_path.exists() {
@@ -6991,8 +7521,9 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
                 fs::create_dir_all(parent)
                     .with_context(|| format!("create {}", parent.display()))?;
             }
-            fs::copy(entry.path(), &target)
-                .with_context(|| format!("copy {} -> {}", entry.path().display(), target.display()))?;
+            fs::copy(entry.path(), &target).with_context(|| {
+                format!("copy {} -> {}", entry.path().display(), target.display())
+            })?;
         }
     }
     Ok(())
@@ -7013,10 +7544,7 @@ fn glob_paths(workspace: &Workspace, pattern: &str) -> Result<Vec<PathBuf>> {
     let outcome = run_program(
         workspace,
         "rg",
-        &[
-            "--files".to_string(),
-            workspace.root.display().to_string(),
-        ],
+        &["--files".to_string(), workspace.root.display().to_string()],
     )?;
     if !outcome.is_success() {
         return Ok(Vec::new());
@@ -7063,11 +7591,7 @@ fn rg_lines(workspace: &Workspace, path: &str, pattern: &str) -> Result<Vec<Stri
     if !outcome.is_success() {
         return Ok(Vec::new());
     }
-    Ok(outcome
-        .stdout
-        .lines()
-        .map(ToOwned::to_owned)
-        .collect())
+    Ok(outcome.stdout.lines().map(ToOwned::to_owned).collect())
 }
 
 fn find_example_dir(workspace: &Workspace, example_id: &str) -> Result<Option<PathBuf>> {
@@ -7080,7 +7604,11 @@ fn find_example_dir(workspace: &Workspace, example_id: &str) -> Result<Option<Pa
     Ok(None)
 }
 
-fn ensure_generated_header(workspace: &Workspace, rel: &str, errors: &mut Vec<String>) -> Result<()> {
+fn ensure_generated_header(
+    workspace: &Workspace,
+    rel: &str,
+    errors: &mut Vec<String>,
+) -> Result<()> {
     ensure_generated_header_path(workspace, &workspace.path(rel), errors)
 }
 
@@ -7171,12 +7699,16 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                     continue;
                 }
                 let manifest: Value = serde_json::from_str(&read_utf8(&manifest_path)?)?;
-                let Some(report_path) = manifest.get("self_report_path").and_then(Value::as_str) else {
+                let Some(report_path) = manifest.get("self_report_path").and_then(Value::as_str)
+                else {
                     continue;
                 };
                 let report_path = PathBuf::from(report_path);
                 if report_path.is_file() {
-                    self_reports.insert(tool.to_string(), serde_json::from_str(&read_utf8(&report_path)?)?);
+                    self_reports.insert(
+                        tool.to_string(),
+                        serde_json::from_str(&read_utf8(&report_path)?)?,
+                    );
                 }
             }
         }
@@ -7219,13 +7751,20 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .join(", ");
         lines.push(format!(
             "- `{tool_id}` ({}) : {}",
-            info.get("status").and_then(Value::as_str).unwrap_or("unknown"),
-            if stages.is_empty() { "-".to_string() } else { stages }
+            info.get("status")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
+            if stages.is_empty() {
+                "-".to_string()
+            } else {
+                stages
+            }
         ));
     }
     lines.extend([
         "".to_string(),
-        "| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |".to_string(),
+        "| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |"
+            .to_string(),
         "|---|---|---|---|---|---|---|".to_string(),
     ]);
     for (tool_id, row) in tools {
@@ -7245,12 +7784,18 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .unwrap_or_else(|| row.get("version").and_then(Value::as_str).unwrap_or("-"));
         lines.push(format!(
             "| `{tool_id}` | `{}` | `{}` | `{}` | `{}` | {} | `{}` |",
-            row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
+            row.get("purpose")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
             if stages.is_empty() { "-" } else { &stages },
-            row.get("container_ref").and_then(Value::as_str).unwrap_or("-"),
+            row.get("container_ref")
+                .and_then(Value::as_str)
+                .unwrap_or("-"),
             version,
             row.get("citation").and_then(Value::as_str).unwrap_or("TBD"),
-            row.get("status").and_then(Value::as_str).unwrap_or("unknown"),
+            row.get("status")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
         ));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
@@ -7285,7 +7830,10 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         if !path.is_dir() {
             continue;
         }
-        let domain = path.file_name().and_then(|value| value.to_str()).unwrap_or("unknown");
+        let domain = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("unknown");
         let stages = count_schema_filtered(path.join("stages"))?;
         let tools = count_schema_filtered(path.join("tools"))?;
         let fixtures = glob_count(path.join("fixtures"), "*.txt")?;
@@ -7341,7 +7889,14 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
             .transpose()?
             .flatten()
             .unwrap_or_else(|| "-".to_string());
-        let owner = owner_for(&rules, if kind == "dir" { format!("{rel}/") } else { rel.clone() });
+        let owner = owner_for(
+            &rules,
+            if kind == "dir" {
+                format!("{rel}/")
+            } else {
+                rel.clone()
+            },
+        );
         lines.push(format!("| `{rel}` | `{kind}` | `{owner}` | {purpose} |"));
     }
     lines.extend([
@@ -7352,7 +7907,8 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
     ]);
     for rel in ["crates/bijux-dev-dna", "makes"] {
         let path = workspace.path(rel);
-        let purpose = read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
+        let purpose =
+            read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
         lines.push(format!("| `{rel}` | {purpose} |"));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
@@ -7404,7 +7960,11 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
     let mut rows = profiles
         .into_iter()
         .map(|profile| {
-            let domain = profile.split("-to-").next().unwrap_or("unknown").to_string();
+            let domain = profile
+                .split("-to-")
+                .next()
+                .unwrap_or("unknown")
+                .to_string();
             let stability = if profile.contains("reference") || profile.contains("default") {
                 "stable"
             } else {
@@ -7426,7 +7986,8 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
     let docs_root = workspace.path("docs");
     let mut lines = vec![
         "# GENERATED FILE - DO NOT EDIT".to_string(),
-        "# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph".to_string(),
+        "# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph"
+            .to_string(),
         "".to_string(),
     ];
     let mut dirs = vec![docs_root.clone()];
@@ -7564,9 +8125,7 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
     for entry in WalkDir::new(src).into_iter().filter_map(|entry| entry.ok()) {
         let path = entry.path();
-        let rel = path
-            .strip_prefix(src)
-            .context("strip copy source prefix")?;
+        let rel = path.strip_prefix(src).context("strip copy source prefix")?;
         if rel.as_os_str().is_empty() {
             continue;
         }
@@ -7632,7 +8191,11 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
         return Ok(true);
     }
 
-    let mut working_args = vec!["diff".to_string(), "--name-only".to_string(), "--".to_string()];
+    let mut working_args = vec![
+        "diff".to_string(),
+        "--name-only".to_string(),
+        "--".to_string(),
+    ];
     working_args.extend(watched.iter().map(|item| item.to_string()));
     let working = run_program(workspace, "git", &working_args)?;
     Ok(!working.is_success() || !working.stdout.trim().is_empty())
@@ -7675,9 +8238,10 @@ fn read_purpose_line(path: &Path) -> Result<Option<String>> {
     if !path.is_file() {
         return Ok(None);
     }
-    Ok(read_utf8(path)?
-        .lines()
-        .find_map(|line| line.strip_prefix("Purpose:").map(|value| value.trim().to_string())))
+    Ok(read_utf8(path)?.lines().find_map(|line| {
+        line.strip_prefix("Purpose:")
+            .map(|value| value.trim().to_string())
+    }))
 }
 
 fn owner_for(rules: &[TomlValue], rel: String) -> String {
@@ -7685,8 +8249,12 @@ fn owner_for(rules: &[TomlValue], rel: String) -> String {
         .iter()
         .filter_map(|rule| {
             let prefix = rule.get("prefix").and_then(TomlValue::as_str)?;
-            rel.starts_with(prefix)
-                .then(|| rule.get("owner").and_then(TomlValue::as_str).unwrap_or("-").to_string())
+            rel.starts_with(prefix).then(|| {
+                rule.get("owner")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or("-")
+                    .to_string()
+            })
         })
         .collect::<Vec<_>>();
     if hits.len() == 1 {
@@ -7698,7 +8266,11 @@ fn owner_for(rules: &[TomlValue], rel: String) -> String {
 
 fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
     let path = PathBuf::from(env_or_default("CONFIG_PATH", "configs/lab/config.toml"));
-    let resolved = if path.is_absolute() { path } else { workspace.path(path.to_string_lossy().as_ref()) };
+    let resolved = if path.is_absolute() {
+        path
+    } else {
+        workspace.path(path.to_string_lossy().as_ref())
+    };
     if !resolved.is_file() {
         return Err(anyhow!(
             "config not found: {}\ncopy configs/lab/config_example.toml to configs/lab/config.toml",
@@ -7752,9 +8324,7 @@ fn resolve_workspace_path(workspace: &Workspace, raw: &str) -> PathBuf {
 fn free_space_gb(path: &Path) -> Result<u64> {
     let outcome = run_program(
         &Workspace {
-            root: path
-                .canonicalize()
-                .unwrap_or_else(|_| path.to_path_buf()),
+            root: path.canonicalize().unwrap_or_else(|_| path.to_path_buf()),
         },
         "df",
         &["-Pk".to_string(), path.display().to_string()],
@@ -7807,7 +8377,11 @@ fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option
         .unwrap_or_default();
     Ok(profiles.into_iter().find_map(|row| {
         (row.get("name").and_then(TomlValue::as_str) == Some(profile))
-            .then(|| row.get(field).and_then(TomlValue::as_str).map(ToOwned::to_owned))
+            .then(|| {
+                row.get(field)
+                    .and_then(TomlValue::as_str)
+                    .map(ToOwned::to_owned)
+            })
             .flatten()
     }))
 }

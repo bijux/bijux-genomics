@@ -6,7 +6,8 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::ImageQaOutcome;
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
+    STAGE_CORRECT_ERRORS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_TRIM_READS,
+    STAGE_VALIDATE_READS,
 };
 use uuid::Uuid;
 

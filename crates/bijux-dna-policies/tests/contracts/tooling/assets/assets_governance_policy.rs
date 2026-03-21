@@ -214,8 +214,7 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
             {
                 continue;
             }
-            let is_testish = rel_s.contains("/tests/")
-                || rel_s.ends_with(".mk");
+            let is_testish = rel_s.contains("/tests/") || rel_s.ends_with(".mk");
             if !is_testish {
                 continue;
             }

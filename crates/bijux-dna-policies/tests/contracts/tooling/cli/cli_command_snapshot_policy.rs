@@ -22,9 +22,15 @@ fn run_workspace_bijux_dna(
         command
     } else {
         let mut command = Command::new("cargo");
-        command
-            .current_dir(root)
-            .args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux-dna", "--"]);
+        command.current_dir(root).args([
+            "run",
+            "-q",
+            "-p",
+            "bijux-dna",
+            "--bin",
+            "bijux-dna",
+            "--",
+        ]);
         command
     };
     command.args(args).output().unwrap_or_else(|err| {

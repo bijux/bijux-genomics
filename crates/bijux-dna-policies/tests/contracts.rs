@@ -130,8 +130,6 @@ mod mod_contracts_tooling_profiles_runtime_policy_rs;
 mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 #[path = "contracts/tooling/registry/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
-#[path = "contracts/tooling/registry/stage_catalog_registry_parity_policy.rs"]
-mod mod_contracts_tooling_stage_catalog_registry_parity_policy_rs;
 #[path = "contracts/tooling/root/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/root/root_migration_guard_policy.rs"]
@@ -148,6 +146,8 @@ mod mod_contracts_tooling_smoke_manifest_policy_rs;
 mod mod_contracts_tooling_smoke_probe_policy_rs;
 #[path = "contracts/tooling/governance_quality/snapshot_hygiene_policy.rs"]
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
+#[path = "contracts/tooling/registry/stage_catalog_registry_parity_policy.rs"]
+mod mod_contracts_tooling_stage_catalog_registry_parity_policy_rs;
 #[path = "contracts/tooling/stage/stage_executor_parity_policy.rs"]
 mod mod_contracts_tooling_stage_executor_parity_policy_rs;
 #[path = "contracts/tooling/stage/stage_id_symmetry_policy.rs"]

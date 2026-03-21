@@ -1,11 +1,9 @@
 use anyhow::{anyhow, Result};
 
-use crate::runtime::workspace::Workspace;
-use crate::model::domain::{
-    DomainCommandDefinition, DomainCommandOutcome, DomainCommandSpec,
-};
-use crate::commands::run_native_domain_command;
 use crate::catalog::domain::domain_registry;
+use crate::commands::run_native_domain_command;
+use crate::model::domain::{DomainCommandDefinition, DomainCommandOutcome, DomainCommandSpec};
+use crate::runtime::workspace::Workspace;
 
 #[derive(Debug)]
 pub struct DomainApplication {
@@ -35,7 +33,9 @@ impl DomainApplication {
             .find(|candidate| candidate.id == id)
             .ok_or_else(|| anyhow!("unknown domain command `{id}`"))?;
         match &command.command {
-            DomainCommandSpec::Native { key } => run_native_domain_command(key, &self.workspace, args),
+            DomainCommandSpec::Native { key } => {
+                run_native_domain_command(key, &self.workspace, args)
+            }
         }
     }
 }

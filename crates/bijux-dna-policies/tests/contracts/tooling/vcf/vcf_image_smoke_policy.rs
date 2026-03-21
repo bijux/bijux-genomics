@@ -21,8 +21,8 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let images: toml::Value = images_raw
         .parse()
         .unwrap_or_else(|_| panic!("parse {images_path:?}"));
-    let native = std::fs::read_to_string(&native_path)
-        .unwrap_or_else(|_| panic!("read {native_path:?}"));
+    let native =
+        std::fs::read_to_string(&native_path).unwrap_or_else(|_| panic!("read {native_path:?}"));
 
     let image_ids = images
         .as_table()

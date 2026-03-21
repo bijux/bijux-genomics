@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-#[path = "../../../support/fs.rs"]
-mod support;
 #[path = "../../../../../bijux-dna-stage-contract/src/executor_registry.rs"]
 mod executor_registry;
+#[path = "../../../support/fs.rs"]
+mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;

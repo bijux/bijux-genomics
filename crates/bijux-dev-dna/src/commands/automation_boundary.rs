@@ -4,9 +4,9 @@ use anyhow::Result;
 use regex::Regex;
 use walkdir::WalkDir;
 
-use crate::runtime::workspace::Workspace;
-use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::commands::command_support::{fail, make_files, pass, read};
+use crate::model::check::{CheckDefinition, CheckOutcome};
+use crate::runtime::workspace::Workspace;
 
 pub(crate) fn check_legacy_automation_removed(
     workspace: &Workspace,
@@ -57,13 +57,19 @@ pub(crate) fn check_automation_entrypoints(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let offenders = repo_legacy_automation_references(workspace, &[
-        workspace.path("Makefile"),
-        workspace.path("makes"),
-        workspace.path(".github"),
-    ])?;
+    let offenders = repo_legacy_automation_references(
+        workspace,
+        &[
+            workspace.path("Makefile"),
+            workspace.path("makes"),
+            workspace.path(".github"),
+        ],
+    )?;
     if offenders.is_empty() {
-        return pass(check, "make and workflow entrypoints do not reference legacy automation");
+        return pass(
+            check,
+            "make and workflow entrypoints do not reference legacy automation",
+        );
     }
     fail(check, offenders.join("\n"))
 }
@@ -86,7 +92,8 @@ pub(crate) fn check_ci_automation_surface(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let offenders = repo_legacy_automation_references(workspace, &[workspace.path(".github/workflows")])?;
+    let offenders =
+        repo_legacy_automation_references(workspace, &[workspace.path(".github/workflows")])?;
     if offenders.is_empty() {
         return pass(check, "CI workflows do not reference legacy automation");
     }
@@ -119,7 +126,10 @@ pub(crate) fn check_no_raw_cargo_in_makes(
         &[workspace.path("Makefile"), workspace.path("makes")],
     )?);
     if violations.is_empty() {
-        return pass(check, "make surface delegates through bijux-dev-dna without legacy automation");
+        return pass(
+            check,
+            "make surface delegates through bijux-dev-dna without legacy automation",
+        );
     }
     fail(check, violations.join("\n"))
 }
@@ -173,9 +183,13 @@ pub(crate) fn check_automation_intent(
     check_legacy_automation_removed(workspace, check)
 }
 
-fn repo_legacy_automation_references(workspace: &Workspace, roots: &[std::path::PathBuf]) -> Result<Vec<String>> {
+fn repo_legacy_automation_references(
+    workspace: &Workspace,
+    roots: &[std::path::PathBuf],
+) -> Result<Vec<String>> {
     let mut offenders = BTreeSet::new();
-    let script_re = Regex::new(&format!(r"{}[A-Za-z0-9_./-]+", ["scr", "ipts/"].concat())).expect("regex");
+    let script_re =
+        Regex::new(&format!(r"{}[A-Za-z0-9_./-]+", ["scr", "ipts/"].concat())).expect("regex");
     for root in roots {
         if root.is_file() {
             let rel = workspace.rel(root).display().to_string();
@@ -185,7 +199,10 @@ fn repo_legacy_automation_references(workspace: &Workspace, roots: &[std::path::
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }

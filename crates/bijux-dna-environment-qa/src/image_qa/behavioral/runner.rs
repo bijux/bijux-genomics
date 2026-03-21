@@ -255,7 +255,7 @@ use anyhow::{anyhow, Context, Result};
 use uuid::Uuid;
 
 use bijux_dna_core::contract::ToolRegistry;
-use bijux_dna_domain_fastq::{STAGE_REPORT_QC, STAGE_PROFILE_READS, STAGE_EXTRACT_UMIS};
+use bijux_dna_domain_fastq::{STAGE_EXTRACT_UMIS, STAGE_PROFILE_READS, STAGE_REPORT_QC};
 
 use crate::api::{PlatformSpec, ToolImageSpec};
 use crate::image_qa::fs::temp_out_dir;
