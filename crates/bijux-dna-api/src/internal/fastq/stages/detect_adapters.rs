@@ -9,7 +9,6 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_detect_adapters_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::detect_adapters::plan;
@@ -18,11 +17,10 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
-use uuid::Uuid;
-
 use crate::internal::fastq::stages::trim_bench_common::{
     build_benchmark_context, prepare_trim_bench,
 };
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -118,7 +116,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&plan.params);
         let image_digest = tool_spec
             .image
             .digest
