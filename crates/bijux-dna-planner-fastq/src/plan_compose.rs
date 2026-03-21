@@ -917,9 +917,11 @@ fn upstream_lineages<'a>(
     lineage_by_node_id: &'a BTreeMap<String, PlannedStageLineage>,
 ) -> Vec<&'a PlannedStageLineage> {
     let node_id = stage_node_id_for_binding(binding);
-    if let Some(upstream_nodes) = stage_dependencies.and_then(|policy| policy.get(&node_id)) {
-        return upstream_nodes
-            .iter()
+    if let Some(policy) = stage_dependencies {
+        return policy
+            .get(&node_id)
+            .into_iter()
+            .flat_map(|upstream_nodes| upstream_nodes.iter())
             .filter_map(|upstream_node| lineage_by_node_id.get(upstream_node))
             .collect();
     }
