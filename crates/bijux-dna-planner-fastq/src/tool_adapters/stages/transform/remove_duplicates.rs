@@ -150,7 +150,7 @@ pub fn plan_deduplicate_with_options(
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
             template: deduplicate_command(
-                &tool.tool_id.0,
+                tool,
                 r1,
                 r2,
                 &output_r1,
@@ -181,7 +181,7 @@ pub fn plan_deduplicate_with_options(
 }
 
 fn deduplicate_command(
-    tool_id: &str,
+    tool: &ToolExecutionSpecV1,
     r1: &Path,
     r2: Option<&Path>,
     output_r1: &Path,
@@ -190,74 +190,58 @@ fn deduplicate_command(
     out_dir: &Path,
     options: &RemoveDuplicatesPlanOptions,
 ) -> Result<Vec<String>> {
-    match tool_id {
-        "fastuniq" => {
-            let r2 = r2.ok_or_else(|| anyhow!("fastuniq requires paired-end reads"))?;
-            let output_r2 =
-                output_r2.ok_or_else(|| anyhow!("fastuniq requires paired deduplicated output"))?;
-            let input_manifest = out_dir.join("fastuniq_inputs.txt");
-            let backend_log = out_dir.join("fastuniq.log");
-            let report_payload = serde_json::json!({
-                "schema_version": "bijux.fastq.remove_duplicates.report.v1",
-                "stage_id": STAGE_ID.as_str(),
-                "tool_id": tool_id,
-                "dedup_mode": options.dedup_mode,
-                "keep_order": options.keep_order,
-                "input_r1": r1,
-                "input_r2": r2,
-                "output_r1": output_r1,
-                "output_r2": output_r2,
-                "backend_log": backend_log,
-            });
-            let script = format!(
-                "set -euo pipefail\nprintf '%s\\n%s\\n' {} {} > {}\nfastuniq -i {} -t q -o {} -p {} > {} 2>&1\nprintf '%s\\n' {} > {}\n",
-                shell_quote_path(r1),
-                shell_quote_path(r2),
-                shell_quote_path(&input_manifest),
-                shell_quote_path(&input_manifest),
-                shell_quote_path(output_r1),
-                shell_quote_path(output_r2),
-                shell_quote_path(&backend_log),
-                shell_quote_str(&report_payload.to_string()),
-                shell_quote_path(report),
-            );
-            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
-        }
-        "clumpify" => {
-            let backend_log = out_dir.join("clumpify.log");
-            let mut script = format!(
-                "set -euo pipefail\nclumpify.sh in={} out={} dedupe=t",
-                shell_quote_arg(&format!("in={}", r1.display())),
-                shell_quote_arg(&format!("out={}", output_r1.display())),
-            );
-            if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-                script.push(' ');
-                script.push_str(&shell_quote_arg(&format!("in2={}", r2.display())));
-                script.push(' ');
-                script.push_str(&shell_quote_arg(&format!("out2={}", output_r2.display())));
-            }
-            script.push_str(&format!(" > {} 2>&1\n", shell_quote_path(&backend_log)));
-            let report_payload = serde_json::json!({
-                "schema_version": "bijux.fastq.remove_duplicates.report.v1",
-                "stage_id": STAGE_ID.as_str(),
-                "tool_id": tool_id,
-                "dedup_mode": options.dedup_mode,
-                "keep_order": options.keep_order,
-                "input_r1": r1,
-                "input_r2": r2,
-                "output_r1": output_r1,
-                "output_r2": output_r2,
-                "backend_log": backend_log,
-            });
-            script.push_str(&format!(
-                "printf '%s\\n' {} > {}\n",
-                shell_quote_str(&report_payload.to_string()),
-                shell_quote_path(report),
-            ));
-            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
-        }
-        _ => Err(anyhow!("unsupported deduplicate tool {tool_id}")),
+    let tool_id = tool.tool_id.as_str();
+    let backend_log = match tool_id {
+        "fastuniq" => out_dir.join("fastuniq.log"),
+        "clumpify" => out_dir.join("clumpify.log"),
+        _ => return Err(anyhow!("unsupported deduplicate tool {tool_id}")),
+    };
+    if tool_id == "fastuniq" {
+        r2.ok_or_else(|| anyhow!("fastuniq requires paired-end reads"))?;
+        output_r2.ok_or_else(|| anyhow!("fastuniq requires paired deduplicated output"))?;
     }
+    let paired_io_args = match (r2, output_r2) {
+        (Some(r2), Some(output_r2)) => {
+            format!("in2='{}' out2='{}'", r2.display(), output_r2.display())
+        }
+        (None, None) => String::new(),
+        _ => return Err(anyhow!("paired remove-duplicates IO bindings are incomplete")),
+    };
+    let rendered = crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", Some(r1.display().to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            ("reads_r2", r2.map(|path| path.display().to_string())),
+            ("dedup_reads_r1", Some(output_r1.display().to_string())),
+            (
+                "dedup_reads_r2",
+                output_r2.map(|path| path.display().to_string()),
+            ),
+            ("report_json", Some(report.display().to_string())),
+            ("out_dir", Some(out_dir.display().to_string())),
+            ("paired_io_args", Some(paired_io_args)),
+        ],
+    )?;
+    let report_payload = serde_json::json!({
+        "schema_version": "bijux.fastq.remove_duplicates.report.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "dedup_mode": options.dedup_mode,
+        "keep_order": options.keep_order,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2,
+        "backend_log": backend_log,
+    });
+    let script = format!(
+        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
+        shell_join(&rendered),
+        shell_quote_str(&report_payload.to_string()),
+        shell_quote_path(report),
+    );
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
 fn validate_deduplicate_options(
@@ -290,10 +274,6 @@ pub fn parse_dedup_mode(value: &str) -> Result<DedupMode> {
     }
 }
 
-fn shell_quote_arg(value: &str) -> String {
-    shell_quote_str(value)
-}
-
 fn shell_quote_path(path: &Path) -> String {
     shell_quote_str(&path.display().to_string())
 }
@@ -302,11 +282,51 @@ fn shell_quote_str(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use bijux_dna_core::ids::ToolId;
     use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints};
+
+    fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: match tool_id {
+                    "fastuniq" => vec![
+                        "sh".to_string(),
+                        "-lc".to_string(),
+                        "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"fastuniq\"}' > '{{report_json}}'\n".to_string(),
+                    ],
+                    "clumpify" => vec![
+                        "sh".to_string(),
+                        "-lc".to_string(),
+                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' dedupe=t > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
+                    ],
+                    _ => vec!["unused".to_string()],
+                },
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
 
     #[test]
     fn deduplicate_output_name_rejects_unadmitted_tools() {
@@ -323,26 +343,8 @@ mod tests {
 
     #[test]
     fn plan_deduplicate_fastuniq_builds_paired_command_and_report() {
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("fastuniq"),
-            tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["unused".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        };
-
         let plan = plan_deduplicate(
-            &tool,
+            &dummy_tool("fastuniq"),
             Path::new("reads_R1.fastq.gz"),
             Some(Path::new("reads_R2.fastq.gz")),
             Path::new("out"),
@@ -374,26 +376,8 @@ mod tests {
 
     #[test]
     fn plan_deduplicate_fastuniq_rejects_single_end_inputs() {
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("fastuniq"),
-            tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["unused".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        };
-
         let error = plan_deduplicate(
-            &tool,
+            &dummy_tool("fastuniq"),
             Path::new("reads_R1.fastq.gz"),
             None,
             Path::new("out"),
@@ -404,26 +388,13 @@ mod tests {
 
     #[test]
     fn plan_deduplicate_clumpify_emits_governed_report() {
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("clumpify"),
-            tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["unused".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        };
-
-        let plan = plan_deduplicate(&tool, Path::new("reads.fastq.gz"), None, Path::new("out"))
-            .expect("clumpify single-end dedup planning should succeed");
+        let plan = plan_deduplicate(
+            &dummy_tool("clumpify"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+        )
+        .expect("clumpify single-end dedup planning should succeed");
 
         assert_eq!(plan.command.template[0], "sh");
         assert_eq!(plan.command.template[1], "-lc");
@@ -431,30 +402,13 @@ mod tests {
         assert!(script.contains("clumpify.sh"));
         assert!(script.contains("clumpify.log"));
         assert!(script.contains("\"tool_id\":\"clumpify\""));
+        assert!(!script.contains("{{paired_io_args}}"));
     }
 
     #[test]
     fn plan_deduplicate_rejects_non_exact_mode_until_backend_support_exists() {
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("clumpify"),
-            tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["unused".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        };
-
         let error = plan_deduplicate_with_options(
-            &tool,
+            &dummy_tool("clumpify"),
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
@@ -470,26 +424,8 @@ mod tests {
 
     #[test]
     fn plan_deduplicate_rejects_keep_order_false_until_backend_mapping_exists() {
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("clumpify"),
-            tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["unused".to_string()],
-            },
-            resources: ToolConstraints {
-                runtime: "docker".to_string(),
-                mem_gb: 1,
-                tmp_gb: 1,
-                threads: 1,
-            },
-        };
-
         let error = plan_deduplicate_with_options(
-            &tool,
+            &dummy_tool("clumpify"),
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
