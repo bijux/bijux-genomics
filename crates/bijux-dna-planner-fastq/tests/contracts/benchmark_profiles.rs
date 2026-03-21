@@ -136,7 +136,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&polyg_stage);
     assert_eq!(polyg_cohorts.len(), 1);
     assert_eq!(polyg_cohorts[0].scenario_id, "polyg_trim_fairness");
-    assert!(polyg_cohorts[0].tool_ids.is_empty());
+    assert_eq!(
+        polyg_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["bbduk", "fastp"]
+    );
+    assert_eq!(
+        polyg_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["bbduk", "fastp"]
+    );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let screen_cohorts =
