@@ -4,7 +4,6 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
-  - "SE"
 container:
   image: "bijuxdna/bayeshammer"
   digest: "sha256:pending"

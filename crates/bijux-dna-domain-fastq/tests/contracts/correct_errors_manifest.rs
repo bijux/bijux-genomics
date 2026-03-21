@@ -36,3 +36,23 @@ fn correction_tool_manifests_require_paired_inputs_for_current_runtime_contract(
     }
     Ok(())
 }
+
+#[test]
+fn correction_tool_capabilities_match_current_stage_runtime_surface() -> Result<()> {
+    for tool_id in ["rcorrector", "musket", "lighter", "bayeshammer"] {
+        let manifest = tool_manifest(tool_id)?;
+        let capabilities = manifest
+            .get("capabilities")
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} capabilities"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            capabilities,
+            vec!["PE"],
+            "{tool_id} capability declaration must match the current paired-end correct_errors stage contract"
+        );
+    }
+    Ok(())
+}
