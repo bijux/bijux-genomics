@@ -10,7 +10,7 @@ use crate::policy::GateDecision;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
-    stage_input_ids, stage_output_ids, stage_tool_binding,
+    stage_input_ids, stage_output_ids, stage_parameter_ids, stage_tool_binding,
 };
 use bijux_dna_stage_contract::executor_registry::has_executor;
 
@@ -170,6 +170,9 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                         stage.stage
                     )));
                 }
+            }
+            if binding.tool.is_none() {
+                validate_stage_param_binding_keys(&stage.stage, binding.values.keys())?;
             }
         }
         for upstream in &stage.upstream_stage_instance_ids {
@@ -448,6 +451,25 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
     Ok(())
 }
 
+fn validate_stage_param_binding_keys<'a>(
+    stage_id: &str,
+    keys: impl IntoIterator<Item = &'a String>,
+) -> Result<(), BenchError> {
+    let Some(parameter_ids) = stage_parameter_ids(stage_id) else {
+        return Ok(());
+    };
+    for key in keys {
+        if parameter_ids.contains(key) {
+            continue;
+        }
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite stage {} stage-scoped param binding {} is not declared in the governed stage parameter contract",
+            stage_id, key
+        )));
+    }
+    Ok(())
+}
+
 fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     let mut incoming = std::collections::BTreeMap::new();
     let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
@@ -702,6 +724,49 @@ mod tests {
         assert!(error
             .to_string()
             .contains("must match the stage node or one of its stage-tool nodes"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_governed_stage_scoped_param_bindings() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+            tools: vec!["fastp".to_string(), "bbduk".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+                tool: None,
+                values: std::collections::BTreeMap::from([
+                    ("min_length".to_string(), serde_json::json!(30)),
+                    ("quality_cutoff".to_string(), serde_json::json!(20)),
+                    ("adapter_policy".to_string(), serde_json::json!("auto")),
+                ]),
+            }],
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        validate_suite(&suite).expect("governed stage-scoped param bindings should validate");
+    }
+
+    #[test]
+    fn suite_validation_rejects_unknown_stage_scoped_param_bindings() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+                tool: None,
+                values: std::collections::BTreeMap::from([(
+                    "adapter_bank_path".to_string(),
+                    serde_json::json!("bank.json"),
+                )]),
+            }],
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error =
+            validate_suite(&suite).expect_err("unknown stage-scoped param bindings must fail");
+        assert!(error.to_string().contains("governed stage parameter contract"));
     }
 
     #[test]
