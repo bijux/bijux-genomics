@@ -189,6 +189,24 @@ fn checked_in_fastq_suite_catalog_exercises_multi_tool_validation_cohorts() -> R
 }
 
 #[test]
+fn checked_in_fastq_suite_catalog_uses_multiple_remove_duplicates_suites() -> Result<()> {
+    let suite_count = checked_in_suites()?
+        .into_iter()
+        .filter(|(_path, suite)| {
+            suite
+                .stages
+                .iter()
+                .any(|stage| stage.stage == "fastq.remove_duplicates")
+        })
+        .count();
+    assert!(
+        suite_count >= 2,
+        "checked-in FASTQ suites must exercise fastq.remove_duplicates in more than one suite"
+    );
+    Ok(())
+}
+
+#[test]
 fn checked_in_fastq_suite_catalog_covers_all_admitted_trim_backends() -> Result<()> {
     let covered = checked_in_suites()?
         .into_iter()
