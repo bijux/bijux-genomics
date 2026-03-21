@@ -55,15 +55,18 @@
   "params": {
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
+    "min_length": 30,
+    "n_policy": "retain",
     "output_r1": "out/fastp.fastq.gz",
     "output_r2": null,
+    "quality_cutoff": null,
     "tool": "fastp"
   },
   "effective_params": {
     "adapter_policy": "none",
     "contaminant_policy": null,
-    "min_len": 0,
-    "n_policy": null,
+    "min_len": 30,
+    "n_policy": "retain",
     "paired_mode": "single_end",
     "polyx_policy": null,
     "q_cutoff": null,
