@@ -21,8 +21,10 @@ use super::screen::{
 };
 use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use super::trim::{
-    TrimEffectiveParams, TrimPolygTailsParams, TrimTerminalDamageParams,
-    TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+    default_terminal_damage_execution_policy, TrimEffectiveParams, TrimPolygTailsParams,
+    TrimTerminalDamageParams, DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES,
+    DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES, TRIM_POLYG_TAILS_SCHEMA_VERSION,
+    TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use super::validate::{
@@ -127,8 +129,11 @@ pub fn trim_terminal_damage_defaults(paired: bool) -> TrimTerminalDamageParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         damage_mode: DamageMode::Ancient,
-        trim_5p_bases: 2,
-        trim_3p_bases: 2,
+        execution_policy: default_terminal_damage_execution_policy(),
+        trim_5p_bases: DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES,
+        trim_3p_bases: DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES,
+        requested_trim_5p_bases: None,
+        requested_trim_3p_bases: None,
     }
 }
 

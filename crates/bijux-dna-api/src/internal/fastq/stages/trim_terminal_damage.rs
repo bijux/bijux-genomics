@@ -11,6 +11,7 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_domain_fastq::params::trim::TrimTerminalDamageParams;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::plan_trim_terminal_damage;
 use bijux_dna_planner_fastq::stage_api::{
@@ -248,6 +249,9 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
+        let effective_params =
+            serde_json::from_value::<TrimTerminalDamageParams>(plan.effective_params.clone())
+                .context("decode trim terminal damage effective params")?;
 
         let pre_profile_r1 = terminal_damage_profile(&bench_inputs.r1)?;
         let pre_profile_r2 = if let Some(r2) = args.r2.as_deref() {
@@ -309,8 +313,11 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             "ct_ga_asymmetry_post": ct_ga_asymmetry_post,
             "output_r1": output_r1,
             "output_r2": args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
-            "trim_5p_bases": args.trim_5p_bases.unwrap_or(2),
-            "trim_3p_bases": args.trim_3p_bases.unwrap_or(2),
+            "execution_policy": effective_params.execution_policy,
+            "trim_5p_bases": effective_params.trim_5p_bases,
+            "trim_3p_bases": effective_params.trim_3p_bases,
+            "requested_trim_5p_bases": effective_params.requested_trim_5p_bases,
+            "requested_trim_3p_bases": effective_params.requested_trim_3p_bases,
             "terminal_base_composition_pre_r1": pre_profile_r1.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
             "terminal_base_composition_post_r1": post_profile_r1.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
             "ct_ga_asymmetry_pre_r1": pre_profile_r1.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),

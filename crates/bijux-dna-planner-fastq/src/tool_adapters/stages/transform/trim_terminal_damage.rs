@@ -5,7 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::trim::{
-    TrimTerminalDamageParams, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+    resolve_terminal_damage_policy, TrimTerminalDamageParams, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
@@ -62,6 +62,11 @@ pub fn plan_trim_terminal_damage_with_options(
     out_dir: &Path,
     options: &TrimTerminalDamagePlanOptions,
 ) -> Result<StagePlanV1> {
+    let resolved_policy = resolve_terminal_damage_policy(
+        options.damage_mode,
+        options.trim_5p_bases,
+        options.trim_3p_bases,
+    );
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
     let output_r1 = if r2.is_some() {
@@ -79,16 +84,22 @@ pub fn plan_trim_terminal_damage_with_options(
         output_r2.as_deref(),
         &report,
         options.damage_mode,
-        options.trim_5p_bases,
-        options.trim_3p_bases,
+        resolved_policy.execution_policy,
+        resolved_policy.effective_trim_5p_bases,
+        resolved_policy.effective_trim_3p_bases,
+        resolved_policy.requested_trim_5p_bases,
+        resolved_policy.requested_trim_3p_bases,
     )?;
     let effective_params = TrimTerminalDamageParams {
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
         threads: tool.resources.threads,
         damage_mode: options.damage_mode,
-        trim_5p_bases: options.trim_5p_bases,
-        trim_3p_bases: options.trim_3p_bases,
+        execution_policy: resolved_policy.execution_policy,
+        trim_5p_bases: resolved_policy.effective_trim_5p_bases,
+        trim_3p_bases: resolved_policy.effective_trim_3p_bases,
+        requested_trim_5p_bases: Some(resolved_policy.requested_trim_5p_bases),
+        requested_trim_3p_bases: Some(resolved_policy.requested_trim_3p_bases),
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -157,22 +168,29 @@ fn trim_terminal_damage_command(
     output_r2: Option<&Path>,
     report: &Path,
     damage_mode: DamageMode,
+    execution_policy: bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy,
     trim_5p_bases: u32,
     trim_3p_bases: u32,
+    requested_trim_5p_bases: u32,
+    requested_trim_3p_bases: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
         "cutadapt" => {
-            let mut command = vec![
-                "cutadapt".to_string(),
-                "-u".to_string(),
-                trim_5p_bases.to_string(),
-                "-u".to_string(),
-                format!("-{trim_3p_bases}"),
+            let mut command = vec!["cutadapt".to_string()];
+            if trim_5p_bases > 0 {
+                command.push("-u".to_string());
+                command.push(trim_5p_bases.to_string());
+            }
+            if trim_3p_bases > 0 {
+                command.push("-u".to_string());
+                command.push(format!("-{trim_3p_bases}"));
+            }
+            command.extend([
                 "--json".to_string(),
                 report.display().to_string(),
                 "-o".to_string(),
                 output_r1.display().to_string(),
-            ];
+            ]);
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 command.push("-p".to_string());
                 command.push(output_r2.display().to_string());
@@ -203,8 +221,11 @@ fn trim_terminal_damage_command(
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v1",
                 "tool_id": tool_id,
                 "damage_mode": damage_mode,
+                "execution_policy": execution_policy,
                 "trim_5p_bases": trim_5p_bases,
                 "trim_3p_bases": trim_3p_bases,
+                "requested_trim_5p_bases": requested_trim_5p_bases,
+                "requested_trim_3p_bases": requested_trim_3p_bases,
                 "input_r1": r1,
                 "input_r2": r2,
                 "output_r1": output_r1,
