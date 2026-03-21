@@ -9,7 +9,6 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
@@ -17,11 +16,10 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use uuid::Uuid;
-
 use crate::internal::fastq::stages::trim_bench_common::{
     build_benchmark_context, observe_fastq_stats, require_existing_benchmark_output,
 };
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
@@ -128,7 +126,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             &out_dir,
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
-        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&bench_params);
         let image_digest = tool_spec
             .image
             .digest
