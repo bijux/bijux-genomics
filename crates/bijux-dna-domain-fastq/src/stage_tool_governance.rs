@@ -8,6 +8,26 @@ use crate::execution_support::{
 use crate::integration_matrix::{
     benchmark_scenarios_for_stage, stage_tool_binding, stage_tool_bindings, ToolIntegrationLevel,
 };
+use crate::BenchmarkScenario;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StageBenchmarkGovernance {
+    pub stage_id: StageId,
+    pub execution_status: Option<ExecutionStatus>,
+    pub benchmark_support: Option<BenchmarkSupport>,
+    pub scenarios: Vec<BenchmarkScenario>,
+    pub comparison_input_artifact_ids: Vec<String>,
+    pub comparison_artifact_ids: Vec<String>,
+}
+
+impl StageBenchmarkGovernance {
+    #[must_use]
+    pub fn has_governed_benchmark_contract(self: &Self) -> bool {
+        !self.scenarios.is_empty()
+            && !self.comparison_input_artifact_ids.is_empty()
+            && !self.comparison_artifact_ids.is_empty()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageToolGovernanceProfile {
@@ -42,26 +62,19 @@ impl StageToolGovernanceProfile {
 
     #[must_use]
     pub fn has_governed_benchmark_contract(self: &Self) -> bool {
-        !self.benchmark_scenario_ids.is_empty()
-            && !self.comparison_input_artifact_ids.is_empty()
-            && !self.comparison_artifact_ids.is_empty()
+        stage_benchmark_governance(&self.stage_id)
+            .map(|governance| governance.has_governed_benchmark_contract())
+            .unwrap_or(false)
     }
 }
 
 #[must_use]
-pub fn stage_tool_governance_profile(
-    stage_id: &StageId,
-    tool_id: &ToolId,
-) -> Option<StageToolGovernanceProfile> {
-    let binding = stage_tool_binding(stage_id, tool_id)?;
-    let support = execution_support_for_stage(stage_id);
+pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGovernance> {
+    let support = execution_support_for_stage(stage_id)?;
     let comparison_contract = comparison_contract_for_stage(stage_id);
-    let mut benchmark_scenario_ids = benchmark_scenarios_for_stage(stage_id)
-        .into_iter()
-        .map(|scenario| scenario.scenario_id)
-        .collect::<Vec<_>>();
-    benchmark_scenario_ids.sort();
-    benchmark_scenario_ids.dedup();
+    let mut scenarios = benchmark_scenarios_for_stage(stage_id);
+    scenarios.sort_by(|left, right| left.scenario_id.cmp(&right.scenario_id));
+    scenarios.dedup_by(|left, right| left.scenario_id == right.scenario_id);
 
     let mut comparison_input_artifact_ids = comparison_contract
         .as_ref()
@@ -89,6 +102,25 @@ pub fn stage_tool_governance_profile(
     comparison_artifact_ids.sort();
     comparison_artifact_ids.dedup();
 
+    Some(StageBenchmarkGovernance {
+        stage_id: stage_id.clone(),
+        execution_status: Some(support.execution_status),
+        benchmark_support: Some(support.benchmark_support),
+        scenarios,
+        comparison_input_artifact_ids,
+        comparison_artifact_ids,
+    })
+}
+
+#[must_use]
+pub fn stage_tool_governance_profile(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> Option<StageToolGovernanceProfile> {
+    let binding = stage_tool_binding(stage_id, tool_id)?;
+    let support = execution_support_for_stage(stage_id);
+    let benchmark_governance = stage_benchmark_governance(stage_id);
+
     Some(StageToolGovernanceProfile {
         stage_id: stage_id.clone(),
         tool_id: tool_id.clone(),
@@ -106,9 +138,24 @@ pub fn stage_tool_governance_profile(
             .as_ref()
             .map(|record| record.admitted_tools.iter().any(|candidate| candidate == tool_id))
             .unwrap_or(false),
-        benchmark_scenario_ids,
-        comparison_input_artifact_ids,
-        comparison_artifact_ids,
+        benchmark_scenario_ids: benchmark_governance
+            .as_ref()
+            .map(|governance| {
+                governance
+                    .scenarios
+                    .iter()
+                    .map(|scenario| scenario.scenario_id.clone())
+                    .collect()
+            })
+            .unwrap_or_default(),
+        comparison_input_artifact_ids: benchmark_governance
+            .as_ref()
+            .map(|governance| governance.comparison_input_artifact_ids.clone())
+            .unwrap_or_default(),
+        comparison_artifact_ids: benchmark_governance
+            .as_ref()
+            .map(|governance| governance.comparison_artifact_ids.clone())
+            .unwrap_or_default(),
     })
 }
 
