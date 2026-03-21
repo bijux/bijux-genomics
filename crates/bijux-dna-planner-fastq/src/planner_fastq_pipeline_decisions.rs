@@ -705,11 +705,22 @@ fn benchmark_select_steps_for_pipeline(
             let source_plan = plan_by_node_id
                 .get(&edge.from)
                 .copied()
-                .expect("source plan resolved above");
+                .ok_or_else(|| {
+                    anyhow!(
+                        "selection node {} references unresolved source plan {}",
+                        node_id,
+                        edge.from
+                    )
+                })?;
             let source_output_id = edge
                 .from_output_id
                 .as_ref()
-                .expect("validated selection input binding");
+                .ok_or_else(|| {
+                    anyhow!(
+                        "selection node {} requires bound source output ids on incoming edges",
+                        node_id
+                    )
+                })?;
             let source_output = source_plan
                 .io
                 .outputs
@@ -724,11 +735,12 @@ fn benchmark_select_steps_for_pipeline(
                     )
                 })?;
             inputs.push(ArtifactRef::required(
-                ArtifactId::new(
-                    edge.to_input_id
-                        .clone()
-                        .expect("validated selection input binding"),
-                ),
+                ArtifactId::new(edge.to_input_id.clone().ok_or_else(|| {
+                    anyhow!(
+                        "selection node {} requires bound destination input ids on incoming edges",
+                        node_id
+                    )
+                })?),
                 source_output.path.clone(),
                 source_output.role,
             ));
