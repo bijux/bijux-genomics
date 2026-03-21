@@ -9,8 +9,8 @@ use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqValidateMetrics,
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
-use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -51,8 +51,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_VALIDATE_READS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_VALIDATE_READS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
 
@@ -105,10 +105,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan =
-            plan_validate_reads(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
-        let params_hash =
-            params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let plan = plan_validate_reads(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -130,7 +128,9 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -286,7 +286,9 @@ fn build_validate_record(
 
     let report = serde_json::json!({
         "schema_version": "bijux.fastq.validate.report.v1",
+        "stage": STAGE_VALIDATE_READS.as_str(),
         "stage_id": STAGE_VALIDATE_READS.as_str(),
+        "tool": tool,
         "tool_id": tool,
         "strict_mode": strict_mode,
         "strict_pass": execution.exit_code == 0,
@@ -365,7 +367,10 @@ fn derive_validate_metrics(
 
 fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     for line in text.lines() {
-        if !line.to_ascii_lowercase().contains(&key.to_ascii_lowercase()) {
+        if !line
+            .to_ascii_lowercase()
+            .contains(&key.to_ascii_lowercase())
+        {
             continue;
         }
         let digits: String = line.chars().filter(char::is_ascii_digit).collect();
