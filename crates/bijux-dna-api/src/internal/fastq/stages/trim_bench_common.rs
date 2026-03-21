@@ -81,6 +81,20 @@ pub(crate) fn observe_fastq_stats<S: ::std::hash::BuildHasher>(
     parse_seqkit_stats(&stats_output.stdout)
 }
 
+pub(crate) fn require_existing_benchmark_output<'a>(
+    path: &'a Path,
+    artifact_label: &str,
+) -> Result<&'a Path> {
+    if path.exists() {
+        Ok(path)
+    } else {
+        Err(anyhow!(
+            "expected benchmark output `{artifact_label}` at {}",
+            path.display()
+        ))
+    }
+}
+
 pub(crate) fn derive_trim_delta(
     before: &SeqkitMetrics,
     after: &SeqkitMetrics,
@@ -213,4 +227,32 @@ fn open_fastq_lines(path: &Path) -> Result<Box<dyn Iterator<Item = String>>> {
         .collect::<std::result::Result<Vec<_>, _>>()
         .with_context(|| format!("read fastq {}", path.display()))?;
     Ok(Box::new(lines.into_iter()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::require_existing_benchmark_output;
+
+    #[test]
+    fn require_existing_benchmark_output_accepts_real_files() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("reads.fastq.gz");
+        std::fs::write(&path, b"fixture").expect("fixture");
+
+        let resolved = require_existing_benchmark_output(&path, "corrected_reads_r1")
+            .expect("existing output should be accepted");
+        assert_eq!(resolved, path.as_path());
+    }
+
+    #[test]
+    fn require_existing_benchmark_output_rejects_missing_files() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("missing.fastq.gz");
+        let error = require_existing_benchmark_output(&path, "dedup_reads_r1")
+            .expect_err("missing output should be rejected");
+
+        assert!(error
+            .to_string()
+            .contains("expected benchmark output `dedup_reads_r1`"));
+    }
 }

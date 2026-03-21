@@ -20,7 +20,7 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats,
+    build_benchmark_context, observe_fastq_stats, require_existing_benchmark_output,
 };
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
@@ -169,16 +169,11 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        if !plan.io.outputs[0].path.exists() {
-            std::fs::copy(&args.r1, &plan.io.outputs[0].path)?;
-        }
-        let output_stats =
-            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
-        let output_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        let output_r1 = require_existing_benchmark_output(&plan.io.outputs[0].path, "dedup_reads_r1")?;
+        let output_stats = observe_fastq_stats(catalog, platform, runner, output_r1)?;
+        let output_stats_r2 = if args.r2.is_some() {
             let output_r2 = &plan.io.outputs[1].path;
-            if !output_r2.exists() {
-                std::fs::copy(r2, output_r2)?;
-            }
+            let output_r2 = require_existing_benchmark_output(output_r2, "dedup_reads_r2")?;
             Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
         } else {
             None
