@@ -2,14 +2,14 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::PlanPolicy;
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec, PlanPolicy};
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, StageId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
     apply_tool_overrides, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
-    FastqPipelineInputs, FastqPlanConfig, FastqPlanner,
+    FastqPipelineInputs, FastqPlanConfig, FastqPlanner, FastqStageBinding,
 };
 
 fn snapshot_settings() -> insta::Settings {
@@ -86,14 +86,41 @@ fn fastq_plan_snapshot() {
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
-        pipeline_spec: None,
-        stage_bindings: Vec::new(),
-        stage_toolsets: Vec::new(),
-        stages: vec![
-            "fastq.validate_reads".to_string(),
-            "fastq.trim_reads".to_string(),
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: None,
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: None,
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.validate_reads".to_string(),
+                to: "fastq.trim_reads".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: None,
+                tool: tool_validate,
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: None,
+                tool: tool_trim,
+                reason: None,
+                params: None,
+            },
         ],
-        tools: vec![tool_validate, tool_trim],
+        stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -103,7 +130,6 @@ fn fastq_plan_snapshot() {
         r2: None,
         reference_fasta: None,
         out_dir: PathBuf::from("out"),
-        tool_reasons: None,
         allow_planned: false,
     };
     let plan = FastqPlanner::plan(&config).expect("plan");
@@ -132,11 +158,12 @@ fn tool_override_precedence_is_stable() {
 #[test]
 fn default_pipeline_plan_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
-    let stages =
-        bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default()).stages;
-    let tools: Vec<ToolExecutionSpecV1> = stages
+    let pipeline =
+        bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default());
+    let tools: Vec<ToolExecutionSpecV1> = pipeline
+        .ordered_nodes()
         .iter()
-        .map(|stage| default_stage_tool(stage))
+        .map(|node| default_stage_tool(&node.stage_id))
         .collect();
     let inputs = FastqPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
