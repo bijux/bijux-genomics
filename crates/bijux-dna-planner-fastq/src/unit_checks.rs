@@ -328,7 +328,7 @@ fn expand_pipeline_stage_tool_routes_keys_repeated_stage_nodes_by_instance_id() 
 
 #[test]
 fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
-    let pipeline = PipelineSpec::linear(vec![
+    let pipeline = PipelineSpec::chain(vec![
         "fastq.validate_reads".to_string(),
         "fastq.trim_reads".to_string(),
         "fastq.filter_reads".to_string(),

@@ -94,12 +94,12 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "fastq.normalize_abundance",
     ] {
         assert!(
-            spec.stages.iter().any(|stage| stage == required),
+            spec.ordered_stage_ids().iter().any(|stage| stage == required),
             "amplicon mode missing stage {required}"
         );
     }
     assert!(
-        !spec.stages.iter().any(|stage| stage == "fastq.infer_asvs"),
+        !spec.ordered_stage_ids().iter().any(|stage| stage == "fastq.infer_asvs"),
         "default amplicon mode must not schedule planned ASV inference by default"
     );
 
@@ -109,7 +109,8 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         .map(|stage| stage.to_string())
         .collect::<Vec<_>>();
     assert_eq!(
-        spec.stages, expected,
+        spec.ordered_stage_ids(),
+        expected,
         "planner default amplicon order drifted from domain canonical order"
     );
 }
@@ -117,23 +118,18 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
 #[test]
 fn single_end_default_pipeline_uses_contract_essentials_only() {
     let spec = default_pipeline_spec(DefaultPipelineOptions::default());
+    let ordered = spec.ordered_stage_ids();
 
     assert!(
-        !spec.stages.iter().any(|stage| stage == "fastq.merge_pairs"),
+        !ordered.iter().any(|stage| stage == "fastq.merge_pairs"),
         "single-end default pipeline must not schedule paired merge"
     );
     assert!(
-        !spec
-            .stages
-            .iter()
-            .any(|stage| stage == "fastq.correct_errors"),
+        !ordered.iter().any(|stage| stage == "fastq.correct_errors"),
         "single-end default pipeline must not schedule paired correction"
     );
     assert!(
-        !spec
-            .stages
-            .iter()
-            .any(|stage| stage == "fastq.extract_umis"),
+        !ordered.iter().any(|stage| stage == "fastq.extract_umis"),
         "single-end default pipeline must not schedule paired UMI extraction"
     );
 
@@ -150,7 +146,8 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         "fastq.report_qc",
     ];
     assert_eq!(
-        spec.stages, expected,
+        ordered,
+        expected,
         "single-end default pipeline must come from FASTQ pipeline-contract essentials"
     );
     assert!(
