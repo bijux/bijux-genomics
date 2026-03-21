@@ -296,6 +296,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
                 if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
                     return serde_json::json!({
+                        "validation_mode": report.get("validation_mode").cloned().unwrap_or(serde_json::Value::Null),
+                        "pair_sync_policy": report.get("pair_sync_policy").cloned().unwrap_or(serde_json::Value::Null),
                         "strict_pass": report.get("strict_pass").cloned().unwrap_or(serde_json::Value::Null),
                         "exit_code": report.get("exit_code").cloned().unwrap_or(serde_json::Value::Null),
                         "validated_inputs": report.get("validated_inputs").cloned().unwrap_or(serde_json::Value::Null),
@@ -535,6 +537,9 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.validate.report.v1",
+                "validation_mode": "strict",
+                "pair_sync_policy": "require_header_sync",
                 "strict_pass": true,
                 "exit_code": 0,
                 "validated_inputs": 2_u64,
@@ -577,12 +582,24 @@ mod tests {
             serde_json::json!(1_u64)
         );
         assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["validation_mode"],
+            serde_json::json!("strict")
+        );
+        assert_eq!(
             output
                 .verdict
                 .as_ref()
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["pair_sync_pass"],
             serde_json::json!(true)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["pair_sync_policy"],
+            serde_json::json!("require_header_sync")
         );
     }
 
