@@ -106,6 +106,34 @@ fn plan_trim_rejects_unknown_tool() {
 }
 
 #[test]
+fn plan_trim_supports_filter_style_manifest_placeholders_for_governed_tools() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &templated_tool(
+            "seqkit",
+            &[
+                "seqkit",
+                "seq",
+                "-o",
+                "{{filtered_reads_r1}}",
+                "{{reads_r1}}",
+            ],
+        ),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    assert!(plan.command.template[2].contains("out/seqkit.fastq.gz"));
+    assert!(!plan.command.template[2].contains("{{filtered_reads_r1}}"));
+    Ok(())
+}
+
+#[test]
 fn plan_from_config_preserves_layout_without_enabling_bank_policies() -> Result<()> {
     let config = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {

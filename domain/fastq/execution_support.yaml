@@ -86,6 +86,8 @@ stages:
       - "adapterremoval"
       - "trimmomatic"
       - "trim_galore"
+      - "prinseq"
+      - "seqkit"
   - stage_id: "fastq.filter_reads"
     execution_status: "closed"
     planning_support: "stage_family"

@@ -96,6 +96,8 @@ compatible_tools:
   - adapterremoval
   - trimmomatic
   - trim_galore
+  - prinseq
+  - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "adapter, polyx, and contaminant trimming policies are explicit in effective params."
@@ -109,7 +111,5 @@ planned_out_of_scope:
   - "alientrimmer"
   - "fastx_clipper"
   - "leehom"
-  - "prinseq"
-  - "seqkit"
   - "skewer"
   - "seqpurge"

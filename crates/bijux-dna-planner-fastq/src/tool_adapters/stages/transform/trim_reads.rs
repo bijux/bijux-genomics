@@ -428,13 +428,19 @@ fn trim_command_template(
             ("reads_r1", Some(r1.display().to_string())),
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("trimmed_reads", Some(output_r1.display().to_string())),
+            ("filtered_reads", Some(output_r1.display().to_string())),
             (
                 "trimmed_reads_dir",
                 output_r1.parent().map(|path| path.display().to_string()),
             ),
             ("trimmed_reads_r1", Some(output_r1.display().to_string())),
+            ("filtered_reads_r1", Some(output_r1.display().to_string())),
             (
                 "trimmed_reads_r2",
+                output_r2.map(|path| path.display().to_string()),
+            ),
+            (
+                "filtered_reads_r2",
                 output_r2.map(|path| path.display().to_string()),
             ),
             ("report_json", Some(report_json.display().to_string())),
