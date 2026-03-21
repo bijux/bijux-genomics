@@ -16,6 +16,29 @@ use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_REPORT_QC;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
+
+#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+struct GovernedQcContributor {
+    contributor_id: String,
+    stage_id: String,
+    artifact_id: String,
+    artifact_role: ArtifactRole,
+    path: std::path::PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+struct GovernedQcInputsManifest {
+    schema_version: String,
+    qc_inputs: Vec<ArtifactRef>,
+    contributors: Vec<GovernedQcContributor>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    raw_fastqc_dir: Option<std::path::PathBuf>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    lineage_hash: Option<String>,
+}
 
 pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -88,7 +111,13 @@ pub fn plan_qc_post_with_qc_inputs(
         aggregation_scope,
     };
     let multiqc_data = out_dir.join("multiqc_data");
-    let command_template = qc_post_command(&tool.tool_id.0, qc_inputs, &multiqc_data)?;
+    let governed_qc_manifest = out_dir.join("governed_qc_inputs_manifest.json");
+    let command_template = qc_post_command(
+        &tool.tool_id.0,
+        qc_inputs,
+        &multiqc_data,
+        &governed_qc_manifest,
+    )?;
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
             ArtifactRef::required(
@@ -103,7 +132,7 @@ pub fn plan_qc_post_with_qc_inputs(
             ),
             ArtifactRef::required(
                 ArtifactId::from_static("governed_qc_inputs_manifest"),
-                out_dir.join("governed_qc_inputs_manifest.json"),
+                governed_qc_manifest,
                 ArtifactRole::SummaryJson,
             ),
         ]
@@ -141,6 +170,7 @@ fn qc_post_command(
     tool_id: &str,
     qc_inputs: &[ArtifactRef],
     multiqc_data: &Path,
+    governed_qc_manifest: &Path,
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
@@ -150,17 +180,20 @@ fn qc_post_command(
                 .collect::<Vec<_>>();
             multiqc_inputs.sort();
             multiqc_inputs.dedup();
-            let mut command = vec![
-                "multiqc".to_string(),
-                "-o".to_string(),
-                multiqc_data.display().to_string(),
-                "-n".to_string(),
-                "multiqc_report.html".to_string(),
-            ];
+            let manifest = serde_json::to_string(&governed_qc_inputs_manifest_payload(qc_inputs)?)
+                .map_err(|error| anyhow!("serialize governed QC inputs manifest: {error}"))?;
+            let mut script = format!(
+                "set -euo pipefail\nprintf '%s\\n' {} > {}\nmultiqc -o {} -n multiqc_report.html",
+                shell_quote_str(&manifest),
+                shell_quote_path(governed_qc_manifest),
+                shell_quote_path(multiqc_data),
+            );
             for input in multiqc_inputs {
-                command.push(input.display().to_string());
+                script.push(' ');
+                script.push_str(&shell_quote_str(&input.display().to_string()));
             }
-            Ok(command)
+            script.push('\n');
+            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
         _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
     }
@@ -189,9 +222,89 @@ fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
     None
 }
 
+fn governed_qc_inputs_manifest_payload(
+    qc_inputs: &[ArtifactRef],
+) -> Result<GovernedQcInputsManifest> {
+    let contributors = governed_qc_contributors(qc_inputs);
+    Ok(GovernedQcInputsManifest {
+        schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
+        qc_inputs: qc_inputs.to_vec(),
+        raw_fastqc_dir: None,
+        lineage_hash: derived_governed_qc_lineage_hash(&contributors),
+        contributors,
+    })
+}
+
+fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
+    let mut contributors = qc_inputs
+        .iter()
+        .filter_map(|artifact| governed_qc_contributor(artifact))
+        .collect::<Vec<_>>();
+    contributors.sort_by(|left, right| {
+        left.contributor_id
+            .cmp(&right.contributor_id)
+            .then_with(|| left.artifact_id.cmp(&right.artifact_id))
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    contributors.dedup_by(|left, right| {
+        left.contributor_id == right.contributor_id
+            && left.artifact_id == right.artifact_id
+            && left.path == right.path
+    });
+    contributors
+}
+
+fn governed_qc_contributor(artifact: &ArtifactRef) -> Option<GovernedQcContributor> {
+    let artifact_name = artifact.name.as_str();
+    let (contributor_id, artifact_id) = artifact_name.rsplit_once('.')?;
+    let stage_parts = contributor_id.split('.').take(2).collect::<Vec<_>>();
+    if stage_parts.len() != 2 {
+        return None;
+    }
+    Some(GovernedQcContributor {
+        contributor_id: contributor_id.to_string(),
+        stage_id: format!("{}.{}", stage_parts[0], stage_parts[1]),
+        artifact_id: artifact_id.to_string(),
+        artifact_role: artifact.role,
+        path: artifact.path.clone(),
+    })
+}
+
+fn derived_governed_qc_lineage_hash(
+    contributors: &[GovernedQcContributor],
+) -> Option<String> {
+    if contributors.is_empty() {
+        return None;
+    }
+    Some(
+        contributors
+            .iter()
+            .map(|contributor| {
+                format!(
+                    "{}:{}={}",
+                    contributor.contributor_id,
+                    contributor.artifact_id,
+                    contributor.path.display()
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("|"),
+    )
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{aux_tool_ids_for_qc_inputs, qc_post_command};
+    use super::{
+        aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload, qc_post_command,
+    };
     use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
     use std::path::PathBuf;
 
@@ -217,21 +330,18 @@ mod tests {
                 ),
             ],
             std::path::Path::new("out/multiqc_data"),
+            std::path::Path::new("out/governed_qc_inputs_manifest.json"),
         )
         .expect("multiqc command should build");
 
         assert_eq!(
-            command,
-            vec![
-                "multiqc",
-                "-o",
-                "out/multiqc_data",
-                "-n",
-                "multiqc_report.html",
-                "alpha/fastqc",
-                "zeta/fastqc",
-            ]
+            command[0..2],
+            ["sh".to_string(), "-lc".to_string()]
         );
+        let script = &command[2];
+        assert!(script.contains("out/governed_qc_inputs_manifest.json"));
+        assert!(script.contains("multiqc -o 'out/multiqc_data' -n multiqc_report.html"));
+        assert!(script.contains("'alpha/fastqc' 'zeta/fastqc'"));
     }
 
     #[test]
@@ -255,5 +365,31 @@ mod tests {
         ]);
 
         assert_eq!(tool_ids, vec!["fastqc".to_string(), "fastqvalidator".to_string()]);
+    }
+
+    #[test]
+    fn governed_qc_manifest_payload_tracks_contributors_and_lineage() {
+        let manifest = governed_qc_inputs_manifest_payload(&[
+            ArtifactRef::required(
+                ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+                PathBuf::from("trim/report.json"),
+                ArtifactRole::ReportJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::from_static(
+                    "fastq.validate_reads.fastqvalidator.validated_reads_manifest",
+                ),
+                PathBuf::from("validate/lineage.json"),
+                ArtifactRole::StageReport,
+            ),
+        ])
+        .expect("manifest");
+
+        assert_eq!(manifest.contributors.len(), 2);
+        assert_eq!(manifest.contributors[0].stage_id, "fastq.trim_reads");
+        assert_eq!(manifest.contributors[0].artifact_id, "report_json");
+        assert!(manifest
+            .lineage_hash
+            .is_some_and(|lineage| lineage.contains("fastq.validate_reads.fastqvalidator:validated_reads_manifest")));
     }
 }
