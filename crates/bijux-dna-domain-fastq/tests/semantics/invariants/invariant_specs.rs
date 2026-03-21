@@ -169,6 +169,7 @@ fn effective_params_validate() -> serde_json::Value {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::SingleEnd,
         threads: 2,
+        q_cutoff: None,
         validation_mode: ValidationMode::Strict,
         pair_sync_policy: PairSyncPolicy::NotApplicable,
     })

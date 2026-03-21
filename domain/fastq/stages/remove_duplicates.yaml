@@ -20,7 +20,13 @@ outputs:
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
-parameters: []
+parameters:
+  - name: "dedup_mode"
+    param_type: "string"
+    default: "exact"
+  - name: "keep_order"
+    param_type: "bool"
+    default: "true"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads."
