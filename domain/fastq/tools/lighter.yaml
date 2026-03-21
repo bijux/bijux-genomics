@@ -4,7 +4,6 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
-  - "SE"
 container:
   image: "bijuxdna/lighter"
   digest: "sha256:pending"
