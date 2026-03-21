@@ -58,6 +58,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         required_inputs: Vec::new(),
         optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string(), "nested/*.fastq.gz".to_string()],
+        optional_outputs: Vec::new(),
         forbidden_outputs: vec!["*.tmp".to_string()],
         forbid_unexpected_outputs: false,
     };
@@ -67,6 +68,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         required_inputs: Vec::new(),
         optional_inputs: Vec::new(),
         expected_outputs: vec!["missing.json".to_string()],
+        optional_outputs: Vec::new(),
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: false,
     };
@@ -76,6 +78,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         required_inputs: Vec::new(),
         optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string(), "nested/*.fastq.gz".to_string()],
+        optional_outputs: Vec::new(),
         forbidden_outputs: vec!["*.fastq.gz".to_string()],
         forbid_unexpected_outputs: false,
     };
@@ -85,10 +88,11 @@ fn validate_execution_outputs_covers_contract_paths() {
         required_inputs: Vec::new(),
         optional_inputs: Vec::new(),
         expected_outputs: vec!["ok.txt".to_string()],
+        optional_outputs: vec!["nested/*.fastq.gz".to_string()],
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: true,
     };
-    assert!(validate_execution_outputs(&strict, root.path()).is_err());
+    assert!(validate_execution_outputs(&strict, root.path()).is_ok());
 
     let missing_dir = root.path().join("no_such_dir");
     assert!(validate_execution_outputs(&ok_contract, &missing_dir).is_err());
