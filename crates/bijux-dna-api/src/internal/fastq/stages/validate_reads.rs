@@ -34,6 +34,8 @@ use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_VALIDATE_READS,
 };
+use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
+use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
@@ -155,9 +157,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             &tool,
             &tool_spec,
             &bench_params,
-            &out_dir,
+            &plan,
             &execution,
-            args.strict,
         )?;
 
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -283,10 +284,10 @@ fn build_validate_record(
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
     params: &serde_json::Value,
-    out_dir: &std::path::Path,
+    plan: &StagePlanV1,
     execution: &StageResultV1,
-    strict_mode: bool,
 ) -> Result<BenchmarkRecord<FastqValidateMetrics>> {
+    let out_dir = &plan.out_dir;
     let metrics = derive_validate_metrics(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
@@ -295,25 +296,11 @@ fn build_validate_record(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.validate.report.v1",
-        "stage": STAGE_VALIDATE_READS.as_str(),
-        "stage_id": STAGE_VALIDATE_READS.as_str(),
-        "tool": tool,
-        "tool_id": tool,
-        "strict_mode": strict_mode,
-        "strict_pass": execution.exit_code == 0,
-        "reads_in": metrics.reads_in,
-        "bases_in": metrics.bases_in,
-        "reads_total": metrics.reads_total,
-        "reads_valid": metrics.reads_valid,
-        "reads_invalid": metrics.reads_invalid,
-        "mean_q": metrics.mean_q,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-    });
-    bijux_dna_infra::atomic_write_json(&out_dir.join("validation.json"), &report)
-        .context("write validation report")?;
+    let report_path = required_plan_output_path(plan, "validation_report")?;
+    let _report_path = require_existing_benchmark_output(&report_path, "validation_report")?;
+    let manifest_path = required_plan_output_path(plan, "validated_reads_manifest")?;
+    let _manifest_path =
+        require_existing_benchmark_output(&manifest_path, "validated_reads_manifest")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write validation metrics")?;
@@ -342,6 +329,20 @@ fn build_validate_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "validate_reads plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
 }
 
 fn derive_validate_metrics(
@@ -394,4 +395,101 @@ fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_VALIDATE_READS.as_str())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::required_plan_output_path;
+    use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    #[test]
+    fn validate_record_paths_follow_plan_outputs() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.validate_reads"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("fastqvalidator"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["fastqvalidator".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::from_static("validation_report"),
+                        PathBuf::from("custom/validation.json"),
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::from_static("validated_reads_manifest"),
+                        PathBuf::from("custom/validated_reads_manifest.json"),
+                        ArtifactRole::StageReport,
+                    ),
+                ],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        assert_eq!(
+            required_plan_output_path(&plan, "validation_report").expect("report path"),
+            PathBuf::from("custom/validation.json")
+        );
+        assert_eq!(
+            required_plan_output_path(&plan, "validated_reads_manifest").expect("manifest path"),
+            PathBuf::from("custom/validated_reads_manifest.json")
+        );
+    }
+
+    #[test]
+    fn missing_validation_manifest_is_rejected_before_metrics() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.validate_reads"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("fastqvalidator"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["fastqvalidator".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::from_static("validation_report"),
+                    PathBuf::from("custom/validation.json"),
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        let error = required_plan_output_path(&plan, "validated_reads_manifest")
+            .expect_err("missing manifest must be rejected");
+        assert!(error
+            .to_string()
+            .contains("missing governed output `validated_reads_manifest`"));
+    }
 }
