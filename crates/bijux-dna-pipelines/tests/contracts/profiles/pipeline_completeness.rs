@@ -84,7 +84,7 @@ fn pipeline_profiles_are_complete() {
             profile.id
         );
         for node in &profile.capabilities.required_stages {
-            let stage = bijux_dna_core::ids::StageId::from_static(node);
+            let stage = bijux_dna_core::ids::StageId::new(node.clone());
             assert!(
                 ledger.params.contains_key(&stage),
                 "defaults ledger missing params for {} in {}",
@@ -174,7 +174,7 @@ fn default_fastq_pipeline_declares_required_metrics_objects() {
     let required_stages = &profile.capabilities.required_stages;
     for required in ["fastq.trim_reads", "fastq.filter_reads", "fastq.report_qc"] {
         assert!(
-            required_stages.contains(&required),
+            required_stages.iter().any(|stage| stage == required),
             "default FASTQ profile missing metrics-critical stage {required}"
         );
     }

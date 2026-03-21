@@ -104,7 +104,7 @@ fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
         .capabilities
         .required_stages
         .iter()
-        .copied()
+        .map(String::as_str)
         .collect()
 }
 

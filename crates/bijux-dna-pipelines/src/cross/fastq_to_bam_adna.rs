@@ -33,14 +33,14 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     (fastq_profile, bam_profile, defaults)
 }
 
-fn required_cross_stages(fastq_profile: &PipelineProfile) -> Vec<&'static str> {
+fn required_cross_stages(fastq_profile: &PipelineProfile) -> Vec<String> {
     let mut stages = fastq_profile.capabilities.required_stages.clone();
     stages.extend([
-        "core.prepare_reference",
-        "bam.align",
-        "bam.qc_pre",
-        "bam.coverage",
-        "bam.damage",
+        "core.prepare_reference".to_string(),
+        "bam.align".to_string(),
+        "bam.qc_pre".to_string(),
+        "bam.coverage".to_string(),
+        "bam.damage".to_string(),
     ]);
     stages
 }
