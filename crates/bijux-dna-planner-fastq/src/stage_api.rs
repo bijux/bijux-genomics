@@ -92,6 +92,24 @@ pub enum StageToolMaturityLevel {
     BenchmarkComparable,
 }
 
+fn runtime_contract_levels(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> (
+    RuntimeInterpretationLevel,
+    bijux_dna_domain_fastq::RuntimeNormalizationLevel,
+) {
+    let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
+        .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
+    let runtime_normalization =
+        if runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
+        } else {
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
+        };
+    (runtime_interpretation, runtime_normalization)
+}
+
 #[must_use]
 pub fn tool_supports_input_layout(stage_id: &StageId, tool_id: &ToolId, paired_end: bool) -> bool {
     bijux_dna_domain_fastq::tool_supports_input_layout(stage_id, tool_id, paired_end)
@@ -108,16 +126,13 @@ pub fn filter_tools_for_input_layout(
 
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
-    let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
-        .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
-    let runtime_normalization =
-        if runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
-            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
-        } else {
-            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
-        };
-    let capability =
-        bijux_dna_domain_fastq::stage_tool_capability_contract(stage_id, tool_id, runtime_normalization)?;
+    let (runtime_interpretation, runtime_normalization) =
+        runtime_contract_levels(stage_id, tool_id);
+    let capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        stage_id,
+        tool_id,
+        runtime_normalization,
+    )?;
 
     Some(StageToolCapability {
         stage_id: capability.stage_id,
@@ -157,31 +172,26 @@ pub fn benchmark_profile_for_stage_tool(
     tool_id: &ToolId,
 ) -> Option<StageToolBenchmarkProfile> {
     let capability = stage_tool_capability(stage_id, tool_id)?;
-    let readiness =
-        bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
-            stage_id,
-            tool_id,
-            if capability.runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized
-            {
-                bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
-            } else {
-                bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
-            },
-        )
-        .map(|level| match level {
-            bijux_dna_domain_fastq::BenchmarkReadinessLevel::PlannedContract => {
-                BenchmarkReadinessLevel::PlannedContract
-            }
-            bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution => {
-                BenchmarkReadinessLevel::GovernedExecution
-            }
-            bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedBenchmarkCohort => {
-                BenchmarkReadinessLevel::GovernedBenchmarkCohort
-            }
-            bijux_dna_domain_fastq::BenchmarkReadinessLevel::ObserverSpecializedBenchmark => {
-                BenchmarkReadinessLevel::ObserverSpecializedBenchmark
-            }
-        })?;
+    let (_, runtime_normalization) = runtime_contract_levels(stage_id, tool_id);
+    let readiness = bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
+        stage_id,
+        tool_id,
+        runtime_normalization,
+    )
+    .map(|level| match level {
+        bijux_dna_domain_fastq::BenchmarkReadinessLevel::PlannedContract => {
+            BenchmarkReadinessLevel::PlannedContract
+        }
+        bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution => {
+            BenchmarkReadinessLevel::GovernedExecution
+        }
+        bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedBenchmarkCohort => {
+            BenchmarkReadinessLevel::GovernedBenchmarkCohort
+        }
+        bijux_dna_domain_fastq::BenchmarkReadinessLevel::ObserverSpecializedBenchmark => {
+            BenchmarkReadinessLevel::ObserverSpecializedBenchmark
+        }
+    })?;
     Some(StageToolBenchmarkProfile {
         stage_id: capability.stage_id,
         tool_id: capability.tool_id,
@@ -291,16 +301,11 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
 
 #[must_use]
 pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
-    let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
-        .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
+    let (_, runtime_normalization) = runtime_contract_levels(stage_id, tool_id);
     bijux_dna_domain_fastq::stage_tool_maturity(
         stage_id,
         tool_id,
-        if runtime_interpretation == RuntimeInterpretationLevel::ObserverSpecialized {
-            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized
-        } else {
-            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope
-        },
+        runtime_normalization,
     )
     .map(|level| match level {
         bijux_dna_domain_fastq::StageToolMaturityLevel::PlannedBinding => {
