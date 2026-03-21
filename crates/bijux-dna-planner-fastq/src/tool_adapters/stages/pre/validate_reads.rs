@@ -166,7 +166,7 @@ fn validation_command(
     out_dir: &Path,
     options: &ValidatePlanOptions,
 ) -> Result<Vec<String>> {
-    let single_command = |reads: &Path, log_path: &Path| -> Result<String> {
+    let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
             &tool.command.template,
             &[
@@ -175,14 +175,14 @@ fn validation_command(
             ],
         )?;
         Ok(format!(
-            "{} > {} 2>&1",
+            "{} > {} 2>&1\n{status_var}=$?",
             shell_join(&rendered),
             shell_quote(log_path)
         ))
     };
 
     let r1_log = out_dir.join("validation_r1.log");
-    let mut commands = vec![single_command(r1, &r1_log)?];
+    let mut commands = vec!["set +e".to_string(), single_command(r1, &r1_log, "status_r1")?];
     let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
         commands.push(single_command(
@@ -190,19 +190,28 @@ fn validation_command(
             r2_log
                 .as_deref()
                 .ok_or_else(|| anyhow!("paired validation log path missing"))?,
+            "status_r2",
         )?);
+    } else {
+        commands.push("status_r2=0".to_string());
     }
-    let report_payload = serde_json::json!({
-        "schema_version": "bijux.fastq.validate.report.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool.tool_id.as_str(),
-        "input_r1": r1,
-        "input_r2": r2,
-        "validation_log_r1": r1_log,
-        "validation_log_r2": r2_log,
-        "validated_inputs": if r2.is_some() { 2 } else { 1 },
-        "strict_pass": true,
-    });
+    commands.push("strict_pass=true".to_string());
+    commands.push("exit_code=0".to_string());
+    commands.push(
+        "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi"
+            .to_string(),
+    );
+    commands.push(
+        "if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi"
+            .to_string(),
+    );
+    let report_format = format!(
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"strict_pass\":%s,\"exit_code\":%s}}",
+        json_string_literal(STAGE_ID.as_str()),
+        json_string_literal(STAGE_ID.as_str()),
+        json_string_literal(tool.tool_id.as_str()),
+        if r2.is_some() { 2 } else { 1 },
+    );
     let lineage_payload = serde_json::json!({
         "schema_version": "bijux.fastq.validate.lineage.v1",
         "stage_id": STAGE_ID.as_str(),
@@ -220,19 +229,44 @@ fn validation_command(
     });
     commands.push(format!(
         "printf '%s\\n' {} > {}",
-        shell_quote_str(&report_payload.to_string()),
+        shell_quote_str(&lineage_payload.to_string()),
+        shell_quote(validated_reads_manifest),
+    ));
+    commands.push(format!(
+        "printf '{}' {} {} {} {} \"$strict_pass\" \"$exit_code\" > {}",
+        escape_printf_format(&report_format),
+        shell_quote_str(&json_path_token(r1)?),
+        shell_quote_str(&json_optional_path_token(r2)?),
+        shell_quote_str(&json_path_token(&r1_log)?),
+        shell_quote_str(&json_optional_path_token(r2_log.as_deref())?),
         shell_quote(report_path),
     ));
     commands.push(format!(
-        "printf '%s\\n' {} > {}",
-        shell_quote_str(&lineage_payload.to_string()),
-        shell_quote(validated_reads_manifest),
+        "exit \"$exit_code\""
     ));
     Ok(vec![
         "sh".to_string(),
         "-lc".to_string(),
         commands.join(" && "),
     ])
+}
+
+fn json_string_literal(value: &str) -> String {
+    serde_json::to_string(value).expect("serialize static json string literal")
+}
+
+fn json_path_token(path: &Path) -> Result<String> {
+    serde_json::to_string(&path.display().to_string())
+        .map_err(|error| anyhow!("serialize path token for validation report: {error}"))
+}
+
+fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
+    serde_json::to_string(&path.map(|value| value.display().to_string()))
+        .map_err(|error| anyhow!("serialize optional path token for validation report: {error}"))
+}
+
+fn escape_printf_format(value: &str) -> String {
+    value.replace('%', "%%")
 }
 
 fn shell_quote(path: &Path) -> String {
@@ -368,6 +402,27 @@ mod tests {
         assert!(script.contains("out/validated_reads_manifest.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
+        assert!(script.contains("\"stage\":\"fastq.validate_reads\""));
+        assert!(script.contains("\"$strict_pass\""));
+        assert!(script.contains("\"$exit_code\""));
+        Ok(())
+    }
+
+    #[test]
+    fn plan_validation_report_tracks_runtime_exit_code_instead_of_placeholder_success() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads.fastq.gz"),
+            Some(std::path::Path::new("reads_r2.fastq.gz")),
+            std::path::Path::new("out"),
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("status_r1=$?"));
+        assert!(script.contains("status_r2=$?"));
+        assert!(script.contains("exit_code=$status_r1"));
+        assert!(script.contains("exit \"$exit_code\""));
+        assert!(!script.contains("\"strict_pass\":true"));
         Ok(())
     }
 
