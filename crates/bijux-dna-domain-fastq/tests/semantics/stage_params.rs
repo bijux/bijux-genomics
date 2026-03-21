@@ -1,6 +1,6 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::params::correct::{
-    CorrectionEngine, FastqCorrectParams, CORRECT_SCHEMA_VERSION,
+    CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
 use bijux_dna_domain_fastq::params::defaults::{
@@ -61,6 +61,11 @@ fn correct_params_roundtrip_and_schema_version() {
     let decoded: FastqCorrectParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, CORRECT_SCHEMA_VERSION);
     assert_eq!(decoded.correction_engine, CorrectionEngine::Rcorrector);
+    assert_eq!(decoded.quality_encoding, QualityEncoding::Phred33);
+    assert_eq!(decoded.kmer_size, None);
+    assert_eq!(decoded.max_memory_gb, None);
+    assert_eq!(decoded.trusted_kmer_artifact, None);
+    assert!(!decoded.conservative_mode);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
