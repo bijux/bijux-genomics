@@ -422,6 +422,7 @@ pub fn bench_args_correct(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
     })
 }
 
