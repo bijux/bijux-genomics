@@ -65,13 +65,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqQcPostMetrics>> {
-    let aggregation_engine =
-        parse_qc_aggregation_engine(args.aggregation_engine.as_deref())?;
+    let aggregation_engine = parse_qc_aggregation_engine(args.aggregation_engine.as_deref())?;
     let aggregation_scope = parse_qc_aggregation_scope(args.aggregation_scope.as_deref())?;
-    let governed_qc = load_required_qc_inputs_manifest(
-        aggregation_scope,
-        args.governed_qc_manifest.as_deref(),
-    )?;
     let tools = select_qc_post_tools(&args.tools)?;
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
@@ -86,6 +81,13 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_REPORT_QC.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_qc_post_bench(catalog, platform, runner_override, args)?;
+    let governed_qc = load_required_qc_inputs_manifest(
+        aggregation_scope.clone(),
+        args.governed_qc_manifest.as_deref(),
+        &bench_inputs.bench_dir,
+        &bench_inputs.tools_root,
+        &tools,
+    )?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_REPORT_QC.as_str());
     let all_tools: Vec<String> = registry
         .tools_for_stage(&stage_id)
@@ -257,20 +259,42 @@ fn governed_qc_inputs_manifest_path(out_dir: &Path) -> PathBuf {
     out_dir.join("governed_qc_inputs_manifest.json")
 }
 
+fn discover_qc_inputs_manifest_path(
+    bench_dir: &Path,
+    tools_root: &Path,
+    tools: &[String],
+) -> Option<PathBuf> {
+    let mut candidates = vec![governed_qc_inputs_manifest_path(bench_dir)];
+    candidates.extend(
+        tools
+            .iter()
+            .map(|tool_id| governed_qc_inputs_manifest_path(&tools_root.join(tool_id))),
+    );
+    candidates.into_iter().find(|path| path.exists())
+}
+
 fn load_required_qc_inputs_manifest(
     aggregation_scope: QcAggregationScope,
     manifest_path: Option<&Path>,
+    bench_dir: &Path,
+    tools_root: &Path,
+    tools: &[String],
 ) -> Result<GovernedQcInputs> {
-    let manifest_path = manifest_path.ok_or_else(|| {
+    let manifest_path = manifest_path
+        .map(Path::to_path_buf)
+        .or_else(|| discover_qc_inputs_manifest_path(bench_dir, tools_root, tools))
+        .ok_or_else(|| {
         anyhow!(
-            "fastq.report_qc benchmarking requires --governed-qc-manifest for aggregation_scope={}; this stage consumes the canonical QC input manifest rather than inferring contributor artifacts from raw FASTQ files alone",
+            "fastq.report_qc benchmarking requires --governed-qc-manifest for aggregation_scope={}; no planner-written governed QC manifest was found in {} or tool output directories under {}",
             match aggregation_scope {
                 QcAggregationScope::GovernedQcArtifacts => "governed_qc_artifacts",
                 QcAggregationScope::FastqQcInputs => "fastq_qc_inputs",
-            }
+            },
+            bench_dir.display(),
+            tools_root.display(),
         )
     })?;
-    load_governed_qc_inputs_manifest(manifest_path)
+    load_governed_qc_inputs_manifest(&manifest_path)
 }
 
 fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
@@ -676,8 +700,15 @@ mod tests {
 
     #[test]
     fn required_governed_qc_manifest_is_enforced() {
-        let error = load_required_qc_inputs_manifest(QcAggregationScope::GovernedQcArtifacts, None)
-            .expect_err("manifest requirement must be enforced");
+        let temp = tempfile::tempdir().expect("tempdir");
+        let error = load_required_qc_inputs_manifest(
+            QcAggregationScope::GovernedQcArtifacts,
+            None,
+            temp.path(),
+            temp.path(),
+            &["multiqc".to_string()],
+        )
+        .expect_err("manifest requirement must be enforced");
         assert!(error
             .to_string()
             .contains("requires --governed-qc-manifest"));
@@ -685,11 +716,57 @@ mod tests {
 
     #[test]
     fn fastq_qc_input_scope_uses_same_manifest_contract() {
-        let error = load_required_qc_inputs_manifest(QcAggregationScope::FastqQcInputs, None)
-            .expect_err("manifest requirement must be enforced");
+        let temp = tempfile::tempdir().expect("tempdir");
+        let error = load_required_qc_inputs_manifest(
+            QcAggregationScope::FastqQcInputs,
+            None,
+            temp.path(),
+            temp.path(),
+            &["multiqc".to_string()],
+        )
+        .expect_err("manifest requirement must be enforced");
         assert!(error
             .to_string()
             .contains("aggregation_scope=fastq_qc_inputs"));
+    }
+
+    #[test]
+    fn report_qc_manifest_loader_discovers_planner_written_tool_manifest() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let tools_root = temp.path().join("tools");
+        let tool_dir = tools_root.join("multiqc");
+        std::fs::create_dir_all(&tool_dir).expect("tool dir");
+        let artifact_path = temp.path().join("trim_report.json");
+        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        let manifest_path = governed_qc_inputs_manifest_path(&tool_dir);
+        std::fs::write(
+            &manifest_path,
+            serde_json::json!({
+                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "qc_inputs": [
+                    {
+                        "name": "fastq.trim_reads.fastp.report_json",
+                        "path": artifact_path,
+                        "role": "report_json",
+                        "optional": false
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("manifest");
+
+        let governed = load_required_qc_inputs_manifest(
+            QcAggregationScope::GovernedQcArtifacts,
+            None,
+            temp.path(),
+            &tools_root,
+            &["multiqc".to_string()],
+        )
+        .expect("planner-written manifest should be discovered");
+
+        assert_eq!(governed.qc_inputs.len(), 1);
+        assert_eq!(governed.qc_inputs[0].path, artifact_path);
     }
 
     #[test]
