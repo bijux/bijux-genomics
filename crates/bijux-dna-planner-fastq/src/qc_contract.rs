@@ -1,7 +1,7 @@
 use bijux_dna_core::ids::StageId;
 
 #[must_use]
-pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
+pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<String> {
     bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&StageId::new(stage_id))
 }
 

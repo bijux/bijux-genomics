@@ -263,7 +263,10 @@ fn governed_qc_contract_is_owned_by_domain() {
         bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&validation_stage);
     assert_eq!(
         validation_artifacts,
-        vec!["validation_report", "validated_reads_manifest"]
+        vec![
+            "validation_report".to_string(),
+            "validated_reads_manifest".to_string()
+        ]
     );
 
     let report_qc_stage = StageId::from_static("fastq.report_qc");
