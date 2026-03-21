@@ -598,6 +598,8 @@ pub struct BenchFastqQcPostArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long)]
+    pub aggregation_scope: Option<String>,
     #[arg(
         long,
         value_name = "PATH",
