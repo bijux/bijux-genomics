@@ -994,6 +994,152 @@ pub fn select_preprocess_toolsets(
     Ok(selections)
 }
 
+pub fn expand_pipeline_stage_tool_routes(
+    pipeline: &PipelineSpec,
+    toolsets: &[ToolsetSelection],
+) -> Result<(PipelineSpec, Vec<StageToolSelection>)> {
+    let ordered_nodes = pipeline.ordered_nodes();
+    if ordered_nodes.len() != toolsets.len() {
+        return Err(anyhow!(
+            "pipeline node/toolset length mismatch: {} vs {}",
+            ordered_nodes.len(),
+            toolsets.len()
+        ));
+    }
+    for (node, toolset) in ordered_nodes.iter().zip(toolsets.iter()) {
+        if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id {
+            return Err(anyhow!(
+                "toolset expansion requires node-aligned stage selections; got pipeline node {} and toolset {}",
+                PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
+                PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref()),
+            ));
+        }
+        if toolset.tool_ids.is_empty() {
+            return Err(anyhow!(
+                "toolset expansion requires at least one tool for {}",
+                node.stage_id
+            ));
+        }
+    }
+
+    let route_count = toolsets.iter().try_fold(1usize, |count, toolset| {
+        count.checked_mul(toolset.tool_ids.len()).ok_or_else(|| {
+            anyhow!("preprocess tool route expansion overflowed route count")
+        })
+    })?;
+    if route_count > 256 {
+        return Err(anyhow!(
+            "preprocess tool route expansion would create {route_count} route-specific pipelines; narrow the stage toolsets before fan-out"
+        ));
+    }
+
+    let base_edges = if pipeline.declares_graph_topology() {
+        pipeline.edges.clone()
+    } else {
+        ordered_nodes
+            .windows(2)
+            .map(|window| PipelineEdgeSpec {
+                from: PipelineSpec::stage_node_id(
+                    &window[0].stage_id,
+                    window[0].stage_instance_id.as_deref(),
+                ),
+                to: PipelineSpec::stage_node_id(
+                    &window[1].stage_id,
+                    window[1].stage_instance_id.as_deref(),
+                ),
+                from_output_id: None,
+                to_input_id: None,
+            })
+            .collect::<Vec<_>>()
+    };
+
+    let route_tool_indices = enumerate_tool_route_indices(toolsets);
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+    let mut selections = Vec::new();
+    for route_indices in &route_tool_indices {
+        let route_key = route_key(route_indices, toolsets);
+        let mut expanded_node_ids = std::collections::BTreeMap::<String, String>::new();
+        for ((node, toolset), tool_index) in ordered_nodes
+            .iter()
+            .zip(toolsets.iter())
+            .zip(route_indices.iter())
+        {
+            let tool_id = toolset
+                .tool_ids
+                .get(*tool_index)
+                .ok_or_else(|| anyhow!("invalid route index {tool_index} for {}", node.stage_id))?
+                .clone();
+            let stage_instance_id =
+                expanded_stage_instance_id(&node.stage_id, &tool_id, &route_key);
+            let original_node_id =
+                PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+            expanded_node_ids.insert(original_node_id, stage_instance_id.clone());
+            nodes.push(PipelineNodeSpec {
+                stage_id: node.stage_id.clone(),
+                stage_instance_id: Some(stage_instance_id.clone()),
+            });
+            selections.push(StageToolSelection {
+                stage_id: node.stage_id.clone(),
+                stage_instance_id: Some(stage_instance_id),
+                tool_id,
+                reason: toolset.reason.clone(),
+            });
+        }
+        for edge in &base_edges {
+            edges.push(PipelineEdgeSpec {
+                from: expanded_node_ids.get(&edge.from).cloned().ok_or_else(|| {
+                    anyhow!("expanded route missing source node {}", edge.from)
+                })?,
+                to: expanded_node_ids
+                    .get(&edge.to)
+                    .cloned()
+                    .ok_or_else(|| anyhow!("expanded route missing target node {}", edge.to))?,
+                from_output_id: edge.from_output_id.clone(),
+                to_input_id: edge.to_input_id.clone(),
+            });
+        }
+    }
+
+    Ok((PipelineSpec::graph(nodes, edges), selections))
+}
+
+fn enumerate_tool_route_indices(toolsets: &[ToolsetSelection]) -> Vec<Vec<usize>> {
+    let mut routes = vec![Vec::<usize>::new()];
+    for toolset in toolsets {
+        let mut expanded = Vec::new();
+        for route in &routes {
+            for tool_idx in 0..toolset.tool_ids.len() {
+                let mut next = route.clone();
+                next.push(tool_idx);
+                expanded.push(next);
+            }
+        }
+        routes = expanded;
+    }
+    routes
+}
+
+fn route_key(route_indices: &[usize], toolsets: &[ToolsetSelection]) -> String {
+    route_indices
+        .iter()
+        .zip(toolsets.iter())
+        .map(|(tool_index, toolset)| {
+            let tool_id = toolset
+                .tool_ids
+                .get(*tool_index)
+                .map(String::as_str)
+                .unwrap_or("unknown");
+            format!("{}={tool_id}", toolset.stage_id)
+        })
+        .collect::<Vec<_>>()
+        .join("__")
+}
+
+fn expanded_stage_instance_id(stage_id: &str, tool_id: &str, route_key: &str) -> String {
+    format!("{stage_id}.route.{route_key}.tool.{tool_id}")
+}
+
 /// # Errors
 /// Returns an error if node-aware tool selection fails.
 pub fn select_preprocess_stage_tools(

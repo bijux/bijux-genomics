@@ -674,6 +674,7 @@ pub fn bench_args_preprocess(
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
+        run_all_governed_tools: args.run_all_governed_tools,
         allow_planned: args.allow_planned,
         mode: engine_args::FastqPlannerMode::Shotgun,
     }
@@ -867,6 +868,7 @@ pub fn preprocess_args_from_cli(
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
+        run_all_governed_tools: args.run_all_governed_tools,
         allow_planned: args.common.allow_planned,
         mode: engine_args::FastqPlannerMode::Shotgun,
     };

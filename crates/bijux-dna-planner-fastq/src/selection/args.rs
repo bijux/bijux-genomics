@@ -399,6 +399,7 @@ pub struct BenchFastqPreprocessArgs {
     pub no_qc_post: bool,
     pub force_merge: bool,
     pub enable_correct: bool,
+    pub run_all_governed_tools: bool,
     pub allow_planned: bool,
     pub mode: FastqPlannerMode,
 }

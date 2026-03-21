@@ -1,4 +1,5 @@
 use super::*;
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 
@@ -100,6 +101,7 @@ fn preprocess_benchmark_query_context_tracks_lineage_hash() {
         no_qc_post: false,
         force_merge: false,
         enable_correct: false,
+        run_all_governed_tools: false,
         allow_planned: false,
         mode: crate::selection::args::FastqPlannerMode::Shotgun,
     };
@@ -218,6 +220,88 @@ fn host_depletion_surfaces_benchmark_cohort_from_manifest_support() {
     assert_eq!(cohorts.len(), 1);
     assert_eq!(cohorts[0].scenario_id, "host_depletion_fairness");
     assert!(cohorts[0].tool_ids.is_empty());
+}
+
+#[test]
+fn expand_pipeline_stage_tool_routes_materializes_graph_bound_stage_bindings() {
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+        ],
+        vec![PipelineEdgeSpec {
+            from: "fastq.validate_reads.entry".to_string(),
+            to: "fastq.trim_reads.cleanup".to_string(),
+            from_output_id: None,
+            to_input_id: None,
+        }],
+    );
+    let toolsets = vec![
+        ToolsetSelection {
+            stage_id: "fastq.validate_reads".to_string(),
+            stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+            tool_ids: vec!["fastqvalidator".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+        ToolsetSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            tool_ids: vec!["bbduk".to_string(), "fastp".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+    ];
+
+    let (expanded_pipeline, expanded_stage_tools) =
+        expand_pipeline_stage_tool_routes(&pipeline, &toolsets).expect("expand routes");
+
+    assert_eq!(expanded_pipeline.nodes.len(), 4);
+    assert_eq!(expanded_pipeline.edges.len(), 2);
+    assert_eq!(expanded_stage_tools.len(), 4);
+    assert!(expanded_stage_tools.iter().any(|selection| {
+        selection.stage_id == "fastq.trim_reads"
+            && selection.tool_id == "bbduk"
+            && selection
+                .stage_instance_id
+                .as_deref()
+                .is_some_and(|id| id.contains("fastq.validate_reads=fastqvalidator"))
+    }));
+    assert!(expanded_pipeline.edges.iter().all(|edge| {
+        edge.from.contains("fastq.validate_reads=fastqvalidator")
+            && edge.to.contains("fastq.validate_reads=fastqvalidator")
+    }));
+}
+
+#[test]
+fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
+    let pipeline = PipelineSpec::linear(vec![
+        "fastq.validate_reads".to_string(),
+        "fastq.trim_reads".to_string(),
+        "fastq.filter_reads".to_string(),
+        "fastq.remove_duplicates".to_string(),
+        "fastq.profile_reads".to_string(),
+    ]);
+    let toolsets = pipeline
+        .ordered_nodes()
+        .into_iter()
+        .map(|node| ToolsetSelection {
+            stage_id: node.stage_id,
+            stage_instance_id: node.stage_instance_id,
+            tool_ids: (0..4).map(|idx| format!("tool_{idx}")).collect(),
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        })
+        .collect::<Vec<_>>();
+
+    let error = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
+        .expect_err("route expansion should reject unbounded graph fanout");
+    assert!(error
+        .to_string()
+        .contains("preprocess tool route expansion would create"));
 }
 
 #[test]
