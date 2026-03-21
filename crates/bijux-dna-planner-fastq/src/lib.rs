@@ -61,23 +61,7 @@ fn required_id_catalog() -> Vec<String> {
 }
 
 fn pipeline_spec_from_stage_sequence(stages: Vec<String>) -> PipelineSpec {
-    let nodes = stages
-        .iter()
-        .map(|stage_id| PipelineNodeSpec {
-            stage_id: stage_id.clone(),
-            stage_instance_id: None,
-        })
-        .collect::<Vec<_>>();
-    let edges = stages
-        .windows(2)
-        .map(|window| PipelineEdgeSpec {
-            from: window[0].clone(),
-            to: window[1].clone(),
-            from_output_id: None,
-            to_input_id: None,
-        })
-        .collect::<Vec<_>>();
-    PipelineSpec::graph(nodes, edges)
+    PipelineSpec::chain(stages)
 }
 
 fn sort_stages_by_domain_order(stages: Vec<String>, mode: FastqPipelineMode) -> Vec<String> {
