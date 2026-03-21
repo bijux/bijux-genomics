@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bijux_dna_core::ids::StageId;
+use std::collections::BTreeSet;
 
 #[test]
 fn benchmark_stages_publish_comparison_artifact_contracts() {
@@ -18,6 +19,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             .expect("trim comparison contract")
             .comparison_artifact_id,
         "trim_tool_comparison_json"
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&trim_stage),
+        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
@@ -87,6 +92,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "dedup_tool_normalization_json",
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&dedup_stage),
+        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+    );
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
     assert_eq!(
@@ -106,6 +115,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "correction_tool_comparison_json",
             "correction_tool_normalization_json",
         ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&correction_stage),
+        vec!["corrected_reads_r1", "corrected_reads_r2", "report_json"]
     );
 
     let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
@@ -127,6 +140,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "terminal_damage_tool_normalization_json",
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&terminal_damage_stage),
+        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+    );
 
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
     assert_eq!(
@@ -136,6 +153,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "polyg_trim_tool_comparison_json",
             "polyg_trim_tool_normalization_json",
         ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&polyg_stage),
+        vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
     );
 
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
@@ -157,6 +178,12 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "validation_tool_normalization_json",
         ]
     );
+
+    let report_qc_stage = StageId::from_static("fastq.report_qc");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&report_qc_stage),
+        vec!["multiqc_report", "multiqc_data"]
+    );
 }
 
 #[test]
@@ -175,4 +202,34 @@ fn comparison_artifacts_stay_inside_fastq_artifact_vocabulary() -> Result<()> {
         );
     }
     Ok(())
+}
+
+#[test]
+fn comparison_inputs_remain_inside_governed_stage_outputs() {
+    for stage_id in [
+        "fastq.trim_reads",
+        "fastq.trim_polyg_tails",
+        "fastq.remove_duplicates",
+        "fastq.report_qc",
+        "fastq.correct_errors",
+        "fastq.trim_terminal_damage",
+        "fastq.validate_reads",
+    ] {
+        let output_ids = bijux_dna_domain_fastq::stage_output_ids(stage_id)
+            .expect("stage outputs must exist for governed benchmark stage");
+        let output_ids = output_ids.into_iter().collect::<BTreeSet<_>>();
+        let comparison_inputs = bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(
+            &StageId::new(stage_id.to_string()),
+        );
+        assert!(
+            !comparison_inputs.is_empty(),
+            "comparison stage {stage_id} must publish governed comparison inputs",
+        );
+        for artifact_id in comparison_inputs {
+            assert!(
+                output_ids.contains(artifact_id),
+                "comparison input {artifact_id} must remain a governed output of {stage_id}",
+            );
+        }
+    }
 }
