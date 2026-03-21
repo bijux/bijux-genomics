@@ -51,3 +51,5 @@ mod mod_contracts_taxonomy_screen_manifest_rs;
 mod mod_contracts_tool_metrics_rs;
 #[path = "contracts/tool_stage_contracts.rs"]
 mod mod_contracts_tool_stage_contracts_rs;
+#[path = "contracts/validate_reads_manifest.rs"]
+mod mod_contracts_validate_reads_manifest_rs;
