@@ -52,80 +52,7 @@ pub fn observer_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
 
 #[must_use]
 pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
-    vec![
-        (
-            bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
-            ToolId::from_static("fastqvalidator"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
-            ToolId::from_static("seqtk"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
-            ToolId::from_static("fqtools"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
-            ToolId::from_static("seqkit_stats"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS,
-            ToolId::from_static("fastqc"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
-            ToolId::from_static("fastqc"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_PROFILE_READS,
-            ToolId::from_static("seqkit_stats"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_REPORT_QC,
-            ToolId::from_static("multiqc"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES,
-            ToolId::from_static("fastuniq"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES,
-            ToolId::from_static("clumpify"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE,
-            ToolId::from_static("cutadapt"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE,
-            ToolId::from_static("seqkit"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS,
-            ToolId::from_static("fastp"),
-        ),
-        (
-            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS,
-            ToolId::from_static("bbduk"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
-            ToolId::from_static("rcorrector"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
-            ToolId::from_static("musket"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
-            ToolId::from_static("lighter"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
-            ToolId::from_static("bayeshammer"),
-        ),
-    ]
+    observer::observer_specialized_stage_tool_bindings()
 }
 
 #[must_use]
@@ -140,12 +67,7 @@ pub fn runtime_interpretation_for_stage_tool(
         return None;
     }
     Some(
-        if observer_stage_tool_bindings()
-            .into_iter()
-            .any(|(candidate_stage, candidate_tool)| {
-                candidate_stage == *stage_id && candidate_tool == *tool_id
-            })
-        {
+        if observer::is_observer_specialized_stage_tool(stage_id, tool_id) {
             RuntimeInterpretationLevel::ObserverSpecialized
         } else {
             RuntimeInterpretationLevel::GenericEnvelope
