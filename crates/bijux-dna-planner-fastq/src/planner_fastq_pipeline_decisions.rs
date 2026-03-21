@@ -1000,7 +1000,8 @@ fn normalize_stage_bindings(
         let pipeline_spec = config
             .pipeline_spec
             .clone()
-            .unwrap_or_else(|| linear_pipeline_spec_from_bindings(&config.stage_bindings));
+            .map(Ok)
+            .unwrap_or_else(|| implicit_pipeline_spec_from_bindings(&config.stage_bindings))?;
         return Ok((pipeline_spec, config.stage_bindings.clone()));
     }
 
@@ -1013,7 +1014,8 @@ fn normalize_stage_bindings(
         let base_pipeline = config
             .pipeline_spec
             .clone()
-            .unwrap_or_else(|| linear_pipeline_spec_from_toolsets(&config.stage_toolsets));
+            .map(Ok)
+            .unwrap_or_else(|| implicit_pipeline_spec_from_toolsets(&config.stage_toolsets))?;
         let toolsets = config
             .stage_toolsets
             .iter()
@@ -1104,56 +1106,73 @@ fn normalize_stage_bindings(
     ))
 }
 
-fn linear_pipeline_spec_from_bindings(bindings: &[FastqStageBinding]) -> PipelineSpec {
-    let nodes = bindings
-        .iter()
-        .map(|binding| PipelineNodeSpec {
-            stage_id: binding.stage_id.clone(),
-            stage_instance_id: binding.stage_instance_id.clone(),
-        })
-        .collect::<Vec<_>>();
-    let edges = nodes
-        .windows(2)
-        .map(|window| PipelineEdgeSpec {
-            from: PipelineSpec::stage_node_id(
-                &window[0].stage_id,
-                window[0].stage_instance_id.as_deref(),
-            ),
-            to: PipelineSpec::stage_node_id(
-                &window[1].stage_id,
-                window[1].stage_instance_id.as_deref(),
-            ),
-            from_output_id: None,
-            to_input_id: None,
-        })
-        .collect::<Vec<_>>();
-    PipelineSpec::graph(nodes, edges)
+fn implicit_pipeline_spec_from_bindings(bindings: &[FastqStageBinding]) -> Result<PipelineSpec> {
+    implicit_pipeline_spec_from_nodes(
+        bindings
+            .iter()
+            .map(|binding| PipelineNodeSpec {
+                stage_id: binding.stage_id.clone(),
+                stage_instance_id: binding.stage_instance_id.clone(),
+            })
+            .collect(),
+        "stage_bindings",
+    )
 }
 
-fn linear_pipeline_spec_from_toolsets(toolsets: &[FastqStageToolsetBinding]) -> PipelineSpec {
-    let nodes = toolsets
-        .iter()
-        .map(|binding| PipelineNodeSpec {
-            stage_id: binding.stage_id.clone(),
-            stage_instance_id: binding.stage_instance_id.clone(),
+fn implicit_pipeline_spec_from_toolsets(
+    toolsets: &[FastqStageToolsetBinding],
+) -> Result<PipelineSpec> {
+    implicit_pipeline_spec_from_nodes(
+        toolsets
+            .iter()
+            .map(|binding| PipelineNodeSpec {
+                stage_id: binding.stage_id.clone(),
+                stage_instance_id: binding.stage_instance_id.clone(),
+            })
+            .collect(),
+        "stage_toolsets",
+    )
+}
+
+fn implicit_pipeline_spec_from_nodes(
+    nodes: Vec<PipelineNodeSpec>,
+    surface_name: &str,
+) -> Result<PipelineSpec> {
+    let mut node_id_by_stage_id = std::collections::BTreeMap::new();
+    for node in &nodes {
+        let stage_node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        if node_id_by_stage_id
+            .insert(node.stage_id.clone(), stage_node_id)
+            .is_some()
+        {
+            return Err(anyhow!(
+                "{surface_name} with repeated stage_id {} requires an explicit pipeline_spec",
+                node.stage_id
+            ));
+        }
+    }
+
+    let stage_graph = preprocess_pipeline_graph_for_stage_order(
+        nodes
+            .iter()
+            .map(|node| StageId::new(node.stage_id.clone()))
+            .collect(),
+    );
+    let edges = stage_graph
+        .edges
+        .into_iter()
+        .map(|edge| PipelineEdgeSpec {
+            from: node_id_by_stage_id
+                .get(&edge.from)
+                .cloned()
+                .unwrap_or(edge.from),
+            to: node_id_by_stage_id.get(&edge.to).cloned().unwrap_or(edge.to),
+            from_output_id: edge.from_output_id,
+            to_input_id: edge.to_input_id,
         })
-        .collect::<Vec<_>>();
-    let edges = nodes
-        .windows(2)
-        .map(|window| PipelineEdgeSpec {
-            from: PipelineSpec::stage_node_id(
-                &window[0].stage_id,
-                window[0].stage_instance_id.as_deref(),
-            ),
-            to: PipelineSpec::stage_node_id(
-                &window[1].stage_id,
-                window[1].stage_instance_id.as_deref(),
-            ),
-            from_output_id: None,
-            to_input_id: None,
-        })
-        .collect::<Vec<_>>();
-    PipelineSpec::graph(nodes, edges)
+        .collect();
+    Ok(PipelineSpec::graph(nodes, edges))
 }
 
 fn base_stage_instance_id(stage_instance_id: &Option<String>) -> Option<&str> {
@@ -1535,7 +1554,10 @@ pub fn plan_fastq_to_fastq__default__v1(
 
 #[cfg(test)]
 mod tests {
-    use super::{stage_toolsets_for_pipeline_nodes, FastqStageToolsetBinding};
+    use super::{
+        implicit_pipeline_spec_from_bindings, implicit_pipeline_spec_from_toolsets,
+        stage_toolsets_for_pipeline_nodes, FastqStageBinding, FastqStageToolsetBinding,
+    };
     use anyhow::Result;
     use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
     use bijux_dna_core::prelude::{
@@ -1642,6 +1664,84 @@ mod tests {
             .to_string()
             .contains("pipeline nodes/toolset length mismatch"));
     }
+
+    #[test]
+    fn implicit_pipeline_spec_from_bindings_uses_domain_dag_edges() -> Result<()> {
+        let pipeline = implicit_pipeline_spec_from_bindings(&[
+            FastqStageBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+                tool: dummy_tool("fastqvalidator"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.profile_read_lengths".to_string(),
+                stage_instance_id: Some("fastq.profile_read_lengths.metrics".to_string()),
+                tool: dummy_tool("seqkit_stats"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.detect_adapters".to_string(),
+                stage_instance_id: Some("fastq.detect_adapters.adapters".to_string()),
+                tool: dummy_tool("fastqc"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                tool: dummy_tool("multiqc"),
+                reason: None,
+                params: None,
+            },
+        ])?;
+
+        assert_eq!(pipeline.nodes.len(), 4);
+        assert!(pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.validate_reads.entry"
+                && edge.to == "fastq.profile_read_lengths.metrics"
+        }));
+        assert!(pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.validate_reads.entry"
+                && edge.to == "fastq.detect_adapters.adapters"
+        }));
+        assert!(pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.profile_read_lengths.metrics"
+                && edge.to == "fastq.report_qc.aggregate"
+        }));
+        assert!(pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.detect_adapters.adapters"
+                && edge.to == "fastq.report_qc.aggregate"
+        }));
+        Ok(())
+    }
+
+    #[test]
+    fn implicit_pipeline_spec_from_toolsets_rejects_repeated_stage_ids() {
+        let error = implicit_pipeline_spec_from_toolsets(&[
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                tools: vec![dummy_tool("fastp")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cutadapt_branch".to_string()),
+                tools: vec![dummy_tool("cutadapt")],
+                reason: None,
+                params: None,
+            },
+        ])
+        .expect_err("repeated stage ids must require an explicit graph");
+
+        assert!(error
+            .to_string()
+            .contains("requires an explicit pipeline_spec"));
+    }
 }
 
 /// # Errors
@@ -1725,12 +1825,6 @@ where
         explicit_stage_inputs,
         out_dir_for_stage,
     )
-}
-
-#[derive(Debug, Clone)]
-pub struct ToolSelection {
-    pub tool_id: String,
-    pub reason: PlanDecisionReason,
 }
 
 #[derive(Debug, Clone)]
@@ -2290,25 +2384,6 @@ pub fn select_preprocess_stage_tools(
     }
 
     Ok(selected_tools)
-}
-
-/// # Errors
-/// Returns an error if tool selection fails.
-pub fn select_preprocess_tools(
-    registry: &bijux_dna_core::contract::ToolRegistry,
-    pipeline: &PipelineSpec,
-    args: &crate::selection::args::BenchFastqPreprocessArgs,
-    bench_repo: Option<&dyn BenchResultsRepository>,
-) -> Result<Vec<ToolSelection>> {
-    Ok(
-        select_preprocess_stage_tools(registry, pipeline, args, bench_repo)?
-            .into_iter()
-            .map(|selection| ToolSelection {
-                tool_id: selection.tool_id,
-                reason: selection.reason,
-            })
-            .collect(),
-    )
 }
 
 fn bench_query_context_for_stage(
