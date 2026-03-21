@@ -162,6 +162,13 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.remove_duplicates"),
+                &ToolId::from_static("clumpify"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("seqkit"),
             ),
