@@ -18,6 +18,7 @@ pub(crate) mod preprocess;
 pub(crate) mod profile_overrepresented_sequences;
 pub(crate) mod profile_read_lengths;
 pub(crate) mod profile_reads;
+pub(crate) mod record_identity;
 pub(crate) mod remove_chimeras;
 pub(crate) mod remove_duplicates;
 pub(crate) mod report_qc;
