@@ -33,9 +33,7 @@ pub struct ValidateReadsEffectiveConfig {
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct ValidateReadsPlanOptions {
-    pub q_cutoff: Option<u32>,
-}
+pub struct ValidateReadsPlanOptions;
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -51,7 +49,7 @@ pub fn plan_with_options(
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
-    options: &ValidateReadsPlanOptions,
+    _options: &ValidateReadsPlanOptions,
 ) -> Result<StagePlanV1> {
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
@@ -63,7 +61,6 @@ pub fn plan_with_options(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        q_cutoff: options.q_cutoff,
         validation_mode: ValidationMode::Strict,
         pair_sync_policy: if r2.is_some() {
             PairSyncPolicy::RequireHeaderSync
@@ -90,7 +87,6 @@ pub fn plan_with_options(
         &report_path,
         &validated_reads_manifest,
         out_dir,
-        options.q_cutoff,
     )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -129,7 +125,6 @@ pub fn plan_with_options(
             "out_dir": out_dir,
             "report_json": report_path,
             "validated_reads_manifest": validated_reads_manifest,
-            "q_cutoff": options.q_cutoff,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -166,7 +161,6 @@ fn validation_command(
     report_path: &Path,
     validated_reads_manifest: &Path,
     out_dir: &Path,
-    q_cutoff: Option<u32>,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
@@ -230,12 +224,12 @@ fn validation_command(
         commands.push("pair_sync_pass=true".to_string());
         commands.push("pair_count_match=true".to_string());
         commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); print header }}' > {}",
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); print header }}' > {}",
             shell_quote(r1),
             shell_quote(&pair_sync_r1),
         ));
         commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); print header }}' > {}",
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); print header }}' > {}",
             shell_quote(r2),
             shell_quote(&pair_sync_r2),
         ));
@@ -259,7 +253,7 @@ fn validation_command(
         ));
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
@@ -268,11 +262,10 @@ fn validation_command(
         } else {
             "not_applicable"
         })?,
-        json_u32_or_null(q_cutoff)?,
         if r2.is_some() { 2 } else { 1 },
     );
     let lineage_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
         json_string_literal(if r2.is_some() {
@@ -280,7 +273,6 @@ fn validation_command(
         } else {
             "not_applicable"
         })?,
-        json_u32_or_null(q_cutoff)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
         if r2.is_some() {
             "[\"reads_r1\",\"reads_r2\"]".to_string()
@@ -328,11 +320,6 @@ fn json_path_token(path: &Path) -> Result<String> {
 fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
     serde_json::to_string(&path.map(|value| value.display().to_string()))
         .map_err(|error| anyhow!("serialize optional path token for validation report: {error}"))
-}
-
-fn json_u32_or_null(value: Option<u32>) -> Result<String> {
-    serde_json::to_string(&value)
-        .map_err(|error| anyhow!("serialize optional q_cutoff for validation report: {error}"))
 }
 
 fn escape_printf_format(value: &str) -> String {
@@ -447,7 +434,7 @@ mod tests {
             plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\"")
         );
         assert!(plan.command.template[2].contains("count_fastq_reads()"));
-        assert!(plan.command.template[2].contains("validated_pairs=$(wc -l <"));
+        assert!(plan.command.template[2].contains("validated_pairs=$validated_reads_r1"));
         assert!(plan.command.template[2].contains("cmp -s"));
         assert!(
             plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\"")
@@ -519,7 +506,7 @@ mod tests {
     }
 
     #[test]
-    fn validation_lineage_carries_quality_cutoff_even_when_unset() -> Result<()> {
+    fn validation_lineage_omits_unmapped_quality_cutoff() -> Result<()> {
         let plan = plan(
             &dummy_tool("fastqvalidator"),
             std::path::Path::new("reads.fastq.gz"),
@@ -527,10 +514,10 @@ mod tests {
             std::path::Path::new("out"),
         )?;
 
-        assert_eq!(plan.params["q_cutoff"], serde_json::Value::Null);
-        assert_eq!(plan.effective_params["q_cutoff"], serde_json::Value::Null);
+        assert!(plan.params.get("q_cutoff").is_none());
+        assert!(plan.effective_params.get("q_cutoff").is_none());
         let script = &plan.command.template[2];
-        assert!(script.contains("\"q_cutoff\":null"));
+        assert!(!script.contains("\"q_cutoff\""));
         Ok(())
     }
 
@@ -549,6 +536,20 @@ mod tests {
         assert!(script.contains("pair_count_match"));
         assert!(script.contains("exit_code=96"));
         assert!(script.contains("\"status_r1\":%%s"));
+        Ok(())
+    }
+
+    #[test]
+    fn paired_validation_normalizes_common_mate_suffixes_before_sync_check() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("sub(/\\/[12]$/, \"\", header)"));
         Ok(())
     }
 }
