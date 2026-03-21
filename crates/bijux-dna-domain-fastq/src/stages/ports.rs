@@ -8,11 +8,18 @@ struct StageManifestPort {
 }
 
 #[derive(Debug, Deserialize)]
-struct StageManifestIo {
+struct StageManifestParameter {
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct StageManifestShape {
     #[serde(default)]
     inputs: Vec<StageManifestPort>,
     #[serde(default)]
     outputs: Vec<StageManifestPort>,
+    #[serde(default)]
+    parameters: Vec<StageManifestParameter>,
 }
 
 macro_rules! stage_manifest {
@@ -60,7 +67,7 @@ fn manifest_yaml(stage_id: &str) -> Option<&'static str> {
     }
 }
 
-fn parse_manifest(stage_id: &str) -> Option<StageManifestIo> {
+fn parse_manifest(stage_id: &str) -> Option<StageManifestShape> {
     let raw = manifest_yaml(stage_id)?;
     serde_yaml::from_str(raw).ok()
 }
@@ -87,9 +94,20 @@ pub fn stage_output_ids(stage_id: &str) -> Option<BTreeSet<String>> {
     })
 }
 
+#[must_use]
+pub fn stage_parameter_ids(stage_id: &str) -> Option<BTreeSet<String>> {
+    parse_manifest(stage_id).map(|manifest| {
+        manifest
+            .parameters
+            .into_iter()
+            .map(|parameter| parameter.name)
+            .collect::<BTreeSet<_>>()
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{stage_input_ids, stage_output_ids};
+    use super::{stage_input_ids, stage_output_ids, stage_parameter_ids};
 
     #[test]
     fn stage_ports_follow_governed_manifest_names() {
@@ -104,6 +122,22 @@ mod tests {
                     .into_iter()
                     .map(str::to_string)
                     .collect()
+            )
+        );
+        assert_eq!(
+            stage_parameter_ids("fastq.trim_reads"),
+            Some(
+                [
+                    "min_length",
+                    "quality_cutoff",
+                    "adapter_policy",
+                    "polyx_policy",
+                    "n_policy",
+                    "contaminant_policy",
+                ]
+                .into_iter()
+                .map(str::to_string)
+                .collect()
             )
         );
     }

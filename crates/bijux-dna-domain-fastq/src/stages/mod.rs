@@ -10,7 +10,7 @@ pub mod specs;
 
 pub use contract::*;
 pub use ids::*;
-pub use ports::{stage_input_ids, stage_output_ids};
+pub use ports::{stage_input_ids, stage_output_ids, stage_parameter_ids};
 pub use semantics::{
     fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
     stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
