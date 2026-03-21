@@ -113,9 +113,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             &bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
-            &ValidateReadsPlanOptions {
-                q_cutoff: args.q_cutoff,
-            },
+            &ValidateReadsPlanOptions::default(),
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
