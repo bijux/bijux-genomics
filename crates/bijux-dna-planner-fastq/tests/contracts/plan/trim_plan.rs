@@ -61,7 +61,7 @@ fn trim_output_names_are_defined_for_known_tools() {
     );
     assert_eq!(
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::trim_output_name("seqpurge"),
-        None
+        Some("seqpurge.fastq.gz")
     );
 }
 
@@ -261,6 +261,36 @@ fn plan_trim_with_options_maps_min_length_for_seqkit() -> Result<()> {
     assert_eq!(plan.command.template[1], "-lc");
     assert!(plan.command.template[2].contains("seqkit seq -m 75"));
     assert!(plan.command.template[2].contains("out/seqkit.fastq.gz"));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_seqpurge_supports_single_end_and_paired_layouts() -> Result<()> {
+    let single_end = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("seqpurge"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+    assert_eq!(single_end.command.template[0], "sh");
+    assert_eq!(single_end.command.template[1], "-lc");
+    assert!(single_end.command.template[2].contains("seqpurge"));
+    assert!(!single_end.command.template[2].contains("{{reads_r2}}"));
+
+    let paired = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("seqpurge"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+    assert!(paired.command.template[2].contains("-in2"));
+    assert!(paired.command.template[2].contains("reads_R2.fastq.gz"));
     Ok(())
 }
 

@@ -303,7 +303,7 @@ stage_tool_integration:
     fastp: governed_contract
     prinseq: governed_contract
     seqkit: governed_contract
-    seqpurge: planned_contract
+    seqpurge: governed_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
   fastq.trim_terminal_damage:

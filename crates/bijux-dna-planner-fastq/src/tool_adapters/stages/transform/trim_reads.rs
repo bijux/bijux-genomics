@@ -84,6 +84,7 @@ pub fn trim_output_name(tool: &str) -> Option<&'static str> {
         "trim_galore" => Some("trimmed_trimmed.fq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "seqkit" => Some("seqkit.fastq.gz"),
+        "seqpurge" => Some("seqpurge.fastq.gz"),
         "skewer" => Some("skewer.fastq.gz"),
         "leehom" => Some("leehom.fastq.gz"),
         "alientrimmer" => Some("alientrimmer.fastq.gz"),
@@ -424,6 +425,16 @@ fn trim_command_template(
     if tool.tool_id.as_str() == "seqkit" {
         return seqkit_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
     }
+    if tool.tool_id.as_str() == "seqpurge" {
+        return seqpurge_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            options,
+        );
+    }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -565,6 +576,43 @@ fn seqkit_trim_command_template(
         shell_quote_path(report_json),
     ));
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn seqpurge_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "seqpurge".to_string(),
+        "-in1".to_string(),
+        r1.display().to_string(),
+        "-out1".to_string(),
+        output_r1.display().to_string(),
+    ];
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.extend([
+            "-in2".to_string(),
+            r2.display().to_string(),
+            "-out2".to_string(),
+            output_r2.display().to_string(),
+        ]);
+    }
+    if let Some(min_length) = options.min_length {
+        command.extend(["-min_len".to_string(), min_length.to_string()]);
+    }
+    Ok(wrap_trim_command_with_report(
+        "seqpurge",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
 }
 
 fn cutadapt_command_template(
