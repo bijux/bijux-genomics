@@ -75,9 +75,15 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             )));
         }
         declared_stage_nodes.push(node_id.to_string());
-        if stage.tools.is_empty() {
+        if stage.tools.is_empty() && !planner_owned_graph_stage(&stage.stage) {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {} must include at least one tool",
+                stage.stage
+            )));
+        }
+        if planner_owned_graph_stage(&stage.stage) && !stage.tools.is_empty() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite planner-owned stage {} must not declare tool bindings",
                 stage.stage
             )));
         }
@@ -415,6 +421,9 @@ fn validate_stage_input_port(
 }
 
 fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
+    if planner_owned_graph_stage(stage_id) {
+        return Ok(());
+    }
     if stage_id.starts_with("fastq.") {
         if contract_for_stage(stage_id).is_none() {
             return Err(BenchError::InvalidPolicy(format!(
@@ -447,6 +456,15 @@ fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
 }
 
 fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchError> {
+    if planner_owned_graph_stage(stage_id) {
+        if tools.is_empty() {
+            return Ok(());
+        }
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite planner-owned stage {} must not declare tool bindings",
+            stage_id
+        )));
+    }
     if !stage_id.starts_with("fastq.") {
         return Ok(());
     }
@@ -468,6 +486,13 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
         }
     }
     Ok(())
+}
+
+fn planner_owned_graph_stage(stage_id: &str) -> bool {
+    matches!(
+        stage_id,
+        "benchmark.compare_stage_tools" | "benchmark.select_stage_tool"
+    )
 }
 
 fn validate_stage_param_binding_keys<'a>(
@@ -663,6 +688,36 @@ mod tests {
             upstream_stage_instance_ids: Vec::new(),
         });
         validate_suite(&suite).expect("registered BAM stages should validate");
+    }
+
+    #[test]
+    fn suite_validation_accepts_planner_owned_select_nodes_without_tools() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "benchmark.select_stage_tool".to_string(),
+            stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+            tools: Vec::new(),
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        validate_suite(&suite).expect("planner-owned select nodes should validate without tools");
+    }
+
+    #[test]
+    fn suite_validation_rejects_tools_on_planner_owned_select_nodes() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "benchmark.select_stage_tool".to_string(),
+            stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: Vec::new(),
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error =
+            validate_suite(&suite).expect_err("planner-owned select nodes must not declare tools");
+        assert!(error
+            .to_string()
+            .contains("must not declare tool bindings"));
     }
 
     #[test]

@@ -358,4 +358,58 @@ mod tests {
                 && node.tool_id.as_deref() == Some("cutadapt")
         }));
     }
+
+    #[test]
+    fn suite_graph_nodes_allow_planner_owned_stage_only_nodes() {
+        let suite = BenchmarkSuiteSpec::v1_stage_matrix(
+            "suite".to_string(),
+            vec![DatasetSpec {
+                id: "dataset".to_string(),
+                hash: "hash".to_string(),
+                size: 1,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            vec![BenchmarkStageSpec {
+                stage: "benchmark.select_stage_tool".to_string(),
+                stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+                tools: Vec::new(),
+                params: Vec::new(),
+                param_bindings: Vec::new(),
+                upstream_stage_instance_ids: vec![
+                    "fastq.trim_reads.fastp".to_string(),
+                    "fastq.trim_reads.cutadapt".to_string(),
+                ],
+            }],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+            DiversityRequirements {
+                min_dataset_count: 1,
+                min_classes: 1,
+                min_read_layouts: 1,
+            },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: false,
+                min_replicates_for_bootstrap: 5,
+            },
+        );
+
+        let nodes = suite.graph_nodes();
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0].kind, BenchmarkGraphNodeKind::Stage);
+        assert_eq!(
+            nodes[0].node_id,
+            "benchmark.select_stage_tool.trim_reads".to_string()
+        );
+        assert!(nodes[0].tool_id.is_none());
+    }
 }
