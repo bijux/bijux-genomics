@@ -1,4 +1,3 @@
-
 #[derive(Debug, Subcommand)]
 pub enum BenchCommand {
     Run(BenchRunArgs),
@@ -70,7 +69,10 @@ pub enum BenchFastqCommand {
     DepleteRrna(BenchFastqDepleteRrnaArgs),
     #[command(name = "profile-reads", visible_alias = "stats")]
     Stats(BenchFastqStatsArgs),
-    #[command(name = "profile-overrepresented-sequences", visible_alias = "overrepresented")]
+    #[command(
+        name = "profile-overrepresented-sequences",
+        visible_alias = "overrepresented"
+    )]
     ProfileOverrepresentedSequences(BenchFastqProfileOverrepresentedArgs),
     Preprocess(BenchFastqPreprocessArgs),
 }
@@ -85,7 +87,12 @@ pub struct BenchFastqTrimArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -126,7 +133,12 @@ pub struct BenchFastqTrimPolygArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -154,7 +166,12 @@ pub struct BenchFastqTrimTerminalDamageArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -184,7 +201,12 @@ pub struct BenchFastqValidateArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -210,7 +232,12 @@ pub struct BenchFastqDetectAdaptersArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -234,7 +261,12 @@ pub struct BenchFastqProfileReadLengthsArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -258,7 +290,12 @@ pub struct BenchFastqFilterArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -288,7 +325,12 @@ pub struct BenchFastqFilterLowComplexityArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -316,7 +358,12 @@ pub struct BenchFastqMergeArgs {
     pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -340,7 +387,12 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -352,6 +404,13 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(
+        long,
+        help = "Duplicate model: exact | sequence_identity | optical_aware"
+    )]
+    pub dedup_mode: Option<String>,
+    #[arg(long, help = "Preserve input order in deduplicated output")]
+    pub keep_order: Option<bool>,
 }
 
 #[derive(Debug, Args)]
@@ -364,7 +423,12 @@ pub struct BenchFastqRemoveChimerasArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -388,7 +452,12 @@ pub struct BenchFastqNormalizePrimersArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -412,7 +481,12 @@ pub struct BenchFastqInferAsvsArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -434,7 +508,12 @@ pub struct BenchFastqNormalizeAbundanceArgs {
     pub table: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -458,7 +537,12 @@ pub struct BenchFastqCorrectArgs {
     pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -482,7 +566,12 @@ pub struct BenchFastqQcPostArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -508,7 +597,12 @@ pub struct BenchFastqUmiArgs {
     pub out: PathBuf,
     #[arg(long, help = "UMI barcode pattern passed to umi_tools extract")]
     pub umi_pattern: String,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -532,7 +626,12 @@ pub struct BenchFastqClusterOtusArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -556,7 +655,12 @@ pub struct BenchFastqScreenArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -577,7 +681,12 @@ pub struct BenchFastqIndexReferenceArgs {
     pub reference_fasta: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -591,7 +700,6 @@ pub struct BenchFastqIndexReferenceArgs {
     pub ci_bootstrap: Option<u32>,
 }
 
-
 #[derive(Debug, Args)]
 pub struct BenchFastqDepleteHostArgs {
     #[arg(long, alias = "sample")]
@@ -604,7 +712,12 @@ pub struct BenchFastqDepleteHostArgs {
     pub reference_index: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -630,7 +743,12 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
     pub reference_index: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -654,7 +772,12 @@ pub struct BenchFastqDepleteRrnaArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -678,7 +801,12 @@ pub struct BenchFastqStatsArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -702,7 +830,12 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
+    #[arg(
+        long,
+        value_delimiter = ',',
+        default_value = "auto",
+        help = "Tool selection: auto | all | <csv>"
+    )]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -726,7 +859,11 @@ pub struct BenchFastqPreprocessArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub r2: Option<PathBuf>,
-    #[arg(long, value_name = "PATH", help = "Reference FASTA for reference-guided FASTQ stages")]
+    #[arg(
+        long,
+        value_name = "PATH",
+        help = "Reference FASTA for reference-guided FASTQ stages"
+    )]
     pub reference_fasta: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,

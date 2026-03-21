@@ -308,6 +308,8 @@ pub fn bench_args_remove_duplicates(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        dedup_mode: args.dedup_mode.clone(),
+        keep_order: args.keep_order,
     })
 }
 

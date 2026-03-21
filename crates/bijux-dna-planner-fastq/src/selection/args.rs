@@ -156,6 +156,8 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub dedup_mode: Option<String>,
+    pub keep_order: Option<bool>,
 }
 
 #[derive(Debug, Clone)]
