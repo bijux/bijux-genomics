@@ -241,8 +241,11 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
 
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
+            "stage": STAGE_TRIM_POLYG_TAILS.as_str(),
             "stage_id": STAGE_TRIM_POLYG_TAILS.as_str(),
+            "tool": tool,
             "tool_id": tool,
+            "trimmed_reads": metrics.reads_out,
             "reads_in": metrics.reads_in,
             "reads_out": metrics.reads_out,
             "bases_in": metrics.bases_in,
