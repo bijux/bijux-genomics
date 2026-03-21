@@ -224,12 +224,12 @@ fn validation_command(
         commands.push("pair_sync_pass=true".to_string());
         commands.push("pair_count_match=true".to_string());
         commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); print header }}' > {}",
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
             shell_quote(r1),
             shell_quote(&pair_sync_r1),
         ));
         commands.push(format!(
-            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); print header }}' > {}",
+            "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
             shell_quote(r2),
             shell_quote(&pair_sync_r2),
         ));
@@ -550,6 +550,7 @@ mod tests {
 
         let script = &plan.command.template[2];
         assert!(script.contains("sub(/\\/[12]$/, \"\", header)"));
+        assert!(script.contains("sub(/([._-]R?[12])$/, \"\", header)"));
         Ok(())
     }
 }
