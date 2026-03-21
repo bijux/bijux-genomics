@@ -10,6 +10,7 @@ use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
     apply_tool_overrides, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs, FastqPlanConfig, FastqPlanner, FastqStageBinding,
+    FastqStageToolsetBinding,
 };
 
 fn snapshot_settings() -> insta::Settings {
@@ -160,14 +161,20 @@ fn default_pipeline_plan_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
     let pipeline =
         bijux_dna_planner_fastq::default_pipeline_spec(DefaultPipelineOptions::default());
-    let tools: Vec<ToolExecutionSpecV1> = pipeline
+    let stage_toolsets: Vec<FastqStageToolsetBinding> = pipeline
         .ordered_nodes()
         .iter()
-        .map(|node| default_stage_tool(&node.stage_id))
+        .map(|node| FastqStageToolsetBinding {
+            stage_id: node.stage_id.clone(),
+            stage_instance_id: node.stage_instance_id.clone(),
+            tools: vec![default_stage_tool(&node.stage_id)],
+            reason: None,
+            params: None,
+        })
         .collect();
     let inputs = FastqPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
-        tools,
+        stage_toolsets,
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -177,7 +184,6 @@ fn default_pipeline_plan_snapshot_is_stable() {
         r2: None,
         reference_fasta: None,
         out_dir: PathBuf::from("out"),
-        tool_reasons: None,
     };
     let plan =
         plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default()).expect("plan");

@@ -8,7 +8,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
     default_pipeline_spec, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
-    FastqPipelineInputs,
+    FastqPipelineInputs, FastqStageToolsetBinding,
 };
 
 fn snapshot_name(group: &str, name: &str) -> String {
@@ -42,10 +42,16 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
 #[test]
 fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
-    let tools = pipeline
+    let stage_toolsets = pipeline
         .ordered_nodes()
         .iter()
-        .map(|node| tool_for_stage(&node.stage_id))
+        .map(|node| FastqStageToolsetBinding {
+            stage_id: node.stage_id.clone(),
+            stage_instance_id: node.stage_instance_id.clone(),
+            tools: vec![tool_for_stage(&node.stage_id)],
+            reason: None,
+            params: None,
+        })
         .collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-graph-snapshot")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -53,7 +59,7 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
 
     let inputs = FastqPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
-        tools,
+        stage_toolsets,
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -63,7 +69,6 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
     };
 
     let graph = plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default())?;
