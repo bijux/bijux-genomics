@@ -201,8 +201,8 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&validation_stage),
         vec![
-            "validation_report".to_string(),
-            "validated_reads_manifest".to_string()
+            "validated_reads_manifest".to_string(),
+            "validation_report".to_string()
         ]
     );
 
@@ -210,9 +210,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&report_qc_stage),
         vec![
+            "governed_qc_inputs_manifest".to_string(),
             "multiqc_report".to_string(),
             "multiqc_data".to_string(),
-            "governed_qc_inputs_manifest".to_string()
         ]
     );
 }
