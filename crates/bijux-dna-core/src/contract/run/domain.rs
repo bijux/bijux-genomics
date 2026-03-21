@@ -29,8 +29,6 @@ pub struct PipelineSpec {
 #[serde(deny_unknown_fields)]
 struct PipelineSpecSerde {
     #[serde(default)]
-    stages: Vec<String>,
-    #[serde(default)]
     nodes: Vec<PipelineNodeSpec>,
     #[serde(default)]
     edges: Vec<PipelineEdgeSpec>,
@@ -42,23 +40,13 @@ impl<'de> serde::Deserialize<'de> for PipelineSpec {
         D: serde::Deserializer<'de>,
     {
         let repr = PipelineSpecSerde::deserialize(deserializer)?;
-        if !repr.nodes.is_empty() {
-            if !repr.stages.is_empty() && stage_catalog_from_nodes(&repr.nodes) != repr.stages {
-                return Err(serde::de::Error::custom(
-                    "PipelineSpec stages do not match node stage catalog",
-                ));
-            }
-            return Ok(Self {
-                nodes: repr.nodes,
-                edges: repr.edges,
-            });
+        if repr.nodes.is_empty() {
+            return Err(serde::de::Error::custom("PipelineSpec requires nodes"));
         }
-        if repr.stages.is_empty() {
-            return Err(serde::de::Error::custom(
-                "PipelineSpec requires nodes or legacy stages",
-            ));
-        }
-        Ok(Self::chain(repr.stages))
+        Ok(Self {
+            nodes: repr.nodes,
+            edges: repr.edges,
+        })
     }
 }
 
@@ -227,19 +215,12 @@ mod tests {
     }
 
     #[test]
-    fn legacy_stage_only_serialization_deserializes_into_chain_pipeline() {
-        let spec: PipelineSpec = serde_json::from_value(serde_json::json!({
+    fn pipeline_spec_rejects_legacy_stage_lists() {
+        let error = serde_json::from_value::<PipelineSpec>(serde_json::json!({
             "stages": ["fastq.validate_reads", "fastq.trim_reads"]
         }))
-        .expect("legacy stage list should remain readable");
-        assert_eq!(
-            spec.ordered_stage_ids(),
-            vec![
-                "fastq.validate_reads".to_string(),
-                "fastq.trim_reads".to_string()
-            ]
-        );
-        assert_eq!(spec.edges.len(), 1);
+        .expect_err("legacy stage lists should no longer deserialize");
+        assert!(error.to_string().contains("unknown field `stages`"));
     }
 
     #[test]
