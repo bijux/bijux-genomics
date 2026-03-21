@@ -56,7 +56,7 @@ stage_contracts:
       - "multiqc_report"
       - "multiqc_data"
       - "governed_qc_inputs_manifest"
-    notes: "QC aggregation accepts governed stage-level qc_artifacts, and the planner lowers that bundle into the sorted, deduplicated qc_input_paths execution input consumed by the MultiQC command template."
+    notes: "QC aggregation accepts governed stage-level qc_artifacts, the planner writes governed_qc_inputs_manifest before execution, and then lowers the contributor set into the sorted, deduplicated qc_input_paths shell invocation consumed by MultiQC."
 expected_artifacts: ["multiqc_report", "multiqc_data", "governed_qc_inputs_manifest"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
