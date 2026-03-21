@@ -17,6 +17,16 @@ outputs:
   - name: "validated_reads_manifest"
     data_type: "json"
     cardinality: "One"
+parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "4"
+  - name: "validation_mode"
+    param_type: "string"
+    default: "strict"
+  - name: "pair_sync_policy"
+    param_type: "string"
+    default: "require_header_sync"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
