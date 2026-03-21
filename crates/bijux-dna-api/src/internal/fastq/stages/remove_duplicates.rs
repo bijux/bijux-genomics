@@ -27,6 +27,30 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
 
+fn ensure_remove_duplicates_tools_support_input_mode(
+    tools: &[String],
+    paired_mode: bool,
+) -> Result<()> {
+    let incompatible = tools
+        .iter()
+        .filter(|tool_id| {
+            !bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::deduplicate_tool_supports_paired_mode(
+                tool_id,
+                paired_mode,
+            )
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if incompatible.is_empty() {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "fastq.remove_duplicates does not support {} inputs for tool(s): {}",
+        if paired_mode { "paired-end" } else { "single-end" },
+        incompatible.join(", "),
+    ))
+}
+
 pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -37,6 +61,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
+    ensure_remove_duplicates_tools_support_input_mode(&tools, args.r2.is_some())?;
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
     } else {
