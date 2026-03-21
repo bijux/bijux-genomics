@@ -225,6 +225,8 @@ pub struct ExecutionContract {
     #[serde(default)]
     pub expected_outputs: Vec<String>,
     #[serde(default)]
+    pub optional_outputs: Vec<String>,
+    #[serde(default)]
     pub forbidden_outputs: Vec<String>,
     #[serde(default)]
     pub forbid_unexpected_outputs: bool,
