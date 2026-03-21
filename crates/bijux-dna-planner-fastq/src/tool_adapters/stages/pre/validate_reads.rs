@@ -205,7 +205,10 @@ fn validation_command(
     commands.push("exit_code=0".to_string());
     commands.push("pair_sync_checked=false".to_string());
     commands.push("pair_sync_pass=null".to_string());
+    commands.push("pair_count_match=null".to_string());
     commands.push("validated_pairs=0".to_string());
+    commands.push("validated_reads_r1=0".to_string());
+    commands.push("validated_reads_r2=null".to_string());
     commands.push(
         "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi"
             .to_string(),
@@ -219,6 +222,7 @@ fn validation_command(
         let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
         commands.push("pair_sync_checked=true".to_string());
         commands.push("pair_sync_pass=true".to_string());
+        commands.push("pair_count_match=true".to_string());
         commands.push(format!(
             "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); print header }}' > {}",
             shell_quote(r1),
@@ -230,9 +234,17 @@ fn validation_command(
             shell_quote(&pair_sync_r2),
         ));
         commands.push(format!(
-            "validated_pairs=$(wc -l < {} | tr -d '[:space:]')",
+            "validated_reads_r1=$(wc -l < {} | tr -d '[:space:]')",
             shell_quote(&pair_sync_r1),
         ));
+        commands.push(format!(
+            "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
+            shell_quote(&pair_sync_r2),
+        ));
+        commands.push("validated_pairs=$validated_reads_r1".to_string());
+        commands.push(
+            "if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi".to_string(),
+        );
         commands.push(format!(
             "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
             shell_quote(&pair_sync_r1),
@@ -245,7 +257,7 @@ fn validation_command(
         ));
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"q_cutoff\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"validated_pairs\":%s,\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
@@ -283,7 +295,7 @@ fn validation_command(
         shell_quote(validated_reads_manifest),
     ));
     commands.push(format!(
-        "printf '{}' {} {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" \"$strict_pass\" \"$exit_code\" > {}",
+        "printf '{}' {} {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$validated_pairs\" \"$validated_reads_r1\" \"$validated_reads_r2\" \"$strict_pass\" \"$exit_code\" > {}",
         escape_printf_format(&report_format),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
@@ -513,6 +525,23 @@ mod tests {
         assert_eq!(plan.effective_params["q_cutoff"], serde_json::Value::Null);
         let script = &plan.command.template[2];
         assert!(script.contains("\"q_cutoff\":null"));
+        Ok(())
+    }
+
+    #[test]
+    fn paired_validation_reports_explicit_mate_count_checks() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("validated_reads_r1"));
+        assert!(script.contains("validated_reads_r2"));
+        assert!(script.contains("pair_count_match"));
+        assert!(script.contains("exit_code=96"));
         Ok(())
     }
 }
