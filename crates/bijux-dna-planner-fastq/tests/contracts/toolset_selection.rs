@@ -214,3 +214,86 @@ fn stage_tool_selection_skips_planner_owned_select_nodes() -> anyhow::Result<()>
 
     Ok(())
 }
+
+#[test]
+fn stage_tool_selection_filters_paired_only_dedup_backends_for_single_end_inputs(
+) -> anyhow::Result<()> {
+    let pipeline = PipelineSpec::linear(vec!["fastq.remove_duplicates".to_string()]);
+    let args = BenchFastqPreprocessArgs {
+        sample_id: "sample".to_string(),
+        profile: None,
+        r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+        r2: None,
+        reference_fasta: None,
+        out: std::path::PathBuf::from("out"),
+        strict: false,
+        auto: false,
+        objective: Objective::Balanced,
+        bench_corpus: None,
+        allow_partial: false,
+        dry_run: true,
+        replicates: 1,
+        jobs: 1,
+        ci_bootstrap: None,
+        adapter_bank_preset: None,
+        adapter_bank: None,
+        adapter_bank_file: None,
+        enable_adapters: Vec::new(),
+        disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
+        enable_contaminant_removal: false,
+        no_qc_post: false,
+        force_merge: false,
+        enable_correct: false,
+        run_all_governed_tools: false,
+        allow_planned: false,
+        mode: FastqPlannerMode::Shotgun,
+    };
+
+    let selections = bijux_dna_planner_fastq::select_preprocess_stage_tools(
+        tool_registry(),
+        &pipeline,
+        &args,
+        None,
+    )?;
+    assert_eq!(selections.len(), 1);
+    assert_eq!(selections[0].stage_id, "fastq.remove_duplicates");
+    assert_eq!(selections[0].tool_id, "clumpify");
+    Ok(())
+}
+
+#[test]
+fn layout_filter_keeps_fastuniq_only_for_paired_remove_duplicates() {
+    let stage_id = bijux_dna_core::ids::StageId::new("fastq.remove_duplicates".to_string());
+    let tools = vec![
+        bijux_dna_core::ids::ToolId::new("fastuniq".to_string()),
+        bijux_dna_core::ids::ToolId::new("clumpify".to_string()),
+    ];
+
+    let single_end = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+        &stage_id,
+        tools.clone(),
+        false,
+    );
+    assert_eq!(
+        single_end
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect::<Vec<_>>(),
+        vec!["clumpify".to_string()]
+    );
+
+    let paired_end = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+        &stage_id,
+        tools,
+        true,
+    );
+    assert_eq!(
+        paired_end
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect::<Vec<_>>(),
+        vec!["fastuniq".to_string(), "clumpify".to_string()]
+    );
+}

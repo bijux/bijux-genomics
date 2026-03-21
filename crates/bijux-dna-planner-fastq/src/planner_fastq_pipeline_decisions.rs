@@ -2236,19 +2236,27 @@ pub fn select_preprocess_stage_tools(
         .into_iter()
         .filter(|node| !planner_owned_graph_stage(&node.stage_id))
         .collect::<Vec<_>>();
+    let paired_end = args.r2.is_some();
     let mut selected_tools: Vec<StageToolSelection> = executable_nodes
         .iter()
         .map(|node| {
             let stage_id = StageId::new(node.stage_id.clone());
+            let compatible_tools = crate::stage_api::filter_tools_for_input_layout(
+                &stage_id,
+                registry
+                    .tools_for_stage(&stage_id)
+                    .iter()
+                    .map(|tool| tool.tool_id.clone())
+                    .collect(),
+                paired_end,
+            );
             let tool_id = crate::selection::default_tool_for_stage(&stage_id)
-                .map(|tool| tool.to_string())
-                .or_else(|| {
-                    registry
-                        .tools_for_stage(&stage_id)
-                        .first()
-                        .map(|tool| tool.tool_id.to_string())
+                .filter(|tool_id| {
+                    crate::stage_api::tool_supports_input_layout(&stage_id, tool_id, paired_end)
                 })
-                .ok_or_else(|| anyhow!("no default tool for stage {}", node.stage_id))?;
+                .or_else(|| compatible_tools.first().cloned())
+                .map(|tool| tool.to_string())
+                .ok_or_else(|| anyhow!("no layout-compatible tool for stage {}", node.stage_id))?;
             Ok(StageToolSelection {
                 stage_id: node.stage_id.clone(),
                 stage_instance_id: node.stage_instance_id.clone(),
@@ -2283,11 +2291,19 @@ pub fn select_preprocess_stage_tools(
                 &prior_stage_ids,
                 &selected_tools[..idx],
             )?;
-            let tool_ids: Vec<String> = registry
+            let tool_ids = registry
                 .tools_for_stage(&stage_id)
                 .iter()
-                .map(|tool| tool.tool_id.to_string())
-                .collect();
+                .map(|tool| tool.tool_id.clone())
+                .collect::<Vec<_>>();
+            let tool_ids = crate::stage_api::filter_tools_for_input_layout(
+                &stage_id,
+                tool_ids,
+                paired_end,
+            )
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect::<Vec<_>>();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
                 let records = repo.bench_results(&stage_id, tool, &corpus, &query_context)?;
