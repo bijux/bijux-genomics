@@ -541,6 +541,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
         | "trim_galore" => Ok(()),
+        "prinseq" if options.quality_cutoff.is_none() => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!(
@@ -634,7 +635,7 @@ fn prinseq_trim_command_template(
     output_r2: Option<&Path>,
     report_json: &Path,
     threads: u32,
-    _options: &TrimPlanOptions,
+    options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec![
         "prinseq++".to_string(),
@@ -647,6 +648,9 @@ fn prinseq_trim_command_template(
         "-out_bad".to_string(),
         "/dev/null".to_string(),
     ];
+    if let Some(min_length) = options.min_length {
+        command.extend(["-min_len".to_string(), min_length.to_string()]);
+    }
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
             "-fastq2".to_string(),
