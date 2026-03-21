@@ -38,3 +38,29 @@ fn admitted_deduplicate_tools_only_compare_with_stage_peers() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn fastuniq_manifest_requires_paired_remove_duplicates_inputs() -> Result<()> {
+    let manifest = tool_manifest("fastuniq")?;
+    let required_inputs = manifest
+        .get("execution_contract")
+        .and_then(|value| value.get("required_inputs"))
+        .and_then(serde_json::Value::as_array)
+        .context("fastuniq execution required_inputs")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(required_inputs, vec!["reads_r1", "reads_r2"]);
+
+    let stage_required_inputs = manifest
+        .get("stage_contracts")
+        .and_then(|value| value.get("fastq.remove_duplicates"))
+        .and_then(|value| value.get("required_inputs"))
+        .and_then(serde_json::Value::as_array)
+        .context("fastuniq stage required_inputs")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(stage_required_inputs, vec!["reads_r1", "reads_r2"]);
+    Ok(())
+}
