@@ -266,6 +266,27 @@ impl StagePlugin for FastqStagePlugin {
 
 #[allow(dead_code)]
 fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> serde_json::Value {
+    if plan.stage_id.as_str() == "fastq.report_qc" {
+        if let Some(manifest_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_manifest) = std::fs::read_to_string(manifest_path) {
+                if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&raw_manifest) {
+                    let contributor_count = manifest
+                        .get("qc_inputs")
+                        .and_then(serde_json::Value::as_array)
+                        .map_or(0, std::vec::Vec::len);
+                    return serde_json::json!({
+                        "lineage_hash": manifest.get("lineage_hash").cloned().unwrap_or(serde_json::Value::Null),
+                        "contributor_artifact_count": contributor_count,
+                        "raw_fastqc_dir": manifest.get("raw_fastqc_dir").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
     if plan.stage_id.as_str() == "fastq.validate_reads" {
         if let Some(report_path) = artifacts
             .iter()
@@ -562,6 +583,89 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["pair_sync_pass"],
             serde_json::json!(true)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_qc_contributor_lineage_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let qc_input_path = temp.path().join("qc_input.fastq");
+        let report_path = temp.path().join("multiqc_report.html");
+        let data_dir = temp.path().join("multiqc_data");
+        let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
+        std::fs::write(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
+        std::fs::write(
+            &manifest_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.report_qc.inputs.v1",
+                "lineage_hash": "fastq.trim_reads.fastp=report_json",
+                "raw_fastqc_dir": "/tmp/raw_fastqc",
+                "qc_inputs": [
+                    {
+                        "name": "fastq.trim_reads.fastp.report_json",
+                        "path": "/tmp/fastp/report.json",
+                        "role": "report_json"
+                    },
+                    {
+                        "name": "fastq.validate_reads.fastqvalidator.validation_report",
+                        "path": "/tmp/validate/report.json",
+                        "role": "validation_report"
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("write manifest");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.report_qc"),
+            tool_id: ToolId::from_static("multiqc"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("qc_artifacts"),
+                    qc_input_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("multiqc_report"),
+                        report_path,
+                        ArtifactRole::ReportHtml,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("multiqc_data"),
+                        data_dir,
+                        ArtifactRole::Unknown,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("governed_qc_inputs_manifest"),
+                        manifest_path.clone(),
+                        ArtifactRole::SummaryJson,
+                    ),
+                ],
+            },
+            ..plan("fastq.report_qc")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[plan.io.outputs[2].clone()],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["contributor_artifact_count"],
+            serde_json::json!(2)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["lineage_hash"],
+            serde_json::json!("fastq.trim_reads.fastp=report_json")
         );
     }
 }
