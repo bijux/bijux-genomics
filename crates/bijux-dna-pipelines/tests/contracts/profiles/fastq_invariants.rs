@@ -44,7 +44,11 @@ fn reference_adna_profile_stage_contract_and_pairing_invariants() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            profile.capabilities.required_stages.contains(&stage),
+            profile
+                .capabilities
+                .required_stages
+                .iter()
+                .any(|required| required == stage),
             "reference profile must include required stage {stage}"
         );
     }
@@ -80,7 +84,7 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            required.contains(&stage),
+            required.iter().any(|required_stage| required_stage == stage),
             "aDNA profile must include required stage {stage}"
         );
     }
@@ -171,7 +175,8 @@ fn single_end_fastq_profiles_cover_domain_essential_shotgun_stages() {
                 profile
                     .capabilities
                     .required_stages
-                    .contains(&stage.as_str()),
+                    .iter()
+                    .any(|required| required == stage),
                 "profile {} must include domain essential stage {}",
                 profile.id,
                 stage

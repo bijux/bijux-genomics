@@ -78,7 +78,7 @@ fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
         .capabilities
         .required_stages
         .iter()
-        .copied()
+        .map(String::as_str)
         .collect()
 }
 
@@ -314,9 +314,9 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
             required_report_sections: vec![ReportSection::Vcf, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::VcfCore],
             required_stages: vec![
-                id_catalog::VCF_CALL,
-                id_catalog::VCF_FILTER,
-                id_catalog::VCF_STATS,
+                id_catalog::VCF_CALL.to_string(),
+                id_catalog::VCF_FILTER.to_string(),
+                id_catalog::VCF_STATS.to_string(),
             ],
             required_metrics: vec!["vcf.metrics"],
             required_artifacts: vec![

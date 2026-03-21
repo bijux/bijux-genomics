@@ -292,7 +292,7 @@ pub struct PipelineCapabilities {
     pub report_sections: Vec<&'static str>,
     pub required_report_sections: Vec<ReportSection>,
     pub required_metrics_bundles: Vec<MetricsBundle>,
-    pub required_stages: Vec<&'static str>,
+    pub required_stages: Vec<String>,
     pub required_metrics: Vec<&'static str>,
     pub required_artifacts: Vec<&'static str>,
     pub supports_benchmarks: bool,

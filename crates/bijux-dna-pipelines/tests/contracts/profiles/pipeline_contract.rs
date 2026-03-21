@@ -18,7 +18,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
         validate_pipeline_id(&profile.id)
             .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
         for stage_id in &profile.capabilities.required_stages {
-            let stage_key = StageId::from_static(stage_id);
+            let stage_key = StageId::new(stage_id.clone());
             assert!(
                 profile.defaults.params.contains_key(&stage_key),
                 "missing default params for {stage_id} in profile {}",
@@ -26,7 +26,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             );
 
             if stage_id.starts_with("fastq.") {
-                let stage = StageId::new(*stage_id);
+                let stage = StageId::new(stage_id.clone());
                 assert!(
                     contract_for_stage(stage_id).is_some(),
                     "unknown FASTQ stage {stage_id} in profile {}",
@@ -53,7 +53,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     profile.id
                 );
             } else if stage_id.starts_with("bam.") {
-                let stage = BamStage::try_from(*stage_id)
+                let stage = BamStage::try_from(stage_id.as_str())
                     .unwrap_or_else(|_| panic!("unknown BAM stage {stage_id}"));
                 if profile.stability == StabilityTier::Stable {
                     assert!(
@@ -67,7 +67,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 }
-                let stage_key = StageId::from_static(stage_id);
+                let stage_key = StageId::new(stage_id.clone());
                 let Some(params) = profile.defaults.params.get(&stage_key) else {
                     panic!(
                         "missing BAM params for {stage_id} in profile {}",
