@@ -2091,8 +2091,12 @@ pub fn select_preprocess_stage_tools(
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     bench_repo: Option<&dyn BenchResultsRepository>,
 ) -> Result<Vec<StageToolSelection>> {
-    let nodes = pipeline.ordered_nodes();
-    let mut selected_tools: Vec<StageToolSelection> = nodes
+    let executable_nodes = pipeline
+        .ordered_nodes()
+        .into_iter()
+        .filter(|node| !planner_owned_graph_stage(&node.stage_id))
+        .collect::<Vec<_>>();
+    let mut selected_tools: Vec<StageToolSelection> = executable_nodes
         .iter()
         .map(|node| {
             let stage_id = StageId::new(node.stage_id.clone());
@@ -2127,7 +2131,7 @@ pub fn select_preprocess_stage_tools(
             anyhow!("bench results repository required for --auto tool selection")
         })?;
         let mut selections = Vec::new();
-        for (idx, node) in nodes.iter().enumerate() {
+        for (idx, node) in executable_nodes.iter().enumerate() {
             let stage_id = bijux_dna_core::ids::StageId::new(node.stage_id.clone());
             let prior_stage_ids = selected_tools[..idx]
                 .iter()

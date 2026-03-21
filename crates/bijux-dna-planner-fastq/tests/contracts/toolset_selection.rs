@@ -1,4 +1,23 @@
-use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
+use bijux_dna_core::contract::{Objective, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
+use bijux_dna_planner_fastq::stage_api::args::{BenchFastqPreprocessArgs, FastqPlannerMode};
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("workspace root")
+        .to_path_buf()
+}
+
+fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
+    static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| {
+        bijux_dna_runtime::manifests::load_manifests(&workspace_root())
+            .expect("load domain tool registry")
+    })
+}
 
 #[test]
 fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> anyhow::Result<()> {
@@ -115,6 +134,83 @@ fn toolset_selection_skips_planner_owned_select_nodes() -> anyhow::Result<()> {
     assert_eq!(toolsets.len(), 2);
     assert_eq!(toolsets[0].stage_id, "fastq.trim_reads");
     assert_eq!(toolsets[1].stage_id, "fastq.filter_reads");
+
+    Ok(())
+}
+
+#[test]
+fn stage_tool_selection_skips_planner_owned_select_nodes() -> anyhow::Result<()> {
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "benchmark.select_stage_tool".to_string(),
+                stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+            },
+        ],
+        vec![
+            PipelineEdgeSpec {
+                from: "fastq.trim_reads.cleanup".to_string(),
+                to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("candidate_trimmed_reads_r1".to_string()),
+            },
+            PipelineEdgeSpec {
+                from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                to: "fastq.filter_reads.selected".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("reads_r1".to_string()),
+            },
+        ],
+    );
+    let args = BenchFastqPreprocessArgs {
+        sample_id: "sample".to_string(),
+        profile: None,
+        r1: std::path::PathBuf::from("reads_R1.fastq.gz"),
+        r2: None,
+        reference_fasta: None,
+        out: std::path::PathBuf::from("out"),
+        strict: false,
+        auto: false,
+        objective: Objective::Balanced,
+        bench_corpus: None,
+        allow_partial: false,
+        dry_run: true,
+        replicates: 1,
+        jobs: 1,
+        ci_bootstrap: None,
+        adapter_bank_preset: None,
+        adapter_bank: None,
+        adapter_bank_file: None,
+        enable_adapters: Vec::new(),
+        disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
+        enable_contaminant_removal: false,
+        no_qc_post: false,
+        force_merge: false,
+        enable_correct: false,
+        run_all_governed_tools: false,
+        allow_planned: false,
+        mode: FastqPlannerMode::Shotgun,
+    };
+
+    let selections = bijux_dna_planner_fastq::select_preprocess_stage_tools(
+        tool_registry(),
+        &pipeline,
+        &args,
+        None,
+    )?;
+    assert_eq!(selections.len(), 2);
+    assert_eq!(selections[0].stage_id, "fastq.trim_reads");
+    assert_eq!(selections[1].stage_id, "fastq.filter_reads");
 
     Ok(())
 }
