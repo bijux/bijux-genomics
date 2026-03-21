@@ -64,3 +64,29 @@ fn fastuniq_manifest_requires_paired_remove_duplicates_inputs() -> Result<()> {
     assert_eq!(stage_required_inputs, vec!["reads_r1", "reads_r2"]);
     Ok(())
 }
+
+#[test]
+fn clumpify_manifest_keeps_single_end_remove_duplicates_contract() -> Result<()> {
+    let manifest = tool_manifest("clumpify")?;
+    let expected_outputs = manifest
+        .get("execution_contract")
+        .and_then(|value| value.get("expected_outputs"))
+        .and_then(serde_json::Value::as_array)
+        .context("clumpify execution expected_outputs")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(expected_outputs, vec!["dedup_reads_r1", "report_json"]);
+
+    let stage_expected_artifacts = manifest
+        .get("stage_contracts")
+        .and_then(|value| value.get("fastq.remove_duplicates"))
+        .and_then(|value| value.get("expected_artifacts"))
+        .and_then(serde_json::Value::as_array)
+        .context("clumpify stage expected_artifacts")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(stage_expected_artifacts, vec!["dedup_reads_r1", "report_json"]);
+    Ok(())
+}
