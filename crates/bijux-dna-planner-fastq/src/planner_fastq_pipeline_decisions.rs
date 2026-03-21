@@ -687,6 +687,10 @@ fn stage_dependency_policy(
     let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
         return dependencies;
     };
+    for node in pipeline_spec.ordered_nodes() {
+        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        dependencies.entry(node_id).or_default();
+    }
     for edge in &pipeline_spec.edges {
         dependencies
             .entry(edge.to.clone())

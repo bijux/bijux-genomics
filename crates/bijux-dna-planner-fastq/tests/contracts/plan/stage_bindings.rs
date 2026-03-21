@@ -187,6 +187,77 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
 }
 
 #[test]
+fn graph_root_branches_do_not_inherit_previous_branch_reads() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-graph-root-branches")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__root_branches__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_root".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.bbduk_root".to_string()),
+                },
+            ],
+            Vec::new(),
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.fastp_root".to_string()),
+                tool: tool("fastp"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.bbduk_root".to_string()),
+                tool: tool("bbduk"),
+                reason: None,
+                params: None,
+            },
+        ],
+        stage_toolsets: Vec::new(),
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1: r1.clone(),
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let fastp_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.fastp_root")
+        .expect("fastp root branch");
+    let bbduk_step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.trim_reads.bbduk_root")
+        .expect("bbduk root branch");
+
+    assert_eq!(fastp_step.io.inputs[0].path, r1);
+    assert_eq!(bbduk_step.io.inputs[0].path, r1);
+    assert_ne!(fastp_step.io.outputs[0].path, bbduk_step.io.outputs[0].path);
+    Ok(())
+}
+
+#[test]
 fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-stage-binding-collision")?;
     let r1 = temp.path().join("reads_R1.fastq");
