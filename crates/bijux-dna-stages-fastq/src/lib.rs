@@ -101,6 +101,14 @@ pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
             bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE,
             ToolId::from_static("seqkit"),
         ),
+        (
+            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS,
+            ToolId::from_static("fastp"),
+        ),
+        (
+            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS,
+            ToolId::from_static("bbduk"),
+        ),
     ]
 }
 
@@ -226,6 +234,13 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.trim_polyg_tails"),
+                &ToolId::from_static("fastp"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("seqkit"),
             ),
@@ -251,6 +266,10 @@ mod tests {
             runtime_interpretation_for_stage(&StageId::from_static("fastq.trim_terminal_damage")),
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.trim_polyg_tails")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
     }
 
     #[test]
@@ -271,6 +290,9 @@ mod tests {
         )));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.trim_terminal_damage"
+        )));
+        assert!(observer_specialized.contains(&StageId::from_static(
+            "fastq.trim_polyg_tails"
         )));
         assert!(!observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(!observer_specialized.contains(&StageId::from_static(

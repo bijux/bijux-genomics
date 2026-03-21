@@ -378,6 +378,24 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             }
         }
     }
+    if plan.stage_id.as_str() == "fastq.trim_polyg_tails" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                    return serde_json::json!({
+                        "trim_polyg": report.get("trim_polyg").cloned().unwrap_or(serde_json::Value::Null),
+                        "min_polyg_run": report.get("min_polyg_run").cloned().unwrap_or(serde_json::Value::Null),
+                        "raw_report_path": report.get("raw_report_path").cloned().unwrap_or(serde_json::Value::Null),
+                        "raw_report_format": report.get("raw_report_format").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
     serde_json::Value::Null
 }
 
@@ -729,6 +747,81 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["trim_5p_bases"],
             serde_json::json!(2_u64)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_polyg_trim_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let trimmed_reads_path = temp.path().join("trimmed.fastq");
+        let report_path = temp.path().join("trim_polyg_tails_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "trim_polyg": true,
+                "min_polyg_run": 10_u64,
+                "raw_report_path": "/tmp/trim_polyg.fastp.json",
+                "raw_report_format": "fastp_json"
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.trim_polyg_tails"),
+            tool_id: ToolId::from_static("fastp"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_r1"),
+                    trimmed_reads_path,
+                    ArtifactRole::Reads,
+                )],
+            },
+            ..plan("fastq.trim_polyg_tails")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["min_polyg_run"],
+            serde_json::json!(10_u64)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["raw_report_format"],
+            serde_json::json!("fastp_json")
         );
     }
 
