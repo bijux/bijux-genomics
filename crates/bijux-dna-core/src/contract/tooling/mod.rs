@@ -221,6 +221,8 @@ pub struct ExecutionContract {
     #[serde(default)]
     pub required_inputs: Vec<String>,
     #[serde(default)]
+    pub optional_inputs: Vec<String>,
+    #[serde(default)]
     pub expected_outputs: Vec<String>,
     #[serde(default)]
     pub forbidden_outputs: Vec<String>,
