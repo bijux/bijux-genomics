@@ -100,3 +100,13 @@ fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn validate_reads_manifest_avoids_unmapped_quality_cutoff() -> Result<()> {
+    assert_eq!(
+        stage_parameter_names("validate_reads")?,
+        Vec::<String>::new(),
+        "fastq.validate_reads must not expose q_cutoff until a governed backend-native validation mapping exists"
+    );
+    Ok(())
+}

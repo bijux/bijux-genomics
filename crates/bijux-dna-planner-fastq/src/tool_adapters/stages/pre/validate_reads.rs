@@ -11,11 +11,6 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_VALIDATE_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-#[derive(Debug, Clone, Default)]
-pub struct ValidatePlanOptions {
-    pub q_cutoff: Option<u32>,
-}
-
 #[derive(Debug, Clone)]
 pub struct ValidateReadsUserConfig {
     pub tool: String,
@@ -38,17 +33,6 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, &ValidatePlanOptions::default())
-}
-
-pub fn plan_with_options(
-    tool: &ToolExecutionSpecV1,
-    r1: &Path,
-    r2: Option<&Path>,
-    out_dir: &Path,
-    options: &ValidatePlanOptions,
-) -> Result<StagePlanV1> {
-    validate_option_support(&tool.tool_id.0, options)?;
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
     let effective_params = ValidateEffectiveParams {
@@ -58,7 +42,6 @@ pub fn plan_with_options(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        q_cutoff: options.q_cutoff,
     };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
@@ -79,7 +62,6 @@ pub fn plan_with_options(
         &report_path,
         &validated_reads_manifest,
         out_dir,
-        options,
     )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -118,7 +100,6 @@ pub fn plan_with_options(
             "out_dir": out_dir,
             "report_json": report_path,
             "validated_reads_manifest": validated_reads_manifest,
-            "q_cutoff": options.q_cutoff,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
@@ -148,15 +129,6 @@ pub fn plan_from_config(
     plan(tool, &config.r1, config.r2.as_deref(), &config.out_dir)
 }
 
-fn validate_option_support(tool_id: &str, options: &ValidatePlanOptions) -> Result<()> {
-    if options.q_cutoff.is_some() {
-        return Err(anyhow!(
-            "{tool_id} validate-reads adapter does not yet map q_cutoff into a governed backend-native validation contract"
-        ));
-    }
-    Ok(())
-}
-
 fn validation_command(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -164,7 +136,6 @@ fn validation_command(
     report_path: &Path,
     validated_reads_manifest: &Path,
     out_dir: &Path,
-    options: &ValidatePlanOptions,
 ) -> Result<Vec<String>> {
     let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
         let rendered = crate::tool_adapters::template_render::render_command_template(
@@ -219,7 +190,6 @@ fn validation_command(
         "input_r1": r1,
         "input_r2": r2,
         "validation_report": report_path,
-        "q_cutoff": options.q_cutoff,
         "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
         "validated_stream_ids": if r2.is_some() {
             vec!["reads_r1", "reads_r2"]
@@ -427,52 +397,19 @@ mod tests {
     }
 
     #[test]
-    fn plan_with_options_propagates_quality_cutoff_into_effective_params() -> Result<()> {
-        let error = plan_with_options(
+    fn validation_lineage_omits_unmapped_quality_cutoff_knob() -> Result<()> {
+        let plan = plan(
             &dummy_tool("fastqvalidator"),
             std::path::Path::new("reads.fastq.gz"),
             None,
             std::path::Path::new("out"),
-            &ValidatePlanOptions { q_cutoff: Some(25) },
-        )
-        .expect_err("q_cutoff must be rejected until backend-native validation support exists");
+        )?;
 
-        assert!(error
-            .to_string()
-            .contains("does not yet map q_cutoff into a governed backend-native validation contract"));
+        assert!(plan.params.get("q_cutoff").is_none());
+        assert!(plan.effective_params.get("q_cutoff").is_none());
+        let script = &plan.command.template[2];
+        assert!(!script.contains("\"q_cutoff\""));
         Ok(())
-    }
-
-    #[test]
-    fn validation_quality_cutoff_is_rejected_for_seqtk_until_backend_support_exists() {
-        let error = plan_with_options(
-            &dummy_tool("seqtk"),
-            std::path::Path::new("reads.fastq.gz"),
-            None,
-            std::path::Path::new("out"),
-            &ValidatePlanOptions { q_cutoff: Some(20) },
-        )
-        .expect_err("seqtk validate_reads should reject q_cutoff until validation semantics are real");
-
-        assert!(error.to_string().contains("seqtk"));
-        assert!(error.to_string().contains("q_cutoff"));
-    }
-
-    #[test]
-    fn validation_quality_cutoff_is_rejected_for_fqtools_until_backend_support_exists() {
-        let error = plan_with_options(
-            &dummy_tool("fqtools"),
-            std::path::Path::new("reads.fastq.gz"),
-            None,
-            std::path::Path::new("out"),
-            &ValidatePlanOptions { q_cutoff: Some(20) },
-        )
-        .expect_err(
-            "fqtools validate_reads should reject q_cutoff until validation semantics are real",
-        );
-
-        assert!(error.to_string().contains("fqtools"));
-        assert!(error.to_string().contains("q_cutoff"));
     }
 }
 

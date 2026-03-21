@@ -320,6 +320,4 @@ pub struct FastqValidateArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub strict: bool,
-    #[arg(long)]
-    pub q_cutoff: Option<u32>,
 }
