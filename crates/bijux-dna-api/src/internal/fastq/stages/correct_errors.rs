@@ -29,6 +29,7 @@ use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
 use uuid::Uuid;
 
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
 
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::{
@@ -264,9 +265,10 @@ fn build_correct_record(
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_stats =
-        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, &output_r1)?
-            .unwrap_or_else(|| bench_inputs.input_stats_r1.clone());
+    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let output_r1 = require_existing_benchmark_output(&output_r1, "corrected_reads_r1")?;
+    let _output_r2 = require_existing_benchmark_output(&output_r2, "corrected_reads_r2")?;
+    let output_stats = observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
     let metrics = FastqCorrectMetrics {
         reads_in: bench_inputs.input_stats_r1.reads,
         reads_out: output_stats.reads,
@@ -290,7 +292,7 @@ fn build_correct_record(
         "input_r1": bench_inputs.r1,
         "input_r2": bench_inputs.r2,
         "output_r1": output_r1,
-        "output_r2": out_dir.join("reads_r2.fastq.gz"),
+        "output_r2": output_r2,
         "corrected_reads": metrics.reads_out,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
@@ -339,10 +341,7 @@ fn observe_fastq_stats(
     seqkit_image: &str,
     runner: RuntimeKind,
     reads: &std::path::Path,
-) -> Result<Option<SeqkitMetrics>> {
-    if !reads.exists() {
-        return Ok(None);
-    }
+) -> Result<SeqkitMetrics> {
     let reads_dir = reads
         .parent()
         .ok_or_else(|| anyhow!("reads path has no parent"))?;
@@ -354,9 +353,13 @@ fn observe_fastq_stats(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Ok(None);
+        return Err(anyhow!(
+            "seqkit correction observer failed for {}: {}",
+            reads.display(),
+            stats_output.stderr
+        ));
     }
-    Ok(Some(parse_seqkit_stats(&stats_output.stdout)?))
+    parse_seqkit_stats(&stats_output.stdout)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
