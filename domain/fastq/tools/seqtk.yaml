@@ -11,7 +11,7 @@ container:
 command_template:
   - "seqtk"
   - "seq"
-  - "{{reads_r1}}"
+  - "{{reads}}"
 outputs:
   - name: "validation_report"
     data_type: "json"
@@ -48,7 +48,7 @@ stage_contracts:
     expected_artifacts:
       - "validation_report"
       - "validated_reads_manifest"
-    notes: "Validation remains report-only and emits both the governed validation report and a validated-reads lineage manifest."
+    notes: "Validation remains report-only; the governed adapter runs this backend over each admitted read stream and enforces paired read synchronization outside the tool-native command."
 expected_artifacts: ["validation_report", "validated_reads_manifest"]
 metrics_schema_id: "bijux.fastq.validate.v1"
 metrics_schema: "bijux.fastq.validate.v1"
