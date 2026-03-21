@@ -41,10 +41,7 @@ tools = [
   "trim_galore",
   "prinseq",
   "seqkit",
-  "skewer",
-  "leehom",
-  "alientrimmer",
-  "fastx_clipper",
+  "seqpurge",
 ]
 
 [[stages.param_bindings]]
