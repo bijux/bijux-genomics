@@ -142,8 +142,9 @@ fn stage_comparison_contracts() -> Vec<StageComparisonContract> {
             )| {
                 StageComparisonContract {
                     stage_id: StageId::new(*stage_id),
-                    comparison_input_artifact_ids: stage_output_ids_in_manifest_order(stage_id)
-                        .unwrap_or_default(),
+                    comparison_input_artifact_ids: comparison_input_artifact_ids_for_manifest_stage(
+                        stage_id,
+                    ),
                     cohort_artifact_id,
                     comparison_artifact_id,
                     normalization_artifact_id,
@@ -151,6 +152,31 @@ fn stage_comparison_contracts() -> Vec<StageComparisonContract> {
             },
         )
         .collect()
+}
+
+fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<String> {
+    let mut artifact_ids = stage_output_ids_in_manifest_order(stage_id).unwrap_or_default();
+    prioritize_provenance_artifact(stage_id, &mut artifact_ids);
+    artifact_ids
+}
+
+fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>) {
+    let provenance_artifact_id = match stage_id {
+        "fastq.validate_reads" => Some("validated_reads_manifest"),
+        "fastq.report_qc" => Some("governed_qc_inputs_manifest"),
+        _ => None,
+    };
+    let Some(provenance_artifact_id) = provenance_artifact_id else {
+        return;
+    };
+    let Some(position) = artifact_ids
+        .iter()
+        .position(|artifact_id| artifact_id == provenance_artifact_id)
+    else {
+        return;
+    };
+    let provenance_artifact = artifact_ids.remove(position);
+    artifact_ids.insert(0, provenance_artifact);
 }
 
 #[must_use]
