@@ -62,7 +62,7 @@ Options:
       --force-merge
           
       --enable-correct
-          Enable error correction stage (paired-end only)
+          Enable error correction stage
       --alignment-bam <PATH>
           Alignment boundary BAM path (cross-domain profiles)
       --alignment-bai <PATH>

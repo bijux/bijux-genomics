@@ -131,7 +131,7 @@ pub struct FastqPreprocessArgs {
     pub no_qc_post: bool,
     #[arg(long)]
     pub force_merge: bool,
-    #[arg(long, help = "Enable error correction stage (paired-end only)")]
+    #[arg(long, help = "Enable error correction stage")]
     pub enable_correct: bool,
     #[arg(long, help = "Expand each preprocess stage into all governed runtime tools")]
     pub run_all_governed_tools: bool,
