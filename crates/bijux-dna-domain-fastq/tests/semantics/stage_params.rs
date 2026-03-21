@@ -333,15 +333,13 @@ fn rrna_params_roundtrip_with_database_contract() {
 
 #[test]
 fn report_qc_params_roundtrip_with_multiqc_contract() {
-    let params = QcPostEffectiveParams {
-        schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::PairedEnd,
-        aggregation_engine: QcAggregationEngine::Multiqc,
-        aggregation_scope: QcAggregationScope::FastqQcInputs,
-    };
+    let params = bijux_dna_domain_fastq::params::defaults::qc_post_defaults(true);
     let decoded: QcPostEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, REPORT_QC_SCHEMA_VERSION);
     assert_eq!(decoded.aggregation_engine, QcAggregationEngine::Multiqc);
-    assert_eq!(decoded.aggregation_scope, QcAggregationScope::FastqQcInputs);
+    assert_eq!(
+        decoded.aggregation_scope,
+        QcAggregationScope::GovernedQcArtifacts
+    );
     assert!(decoded.missing_required_fields().is_empty());
 }
