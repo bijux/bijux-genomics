@@ -44,6 +44,15 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .iter()
         .any(|rule| rule == "same_input_hash"));
 
+    let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
+    let polyg_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&polyg_stage);
+    assert_eq!(polyg_scenarios.len(), 1);
+    assert_eq!(polyg_scenarios[0].scenario_id, "polyg_trim_fairness");
+    assert!(polyg_scenarios[0]
+        .fairness_rules
+        .iter()
+        .any(|rule| rule == "same_polyg_trim_policy"));
+
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let screen_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&screen_stage);
     assert_eq!(screen_scenarios.len(), 1);

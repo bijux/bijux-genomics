@@ -132,6 +132,13 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert!(trim_cohorts[0].observer_specialized_tools.is_empty());
     assert!(trim_cohorts[0].generic_envelope_tools.is_empty());
 
+    let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
+    let polyg_cohorts =
+        bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&polyg_stage);
+    assert_eq!(polyg_cohorts.len(), 1);
+    assert_eq!(polyg_cohorts[0].scenario_id, "polyg_trim_fairness");
+    assert!(polyg_cohorts[0].tool_ids.is_empty());
+
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let screen_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&screen_stage);

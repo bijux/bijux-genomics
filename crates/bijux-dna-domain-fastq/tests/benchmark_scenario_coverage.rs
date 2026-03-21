@@ -8,6 +8,7 @@ fn newly_benchmarked_fastq_stage_families_publish_scenarios() {
         "fastq.deplete_host",
         "fastq.deplete_reference_contaminants",
         "fastq.extract_umis",
+        "fastq.trim_polyg_tails",
         "fastq.report_qc",
     ] {
         let stage = StageId::new(stage_id.to_string());
