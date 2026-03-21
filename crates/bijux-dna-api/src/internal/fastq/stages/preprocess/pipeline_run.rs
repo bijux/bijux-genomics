@@ -306,7 +306,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         allow_planned: args.allow_planned,
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
-    let planned_stages = ordered_execution_steps(&pipeline_plan)?;
+    let planned_stage_batches = execution_step_batches(&pipeline_plan)?;
+    let planned_stages = planned_stage_batches
+        .iter()
+        .flat_map(|batch| batch.iter().cloned())
+        .collect::<Vec<_>>();
     if matches!(
         args.mode,
         bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
@@ -458,128 +462,101 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let mut stage_runs = Vec::new();
     let mut fail_fast_triggered = false;
-    for planned in &planned_stages {
-        let stage_id = planned.step_id.to_string();
-        let tool = planned.image.image.clone();
-        let mut stage_attrs = std::collections::BTreeMap::new();
-        stage_attrs.insert("stage".to_string(), stage_id.clone());
-        stage_attrs.insert("tool".to_string(), tool.clone());
-        let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
-        write_stage_path_contract(&stage_root, &stage_id, planned, args.r2.is_some())?;
-        let expected_outputs = planned
-            .io
-            .outputs
-            .iter()
-            .map(|a| a.path.clone())
-            .collect::<Vec<_>>();
-        let runtime_marker = stage_root.join("runtime_provenance.json");
-        let resume_hit = runtime_marker.exists() && expected_outputs.iter().all(|p| p.exists());
-        let execution = if resume_hit {
-            StageResultV1 {
-                run_id: format!("fastq-preprocess-{}", planned.step_id),
-                exit_code: 0,
-                runtime_s: 0.0,
-                memory_mb: 0.0,
-                outputs: expected_outputs.clone(),
-                metrics_path: None,
-                stdout: "resumed".to_string(),
-                stderr: String::new(),
-                command: "resume".to_string(),
-            }
-        } else {
-            execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
-                step: planned.clone(),
-                runner: platform.runner,
-                context: execution_kernel::ToolContext {
-                    run_id: format!("fastq-preprocess-{}", planned.step_id),
-                    stage_id: planned.step_id.to_string(),
-                    tool_id: planned.image.image.clone(),
-                    sample_id: Some(normalized_sample_id.clone()),
-                    stage_root: stage_root.clone(),
-                    input_root: args
-                        .r1
-                        .parent()
-                        .map_or_else(|| out_dir.clone(), std::path::Path::to_path_buf),
-                    output_root: out_dir.clone(),
-                    tmp_root: stage_root.join("tmp"),
-                    threads: 1,
-                    memory_hint_mb: None,
-                    compression_threads: Some(1),
-                    seed: None,
-                    network_policy: stage_network_policy(&stage_id),
-                },
-                timeout: None,
-                mode: execution_kernel::ToolExecMode::Execute,
-            })?
-            .stage_result
-        };
-        stage_span.end();
-        capture_tool_version(
-            &stage_root,
-            planned
-                .command
-                .template
-                .first()
-                .map_or("unknown", String::as_str),
-        )?;
-        write_stage_standardized_metrics(&stage_root, &stage_id, &planned.out_dir, &execution)?;
-        emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &execution)?;
-        write_stage_governance_artifacts(&stage_root, planned, contaminant_bank.as_ref())?;
-        enforce_metrics_schema(&stage_root, &stage_id)?;
-        write_fastq_output_contract(&stage_root, planned, &execution)?;
-        write_stage_resume_contract(&stage_root, &stage_id, &execution, resume_hit)?;
-        if matches!(
-            stage_id.as_str(),
-            "fastq.trim_terminal_damage"
-                | "fastq.normalize_primers"
-                | "fastq.remove_chimeras"
-                | "fastq.cluster_otus"
-                | "fastq.infer_asvs"
-                | "fastq.normalize_abundance"
-        ) {
-            let stage_metrics = materialize_amplicon_stage_outputs(&stage_root, planned)?;
-            enforce_amplicon_qc_thresholds(&stage_root, &stage_id, &stage_metrics)?;
-        }
-        if stage_id == "fastq.merge_pairs" {
-            write_merge_join_contract(&stage_root, &execution, entry_invariants.paired_consistent)?;
-            enforce_amplicon_merge_determinism(&stage_root, args.mode, &execution)?;
-        }
-        write_retention_report(&stage_root, planned)?;
-        if execution.exit_code != 0 {
-            let hint = classify_failure_hint(&stage_id, &execution.stdout, &execution.stderr);
-            let hint_path = stage_root.join("common_failure_hint.json");
-            bijux_dna_infra::atomic_write_json(
-                &hint_path,
-                &serde_json::json!({
-                    "schema_version": "bijux.failure_hint.v1",
-                    "stage_id": stage_id,
-                    "hint": hint,
-                    "exit_code": execution.exit_code,
-                }),
-            )?;
-            if stage_id == "fastq.validate_reads" {
-                return Err(anyhow!(
-                    "strict validation failed in fastq.validate_reads; refusing pipeline execution"
-                ));
-            }
-            failures.push(RawFailure {
-                stage: stage_id,
-                tool: tool.clone(),
-                reason: format!(
-                    "tool failed with status {}. hint: {}",
-                    execution.exit_code, hint
-                ),
-                category: ErrorCategory::ToolError,
-            });
-            fail_fast_triggered = true;
-        }
-        stage_runs.push(StageExecutionSummary {
-            plan: planned.clone(),
-            result: execution,
-        });
+    for batch in planned_stage_batches {
         if fail_fast_triggered {
             break;
+        }
+        let batch_results = execute_preprocess_batch(
+            &batch,
+            platform.runner,
+            jobs,
+            &out_dir,
+            &normalized_sample_id,
+            args,
+        )?;
+        for (planned, batch_result) in batch.into_iter().zip(batch_results.into_iter()) {
+            let stage_id = planned.step_id.to_string();
+            let tool = planned.image.image.clone();
+            let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());
+            let resume_hit = batch_result.stdout == "resumed" && batch_result.command == "resume";
+            let mut stage_attrs = std::collections::BTreeMap::new();
+            stage_attrs.insert("stage".to_string(), stage_id.clone());
+            stage_attrs.insert("tool".to_string(), tool.clone());
+            let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
+            capture_tool_version(
+                &stage_root,
+                planned
+                    .command
+                    .template
+                    .first()
+                    .map_or("unknown", String::as_str),
+            )?;
+            write_stage_standardized_metrics(
+                &stage_root,
+                &stage_id,
+                &planned.out_dir,
+                &batch_result,
+            )?;
+            emit_fastq_stage_extra_artifacts(&stage_root, &stage_id, &batch_result)?;
+            write_stage_governance_artifacts(&stage_root, &planned, contaminant_bank.as_ref())?;
+            enforce_metrics_schema(&stage_root, &stage_id)?;
+            write_fastq_output_contract(&stage_root, &planned, &batch_result)?;
+            write_stage_resume_contract(&stage_root, &stage_id, &batch_result, resume_hit)?;
+            if matches!(
+                stage_id.as_str(),
+                "fastq.trim_terminal_damage"
+                    | "fastq.normalize_primers"
+                    | "fastq.remove_chimeras"
+                    | "fastq.cluster_otus"
+                    | "fastq.infer_asvs"
+                    | "fastq.normalize_abundance"
+            ) {
+                let stage_metrics = materialize_amplicon_stage_outputs(&stage_root, &planned)?;
+                enforce_amplicon_qc_thresholds(&stage_root, &stage_id, &stage_metrics)?;
+            }
+            if stage_id == "fastq.merge_pairs" {
+                write_merge_join_contract(
+                    &stage_root,
+                    &batch_result,
+                    entry_invariants.paired_consistent,
+                )?;
+                enforce_amplicon_merge_determinism(&stage_root, args.mode, &batch_result)?;
+            }
+            write_retention_report(&stage_root, &planned)?;
+            if batch_result.exit_code != 0 {
+                let hint =
+                    classify_failure_hint(&stage_id, &batch_result.stdout, &batch_result.stderr);
+                let hint_path = stage_root.join("common_failure_hint.json");
+                bijux_dna_infra::atomic_write_json(
+                    &hint_path,
+                    &serde_json::json!({
+                        "schema_version": "bijux.failure_hint.v1",
+                        "stage_id": stage_id,
+                        "hint": hint,
+                        "exit_code": batch_result.exit_code,
+                    }),
+                )?;
+                if stage_id == "fastq.validate_reads" {
+                    return Err(anyhow!(
+                        "strict validation failed in fastq.validate_reads; refusing pipeline execution"
+                    ));
+                }
+                failures.push(RawFailure {
+                    stage: stage_id,
+                    tool: tool.clone(),
+                    reason: format!(
+                        "tool failed with status {}. hint: {}",
+                        batch_result.exit_code, hint
+                    ),
+                    category: ErrorCategory::ToolError,
+                });
+                fail_fast_triggered = true;
+            }
+            stage_span.end();
+            stage_runs.push(StageExecutionSummary {
+                plan: planned,
+                result: batch_result,
+            });
         }
     }
     pipeline_span.end();
@@ -705,19 +682,65 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     Ok(())
 }
 
-fn ordered_execution_steps(graph: &ExecutionGraph) -> Result<Vec<ExecutionStep>> {
-    graph
-        .topological_step_ids()?
-        .into_iter()
-        .map(|step_id| {
-            graph.step_by_id(step_id.as_str()).cloned().ok_or_else(|| {
-                anyhow!(
-                    "execution graph is missing planned step {} during runtime ordering",
-                    step_id.as_str()
-                )
+fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<ExecutionStep>>> {
+    let mut incoming = std::collections::BTreeMap::<String, usize>::new();
+    let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
+    for step in graph.steps() {
+        incoming.insert(step.step_id.as_str().to_string(), 0);
+    }
+    for edge in graph.edges() {
+        *incoming.entry(edge.to().as_str().to_string()).or_insert(0) += 1;
+        outgoing
+            .entry(edge.from().as_str().to_string())
+            .or_default()
+            .push(edge.to().as_str().to_string());
+    }
+    let mut ready = incoming
+        .iter()
+        .filter_map(|(node_id, count)| if *count == 0 { Some(node_id.clone()) } else { None })
+        .collect::<Vec<_>>();
+    ready.sort();
+    let mut batches = Vec::new();
+    let mut visited = 0usize;
+    while !ready.is_empty() {
+        let current_batch_ids = std::mem::take(&mut ready);
+        let mut batch = current_batch_ids
+            .iter()
+            .map(|step_id| {
+                graph.step_by_id(step_id).cloned().ok_or_else(|| {
+                    anyhow!(
+                        "execution graph is missing planned step {} during runtime batching",
+                        step_id
+                    )
+                })
             })
-        })
-        .collect()
+            .collect::<Result<Vec<_>>>()?;
+        batch.sort_by(|left, right| left.step_id.as_str().cmp(right.step_id.as_str()));
+        visited += batch.len();
+        batches.push(batch);
+        let mut next_ready = Vec::new();
+        for node_id in current_batch_ids {
+            if let Some(children) = outgoing.get(&node_id) {
+                for child in children {
+                    if let Some(count) = incoming.get_mut(child) {
+                        *count -= 1;
+                        if *count == 0 {
+                            next_ready.push(child.clone());
+                        }
+                    }
+                }
+            }
+        }
+        next_ready.sort();
+        next_ready.dedup();
+        ready = next_ready;
+    }
+    if visited != graph.steps().len() {
+        return Err(anyhow!(
+            "execution graph batching did not visit all steps; graph may be cyclic"
+        ));
+    }
+    Ok(batches)
 }
 
 fn terminal_step_ids(graph: &ExecutionGraph) -> Vec<bijux_dna_core::prelude::StepId> {
@@ -731,4 +754,241 @@ fn terminal_step_ids(graph: &ExecutionGraph) -> Vec<bijux_dna_core::prelude::Ste
         .filter(|step| !outgoing.contains(step.step_id.as_str()))
         .map(|step| step.step_id.clone())
         .collect()
+}
+
+fn execute_preprocess_batch(
+    batch: &[ExecutionStep],
+    runner: RuntimeKind,
+    jobs: usize,
+    out_dir: &std::path::Path,
+    normalized_sample_id: &str,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
+) -> Result<Vec<StageResultV1>> {
+    let mut resumable = Vec::new();
+    let mut pending = Vec::new();
+    for (idx, planned) in batch.iter().enumerate() {
+        let stage_id = planned.step_id.to_string();
+        let stage_root = run_artifacts_dir_for_out(out_dir).join(planned.step_id.as_str());
+        write_stage_path_contract(&stage_root, &stage_id, planned, args.r2.is_some())?;
+        let expected_outputs = planned
+            .io
+            .outputs
+            .iter()
+            .map(|artifact| artifact.path.clone())
+            .collect::<Vec<_>>();
+        let runtime_marker = stage_root.join("runtime_provenance.json");
+        let resume_hit = runtime_marker.exists() && expected_outputs.iter().all(|path| path.exists());
+        if resume_hit {
+            resumable.push((
+                idx,
+                StageResultV1 {
+                    run_id: format!("fastq-preprocess-{}", planned.step_id),
+                    exit_code: 0,
+                    runtime_s: 0.0,
+                    memory_mb: 0.0,
+                    outputs: expected_outputs,
+                    metrics_path: None,
+                    stdout: "resumed".to_string(),
+                    stderr: String::new(),
+                    command: "resume".to_string(),
+                },
+            ));
+            continue;
+        }
+        pending.push((
+            idx,
+            execution_kernel::ToolInvocationRequest {
+                step: planned.clone(),
+                runner,
+                context: execution_kernel::ToolContext {
+                    run_id: format!("fastq-preprocess-{}", planned.step_id),
+                    stage_id: planned.step_id.to_string(),
+                    tool_id: planned.image.image.clone(),
+                    sample_id: Some(normalized_sample_id.to_string()),
+                    stage_root: stage_root.clone(),
+                    input_root: args
+                        .r1
+                        .parent()
+                        .map_or_else(|| out_dir.to_path_buf(), std::path::Path::to_path_buf),
+                    output_root: out_dir.to_path_buf(),
+                    tmp_root: stage_root.join("tmp"),
+                    threads: 1,
+                    memory_hint_mb: None,
+                    compression_threads: Some(1),
+                    seed: None,
+                    network_policy: stage_network_policy(&stage_id),
+                },
+                timeout: None,
+                mode: execution_kernel::ToolExecMode::Execute,
+            },
+        ));
+    }
+    let executed = if jobs <= 1 || pending.len() <= 1 {
+        pending
+            .iter()
+            .map(|(_, request)| execution_kernel::ToolExec::invoke(request).map(|result| result.stage_result))
+            .collect::<Result<Vec<_>>>()?
+    } else {
+        let total = pending.len();
+        let queue = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::from(
+            pending.iter().cloned().collect::<Vec<_>>(),
+        )));
+        let results: std::sync::Arc<std::sync::Mutex<Vec<Option<Result<StageResultV1>>>>> =
+            std::sync::Arc::new(std::sync::Mutex::new(Vec::with_capacity(total)));
+        {
+            let mut guard = results
+                .lock()
+                .map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
+            guard.resize_with(total, || None);
+        }
+        let job_count = jobs.min(total);
+        let mut workers = Vec::new();
+        for _ in 0..job_count {
+            let queue = std::sync::Arc::clone(&queue);
+            let results = std::sync::Arc::clone(&results);
+            workers.push(std::thread::spawn(move || loop {
+                let next = {
+                    match queue.lock() {
+                        Ok(mut guard) => guard.pop_front(),
+                        Err(_) => None,
+                    }
+                };
+                let Some((slot, request)) = next else {
+                    break;
+                };
+                let value = execution_kernel::ToolExec::invoke(&request).map(|result| result.stage_result);
+                if let Ok(mut guard) = results.lock() {
+                    guard[slot] = Some(value);
+                } else {
+                    break;
+                }
+            }));
+        }
+        for worker in workers {
+            let _ = worker.join();
+        }
+        let results = {
+            let mut guard = results
+                .lock()
+                .map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
+            std::mem::take(&mut *guard)
+        };
+        let mut out = Vec::with_capacity(results.len());
+        for entry in results {
+            let value = entry.unwrap_or_else(|| Err(anyhow!("preprocess batch execution result missing")))?;
+            out.push(value);
+        }
+        out
+    };
+    let mut results = vec![None; batch.len()];
+    for (idx, result) in resumable {
+        results[idx] = Some(result);
+    }
+    for ((idx, _), result) in pending.into_iter().zip(executed.into_iter()) {
+        results[idx] = Some(result);
+    }
+    results
+        .into_iter()
+        .map(|result| result.ok_or_else(|| anyhow!("missing batch execution result")))
+        .collect()
+}
+
+#[cfg(test)]
+mod pipeline_run_tests {
+    use super::{execution_step_batches, terminal_step_ids};
+    use anyhow::Result;
+    use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
+    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+
+    fn step(id: &str) -> bijux_dna_core::contract::ExecutionStep {
+        bijux_dna_core::contract::ExecutionStep {
+            step_id: StepId::new(id.to_string()),
+            stage_id: StageId::new("fastq.trim_reads".to_string()),
+            command: CommandSpecV1 {
+                template: vec!["echo".to_string(), id.to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1".to_string()),
+                    std::path::PathBuf::from("reads_R1.fastq"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json".to_string()),
+                    std::path::PathBuf::from(format!("{id}.json")),
+                    ArtifactRole::SummaryJson,
+                )],
+            },
+            out_dir: std::path::PathBuf::from(id),
+            aux_images: std::collections::BTreeMap::new(),
+            expected_artifact_ids: vec![ArtifactId::new("report_json".to_string())],
+            metrics_schema_ids: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn execution_step_batches_group_independent_roots_together() -> Result<()> {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__runtime_batches__v1",
+            "planner.test",
+            PlanPolicy::default(),
+            vec![step("a"), step("b"), step("c")],
+            vec![
+                ExecutionEdge::new(StepId::new("a".to_string()), StepId::new("c".to_string())),
+                ExecutionEdge::new(StepId::new("b".to_string()), StepId::new("c".to_string())),
+            ],
+        )?;
+
+        let batches = execution_step_batches(&graph)?;
+        assert_eq!(batches.len(), 2);
+        assert_eq!(
+            batches[0]
+                .iter()
+                .map(|step| step.step_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["a", "b"]
+        );
+        assert_eq!(
+            batches[1]
+                .iter()
+                .map(|step| step.step_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["c"]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn terminal_step_ids_ignore_non_terminal_compare_parents() -> Result<()> {
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__terminal_steps__v1",
+            "planner.test",
+            PlanPolicy::default(),
+            vec![step("trim.fastp"), step("trim.cutadapt"), step("trim.compare")],
+            vec![
+                ExecutionEdge::new(
+                    StepId::new("trim.fastp".to_string()),
+                    StepId::new("trim.compare".to_string()),
+                ),
+                ExecutionEdge::new(
+                    StepId::new("trim.cutadapt".to_string()),
+                    StepId::new("trim.compare".to_string()),
+                ),
+            ],
+        )?;
+        let terminals = terminal_step_ids(&graph);
+        assert_eq!(terminals.len(), 1);
+        assert_eq!(terminals[0].as_str(), "trim.compare");
+        Ok(())
+    }
 }
