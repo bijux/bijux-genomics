@@ -167,7 +167,13 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 contaminant_policy: args.contaminant_policy.clone(),
             },
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params = benchmark_query_context(
+            adapter_context.as_ref(),
+            polyx_context.as_ref(),
+            contaminant_context.as_ref(),
+        )
+        .embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -295,7 +301,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             bench_inputs.runner,
             platform,
             input_hash.clone(),
-            plan.params.clone(),
+            bench_params.clone(),
         );
         let record = BenchmarkRecord {
             context,
@@ -361,11 +367,71 @@ fn apply_trim_bank_policy(
             if context.is_some() {
                 Ok(context)
             } else {
-                Err(anyhow!("{policy_name}=bank requires a matching governed bank selection"))
+                Err(anyhow!(
+                    "{policy_name}=bank requires a matching governed bank selection"
+                ))
             }
         }
         Some(other) => Err(anyhow!(
             "{policy_name} must be one of `none` or `bank`, received `{other}`"
         )),
+    }
+}
+
+fn benchmark_query_context(
+    adapter_context: Option<&serde_json::Value>,
+    polyx_context: Option<&serde_json::Value>,
+    contaminant_context: Option<&serde_json::Value>,
+) -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) =
+        bijux_dna_domain_fastq::stage_contract_hash(STAGE_TRIM_READS.as_str())
+    {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    if let Some(bank_hash) = json_string(adapter_context, "bank_hash") {
+        context = context.with_bank_hash("adapter_bank", bank_hash);
+    }
+    if let Some(bank_hash) = json_string(polyx_context, "bank_hash") {
+        context = context.with_bank_hash("polyx_bank", bank_hash);
+    }
+    if let Some(bank_hash) = json_string(contaminant_context, "bank_hash") {
+        context = context.with_bank_hash("contaminant_bank", bank_hash);
+    }
+    context
+}
+
+#[cfg(test)]
+mod tests {
+    use super::benchmark_query_context;
+
+    #[test]
+    fn benchmark_query_context_captures_governed_trim_bank_hashes() {
+        let adapter_context = serde_json::json!({"bank_hash": "adapter-hash"});
+        let polyx_context = serde_json::json!({"bank_hash": "polyx-hash"});
+        let contaminant_context = serde_json::json!({"bank_hash": "contaminant-hash"});
+
+        let context = benchmark_query_context(
+            Some(&adapter_context),
+            Some(&polyx_context),
+            Some(&contaminant_context),
+        );
+
+        assert!(context.stage_contract_hash.is_some());
+        assert_eq!(
+            context.bank_hashes.get("adapter_bank").map(String::as_str),
+            Some("adapter-hash")
+        );
+        assert_eq!(
+            context.bank_hashes.get("polyx_bank").map(String::as_str),
+            Some("polyx-hash")
+        );
+        assert_eq!(
+            context
+                .bank_hashes
+                .get("contaminant_bank")
+                .map(String::as_str),
+            Some("contaminant-hash")
+        );
     }
 }

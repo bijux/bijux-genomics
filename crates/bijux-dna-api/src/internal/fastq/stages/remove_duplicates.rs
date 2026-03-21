@@ -46,7 +46,11 @@ fn ensure_remove_duplicates_tools_support_input_mode(
     }
     Err(anyhow!(
         "fastq.remove_duplicates does not support {} inputs for tool(s): {}",
-        if paired_mode { "paired-end" } else { "single-end" },
+        if paired_mode {
+            "paired-end"
+        } else {
+            "single-end"
+        },
         incompatible.join(", "),
     ))
 }
@@ -125,7 +129,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
                 keep_order: args.keep_order.unwrap_or(true),
             },
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -227,7 +232,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
                 runner,
                 platform,
                 input_hash.clone(),
-                plan.params.clone(),
+                bench_params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -248,4 +253,12 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         bench_dir,
         explain: args.explain,
     })
+}
+
+fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) = bijux_dna_domain_fastq::stage_contract_hash(STAGE_ID) {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    context
 }

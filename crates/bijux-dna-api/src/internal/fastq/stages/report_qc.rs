@@ -155,7 +155,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -190,7 +191,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             &bench_inputs,
             tool,
             &tool_spec,
-            &plan.params,
+            &bench_params,
             &out_dir,
             &execution,
             governed_qc.raw_fastqc_dir.as_deref(),
@@ -743,13 +744,22 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
     bijux_dna_planner_fastq::stage_api::governed_qc_output_ids_for_stage(stage_id)
 }
 
+fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) =
+        bijux_dna_domain_fastq::stage_contract_hash(STAGE_REPORT_QC.as_str())
+    {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    context
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         bench_governed_qc_contributor_bindings, bench_governed_qc_contributor_stage_ids,
-        derive_qc_post_metrics,
-        governed_qc_artifacts_for_plan,
-        load_governed_qc_inputs_manifest, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        derive_qc_post_metrics, governed_qc_artifacts_for_plan, load_governed_qc_inputs_manifest,
+        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -946,6 +956,8 @@ mod tests {
 
         let error = load_governed_qc_inputs_manifest(&manifest_path)
             .expect_err("unknown schema must be rejected");
-        assert!(error.to_string().contains("unsupported governed QC input manifest schema"));
+        assert!(error
+            .to_string()
+            .contains("unsupported governed QC input manifest schema"));
     }
 }

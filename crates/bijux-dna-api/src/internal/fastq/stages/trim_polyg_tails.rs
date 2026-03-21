@@ -163,7 +163,9 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
                 min_polyg_run: args.min_polyg_run.unwrap_or(10),
             },
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params =
+            benchmark_query_context(polyx_context.as_ref()).embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -273,7 +275,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             bench_inputs.runner,
             platform,
             input_hash.clone(),
-            plan.params.clone(),
+            bench_params.clone(),
         );
         let record = BenchmarkRecord {
             context,
@@ -327,9 +329,27 @@ fn combine_seqkit_metrics(
     }
 }
 
+fn benchmark_query_context(
+    polyx_context: Option<&serde_json::Value>,
+) -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) =
+        bijux_dna_domain_fastq::stage_contract_hash(STAGE_TRIM_POLYG_TAILS.as_str())
+    {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    if let Some(bank_hash) = polyx_context
+        .and_then(|value| value.get("bank_hash"))
+        .and_then(serde_json::Value::as_str)
+    {
+        context = context.with_bank_hash("polyx_bank", bank_hash.to_string());
+    }
+    context
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{admitted_stage_tools, normalize_tools};
+    use super::{admitted_stage_tools, benchmark_query_context, normalize_tools};
 
     #[test]
     fn normalize_tools_uses_execution_support_for_auto_and_all() {
@@ -337,5 +357,17 @@ mod tests {
         assert_eq!(normalize_tools(&[]), expected);
         assert_eq!(normalize_tools(&["auto".to_string()]), expected);
         assert_eq!(normalize_tools(&["all".to_string()]), expected);
+    }
+
+    #[test]
+    fn benchmark_query_context_keeps_governed_polyg_bank_hash() {
+        let polyx_context = serde_json::json!({"bank_hash": "polyx-hash"});
+        let context = benchmark_query_context(Some(&polyx_context));
+
+        assert!(context.stage_contract_hash.is_some());
+        assert_eq!(
+            context.bank_hashes.get("polyx_bank").map(String::as_str),
+            Some("polyx-hash")
+        );
     }
 }

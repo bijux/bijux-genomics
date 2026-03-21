@@ -116,7 +116,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
                 q_cutoff: args.q_cutoff,
             },
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -153,7 +154,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             &bench_inputs,
             &tool,
             &tool_spec,
-            &plan.params,
+            &bench_params,
             &out_dir,
             &execution,
             args.strict,
@@ -389,4 +390,14 @@ fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
         }
     }
     None
+}
+
+fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) =
+        bijux_dna_domain_fastq::stage_contract_hash(STAGE_VALIDATE_READS.as_str())
+    {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    context
 }
