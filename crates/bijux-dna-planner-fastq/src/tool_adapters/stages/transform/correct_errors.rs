@@ -5,7 +5,9 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    correct::{CorrectionEngine, FastqCorrectParams, CORRECT_SCHEMA_VERSION},
+    correct::{
+        CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
+    },
     PairedMode,
 };
 use bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS;
@@ -59,6 +61,11 @@ pub fn plan_correct_with_options(
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
         correction_engine: correction_engine.clone(),
+        quality_encoding: QualityEncoding::Phred33,
+        kmer_size: None,
+        max_memory_gb: None,
+        trusted_kmer_artifact: None,
+        conservative_mode: false,
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
