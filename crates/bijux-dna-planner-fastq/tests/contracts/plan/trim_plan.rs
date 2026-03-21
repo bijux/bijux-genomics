@@ -174,7 +174,11 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
             min_polyg_run: 14,
         },
     )?;
-    assert!(fastp_plan.command.template.iter().any(|part| part == "--poly_g_min_len"));
+    assert!(fastp_plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--poly_g_min_len"));
     assert!(fastp_plan.command.template.iter().any(|part| part == "14"));
     assert_eq!(fastp_plan.effective_params["min_polyg_run"], 14);
 
@@ -199,6 +203,41 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
     assert!(script.contains("trim_polyg_tails_report.stats.txt"));
     assert!(script.contains("\"tool_id\":\"bbduk\""));
     assert!(script.contains("\"stage_id\":\"fastq.trim_polyg_tails\""));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_polyg_can_disable_polyg_flag_for_bench_comparisons() -> Result<()> {
+    let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            trim_polyg: false,
+            min_polyg_run: 14,
+        },
+    )?;
+    assert_eq!(fastp_plan.params["trim_polyg"], false);
+    assert_eq!(fastp_plan.effective_params["trim_polyg"], false);
+    assert!(!fastp_plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--trim_poly_g"));
+
+    let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
+        &dummy_tool("bbduk"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            trim_polyg: false,
+            min_polyg_run: 14,
+        },
+    )?;
+    assert_eq!(bbduk_plan.params["trim_polyg"], false);
+    assert!(!bbduk_plan.command.template[2].contains("trimpolygright="));
     Ok(())
 }
 

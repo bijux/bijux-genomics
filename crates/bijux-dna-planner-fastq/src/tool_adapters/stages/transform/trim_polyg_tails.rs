@@ -4,9 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::trim::{
-    TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
-};
+use bijux_dna_domain_fastq::params::trim::{TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use bijux_dna_stage_contract::{
@@ -76,6 +74,7 @@ pub fn plan_trim_polyg_tails_with_options(
         output_r2.as_deref(),
         &report,
         tool.resources.threads,
+        options.trim_polyg,
         options.min_polyg_run,
     )?;
     let effective_params = TrimPolygTailsParams {
@@ -137,6 +136,7 @@ pub fn plan_trim_polyg_tails_with_options(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,
+            "trim_polyg": options.trim_polyg,
             "min_polyg_run": options.min_polyg_run,
         }),
         effective_params: serde_json::to_value(&effective_params)?,
@@ -153,15 +153,13 @@ fn trim_polyg_command(
     output_r2: Option<&Path>,
     report: &Path,
     threads: u32,
+    trim_polyg: bool,
     min_polyg_run: u32,
-    ) -> Result<Vec<String>> {
+) -> Result<Vec<String>> {
     match tool_id {
         "fastp" => {
             let mut command = vec![
                 "fastp".to_string(),
-                "--trim_poly_g".to_string(),
-                "--poly_g_min_len".to_string(),
-                min_polyg_run.to_string(),
                 "--json".to_string(),
                 report.display().to_string(),
                 "--thread".to_string(),
@@ -171,6 +169,11 @@ fn trim_polyg_command(
                 "--out1".to_string(),
                 output_r1.display().to_string(),
             ];
+            if trim_polyg {
+                command.push("--trim_poly_g".to_string());
+                command.push("--poly_g_min_len".to_string());
+                command.push(min_polyg_run.to_string());
+            }
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 command.push("--in2".to_string());
                 command.push(r2.display().to_string());
@@ -182,12 +185,16 @@ fn trim_polyg_command(
         "bbduk" => {
             let raw_stats = report.with_extension("stats.txt");
             let mut script = format!(
-                "set -euo pipefail\nbbduk.sh in={} out={} trimpolygright={} stats={}",
+                "set -euo pipefail\nbbduk.sh in={} out={}",
                 shell_quote_arg(&format!("in={}", r1.display())),
                 shell_quote_arg(&format!("out={}", output_r1.display())),
-                shell_quote_arg(&format!("trimpolygright={min_polyg_run}")),
-                shell_quote_arg(&format!("stats={}", raw_stats.display())),
             );
+            if trim_polyg {
+                script.push(' ');
+                script.push_str(&shell_quote_arg(&format!("trimpolygright={min_polyg_run}")));
+            }
+            script.push(' ');
+            script.push_str(&shell_quote_arg(&format!("stats={}", raw_stats.display())));
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 script.push(' ');
                 script.push_str(&shell_quote_arg(&format!("in2={}", r2.display())));
@@ -198,6 +205,7 @@ fn trim_polyg_command(
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
                 "stage_id": STAGE_ID.as_str(),
                 "tool_id": tool_id,
+                "trim_polyg": trim_polyg,
                 "input_r1": r1,
                 "input_r2": r2,
                 "output_r1": output_r1,
