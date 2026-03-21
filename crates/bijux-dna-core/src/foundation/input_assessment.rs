@@ -162,6 +162,9 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
             }
         }
         let Some(r1_path) = r1 else {
+            if let Some(r2_path) = r2 {
+                unpaired.push(r2_path);
+            }
             issues.push(format!("sample {sample_name} missing R1"));
             continue;
         };

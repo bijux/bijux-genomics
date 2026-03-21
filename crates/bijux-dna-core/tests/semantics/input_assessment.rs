@@ -87,3 +87,17 @@ fn assess_input_dir_marks_single_end() -> Result<()> {
     assert!(sample.r2.is_none());
     Ok(())
 }
+
+#[test]
+fn assess_input_dir_tracks_orphan_r2_files() -> Result<()> {
+    let root = temp_dir()?;
+    let orphan = root.join("sample_R2.fastq.gz");
+    write_file(&orphan, b"r2")?;
+
+    let assessment = assess_input_dir(&root)?;
+
+    assert!(assessment.samples.is_empty());
+    assert_eq!(assessment.unpaired_files, vec![orphan]);
+    assert_eq!(assessment.issues, vec!["sample sample missing R1"]);
+    Ok(())
+}
