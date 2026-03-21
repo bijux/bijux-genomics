@@ -12,7 +12,7 @@
     "template": [
       "sh",
       "-lc",
-      "set +e && 'fastqvalidator' '--file' 'reads_R1.fastq.gz' > 'out/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && strict_pass=true && exit_code=0 && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && printf '%s\\n' '{\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"paired_mode\":\"single_end\",\"q_cutoff\":null,\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validated_stream_ids\":[\"reads_r1\"],\"validation_report\":\"out/validation.json\"}' > 'out/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"reads_R1.fastq.gz\"' 'null' '\"out/validation_r1.log\"' 'null' \"$strict_pass\" \"$exit_code\" > 'out/validation.json' && exit \"$exit_code\""
+      "set +e && 'fastqvalidator' '--file' 'reads_R1.fastq.gz' > 'out/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && validated_pairs=0 && validated_reads_r1=0 && validated_reads_r2=null && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"q_cutoff\":null,\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"reads_R1.fastq.gz\"' 'null' '\"out/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > 'out/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"q_cutoff\":null,\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"validated_pairs\":%%s,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"reads_R1.fastq.gz\"' 'null' '\"out/validation_r1.log\"' 'null' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$validated_pairs\" \"$validated_reads_r1\" \"$validated_reads_r2\" \"$strict_pass\" \"$exit_code\" > 'out/validation.json' && exit \"$exit_code\""
     ]
   },
   "resources": {
@@ -56,9 +56,12 @@
     "validated_reads_manifest": "out/validated_reads_manifest.json"
   },
   "effective_params": {
+    "pair_sync_policy": "not_applicable",
     "paired_mode": "single_end",
     "q_cutoff": null,
-    "threads": 4
+    "schema_version": "bijux.fastq.params.validate_reads.v1",
+    "threads": 4,
+    "validation_mode": "strict"
   },
   "aux_images": {},
   "reason": {
