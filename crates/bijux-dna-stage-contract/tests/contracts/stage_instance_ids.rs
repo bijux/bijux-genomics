@@ -161,3 +161,37 @@ fn execution_steps_inherit_stage_instance_identity() {
     let step = execution_step_from_stage_plan(&plan);
     assert_eq!(step.step_id.as_str(), "fastq.trim_reads.tool.fastp");
 }
+
+#[test]
+fn execution_plan_validation_reports_unresolved_edge_nodes_without_panicking() {
+    let valid_plan = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![trim_plan(
+            "fastq.trim_reads.tool.fastp",
+            "fastp",
+            "trimmed_reads_fastp",
+        )],
+        Vec::new(),
+    )
+    .expect("fixture plan should be valid");
+
+    let mut encoded = serde_json::to_value(&valid_plan).expect("serialize execution plan");
+    encoded["edges"] = serde_json::json!([{
+        "from": "fastq.trim_reads.tool.fastp",
+        "to": "fastq.report_qc.multiqc"
+    }]);
+    let malformed: ExecutionPlan =
+        serde_json::from_value(encoded).expect("deserialize malformed execution plan");
+    let error = malformed
+        .validate_strict(&bijux_dna_stage_contract::PlanValidationContext {
+            allowed_id_catalog: None,
+            allowed_tool_ids: None,
+        })
+        .expect_err("unknown edge targets must fail validation");
+
+    assert!(error
+        .to_string()
+        .contains("plan edge references unknown stage"));
+}

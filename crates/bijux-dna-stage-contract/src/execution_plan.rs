@@ -316,12 +316,24 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
             .stages
             .iter()
             .find(|stage| stage_node_id(stage) == edge.from)
-            .expect("validated edge source stage exists");
+            .ok_or_else(|| {
+                anyhow!(
+                    "plan edge {} -> {} could not resolve source stage after validation",
+                    edge.from,
+                    edge.to
+                )
+            })?;
         let to_stage = plan
             .stages
             .iter()
             .find(|stage| stage_node_id(stage) == edge.to)
-            .expect("validated edge target stage exists");
+            .ok_or_else(|| {
+                anyhow!(
+                    "plan edge {} -> {} could not resolve target stage after validation",
+                    edge.from,
+                    edge.to
+                )
+            })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
                 if !from_stage
