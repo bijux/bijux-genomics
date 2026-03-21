@@ -541,7 +541,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
         | "trim_galore" => Ok(()),
-        "prinseq" if options.quality_cutoff.is_none() => Ok(()),
+        "prinseq" => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!(
@@ -650,6 +650,14 @@ fn prinseq_trim_command_template(
     ];
     if let Some(min_length) = options.min_length {
         command.extend(["-min_len".to_string(), min_length.to_string()]);
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.extend([
+            "-trim_qual_left".to_string(),
+            quality_cutoff.to_string(),
+            "-trim_qual_right".to_string(),
+            quality_cutoff.to_string(),
+        ]);
     }
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
