@@ -38,6 +38,17 @@ use crate::internal::handlers::fastq::{
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_stage_contract::StagePlanV1;
 
+fn apply_thread_override(
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    threads: Option<u32>,
+) -> bijux_dna_core::prelude::ToolExecutionSpecV1 {
+    let mut spec = tool_spec.clone();
+    if let Some(threads) = threads {
+        spec.resources.threads = threads.max(1);
+    }
+    spec
+}
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
@@ -105,6 +116,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
         )?;
+        let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_correct(
             &tool_spec,
@@ -451,10 +463,14 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 
 #[cfg(test)]
 mod tests {
-    use super::{correct_metrics_from_observed_stats, required_plan_output_path};
+    use super::{
+        apply_thread_override, correct_metrics_from_observed_stats, required_plan_output_path,
+    };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
-    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+    };
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
@@ -584,5 +600,28 @@ mod tests {
             false,
         );
         assert_eq!(metrics.kmer_fix_rate, 0.0);
+    }
+
+    #[test]
+    fn thread_override_replaces_governed_tool_threads() {
+        let spec = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("musket"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["musket".to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 4,
+                tmp_gb: 1,
+                threads: 12,
+            },
+        };
+        let overridden = apply_thread_override(&spec, Some(7));
+        assert_eq!(overridden.resources.threads, 7);
     }
 }
