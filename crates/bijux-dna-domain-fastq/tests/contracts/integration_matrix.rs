@@ -267,7 +267,11 @@ fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     assert_eq!(report_qc.scenarios[0].scenario_id, "qc_aggregation_fairness");
     assert_eq!(
         report_qc.comparison_input_artifact_ids,
-        vec!["multiqc_data", "multiqc_report"]
+        vec![
+            "governed_qc_inputs_manifest",
+            "multiqc_data",
+            "multiqc_report"
+        ]
     );
 
     let polyg = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(

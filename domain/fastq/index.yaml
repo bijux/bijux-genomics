@@ -1198,6 +1198,7 @@ stage_output_size_estimates_mb:
   fastq.report_qc:
     multiqc_report: 30.0
     multiqc_data: 15.0
+    governed_qc_inputs_manifest: 1.0
   fastq.screen_taxonomy:
     screen_report_tsv: 25.0
     classification_report_json: 5.0

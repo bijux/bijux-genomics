@@ -202,6 +202,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             &out_dir,
             &execution,
             governed_qc.raw_fastqc_dir.as_deref(),
+            &governed_qc,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_qc_post_v1(&conn, &record).context("insert bench sqlite")?;
@@ -252,6 +253,10 @@ struct GovernedQcInputsManifest {
     raw_fastqc_dir: Option<PathBuf>,
     #[serde(default)]
     lineage_hash: Option<String>,
+}
+
+fn governed_qc_inputs_manifest_path(out_dir: &Path) -> PathBuf {
+    out_dir.join("governed_qc_inputs_manifest.json")
 }
 
 fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
@@ -345,6 +350,7 @@ fn build_qc_post_record(
     out_dir: &Path,
     execution: &StageResultV1,
     raw_fastqc_dir: Option<&Path>,
+    governed_qc: &GovernedQcInputs,
 ) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
     let metrics = derive_qc_post_metrics(
         &bench_inputs.input_stats,
@@ -383,6 +389,17 @@ fn build_qc_post_record(
     });
     bijux_dna_infra::atomic_write_json(&out_dir.join("qc_report.json"), &report)
         .context("write qc report")?;
+    let governed_qc_manifest = GovernedQcInputsManifest {
+        schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
+        qc_inputs: governed_qc.qc_inputs.clone(),
+        raw_fastqc_dir: governed_qc.raw_fastqc_dir.clone(),
+        lineage_hash: governed_qc.lineage_hash.clone(),
+    };
+    bijux_dna_infra::atomic_write_json(
+        &governed_qc_inputs_manifest_path(out_dir),
+        &governed_qc_manifest,
+    )
+    .context("write governed QC inputs manifest")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write qc metrics")?;
@@ -797,8 +814,9 @@ fn benchmark_query_context(
 mod tests {
     use super::{
         bench_governed_qc_contributor_bindings, bench_governed_qc_contributor_stage_ids,
-        derive_qc_post_metrics, derived_governed_qc_lineage_hash, governed_qc_artifacts_for_plan,
-        governed_qc_contributor_lineage, load_governed_qc_inputs_manifest,
+        build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
+        governed_qc_artifacts_for_plan, governed_qc_contributor_lineage,
+        governed_qc_inputs_manifest_path, load_governed_qc_inputs_manifest, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
@@ -807,7 +825,11 @@ mod tests {
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, StepId, ToolId};
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
-    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::prelude::{
+        ArtifactRef, CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1,
+    };
+    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind};
+    use bijux_dna_runner::step_runner::StageResultV1;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
 
     #[test]
@@ -1089,5 +1111,95 @@ mod tests {
             artifact.name.as_str()
                 == "fastq.validate_reads.tool.fastqvalidator.validated_reads_manifest"
         }));
+    }
+
+    #[test]
+    fn qc_post_record_writes_governed_qc_inputs_manifest() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(temp.path().join("multiqc_data")).expect("multiqc data dir");
+        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        let input_artifact = temp.path().join("trim_report.json");
+        let raw_fastqc_dir = temp.path().join("raw_fastqc");
+        std::fs::write(&input_artifact, b"{}").expect("input artifact");
+        std::fs::create_dir_all(&raw_fastqc_dir).expect("raw fastqc dir");
+
+        let governed_qc = GovernedQcInputs {
+            qc_inputs: vec![ArtifactRef::required(
+                ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+                input_artifact.clone(),
+                ArtifactRole::ReportJson,
+            )],
+            raw_fastqc_dir: Some(raw_fastqc_dir.clone()),
+            lineage_hash: Some("fastq.trim_reads=fastp".to_string()),
+        };
+        let bench_inputs = super::QcPostBenchInputs {
+            runner: RuntimeKind::Docker,
+            r1: temp.path().join("reads_R1.fastq.gz"),
+            r2: None,
+            input_hash: "input-hash".to_string(),
+            input_stats: SeqkitMetrics {
+                reads: 10,
+                bases: 100,
+                mean_q: 30.0,
+                gc_percent: 50.0,
+            },
+            input_stats_r2: None,
+            bench_dir: temp.path().join("bench"),
+            tools_root: temp.path().join("tools"),
+        };
+        let tool_spec = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("multiqc"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["multiqc".to_string()],
+            },
+            resources: ToolConstraints::default(),
+        };
+        let execution = StageResultV1 {
+            run_id: "run".to_string(),
+            exit_code: 0,
+            runtime_s: 1.0,
+            memory_mb: 64.0,
+            outputs: Vec::new(),
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "multiqc".to_string(),
+        };
+
+        build_qc_post_record(
+            &PlatformSpec {
+                name: "test".to_string(),
+                runner: RuntimeKind::Docker,
+                container_dir: PathBuf::from("/tmp"),
+                image_prefix: "bijuxdna".to_string(),
+                arch: "amd64".to_string(),
+            },
+            &bench_inputs,
+            "multiqc",
+            &tool_spec,
+            &serde_json::json!({}),
+            temp.path(),
+            &execution,
+            Some(raw_fastqc_dir.as_path()),
+            &governed_qc,
+        )
+        .expect("record");
+
+        let manifest: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(governed_qc_inputs_manifest_path(temp.path()))
+                .expect("manifest"),
+        )
+        .expect("parse manifest");
+        assert_eq!(
+            manifest["schema_version"],
+            serde_json::json!(GOVERNED_QC_INPUTS_SCHEMA_VERSION)
+        );
+        assert_eq!(manifest["lineage_hash"], serde_json::json!("fastq.trim_reads=fastp"));
+        assert_eq!(manifest["qc_inputs"][0]["path"], serde_json::json!(input_artifact));
     }
 }
