@@ -552,7 +552,7 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
     };
     Ok(GovernedQcInputs {
         lineage_hash: manifest.lineage_hash.or_else(|| {
-            derived_governed_qc_lineage_hash(&qc_inputs, manifest.raw_fastqc_dir.as_deref())
+            derived_governed_qc_lineage_hash(&contributors, manifest.raw_fastqc_dir.as_deref())
         }),
         qc_inputs,
         contributors,
@@ -561,12 +561,19 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
 }
 
 fn derived_governed_qc_lineage_hash(
-    qc_inputs: &[ArtifactRef],
+    contributors: &[GovernedQcContributor],
     raw_fastqc_dir: Option<&Path>,
 ) -> Option<String> {
-    let mut lineage_parts = qc_inputs
+    let mut lineage_parts = contributors
         .iter()
-        .map(|artifact| format!("{}={}", artifact.name.as_str(), artifact.path.display()))
+        .map(|contributor| {
+            format!(
+                "{}:{}={}",
+                contributor.contributor_id,
+                contributor.artifact_id,
+                contributor.path.display()
+            )
+        })
         .collect::<Vec<_>>();
     if let Some(raw_fastqc_dir) = raw_fastqc_dir {
         lineage_parts.push(format!("raw_fastqc_dir={}", raw_fastqc_dir.display()));
@@ -758,11 +765,14 @@ mod tests {
         ];
         let raw_fastqc_dir = PathBuf::from("/tmp/raw_fastqc");
 
-        let lineage = derived_governed_qc_lineage_hash(&inputs, Some(raw_fastqc_dir.as_path()))
-            .expect("derived lineage");
-        assert!(lineage.contains("fastq.trim_reads.fastp.report_json=/tmp/fastp/report.json"));
+        let lineage = derived_governed_qc_lineage_hash(
+            &governed_qc_contributors(&inputs),
+            Some(raw_fastqc_dir.as_path()),
+        )
+        .expect("derived lineage");
+        assert!(lineage.contains("fastq.trim_reads.fastp:report_json=/tmp/fastp/report.json"));
         assert!(lineage.contains(
-            "fastq.validate_reads.fastqvalidator.validated_reads_manifest=/tmp/validate/lineage.json"
+            "fastq.validate_reads.fastqvalidator:validated_reads_manifest=/tmp/validate/lineage.json"
         ));
         assert!(lineage.contains("raw_fastqc_dir=/tmp/raw_fastqc"));
     }
