@@ -80,10 +80,13 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqCorrectMetrics>> {
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
     let tools = select_correct_tools(&args.tools, allow_experimental)?;
-    let artifact = FastqArtifactKind::PairedEnd;
+    let artifact = if args.r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
     preflight_stage(STAGE_CORRECT_ERRORS.as_str(), artifact)?;
-    let r2 = args.r2.as_path();
-    let header = inspect_headers(&args.r1, Some(r2), false)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
 
     let registry =
@@ -143,11 +146,12 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         let plan = plan_correct_with_options(
             &tool_spec,
             &bench_inputs.r1,
-            Some(&bench_inputs.r2),
+            bench_inputs.r2.as_deref(),
             &out_dir,
             &CorrectPlanOptions {
                 quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
                 kmer_size: args.kmer_size,
+                genome_size: args.genome_size,
                 max_memory_gb: args.max_memory_gb,
                 trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
                 conservative_mode: args.conservative_mode.unwrap_or(false),
@@ -222,10 +226,10 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
 struct CorrectBenchInputs {
     runner: RuntimeKind,
     r1: PathBuf,
-    r2: PathBuf,
+    r2: Option<PathBuf>,
     input_hash: String,
     input_stats_r1: SeqkitMetrics,
-    input_stats_r2: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
     seqkit_image: String,
@@ -246,7 +250,6 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r2 = args.r2.canonicalize().context("resolve r2 path")?;
     let r1_dir = r1
         .parent()
         .ok_or_else(|| anyhow!("r1 has no parent"))?
@@ -271,30 +274,48 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     }
     let input_stats_r1 = parse_seqkit_stats(&stats_output.stdout)?;
 
-    let r2_dir = r2
-        .parent()
-        .ok_or_else(|| anyhow!("r2 has no parent"))?
-        .to_path_buf();
-    let stats_spec_r2 = input_fastq_stats(&r2_dir, &r2)?;
-    let stats_output_r2 = execute_observer_command(
-        &seqkit_image.full_name,
-        stats_spec_r2.mount_dir.as_path(),
-        &stats_spec_r2.args,
-        runner,
-    )?;
-    if stats_output_r2.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit correction observer failed for r2: {}",
-            stats_output_r2.stderr
-        ));
-    }
-    let input_stats_r2 = parse_seqkit_stats(&stats_output_r2.stdout)?;
+    let (r2, input_stats_r2, input_hash) = if let Some(r2) = args.r2.as_deref() {
+        let r2 = r2.canonicalize().context("resolve r2 path")?;
+        let r2_dir = r2
+            .parent()
+            .ok_or_else(|| anyhow!("r2 has no parent"))?
+            .to_path_buf();
+        let stats_spec_r2 = input_fastq_stats(&r2_dir, &r2)?;
+        let stats_output_r2 = execute_observer_command(
+            &seqkit_image.full_name,
+            stats_spec_r2.mount_dir.as_path(),
+            &stats_spec_r2.args,
+            runner,
+        )?;
+        if stats_output_r2.exit_code != 0 {
+            return Err(anyhow!(
+                "seqkit correction observer failed for r2: {}",
+                stats_output_r2.stderr
+            ));
+        }
+        let r2_hash = hash_file_sha256(&r2).context("hash correction input r2")?;
+        (
+            Some(r2),
+            Some(parse_seqkit_stats(&stats_output_r2.stdout)?),
+            format!(
+                "{}+{}",
+                hash_file_sha256(&r1).context("hash correction input r1")?,
+                r2_hash
+            ),
+        )
+    } else {
+        (
+            None,
+            None,
+            hash_file_sha256(&r1).context("hash correction input")?,
+        )
+    };
 
     Ok(CorrectBenchInputs {
         runner,
         r1,
         r2,
-        input_hash: hash_file_sha256(&args.r1).context("hash correction input")?,
+        input_hash,
         input_stats_r1,
         input_stats_r2,
         bench_dir,
@@ -314,23 +335,29 @@ fn build_correct_record(
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
     let out_dir = &plan.out_dir;
     let output_r1 = required_plan_output_path(plan, "corrected_reads_r1")?;
-    let output_r2 = required_plan_output_path(plan, "corrected_reads_r2")?;
     let output_r1 = require_existing_benchmark_output(&output_r1, "corrected_reads_r1")?;
-    let output_r2 = require_existing_benchmark_output(&output_r2, "corrected_reads_r2")?;
     let output_stats_r1 =
         observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
-    let output_stats_r2 =
-        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r2)?;
+    let output_r2 = if let Some(path) = optional_plan_output_path(plan, "corrected_reads_r2") {
+        require_existing_benchmark_output(&path, "corrected_reads_r2")?;
+        Some(path)
+    } else {
+        None
+    };
+    let output_stats_r2 = output_r2
+        .as_deref()
+        .map(|path| observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, path))
+        .transpose()?;
     let metrics = correct_metrics_from_observed_stats(
         &bench_inputs.input_stats_r1,
-        &bench_inputs.input_stats_r2,
+        bench_inputs.input_stats_r2.as_ref(),
         &output_stats_r1,
-        &output_stats_r2,
+        output_stats_r2.as_ref(),
         input_output_content_changed(
             &bench_inputs.r1,
-            &bench_inputs.r2,
+            bench_inputs.r2.as_deref(),
             output_r1,
-            output_r2,
+            output_r2.as_deref(),
         )?,
     );
     let metric_set = metric_set(metrics.clone());
@@ -393,30 +420,33 @@ fn build_correct_record(
 }
 
 fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    optional_plan_output_path(plan, output_id).ok_or_else(|| {
+        anyhow!(
+            "correct_errors plan is missing governed output `{output_id}` for tool {}",
+            plan.tool_id.as_str()
+        )
+    })
+}
+
+fn optional_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Option<PathBuf> {
     plan.io
         .outputs
         .iter()
         .find(|artifact| artifact.name.as_str() == output_id)
         .map(|artifact| artifact.path.clone())
-        .ok_or_else(|| {
-            anyhow!(
-                "correct_errors plan is missing governed output `{output_id}` for tool {}",
-                plan.tool_id.as_str()
-            )
-        })
 }
 
 fn correct_metrics_from_observed_stats(
     input_r1: &SeqkitMetrics,
-    input_r2: &SeqkitMetrics,
+    input_r2: Option<&SeqkitMetrics>,
     output_r1: &SeqkitMetrics,
-    output_r2: &SeqkitMetrics,
+    output_r2: Option<&SeqkitMetrics>,
     outputs_changed: bool,
 ) -> FastqCorrectMetrics {
-    let reads_in = input_r1.reads + input_r2.reads;
-    let reads_out = output_r1.reads + output_r2.reads;
-    let bases_in = input_r1.bases + input_r2.bases;
-    let bases_out = output_r1.bases + output_r2.bases;
+    let reads_in = input_r1.reads + input_r2.map_or(0, |metrics| metrics.reads);
+    let reads_out = output_r1.reads + output_r2.map_or(0, |metrics| metrics.reads);
+    let bases_in = input_r1.bases + input_r2.map_or(0, |metrics| metrics.bases);
+    let bases_out = output_r1.bases + output_r2.map_or(0, |metrics| metrics.bases);
     let mean_q_before = weighted_mean_q(input_r1, input_r2);
     let mean_q_after = weighted_mean_q(output_r1, output_r2);
     FastqCorrectMetrics {
@@ -424,21 +454,23 @@ fn correct_metrics_from_observed_stats(
         reads_out,
         bases_in,
         bases_out,
-        pairs_in: Some(input_r1.reads.min(input_r2.reads)),
-        pairs_out: Some(output_r1.reads.min(output_r2.reads)),
+        pairs_in: input_r2.map(|metrics| input_r1.reads.min(metrics.reads)),
+        pairs_out: output_r2.map(|metrics| output_r1.reads.min(metrics.reads)),
         mean_q_before,
         mean_q_after,
         kmer_fix_rate: kmer_fix_rate_proxy(mean_q_before, mean_q_after, outputs_changed),
     }
 }
 
-fn weighted_mean_q(primary: &SeqkitMetrics, secondary: &SeqkitMetrics) -> f64 {
-    let total_bases = primary.bases + secondary.bases;
+fn weighted_mean_q(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> f64 {
+    let total_bases = primary.bases + secondary.map_or(0, |metrics| metrics.bases);
     if total_bases == 0 {
         return 0.0;
     }
-    ((primary.mean_q * primary.bases as f64) + (secondary.mean_q * secondary.bases as f64))
-        / total_bases as f64
+    let secondary_weighted_mean = secondary
+        .map(|metrics| metrics.mean_q * metrics.bases as f64)
+        .unwrap_or(0.0);
+    ((primary.mean_q * primary.bases as f64) + secondary_weighted_mean) / total_bases as f64
 }
 
 fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: bool) -> f64 {
@@ -453,12 +485,17 @@ fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: b
 
 fn input_output_content_changed(
     input_r1: &Path,
-    input_r2: &Path,
+    input_r2: Option<&Path>,
     output_r1: &Path,
-    output_r2: &Path,
+    output_r2: Option<&Path>,
 ) -> Result<bool> {
-    Ok(hash_file_sha256(input_r1)? != hash_file_sha256(output_r1)?
-        || hash_file_sha256(input_r2)? != hash_file_sha256(output_r2)?)
+    let primary_changed = hash_file_sha256(input_r1)? != hash_file_sha256(output_r1)?;
+    let secondary_changed = match (input_r2, output_r2) {
+        (Some(input_r2), Some(output_r2)) => hash_file_sha256(input_r2)? != hash_file_sha256(output_r2)?,
+        (None, None) => false,
+        _ => true,
+    };
+    Ok(primary_changed || secondary_changed)
 }
 
 fn observe_fastq_stats(
@@ -493,7 +530,8 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_thread_override, correct_metrics_from_observed_stats, required_plan_output_path,
+        apply_thread_override, correct_metrics_from_observed_stats, optional_plan_output_path,
+        required_plan_output_path,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
@@ -604,9 +642,9 @@ mod tests {
     fn correct_metrics_aggregate_both_mates() {
         let metrics = correct_metrics_from_observed_stats(
             &seqkit_metrics(100, 10_000, 30.0),
-            &seqkit_metrics(100, 9_000, 31.0),
+            Some(&seqkit_metrics(100, 9_000, 31.0)),
             &seqkit_metrics(100, 9_800, 33.0),
-            &seqkit_metrics(100, 8_900, 34.0),
+            Some(&seqkit_metrics(100, 8_900, 34.0)),
             true,
         );
         assert_eq!(metrics.reads_in, 200);
@@ -623,12 +661,62 @@ mod tests {
     fn unchanged_corrected_outputs_zero_the_fix_rate_proxy() {
         let metrics = correct_metrics_from_observed_stats(
             &seqkit_metrics(100, 10_000, 30.0),
+            Some(&seqkit_metrics(100, 10_000, 30.0)),
             &seqkit_metrics(100, 10_000, 30.0),
-            &seqkit_metrics(100, 10_000, 30.0),
-            &seqkit_metrics(100, 10_000, 30.0),
+            Some(&seqkit_metrics(100, 10_000, 30.0)),
             false,
         );
         assert_eq!(metrics.kmer_fix_rate, 0.0);
+    }
+
+    #[test]
+    fn single_end_metrics_do_not_invent_pair_counts() {
+        let metrics = correct_metrics_from_observed_stats(
+            &seqkit_metrics(100, 10_000, 30.0),
+            None,
+            &seqkit_metrics(100, 9_700, 33.0),
+            None,
+            true,
+        );
+        assert_eq!(metrics.reads_in, 100);
+        assert_eq!(metrics.reads_out, 100);
+        assert_eq!(metrics.pairs_in, None);
+        assert_eq!(metrics.pairs_out, None);
+        assert!(metrics.mean_q_after > metrics.mean_q_before);
+    }
+
+    #[test]
+    fn optional_corrected_mate_output_can_be_absent() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.correct_errors"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("rcorrector"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["rcorrector".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![bijux_dna_core::prelude::ArtifactRef::required(
+                    ArtifactId::from_static("corrected_reads_r1"),
+                    PathBuf::from("custom/r1.corrected.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        assert_eq!(optional_plan_output_path(&plan, "corrected_reads_r2"), None);
     }
 
     #[test]
