@@ -85,12 +85,17 @@ pub fn stage_input_ids(stage_id: &str) -> Option<BTreeSet<String>> {
 
 #[must_use]
 pub fn stage_output_ids(stage_id: &str) -> Option<BTreeSet<String>> {
+    stage_output_ids_in_manifest_order(stage_id).map(|outputs| outputs.into_iter().collect())
+}
+
+#[must_use]
+pub fn stage_output_ids_in_manifest_order(stage_id: &str) -> Option<Vec<String>> {
     parse_manifest(stage_id).map(|manifest| {
         manifest
             .outputs
             .into_iter()
             .map(|port| port.name)
-            .collect::<BTreeSet<_>>()
+            .collect::<Vec<_>>()
     })
 }
 
@@ -107,7 +112,9 @@ pub fn stage_parameter_ids(stage_id: &str) -> Option<BTreeSet<String>> {
 
 #[cfg(test)]
 mod tests {
-    use super::{stage_input_ids, stage_output_ids, stage_parameter_ids};
+    use super::{
+        stage_input_ids, stage_output_ids, stage_output_ids_in_manifest_order, stage_parameter_ids,
+    };
 
     #[test]
     fn stage_ports_follow_governed_manifest_names() {
@@ -123,6 +130,14 @@ mod tests {
                     .map(str::to_string)
                     .collect()
             )
+        );
+        assert_eq!(
+            stage_output_ids_in_manifest_order("fastq.report_qc"),
+            Some(vec![
+                "multiqc_report".to_string(),
+                "multiqc_data".to_string(),
+                "governed_qc_inputs_manifest".to_string()
+            ])
         );
         assert_eq!(
             stage_parameter_ids("fastq.trim_reads"),
