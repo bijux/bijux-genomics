@@ -1275,12 +1275,16 @@ fn route_key(route_indices: &[usize], toolsets: &[ToolsetSelection]) -> String {
         .iter()
         .zip(toolsets.iter())
         .map(|(tool_index, toolset)| {
+            let stage_node_id = PipelineSpec::stage_node_id(
+                &toolset.stage_id,
+                toolset.stage_instance_id.as_deref(),
+            );
             let tool_id = toolset
                 .tool_ids
                 .get(*tool_index)
                 .map(String::as_str)
                 .unwrap_or("unknown");
-            format!("{}={tool_id}", toolset.stage_id)
+            format!("{stage_node_id}={tool_id}")
         })
         .collect::<Vec<_>>()
         .join("__")

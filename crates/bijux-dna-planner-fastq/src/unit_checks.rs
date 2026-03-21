@@ -269,11 +269,60 @@ fn expand_pipeline_stage_tool_routes_materializes_graph_bound_stage_bindings() {
             && selection
                 .stage_instance_id
                 .as_deref()
-                .is_some_and(|id| id.contains("fastq.validate_reads=fastqvalidator"))
+                .is_some_and(|id| id.contains("fastq.validate_reads.entry=fastqvalidator"))
     }));
     assert!(expanded_pipeline.edges.iter().all(|edge| {
-        edge.from.contains("fastq.validate_reads=fastqvalidator")
-            && edge.to.contains("fastq.validate_reads=fastqvalidator")
+        edge.from.contains("fastq.validate_reads.entry=fastqvalidator")
+            && edge.to.contains("fastq.validate_reads.entry=fastqvalidator")
+    }));
+}
+
+#[test]
+fn expand_pipeline_stage_tool_routes_keys_repeated_stage_nodes_by_instance_id() {
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.left".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.right".to_string()),
+            },
+        ],
+        Vec::new(),
+    );
+    let toolsets = vec![
+        ToolsetSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.left".to_string()),
+            tool_ids: vec!["fastp".to_string(), "cutadapt".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+        ToolsetSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.right".to_string()),
+            tool_ids: vec!["bbduk".to_string(), "seqkit".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+    ];
+
+    let (expanded_pipeline, expanded_stage_tools) =
+        expand_pipeline_stage_tool_routes(&pipeline, &toolsets).expect("expand routes");
+
+    assert_eq!(expanded_pipeline.nodes.len(), 8);
+    assert_eq!(expanded_stage_tools.len(), 8);
+    assert!(expanded_stage_tools.iter().any(|selection| {
+        selection
+            .stage_instance_id
+            .as_deref()
+            .is_some_and(|id| id.contains("fastq.trim_reads.left=fastp"))
+    }));
+    assert!(expanded_stage_tools.iter().any(|selection| {
+        selection
+            .stage_instance_id
+            .as_deref()
+            .is_some_and(|id| id.contains("fastq.trim_reads.right=bbduk"))
     }));
 }
 
