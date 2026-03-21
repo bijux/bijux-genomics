@@ -1,4 +1,5 @@
 use bijux_dna_core::ids::StageId;
+use bijux_dna_domain_fastq::types::FastqArtifactKind;
 
 #[must_use]
 pub fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
@@ -52,27 +53,32 @@ pub fn governed_qc_default_tool_ids() -> Vec<String> {
 pub fn governed_qc_bench_contributor_stage_ids(paired_end: bool) -> Vec<StageId> {
     governed_qc_producer_stage_ids()
         .into_iter()
-        .filter(|stage_id| {
-            matches!(
-                stage_id.as_str(),
-                "fastq.validate_reads"
-                    | "fastq.detect_adapters"
-                    | "fastq.profile_reads"
-                    | "fastq.profile_read_lengths"
-                    | "fastq.profile_overrepresented_sequences"
-                    | "fastq.trim_reads"
-                    | "fastq.trim_terminal_damage"
-                    | "fastq.trim_polyg_tails"
-                    | "fastq.filter_reads"
-                    | "fastq.filter_low_complexity"
-                    | "fastq.remove_duplicates"
-            ) || (paired_end
-                && matches!(
-                    stage_id.as_str(),
-                    "fastq.correct_errors" | "fastq.merge_pairs" | "fastq.extract_umis"
-                ))
-        })
+        .filter(|stage_id| stage_supports_governed_qc_bench_inputs(stage_id, paired_end))
         .collect()
+}
+
+fn stage_supports_governed_qc_bench_inputs(stage_id: &StageId, paired_end: bool) -> bool {
+    let Some(contract) = bijux_dna_domain_fastq::contract_for_stage(stage_id.as_str()) else {
+        return false;
+    };
+    let required_kind = if paired_end {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
+    };
+    if !contract
+        .accepted_input_kinds
+        .iter()
+        .any(|kind| kind == &required_kind)
+    {
+        return false;
+    }
+    let Some(input_ids) = bijux_dna_domain_fastq::stage_input_ids(stage_id.as_str()) else {
+        return false;
+    };
+    input_ids
+        .into_iter()
+        .all(|input_id| matches!(input_id.as_str(), "reads_r1" | "reads_r2"))
 }
 
 #[cfg(test)]
@@ -122,6 +128,12 @@ mod tests {
         assert!(single_end.contains(&StageId::from_static("fastq.trim_terminal_damage")));
         assert!(single_end.contains(&StageId::from_static("fastq.trim_polyg_tails")));
         assert!(single_end.contains(&StageId::from_static("fastq.remove_duplicates")));
+        assert!(single_end.contains(&StageId::from_static("fastq.profile_reads")));
+        assert!(single_end.contains(&StageId::from_static("fastq.screen_taxonomy")));
+        assert!(single_end.contains(&StageId::from_static("fastq.deplete_rrna")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_host")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_reference_contaminants")));
+        assert!(!single_end.contains(&StageId::from_static("fastq.normalize_abundance")));
         assert!(!single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
 
@@ -129,5 +141,6 @@ mod tests {
         assert!(paired_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(paired_end.contains(&StageId::from_static("fastq.merge_pairs")));
         assert!(paired_end.contains(&StageId::from_static("fastq.extract_umis")));
+        assert!(!paired_end.contains(&StageId::from_static("fastq.deplete_host")));
     }
 }
