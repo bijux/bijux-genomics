@@ -140,12 +140,11 @@ fn remove_duplicates_params_roundtrip_with_stage_specific_schema() {
 }
 
 #[test]
-fn remove_duplicates_parser_remains_available_without_public_stage_descriptor() {
+fn remove_duplicates_parser_matches_public_stage_descriptor() {
     let stage_id = StageId::from_static("fastq.remove_duplicates");
-    assert!(
-        stage_param_descriptor(&stage_id).is_none(),
-        "public stage param descriptors must follow the manifest-declared stage surface"
-    );
+    let descriptor = stage_param_descriptor(&stage_id)
+        .expect("remove_duplicates must publish its governed parameter descriptor");
+    assert_eq!(descriptor.param_type_id, "fastq.remove_duplicates");
     let params = remove_duplicates_defaults(true);
     let value = serde_json::to_value(&params).expect("serialize remove_duplicates params");
     let parsed = parse_effective_params(&stage_id, &value)
@@ -157,16 +156,15 @@ fn remove_duplicates_parser_remains_available_without_public_stage_descriptor() 
 }
 
 #[test]
-fn internal_effective_params_can_exist_without_public_stage_knobs() {
-    for stage in [
-        StageId::from_static("fastq.validate_reads"),
-        StageId::from_static("fastq.remove_duplicates"),
-        StageId::from_static("fastq.report_qc"),
+fn governed_stage_descriptors_cover_manifest_declared_fastq_knobs() {
+    for (stage, expected_param_type_id) in [
+        ("fastq.validate_reads", "fastq.validate_reads"),
+        ("fastq.remove_duplicates", "fastq.remove_duplicates"),
+        ("fastq.report_qc", "fastq.report_qc"),
     ] {
-        assert!(
-            stage_param_descriptor(&stage).is_none(),
-            "{stage} must not advertise a public stage parameter contract when its manifest is paramless"
-        );
+        let descriptor = stage_param_descriptor(&StageId::from_static(stage))
+            .unwrap_or_else(|| panic!("{stage} must publish a governed stage parameter descriptor"));
+        assert_eq!(descriptor.param_type_id, expected_param_type_id);
     }
 }
 

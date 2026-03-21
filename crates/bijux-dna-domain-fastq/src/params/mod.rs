@@ -157,6 +157,24 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
             schema_version: stats::STATS_SCHEMA_VERSION,
         });
     }
+    if stage_id == &STAGE_VALIDATE_READS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.validate_reads",
+            schema_version: validate::VALIDATE_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_REMOVE_DUPLICATES {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.remove_duplicates",
+            schema_version: remove_duplicates::REMOVE_DUPLICATES_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_REPORT_QC {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.report_qc",
+            schema_version: qc_post::REPORT_QC_SCHEMA_VERSION,
+        });
+    }
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.normalize_primers",
