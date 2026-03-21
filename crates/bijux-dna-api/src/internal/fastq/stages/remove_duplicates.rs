@@ -45,45 +45,12 @@ struct DuplicateReportCounts {
     dedup_rate: f64,
 }
 
-fn ensure_remove_duplicates_tools_support_input_mode(
-    tools: &[String],
-    paired_mode: bool,
-) -> Result<()> {
-    let incompatible = tools
-        .iter()
-        .filter(|tool_id| {
-            !bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::deduplicate_tool_supports_paired_mode(
-                tool_id,
-                paired_mode,
-            )
-        })
-        .cloned()
-        .collect::<Vec<_>>();
-    if incompatible.is_empty() {
-        return Ok(());
-    }
-    Err(anyhow!(
-        "fastq.remove_duplicates does not support {} inputs for tool(s): {}",
-        if paired_mode {
-            "paired-end"
-        } else {
-            "single-end"
-        },
-        incompatible.join(", "),
-    ))
-}
-
 fn resolve_remove_duplicates_tools(
     requested_tools: &[String],
     tools_resolved_implicitly: bool,
     paired_mode: bool,
 ) -> Result<Vec<String>> {
     let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(requested_tools)?;
-    if !tools_resolved_implicitly {
-        ensure_remove_duplicates_tools_support_input_mode(&tools, paired_mode)?;
-        return Ok(tools);
-    }
-
     let compatible = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
         &StageId::new(STAGE_ID),
         tools
@@ -104,6 +71,21 @@ fn resolve_remove_duplicates_tools(
             } else {
                 "single-end"
             }
+        ));
+    }
+    if !tools_resolved_implicitly && compatible.len() != tools.len() {
+        let incompatible = tools
+            .into_iter()
+            .filter(|tool_id| !compatible.contains(tool_id))
+            .collect::<Vec<_>>();
+        return Err(anyhow!(
+            "fastq.remove_duplicates does not support {} inputs for tool(s): {}",
+            if paired_mode {
+                "paired-end"
+            } else {
+                "single-end"
+            },
+            incompatible.join(", "),
         ));
     }
     Ok(compatible)
