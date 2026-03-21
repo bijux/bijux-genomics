@@ -531,6 +531,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
         | "trim_galore" => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
+        "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!(
             "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
         )),

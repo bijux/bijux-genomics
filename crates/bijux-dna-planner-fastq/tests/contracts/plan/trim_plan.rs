@@ -295,6 +295,31 @@ fn plan_trim_seqpurge_supports_single_end_and_paired_layouts() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_options_maps_min_length_for_seqpurge() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("seqpurge"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(80),
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert!(plan.command.template[2].contains("-min_len"));
+    assert!(plan.command.template[2].contains("80"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> {
     let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("fastp"),
