@@ -129,6 +129,7 @@ pub use stages::{
 pub use stages::{
     fastq_stage_is_stable, stage_criticality, stage_input_ids, stage_kind, stage_metric_classes,
     stage_metric_invariants, stage_output_ids, stage_parameter_ids, stage_semantics,
+    stage_compatible_tool_ids,
     BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics, STAGE_BOUNDARY_INVARIANTS,
 };
 pub use types::{

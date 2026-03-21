@@ -20,6 +20,8 @@ struct StageManifestShape {
     outputs: Vec<StageManifestPort>,
     #[serde(default)]
     parameters: Vec<StageManifestParameter>,
+    #[serde(default)]
+    compatible_tools: Vec<String>,
 }
 
 macro_rules! stage_manifest {
@@ -110,10 +112,16 @@ pub fn stage_parameter_ids(stage_id: &str) -> Option<BTreeSet<String>> {
     })
 }
 
+#[must_use]
+pub fn stage_compatible_tool_ids(stage_id: &str) -> Option<Vec<String>> {
+    parse_manifest(stage_id).map(|manifest| manifest.compatible_tools)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        stage_input_ids, stage_output_ids, stage_output_ids_in_manifest_order, stage_parameter_ids,
+        stage_compatible_tool_ids, stage_input_ids, stage_output_ids,
+        stage_output_ids_in_manifest_order, stage_parameter_ids,
     };
 
     #[test]
@@ -154,6 +162,10 @@ mod tests {
                 .map(str::to_string)
                 .collect()
             )
+        );
+        assert_eq!(
+            stage_compatible_tool_ids("fastq.remove_duplicates"),
+            Some(vec!["fastuniq".to_string(), "clumpify".to_string()])
         );
     }
 }
