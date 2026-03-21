@@ -157,6 +157,7 @@ pub fn bench_args_trim_polyg(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        trim_polyg: args.trim_polyg,
         polyx_preset: args.polyx_preset.clone(),
         min_polyg_run: args.min_polyg_run,
     })
