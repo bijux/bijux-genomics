@@ -156,7 +156,6 @@ pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
     QcPostEffectiveParams {
         schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
         aggregation_engine: QcAggregationEngine::Multiqc,
         aggregation_scope: QcAggregationScope::FastqQcInputs,
     }

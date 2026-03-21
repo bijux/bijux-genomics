@@ -318,7 +318,6 @@ fn report_qc_params_roundtrip_with_multiqc_contract() {
     let params = QcPostEffectiveParams {
         schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
-        threads: 2,
         aggregation_engine: QcAggregationEngine::Multiqc,
         aggregation_scope: QcAggregationScope::FastqQcInputs,
     };

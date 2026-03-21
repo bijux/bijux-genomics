@@ -18,10 +18,13 @@ fn stage_manifest(stage_name: &str) -> Result<Value> {
 }
 
 fn stage_parameter_names(stage_name: &str) -> Result<Vec<String>> {
-    stage_manifest(stage_name)?
-        .get("parameters")
-        .and_then(Value::as_sequence)
-        .with_context(|| format!("parameters missing in {stage_name}.yaml"))?
+    let manifest = stage_manifest(stage_name)?;
+    let Some(parameters) = manifest.get("parameters") else {
+        return Ok(Vec::new());
+    };
+    parameters
+        .as_sequence()
+        .with_context(|| format!("parameters must be a sequence in {stage_name}.yaml"))?
         .iter()
         .map(|entry| {
             entry
@@ -84,6 +87,16 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
         stage_parameter_names("remove_duplicates")?,
         vec!["dedup_mode", "keep_order"],
         "fastq.remove_duplicates must keep its duplicate-collapsing parameter surface"
+    );
+    Ok(())
+}
+
+#[test]
+fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
+    assert_eq!(
+        stage_parameter_names("report_qc")?,
+        Vec::<String>::new(),
+        "fastq.report_qc must not expose stage parameters that the governed multiqc execution path cannot honor"
     );
     Ok(())
 }
