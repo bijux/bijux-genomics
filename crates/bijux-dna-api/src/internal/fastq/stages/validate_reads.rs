@@ -17,7 +17,9 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::plan as plan_validate_reads;
+use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::{
+    plan_with_options as plan_validate_reads, ValidatePlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
@@ -105,7 +107,15 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_validate_reads(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+        let plan = plan_validate_reads(
+            &tool_spec,
+            &bench_inputs.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            &ValidatePlanOptions {
+                q_cutoff: args.q_cutoff,
+            },
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
