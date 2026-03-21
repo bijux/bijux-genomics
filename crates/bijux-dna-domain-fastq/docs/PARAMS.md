@@ -36,7 +36,7 @@ FASTQ stage definitions use stage-specific parameter structs instead of a single
 | --- | --- | --- |
 | `fastq.validate_reads` | `ValidateEffectiveParams` | input FASTQ structural validation controls |
 | `fastq.profile_reads` | `FastqStatsParams` | neutral read statistics collection controls |
-| `fastq.correct_errors` | `FastqCorrectParams` | error-correction controls, including engine, quality encoding, and trusted-kmer context |
+| `fastq.correct_errors` | `FastqCorrectParams` | error-correction controls for the currently governed paired-end engine surface |
 | `fastq.extract_umis` | `FastqUmiParams` | UMI extraction/normalization controls |
 | `fastq.detect_adapters` | `DetectAdaptersEffectiveParams` | evidence-only adapter inspection controls |
 | `fastq.trim_reads` | `TrimEffectiveParams` | adapter/quality/length trimming controls |
