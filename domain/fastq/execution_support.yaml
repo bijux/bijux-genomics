@@ -171,7 +171,7 @@ stages:
     execution_status: "closed"
     planning_support: "stage_family"
     runtime_support: "runnable"
-    normalization_support: "generic_envelope"
+    normalization_support: "observer_specialized"
     benchmark_support: "cohort"
     default_tool: "rcorrector"
     admitted_tools:

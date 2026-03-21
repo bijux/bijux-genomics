@@ -109,6 +109,22 @@ pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
             bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS,
             ToolId::from_static("bbduk"),
         ),
+        (
+            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
+            ToolId::from_static("rcorrector"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
+            ToolId::from_static("musket"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
+            ToolId::from_static("lighter"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS,
+            ToolId::from_static("bayeshammer"),
+        ),
     ]
 }
 
@@ -241,6 +257,13 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.correct_errors"),
+                &ToolId::from_static("rcorrector"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("seqkit"),
             ),
@@ -270,6 +293,10 @@ mod tests {
             runtime_interpretation_for_stage(&StageId::from_static("fastq.trim_polyg_tails")),
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.correct_errors")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
     }
 
     #[test]
@@ -293,6 +320,9 @@ mod tests {
         )));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.trim_polyg_tails"
+        )));
+        assert!(observer_specialized.contains(&StageId::from_static(
+            "fastq.correct_errors"
         )));
         assert!(!observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(!observer_specialized.contains(&StageId::from_static(

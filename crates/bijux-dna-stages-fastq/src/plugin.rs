@@ -396,6 +396,25 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             }
         }
     }
+    if plan.stage_id.as_str() == "fastq.correct_errors" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                    return serde_json::json!({
+                        "correction_engine": report.get("correction_engine").cloned().unwrap_or(serde_json::Value::Null),
+                        "input_r1": report.get("input_r1").cloned().unwrap_or(serde_json::Value::Null),
+                        "input_r2": report.get("input_r2").cloned().unwrap_or(serde_json::Value::Null),
+                        "output_r1": report.get("output_r1").cloned().unwrap_or(serde_json::Value::Null),
+                        "output_r2": report.get("output_r2").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
     serde_json::Value::Null
 }
 
@@ -822,6 +841,93 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["raw_report_format"],
             serde_json::json!("fastp_json")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_correction_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1_path = temp.path().join("reads_R1.fastq");
+        let reads_r2_path = temp.path().join("reads_R2.fastq");
+        let corrected_r1_path = temp.path().join("corrected_R1.fastq");
+        let corrected_r2_path = temp.path().join("corrected_R2.fastq");
+        let report_path = temp.path().join("correct_report.json");
+        std::fs::write(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
+        std::fs::write(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
+        std::fs::write(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
+        std::fs::write(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "correction_engine": "rcorrector",
+                "input_r1": reads_r1_path,
+                "input_r2": reads_r2_path,
+                "output_r1": corrected_r1_path,
+                "output_r2": corrected_r2_path
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.correct_errors"),
+            tool_id: ToolId::from_static("rcorrector"),
+            io: StageIO {
+                inputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r1"),
+                        reads_r1_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r2"),
+                        reads_r2_path,
+                        ArtifactRole::Reads,
+                    ),
+                ],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("corrected_reads_r1"),
+                        corrected_r1_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("corrected_reads_r2"),
+                        corrected_r2_path,
+                        ArtifactRole::Reads,
+                    ),
+                ],
+            },
+            ..plan("fastq.correct_errors")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    plan.io.outputs[1].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["correction_engine"],
+            serde_json::json!("rcorrector")
         );
     }
 
