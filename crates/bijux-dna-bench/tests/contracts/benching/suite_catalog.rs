@@ -2,10 +2,11 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage,
 };
-use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
+use bijux_dna_domain_fastq::{admitted_execution_tools_for_stage, STAGE_TRIM_READS};
 
 fn suite_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bench/suites")
@@ -87,7 +88,9 @@ fn checked_in_fastq_suite_catalog_covers_governed_benchmark_stages() -> Result<(
         .into_iter()
         .filter(|stage_id| {
             execution_support_for_stage(stage_id)
-                .map(|support| support.execution_status == bijux_dna_domain_fastq::ExecutionStatus::Closed)
+                .map(|support| {
+                    support.execution_status == bijux_dna_domain_fastq::ExecutionStatus::Closed
+                })
                 .unwrap_or(false)
         })
         .map(|stage_id| stage_id.to_string())
@@ -147,13 +150,33 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
 #[test]
 fn checked_in_fastq_suite_catalog_exercises_multi_tool_validation_cohorts() -> Result<()> {
     let has_multi_tool_validation_suite = checked_in_suites()?.into_iter().any(|(_path, suite)| {
-        suite.stages.into_iter().any(|stage| {
-            stage.stage == "fastq.validate_reads" && stage.tools.len() > 1
-        })
+        suite
+            .stages
+            .into_iter()
+            .any(|stage| stage.stage == "fastq.validate_reads" && stage.tools.len() > 1)
     });
     assert!(
         has_multi_tool_validation_suite,
         "checked-in FASTQ suites must exercise a multi-tool validation cohort"
+    );
+    Ok(())
+}
+
+#[test]
+fn checked_in_fastq_suite_catalog_covers_all_admitted_trim_backends() -> Result<()> {
+    let covered = checked_in_suites()?
+        .into_iter()
+        .flat_map(|(_path, suite)| suite.stages.into_iter())
+        .filter(|stage| stage.stage == STAGE_TRIM_READS.as_str())
+        .flat_map(|stage| stage.tools.into_iter())
+        .collect::<std::collections::BTreeSet<_>>();
+    let expected = admitted_execution_tools_for_stage(&STAGE_TRIM_READS)
+        .into_iter()
+        .map(|tool_id| tool_id.to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        covered, expected,
+        "checked-in FASTQ suites must cover every admitted fastq.trim_reads backend"
     );
     Ok(())
 }
