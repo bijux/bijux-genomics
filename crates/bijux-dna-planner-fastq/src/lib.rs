@@ -61,8 +61,16 @@ fn required_id_catalog() -> Vec<String> {
         .collect()
 }
 
-fn pipeline_spec_from_stage_sequence(stages: Vec<String>) -> PipelineSpec {
-    PipelineSpec::chain(stages)
+fn pipeline_spec_from_stage_catalog(
+    stages: Vec<String>,
+    mode: FastqPipelineMode,
+) -> PipelineSpec {
+    preprocess_pipeline_graph_for_stage_order(
+        sort_stages_by_domain_order(stages, mode)
+            .into_iter()
+            .map(StageId::new)
+            .collect(),
+    )
 }
 
 fn sort_stages_by_domain_order(stages: Vec<String>, mode: FastqPipelineMode) -> Vec<String> {
@@ -383,7 +391,14 @@ pub fn resolve_preprocess_pipeline(
             profile_id,
         ) {
             Ok(profile) => filter_preprocess_pipeline(
-                pipeline_spec_from_stage_sequence(fastq_pipeline_id_catalog(profile.id.as_str())),
+                pipeline_spec_from_stage_catalog(
+                    fastq_pipeline_id_catalog(profile.id.as_str()),
+                    if shotgun_mode {
+                        FastqPipelineMode::Shotgun
+                    } else {
+                        FastqPipelineMode::Amplicon
+                    },
+                ),
                 args.r2.is_some(),
                 shotgun_mode,
                 enable_merge,
