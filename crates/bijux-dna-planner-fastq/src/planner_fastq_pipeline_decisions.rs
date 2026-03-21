@@ -194,15 +194,20 @@ impl FastqPlanner {
                 Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
             },
         )?;
-        let edges = execution_edges_for_stage_plans(pipeline_spec.as_ref(), &plans)?;
+        let mut steps = plans
+            .iter()
+            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
+            .collect::<Vec<_>>();
+        let mut edges = execution_edges_for_stage_plans(pipeline_spec.as_ref(), &plans)?;
+        let (compare_steps, compare_edges) =
+            benchmark_compare_steps_for_toolsets(config, &plans)?;
+        steps.extend(compare_steps);
+        edges.extend(compare_edges);
         let graph = ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
-            plans
-                .iter()
-                .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-                .collect(),
+            steps,
             edges,
         )?;
         tracing::info!(
@@ -426,6 +431,189 @@ fn comparison_command_for_stage(
 fn comparison_artifact_file_name(artifact_id: &str) -> String {
     let stem = artifact_id.strip_suffix("_json").unwrap_or(artifact_id);
     format!("{stem}.json")
+}
+
+fn benchmark_compare_steps_for_toolsets(
+    config: &FastqPlanConfig,
+    plans: &[StagePlanV1],
+) -> Result<(Vec<ExecutionStep>, Vec<ExecutionEdge>)> {
+    if config.stage_toolsets.is_empty() {
+        return Ok((Vec::new(), Vec::new()));
+    }
+
+    let mut steps = Vec::new();
+    let mut edges = Vec::new();
+    for toolset in config.stage_toolsets.iter().filter(|binding| binding.tools.len() > 1) {
+        let stage_id = StageId::new(toolset.stage_id.clone());
+        let comparison_artifact_ids =
+            bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
+        if comparison_artifact_ids.is_empty() {
+            continue;
+        }
+        let comparison_input_artifact_ids =
+            bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&stage_id);
+        let stage_node_id =
+            PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref());
+        let mut plans_by_context =
+            std::collections::BTreeMap::<String, Vec<&StagePlanV1>>::new();
+        for plan in plans
+            .iter()
+            .filter(|plan| plan_originates_from_toolset(plan, toolset))
+        {
+            let context_key = compare_context_key_for_plan(plan, &stage_node_id);
+            plans_by_context.entry(context_key).or_default().push(plan);
+        }
+
+        for (context_key, context_plans) in plans_by_context {
+            let distinct_tools = context_plans
+                .iter()
+                .map(|plan| plan.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>();
+            if distinct_tools.len() < 2 {
+                continue;
+            }
+            let compare_step_id = compare_step_id_for_context(&stage_node_id, &context_key);
+            let compare_out_dir = compare_out_dir_for_context(&config.out_dir, &stage_node_id, &context_key);
+            let comparison_command =
+                comparison_command_for_stage(&stage_id, &comparison_artifact_ids)?;
+            let comparison_outputs = comparison_artifact_ids
+                .iter()
+                .map(|artifact_id| {
+                    ArtifactRef::required(
+                        ArtifactId::new((*artifact_id).to_string()),
+                        compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
+                        ArtifactRole::SummaryJson,
+                    )
+                })
+                .collect::<Vec<_>>();
+            let mut comparison_inputs = Vec::new();
+            for plan in &context_plans {
+                for output in &plan.io.outputs {
+                    if !comparison_input_artifact_ids.is_empty()
+                        && !comparison_input_artifact_ids
+                            .iter()
+                            .any(|artifact_id| *artifact_id == output.name.as_str())
+                    {
+                        continue;
+                    }
+                    comparison_inputs.push(ArtifactRef::required(
+                        ArtifactId::new(format!(
+                            "{}__{}",
+                            plan.tool_id.as_str(),
+                            output.name.as_str()
+                        )),
+                        output.path.clone(),
+                        output.role,
+                    ));
+                }
+                edges.push(ExecutionEdge::new(
+                    step_id_for_plan(plan),
+                    compare_step_id.clone(),
+                ));
+            }
+            comparison_inputs.sort_by(|left, right| {
+                left.name
+                    .as_str()
+                    .cmp(right.name.as_str())
+                    .then_with(|| left.path.cmp(&right.path))
+            });
+            steps.push(ExecutionStep {
+                step_id: compare_step_id,
+                stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
+                command: CommandSpecV1 {
+                    template: comparison_command,
+                },
+                image: ContainerImageRefV1 {
+                    image: "bijux-dna-compare".to_string(),
+                    digest: None,
+                },
+                resources: ToolConstraints::default(),
+                io: StageIO {
+                    inputs: comparison_inputs,
+                    outputs: comparison_outputs,
+                },
+                out_dir: compare_out_dir,
+                aux_images: BTreeMap::new(),
+                expected_artifact_ids: comparison_artifact_ids
+                    .iter()
+                    .map(|artifact_id| ArtifactId::new((*artifact_id).to_string()))
+                    .collect(),
+                metrics_schema_ids: Vec::new(),
+            });
+        }
+    }
+
+    Ok((steps, edges))
+}
+
+fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetBinding) -> bool {
+    if plan.stage_id.as_str() != toolset.stage_id {
+        return false;
+    }
+    let plan_stage_instance_id = plan.stage_instance_id.as_ref().map(ToString::to_string);
+    source_toolset_for_expanded_selection(
+        std::slice::from_ref(toolset),
+        plan.stage_id.as_str(),
+        &plan_stage_instance_id,
+    )
+    .is_some()
+}
+
+fn compare_context_key_for_plan(plan: &StagePlanV1, stage_node_id: &str) -> String {
+    let Some(assignments) = expanded_route_assignments(
+        plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+    ) else {
+        return String::new();
+    };
+    assignments
+        .into_iter()
+        .filter(|(node_id, _)| node_id != stage_node_id)
+        .map(|(node_id, tool_id)| format!("{node_id}={tool_id}"))
+        .collect::<Vec<_>>()
+        .join("__")
+}
+
+fn expanded_route_assignments(
+    stage_instance_id: Option<&str>,
+) -> Option<std::collections::BTreeMap<String, String>> {
+    let stage_instance_id = stage_instance_id?;
+    let (_, route_and_tool) = stage_instance_id.split_once(".route.")?;
+    let (route_key, _) = route_and_tool.rsplit_once(".tool.")?;
+    let mut assignments = std::collections::BTreeMap::new();
+    for assignment in route_key.split("__") {
+        let (node_id, tool_id) = assignment.split_once('=')?;
+        assignments.insert(node_id.to_string(), tool_id.to_string());
+    }
+    Some(assignments)
+}
+
+fn compare_step_id_for_context(stage_node_id: &str, context_key: &str) -> StepId {
+    if context_key.is_empty() {
+        return StepId::new(format!("{stage_node_id}.compare"));
+    }
+    StepId::new(format!("{stage_node_id}.compare.route.{context_key}"))
+}
+
+fn compare_out_dir_for_context(
+    root_out_dir: &std::path::Path,
+    stage_node_id: &str,
+    context_key: &str,
+) -> std::path::PathBuf {
+    let compare_dir = root_out_dir
+        .join(stage_node_id.trim_start_matches(STAGE_PREFIX))
+        .join("compare");
+    if context_key.is_empty() {
+        compare_dir
+    } else {
+        compare_dir.join(context_key)
+    }
+}
+
+fn step_id_for_plan(plan: &StagePlanV1) -> StepId {
+    plan.stage_instance_id
+        .as_ref()
+        .cloned()
+        .unwrap_or_else(|| StepId::new(plan.stage_id.as_str().to_string()))
 }
 
 fn normalize_stage_bindings(

@@ -172,8 +172,8 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
         allow_planned: false,
     })?;
 
-    assert_eq!(plan.steps().len(), 4);
-    assert_eq!(plan.edges().len(), 2);
+    assert_eq!(plan.steps().len(), 5);
+    assert_eq!(plan.edges().len(), 4);
     assert!(plan.steps().iter().any(|step| {
         step.step_id
             .as_str()
@@ -184,6 +184,206 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
             .as_str()
             .contains("fastq.trim_reads.cleanup=fastp")
             && step.step_id.as_str().contains(".tool.fastp")
+    }));
+    Ok(())
+}
+
+#[test]
+fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-stage-toolset-compare")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+        ],
+        vec![PipelineEdgeSpec {
+            from: "fastq.validate_reads.entry".to_string(),
+            to: "fastq.trim_reads.cleanup".to_string(),
+            from_output_id: None,
+            to_input_id: None,
+        }],
+    );
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__stage_toolset_compare__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(pipeline),
+        stage_bindings: Vec::new(),
+        stage_toolsets: vec![
+            FastqStageToolsetBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+                tools: vec![tool("fastqvalidator")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tools: vec![tool("fastp"), tool("cutadapt")],
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let compare_step = plan
+        .steps()
+        .iter()
+        .find(|step| {
+            step.step_id
+                .as_str()
+                .starts_with("fastq.trim_reads.cleanup.compare.route.")
+        })
+        .expect("trim toolset compare step");
+    assert_eq!(
+        compare_step.stage_id.as_str(),
+        "benchmark.compare_stage_tools"
+    );
+    assert_eq!(compare_step.io.inputs.len(), 4);
+    assert!(compare_step
+        .io
+        .inputs
+        .iter()
+        .all(|artifact| {
+            let name = artifact.name.as_str();
+            name.ends_with("__trimmed_reads_r1") || name.ends_with("__report_json")
+        }));
+    assert!(plan.edges().iter().any(|edge| {
+        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
+            && edge.from().as_str().contains(".tool.fastp")
+    }));
+    assert!(plan.edges().iter().any(|edge| {
+        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
+            && edge.from().as_str().contains(".tool.cutadapt")
+    }));
+    Ok(())
+}
+
+#[test]
+fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-stage-toolset-compare-context")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&r2, b"@r2\nT\n+\n#\n")?;
+
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.remove_duplicates".to_string(),
+                stage_instance_id: Some("fastq.remove_duplicates.selected".to_string()),
+            },
+        ],
+        vec![
+            PipelineEdgeSpec {
+                from: "fastq.validate_reads.entry".to_string(),
+                to: "fastq.trim_reads.cleanup".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            },
+            PipelineEdgeSpec {
+                from: "fastq.trim_reads.cleanup".to_string(),
+                to: "fastq.remove_duplicates.selected".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            },
+        ],
+    );
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__stage_toolset_compare_context__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(pipeline),
+        stage_bindings: Vec::new(),
+        stage_toolsets: vec![
+            FastqStageToolsetBinding {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.entry".to_string()),
+                tools: vec![tool("fastqvalidator")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tools: vec![tool("fastp"), tool("cutadapt")],
+                reason: None,
+                params: None,
+            },
+            FastqStageToolsetBinding {
+                stage_id: "fastq.remove_duplicates".to_string(),
+                stage_instance_id: Some("fastq.remove_duplicates.selected".to_string()),
+                tools: vec![tool("clumpify"), tool("fastuniq")],
+                reason: None,
+                params: None,
+            },
+        ],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })?;
+
+    let trim_compare_steps = plan
+        .steps()
+        .iter()
+        .filter(|step| {
+            step.step_id
+                .as_str()
+                .starts_with("fastq.trim_reads.cleanup.compare.route.")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(trim_compare_steps.len(), 2);
+    assert!(trim_compare_steps.iter().all(|step| step.io.inputs.len() == 6));
+    assert!(trim_compare_steps.iter().any(|step| {
+        step.step_id
+            .as_str()
+            .contains("fastq.remove_duplicates.selected=clumpify")
+    }));
+    assert!(trim_compare_steps.iter().any(|step| {
+        step.step_id
+            .as_str()
+            .contains("fastq.remove_duplicates.selected=fastuniq")
     }));
     Ok(())
 }
