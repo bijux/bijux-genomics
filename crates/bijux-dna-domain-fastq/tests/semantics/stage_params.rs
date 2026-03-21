@@ -32,8 +32,9 @@ use bijux_dna_domain_fastq::params::screen::{
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::trim::{
-    TrimPolygTailsParams, TrimTerminalDamageParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
-    TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+    default_terminal_damage_execution_policy, resolve_terminal_damage_policy,
+    TerminalDamageExecutionPolicy, TrimPolygTailsParams, TrimTerminalDamageParams,
+    TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
@@ -93,9 +94,28 @@ fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
     let decoded: TrimTerminalDamageParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION);
     assert_eq!(decoded.damage_mode, DamageMode::Ancient);
+    assert_eq!(
+        decoded.execution_policy,
+        default_terminal_damage_execution_policy()
+    );
     assert_eq!(decoded.trim_5p_bases, 2);
     assert_eq!(decoded.trim_3p_bases, 2);
+    assert_eq!(decoded.requested_trim_5p_bases, None);
+    assert_eq!(decoded.requested_trim_3p_bases, None);
     assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn udg_trimmed_default_policy_preserves_terminal_ends() {
+    let policy = resolve_terminal_damage_policy(DamageMode::UdgTrimmed, 2, 2);
+    assert_eq!(
+        policy.execution_policy,
+        TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds
+    );
+    assert_eq!(policy.effective_trim_5p_bases, 0);
+    assert_eq!(policy.effective_trim_3p_bases, 0);
+    assert_eq!(policy.requested_trim_5p_bases, 2);
+    assert_eq!(policy.requested_trim_3p_bases, 2);
 }
 
 #[test]

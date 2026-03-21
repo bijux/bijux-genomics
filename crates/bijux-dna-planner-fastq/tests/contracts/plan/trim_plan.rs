@@ -2,6 +2,7 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
 use bijux_dna_domain_fastq::params::DamageMode;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
@@ -497,6 +498,33 @@ fn plan_trim_terminal_damage_seqkit_respects_terminal_trim_settings() -> Result<
     assert!(script.contains("reads_R2.fastq.gz"));
     assert!(script.contains("trim_terminal_damage_report.json"));
     assert!(script.contains("\"damage_mode\":\"udg_trimmed\""));
+    assert!(script.contains("\"execution_policy\":\"explicit_terminal_trim\""));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_terminal_damage_udg_defaults_preserve_terminal_ends() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        "udg_trimmed",
+        2,
+        2,
+    )?;
+
+    assert_eq!(
+        serde_json::from_value::<TerminalDamageExecutionPolicy>(
+            plan.effective_params["execution_policy"].clone()
+        )?,
+        TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds
+    );
+    assert_eq!(plan.effective_params["trim_5p_bases"], 0);
+    assert_eq!(plan.effective_params["trim_3p_bases"], 0);
+    assert_eq!(plan.effective_params["requested_trim_5p_bases"], 2);
+    assert_eq!(plan.effective_params["requested_trim_3p_bases"], 2);
+    assert!(!plan.command.template.iter().any(|part| part == "-3"));
     Ok(())
 }
 

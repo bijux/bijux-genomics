@@ -5,6 +5,8 @@ use super::{DamageMode, PairedMode};
 
 pub const TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_terminal_damage.v1";
 pub const TRIM_POLYG_TAILS_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_polyg_tails.v1";
+pub const DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES: u32 = 2;
+pub const DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES: u32 = 2;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -121,8 +123,62 @@ pub struct TrimTerminalDamageParams {
     pub paired_mode: PairedMode,
     pub threads: u32,
     pub damage_mode: DamageMode,
+    #[serde(default = "default_terminal_damage_execution_policy")]
+    pub execution_policy: TerminalDamageExecutionPolicy,
     pub trim_5p_bases: u32,
     pub trim_3p_bases: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_trim_5p_bases: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_trim_3p_bases: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TerminalDamageExecutionPolicy {
+    ExplicitTerminalTrim,
+    PreserveUdgTrimmedEnds,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ResolvedTerminalDamagePolicy {
+    pub execution_policy: TerminalDamageExecutionPolicy,
+    pub effective_trim_5p_bases: u32,
+    pub effective_trim_3p_bases: u32,
+    pub requested_trim_5p_bases: u32,
+    pub requested_trim_3p_bases: u32,
+}
+
+#[must_use]
+pub fn default_terminal_damage_execution_policy() -> TerminalDamageExecutionPolicy {
+    TerminalDamageExecutionPolicy::ExplicitTerminalTrim
+}
+
+#[must_use]
+pub fn resolve_terminal_damage_policy(
+    damage_mode: DamageMode,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
+) -> ResolvedTerminalDamagePolicy {
+    let preserves_udg_trimmed_ends = damage_mode == DamageMode::UdgTrimmed
+        && trim_5p_bases == DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES
+        && trim_3p_bases == DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES;
+    if preserves_udg_trimmed_ends {
+        return ResolvedTerminalDamagePolicy {
+            execution_policy: TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds,
+            effective_trim_5p_bases: 0,
+            effective_trim_3p_bases: 0,
+            requested_trim_5p_bases: trim_5p_bases,
+            requested_trim_3p_bases: trim_3p_bases,
+        };
+    }
+    ResolvedTerminalDamagePolicy {
+        execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
+        effective_trim_5p_bases: trim_5p_bases,
+        effective_trim_3p_bases: trim_3p_bases,
+        requested_trim_5p_bases: trim_5p_bases,
+        requested_trim_3p_bases: trim_3p_bases,
+    }
 }
 
 impl TrimTerminalDamageParams {
@@ -148,8 +204,11 @@ impl TrimTerminalDamageParams {
             "paired_mode": self.paired_mode,
             "threads": self.threads,
             "damage_mode": self.damage_mode,
+            "execution_policy": self.execution_policy,
             "trim_5p_bases": self.trim_5p_bases,
             "trim_3p_bases": self.trim_3p_bases,
+            "requested_trim_5p_bases": self.requested_trim_5p_bases,
+            "requested_trim_3p_bases": self.requested_trim_3p_bases,
         })
     }
 }
