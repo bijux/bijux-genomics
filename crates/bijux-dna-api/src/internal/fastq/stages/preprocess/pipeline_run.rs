@@ -83,6 +83,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
     let jobs = bench_jobs(args.jobs);
     let runtime_pipeline = pipeline.clone();
+    let paired_end = args.r2.is_some();
     let mut planner_stage_toolsets = Vec::new();
     let mut selected_stage_tools = if args.run_all_governed_tools {
         let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
@@ -99,6 +100,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     &registry,
                     false,
                 )?;
+                let filtered = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+                    &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
+                    filtered
+                        .into_iter()
+                        .map(bijux_dna_core::ids::ToolId::new)
+                        .collect(),
+                    paired_end,
+                )
+                .into_iter()
+                .map(|tool_id| tool_id.to_string())
+                .collect::<Vec<_>>();
                 Ok(bijux_dna_planner_fastq::ToolsetSelection {
                     stage_id: toolset.stage_id,
                     stage_instance_id: toolset.stage_instance_id,
