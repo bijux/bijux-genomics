@@ -102,6 +102,7 @@ pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_tool_governance::{
     benchmark_readiness_for_stage_tool, stage_benchmark_governance,
+    filter_tools_for_input_layout, tool_supports_input_layout,
     stage_tool_capability_contract, stage_tool_governance_profile,
     stage_tool_governance_profiles_for_stage, stage_tool_maturity,
     BenchmarkReadinessLevel, RuntimeNormalizationLevel, StageBenchmarkGovernance,
