@@ -8,8 +8,9 @@ mod parse;
 
 pub use artifacts::*;
 pub use parse::{
-    parse_deduplicate_report, parse_fastqvalidator_count, parse_length_histogram,
-    parse_low_complexity_report, parse_multiqc_general_stats_metrics, parse_seqkit_stats,
+    parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
+    parse_multiqc_general_stats_metrics, parse_seqkit_stats,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

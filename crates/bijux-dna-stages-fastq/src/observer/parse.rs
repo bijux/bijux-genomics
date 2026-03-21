@@ -117,6 +117,21 @@ pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
 }
 
 /// # Errors
+/// Returns an error if BBDuk stats cannot be reduced to a reads-removed count.
+pub fn parse_bbduk_reads_removed(stats_txt: &str) -> Result<u64> {
+    for line in stats_txt.lines() {
+        let line = line.trim();
+        if line.starts_with("Reads Removed") || line.starts_with("Reads removed") {
+            let digits: String = line.chars().filter(char::is_ascii_digit).collect();
+            if !digits.is_empty() {
+                return digits.parse::<u64>().context("parse bbduk reads removed");
+            }
+        }
+    }
+    Err(anyhow!("bbduk stats missing reads removed line"))
+}
+
+/// # Errors
 /// Returns an error if fastp JSON cannot be parsed.
 #[allow(dead_code)]
 pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
@@ -294,10 +309,11 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_adapterremoval_metrics, parse_deduplicate_report, parse_fastp_metrics,
-        parse_fastqc_summary_metrics, parse_fastqvalidator_count, parse_length_histogram,
-        parse_low_complexity_report, parse_multiqc_general_stats_metrics,
-        parse_samtools_flagstat_metrics, parse_seqkit_stats, parse_seqkit_tool_metrics,
+        parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
+        parse_length_histogram, parse_low_complexity_report,
+        parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
+        parse_seqkit_stats, parse_seqkit_tool_metrics,
     };
     use anyhow::Result;
 
@@ -370,6 +386,13 @@ mod tests {
             "../../tests/fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"
         );
         let removed = parse_low_complexity_report(raw)?;
+        assert_eq!(removed, 137);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_bbduk_reads_removed_fixture_line() -> Result<()> {
+        let removed = parse_bbduk_reads_removed("Reads Removed: 137\n")?;
         assert_eq!(removed, 137);
         Ok(())
     }

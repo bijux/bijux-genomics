@@ -7,7 +7,10 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::metrics;
-use crate::observer::{parse_deduplicate_report, parse_multiqc_general_stats_metrics};
+use crate::observer::{
+    parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_multiqc_general_stats_metrics,
+};
 
 #[allow(dead_code)]
 pub struct FastqStagePlugin;
@@ -395,12 +398,79 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
         {
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
                 if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
-                    return serde_json::json!({
-                        "trim_polyg": report.get("trim_polyg").cloned().unwrap_or(serde_json::Value::Null),
-                        "min_polyg_run": report.get("min_polyg_run").cloned().unwrap_or(serde_json::Value::Null),
-                        "raw_report_path": report.get("raw_report_path").cloned().unwrap_or(serde_json::Value::Null),
-                        "raw_report_format": report.get("raw_report_format").cloned().unwrap_or(serde_json::Value::Null),
-                    });
+                    let mut semantics = serde_json::Map::from_iter([
+                        (
+                            "trim_polyg".to_string(),
+                            report
+                                .get("trim_polyg")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        ),
+                        (
+                            "min_polyg_run".to_string(),
+                            report
+                                .get("min_polyg_run")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        ),
+                        (
+                            "raw_report_path".to_string(),
+                            report
+                                .get("raw_report_path")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        ),
+                        (
+                            "raw_report_format".to_string(),
+                            report
+                                .get("raw_report_format")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null),
+                        ),
+                    ]);
+                    if let (Some(raw_report_path), Some(raw_report_format)) = (
+                        report.get("raw_report_path").and_then(serde_json::Value::as_str),
+                        report
+                            .get("raw_report_format")
+                            .and_then(serde_json::Value::as_str),
+                    ) {
+                        if let Ok(raw_backend_report) = std::fs::read_to_string(raw_report_path) {
+                            match raw_report_format {
+                                "fastp_json" => {
+                                    if let Ok(metrics) = parse_fastp_metrics(&raw_backend_report) {
+                                        semantics.insert(
+                                            "passed_filter_reads".to_string(),
+                                            serde_json::json!(metrics.passed_filter_reads),
+                                        );
+                                        semantics.insert(
+                                            "low_quality_reads".to_string(),
+                                            serde_json::json!(metrics.low_quality_reads),
+                                        );
+                                        semantics.insert(
+                                            "too_many_n_reads".to_string(),
+                                            serde_json::json!(metrics.too_many_n_reads),
+                                        );
+                                        semantics.insert(
+                                            "too_short_reads".to_string(),
+                                            serde_json::json!(metrics.too_short_reads),
+                                        );
+                                    }
+                                }
+                                "bbduk_stats" => {
+                                    if let Ok(reads_removed) =
+                                        parse_bbduk_reads_removed(&raw_backend_report)
+                                    {
+                                        semantics.insert(
+                                            "reads_removed".to_string(),
+                                            serde_json::json!(reads_removed),
+                                        );
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    return serde_json::Value::Object(semantics);
                 }
             }
         }
@@ -785,14 +855,20 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
+        let raw_report_path = temp.path().join("trim_polyg.fastp.json");
         std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
         std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        std::fs::write(
+            &raw_report_path,
+            include_str!("../tests/fixtures/tool_metrics/default/fastp.json"),
+        )
+        .expect("write raw report");
         std::fs::write(
             &report_path,
             serde_json::json!({
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
-                "raw_report_path": "/tmp/trim_polyg.fastp.json",
+                "raw_report_path": raw_report_path,
                 "raw_report_format": "fastp_json"
             })
             .to_string(),
@@ -850,6 +926,95 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["raw_report_format"],
             serde_json::json!("fastp_json")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["passed_filter_reads"],
+            serde_json::json!(960_u64)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["too_short_reads"],
+            serde_json::json!(12_u64)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_bbduk_polyg_trim_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let trimmed_reads_path = temp.path().join("trimmed.fastq");
+        let report_path = temp.path().join("trim_polyg_tails_report.json");
+        let raw_report_path = temp.path().join("trim_polyg_tails_report.stats.txt");
+        std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        std::fs::write(&raw_report_path, "Reads Removed: 137\n").expect("write raw report");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "trim_polyg": true,
+                "min_polyg_run": 10_u64,
+                "raw_report_path": raw_report_path,
+                "raw_report_format": "bbduk_stats"
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.trim_polyg_tails"),
+            tool_id: ToolId::from_static("bbduk"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_r1"),
+                    trimmed_reads_path,
+                    ArtifactRole::Reads,
+                )],
+            },
+            ..plan("fastq.trim_polyg_tails")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["raw_report_format"],
+            serde_json::json!("bbduk_stats")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["reads_removed"],
+            serde_json::json!(137_u64)
         );
     }
 
