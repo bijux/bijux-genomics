@@ -226,16 +226,26 @@ fn validation_command(
         ));
     }
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str()),
         json_string_literal(STAGE_ID.as_str()),
         json_string_literal(tool.tool_id.as_str()),
+        json_string_literal(if r2.is_some() {
+            "require_header_sync"
+        } else {
+            "not_applicable"
+        }),
         if r2.is_some() { 2 } else { 1 },
     );
     let lineage_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":\"strict\",\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
         json_string_literal(STAGE_ID.as_str()),
         json_string_literal(tool.tool_id.as_str()),
+        json_string_literal(if r2.is_some() {
+            "require_header_sync"
+        } else {
+            "not_applicable"
+        }),
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" }),
         if r2.is_some() {
             "[\"reads_r1\",\"reads_r2\"]".to_string()
@@ -391,6 +401,10 @@ mod tests {
         assert!(plan.command.template[2].contains("\"validated_inputs\":2"));
         assert!(plan.command.template[2].contains("\"pair_sync_checked\":"));
         assert!(plan.command.template[2].contains("\"pair_sync_pass\":"));
+        assert!(plan.command.template[2].contains("\"validation_mode\":\"strict\""));
+        assert!(
+            plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\"")
+        );
         assert!(plan.command.template[2].contains("validated_pairs=$(wc -l <"));
         assert!(plan.command.template[2].contains("cmp -s"));
         assert!(
@@ -427,6 +441,8 @@ mod tests {
         assert!(script.contains("\"validated_inputs\":1"));
         assert!(script.contains("pair_sync_checked=false"));
         assert!(script.contains("pair_sync_pass=null"));
+        assert!(script.contains("\"validation_mode\":\"strict\""));
+        assert!(script.contains("\"pair_sync_policy\":\"not_applicable\""));
         assert!(script.contains("\"pair_sync_checked\":%%s"));
         assert!(script.contains("\"pair_sync_pass\":%%s"));
         assert!(script.contains("\"stage\":\"fastq.validate_reads\""));
@@ -452,6 +468,7 @@ mod tests {
         assert!(script.contains("exit_code=$status_r1"));
         assert!(script.contains("exit_code=97"));
         assert!(script.contains("exit \"$exit_code\""));
+        assert!(script.contains("\"pair_sync_policy\":\"require_header_sync\""));
         assert!(!script.contains("\"strict_pass\":true"));
         Ok(())
     }
