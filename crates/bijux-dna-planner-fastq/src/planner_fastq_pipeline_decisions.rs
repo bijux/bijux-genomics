@@ -72,6 +72,7 @@ pub struct FastqStageToolsetBinding {
 
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
+    Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),

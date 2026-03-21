@@ -5,6 +5,9 @@ use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::validate::{
+    PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_planner_fastq::{
     DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
@@ -544,6 +547,53 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
     assert_eq!(step.step_id.as_str(), "fastq.trim_terminal_damage.custom");
     assert!(step.command.template.iter().any(|part| part == "5"));
     assert!(step.command.template.iter().any(|part| part == "-3"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-validate-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&r2, b"@r1\nT\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__validate_reads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.validate_reads".to_string(),
+            stage_instance_id: Some("fastq.validate_reads.custom".to_string()),
+            tool: tool("fastqvalidator"),
+            reason: None,
+            params: Some(FastqStageParameters::Validate(ValidateEffectiveParams {
+                schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                threads: 6,
+                validation_mode: ValidationMode::ReportOnly,
+                pair_sync_policy: PairSyncPolicy::SkipHeaderSync,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.validate_reads.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template[2].contains("\"validation_mode\":\"report_only\""));
+    assert!(step.command.template[2].contains("\"pair_sync_policy\":\"skip_header_sync\""));
+    assert!(!step.command.template[2].contains("cmp -s"));
     Ok(())
 }
 

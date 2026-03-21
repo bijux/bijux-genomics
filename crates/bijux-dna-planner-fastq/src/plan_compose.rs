@@ -5,8 +5,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::defaults::validate_defaults;
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
+    validate::ValidateEffectiveParams,
     PairedMode,
 };
 use bijux_dna_domain_fastq::stages::ids::{
@@ -392,11 +394,17 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = crate::tool_adapters::fastq::validate_reads::plan(
+                let params = validate_reads_params(binding, stage_r2.is_some());
+                let plan = crate::tool_adapters::fastq::validate_reads::plan_with_options(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &crate::tool_adapters::fastq::validate_reads::ValidateReadsPlanOptions {
+                        threads: Some(params.threads),
+                        validation_mode: params.validation_mode.clone(),
+                        pair_sync_policy: params.pair_sync_policy.clone(),
+                    },
                 )?;
                 (
                     plan,
@@ -1037,6 +1045,13 @@ fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamag
     match binding.params.as_ref() {
         Some(FastqStageParameters::TrimTerminalDamage(params)) => params.clone(),
         _ => TrimTerminalDamageStageParams::default(),
+    }
+}
+
+fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateEffectiveParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::Validate(params)) => params.clone(),
+        _ => validate_defaults(paired),
     }
 }
 
