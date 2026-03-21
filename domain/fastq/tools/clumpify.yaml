@@ -31,6 +31,8 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "dedup_reads_r1"
     - "report_json"
@@ -54,7 +56,7 @@ stage_contracts:
       - "dedup_reads_r1"
       - "dedup_reads_r2"
       - "report_json"
-    notes: "Clumpify duplicate removal emits governed deduplicated reads for single-end and paired-end layouts; paired runs produce both mate artifacts plus the normalized duplicate report."
+    notes: "Clumpify duplicate removal admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits dedup_reads_r2 only when paired input is present."
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
