@@ -178,6 +178,10 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "validation_tool_normalization_json",
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&validation_stage),
+        vec!["validation_report", "validated_reads_manifest"]
+    );
 
     let report_qc_stage = StageId::from_static("fastq.report_qc");
     assert_eq!(

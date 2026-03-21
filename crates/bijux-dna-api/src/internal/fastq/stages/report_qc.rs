@@ -986,4 +986,54 @@ mod tests {
             .to_string()
             .contains("unsupported governed QC input manifest schema"));
     }
+
+    #[test]
+    fn validation_lineage_artifacts_feed_governed_qc_namespace() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.validate_reads"),
+            stage_instance_id: Some(StepId::from_static("fastq.validate_reads.tool.fastqvalidator")),
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("fastqvalidator"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["fastqvalidator".to_string()],
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::from_static("validation_report"),
+                        PathBuf::from("validate_reads/validation.json"),
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::from_static("validated_reads_manifest"),
+                        PathBuf::from("validate_reads/validated_reads_manifest.json"),
+                        ArtifactRole::StageReport,
+                    ),
+                ],
+            },
+            out_dir: PathBuf::from("out"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        let inputs = governed_qc_artifacts_for_plan(&plan);
+        assert_eq!(inputs.len(), 2);
+        assert!(inputs.iter().any(|artifact| {
+            artifact.name.as_str()
+                == "fastq.validate_reads.tool.fastqvalidator.validation_report"
+        }));
+        assert!(inputs.iter().any(|artifact| {
+            artifact.name.as_str()
+                == "fastq.validate_reads.tool.fastqvalidator.validated_reads_manifest"
+        }));
+    }
 }

@@ -131,6 +131,19 @@ fn report_qc_exposes_stage_family_comparison_contract() {
 }
 
 #[test]
+fn validate_reads_exposes_lineage_aware_comparison_contract() {
+    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
+        "fastq.validate_reads",
+    ))
+    .expect("validate_reads comparison contract must exist");
+
+    assert_eq!(
+        contract.comparison_input_artifact_ids,
+        &["validation_report", "validated_reads_manifest"]
+    );
+}
+
+#[test]
 fn trim_polyg_tails_exposes_stage_family_comparison_contract() {
     let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
         "fastq.trim_polyg_tails",
