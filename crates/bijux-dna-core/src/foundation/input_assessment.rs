@@ -145,14 +145,16 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
                 Some(1) => {
                     if r1.is_some() {
                         naming_warnings.push(format!("multiple R1 candidates for {sample_name}"));
+                    } else {
+                        r1 = Some(path);
                     }
-                    r1 = Some(path);
                 }
                 Some(2) => {
                     if r2.is_some() {
                         naming_warnings.push(format!("multiple R2 candidates for {sample_name}"));
+                    } else {
+                        r2 = Some(path);
                     }
-                    r2 = Some(path);
                 }
                 _ => {
                     if r1.is_some() {
