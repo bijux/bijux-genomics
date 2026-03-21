@@ -81,7 +81,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             "--auto and --run-all-governed-tools cannot be combined; automatic selection chooses one tool per stage while governed fan-out expands all admitted runtime tools"
         ));
     }
-    let mut runtime_pipeline = pipeline.clone();
+    let jobs = bench_jobs(args.jobs);
+    let runtime_pipeline = pipeline.clone();
+    let mut planner_stage_toolsets = Vec::new();
     let mut selected_stage_tools = if args.run_all_governed_tools {
         let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
             &runtime_pipeline,
@@ -105,12 +107,37 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 })
             })
             .collect::<Result<Vec<_>>>()?;
-        let (expanded_pipeline, expanded_stage_tools) =
+        planner_stage_toolsets = filtered_toolsets
+            .iter()
+            .map(|toolset| {
+                let tools = toolset
+                    .tool_ids
+                    .iter()
+                    .map(|tool_id| {
+                        let spec = build_tool_execution_spec(
+                            toolset.stage_id.as_str(),
+                            tool_id.as_str(),
+                            &registry,
+                            catalog,
+                            platform,
+                        )?;
+                        Ok(scale_tool_spec_for_jobs(&spec, jobs))
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
+                    stage_id: toolset.stage_id.clone(),
+                    stage_instance_id: toolset.stage_instance_id.clone(),
+                    tools,
+                    reason: Some(toolset.reason.clone()),
+                    params: None,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let (_expanded_pipeline, expanded_stage_tools) =
             bijux_dna_planner_fastq::expand_pipeline_stage_tool_routes(
                 &runtime_pipeline,
                 &filtered_toolsets,
             )?;
-        runtime_pipeline = expanded_pipeline;
         expanded_stage_tools
     } else {
         select_preprocess_stage_tools(
@@ -161,8 +188,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         platform,
         catalog,
     )?;
-
-    let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
@@ -238,24 +263,36 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(runtime_pipeline.clone()),
-        stage_bindings: selected_stage_tools
-            .iter()
-            .zip(tool_specs.iter())
-            .map(|(selection, tool)| FastqStageBinding {
-                stage_id: selection.stage_id.clone(),
-                stage_instance_id: selection.stage_instance_id.clone(),
-                tool: tool.clone(),
-                reason: Some(selection.reason.clone()),
-                params: None,
-            })
-            .collect(),
-        stage_toolsets: Vec::new(),
-        stages: policy
-            .pipeline_stages
-            .iter()
-            .map(|stage| stage.as_str().to_string())
-            .collect(),
-        tools: tool_specs.clone(),
+        stage_bindings: if planner_stage_toolsets.is_empty() {
+            selected_stage_tools
+                .iter()
+                .zip(tool_specs.iter())
+                .map(|(selection, tool)| FastqStageBinding {
+                    stage_id: selection.stage_id.clone(),
+                    stage_instance_id: selection.stage_instance_id.clone(),
+                    tool: tool.clone(),
+                    reason: Some(selection.reason.clone()),
+                    params: None,
+                })
+                .collect()
+        } else {
+            Vec::new()
+        },
+        stage_toolsets: planner_stage_toolsets,
+        stages: if args.run_all_governed_tools {
+            Vec::new()
+        } else {
+            policy
+                .pipeline_stages
+                .iter()
+                .map(|stage| stage.as_str().to_string())
+                .collect()
+        },
+        tools: if args.run_all_governed_tools {
+            Vec::new()
+        } else {
+            tool_specs.clone()
+        },
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
         polyx_bank: polyx_bank.clone(),
