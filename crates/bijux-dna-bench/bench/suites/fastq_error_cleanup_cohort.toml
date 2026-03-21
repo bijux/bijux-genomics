@@ -61,9 +61,3 @@ stage = "fastq.remove_duplicates"
 stage_instance_id = "fastq.remove_duplicates.duplicate_collapse"
 tools = ["fastuniq", "clumpify"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
-
-[[stages.param_bindings]]
-stage_instance_id = "fastq.remove_duplicates.duplicate_collapse"
-[stages.param_bindings.values]
-dedup_mode = "exact"
-keep_order = true

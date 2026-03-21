@@ -6,7 +6,9 @@ use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage,
 };
-use bijux_dna_domain_fastq::{admitted_execution_tools_for_stage, STAGE_TRIM_READS};
+use bijux_dna_domain_fastq::{
+    admitted_execution_tools_for_stage, stage_parameter_ids, STAGE_TRIM_READS,
+};
 
 fn suite_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bench/suites")
@@ -144,6 +146,30 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
         has_tool_scoped,
         "checked-in suites must exercise tool-scoped param_bindings"
     );
+    Ok(())
+}
+
+#[test]
+fn checked_in_suites_only_bind_manifest_declared_stage_parameters() -> Result<()> {
+    for (path, suite) in checked_in_suites()? {
+        for stage in suite.stages {
+            let declared = stage_parameter_ids(&stage.stage).unwrap_or_default();
+            for binding in stage.param_bindings {
+                if binding.tool.is_some() {
+                    continue;
+                }
+                for key in binding.values.keys() {
+                    assert!(
+                        declared.contains(key.as_str()),
+                        "{} binds undeclared stage parameter {} for {}",
+                        path.display(),
+                        key,
+                        stage.stage
+                    );
+                }
+            }
+        }
+    }
     Ok(())
 }
 
