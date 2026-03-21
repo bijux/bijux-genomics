@@ -86,7 +86,12 @@ fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()>
         .collect::<Vec<_>>();
     assert_eq!(
         expected_outputs,
-        vec!["dedup_reads_r1", "report_json"]
+        vec![
+            "dedup_reads_r1",
+            "duplicate_classes_tsv",
+            "duplicate_provenance_json",
+            "report_json"
+        ]
     );
     assert_eq!(optional_outputs, vec!["dedup_reads_r2"]);
 
@@ -101,7 +106,13 @@ fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()>
         .collect::<Vec<_>>();
     assert_eq!(
         stage_expected_artifacts,
-        vec!["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+        vec![
+            "dedup_reads_r1",
+            "dedup_reads_r2",
+            "duplicate_classes_tsv",
+            "duplicate_provenance_json",
+            "report_json"
+        ]
     );
     Ok(())
 }

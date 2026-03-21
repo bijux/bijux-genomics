@@ -18,6 +18,12 @@ outputs:
   - name: "dedup_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "duplicate_classes_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "duplicate_provenance_json"
+    data_type: "json"
+    cardinality: "One"
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
@@ -34,6 +40,8 @@ execution_contract:
   expected_outputs:
     - "dedup_reads_r1"
     - "dedup_reads_r2"
+    - "duplicate_classes_tsv"
+    - "duplicate_provenance_json"
     - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
@@ -53,9 +61,11 @@ stage_contracts:
     expected_artifacts:
       - "dedup_reads_r1"
       - "dedup_reads_r2"
+      - "duplicate_classes_tsv"
+      - "duplicate_provenance_json"
       - "report_json"
     notes: "FastUniq duplicate removal emits governed deduplicated paired reads and the normalized duplicate report."
-expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "fastuniq -h"
