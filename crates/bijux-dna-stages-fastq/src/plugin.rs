@@ -274,6 +274,28 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
         {
             if let Ok(raw_manifest) = std::fs::read_to_string(manifest_path) {
                 if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&raw_manifest) {
+                    let mut contributor_stage_ids = manifest
+                        .get("qc_inputs")
+                        .and_then(serde_json::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|entry| entry.get("name").and_then(serde_json::Value::as_str))
+                        .filter_map(parse_qc_contributor_identity)
+                        .map(|(stage_id, _tool_id)| stage_id)
+                        .collect::<Vec<_>>();
+                    contributor_stage_ids.sort();
+                    contributor_stage_ids.dedup();
+                    let mut contributor_tool_ids = manifest
+                        .get("qc_inputs")
+                        .and_then(serde_json::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|entry| entry.get("name").and_then(serde_json::Value::as_str))
+                        .filter_map(parse_qc_contributor_identity)
+                        .map(|(_stage_id, tool_id)| tool_id)
+                        .collect::<Vec<_>>();
+                    contributor_tool_ids.sort();
+                    contributor_tool_ids.dedup();
                     let contributor_count = manifest
                         .get("qc_inputs")
                         .and_then(serde_json::Value::as_array)
@@ -281,6 +303,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                     return serde_json::json!({
                         "lineage_hash": manifest.get("lineage_hash").cloned().unwrap_or(serde_json::Value::Null),
                         "contributor_artifact_count": contributor_count,
+                        "contributor_stage_ids": contributor_stage_ids,
+                        "contributor_tool_ids": contributor_tool_ids,
                         "raw_fastqc_dir": manifest.get("raw_fastqc_dir").cloned().unwrap_or(serde_json::Value::Null),
                     });
                 }
@@ -335,6 +359,14 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
         }
     }
     serde_json::Value::Null
+}
+
+fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
+    let mut parts = name.split('.');
+    let domain = parts.next()?;
+    let stage = parts.next()?;
+    let tool = parts.next()?;
+    Some((format!("{domain}.{stage}"), tool.to_string()))
 }
 
 #[cfg(test)]
@@ -675,6 +707,14 @@ mod tests {
         assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["contributor_artifact_count"],
             serde_json::json!(2)
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["contributor_stage_ids"],
+            serde_json::json!(["fastq.trim_reads", "fastq.validate_reads"])
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["contributor_tool_ids"],
+            serde_json::json!(["fastp", "fastqvalidator"])
         );
         assert_eq!(
             output
