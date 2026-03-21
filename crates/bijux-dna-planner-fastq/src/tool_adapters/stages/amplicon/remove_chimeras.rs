@@ -98,7 +98,7 @@ pub fn plan(
             }
             value
         })
-        .expect("serialize chimera effective params"),
+        .map_err(|error| anyhow!("serialize chimera effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon chimera removal"),
     })
