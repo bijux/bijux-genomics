@@ -1,4 +1,4 @@
-use bijux_dna_core::contract::PipelineSpec;
+use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 
 #[test]
 fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> anyhow::Result<()> {
@@ -70,6 +70,51 @@ fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
     assert_eq!(declared_only.len(), 1);
     assert_eq!(declared_only[0].stage_id, "fastq.infer_asvs");
     assert_eq!(declared_only[0].tool_ids, vec!["dada2".to_string()]);
+
+    Ok(())
+}
+
+#[test]
+fn toolset_selection_skips_planner_owned_select_nodes() -> anyhow::Result<()> {
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "benchmark.select_stage_tool".to_string(),
+                stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.filter_reads".to_string(),
+                stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+            },
+        ],
+        vec![
+            PipelineEdgeSpec {
+                from: "fastq.trim_reads.cleanup".to_string(),
+                to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("candidate_trimmed_reads_r1".to_string()),
+            },
+            PipelineEdgeSpec {
+                from: "benchmark.select_stage_tool.trim_reads".to_string(),
+                to: "fastq.filter_reads.selected".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("reads_r1".to_string()),
+            },
+        ],
+    );
+
+    let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
+        &pipeline,
+        bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
+        false,
+    )?;
+    assert_eq!(toolsets.len(), 2);
+    assert_eq!(toolsets[0].stage_id, "fastq.trim_reads");
+    assert_eq!(toolsets[1].stage_id, "fastq.filter_reads");
 
     Ok(())
 }
