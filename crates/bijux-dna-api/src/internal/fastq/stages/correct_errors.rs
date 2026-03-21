@@ -16,7 +16,7 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_correct_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::{
-    plan_correct_with_options, parse_quality_encoding, CorrectPlanOptions,
+    parse_quality_encoding, plan_correct_with_options, CorrectPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::FastqArtifactKind;
@@ -109,9 +109,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             .as_deref()
             .map(parse_quality_encoding)
             .transpose()?
-            .unwrap_or(
-                bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33,
-            );
+            .unwrap_or(bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33);
         let plan = plan_correct_with_options(
             &tool_spec,
             &bench_inputs.r1,
@@ -128,7 +126,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
                 conservative_mode: args.conservative_mode,
             },
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -163,7 +162,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             &bench_inputs,
             tool,
             &tool_spec,
-            &plan.params,
+            &bench_params,
             &out_dir,
             &execution,
         )?;
@@ -358,4 +357,14 @@ fn observe_fastq_stats(
         return Ok(None);
     }
     Ok(Some(parse_seqkit_stats(&stats_output.stdout)?))
+}
+
+fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
+    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
+    if let Some(Ok(contract_hash)) =
+        bijux_dna_domain_fastq::stage_contract_hash(STAGE_CORRECT_ERRORS.as_str())
+    {
+        context = context.with_stage_contract_hash(contract_hash);
+    }
+    context
 }
