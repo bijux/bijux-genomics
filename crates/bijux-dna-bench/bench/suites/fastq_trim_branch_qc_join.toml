@@ -41,8 +41,74 @@ upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
 [[stages]]
 stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.cutadapt_branch"
+tools = ["cutadapt"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.atropos_branch"
+tools = ["atropos"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
 stage_instance_id = "fastq.trim_reads.bbduk_branch"
 tools = ["bbduk"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.adapterremoval_branch"
+tools = ["adapterremoval"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.trimmomatic_branch"
+tools = ["trimmomatic"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.trim_galore_branch"
+tools = ["trim_galore"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.prinseq_branch"
+tools = ["prinseq"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.seqkit_branch"
+tools = ["seqkit"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.skewer_branch"
+tools = ["skewer"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.leehom_branch"
+tools = ["leehom"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.alientrimmer_branch"
+tools = ["alientrimmer"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages]]
+stage = "fastq.trim_reads"
+stage_instance_id = "fastq.trim_reads.fastx_clipper_branch"
+tools = ["fastx_clipper"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
 [[stages]]
@@ -52,7 +118,18 @@ tools = ["multiqc"]
 upstream_stage_instance_ids = [
   "fastq.validate_reads.validation",
   "fastq.trim_reads.fastp_branch",
+  "fastq.trim_reads.cutadapt_branch",
+  "fastq.trim_reads.atropos_branch",
   "fastq.trim_reads.bbduk_branch",
+  "fastq.trim_reads.adapterremoval_branch",
+  "fastq.trim_reads.trimmomatic_branch",
+  "fastq.trim_reads.trim_galore_branch",
+  "fastq.trim_reads.prinseq_branch",
+  "fastq.trim_reads.seqkit_branch",
+  "fastq.trim_reads.skewer_branch",
+  "fastq.trim_reads.leehom_branch",
+  "fastq.trim_reads.alientrimmer_branch",
+  "fastq.trim_reads.fastx_clipper_branch",
 ]
 
 [[edges]]
@@ -62,6 +139,50 @@ to = "fastq.trim_reads.fastp_branch"
 [[edges]]
 from = "fastq.validate_reads.validation"
 to = "fastq.trim_reads.bbduk_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.cutadapt_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.atropos_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.adapterremoval_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.trimmomatic_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.trim_galore_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.prinseq_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.seqkit_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.skewer_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.leehom_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.alientrimmer_branch"
+
+[[edges]]
+from = "fastq.validate_reads.validation"
+to = "fastq.trim_reads.fastx_clipper_branch"
 
 [[edges]]
 from = "fastq.validate_reads.validation"
@@ -76,7 +197,73 @@ from_output_id = "report_json"
 to_input_id = "qc_artifacts"
 
 [[edges]]
+from = "fastq.trim_reads.cutadapt_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.atropos_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
 from = "fastq.trim_reads.bbduk_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.adapterremoval_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.trimmomatic_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.trim_galore_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.prinseq_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.seqkit_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.skewer_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.leehom_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.alientrimmer_branch"
+to = "fastq.report_qc.aggregate"
+from_output_id = "report_json"
+to_input_id = "qc_artifacts"
+
+[[edges]]
+from = "fastq.trim_reads.fastx_clipper_branch"
 to = "fastq.report_qc.aggregate"
 from_output_id = "report_json"
 to_input_id = "qc_artifacts"

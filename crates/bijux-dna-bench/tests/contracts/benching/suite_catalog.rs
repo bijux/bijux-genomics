@@ -180,3 +180,29 @@ fn checked_in_fastq_suite_catalog_covers_all_admitted_trim_backends() -> Result<
     );
     Ok(())
 }
+
+#[test]
+fn checked_in_fastq_suite_catalog_exercises_full_trim_branch_join() -> Result<()> {
+    let expected = admitted_execution_tools_for_stage(&STAGE_TRIM_READS)
+        .into_iter()
+        .map(|tool_id| tool_id.to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    let has_full_join = checked_in_suites()?.into_iter().any(|(_path, suite)| {
+        let mut trim_tools = std::collections::BTreeSet::new();
+        let mut has_report_qc_join = false;
+        for stage in suite.stages {
+            if stage.stage == STAGE_TRIM_READS.as_str() {
+                trim_tools.extend(stage.tools);
+            }
+            if stage.stage == "fastq.report_qc" {
+                has_report_qc_join = true;
+            }
+        }
+        has_report_qc_join && trim_tools == expected
+    });
+    assert!(
+        has_full_join,
+        "checked-in FASTQ suites must include a report_qc branch-join DAG that covers every admitted fastq.trim_reads backend"
+    );
+    Ok(())
+}
