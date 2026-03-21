@@ -7,6 +7,7 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::metrics;
+use crate::observer::parse_deduplicate_report;
 
 #[allow(dead_code)]
 pub struct FastqStagePlugin;
@@ -68,6 +69,7 @@ impl StagePlugin for FastqStagePlugin {
         } else {
             outputs.to_vec()
         };
+        let semantic_metrics = observed_semantic_metrics(plan, &artifacts);
         let expected_artifact_names = plan
             .io
             .outputs
@@ -145,6 +147,7 @@ impl StagePlugin for FastqStagePlugin {
                     "semantic_loss": semantic_loss,
                     "used_observed_outputs": !outputs.is_empty(),
                     "declared_metric_invariants": declared_metric_invariants,
+                    "semantic_metrics": semantic_metrics.clone(),
                 }),
             },
             |mut verdict, item| {
@@ -168,6 +171,7 @@ impl StagePlugin for FastqStagePlugin {
                 "semantic_loss": semantic_loss,
                 "artifact_count": artifacts.len(),
                 "declared_metric_invariants": declared_metric_invariants,
+                "semantic_metrics": semantic_metrics.clone(),
                 "artifact_ids": artifacts
                     .iter()
                     .map(|artifact| artifact.name.as_str().to_string())
@@ -198,6 +202,18 @@ impl StagePlugin for FastqStagePlugin {
                         .map(|artifact| artifact.name.as_str().to_string())
                         .collect::<Vec<_>>(),
                     "observer_specialized_parser": observer_covered,
+                    "semantic_metrics": semantic_metrics.clone(),
+                }),
+            });
+        }
+        if !semantic_metrics.is_null() {
+            report_parts.push(StageReportPartV1 {
+                name: "observed_semantic_metrics".to_string(),
+                file_name: "observed_semantic_metrics.json".to_string(),
+                payload: serde_json::json!({
+                    "stage_id": plan.stage_id,
+                    "tool_id": plan.tool_id,
+                    "semantic_metrics": semantic_metrics.clone(),
                 }),
             });
         }
@@ -231,9 +247,10 @@ impl StagePlugin for FastqStagePlugin {
                     .iter()
                     .map(|scenario| scenario.scenario_id.clone())
                     .collect::<Vec<_>>(),
-                "semantic_loss": semantic_loss,
-                "artifact_count": artifacts.len(),
-            }),
+                    "semantic_loss": semantic_loss,
+                    "artifact_count": artifacts.len(),
+                    "semantic_metrics": semantic_metrics,
+                }),
         }];
         Ok(StagePluginOutputV1 {
             metrics: envelope,
@@ -245,6 +262,36 @@ impl StagePlugin for FastqStagePlugin {
             event_hints,
         })
     }
+}
+
+#[allow(dead_code)]
+fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> serde_json::Value {
+    if plan.stage_id.as_str() == "fastq.remove_duplicates" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                let parsed: Result<(u64, u64), _> = parse_deduplicate_report(&raw_report);
+                if let Ok((reads_in, reads_out)) = parsed {
+                    let duplicates_removed = reads_in.saturating_sub(reads_out);
+                    let dedup_rate = if reads_in > 0 {
+                        duplicates_removed as f64 / reads_in as f64
+                    } else {
+                        0.0
+                    };
+                    return serde_json::json!({
+                        "reads_in": reads_in,
+                        "reads_out": reads_out,
+                        "duplicates_removed": duplicates_removed,
+                        "dedup_rate": dedup_rate,
+                    });
+                }
+            }
+        }
+    }
+    serde_json::Value::Null
 }
 
 #[cfg(test)]
@@ -362,6 +409,78 @@ mod tests {
                 .as_ref()
                 .map(|verdict| verdict.verdict.clone()),
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Warn)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_observed_deduplicate_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let dedup_reads_path = temp.path().join("dedup.fastq");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "reads_in": 12_u64,
+                "reads_out": 9_u64
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.remove_duplicates"),
+            tool_id: ToolId::from_static("clumpify"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("dedup_reads_r1"),
+                    dedup_reads_path,
+                    ArtifactRole::Reads,
+                )],
+            },
+            ..plan("fastq.remove_duplicates")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["reads_in"],
+            serde_json::json!(12_u64)
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["duplicates_removed"],
+            serde_json::json!(3_u64)
+        );
+        assert!(output
+            .report_parts
+            .iter()
+            .any(|part| part.name == "observed_semantic_metrics"));
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["dedup_rate"],
+            serde_json::json!(0.25)
         );
     }
 }
