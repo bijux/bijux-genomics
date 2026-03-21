@@ -345,6 +345,18 @@ fn trim_command_template(
             options,
         );
     }
+    if tool.tool_id.as_str() == "trimmomatic"
+        && (options.min_length.is_some() || options.quality_cutoff.is_some())
+    {
+        return trimmomatic_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            options,
+        );
+    }
     if tool.tool_id.as_str() == "trim_galore" {
         return trim_galore_command_template(r1, r2, output_r1, output_r2, report_json, options);
     }
@@ -407,7 +419,8 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
         return Ok(());
     }
     match tool_id {
-        "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trim_galore" => Ok(()),
+        "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
+        | "trim_galore" => Ok(()),
         _ => Err(anyhow!(
             "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
         )),
@@ -563,6 +576,56 @@ fn adapterremoval_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "adapterremoval",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
+fn trimmomatic_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec!["trimmomatic".to_string()];
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        let output_dir = output_r1
+            .parent()
+            .ok_or_else(|| anyhow!("trimmomatic output path must have a parent directory"))?;
+        let unpaired_r1 = output_dir.join("R1.trimmomatic.unpaired.fastq.gz");
+        let unpaired_r2 = output_dir.join("R2.trimmomatic.unpaired.fastq.gz");
+        command.extend([
+            "PE".to_string(),
+            "-phred33".to_string(),
+            r1.display().to_string(),
+            r2.display().to_string(),
+            output_r1.display().to_string(),
+            unpaired_r1.display().to_string(),
+            output_r2.display().to_string(),
+            unpaired_r2.display().to_string(),
+        ]);
+    } else {
+        command.extend([
+            "SE".to_string(),
+            "-phred33".to_string(),
+            r1.display().to_string(),
+            output_r1.display().to_string(),
+        ]);
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.push(format!("SLIDINGWINDOW:4:{quality_cutoff}"));
+    }
+    if let Some(min_length) = options.min_length {
+        command.push(format!("MINLEN:{min_length}"));
+    }
+    Ok(wrap_trim_command_with_report(
+        "trimmomatic",
         command,
         r1,
         r2,
