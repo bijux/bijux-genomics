@@ -20,7 +20,7 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
         .any(|tool_id| tool_id.as_str() == "fastp"));
     assert!(governed_tools
         .iter()
-        .all(|tool_id| tool_id.as_str() != "seqpurge"));
+        .any(|tool_id| tool_id.as_str() == "seqpurge"));
 
     let benchmark_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &trim_stage,
@@ -35,6 +35,31 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
     assert!(all_bindings
         .iter()
         .any(|tool_id| tool_id.as_str() == "seqpurge"));
+}
+
+#[test]
+fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
+    let dedup_stage = StageId::from_static("fastq.remove_duplicates");
+
+    let dedup_tools =
+        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
+            &dedup_stage,
+            "dedup_fairness",
+        );
+    assert_eq!(
+        dedup_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["clumpify", "fastuniq"]
+    );
+
+    let unknown_tools =
+        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
+            &dedup_stage,
+            "unknown_fairness",
+        );
+    assert!(unknown_tools.is_empty());
 }
 
 #[test]

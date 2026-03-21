@@ -246,6 +246,23 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
 }
 
 #[must_use]
+pub fn benchmark_cohort_for_stage_scenario(
+    stage_id: &StageId,
+    scenario_id: &str,
+) -> Option<BenchmarkCohort> {
+    benchmark_cohorts_for_stage(stage_id)
+        .into_iter()
+        .find(|cohort| cohort.scenario_id == scenario_id)
+}
+
+#[must_use]
+pub fn toolset_for_stage_benchmark_scenario(stage_id: &StageId, scenario_id: &str) -> Vec<ToolId> {
+    benchmark_cohort_for_stage_scenario(stage_id, scenario_id)
+        .map(|cohort| cohort.tool_ids)
+        .unwrap_or_default()
+}
+
+#[must_use]
 pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<ToolId> {
     match mode {
         ToolsetExecutionMode::DefaultChoice => {
@@ -257,10 +274,9 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
             .map(|capability| capability.tool_id)
             .collect(),
         ToolsetExecutionMode::BenchmarkCohort => {
-            let mut tool_ids = stage_tool_capabilities_for_stage(stage_id)
+            let mut tool_ids = benchmark_cohorts_for_stage(stage_id)
                 .into_iter()
-                .filter(|capability| capability.benchmark_normalized)
-                .map(|capability| capability.tool_id)
+                .flat_map(|cohort| cohort.tool_ids)
                 .collect::<Vec<_>>();
             tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
             tool_ids.dedup_by(|left, right| left == right);
