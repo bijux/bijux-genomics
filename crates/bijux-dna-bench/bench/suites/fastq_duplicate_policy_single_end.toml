@@ -1,0 +1,46 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_duplicate_policy_single_end"
+
+[[datasets]]
+id = "synthetic_fastq_duplicate_policy_single_end_01"
+hash = "fixture-fastq-duplicate-policy-single-end-01"
+size = 1
+origin = "synthetic"
+class_label = "single_end_duplicates"
+read_layout = "single"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [641, 642]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["single_end_duplicates"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.validation"
+tools = ["fastqvalidator", "seqtk", "fqtools"]
+
+[[stages]]
+stage = "fastq.remove_duplicates"
+stage_instance_id = "fastq.remove_duplicates.single_end_clumpify"
+tools = ["clumpify"]
+upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.remove_duplicates.single_end_clumpify"
+[stages.param_bindings.values]
+dedup_mode = "exact"
+keep_order = false
