@@ -554,6 +554,16 @@ pub struct BenchFastqCorrectArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "Quality score encoding: phred33 | phred64")]
+    pub quality_encoding: Option<String>,
+    #[arg(long)]
+    pub kmer_size: Option<u32>,
+    #[arg(long)]
+    pub max_memory_gb: Option<u32>,
+    #[arg(long, value_name = "PATH")]
+    pub trusted_kmer_artifact: Option<PathBuf>,
+    #[arg(long)]
+    pub conservative_mode: bool,
 }
 
 #[derive(Debug, Args)]

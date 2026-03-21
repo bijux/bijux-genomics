@@ -15,7 +15,9 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_correct_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::plan_correct;
+use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::{
+    plan_correct_with_options, parse_quality_encoding, CorrectPlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::FastqArtifactKind;
 use bijux_dna_planner_fastq::stage_api::{
@@ -102,11 +104,29 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_correct(
+        let quality_encoding = args
+            .quality_encoding
+            .as_deref()
+            .map(parse_quality_encoding)
+            .transpose()?
+            .unwrap_or(
+                bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33,
+            );
+        let plan = plan_correct_with_options(
             &tool_spec,
             &bench_inputs.r1,
             Some(&bench_inputs.r2),
             &out_dir,
+            &CorrectPlanOptions {
+                quality_encoding,
+                kmer_size: args.kmer_size,
+                max_memory_gb: args.max_memory_gb,
+                trusted_kmer_artifact: args
+                    .trusted_kmer_artifact
+                    .as_ref()
+                    .map(|path| path.display().to_string()),
+                conservative_mode: args.conservative_mode,
+            },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
