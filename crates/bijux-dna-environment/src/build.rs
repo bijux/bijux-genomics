@@ -191,10 +191,7 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
 /// Returns an error if the Dockerfile is missing or no version ARG is found.
 pub fn extract_version_from_dockerfile(dockerfile: &Path, tool: &str) -> Result<String, EnvError> {
     let content = std::fs::read_to_string(dockerfile)?;
-    let pattern = format!(
-        r"(?i)ARG\s+(?:VERSION_{tool}|{tool}_VERSION|ADAPTERREMOVAL_VERSION|TRIM_GALORE|BASE_VERSION|VERSION_SPADES|VERSION_FASTQVALIDATOR)\s*=\s*(\S+)",
-        tool = tool.to_uppercase()
-    );
+    let pattern = version_arg_pattern(tool);
     let regex = Regex::new(&pattern)
         .map_err(|err| EnvError::Dockerfile(format!("invalid regex: {err}")))?;
     let caps = regex.captures(&content).ok_or_else(|| {
@@ -211,21 +208,63 @@ pub fn extract_version_from_dockerfile(dockerfile: &Path, tool: &str) -> Result<
         .to_string())
 }
 
+fn version_arg_pattern(tool: &str) -> String {
+    let names = version_arg_names(tool)
+        .into_iter()
+        .map(|name| regex::escape(&name))
+        .collect::<Vec<_>>()
+        .join("|");
+    format!(r"(?im)^\s*ARG\s+(?:{names})\s*=\s*(\S+)\s*$")
+}
+
+fn version_arg_names(tool: &str) -> Vec<String> {
+    let canonical = tool.to_uppercase().replace('-', "_");
+    let mut names = vec![
+        format!("VERSION_{canonical}"),
+        format!("{canonical}_VERSION"),
+    ];
+    if canonical == "TRIM_GALORE" {
+        names.push("TRIM_GALORE".to_string());
+    }
+    names.sort();
+    names.dedup();
+    names
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn write_dockerfile(name: &str, contents: &[u8]) -> Result<std::path::PathBuf, EnvError> {
+        let path = std::env::temp_dir().join(name);
+        bijux_dna_infra::atomic_write_bytes(&path, contents).map_err(std::io::Error::other)?;
+        Ok(path)
+    }
+
     #[test]
     fn extract_version_from_dockerfile_parses() -> Result<(), EnvError> {
-        let temp_dir = std::env::temp_dir();
-        let path = temp_dir.join("bijux_test_fastp.Dockerfile");
-        bijux_dna_infra::atomic_write_bytes(
-            &path,
+        let path = write_dockerfile(
+            "bijux_test_fastp.Dockerfile",
             b"FROM ubuntu:20.04\nARG VERSION_FASTP=0.23.4\n",
-        )
-        .map_err(std::io::Error::other)?;
+        )?;
         let version = extract_version_from_dockerfile(&path, "fastp")?;
         assert_eq!(version, "0.23.4");
+        let _ = bijux_dna_infra::remove_file(&path);
+        Ok(())
+    }
+
+    #[test]
+    fn extract_version_from_dockerfile_ignores_unrelated_arg_names() -> Result<(), EnvError> {
+        let path = write_dockerfile(
+            "bijux_test_fastqvalidator_missing_version.Dockerfile",
+            b"FROM ubuntu:20.04\nARG BASE_VERSION=24.04\n",
+        )?;
+        let error = extract_version_from_dockerfile(&path, "fastqvalidator")
+            .err()
+            .ok_or_else(|| EnvError::Dockerfile("expected missing tool version".to_string()))?;
+        assert!(error
+            .to_string()
+            .contains("no version ARG found for tool fastqvalidator"));
         let _ = bijux_dna_infra::remove_file(&path);
         Ok(())
     }
