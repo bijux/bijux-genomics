@@ -36,7 +36,7 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
 #[test]
 fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
-    let stages = pipeline.stages;
+    let stages = pipeline.ordered_stage_ids();
     let tools = stages
         .iter()
         .map(|stage| tool_for_stage(stage))
