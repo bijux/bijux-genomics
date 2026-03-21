@@ -358,6 +358,26 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             }
         }
     }
+    if plan.stage_id.as_str() == "fastq.trim_terminal_damage" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                    return serde_json::json!({
+                        "damage_mode": report.get("damage_mode").cloned().unwrap_or(serde_json::Value::Null),
+                        "execution_policy": report.get("execution_policy").cloned().unwrap_or(serde_json::Value::Null),
+                        "trim_5p_bases": report.get("trim_5p_bases").cloned().unwrap_or(serde_json::Value::Null),
+                        "trim_3p_bases": report.get("trim_3p_bases").cloned().unwrap_or(serde_json::Value::Null),
+                        "requested_trim_5p_bases": report.get("requested_trim_5p_bases").cloned().unwrap_or(serde_json::Value::Null),
+                        "requested_trim_3p_bases": report.get("requested_trim_3p_bases").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
     serde_json::Value::Null
 }
 
@@ -632,6 +652,83 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["pair_sync_policy"],
             serde_json::json!("require_header_sync")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_terminal_damage_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let trimmed_reads_path = temp.path().join("trimmed.fastq");
+        let report_path = temp.path().join("trim_terminal_damage_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2_u64,
+                "trim_3p_bases": 1_u64,
+                "requested_trim_5p_bases": 2_u64,
+                "requested_trim_3p_bases": 1_u64
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.trim_terminal_damage"),
+            tool_id: ToolId::from_static("cutadapt"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_r1"),
+                    trimmed_reads_path,
+                    ArtifactRole::Reads,
+                )],
+            },
+            ..plan("fastq.trim_terminal_damage")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["execution_policy"],
+            serde_json::json!("explicit_terminal_trim")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["trim_5p_bases"],
+            serde_json::json!(2_u64)
         );
     }
 

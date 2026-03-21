@@ -174,7 +174,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&dedup_stage);
     assert_eq!(dedup_cohorts.len(), 1);
     assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
-    assert!(dedup_cohorts[0].tool_ids.is_empty());
+    assert_eq!(
+        dedup_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["clumpify", "fastuniq"]
+    );
+    assert_eq!(
+        dedup_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["clumpify", "fastuniq"]
+    );
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
     let read_length_cohorts =
@@ -219,7 +234,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         terminal_damage_cohorts[0].scenario_id,
         "terminal_damage_fairness"
     );
-    assert!(terminal_damage_cohorts[0].tool_ids.is_empty());
+    assert_eq!(
+        terminal_damage_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["cutadapt", "seqkit"]
+    );
+    assert_eq!(
+        terminal_damage_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["cutadapt", "seqkit"]
+    );
 
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
     let overrepresented_cohorts =
@@ -247,16 +277,20 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         .tool_ids
         .iter()
         .any(|tool_id| tool_id.as_str() == "fastqvalidator"));
-    assert!(validation_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "seqtk"));
-    assert!(validation_cohorts[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| tool_id.as_str() != "fqtools"));
     assert_eq!(
-        validation_cohorts[0].tool_ids,
-        validation_cohorts[0].observer_specialized_tools
+        validation_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["fastqvalidator", "fqtools", "seqtk"]
+    );
+    assert_eq!(
+        validation_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["fastqvalidator", "fqtools", "seqtk"]
     );
 }
