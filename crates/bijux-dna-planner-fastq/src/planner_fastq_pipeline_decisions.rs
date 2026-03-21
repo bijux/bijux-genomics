@@ -1461,6 +1461,43 @@ pub struct FastqPipelineInputs {
     pub tool_reasons: Option<Vec<PlanDecisionReason>>,
 }
 
+fn stage_bindings_for_pipeline_nodes(
+    pipeline: &PipelineSpec,
+    tools: &[ToolExecutionSpecV1],
+    tool_reasons: Option<&[PlanDecisionReason]>,
+) -> Result<Vec<FastqStageBinding>> {
+    let ordered_nodes = pipeline.ordered_nodes();
+    if ordered_nodes.len() != tools.len() {
+        return Err(anyhow!(
+            "pipeline nodes/tools length mismatch: {} vs {}",
+            ordered_nodes.len(),
+            tools.len()
+        ));
+    }
+    if let Some(reasons) = tool_reasons {
+        if reasons.len() != ordered_nodes.len() {
+            return Err(anyhow!(
+                "pipeline nodes/tool_reasons length mismatch: {} vs {}",
+                ordered_nodes.len(),
+                reasons.len()
+            ));
+        }
+    }
+
+    Ok(ordered_nodes
+        .into_iter()
+        .zip(tools.iter())
+        .enumerate()
+        .map(|(idx, (node, tool))| FastqStageBinding {
+            stage_id: node.stage_id,
+            stage_instance_id: node.stage_instance_id,
+            tool: tool.clone(),
+            reason: tool_reasons.and_then(|reasons| reasons.get(idx).cloned()),
+            params: None,
+        })
+        .collect())
+}
+
 /// # Errors
 /// Returns an error if planning fails.
 #[allow(non_snake_case)]
@@ -1469,14 +1506,19 @@ pub fn plan_fastq_to_fastq__default__v1(
     options: DefaultPipelineOptions,
 ) -> Result<ExecutionGraph> {
     let pipeline = default_pipeline_spec(options);
+    let stage_bindings = stage_bindings_for_pipeline_nodes(
+        &pipeline,
+        &inputs.tools,
+        inputs.tool_reasons.as_deref(),
+    )?;
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
         policy: inputs.policy,
         pipeline_spec: Some(pipeline.clone()),
-        stage_bindings: Vec::new(),
+        stage_bindings,
         stage_toolsets: Vec::new(),
-        stages: pipeline.stages,
-        tools: inputs.tools.clone(),
+        stages: Vec::new(),
+        tools: Vec::new(),
         aux_images: inputs.aux_images.clone(),
         adapter_bank: inputs.adapter_bank.clone(),
         polyx_bank: inputs.polyx_bank.clone(),
@@ -1490,6 +1532,104 @@ pub fn plan_fastq_to_fastq__default__v1(
         allow_planned: false,
     };
     FastqPlanner::plan(&config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::stage_bindings_for_pipeline_nodes;
+    use anyhow::Result;
+    use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
+    use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
+
+    fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["echo".to_string(), tool_id.to_string()],
+            },
+            resources: ToolConstraints::default(),
+        }
+    }
+
+    #[test]
+    fn stage_bindings_for_pipeline_nodes_preserves_node_identity() -> Result<()> {
+        let pipeline = PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.first".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.validate_reads.first".to_string(),
+                to: "fastq.trim_reads.fastp_branch".to_string(),
+                from_output_id: None,
+                to_input_id: None,
+            }],
+        );
+        let reasons = vec![
+            PlanDecisionReason::new(PlanReasonKind::Default, "validate"),
+            PlanDecisionReason::new(PlanReasonKind::Default, "trim"),
+        ];
+
+        let bindings = stage_bindings_for_pipeline_nodes(
+            &pipeline,
+            &[dummy_tool("fastqvalidator"), dummy_tool("fastp")],
+            Some(&reasons),
+        )?;
+
+        assert_eq!(bindings.len(), 2);
+        assert_eq!(
+            bindings[0].stage_instance_id.as_deref(),
+            Some("fastq.validate_reads.first")
+        );
+        assert_eq!(
+            bindings[1].stage_instance_id.as_deref(),
+            Some("fastq.trim_reads.fastp_branch")
+        );
+        assert_eq!(bindings[1].tool.tool_id.as_str(), "fastp");
+        Ok(())
+    }
+
+    #[test]
+    fn stage_bindings_for_pipeline_nodes_rejects_tool_mismatch() {
+        let pipeline = PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: None,
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: None,
+                },
+            ],
+            Vec::new(),
+        );
+
+        let error = stage_bindings_for_pipeline_nodes(
+            &pipeline,
+            &[dummy_tool("fastqvalidator")],
+            None,
+        )
+        .expect_err("node/tool mismatch must fail");
+
+        assert!(error
+            .to_string()
+            .contains("pipeline nodes/tools length mismatch"));
+    }
 }
 
 /// # Errors
