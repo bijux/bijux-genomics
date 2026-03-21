@@ -11,7 +11,7 @@ container:
 command_template:
   - "seqtk"
   - "seq"
-  - "{{reads_r1}}"
+  - "{{reads}}"
 outputs:
   - name: "validation_report"
     data_type: "json"
