@@ -11,7 +11,6 @@ use bijux_dna_analyze::{
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ArtifactRef;
 use bijux_dna_domain_fastq::params::{qc_post::QcAggregationScope, PairedMode};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -26,8 +25,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
-use uuid::Uuid;
-
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -124,7 +122,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         let bench_params =
             benchmark_query_context(governed_qc.lineage_hash.as_deref())?
                 .embed_in_parameters(&plan.params);
-        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&bench_params);
         let image_digest = tool_spec
             .image
             .digest
