@@ -135,6 +135,7 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
             temp.path(),
             std::collections::BTreeMap::new(),
             bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+            bijux_dna_domain_fastq::params::qc_post::QcAggregationEngine::Multiqc,
             bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
             Some(&r1),
             None,

@@ -355,6 +355,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
             out_dir,
             std::collections::BTreeMap::new(),
             bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+            bijux_dna_domain_fastq::params::qc_post::QcAggregationEngine::Multiqc,
             bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
             Some(r1),
             Some(r2),

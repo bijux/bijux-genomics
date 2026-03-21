@@ -609,6 +609,8 @@ pub struct BenchFastqQcPostArgs {
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
+    pub aggregation_engine: Option<String>,
+    #[arg(long)]
     pub aggregation_scope: Option<String>,
     #[arg(
         long,
