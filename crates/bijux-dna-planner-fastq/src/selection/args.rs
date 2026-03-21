@@ -77,6 +77,7 @@ pub struct BenchFastqValidateArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub strict: bool,
+    pub q_cutoff: Option<u32>,
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
