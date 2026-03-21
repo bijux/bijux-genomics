@@ -8,12 +8,12 @@ mod filter_plan;
 mod no_parsing;
 #[path = "plan/plan_json.rs"]
 mod plan_json;
+#[path = "plan/plan_snapshots.rs"]
+mod plan_snapshots;
 #[path = "plan/report_qc.rs"]
 mod report_qc;
 #[path = "plan/rrna_flow.rs"]
 mod rrna_flow;
-#[path = "plan/plan_snapshots.rs"]
-mod plan_snapshots;
 #[path = "plan/stage_bindings.rs"]
 mod stage_bindings;
 #[path = "plan/trim_params.rs"]

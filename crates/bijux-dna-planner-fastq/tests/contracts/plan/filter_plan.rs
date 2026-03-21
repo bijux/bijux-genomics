@@ -37,7 +37,11 @@ fn fastp_filter_plan_preserves_paired_io() -> Result<()> {
     assert_eq!(plan.io.outputs.len(), 2);
     assert!(plan.command.template.iter().any(|part| part == "--in2"));
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
-    assert!(plan.command.template.iter().any(|part| part == "reads_R2.fastq.gz"));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "reads_R2.fastq.gz"));
     Ok(())
 }
 

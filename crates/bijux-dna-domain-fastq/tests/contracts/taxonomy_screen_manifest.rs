@@ -12,8 +12,7 @@ fn workspace_root() -> Result<PathBuf> {
 }
 
 fn parse_yaml(path: &Path) -> Result<Value> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 

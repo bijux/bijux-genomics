@@ -22,8 +22,8 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, Vec<String>>> {
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("stage_id: "))

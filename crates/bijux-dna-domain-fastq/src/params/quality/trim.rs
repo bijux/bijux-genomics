@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{DamageMode, PairedMode};
 
-pub const TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION: &str =
-    "bijux.fastq.params.trim_terminal_damage.v1";
+pub const TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_terminal_damage.v1";
 pub const TRIM_POLYG_TAILS_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_polyg_tails.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]

@@ -3,9 +3,7 @@ use std::collections::HashMap;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Result};
-use bijux_dna_analyze::load::sqlite::bench::{
-    fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1,
-};
+use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
@@ -33,8 +31,8 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
 ) -> Result<BenchOutcome<FastqChimeraMetrics>> {
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
@@ -111,7 +109,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -144,8 +144,10 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         } else {
             None
         };
-        let reads_in = input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out = output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_in =
+            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out =
+            output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let chimeras_removed = reads_in.saturating_sub(reads_out);
         let chimera_fraction = if reads_in == 0 {
             0.0
@@ -184,7 +186,10 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             "exit_code": execution.exit_code,
         });
         bijux_dna_infra::atomic_write_json(&out_dir.join("remove_chimeras_report.json"), &report)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &serde_json::to_value(&metric_set)?)?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,

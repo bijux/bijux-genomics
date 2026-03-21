@@ -139,7 +139,8 @@ pub(crate) fn terminal_damage_profile(path: &Path) -> Result<Value> {
     let mut ga_events = 0_u64;
     let mut seen = 0_u64;
     let mut five_prime: std::collections::BTreeMap<String, u64> = std::collections::BTreeMap::new();
-    let mut three_prime: std::collections::BTreeMap<String, u64> = std::collections::BTreeMap::new();
+    let mut three_prime: std::collections::BTreeMap<String, u64> =
+        std::collections::BTreeMap::new();
     let mut lines = open_fastq_lines(path)?;
     while let (Some(_h), Some(seq), Some(_plus), Some(_qual)) =
         (lines.next(), lines.next(), lines.next(), lines.next())
@@ -195,8 +196,8 @@ fn ratio_u64(num: u64, denom: u64) -> f64 {
 }
 
 fn open_fastq_lines(path: &Path) -> Result<Box<dyn Iterator<Item = String>>> {
-    let file = std::fs::File::open(path)
-        .with_context(|| format!("open fastq {}", path.display()))?;
+    let file =
+        std::fs::File::open(path).with_context(|| format!("open fastq {}", path.display()))?;
     if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
         let decoder = flate2::read::MultiGzDecoder::new(file);
         let reader = std::io::BufReader::new(decoder);

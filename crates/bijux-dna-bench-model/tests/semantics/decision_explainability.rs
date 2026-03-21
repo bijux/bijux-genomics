@@ -17,8 +17,13 @@ fn gate_decision_includes_rationale_and_is_stable() -> anyhow::Result<()> {
     policy.validate()?;
     let mut metrics = BTreeMap::new();
     metrics.insert("runtime_s".to_string(), 1.0);
-    let decision: GateDecision =
-        policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &metrics);
+    let decision: GateDecision = policy.decide(
+        "dataset-1",
+        "fastq.trim_reads",
+        "fastp",
+        "params-a",
+        &metrics,
+    );
     assert!(
         !decision.rationale_trace.is_empty(),
         "decision must include rationale trace"

@@ -35,10 +35,16 @@ pub fn compare_summaries(
     let mut strata = Vec::new();
 
     let mut index_b: BTreeMap<
-        (String, String, Option<String>, Option<String>, String, String),
+        (
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+            String,
+            String,
+        ),
         &crate::model::SummaryRow,
-    > =
-        BTreeMap::new();
+    > = BTreeMap::new();
     for row in &summary_b.rows {
         index_b.insert(
             (

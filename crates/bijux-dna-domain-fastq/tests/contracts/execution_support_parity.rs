@@ -176,7 +176,8 @@ fn closed_stage_contracts_match_execution_support_surface() -> Result<()> {
 fn declared_only_stage_manifests_keep_runtime_tools_out_of_compatible_tools() -> Result<()> {
     let stage_tools = stage_manifest_tools()?;
     let planned_tools = stage_manifest_planned_tools()?;
-    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()? {
+    for (stage_id, execution_status, _default_tool, admitted_tools) in execution_support_manifest()?
+    {
         if execution_status != "declared_only" {
             continue;
         }
@@ -191,9 +192,9 @@ fn declared_only_stage_manifests_keep_runtime_tools_out_of_compatible_tools() ->
             admitted_tools.is_empty(),
             "declared-only stage {stage_id} must not admit runtime tools",
         );
-        let planned = planned_tools
-            .get(&stage_id)
-            .with_context(|| format!("missing stage manifest planned_out_of_scope for {stage_id}"))?;
+        let planned = planned_tools.get(&stage_id).with_context(|| {
+            format!("missing stage manifest planned_out_of_scope for {stage_id}")
+        })?;
         assert!(
             !planned.is_empty(),
             "declared-only stage {stage_id} should keep planned tool intent in planned_out_of_scope",

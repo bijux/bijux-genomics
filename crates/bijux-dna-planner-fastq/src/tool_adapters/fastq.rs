@@ -1,6 +1,6 @@
 use bijux_dna_core::prelude::{StageId, StageVersion};
-use bijux_dna_domain_fastq::ExecutionStatus;
 use bijux_dna_domain_fastq::stages::ids as fastq_ids;
+use bijux_dna_domain_fastq::ExecutionStatus;
 
 pub use crate::tool_adapters::stages::amplicon::cluster_otus;
 pub use crate::tool_adapters::stages::amplicon::infer_asvs;

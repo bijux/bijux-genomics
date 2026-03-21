@@ -39,9 +39,10 @@ pub fn execution_step_from_stage_plan_with_step_id(
         .iter()
         .map(|artifact| artifact.name.clone())
         .collect();
-    let metrics_schema_ids = bijux_dna_core::metrics::metrics_schema_for_stage(plan.stage_id.as_str())
-        .map(|schema| vec![schema.schema.to_string()])
-        .unwrap_or_default();
+    let metrics_schema_ids =
+        bijux_dna_core::metrics::metrics_schema_for_stage(plan.stage_id.as_str())
+            .map(|schema| vec![schema.schema.to_string()])
+            .unwrap_or_default();
     ExecutionStep {
         step_id,
         stage_id: plan.stage_id.clone(),

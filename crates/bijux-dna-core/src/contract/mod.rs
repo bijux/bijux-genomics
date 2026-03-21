@@ -19,10 +19,10 @@ pub use execution::{
 };
 pub use run::{
     list_runs, query_latest_runs, query_run, query_runs, query_stage_rows, run_dir,
-    MetricProvenanceV1, PipelineDomain, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
-    Profile, RunIndexEntry, RunIndexLine, RunMetadataV1, RunQuery, RunSpec,
-    ScientificProvenanceV1, StageIndexRow, StageMetadataV1, ToolExecutionMetadataV1,
-    ToolInvocationMetadataV1, ToolProvenanceV1,
+    MetricProvenanceV1, PipelineDomain, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec, Profile,
+    RunIndexEntry, RunIndexLine, RunMetadataV1, RunQuery, RunSpec, ScientificProvenanceV1,
+    StageIndexRow, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
+    ToolProvenanceV1,
 };
 pub use tooling::{
     objective_spec, select_stage, ArtifactKind, BenchResultRecord, BenchResultStatus, Cardinality,

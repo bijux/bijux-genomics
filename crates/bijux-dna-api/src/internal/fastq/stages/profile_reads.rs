@@ -65,8 +65,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     preflight_stage(STAGE_PROFILE_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_PROFILE_READS.as_str(), &header);
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_PROFILE_READS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
@@ -114,8 +114,12 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_dir = bench_inputs.tools_root.join(&tool);
-        let plan =
-            plan_stats_neutral(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &tool_dir)?;
+        let plan = plan_stats_neutral(
+            &tool_spec,
+            &bench_inputs.r1,
+            bench_inputs.r2.as_deref(),
+            &tool_dir,
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -241,7 +245,10 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
             runner,
         )?;
         if stats_output.exit_code != 0 {
-            return Err(anyhow!("seqkit stats failed for r2: {}", stats_output.stderr));
+            return Err(anyhow!(
+                "seqkit stats failed for r2: {}",
+                stats_output.stderr
+            ));
         }
         let hist_spec = length_histogram_command(&r2_dir, &r2)?;
         let hist_output = execute_observer_command(
@@ -309,8 +316,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_spec = build_tool_execution_spec(
         STAGE_PROFILE_READS.as_str(),
         tool,
@@ -321,7 +328,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
 
     println!("→ stats {tool}");
     let tool_dir = bench_inputs.tools_root.join(tool);
-    let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &tool_dir)?;
+    let plan = plan_stats_neutral(
+        &tool_spec,
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        &tool_dir,
+    )?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -369,7 +381,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     })?
     .stage_result;
 
-    let combined_stats = combine_seqkit_metrics(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref());
+    let combined_stats = combine_seqkit_metrics(
+        &bench_inputs.input_stats,
+        bench_inputs.input_stats_r2.as_ref(),
+    );
     let metrics = FastqStatsMetrics {
         reads_total: combined_stats.reads,
         bases_total: combined_stats.bases,
@@ -383,8 +398,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
     let tool_manifest = registry
         .tool_by_id(&stage_id, &bijux_dna_core::ids::ToolId::new(tool))
@@ -490,7 +505,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
-fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> SeqkitMetrics {
+fn combine_seqkit_metrics(
+    primary: &SeqkitMetrics,
+    secondary: Option<&SeqkitMetrics>,
+) -> SeqkitMetrics {
     let secondary_reads = secondary.map_or(0, |stats| stats.reads);
     let secondary_bases = secondary.map_or(0, |stats| stats.bases);
     let total_bases = primary.bases + secondary_bases;

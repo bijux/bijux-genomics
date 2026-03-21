@@ -900,10 +900,15 @@ impl StageMetricSchema for FastqNormalizePrimersMetrics {
         }
         for (name, value) in [
             ("primer_trimmed_fraction", self.primer_trimmed_fraction),
-            ("orientation_forward_fraction", self.orientation_forward_fraction),
+            (
+                "orientation_forward_fraction",
+                self.orientation_forward_fraction,
+            ),
         ] {
             if !value.is_finite() || !(0.0..=1.0).contains(&value) {
-                return Err(BenchError::Validation(format!("{name} must be within [0, 1]")));
+                return Err(BenchError::Validation(format!(
+                    "{name} must be within [0, 1]"
+                )));
             }
         }
         Ok(())

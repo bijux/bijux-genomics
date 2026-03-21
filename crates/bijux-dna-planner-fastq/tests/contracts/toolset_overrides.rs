@@ -22,7 +22,11 @@ fn toolset_override_precedence_is_stable() {
     let mut forced = BTreeMap::new();
     forced.insert(
         "fastq.trim_reads".to_string(),
-        vec!["SeqPurge".to_string(), "fastp".to_string(), "seqpurge".to_string()],
+        vec![
+            "SeqPurge".to_string(),
+            "fastp".to_string(),
+            "seqpurge".to_string(),
+        ],
     );
 
     let merged = apply_toolset_overrides(base, profile, cli, forced);

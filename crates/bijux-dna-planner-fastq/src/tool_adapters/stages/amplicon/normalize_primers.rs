@@ -97,10 +97,7 @@ pub fn plan(
             }
         }),
         aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Default,
-            "amplicon primer normalization",
-        ),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon primer normalization"),
     })
 }
 

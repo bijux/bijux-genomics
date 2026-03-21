@@ -21,13 +21,13 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use bijux_dna_runner::step_runner::StageResultV1;
 use uuid::Uuid;
 
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, observe_fastq_stats,
+};
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_EXTRACT_UMIS,
-};
-use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
@@ -45,8 +45,8 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_EXTRACT_UMIS.as_str(), &tools, &registry, false)?;
 
     let bench_dir_name = bench_dir_name(&STAGE_EXTRACT_UMIS)
@@ -63,7 +63,13 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
 
     if args.explain {
         write_explain_md(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &registry, None)?;
+        write_explain_plan_json(
+            &bench_dir,
+            STAGE_EXTRACT_UMIS.as_str(),
+            &tools,
+            &registry,
+            None,
+        )?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
@@ -83,8 +89,13 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_EXTRACT_UMIS.as_str(), tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_EXTRACT_UMIS.as_str(),
+            tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir, Some(&args.umi_pattern))?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -108,7 +119,9 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             platform.runner,
             jobs,
         )?

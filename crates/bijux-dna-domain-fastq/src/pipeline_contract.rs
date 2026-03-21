@@ -193,8 +193,7 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.correct_errors"
         | "fastq.extract_umis"
         | "fastq.screen_taxonomy" => Some(StageCriticality::Optional),
-        "fastq.infer_asvs"
-        => Some(StageCriticality::Experimental),
+        "fastq.infer_asvs" => Some(StageCriticality::Experimental),
         _ => None,
     }
 }

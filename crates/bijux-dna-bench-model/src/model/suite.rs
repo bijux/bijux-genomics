@@ -194,7 +194,10 @@ impl BenchmarkSuiteSpec {
 
     #[must_use]
     pub fn stage_node_ids(&self) -> Vec<&str> {
-        self.stages.iter().map(BenchmarkStageSpec::stage_node_id).collect()
+        self.stages
+            .iter()
+            .map(BenchmarkStageSpec::stage_node_id)
+            .collect()
     }
 
     #[must_use]

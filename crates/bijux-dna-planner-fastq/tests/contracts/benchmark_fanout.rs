@@ -149,8 +149,8 @@ fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Res
 }
 
 #[test]
-fn benchmark_fanout_scopes_detect_adapter_compare_inputs_to_governed_artifacts() -> anyhow::Result<()>
-{
+fn benchmark_fanout_scopes_detect_adapter_compare_inputs_to_governed_artifacts(
+) -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-detect-adapters-fanout")?;
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;

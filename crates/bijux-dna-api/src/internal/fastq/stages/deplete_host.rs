@@ -18,16 +18,19 @@ use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+use bijux_dna_planner_fastq::select_deplete_host_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_host::plan_host_depletion;
-use bijux_dna_planner_fastq::select_deplete_host_tools;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 
-fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, name: &str) -> Result<std::path::PathBuf> {
+fn output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    name: &str,
+) -> Result<std::path::PathBuf> {
     plan.io
         .outputs
         .iter()
@@ -54,8 +57,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, None, false)?;
     log_header_warnings(STAGE_DEPLETE_HOST.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_DEPLETE_HOST.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(
         catalog,
@@ -72,7 +75,12 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_ref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -108,8 +116,13 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     for tool in tools {
         let out_dir = bench_inputs.tools_root.join(&tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_DEPLETE_HOST.as_str(), &tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_DEPLETE_HOST.as_str(),
+            &tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_host_depletion(
             &tool_spec,
@@ -118,7 +131,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             &args.reference_index,
             &out_dir,
         )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+        let params_hash =
+            params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -140,7 +154,9 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -159,46 +175,49 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
 
         let output_r1 = output_path(&plan, "host_depleted_reads_r1")?;
         let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
-        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, summary) =
-            if let Some(input_r2) = input_stats_r2.as_ref() {
-                let output_r2 = output_path(&plan, "host_depleted_reads_r2")?;
-                let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
-                (
-                    bench_inputs.input_stats.reads + input_r2.reads,
-                    output_stats_r1.reads + output_stats_r2.reads,
-                    bench_inputs.input_stats.bases + input_r2.bases,
-                    output_stats_r1.bases + output_stats_r2.bases,
-                    bench_inputs.input_stats.reads.min(input_r2.reads),
-                    output_stats_r1.reads.min(output_stats_r2.reads),
-                    serde_json::json!({
-                        "reads_removed": (bench_inputs.input_stats.reads + input_r2.reads)
-                            .saturating_sub(output_stats_r1.reads + output_stats_r2.reads),
-                        "bases_removed": (bench_inputs.input_stats.bases + input_r2.bases)
-                            .saturating_sub(output_stats_r1.bases + output_stats_r2.bases),
-                        "output_r1": output_r1,
-                        "output_r2": output_r2,
-                        "removed_host_r1": output_path(&plan, "removed_host_reads_r1")?,
-                        "removed_host_r2": output_path(&plan, "removed_host_reads_r2")?,
-                        "report_json": output_path(&plan, "host_depletion_report_json")?,
-                    }),
-                )
-            } else {
-                (
-                    bench_inputs.input_stats.reads,
-                    output_stats_r1.reads,
-                    bench_inputs.input_stats.bases,
-                    output_stats_r1.bases,
-                    0,
-                    0,
-                    serde_json::json!({
-                        "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats_r1.reads),
-                        "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats_r1.bases),
-                        "output_fastq": output_r1,
-                        "removed_host_reads": output_path(&plan, "removed_host_reads_r1")?,
-                        "report_json": output_path(&plan, "host_depletion_report_json")?,
-                    }),
-                )
-            };
+        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, summary) = if let Some(
+            input_r2,
+        ) =
+            input_stats_r2.as_ref()
+        {
+            let output_r2 = output_path(&plan, "host_depleted_reads_r2")?;
+            let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
+            (
+                bench_inputs.input_stats.reads + input_r2.reads,
+                output_stats_r1.reads + output_stats_r2.reads,
+                bench_inputs.input_stats.bases + input_r2.bases,
+                output_stats_r1.bases + output_stats_r2.bases,
+                bench_inputs.input_stats.reads.min(input_r2.reads),
+                output_stats_r1.reads.min(output_stats_r2.reads),
+                serde_json::json!({
+                    "reads_removed": (bench_inputs.input_stats.reads + input_r2.reads)
+                        .saturating_sub(output_stats_r1.reads + output_stats_r2.reads),
+                    "bases_removed": (bench_inputs.input_stats.bases + input_r2.bases)
+                        .saturating_sub(output_stats_r1.bases + output_stats_r2.bases),
+                    "output_r1": output_r1,
+                    "output_r2": output_r2,
+                    "removed_host_r1": output_path(&plan, "removed_host_reads_r1")?,
+                    "removed_host_r2": output_path(&plan, "removed_host_reads_r2")?,
+                    "report_json": output_path(&plan, "host_depletion_report_json")?,
+                }),
+            )
+        } else {
+            (
+                bench_inputs.input_stats.reads,
+                output_stats_r1.reads,
+                bench_inputs.input_stats.bases,
+                output_stats_r1.bases,
+                0,
+                0,
+                serde_json::json!({
+                    "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats_r1.reads),
+                    "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats_r1.bases),
+                    "output_fastq": output_r1,
+                    "removed_host_reads": output_path(&plan, "removed_host_reads_r1")?,
+                    "report_json": output_path(&plan, "host_depletion_report_json")?,
+                }),
+            )
+        };
         let host_fraction_removed = if reads_in == 0 {
             0.0
         } else {
@@ -228,8 +247,11 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
         });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("host_depletion_report.json"), &stage_report)
-            .context("write host depletion report")?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("host_depletion_report.json"),
+            &stage_report,
+        )
+        .context("write host depletion report")?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,

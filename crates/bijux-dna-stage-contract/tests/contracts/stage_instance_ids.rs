@@ -5,8 +5,8 @@ use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, T
 use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_dna_stage_contract::{
-    default_edges_for_stages, execution_step_from_stage_plan, ExecutionPlan, PlanEdge,
-    PlanDecisionReason, StagePlanV1,
+    default_edges_for_stages, execution_step_from_stage_plan, ExecutionPlan, PlanDecisionReason,
+    PlanEdge, StagePlanV1,
 };
 
 fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
@@ -46,7 +46,11 @@ fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
 
 #[test]
 fn execution_plan_allows_duplicate_stage_ids_with_unique_instance_ids() {
-    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let left = trim_plan(
+        "fastq.trim_reads.tool.fastp",
+        "fastp",
+        "trimmed_reads_fastp",
+    );
     let right = trim_plan(
         "fastq.trim_reads.tool.cutadapt",
         "cutadapt",
@@ -72,7 +76,11 @@ fn execution_plan_allows_duplicate_stage_ids_with_unique_instance_ids() {
 
 #[test]
 fn default_edges_use_stage_instance_ids_when_present() {
-    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let left = trim_plan(
+        "fastq.trim_reads.tool.fastp",
+        "fastp",
+        "trimmed_reads_fastp",
+    );
     let right = trim_plan(
         "fastq.trim_reads.tool.cutadapt",
         "cutadapt",
@@ -86,7 +94,11 @@ fn default_edges_use_stage_instance_ids_when_present() {
 
 #[test]
 fn execution_plan_accepts_artifact_bound_edges() {
-    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let left = trim_plan(
+        "fastq.trim_reads.tool.fastp",
+        "fastp",
+        "trimmed_reads_fastp",
+    );
     let right = StagePlanV1 {
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -141,7 +153,11 @@ fn execution_plan_accepts_artifact_bound_edges() {
 
 #[test]
 fn execution_steps_inherit_stage_instance_identity() {
-    let plan = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let plan = trim_plan(
+        "fastq.trim_reads.tool.fastp",
+        "fastp",
+        "trimmed_reads_fastp",
+    );
     let step = execution_step_from_stage_plan(&plan);
     assert_eq!(step.step_id.as_str(), "fastq.trim_reads.tool.fastp");
 }

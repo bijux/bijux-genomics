@@ -50,8 +50,8 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_SCREEN_TAXONOMY.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_SCREEN_TAXONOMY.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args)?;
 
@@ -103,7 +103,12 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_screen(&tool_spec, &bench_inputs.r1, bench_inputs.r2.as_deref(), &out_dir)?;
+        let plan = plan_screen(
+            &tool_spec,
+            &bench_inputs.r1,
+            bench_inputs.r2.as_deref(),
+            &out_dir,
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -125,7 +130,9 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -207,7 +214,10 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Err(anyhow!("seqkit screen observer failed: {}", stats_output.stderr));
+        return Err(anyhow!(
+            "seqkit screen observer failed: {}",
+            stats_output.stderr
+        ));
     }
 
     let (r2, input_stats_r2) = if let Some(r2) = args.r2.as_deref() {
@@ -224,7 +234,10 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
             runner,
         )?;
         if stats_output.exit_code != 0 {
-            return Err(anyhow!("seqkit screen observer failed for r2: {}", stats_output.stderr));
+            return Err(anyhow!(
+                "seqkit screen observer failed for r2: {}",
+                stats_output.stderr
+            ));
         }
         (Some(r2), Some(parse_seqkit_stats(&stats_output.stdout)?))
     } else {

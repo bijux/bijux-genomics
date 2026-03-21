@@ -12,7 +12,6 @@ pub use registry::{
 pub use semantics::{BankRefV1, MetricContextV1};
 pub use types::{
     parse_derived_metric_id, parse_metric_id, validate_derived_metric_id_str,
-    validate_metric_id_str, AdapterBankProvenanceV1, BankEntryV1, DerivedMetricId,
-    MetricEnvelope, MetricId, MetricsEnvelope, MetricSet, StageMetricsV1, ToolInvocationSpecV1,
-    ToolInvocationV1,
+    validate_metric_id_str, AdapterBankProvenanceV1, BankEntryV1, DerivedMetricId, MetricEnvelope,
+    MetricId, MetricSet, MetricsEnvelope, StageMetricsV1, ToolInvocationSpecV1, ToolInvocationV1,
 };

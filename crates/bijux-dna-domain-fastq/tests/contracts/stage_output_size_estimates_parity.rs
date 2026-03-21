@@ -22,8 +22,8 @@ fn stage_manifest_required_outputs() -> Result<BTreeMap<String, BTreeSet<String>
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let raw = std::fs::read_to_string(&path)
-            .with_context(|| format!("read {}", path.display()))?;
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = raw
             .lines()
             .find_map(|line| line.strip_prefix("stage_id: "))
@@ -55,7 +55,10 @@ fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<Str
             break;
         }
         if line.starts_with("  ") && !line.starts_with("    ") {
-            let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) else {
+            let Some(stage) = line
+                .strip_prefix("  ")
+                .and_then(|rest| rest.strip_suffix(':'))
+            else {
                 continue;
             };
             let stage = stage.to_string();
@@ -63,9 +66,14 @@ fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<Str
             out.entry(stage).or_default();
             continue;
         }
-        if let Some(artifact) = line.strip_prefix("    ").and_then(|rest| rest.split(':').next()) {
+        if let Some(artifact) = line
+            .strip_prefix("    ")
+            .and_then(|rest| rest.split(':').next())
+        {
             if let Some(stage) = &current_stage {
-                out.entry(stage.clone()).or_default().insert(artifact.to_string());
+                out.entry(stage.clone())
+                    .or_default()
+                    .insert(artifact.to_string());
             }
         }
     }
@@ -86,7 +94,11 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
+        out.push(
+            line.trim_start_matches("  - ")
+                .trim_matches('"')
+                .to_string(),
+        );
     }
     out
 }

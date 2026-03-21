@@ -85,9 +85,7 @@ impl StageExecutionSupport {
     pub fn supports_benchmark_cohorts(&self) -> bool {
         matches!(
             self.benchmark_support,
-            BenchmarkSupport::Cohort
-                | BenchmarkSupport::Comparable
-                | BenchmarkSupport::Mixed
+            BenchmarkSupport::Cohort | BenchmarkSupport::Comparable | BenchmarkSupport::Mixed
         )
     }
 

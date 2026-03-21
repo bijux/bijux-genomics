@@ -7,7 +7,10 @@ fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
-        .map_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")), Path::to_path_buf)
+        .map_or_else(
+            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            Path::to_path_buf,
+        )
 }
 
 #[must_use]

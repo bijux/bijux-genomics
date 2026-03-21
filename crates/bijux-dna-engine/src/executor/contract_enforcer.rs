@@ -65,7 +65,10 @@ impl<'a> ContractEnforcer<'a> {
                 path = %output.path.display(),
                 "artifact verified"
             );
-            if matches!(output.role, ArtifactRole::MetricsJson | ArtifactRole::MetricsEnvelope) {
+            if matches!(
+                output.role,
+                ArtifactRole::MetricsJson | ArtifactRole::MetricsEnvelope
+            ) {
                 let raw = fs::read_to_string(&output.path)?;
                 serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
                     self.contract_error(

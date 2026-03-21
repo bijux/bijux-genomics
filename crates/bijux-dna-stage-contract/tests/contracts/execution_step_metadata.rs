@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, StepId};
-use bijux_dna_stage_contract::{execution_step_from_stage_plan_with_step_id, PlanDecisionReason, StagePlanV1};
+use bijux_dna_stage_contract::{
+    execution_step_from_stage_plan_with_step_id, PlanDecisionReason, StagePlanV1,
+};
 
 fn trim_plan() -> StagePlanV1 {
     StagePlanV1 {
@@ -61,5 +63,8 @@ fn execution_steps_inherit_expected_artifacts_and_metrics_schema() {
             .collect::<Vec<_>>(),
         vec!["trimmed_reads_r1", "trimmed_reads_r2"]
     );
-    assert_eq!(step.metrics_schema_ids, vec!["fastq_trim_reads_v2".to_string()]);
+    assert_eq!(
+        step.metrics_schema_ids,
+        vec!["fastq_trim_reads_v2".to_string()]
+    );
 }
