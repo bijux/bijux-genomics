@@ -166,12 +166,15 @@ impl FastqPlanner {
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
         let (pipeline_spec, stage_bindings) = normalize_stage_bindings(config)?;
+        validate_select_stage_nodes(pipeline_spec.as_ref(), &stage_bindings)?;
         validate_reference_index_bindings(&stage_bindings, pipeline_spec.as_ref())?;
         for binding in &stage_bindings {
             enforce_stage_status(&binding.stage_id, config.allow_planned)?;
         }
         let out_dir = config.out_dir.clone();
         let explicit_stage_inputs = stage_artifact_input_policy(pipeline_spec.as_ref());
+        let synthetic_stage_artifacts =
+            synthetic_stage_artifact_policy(pipeline_spec.as_ref(), &config.out_dir)?;
         let stage_dependencies = stage_dependency_policy(pipeline_spec.as_ref());
         let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
             &stage_bindings,
@@ -184,6 +187,7 @@ impl FastqPlanner {
             config.r2.as_deref(),
             config.reference_fasta.as_deref(),
             Some(&explicit_stage_inputs),
+            Some(&synthetic_stage_artifacts),
             Some(&stage_dependencies),
             |binding, _r1, _r2| {
                 let stage_dir = binding
@@ -198,11 +202,19 @@ impl FastqPlanner {
             .iter()
             .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
             .collect::<Vec<_>>();
-        let mut edges = execution_edges_for_stage_plans(pipeline_spec.as_ref(), &plans)?;
         let (compare_steps, compare_edges) =
             benchmark_compare_steps_for_toolsets(config, &plans)?;
+        let (select_steps, select_edges, synthetic_step_nodes) =
+            benchmark_select_steps_for_pipeline(config, pipeline_spec.as_ref(), &plans)?;
+        let mut edges = execution_edges_for_stage_plans(
+            pipeline_spec.as_ref(),
+            &plans,
+            &synthetic_step_nodes,
+        )?;
         steps.extend(compare_steps);
         edges.extend(compare_edges);
+        steps.extend(select_steps);
+        edges.extend(select_edges);
         let graph = ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
@@ -433,6 +445,76 @@ fn comparison_artifact_file_name(artifact_id: &str) -> String {
     format!("{stem}.json")
 }
 
+fn selection_artifact_file_name(artifact_id: &str) -> String {
+    if artifact_id.ends_with("_json") || artifact_id.ends_with("_manifest") {
+        let stem = artifact_id
+            .strip_suffix("_json")
+            .or_else(|| artifact_id.strip_suffix("_manifest"))
+            .unwrap_or(artifact_id);
+        return format!("{stem}.json");
+    }
+    if artifact_id.ends_with("_html") {
+        let stem = artifact_id.strip_suffix("_html").unwrap_or(artifact_id);
+        return format!("{stem}.html");
+    }
+    if artifact_id.contains("reads") || artifact_id.ends_with("_r1") || artifact_id.ends_with("_r2")
+    {
+        return format!("{artifact_id}.fastq.gz");
+    }
+    if artifact_id.contains("index") {
+        return format!("{artifact_id}.idx");
+    }
+    if artifact_id.contains("table") {
+        return format!("{artifact_id}.tsv");
+    }
+    artifact_id.to_string()
+}
+
+fn inferred_selection_artifact_role(artifact_id: &str) -> ArtifactRole {
+    if artifact_id == "report_html" {
+        return ArtifactRole::ReportHtml;
+    }
+    if artifact_id.ends_with("_json") || artifact_id.ends_with("_manifest") {
+        return ArtifactRole::SummaryJson;
+    }
+    if artifact_id.contains("report") {
+        return ArtifactRole::ReportJson;
+    }
+    if artifact_id.contains("index") {
+        return ArtifactRole::Index;
+    }
+    if artifact_id.contains("table") {
+        return ArtifactRole::SummaryTsv;
+    }
+    if artifact_id.contains("trimmed_reads") {
+        return ArtifactRole::TrimmedReads;
+    }
+    if artifact_id.contains("reads") || artifact_id.ends_with("_r1") || artifact_id.ends_with("_r2")
+    {
+        return ArtifactRole::Reads;
+    }
+    ArtifactRole::Unknown
+}
+
+fn selection_command_for_stage(
+    stage_id: &StageId,
+    output_artifact_ids: &[String],
+    objective: bijux_dna_core::contract::Objective,
+) -> Vec<String> {
+    let mut command = vec![
+        "stage-tool-select".to_string(),
+        "--stage".to_string(),
+        stage_id.as_str().to_string(),
+        "--objective".to_string(),
+        objective.as_str().to_string(),
+    ];
+    for artifact_id in output_artifact_ids {
+        command.push("--selected-artifact".to_string());
+        command.push(artifact_id.clone());
+    }
+    command
+}
+
 fn benchmark_compare_steps_for_toolsets(
     config: &FastqPlanConfig,
     plans: &[StagePlanV1],
@@ -546,6 +628,156 @@ fn benchmark_compare_steps_for_toolsets(
     Ok((steps, edges))
 }
 
+fn benchmark_select_steps_for_pipeline(
+    config: &FastqPlanConfig,
+    pipeline_spec: Option<&PipelineSpec>,
+    plans: &[StagePlanV1],
+) -> Result<(
+    Vec<ExecutionStep>,
+    Vec<ExecutionEdge>,
+    std::collections::BTreeMap<String, StepId>,
+)> {
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return Ok((Vec::new(), Vec::new(), std::collections::BTreeMap::new()));
+    };
+
+    let plan_by_node_id = plans
+        .iter()
+        .map(|plan| (step_id_for_plan(plan).as_str().to_string(), plan))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut steps = Vec::new();
+    let edges = Vec::new();
+    let mut step_nodes = std::collections::BTreeMap::new();
+    for node in pipeline_spec
+        .ordered_nodes()
+        .into_iter()
+        .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
+    {
+        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let incoming_edges = pipeline_spec
+            .edges
+            .iter()
+            .filter(|edge| edge.to == node_id)
+            .collect::<Vec<_>>();
+        if incoming_edges.is_empty() {
+            continue;
+        }
+        let source_plans = incoming_edges
+            .iter()
+            .map(|edge| {
+                plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
+                    anyhow!(
+                        "selection node {} references unknown upstream step {}",
+                        node_id,
+                        edge.from
+                    )
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let source_stage_id = StageId::new(source_plans[0].stage_id.as_str().to_string());
+        if source_plans
+            .iter()
+            .any(|plan| plan.stage_id.as_str() != source_stage_id.as_str())
+        {
+            return Err(anyhow!(
+                "selection node {} must join candidates from one stage family",
+                node_id
+            ));
+        }
+        let select_out_dir = config
+            .out_dir
+            .join(node_id.trim_start_matches(STAGE_PREFIX))
+            .join("selected");
+        let output_artifact_ids = pipeline_spec
+            .edges
+            .iter()
+            .filter(|edge| edge.from == node_id)
+            .filter_map(|edge| edge.from_output_id.clone())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let outputs = output_artifact_ids
+            .iter()
+            .map(|artifact_id| {
+                ArtifactRef::required(
+                    ArtifactId::new(artifact_id.clone()),
+                    select_out_dir.join(selection_artifact_file_name(artifact_id)),
+                    inferred_selection_artifact_role(artifact_id),
+                )
+            })
+            .collect::<Vec<_>>();
+        let mut inputs = Vec::new();
+        for edge in &incoming_edges {
+            let source_plan = plan_by_node_id
+                .get(&edge.from)
+                .copied()
+                .expect("source plan resolved above");
+            let source_output_id = edge
+                .from_output_id
+                .as_ref()
+                .expect("validated selection input binding");
+            let source_output = source_plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == source_output_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "selection node {} references missing source artifact {} on {}",
+                        node_id,
+                        source_output_id,
+                        edge.from
+                    )
+                })?;
+            inputs.push(ArtifactRef::required(
+                ArtifactId::new(
+                    edge.to_input_id
+                        .clone()
+                        .expect("validated selection input binding"),
+                ),
+                source_output.path.clone(),
+                source_output.role,
+            ));
+        }
+        inputs.sort_by(|left, right| {
+            left.name
+                .as_str()
+                .cmp(right.name.as_str())
+                .then_with(|| left.path.cmp(&right.path))
+        });
+        inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+        let step_id = StepId::new(node_id.clone());
+        steps.push(ExecutionStep {
+            step_id: step_id.clone(),
+            stage_id: crate::STAGE_SELECT_STAGE_TOOL,
+            command: CommandSpecV1 {
+                template: selection_command_for_stage(
+                    &source_stage_id,
+                    &output_artifact_ids,
+                    bijux_dna_core::contract::Objective::Balanced,
+                ),
+            },
+            image: ContainerImageRefV1 {
+                image: "bijux-dna-select".to_string(),
+                digest: None,
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO { inputs, outputs },
+            out_dir: select_out_dir,
+            aux_images: BTreeMap::new(),
+            expected_artifact_ids: output_artifact_ids
+                .iter()
+                .cloned()
+                .map(ArtifactId::new)
+                .collect(),
+            metrics_schema_ids: Vec::new(),
+        });
+        step_nodes.insert(node_id, step_id);
+    }
+
+    Ok((steps, edges, step_nodes))
+}
+
 fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetBinding) -> bool {
     if plan.stage_id.as_str() != toolset.stage_id {
         return false;
@@ -614,6 +846,127 @@ fn step_id_for_plan(plan: &StagePlanV1) -> StepId {
         .as_ref()
         .cloned()
         .unwrap_or_else(|| StepId::new(plan.stage_id.as_str().to_string()))
+}
+
+fn validate_select_stage_nodes(
+    pipeline_spec: Option<&PipelineSpec>,
+    stage_bindings: &[FastqStageBinding],
+) -> Result<()> {
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return Ok(());
+    };
+    let binding_by_node_id = stage_bindings
+        .iter()
+        .map(|binding| (binding_node_id(binding), binding))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    for node in pipeline_spec
+        .ordered_nodes()
+        .into_iter()
+        .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
+    {
+        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        if node.stage_instance_id.is_none() {
+            return Err(anyhow!(
+                "selection node {} must set stage_instance_id to remain graph-addressable",
+                node.stage_id
+            ));
+        }
+        let incoming = pipeline_spec
+            .edges
+            .iter()
+            .filter(|edge| edge.to == node_id)
+            .collect::<Vec<_>>();
+        if incoming.len() < 2 {
+            return Err(anyhow!(
+                "selection node {} requires at least two incoming candidate edges",
+                node_id
+            ));
+        }
+        let mut source_stage_id = None::<String>;
+        let mut candidate_input_ids = std::collections::BTreeSet::new();
+        for edge in &incoming {
+            let (Some(_from_output_id), Some(to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
+            else {
+                return Err(anyhow!(
+                    "selection node {} requires artifact-bound incoming edges",
+                    node_id
+                ));
+            };
+            if !candidate_input_ids.insert(to_input_id.clone()) {
+                return Err(anyhow!(
+                    "selection node {} requires unique candidate input ids per incoming edge",
+                    node_id
+                ));
+            }
+            let Some(source_binding) = binding_by_node_id.get(&edge.from).copied() else {
+                return Err(anyhow!(
+                    "selection node {} references unknown source node {}",
+                    node_id,
+                    edge.from
+                ));
+            };
+            if let Some(expected_stage_id) = source_stage_id.as_ref() {
+                if expected_stage_id != &source_binding.stage_id {
+                    return Err(anyhow!(
+                        "selection node {} must join candidate tools from one stage family",
+                        node_id
+                    ));
+                }
+            } else {
+                source_stage_id = Some(source_binding.stage_id.clone());
+            }
+        }
+        for edge in pipeline_spec.edges.iter().filter(|edge| edge.from == node_id) {
+            let (Some(_from_output_id), Some(_to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
+            else {
+                return Err(anyhow!(
+                    "selection node {} requires artifact-bound outgoing rejoin edges",
+                    node_id
+                ));
+            };
+        }
+    }
+    Ok(())
+}
+
+fn synthetic_stage_artifact_policy(
+    pipeline_spec: Option<&PipelineSpec>,
+    root_out_dir: &std::path::Path,
+) -> Result<crate::plan_compose::SyntheticStageArtifactPolicy> {
+    let mut artifacts = crate::plan_compose::SyntheticStageArtifactPolicy::new();
+    let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
+        return Ok(artifacts);
+    };
+    for node in pipeline_spec
+        .ordered_nodes()
+        .into_iter()
+        .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
+    {
+        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let artifact_ids = pipeline_spec
+            .edges
+            .iter()
+            .filter(|edge| edge.from == node_id)
+            .filter_map(|edge| edge.from_output_id.clone())
+            .collect::<std::collections::BTreeSet<_>>();
+        let select_out_dir = root_out_dir
+            .join(node_id.trim_start_matches(STAGE_PREFIX))
+            .join("selected");
+        artifacts.insert(
+            node_id,
+            artifact_ids
+                .into_iter()
+                .map(|artifact_id| {
+                    ArtifactRef::required(
+                        ArtifactId::new(artifact_id.clone()),
+                        select_out_dir.join(selection_artifact_file_name(&artifact_id)),
+                        inferred_selection_artifact_role(&artifact_id),
+                    )
+                })
+                .collect(),
+        );
+    }
+    Ok(artifacts)
 }
 
 fn normalize_stage_bindings(
@@ -932,6 +1285,7 @@ fn dependency_reference_index_binding<'a>(
 fn execution_edges_for_stage_plans(
     pipeline_spec: Option<&PipelineSpec>,
     plans: &[StagePlanV1],
+    synthetic_step_nodes: &std::collections::BTreeMap<String, StepId>,
 ) -> Result<Vec<ExecutionEdge>> {
     let Some(pipeline_spec) = pipeline_spec.filter(|spec| spec.declares_graph_topology()) else {
         return Ok(default_edges_for_stages(plans)
@@ -963,6 +1317,11 @@ fn execution_edges_for_stage_plans(
             plan_nodes.insert(plan.stage_id.as_str().to_string(), step_id);
         }
     }
+    plan_nodes.extend(
+        synthetic_step_nodes
+            .iter()
+            .map(|(node_id, step_id)| (node_id.clone(), step_id.clone())),
+    );
     for node in pipeline_spec.ordered_nodes() {
         let node_id =
             PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());

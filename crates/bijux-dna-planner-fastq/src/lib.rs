@@ -36,6 +36,8 @@ pub const TOOL_SEQKIT: &str = "seqkit";
 pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggregate");
 pub const STAGE_COMPARE_STAGE_TOOLS: StageId =
     StageId::from_static("benchmark.compare_stage_tools");
+pub const STAGE_SELECT_STAGE_TOOL: StageId =
+    StageId::from_static("benchmark.select_stage_tool");
 pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.preprocess");
 
 pub use bijux_dna_domain_fastq::BenchResultsRepository;

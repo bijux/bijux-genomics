@@ -38,6 +38,7 @@ pub struct StageArtifactInputBinding {
 
 pub type StageArtifactInputPolicy = BTreeMap<String, Vec<StageArtifactInputBinding>>;
 pub type StageDependencyPolicy = BTreeMap<String, Vec<String>>;
+pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<ArtifactRef>>;
 
 #[derive(Debug, Clone)]
 struct ResolvedStageInputArtifact {
@@ -137,6 +138,7 @@ where
         reference_fasta,
         explicit_stage_inputs,
         None,
+        None,
         out_dir_for_stage,
     )
 }
@@ -153,6 +155,7 @@ pub fn compose_fastq_stage_bindings_with_dependencies<F>(
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
     explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
+    synthetic_stage_artifacts: Option<&SyntheticStageArtifactPolicy>,
     stage_dependencies: Option<&StageDependencyPolicy>,
     mut out_dir_for_stage: F,
 ) -> Result<Vec<StagePlanV1>>
@@ -164,8 +167,12 @@ where
     let mut plans = Vec::new();
     let mut lineage_by_node_id = BTreeMap::<String, PlannedStageLineage>::new();
     for binding in stage_bindings {
-        let resolved_inputs =
-            resolved_stage_input_artifacts(binding, explicit_stage_inputs, &plans)?;
+        let resolved_inputs = resolved_stage_input_artifacts(
+            binding,
+            explicit_stage_inputs,
+            synthetic_stage_artifacts,
+            &plans,
+        )?;
         let inherited = inherited_lineage(
             binding,
             stage_dependencies,
@@ -725,6 +732,7 @@ fn stage_node_id_for_plan(plan: &StagePlanV1) -> &str {
 fn resolved_stage_input_artifacts(
     binding: &FastqStageBinding,
     explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
+    synthetic_stage_artifacts: Option<&SyntheticStageArtifactPolicy>,
     plans: &[StagePlanV1],
 ) -> Result<BTreeMap<String, ResolvedStageInputArtifact>> {
     let mut inputs = BTreeMap::new();
@@ -735,33 +743,52 @@ fn resolved_stage_input_artifacts(
         return Ok(inputs);
     };
     for stage_input in bindings {
-        let source_plan = plans
+        if let Some(source_plan) = plans
             .iter()
             .find(|plan| stage_node_id_for_plan(plan) == stage_input.from_stage_node_id)
+        {
+            let artifact = source_plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == stage_input.from_output_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "stage input binding references missing artifact {} on upstream stage node {}",
+                        stage_input.from_output_id,
+                        stage_input.from_stage_node_id
+                    )
+                })?;
+            inputs.insert(
+                stage_input.to_input_id.clone(),
+                ResolvedStageInputArtifact {
+                    artifact: artifact.clone(),
+                    source_stage_node_id: stage_input.from_stage_node_id.clone(),
+                    source_tool_id: source_plan.tool_id.to_string(),
+                },
+            );
+            continue;
+        }
+
+        let synthetic_artifact = synthetic_stage_artifacts
+            .and_then(|artifacts| artifacts.get(&stage_input.from_stage_node_id))
+            .and_then(|artifacts| {
+                artifacts
+                    .iter()
+                    .find(|artifact| artifact.name.as_str() == stage_input.from_output_id)
+            })
             .ok_or_else(|| {
                 anyhow!(
                     "stage input binding references unknown upstream stage node {}",
                     stage_input.from_stage_node_id
                 )
             })?;
-        let artifact = source_plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == stage_input.from_output_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "stage input binding references missing artifact {} on upstream stage node {}",
-                    stage_input.from_output_id,
-                    stage_input.from_stage_node_id
-                )
-            })?;
         inputs.insert(
             stage_input.to_input_id.clone(),
             ResolvedStageInputArtifact {
-                artifact: artifact.clone(),
+                artifact: synthetic_artifact.clone(),
                 source_stage_node_id: stage_input.from_stage_node_id.clone(),
-                source_tool_id: source_plan.tool_id.to_string(),
+                source_tool_id: "planner".to_string(),
             },
         );
     }
