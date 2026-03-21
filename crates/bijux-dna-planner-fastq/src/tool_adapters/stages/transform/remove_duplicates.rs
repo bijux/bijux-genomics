@@ -233,24 +233,51 @@ fn deduplicate_command(
             ("keep_order_args", Some(keep_order_args)),
         ],
     )?;
-    let report_payload = serde_json::json!({
-        "schema_version": "bijux.fastq.remove_duplicates.report.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
-        "dedup_mode": options.dedup_mode,
-        "keep_order": options.keep_order,
-        "input_r1": r1,
-        "input_r2": r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "backend_log": backend_log,
-    });
-    let script = format!(
-        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
+    let mut script = format!(
+        "set -euo pipefail\ncount_fastq_reads() {{ case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac | awk 'END {{ print NR / 4 }}'; }}\n{}\n",
         shell_join(&rendered),
-        shell_quote_str(&report_payload.to_string()),
-        shell_quote_path(report),
     );
+    script.push_str(&format!(
+        "reads_in=$(count_fastq_reads {})\nreads_out=$(count_fastq_reads {})\n",
+        shell_quote_path(r1),
+        shell_quote_path(output_r1),
+    ));
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        script.push_str(&format!(
+            "reads_in_r2=$(count_fastq_reads {})\nreads_out_r2=$(count_fastq_reads {})\n",
+            shell_quote_path(r2),
+            shell_quote_path(output_r2),
+        ));
+        script.push_str(
+            "pairs_in=$reads_in\npairs_out=$reads_out\npair_count_match=true\nif [ \"$reads_in\" -ne \"$reads_in_r2\" ] || [ \"$reads_out\" -ne \"$reads_out_r2\" ]; then pair_count_match=false; fi\n",
+        );
+    } else {
+        script.push_str(
+            "reads_in_r2=null\nreads_out_r2=null\npairs_in=null\npairs_out=null\npair_count_match=null\n",
+        );
+    }
+    script.push_str(
+        "duplicates_removed=$((reads_in - reads_out))\nif [ \"$reads_in\" -gt 0 ]; then dedup_rate=$(awk -v removed=\"$duplicates_removed\" -v total=\"$reads_in\" 'BEGIN { printf \"%.12f\", removed / total }'); else dedup_rate=0; fi\n",
+    );
+    let report_format = format!(
+        "{{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"dedup_mode\":{},\"keep_order\":{},\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"backend_log\":%s,\"reads_in\":%s,\"reads_out\":%s,\"reads_in_r2\":%s,\"reads_out_r2\":%s,\"pairs_in\":%s,\"pairs_out\":%s,\"pair_count_match\":%s,\"duplicates_removed\":%s,\"dedup_rate\":%s}}",
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(tool_id)?,
+        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
+        serde_json::to_string(&options.dedup_mode)
+            .map_err(|error| anyhow!("serialize dedup_mode for report: {error}"))?,
+        if options.keep_order { "true" } else { "false" },
+    );
+    script.push_str(&format!(
+        "printf '{}' {} {} {} {} {} \"$reads_in\" \"$reads_out\" \"$reads_in_r2\" \"$reads_out_r2\" \"$pairs_in\" \"$pairs_out\" \"$pair_count_match\" \"$duplicates_removed\" \"$dedup_rate\" > {}\n",
+        escape_printf_format(&report_format),
+        shell_quote_str(&json_path_token(r1)?),
+        shell_quote_str(&json_optional_path_token(r2)?),
+        shell_quote_str(&json_path_token(output_r1)?),
+        shell_quote_str(&json_optional_path_token(output_r2)?),
+        shell_quote_str(&json_path_token(&backend_log)?),
+        shell_quote_path(report),
+    ));
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
@@ -286,6 +313,25 @@ pub fn parse_dedup_mode(value: &str) -> Result<DedupMode> {
 
 fn shell_quote_path(path: &Path) -> String {
     shell_quote_str(&path.display().to_string())
+}
+
+fn json_path_token(path: &Path) -> Result<String> {
+    serde_json::to_string(&path.display().to_string())
+        .map_err(|error| anyhow!("serialize path token for deduplicate report: {error}"))
+}
+
+fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
+    serde_json::to_string(&path.map(|value| value.display().to_string()))
+        .map_err(|error| anyhow!("serialize optional path token for deduplicate report: {error}"))
+}
+
+fn escape_printf_format(value: &str) -> String {
+    value.replace('%', "%%")
+}
+
+fn json_string_literal(value: &str) -> Result<String> {
+    serde_json::to_string(value)
+        .map_err(|error| anyhow!("serialize deduplicate string literal: {error}"))
 }
 
 fn shell_quote_str(value: &str) -> String {
@@ -366,6 +412,8 @@ mod tests {
         assert!(script.contains("fastuniq_inputs.txt"));
         assert!(script.contains("fastuniq.log"));
         assert!(script.contains("\"tool_id\":\"fastuniq\""));
+        assert!(script.contains("count_fastq_reads"));
+        assert!(script.contains("\"reads_in\":%%s"));
         assert_eq!(
             plan.params["report_json"],
             serde_json::json!("out/deduplicate_report.json")
