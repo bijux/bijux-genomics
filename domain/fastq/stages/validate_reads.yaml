@@ -17,10 +17,6 @@ outputs:
   - name: "validated_reads_manifest"
     data_type: "json"
     cardinality: "One"
-parameters:
-  - name: "q_cutoff"
-    param_type: "int"
-    default: "0"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"

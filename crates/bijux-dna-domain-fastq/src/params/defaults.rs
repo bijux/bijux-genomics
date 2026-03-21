@@ -42,7 +42,6 @@ pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
     ValidateEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
-        q_cutoff: None,
     }
 }
 

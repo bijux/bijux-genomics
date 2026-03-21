@@ -166,7 +166,6 @@ fn effective_params_validate() -> serde_json::Value {
     serde_json::to_value(ValidateEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
         threads: 2,
-        q_cutoff: None,
     })
     .unwrap()
 }

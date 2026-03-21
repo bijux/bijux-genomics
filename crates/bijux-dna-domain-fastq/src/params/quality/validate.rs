@@ -8,8 +8,6 @@ use super::PairedMode;
 pub struct ValidateEffectiveParams {
     pub paired_mode: PairedMode,
     pub threads: u32,
-    #[serde(default)]
-    pub q_cutoff: Option<u32>,
 }
 
 impl ValidateEffectiveParams {
@@ -30,7 +28,6 @@ impl ValidateEffectiveParams {
         serde_json::json!({
             "paired_mode": self.paired_mode,
             "threads": self.threads,
-            "q": self.q_cutoff,
         })
     }
 }
