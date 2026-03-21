@@ -127,9 +127,9 @@ fn report_qc_exposes_stage_family_comparison_contract() {
     assert_eq!(
         contract.comparison_input_artifact_ids,
         &[
+            "governed_qc_inputs_manifest",
             "multiqc_report",
             "multiqc_data",
-            "governed_qc_inputs_manifest",
         ]
     );
 }
@@ -143,7 +143,7 @@ fn validate_reads_exposes_lineage_aware_comparison_contract() {
 
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &["validation_report", "validated_reads_manifest"]
+        &["validated_reads_manifest", "validation_report"]
     );
 }
 
