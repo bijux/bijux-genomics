@@ -262,13 +262,42 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         } else {
             None
         };
+        let combined_asymmetry =
+            |left: Option<&serde_json::Value>, right: Option<&serde_json::Value>| -> Option<f64> {
+                let values = [
+                    left.and_then(serde_json::Value::as_f64),
+                    right.and_then(serde_json::Value::as_f64),
+                ]
+                .into_iter()
+                .flatten()
+                .collect::<Vec<_>>();
+                if values.is_empty() {
+                    None
+                } else {
+                    Some(values.iter().sum::<f64>() / values.len() as f64)
+                }
+            };
+        let ct_ga_asymmetry_pre = combined_asymmetry(
+            pre_profile_r1.get("ct_ga_asymmetry"),
+            pre_profile_r2
+                .as_ref()
+                .and_then(|profile| profile.get("ct_ga_asymmetry")),
+        );
+        let ct_ga_asymmetry_post = combined_asymmetry(
+            post_profile_r1.get("ct_ga_asymmetry"),
+            post_profile_r2
+                .as_ref()
+                .and_then(|profile| profile.get("ct_ga_asymmetry")),
+        );
         let udg_classification = args
             .damage_mode
             .clone()
             .unwrap_or_else(|| infer_udg_classification(&bench_inputs.r1));
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.trim_terminal_damage.report.v1",
+            "stage": STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
             "stage_id": STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
+            "tool": tool,
             "tool_id": tool,
             "reads_in": metrics.reads_in,
             "reads_out": metrics.reads_out,
@@ -277,6 +306,8 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             "mean_q_before": metrics.mean_q_before,
             "mean_q_after": metrics.mean_q_after,
             "udg_classification": udg_classification,
+            "ct_ga_asymmetry_pre": ct_ga_asymmetry_pre,
+            "ct_ga_asymmetry_post": ct_ga_asymmetry_post,
             "output_r1": output_r1,
             "output_r2": args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
             "trim_5p_bases": args.trim_5p_bases.unwrap_or(2),
