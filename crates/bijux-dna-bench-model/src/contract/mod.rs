@@ -127,10 +127,10 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         }
         for binding in &stage.param_bindings {
             let binding_targets = stage
-                .tool_node_ids()
+                .graph_nodes()
                 .into_iter()
-                .chain(std::iter::once(node_id.to_string()))
-                .collect::<std::collections::BTreeSet<_>>();
+                .map(|node| (node.node_id.clone(), node))
+                .collect::<std::collections::BTreeMap<_, _>>();
             if let Some(stage_instance_id) = binding.stage_instance_id.as_ref() {
                 if stage_instance_id.trim().is_empty() {
                     return Err(BenchError::InvalidPolicy(format!(
@@ -138,7 +138,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                         stage.stage
                     )));
                 }
-                if !binding_targets.contains(stage_instance_id) {
+                if !binding_targets.contains_key(stage_instance_id) {
                     return Err(BenchError::InvalidPolicy(format!(
                         "suite stage {} param binding target {} must match the stage node or one of its stage-tool nodes",
                         stage.stage, stage_instance_id
@@ -158,11 +158,31 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                         stage.stage, tool
                     )));
                 }
+                if let Some(target_node_id) = binding.stage_instance_id.as_ref() {
+                    let target_node = binding_targets.get(target_node_id).expect(
+                        "validated stage param binding target must resolve to a declared graph node",
+                    );
+                    match target_node.tool_id.as_deref() {
+                        Some(target_tool) if target_tool == tool => {}
+                        Some(target_tool) => {
+                            return Err(BenchError::InvalidPolicy(format!(
+                                "suite stage {} param binding tool {} must match target tool node {}",
+                                stage.stage, tool, target_tool
+                            )));
+                        }
+                        None => {
+                            return Err(BenchError::InvalidPolicy(format!(
+                                "suite stage {} tool-scoped param binding for {} must target its stage-tool node, not the stage node {}",
+                                stage.stage, tool, target_node_id
+                            )));
+                        }
+                    }
+                }
             }
             if binding.values.is_empty() {
                 return Err(BenchError::InvalidPolicy(format!(
                     "suite stage {} param_bindings must include at least one structured value",
-                    stage.stage
+                        stage.stage
                 )));
             }
             for key in binding.values.keys() {
@@ -723,6 +743,52 @@ mod tests {
         assert!(error
             .to_string()
             .contains("must match the stage node or one of its stage-tool nodes"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_tool_scoped_binding_targeting_stage_node() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            tools: vec!["fastp".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                tool: Some("fastp".to_string()),
+                values: std::collections::BTreeMap::from([(
+                    "threads".to_string(),
+                    serde_json::json!(4),
+                )]),
+            }],
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error = validate_suite(&suite)
+            .expect_err("tool-scoped bindings must target a typed stage-tool node");
+        assert!(error
+            .to_string()
+            .contains("must target its stage-tool node"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_tool_scoped_binding_with_mismatched_tool_node() {
+        let suite = suite_with_stage(BenchmarkStageSpec {
+            stage: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            tools: vec!["fastp".to_string(), "bbduk".to_string()],
+            params: Vec::new(),
+            param_bindings: vec![BenchmarkParamBinding {
+                stage_instance_id: Some("fastq.trim_reads.cleanup.tool.bbduk".to_string()),
+                tool: Some("fastp".to_string()),
+                values: std::collections::BTreeMap::from([(
+                    "threads".to_string(),
+                    serde_json::json!(4),
+                )]),
+            }],
+            upstream_stage_instance_ids: Vec::new(),
+        });
+        let error = validate_suite(&suite)
+            .expect_err("tool-scoped bindings must match the targeted stage-tool node");
+        assert!(error.to_string().contains("must match target tool node"));
     }
 
     #[test]
