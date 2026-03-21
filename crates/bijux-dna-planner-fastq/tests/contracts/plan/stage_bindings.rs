@@ -1102,6 +1102,63 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
 }
 
 #[test]
+fn planner_rejects_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-select-toolsets-unsupported")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__select_toolsets_invalid__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "benchmark.select_stage_tool".to_string(),
+                    stage_instance_id: Some("benchmark.select_stage_tool.trim_reads".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.trim_reads.cleanup".to_string(),
+                to: "benchmark.select_stage_tool.trim_reads".to_string(),
+                from_output_id: Some("trimmed_reads_r1".to_string()),
+                to_input_id: Some("fastp_trimmed_reads_r1".to_string()),
+            }],
+        )),
+        stage_bindings: Vec::new(),
+        stage_toolsets: vec![FastqStageToolsetBinding {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            tools: vec![tool("fastp"), tool("cutadapt")],
+            reason: None,
+            params: None,
+        }],
+        stages: Vec::new(),
+        tools: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        tool_reasons: None,
+        allow_planned: false,
+    })
+    .expect_err("planner-owned select nodes should reject stage_toolsets");
+
+    assert!(error
+        .to_string()
+        .contains("stage_toolsets cannot be combined with planner-owned select nodes yet"));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -> anyhow::Result<()>
 {
     let temp = bijux_dna_infra::temp_dir("fastq-explicit-reference-index")?;

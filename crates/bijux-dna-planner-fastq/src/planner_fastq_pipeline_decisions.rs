@@ -929,6 +929,10 @@ fn validate_select_stage_nodes(
     Ok(())
 }
 
+fn planner_owned_graph_stage(stage_id: &str) -> bool {
+    stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str()
+}
+
 fn synthetic_stage_artifact_policy(
     pipeline_spec: Option<&PipelineSpec>,
     root_out_dir: &std::path::Path,
@@ -990,6 +994,15 @@ fn normalize_stage_bindings(
         if !config.stages.is_empty() || !config.tools.is_empty() || config.tool_reasons.is_some() {
             return Err(anyhow!(
                 "FastqPlanConfig must use exactly one planning surface: stage_bindings, stage_toolsets, or legacy stages/tools"
+            ));
+        }
+        if config
+            .pipeline_spec
+            .as_ref()
+            .is_some_and(|spec| spec.ordered_nodes().iter().any(|node| planner_owned_graph_stage(&node.stage_id)))
+        {
+            return Err(anyhow!(
+                "stage_toolsets cannot be combined with planner-owned select nodes yet; use explicit stage_bindings until route-collapse semantics are defined"
             ));
         }
         let base_pipeline = config
@@ -1655,6 +1668,12 @@ pub fn select_preprocess_toolsets(
 ) -> Result<Vec<ToolsetSelection>> {
     let mut selections = Vec::new();
     for node in pipeline.ordered_nodes() {
+        if planner_owned_graph_stage(&node.stage_id) {
+            return Err(anyhow!(
+                "toolset selection does not support planner-owned node {}; use explicit stage_bindings for graphs with select/rejoin nodes",
+                PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref())
+            ));
+        }
         enforce_stage_status(&node.stage_id, allow_planned)?;
         let stage_id = StageId::new(node.stage_id.clone());
         let tool_ids = crate::stage_api::toolset_for_stage(&stage_id, mode)
@@ -1692,6 +1711,16 @@ pub fn expand_pipeline_stage_tool_routes(
     toolsets: &[ToolsetSelection],
 ) -> Result<(PipelineSpec, Vec<StageToolSelection>)> {
     let ordered_nodes = pipeline.ordered_nodes();
+    if let Some(node_id) = ordered_nodes
+        .iter()
+        .find(|node| planner_owned_graph_stage(&node.stage_id))
+        .map(|node| PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()))
+    {
+        return Err(anyhow!(
+            "toolset route expansion does not support planner-owned node {}; use explicit stage_bindings until route-collapse semantics are defined",
+            node_id
+        ));
+    }
     if ordered_nodes.len() != toolsets.len() {
         return Err(anyhow!(
             "pipeline node/toolset length mismatch: {} vs {}",
