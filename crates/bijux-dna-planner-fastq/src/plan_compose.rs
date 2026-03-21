@@ -691,16 +691,27 @@ where
                 .then_with(|| left.path.cmp(&right.path))
         });
         next_qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
-        plans.push(plan);
-        let plan = plans.last().expect("stage just pushed");
         let reference_index = if stage_id == STAGE_INDEX_REFERENCE.as_str() {
+            let reference_index_artifact = plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "reference_index")
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} plan from {} must publish a reference_index output artifact",
+                        STAGE_INDEX_REFERENCE.as_str(),
+                        plan.tool_id.as_str()
+                    )
+                })?;
             Some(ReferenceIndexState {
-                path: plan.io.outputs[0].path.clone(),
+                path: reference_index_artifact.path.clone(),
                 tool_id: plan.tool_id.to_string(),
             })
         } else {
             inherited.reference_index.clone()
         };
+        plans.push(plan);
         lineage_by_node_id.insert(
             stage_node_id_for_binding(binding),
             PlannedStageLineage {
