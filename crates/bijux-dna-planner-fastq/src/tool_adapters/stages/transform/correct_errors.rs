@@ -14,6 +14,27 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorrectPlanOptions {
+    pub quality_encoding: QualityEncoding,
+    pub kmer_size: Option<u32>,
+    pub max_memory_gb: Option<u32>,
+    pub trusted_kmer_artifact: Option<String>,
+    pub conservative_mode: bool,
+}
+
+impl Default for CorrectPlanOptions {
+    fn default() -> Self {
+        Self {
+            quality_encoding: QualityEncoding::Phred33,
+            kmer_size: None,
+            max_memory_gb: None,
+            trusted_kmer_artifact: None,
+            conservative_mode: false,
+        }
+    }
+}
+
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
@@ -29,8 +50,24 @@ pub fn plan_correct(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_correct_with_options(tool, r1, r2, out_dir, &CorrectPlanOptions::default())
+}
+
+/// Build a correct plan with governed stage options.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported or the requested explicit options are not
+/// supported by the current backend adapter.
+pub fn plan_correct_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &CorrectPlanOptions,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
+    validate_correct_options(&tool.tool_id.0, options)?;
     let r2 = r2.ok_or_else(|| anyhow!("fastq.correct_errors requires paired-end reads"))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
@@ -41,11 +78,11 @@ pub fn plan_correct(
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
         correction_engine: correction_engine.clone(),
-        quality_encoding: QualityEncoding::Phred33,
-        kmer_size: None,
-        max_memory_gb: None,
-        trusted_kmer_artifact: None,
-        conservative_mode: false,
+        quality_encoding: options.quality_encoding.clone(),
+        kmer_size: options.kmer_size,
+        max_memory_gb: options.max_memory_gb,
+        trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
+        conservative_mode: options.conservative_mode,
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -85,10 +122,10 @@ pub fn plan_correct(
             inputs: {
                 vec![
                     ArtifactRef::required(
-                    ArtifactId::from_static("reads_r1"),
-                    r1.to_path_buf(),
-                    ArtifactRole::Reads,
-                ),
+                        ArtifactId::from_static("reads_r1"),
+                        r1.to_path_buf(),
+                        ArtifactRole::Reads,
+                    ),
                     ArtifactRef::required(
                         ArtifactId::from_static("reads_r2"),
                         r2.to_path_buf(),
@@ -99,20 +136,20 @@ pub fn plan_correct(
             outputs: {
                 vec![
                     ArtifactRef::required(
-                    ArtifactId::from_static("corrected_reads_r1"),
-                    output_r1.clone(),
-                    ArtifactRole::Reads,
-                ),
+                        ArtifactId::from_static("corrected_reads_r1"),
+                        output_r1.clone(),
+                        ArtifactRole::Reads,
+                    ),
                     ArtifactRef::required(
                         ArtifactId::from_static("corrected_reads_r2"),
                         output_r2.clone(),
                         ArtifactRole::Reads,
                     ),
                     ArtifactRef::required(
-                    ArtifactId::from_static("report_json"),
-                    report_json.clone(),
-                    ArtifactRole::ReportJson,
-                ),
+                        ArtifactId::from_static("report_json"),
+                        report_json.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
                 ]
             },
         },
@@ -125,12 +162,54 @@ pub fn plan_correct(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report_json,
+            "quality_encoding": options.quality_encoding,
+            "kmer_size": options.kmer_size,
+            "max_memory_gb": options.max_memory_gb,
+            "trusted_kmer_artifact": options.trusted_kmer_artifact,
+            "conservative_mode": options.conservative_mode,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize correct effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Result<()> {
+    if options.quality_encoding != QualityEncoding::Phred33 {
+        return Err(anyhow!(
+            "{tool_id} correct-errors adapter currently supports only quality_encoding=phred33"
+        ));
+    }
+    if options.kmer_size.is_some() {
+        return Err(anyhow!(
+            "{tool_id} correct-errors adapter does not yet map explicit kmer_size into backend execution"
+        ));
+    }
+    if options.max_memory_gb.is_some() {
+        return Err(anyhow!(
+            "{tool_id} correct-errors adapter does not yet map explicit max_memory_gb into backend execution"
+        ));
+    }
+    if options.trusted_kmer_artifact.is_some() {
+        return Err(anyhow!(
+            "{tool_id} correct-errors adapter does not yet map trusted_kmer_artifact into backend execution"
+        ));
+    }
+    if options.conservative_mode {
+        return Err(anyhow!(
+            "{tool_id} correct-errors adapter does not yet map conservative_mode into backend execution"
+        ));
+    }
+    Ok(())
+}
+
+pub fn parse_quality_encoding(value: &str) -> Result<QualityEncoding> {
+    match value {
+        "phred33" => Ok(QualityEncoding::Phred33),
+        "phred64" => Ok(QualityEncoding::Phred64),
+        _ => Err(anyhow!("unsupported quality_encoding: {value}")),
+    }
 }
 
 fn wrap_correction_command_with_report(
@@ -204,4 +283,86 @@ fn normalize_tools_with_allowlist(
         }
     }
     Ok(normalized)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_core::ids::ToolId;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints};
+
+    fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![tool_id.to_string(), "{{reads_r1}}".to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
+
+    #[test]
+    fn plan_correct_uses_typed_default_effective_params() {
+        let plan = plan_correct(
+            &tool("rcorrector"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+        )
+        .expect("default correct plan should build");
+
+        assert_eq!(
+            plan.effective_params["quality_encoding"],
+            serde_json::json!("phred33")
+        );
+        assert_eq!(plan.effective_params["kmer_size"], serde_json::Value::Null);
+        assert_eq!(
+            plan.effective_params["conservative_mode"],
+            serde_json::json!(false)
+        );
+    }
+
+    #[test]
+    fn plan_correct_rejects_unmapped_quality_encoding_overrides() {
+        let error = plan_correct_with_options(
+            &tool("musket"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &CorrectPlanOptions {
+                quality_encoding: QualityEncoding::Phred64,
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect_err("phred64 should fail until backend mapping exists");
+
+        assert!(error.to_string().contains("quality_encoding=phred33"));
+    }
+
+    #[test]
+    fn plan_correct_rejects_unmapped_kmer_size_overrides() {
+        let error = plan_correct_with_options(
+            &tool("musket"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &CorrectPlanOptions {
+                kmer_size: Some(31),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect_err("kmer_size should fail until backend mapping exists");
+
+        assert!(error.to_string().contains("kmer_size"));
+    }
 }
