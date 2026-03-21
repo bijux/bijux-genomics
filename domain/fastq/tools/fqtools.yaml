@@ -11,7 +11,7 @@ container:
 command_template:
   - "fqtools"
   - "validate"
-  - "{{reads}}"
+  - "{{reads_r1}}"
 outputs:
   - name: "validation_report"
     data_type: "json"
@@ -50,7 +50,7 @@ stage_contracts:
     expected_artifacts:
       - "validation_report"
       - "validated_reads_manifest"
-    notes: "Validation remains report-only; the governed adapter runs this backend over each admitted read stream, admits an optional reads_r2 mate, and enforces paired read synchronization outside the tool-native command."
+    notes: "Validation remains report-only; the governed adapter runs this backend over the canonical reads_r1 port, admits an optional reads_r2 mate, and enforces paired-read synchronization plus lineage capture outside the tool-native command."
 expected_artifacts: ["validation_report", "validated_reads_manifest"]
 metrics_schema_id: "bijux.fastq.validate.v1"
 metrics_schema: "bijux.fastq.validate.v1"
