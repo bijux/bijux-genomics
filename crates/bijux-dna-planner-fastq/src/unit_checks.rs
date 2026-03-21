@@ -513,3 +513,62 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
         .to_string()
         .contains("requires one of [bowtie2_build]"));
 }
+
+#[test]
+fn resolve_preprocess_pipeline_materializes_profile_catalog_as_graph() {
+    let args = crate::selection::args::BenchFastqPreprocessArgs {
+        sample_id: "sample".to_string(),
+        profile: Some("fastq-to-fastq__default__v1".to_string()),
+        r1: "reads_R1.fastq.gz".into(),
+        r2: None,
+        reference_fasta: None,
+        out: "out".into(),
+        strict: false,
+        auto: false,
+        objective: bijux_dna_core::contract::Objective::Balanced,
+        bench_corpus: None,
+        allow_partial: false,
+        dry_run: false,
+        replicates: 1,
+        jobs: 1,
+        ci_bootstrap: None,
+        adapter_bank_preset: None,
+        adapter_bank: None,
+        adapter_bank_file: None,
+        enable_adapters: Vec::new(),
+        disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
+        enable_contaminant_removal: false,
+        no_qc_post: false,
+        force_merge: false,
+        enable_correct: false,
+        run_all_governed_tools: false,
+        allow_planned: false,
+        mode: crate::selection::args::FastqPlannerMode::Shotgun,
+    };
+
+    let pipeline = resolve_preprocess_pipeline(
+        &args,
+        &PreprocessDecisions {
+            enable_merge: false,
+            enable_correct: false,
+            merge_decision: None,
+            correct_decision: None,
+        },
+    );
+
+    assert!(
+        pipeline
+            .edges
+            .iter()
+            .any(|edge| edge.from == "fastq.filter_reads" && edge.to == "fastq.profile_reads"),
+        "profile catalogs must resolve through the governed preprocess DAG"
+    );
+    assert!(
+        pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.profile_reads" && edge.to == "fastq.report_qc"
+        }),
+        "profile catalogs must keep the report_qc aggregation join"
+    );
+}
