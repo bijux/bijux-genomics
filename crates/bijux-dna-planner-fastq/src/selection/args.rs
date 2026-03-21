@@ -160,6 +160,7 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub tools: Vec<String>,
+    pub tools_resolved_implicitly: bool,
     pub explain: bool,
     pub dedup_mode: Option<String>,
     pub keep_order: Option<bool>,

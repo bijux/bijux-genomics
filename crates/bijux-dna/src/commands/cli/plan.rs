@@ -312,6 +312,7 @@ pub fn bench_args_remove_duplicates(
         r2: args.r2.clone(),
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.remove_duplicates", &args.tools)?,
+        tools_resolved_implicitly: bench_tools_resolved_implicitly(&args.tools),
         explain: args.explain,
         dedup_mode: args.dedup_mode.clone(),
         keep_order: args.keep_order,
@@ -637,6 +638,18 @@ fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>>
         }
     }
     Ok(selected)
+}
+
+fn bench_tools_resolved_implicitly(raw_tools: &[String]) -> bool {
+    let mut normalized = raw_tools
+        .iter()
+        .map(|tool| tool.trim().to_lowercase())
+        .filter(|tool| !tool.is_empty())
+        .collect::<Vec<_>>();
+    normalized.sort();
+    normalized.dedup();
+    normalized.is_empty()
+        || (normalized.len() == 1 && matches!(normalized[0].as_str(), "auto" | "all"))
 }
 
 #[must_use]
