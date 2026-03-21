@@ -5,6 +5,8 @@ mod mod_contracts_comparison_contract_rs;
 mod mod_contracts_contract_docs_rs;
 #[path = "contracts/contract_harness.rs"]
 mod mod_contracts_contract_harness_rs;
+#[path = "contracts/correct_errors_manifest.rs"]
+mod mod_contracts_correct_errors_manifest_rs;
 #[path = "contracts/detect_adapters_manifest.rs"]
 mod mod_contracts_detect_adapters_manifest_rs;
 #[path = "contracts/domain_manifest_parity.rs"]
