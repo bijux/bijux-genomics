@@ -8,7 +8,6 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimPoly
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
@@ -16,10 +15,9 @@ use bijux_dna_planner_fastq::stage_api::{
     RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use uuid::Uuid;
-
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
@@ -165,7 +163,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
         )?;
         let bench_params =
             benchmark_query_context(polyx_context.as_ref())?.embed_in_parameters(&plan.params);
-        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&bench_params);
         let image_digest = tool_spec
             .image
             .digest
