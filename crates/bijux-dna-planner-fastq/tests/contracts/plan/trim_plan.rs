@@ -210,6 +210,60 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> {
+    let fastp_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: Some("drop".to_string()),
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+    assert!(fastp_plan
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--n_base_limit", "0"]));
+
+    let cutadapt_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+            &dummy_tool("cutadapt"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            None,
+            None,
+            None,
+            &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+                min_length: None,
+                quality_cutoff: None,
+                n_policy: Some("drop".to_string()),
+                adapter_policy: None,
+                polyx_policy: None,
+                contaminant_policy: None,
+            },
+        )?;
+    assert!(cutadapt_plan
+        .command
+        .template[2]
+        .contains("--max-n"));
+    assert!(cutadapt_plan
+        .command
+        .template[2]
+        .contains("'0'"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("atropos"),
@@ -360,6 +414,45 @@ fn plan_trim_with_options_rejects_contaminant_handoffs_without_execution_support
     assert!(error
         .to_string()
         .contains("use fastq.deplete_reference_contaminants"));
+}
+
+#[test]
+fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("bbduk"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        Some(&serde_json::json!({
+            "enabled_entries": [
+                {"id": "phix-motif", "sequence": "ACGTACGT"}
+            ],
+            "references": [
+                {"id": "phix-ref", "fasta": ">phix-ref\nTTTTAAAA"}
+            ]
+        })),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: Some("drop".to_string()),
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: Some("bank".to_string()),
+        },
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("bbduk_contaminants.fa"));
+    assert!(script.contains(">phix-motif"));
+    assert!(script.contains(">phix-ref"));
+    assert!(script.contains("ref=out/bbduk_contaminants.fa"));
+    assert!(script.contains("maxns=0"));
+    assert!(script.contains("k=31"));
+    Ok(())
 }
 
 #[test]
