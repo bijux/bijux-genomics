@@ -24,7 +24,6 @@ pub struct ValidateEffectiveParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
     pub threads: u32,
-    pub q_cutoff: Option<u32>,
     pub validation_mode: ValidationMode,
     pub pair_sync_policy: PairSyncPolicy,
 }
@@ -51,7 +50,6 @@ impl ValidateEffectiveParams {
             "schema_version": self.schema_version,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
-            "q_cutoff": self.q_cutoff,
             "validation_mode": self.validation_mode,
             "pair_sync_policy": self.pair_sync_policy,
         })
