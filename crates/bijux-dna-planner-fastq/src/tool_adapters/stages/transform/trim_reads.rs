@@ -435,6 +435,17 @@ fn trim_command_template(
             options,
         );
     }
+    if tool.tool_id.as_str() == "prinseq" {
+        return prinseq_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            tool.resources.threads,
+            options,
+        );
+    }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -607,6 +618,51 @@ fn seqpurge_trim_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "seqpurge",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
+fn prinseq_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    _options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "prinseq++".to_string(),
+        "-threads".to_string(),
+        threads.max(1).to_string(),
+        "-fastq".to_string(),
+        r1.display().to_string(),
+        "-out_good".to_string(),
+        output_r1.display().to_string(),
+        "-out_bad".to_string(),
+        "/dev/null".to_string(),
+    ];
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.extend([
+            "-fastq2".to_string(),
+            r2.display().to_string(),
+            "-out_good2".to_string(),
+            output_r2.display().to_string(),
+            "-out_bad2".to_string(),
+            "/dev/null".to_string(),
+            "-out_single".to_string(),
+            "/dev/null".to_string(),
+            "-out_single2".to_string(),
+            "/dev/null".to_string(),
+        ]);
+    }
+    Ok(wrap_trim_command_with_report(
+        "prinseq",
         command,
         r1,
         r2,

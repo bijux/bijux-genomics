@@ -134,6 +134,52 @@ fn plan_trim_supports_filter_style_manifest_placeholders_for_governed_tools() ->
 }
 
 #[test]
+fn plan_trim_prinseq_uses_dedicated_single_end_command() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("prinseq"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("prinseq++"));
+    assert!(script.contains("-threads"));
+    assert!(script.contains("-out_good"));
+    assert!(script.contains("out/prinseq_good.fastq"));
+    assert!(script.contains("-out_bad"));
+    assert!(script.contains("/dev/null"));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_prinseq_preserves_paired_outputs() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("prinseq"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert_eq!(plan.io.outputs[0].path.to_string_lossy(), "out/R1.prinseq_good.fastq");
+    assert_eq!(plan.io.outputs[1].path.to_string_lossy(), "out/R2.prinseq_good.fastq");
+    let script = &plan.command.template[2];
+    assert!(script.contains("-fastq2"));
+    assert!(script.contains("-out_good2"));
+    assert!(script.contains("-out_single"));
+    assert!(script.contains("-out_single2"));
+    Ok(())
+}
+
+#[test]
 fn plan_from_config_preserves_layout_without_enabling_bank_policies() -> Result<()> {
     let config = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::resolve_config(
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimUserConfig {
