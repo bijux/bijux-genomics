@@ -59,6 +59,12 @@
         "path": "out/multiqc_data",
         "role": "index",
         "optional": false
+      },
+      {
+        "name": "governed_qc_inputs_manifest",
+        "path": "out/governed_qc_inputs_manifest.json",
+        "role": "summary_json",
+        "optional": false
       }
     ]
   },
