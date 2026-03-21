@@ -569,6 +569,16 @@ pub struct BenchFastqCorrectArgs {
     pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "Override governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
+    #[arg(long)]
+    pub quality_encoding: Option<String>,
+    #[arg(long)]
+    pub kmer_size: Option<u32>,
+    #[arg(long)]
+    pub max_memory_gb: Option<u32>,
+    #[arg(long)]
+    pub trusted_kmer_artifact: Option<PathBuf>,
+    #[arg(long)]
+    pub conservative_mode: Option<bool>,
 }
 
 #[derive(Debug, Args)]

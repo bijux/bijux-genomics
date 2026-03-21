@@ -257,6 +257,11 @@ pub struct BenchFastqCorrectArgs {
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub threads: Option<u32>,
+    pub quality_encoding: Option<String>,
+    pub kmer_size: Option<u32>,
+    pub max_memory_gb: Option<u32>,
+    pub trusted_kmer_artifact: Option<PathBuf>,
+    pub conservative_mode: Option<bool>,
 }
 
 #[derive(Debug, Clone)]
