@@ -234,6 +234,8 @@ pub struct BenchFastqValidateArgs {
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
     pub strict: bool,
+    #[arg(long)]
+    pub q_cutoff: Option<u32>,
 }
 
 #[derive(Debug, Args)]
