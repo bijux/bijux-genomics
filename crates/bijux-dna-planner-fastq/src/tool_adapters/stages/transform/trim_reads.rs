@@ -236,6 +236,7 @@ pub fn plan_with_options(
         &report_json,
         adapter_bank,
         polyx_bank,
+        contaminant_bank,
         options,
     )?;
     Ok(StagePlanV1 {
@@ -290,6 +291,7 @@ fn trim_command_template(
     report_json: &Path,
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let adapter_policy = options.resolved_adapter_policy();
@@ -315,6 +317,9 @@ fn trim_command_template(
                 "--qualified_quality_phred".to_string(),
                 quality_cutoff.to_string(),
             ]);
+        }
+        if options.resolved_n_policy() == "drop" {
+            command.extend(["--n_base_limit".to_string(), "0".to_string()]);
         }
         if let Some(adapter_sequence) = adapter_sequences.first() {
             if adapter_policy != "none" && adapter_policy != "auto" {
@@ -372,7 +377,15 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "bbduk" {
-        return bbduk_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
+        return bbduk_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            contaminant_bank,
+            options,
+        );
     }
     if tool.tool_id.as_str() == "adapterremoval" {
         return adapterremoval_command_template(
@@ -440,7 +453,13 @@ fn trim_command_template(
 
 fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Result<()> {
     if let Some(policy) = options.n_policy.as_deref() {
-        if policy != "retain" {
+        if !matches!(
+            (policy, tool_id),
+            ("retain", _)
+                | ("drop", "fastp")
+                | ("drop", "cutadapt")
+                | ("drop", "bbduk")
+        ) {
             return Err(anyhow!(
                 "trim planning does not yet support n_policy={policy} for {tool_id}"
             ));
@@ -468,7 +487,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
         }
     }
     if let Some(policy) = options.contaminant_policy.as_deref() {
-        if policy != "none" {
+        if !matches!((policy, tool_id), ("none", _) | ("bank", "bbduk")) {
             return Err(anyhow!(
                 "trim planning does not execute contaminant_policy={policy} for {tool_id}; use fastq.deplete_reference_contaminants"
             ));
@@ -524,6 +543,9 @@ fn cutadapt_command_template(
     if let Some(quality_cutoff) = options.quality_cutoff {
         command.extend(["-q".to_string(), quality_cutoff.to_string()]);
     }
+    if options.resolved_n_policy() == "drop" {
+        command.extend(["--max-n".to_string(), "0".to_string()]);
+    }
     command.extend(["-o".to_string(), output_r1.display().to_string()]);
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
@@ -552,8 +574,13 @@ fn bbduk_trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    contaminant_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
+    let contaminant_ref = report_json
+        .parent()
+        .ok_or_else(|| anyhow!("trim report path must have a parent directory"))?
+        .join("bbduk_contaminants.fa");
     let mut command = vec![
         "bbduk.sh".to_string(),
         format!("in={}", r1.display()),
@@ -570,7 +597,15 @@ fn bbduk_trim_command_template(
         command.push("qtrim=rl".to_string());
         command.push(format!("trimq={quality_cutoff}"));
     }
-    Ok(wrap_trim_command_with_report(
+    if options.resolved_n_policy() == "drop" {
+        command.push("maxns=0".to_string());
+    }
+    if options.resolved_contaminant_policy() == "bank" {
+        command.push(format!("ref={}", contaminant_ref.display()));
+        command.push("k=31".to_string());
+        command.push("hdist=1".to_string());
+    }
+    let wrapped = wrap_trim_command_with_report(
         "bbduk",
         command,
         r1,
@@ -578,7 +613,66 @@ fn bbduk_trim_command_template(
         output_r1,
         output_r2,
         report_json,
-    ))
+    );
+    if options.resolved_contaminant_policy() != "bank" {
+        return Ok(wrapped);
+    }
+    let contaminant_fasta = contaminant_bank_fasta(contaminant_bank)?;
+    let script = format!(
+        "set -euo pipefail\ncat <<'EOF' > {}\n{}\nEOF\n{}\n",
+        shell_quote_path(&contaminant_ref),
+        contaminant_fasta.trim_end(),
+        shell_join(&wrapped),
+    );
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn contaminant_bank_fasta(contaminant_bank: Option<&serde_json::Value>) -> Result<String> {
+    let contaminant_bank = contaminant_bank
+        .ok_or_else(|| anyhow!("trim contaminant_policy=bank requires a contaminant bank"))?;
+    let mut entries = Vec::new();
+    if let Some(enabled_entries) = contaminant_bank
+        .get("enabled_entries")
+        .and_then(serde_json::Value::as_array)
+    {
+        for entry in enabled_entries {
+            let Some(id) = entry.get("id").and_then(serde_json::Value::as_str) else {
+                continue;
+            };
+            let Some(sequence) = entry.get("sequence").and_then(serde_json::Value::as_str) else {
+                continue;
+            };
+            entries.push(format!(">{id}\n{sequence}"));
+        }
+    }
+    if let Some(references) = contaminant_bank
+        .get("references")
+        .and_then(serde_json::Value::as_array)
+    {
+        for reference in references {
+            let Some(id) = reference.get("id").and_then(serde_json::Value::as_str) else {
+                continue;
+            };
+            let Some(fasta) = reference.get("fasta").and_then(serde_json::Value::as_str) else {
+                continue;
+            };
+            let fasta = fasta.trim();
+            if fasta.is_empty() {
+                continue;
+            }
+            if fasta.starts_with('>') {
+                entries.push(fasta.to_string());
+            } else {
+                entries.push(format!(">{id}\n{fasta}"));
+            }
+        }
+    }
+    if entries.is_empty() {
+        return Err(anyhow!(
+            "trim contaminant_policy=bank requires at least one contaminant sequence or reference"
+        ));
+    }
+    Ok(entries.join("\n"))
 }
 
 fn atropos_command_template(
