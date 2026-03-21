@@ -271,8 +271,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .as_deref()
         .unwrap_or("fastq-to-fastq__default__v1")
         .to_string();
-    let (stage_bindings, planner_stage_toolsets) = planner_selection_surfaces(
-        args.run_all_governed_tools,
+    let planner_stage_toolsets = planner_selection_surfaces(
         &selected_stage_tools,
         &tool_specs,
         planner_stage_toolsets,
@@ -281,7 +280,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         pipeline_spec: Some(runtime_pipeline.clone()),
-        stage_bindings,
+        stage_bindings: Vec::new(),
         stage_toolsets: planner_stage_toolsets,
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
@@ -746,35 +745,25 @@ fn terminal_step_ids(graph: &ExecutionGraph) -> Vec<bijux_dna_core::prelude::Ste
 }
 
 fn planner_selection_surfaces(
-    run_all_governed_tools: bool,
     selected_stage_tools: &[StageToolSelection],
     tool_specs: &[bijux_dna_core::prelude::ToolExecutionSpecV1],
     planner_stage_toolsets: Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding>,
-) -> (
-    Vec<bijux_dna_planner_fastq::FastqStageBinding>,
-    Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding>,
-) {
+) -> Vec<bijux_dna_planner_fastq::FastqStageToolsetBinding> {
     if !planner_stage_toolsets.is_empty() {
-        return (Vec::new(), planner_stage_toolsets);
+        return planner_stage_toolsets;
     }
 
-    let stage_bindings = selected_stage_tools
+    selected_stage_tools
         .iter()
         .zip(tool_specs.iter())
-        .map(|(selection, tool)| bijux_dna_planner_fastq::FastqStageBinding {
+        .map(|(selection, tool)| bijux_dna_planner_fastq::FastqStageToolsetBinding {
             stage_id: selection.stage_id.clone(),
             stage_instance_id: selection.stage_instance_id.clone(),
-            tool: tool.clone(),
+            tools: vec![tool.clone()],
             reason: Some(selection.reason.clone()),
             params: None,
         })
-        .collect::<Vec<_>>();
-
-    if run_all_governed_tools {
-        return (stage_bindings, Vec::new());
-    }
-
-    (stage_bindings, Vec::new())
+        .collect::<Vec<_>>()
 }
 
 fn execute_preprocess_batch(
@@ -1091,7 +1080,7 @@ mod pipeline_run_tests {
     }
 
     #[test]
-    fn planner_selection_surfaces_keep_stage_bindings_exclusive() {
+    fn planner_selection_surfaces_build_singleton_toolsets_for_selected_tools() {
         let selected = vec![StageToolSelection {
             stage_id: "fastq.trim_reads".to_string(),
             stage_instance_id: Some("trim.fastp".to_string()),
@@ -1099,15 +1088,20 @@ mod pipeline_run_tests {
             reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
         }];
         let tool_specs = vec![tool_spec("fastp")];
-        let (bindings, toolsets) =
-            planner_selection_surfaces(false, &selected, &tool_specs, Vec::new());
+        let toolsets = planner_selection_surfaces(&selected, &tool_specs, Vec::new());
 
-        assert_eq!(bindings.len(), 1);
-        assert!(toolsets.is_empty());
+        assert_eq!(toolsets.len(), 1);
+        assert_eq!(toolsets[0].stage_id, "fastq.trim_reads");
+        assert_eq!(
+            toolsets[0].stage_instance_id.as_deref(),
+            Some("trim.fastp")
+        );
+        assert_eq!(toolsets[0].tools.len(), 1);
+        assert_eq!(toolsets[0].tools[0].tool_id.as_str(), "fastp");
     }
 
     #[test]
-    fn planner_selection_surfaces_keep_toolsets_exclusive() {
+    fn planner_selection_surfaces_preserve_existing_graph_toolsets() {
         let toolsets = vec![bijux_dna_planner_fastq::FastqStageToolsetBinding {
             stage_id: "fastq.trim_reads".to_string(),
             stage_instance_id: Some("trim.branch".to_string()),
@@ -1116,10 +1110,8 @@ mod pipeline_run_tests {
             params: None,
         }];
 
-        let (bindings, planned_toolsets) =
-            planner_selection_surfaces(false, &[], &[], toolsets);
+        let planned_toolsets = planner_selection_surfaces(&[], &[], toolsets);
 
-        assert!(bindings.is_empty());
         assert_eq!(planned_toolsets.len(), 1);
     }
 }
