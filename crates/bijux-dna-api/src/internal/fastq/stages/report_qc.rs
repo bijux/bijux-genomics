@@ -187,10 +187,9 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec,
             &bench_params,
+            &governed_qc,
             &out_dir,
             &execution,
-            governed_qc.raw_fastqc_dir.as_deref(),
-            &governed_qc,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_qc_post_v1(&conn, &record).context("insert bench sqlite")?;
@@ -359,19 +358,19 @@ fn build_qc_post_record(
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
     params: &serde_json::Value,
+    governed_qc: &GovernedQcInputs,
     out_dir: &Path,
     execution: &StageResultV1,
-    raw_fastqc_dir: Option<&Path>,
-    governed_qc: &GovernedQcInputs,
 ) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
     let metrics = derive_qc_post_metrics(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
         out_dir,
-        raw_fastqc_dir,
+        governed_qc.raw_fastqc_dir.as_deref(),
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let governed_qc_manifest = governed_qc_inputs_manifest_path(out_dir);
 
     let report = serde_json::json!({
         "schema_version": "bijux.fastq.report_qc.report.v1",
@@ -395,24 +394,16 @@ fn build_qc_post_record(
         "report_data_dir": metrics.multiqc_data,
         "multiqc_report": metrics.multiqc_report,
         "multiqc_data": metrics.multiqc_data,
+        "governed_qc_input_count": governed_qc.qc_inputs.len(),
+        "governed_qc_inputs_manifest": path_if_exists(&governed_qc_manifest),
+        "governed_qc_contributors": governed_qc.contributors,
+        "governed_qc_lineage_hash": governed_qc.lineage_hash,
         "runtime_s": execution.runtime_s,
         "memory_mb": execution.memory_mb,
         "exit_code": execution.exit_code,
     });
     bijux_dna_infra::atomic_write_json(&out_dir.join("qc_report.json"), &report)
         .context("write qc report")?;
-    let governed_qc_manifest = GovernedQcInputsManifest {
-        schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
-        qc_inputs: governed_qc.qc_inputs.clone(),
-        contributors: governed_qc.contributors.clone(),
-        raw_fastqc_dir: governed_qc.raw_fastqc_dir.clone(),
-        lineage_hash: governed_qc.lineage_hash.clone(),
-    };
-    bijux_dna_infra::atomic_write_json(
-        &governed_qc_inputs_manifest_path(out_dir),
-        &governed_qc_manifest,
-    )
-    .context("write governed QC inputs manifest")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write qc metrics")?;
@@ -792,7 +783,9 @@ mod tests {
         assert!(loaded
             .lineage_hash
             .as_deref()
-            .is_some_and(|lineage| lineage.contains("fastq.trim_reads.fastp_branch.report_json")));
+            .is_some_and(|lineage| {
+                lineage.contains("fastq.trim_reads.fastp_branch:report_json=")
+            }));
     }
 
     #[test]
@@ -856,7 +849,7 @@ mod tests {
     }
 
     #[test]
-    fn qc_post_record_writes_governed_qc_inputs_manifest() {
+    fn qc_post_record_preserves_planner_written_governed_qc_manifest() {
         let temp = tempfile::tempdir().expect("tempdir");
         std::fs::create_dir_all(temp.path().join("multiqc_data")).expect("multiqc data dir");
         std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
@@ -920,6 +913,19 @@ mod tests {
             command: "multiqc".to_string(),
         };
 
+        let manifest = serde_json::json!({
+            "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+            "qc_inputs": governed_qc.qc_inputs,
+            "contributors": governed_qc.contributors,
+            "raw_fastqc_dir": raw_fastqc_dir,
+            "lineage_hash": governed_qc.lineage_hash,
+        });
+        std::fs::write(
+            governed_qc_inputs_manifest_path(temp.path()),
+            manifest.to_string(),
+        )
+        .expect("write manifest");
+
         build_qc_post_record(
             &PlatformSpec {
                 name: "test".to_string(),
@@ -932,28 +938,33 @@ mod tests {
             "multiqc",
             &tool_spec,
             &serde_json::json!({}),
+            &governed_qc,
             temp.path(),
             &execution,
-            Some(raw_fastqc_dir.as_path()),
-            &governed_qc,
         )
         .expect("record");
 
-        let manifest: serde_json::Value = serde_json::from_str(
+        let preserved_manifest: serde_json::Value = serde_json::from_str(
             &std::fs::read_to_string(governed_qc_inputs_manifest_path(temp.path()))
                 .expect("manifest"),
         )
         .expect("parse manifest");
         assert_eq!(
-            manifest["schema_version"],
+            preserved_manifest["schema_version"],
             serde_json::json!(GOVERNED_QC_INPUTS_SCHEMA_VERSION)
         );
-        assert_eq!(manifest["lineage_hash"], serde_json::json!("fastq.trim_reads=fastp"));
         assert_eq!(
-            manifest["contributors"][0]["stage_id"],
+            preserved_manifest["lineage_hash"],
+            serde_json::json!("fastq.trim_reads=fastp")
+        );
+        assert_eq!(
+            preserved_manifest["contributors"][0]["stage_id"],
             serde_json::json!("fastq.trim_reads")
         );
-        assert_eq!(manifest["qc_inputs"][0]["path"], serde_json::json!(input_artifact));
+        assert_eq!(
+            preserved_manifest["qc_inputs"][0]["path"],
+            serde_json::json!(input_artifact)
+        );
     }
 
     #[test]
