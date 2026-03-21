@@ -27,6 +27,21 @@ pub fn aux_tool_ids() -> Vec<String> {
     crate::qc_contract::governed_qc_default_tool_ids()
 }
 
+#[must_use]
+pub fn aux_tool_ids_for_qc_inputs(qc_inputs: &[ArtifactRef]) -> Vec<String> {
+    let mut tool_ids = qc_inputs
+        .iter()
+        .filter_map(|artifact| parse_qc_contributor_identity(artifact.name.as_str()))
+        .map(|(_stage_id, tool_id)| tool_id)
+        .collect::<Vec<_>>();
+    tool_ids.sort();
+    tool_ids.dedup();
+    if tool_ids.is_empty() {
+        return aux_tool_ids();
+    }
+    tool_ids
+}
+
 /// Build a QC reporting plan from governed upstream QC artifacts.
 ///
 /// # Errors
@@ -165,9 +180,17 @@ fn normalize_tools_with_allowlist(
     Ok(normalized)
 }
 
+fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
+    let parts = name.split('.').collect::<Vec<_>>();
+    if parts.len() >= 5 && parts[2] == "tool" {
+        return Some((format!("{}.{}", parts[0], parts[1]), parts[3].to_string()));
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
-    use super::qc_post_command;
+    use super::{aux_tool_ids_for_qc_inputs, qc_post_command};
     use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
     use std::path::PathBuf;
 
@@ -208,5 +231,28 @@ mod tests {
                 "zeta/fastqc",
             ]
         );
+    }
+
+    #[test]
+    fn qc_aux_tools_follow_qc_input_lineage() {
+        let tool_ids = aux_tool_ids_for_qc_inputs(&[
+            ArtifactRef::required(
+                ArtifactId::from_static("fastq.validate_reads.tool.fastqvalidator.validation_report"),
+                PathBuf::from("validate/report.json"),
+                ArtifactRole::StageReport,
+            ),
+            ArtifactRef::required(
+                ArtifactId::from_static("fastq.detect_adapters.tool.fastqc.adapter_report"),
+                PathBuf::from("detect/report.json"),
+                ArtifactRole::StageReport,
+            ),
+            ArtifactRef::required(
+                ArtifactId::from_static("fastq.detect_adapters.tool.fastqc.adapter_evidence_dir"),
+                PathBuf::from("detect/evidence"),
+                ArtifactRole::Index,
+            ),
+        ]);
+
+        assert_eq!(tool_ids, vec!["fastqc".to_string(), "fastqvalidator".to_string()]);
     }
 }
