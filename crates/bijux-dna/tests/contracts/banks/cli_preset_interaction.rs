@@ -26,6 +26,12 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
         disable_adapter: vec!["adapter2".to_string()],
         polyx_preset: Some("illumina_twocolor".to_string()),
         contaminant_preset: Some("illumina_default".to_string()),
+        min_length: None,
+        quality_cutoff: None,
+        n_policy: None,
+        adapter_policy: None,
+        polyx_policy: None,
+        contaminant_policy: None,
     };
     let bench = bench_args_from_trim(&args)?;
     assert_eq!(
@@ -70,6 +76,7 @@ fn cli_preprocess_args_require_required_fields() -> Result<()> {
         no_qc_post: false,
         force_merge: false,
         enable_correct: false,
+        run_all_governed_tools: false,
         alignment_bam: None,
         alignment_bai: None,
         alignment_reference: None,
