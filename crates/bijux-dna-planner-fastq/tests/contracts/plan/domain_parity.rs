@@ -1,6 +1,8 @@
 use anyhow::Result;
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
-use bijux_dna_domain_fastq::{canonical_amplicon_stage_order, FastqPipelineMode};
+use bijux_dna_domain_fastq::{
+    default_amplicon_preprocess_stage_order, FastqPipelineMode,
+};
 use bijux_dna_planner_fastq::{default_pipeline_spec, DefaultPipelineOptions};
 use std::collections::BTreeSet;
 
@@ -103,7 +105,7 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "default amplicon mode must not schedule planned ASV inference by default"
     );
 
-    let expected = canonical_amplicon_stage_order()
+    let expected = default_amplicon_preprocess_stage_order()
         .into_iter()
         .filter(|stage| stage.as_str() != "fastq.screen_taxonomy")
         .map(|stage| stage.to_string())
@@ -154,4 +156,36 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         spec.declares_graph_topology(),
         "default preprocess pipeline should declare explicit graph topology"
     );
+    assert!(
+        spec.edges
+            .iter()
+            .any(|edge| edge.from == "fastq.filter_reads" && edge.to == "fastq.profile_reads"),
+        "default preprocess graph must branch filtered reads into profile_reads"
+    );
+    assert!(
+        spec.edges.iter().any(|edge| {
+            edge.from == "fastq.filter_reads"
+                && edge.to == "fastq.profile_overrepresented_sequences"
+        }),
+        "default preprocess graph must branch filtered reads into overrepresented-sequence profiling"
+    );
+    let report_qc_inputs = spec
+        .edges
+        .iter()
+        .filter(|edge| edge.to == "fastq.report_qc")
+        .map(|edge| edge.from.clone())
+        .collect::<BTreeSet<_>>();
+    for contributor in [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.profile_reads",
+        "fastq.profile_overrepresented_sequences",
+    ] {
+        assert!(
+            report_qc_inputs.contains(contributor),
+            "default preprocess graph must join {contributor} into report_qc"
+        );
+    }
 }

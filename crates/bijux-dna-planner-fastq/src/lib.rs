@@ -16,6 +16,7 @@ use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{
     assess_merge_suitability, canonical_amplicon_stage_order, canonical_stage_order,
     default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
+    preprocess_pipeline_graph_for_stage_order,
 };
 use bijux_dna_domain_fastq::{
     stages::ids::{STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS},
@@ -70,11 +71,13 @@ fn sort_stages_by_domain_order(stages: Vec<String>, mode: FastqPipelineMode) -> 
         FastqPipelineMode::Amplicon => canonical_amplicon_stage_order(),
     };
     let mut selected = stages.into_iter().collect::<BTreeSet<_>>();
-    order
+    let mut ordered = order
         .into_iter()
         .map(|stage| stage.as_str().to_string())
         .filter(|stage| selected.remove(stage))
-        .collect()
+        .collect::<Vec<_>>();
+    ordered.extend(selected);
+    ordered
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -134,7 +137,12 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     } else if !options.enable_qc_post {
         stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
-    pipeline_spec_from_stage_sequence(sort_stages_by_domain_order(stages, options.mode))
+    preprocess_pipeline_graph_for_stage_order(
+        sort_stages_by_domain_order(stages, options.mode)
+            .into_iter()
+            .map(StageId::new)
+            .collect(),
+    )
 }
 
 #[derive(Debug, Clone)]
@@ -435,7 +443,7 @@ pub fn resolve_preprocess_pipeline(
 }
 
 fn filter_preprocess_pipeline(
-    mut spec: PipelineSpec,
+    spec: PipelineSpec,
     paired: bool,
     shotgun_mode: bool,
     enable_merge: bool,
@@ -444,27 +452,31 @@ fn filter_preprocess_pipeline(
     enable_screen: bool,
     amplicon_only: &[&str],
 ) -> PipelineSpec {
-    let allowed_stages = apply_layout_branching(spec.stage_catalog(), paired);
-    spec.retain_nodes(|node| allowed_stages.iter().any(|stage| stage == &node.stage_id));
+    let mut allowed_stages = apply_layout_branching(spec.stage_catalog(), paired);
     if !shotgun_mode {
-        spec.retain_nodes(|node| node.stage_id != "fastq.trim_polyg_tails");
+        allowed_stages.retain(|stage| stage != "fastq.trim_polyg_tails");
     }
     if !enable_merge {
-        spec.retain_nodes(|node| node.stage_id != STAGE_MERGE_PAIRS.as_str());
+        allowed_stages.retain(|stage| stage != STAGE_MERGE_PAIRS.as_str());
     }
     if !enable_correct {
-        spec.retain_nodes(|node| node.stage_id != STAGE_CORRECT_ERRORS.as_str());
+        allowed_stages.retain(|stage| stage != STAGE_CORRECT_ERRORS.as_str());
     }
     if !enable_qc_post {
-        spec.retain_nodes(|node| node.stage_id != STAGE_REPORT_QC.as_str());
+        allowed_stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
     if !enable_screen {
-        spec.retain_nodes(|node| node.stage_id != STAGE_SCREEN_TAXONOMY.as_str());
+        allowed_stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
     }
     if shotgun_mode {
-        spec.retain_nodes(|node| !amplicon_only.contains(&node.stage_id.as_str()));
+        allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
     }
-    spec
+    preprocess_pipeline_graph_for_stage_order(
+        allowed_stages
+            .into_iter()
+            .map(StageId::new)
+            .collect(),
+    )
 }
 
 include!("planner_fastq_pipeline_decisions.rs");
