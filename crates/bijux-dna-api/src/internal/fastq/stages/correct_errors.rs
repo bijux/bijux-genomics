@@ -264,12 +264,15 @@ fn build_correct_record(
 
     let report = serde_json::json!({
         "schema_version": "bijux.fastq.correct_errors.report.v1",
+        "stage": STAGE_CORRECT_ERRORS.as_str(),
         "stage_id": STAGE_CORRECT_ERRORS.as_str(),
+        "tool": tool,
         "tool_id": tool,
         "input_r1": bench_inputs.r1,
         "input_r2": bench_inputs.r2,
         "output_r1": output_r1,
         "output_r2": out_dir.join("reads_r2.fastq.gz"),
+        "corrected_reads": metrics.reads_out,
         "reads_in": metrics.reads_in,
         "reads_out": metrics.reads_out,
         "bases_in": metrics.bases_in,
