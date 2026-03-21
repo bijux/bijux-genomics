@@ -6,46 +6,12 @@ use tracing::warn;
 use super::{canonical_contract_for_stage, FastqStage, FastqStageContract};
 use crate::metrics::spec::metric_spec_for_stage;
 use crate::types::FastqArtifactKind;
+use crate::stage_compatible_tool_ids;
 use bijux_dna_core::contract::canonical::canonicalize_json_value;
 use bijux_dna_core::prelude::hashing::params_hash;
 
-fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
-    match stage_id {
-        "fastq.trim_reads" => vec![
-            "fastp",
-            "cutadapt",
-            "atropos",
-            "bbduk",
-            "adapterremoval",
-            "trimmomatic",
-            "trim_galore",
-        ],
-        "fastq.trim_terminal_damage" | "fastq.normalize_primers" => {
-            vec!["cutadapt", "seqkit"]
-        }
-        "fastq.filter_reads" => vec!["fastp", "seqkit", "prinseq", "bbduk"],
-        "fastq.remove_duplicates" => vec!["fastuniq", "clumpify"],
-        "fastq.filter_low_complexity" => vec!["prinseq", "bbduk"],
-        "fastq.trim_polyg_tails" => vec!["fastp", "bbduk"],
-        "fastq.deplete_host" => vec!["bowtie2"],
-        "fastq.deplete_reference_contaminants" => vec!["bowtie2"],
-        "fastq.profile_read_lengths" => vec!["seqkit_stats", "prinseq", "fastp"],
-        "fastq.profile_overrepresented_sequences" => vec!["fastqc", "seqkit"],
-        "fastq.remove_chimeras" | "fastq.cluster_otus" => vec!["vsearch"],
-        "fastq.infer_asvs" => Vec::new(),
-        "fastq.normalize_abundance" => vec!["seqkit"],
-        "fastq.validate_reads" => vec!["fastqvalidator", "seqtk", "fqtools"],
-        "fastq.detect_adapters" => vec!["fastqc"],
-        "fastq.merge_pairs" => vec!["pear", "vsearch", "bbmerge", "flash2", "leehom"],
-        "fastq.correct_errors" => vec!["rcorrector", "musket", "lighter", "bayeshammer"],
-        "fastq.extract_umis" => vec!["umi_tools"],
-        "fastq.profile_reads" => vec!["seqkit_stats"],
-        "fastq.report_qc" => vec!["multiqc"],
-        "fastq.screen_taxonomy" => vec!["kraken2", "krakenuniq", "centrifuge", "kaiju"],
-        "fastq.index_reference" => vec!["bowtie2_build", "star"],
-        "fastq.deplete_rrna" => vec!["sortmerna"],
-        _ => Vec::new(),
-    }
+fn tool_ids_for_stage(stage_id: &str) -> Vec<String> {
+    stage_compatible_tool_ids(stage_id).unwrap_or_default()
 }
 
 #[must_use]
