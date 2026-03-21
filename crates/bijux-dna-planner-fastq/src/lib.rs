@@ -114,39 +114,35 @@ impl Default for DefaultPipelineOptions {
 
 #[must_use]
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
-    let mut stages: Vec<String> = if options.mode == FastqPipelineMode::Amplicon {
+    let mut selected_stages = if options.mode == FastqPipelineMode::Amplicon {
         default_amplicon_preprocess_stage_order()
             .into_iter()
             .map(|stage| stage.as_str().to_string())
-            .collect()
+            .collect::<BTreeSet<_>>()
     } else {
         default_shotgun_preprocess_stage_order()
             .into_iter()
             .map(|stage| stage.as_str().to_string())
-            .collect()
+            .collect::<BTreeSet<_>>()
     };
     if options.paired && options.enable_correct {
-        stages.push(STAGE_CORRECT_ERRORS.as_str().to_string());
+        selected_stages.insert(STAGE_CORRECT_ERRORS.as_str().to_string());
     }
     if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
-        stages.push(STAGE_MERGE_PAIRS.as_str().to_string());
+        selected_stages.insert(STAGE_MERGE_PAIRS.as_str().to_string());
     }
-    if options.enable_screen
-        && !stages
-            .iter()
-            .any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str())
-    {
-        stages.push(STAGE_SCREEN_TAXONOMY.as_str().to_string());
-    } else if !options.enable_screen {
-        stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
+    if options.enable_screen {
+        selected_stages.insert(STAGE_SCREEN_TAXONOMY.as_str().to_string());
+    } else {
+        selected_stages.remove(STAGE_SCREEN_TAXONOMY.as_str());
     }
-    if options.enable_qc_post && !stages.iter().any(|stage| stage == STAGE_REPORT_QC.as_str()) {
-        stages.push(STAGE_REPORT_QC.as_str().to_string());
-    } else if !options.enable_qc_post {
-        stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
+    if options.enable_qc_post {
+        selected_stages.insert(STAGE_REPORT_QC.as_str().to_string());
+    } else {
+        selected_stages.remove(STAGE_REPORT_QC.as_str());
     }
     preprocess_pipeline_graph_for_stage_order(
-        sort_stages_by_domain_order(stages, options.mode)
+        sort_stages_by_domain_order(selected_stages.into_iter().collect(), options.mode)
             .into_iter()
             .map(StageId::new)
             .collect(),
