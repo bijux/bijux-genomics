@@ -36,6 +36,22 @@ fn correction_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
             .iter()
             .filter_map(serde_json::Value::as_str)
             .collect::<Vec<_>>();
+        let expected_outputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("expected_outputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} execution expected_outputs"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+        let optional_outputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("optional_outputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} execution optional_outputs"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
         assert_eq!(
             required_inputs,
             vec!["reads_r1"],
@@ -45,6 +61,16 @@ fn correction_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
             optional_inputs,
             vec!["reads_r2"],
             "{tool_id} execution contract must admit reads_r2 as an optional mate input"
+        );
+        assert_eq!(
+            expected_outputs,
+            vec!["corrected_reads_r1", "report_json"],
+            "{tool_id} execution contract must require only the always-emitted correction outputs"
+        );
+        assert_eq!(
+            optional_outputs,
+            vec!["corrected_reads_r2"],
+            "{tool_id} execution contract must publish corrected_reads_r2 as an optional mate output"
         );
     }
     Ok(())
