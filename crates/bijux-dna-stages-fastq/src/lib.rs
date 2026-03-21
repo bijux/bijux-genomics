@@ -36,8 +36,10 @@ pub fn observer_specialized_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
     closed_execution_stage_ids()
         .into_iter()
         .filter(|stage_id| {
-            bijux_dna_domain_fastq::execution_support_for_stage(stage_id).is_some_and(|support| {
-                support.normalization_support == NormalizationSupport::ObserverSpecialized
+            stage_uses_only_observer_specialized_runtime(stage_id).unwrap_or_else(|| {
+                bijux_dna_domain_fastq::execution_support_for_stage(stage_id).is_some_and(
+                    |support| support.normalization_support == NormalizationSupport::ObserverSpecialized,
+                )
             })
         })
         .collect()
@@ -127,6 +129,9 @@ pub fn runtime_interpretation_for_stage(stage_id: &StageId) -> Option<RuntimeInt
     {
         return None;
     }
+    if stage_uses_only_observer_specialized_runtime(stage_id) == Some(true) {
+        return Some(RuntimeInterpretationLevel::ObserverSpecialized);
+    }
     bijux_dna_domain_fastq::execution_support_for_stage(stage_id).map(|support| {
         if support.normalization_support == NormalizationSupport::ObserverSpecialized {
             RuntimeInterpretationLevel::ObserverSpecialized
@@ -134,6 +139,21 @@ pub fn runtime_interpretation_for_stage(stage_id: &StageId) -> Option<RuntimeInt
             RuntimeInterpretationLevel::GenericEnvelope
         }
     })
+}
+
+fn stage_uses_only_observer_specialized_runtime(stage_id: &StageId) -> Option<bool> {
+    let runnable_tools = bijux_dna_domain_fastq::stage_tool_governance_profiles_for_stage(stage_id)
+        .into_iter()
+        .filter(|profile| profile.admitted_runtime_tool && profile.is_runnable())
+        .map(|profile| profile.tool_id)
+        .collect::<Vec<_>>();
+    if runnable_tools.is_empty() {
+        return None;
+    }
+    Some(runnable_tools.into_iter().all(|tool_id| {
+        runtime_interpretation_for_stage_tool(stage_id, &tool_id)
+            == Some(RuntimeInterpretationLevel::ObserverSpecialized)
+    }))
 }
 
 #[must_use]
@@ -206,7 +226,7 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage(&StageId::from_static("fastq.validate_reads")),
-            Some(RuntimeInterpretationLevel::GenericEnvelope)
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
         assert_eq!(
             runtime_interpretation_for_stage(&StageId::from_static("fastq.remove_duplicates")),
@@ -234,5 +254,20 @@ mod tests {
         assert!(!observer_specialized.contains(&StageId::from_static(
             "fastq.profile_overrepresented_sequences"
         )));
+    }
+
+    #[test]
+    fn stage_runtime_interpretation_tracks_fully_specialized_runtime_bindings() {
+        let validate_stage = StageId::from_static("fastq.validate_reads");
+        assert_eq!(
+            runtime_interpretation_for_stage(&validate_stage),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        for tool_id in ["fastqvalidator", "seqtk", "fqtools"] {
+            assert_eq!(
+                runtime_interpretation_for_stage_tool(&validate_stage, &ToolId::from_static(tool_id)),
+                Some(RuntimeInterpretationLevel::ObserverSpecialized)
+            );
+        }
     }
 }
