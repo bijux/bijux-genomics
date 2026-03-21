@@ -52,10 +52,11 @@ pub fn plan_qc_post_with_qc_inputs(
     }
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
-        "qc_inputs": qc_inputs
+        "qc_input_paths": qc_inputs
             .iter()
             .map(|artifact| artifact.path.clone())
             .collect::<Vec<_>>(),
+        "qc_input_count": qc_inputs.len(),
         "out_dir": out_dir
     });
     if let Some(raw) = raw_r1 {
