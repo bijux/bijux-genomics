@@ -160,3 +160,49 @@ fn normalize_tools_with_allowlist(
     }
     Ok(normalized)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::qc_post_command;
+    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
+    use std::path::PathBuf;
+
+    #[test]
+    fn qc_post_command_sorts_and_deduplicates_governed_inputs() {
+        let command = qc_post_command(
+            "multiqc",
+            &[
+                ArtifactRef::required(
+                    ArtifactId::from_static("artifact_b"),
+                    PathBuf::from("zeta/fastqc"),
+                    ArtifactRole::StageReport,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("artifact_a"),
+                    PathBuf::from("alpha/fastqc"),
+                    ArtifactRole::StageReport,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("artifact_dup"),
+                    PathBuf::from("alpha/fastqc"),
+                    ArtifactRole::StageReport,
+                ),
+            ],
+            std::path::Path::new("out/multiqc_data"),
+        )
+        .expect("multiqc command should build");
+
+        assert_eq!(
+            command,
+            vec![
+                "multiqc",
+                "-o",
+                "out/multiqc_data",
+                "-n",
+                "multiqc_report.html",
+                "alpha/fastqc",
+                "zeta/fastqc",
+            ]
+        );
+    }
+}

@@ -30,7 +30,7 @@ constraints:
   threads: 2
 execution_contract:
   required_inputs:
-    - "qc_artifacts"
+    - "qc_input_paths"
   expected_outputs:
     - "multiqc_report"
     - "multiqc_data"
@@ -51,7 +51,7 @@ stage_contracts:
     expected_artifacts:
       - "multiqc_report"
       - "multiqc_data"
-    notes: "QC aggregation emits the governed MultiQC report bundle from governed upstream QC artifacts; planner expands the governed qc_artifacts set into the variadic qc_input_paths command list."
+    notes: "QC aggregation accepts governed stage-level qc_artifacts, and the planner lowers that bundle into the sorted, deduplicated qc_input_paths execution input consumed by the MultiQC command template."
 expected_artifacts: ["multiqc_report", "multiqc_data"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
