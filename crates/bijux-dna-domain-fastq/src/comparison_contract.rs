@@ -27,14 +27,14 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.trim_reads",
-        &["report_json"],
+        &["trimmed_reads_r1", "trimmed_reads_r2", "report_json"],
         "trim_tool_benchmark_cohort_json",
         "trim_tool_comparison_json",
         "trim_tool_normalization_json",
     ),
     (
         "fastq.trim_polyg_tails",
-        &["report_json"],
+        &["trimmed_reads_r1", "trimmed_reads_r2", "report_json"],
         "polyg_trim_tool_benchmark_cohort_json",
         "polyg_trim_tool_comparison_json",
         "polyg_trim_tool_normalization_json",
@@ -83,7 +83,7 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.remove_duplicates",
-        &["report_json"],
+        &["dedup_reads_r1", "dedup_reads_r2", "report_json"],
         "dedup_tool_benchmark_cohort_json",
         "dedup_tool_comparison_json",
         "dedup_tool_normalization_json",
@@ -104,14 +104,14 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.report_qc",
-        &["multiqc_data"],
+        &["multiqc_report", "multiqc_data"],
         "qc_aggregation_tool_benchmark_cohort_json",
         "qc_aggregation_tool_comparison_json",
         "qc_aggregation_tool_normalization_json",
     ),
     (
         "fastq.correct_errors",
-        &["report_json"],
+        &["corrected_reads_r1", "corrected_reads_r2", "report_json"],
         "correction_tool_benchmark_cohort_json",
         "correction_tool_comparison_json",
         "correction_tool_normalization_json",
@@ -125,14 +125,17 @@ const STAGE_COMPARISON_CONTRACTS: &[StageComparisonContractRecord] = &[
     ),
     (
         "fastq.trim_terminal_damage",
-        &["report_json"],
+        &["trimmed_reads_r1", "trimmed_reads_r2", "report_json"],
         "terminal_damage_tool_benchmark_cohort_json",
         "terminal_damage_tool_comparison_json",
         "terminal_damage_tool_normalization_json",
     ),
     (
         "fastq.profile_overrepresented_sequences",
-        &["overrepresented_sequences_tsv", "overrepresented_sequences_json"],
+        &[
+            "overrepresented_sequences_tsv",
+            "overrepresented_sequences_json",
+        ],
         "overrepresented_sequence_tool_benchmark_cohort_json",
         "overrepresented_sequence_tool_comparison_json",
         "overrepresented_sequence_tool_normalization_json",
