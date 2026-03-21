@@ -75,6 +75,7 @@ pub fn correct_defaults(paired: bool) -> FastqCorrectParams {
         correction_engine: CorrectionEngine::Rcorrector,
         quality_encoding: QualityEncoding::Phred33,
         kmer_size: None,
+        genome_size: None,
         max_memory_gb: None,
         trusted_kmer_artifact: None,
         conservative_mode: false,
