@@ -14,7 +14,7 @@ command_template:
   - "{{multiqc_data}}"
   - "-n"
   - "multiqc_report.html"
-  - "{{qc_artifacts}}"
+  - "{{qc_input_paths}}"
 outputs:
   - name: "multiqc_report"
     data_type: "html"
@@ -51,7 +51,7 @@ stage_contracts:
     expected_artifacts:
       - "multiqc_report"
       - "multiqc_data"
-    notes: "QC aggregation emits the governed MultiQC report bundle from governed upstream QC artifacts."
+    notes: "QC aggregation emits the governed MultiQC report bundle from governed upstream QC artifacts; planner expands the governed qc_artifacts set into the variadic qc_input_paths command list."
 expected_artifacts: ["multiqc_report", "multiqc_data"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"

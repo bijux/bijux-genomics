@@ -56,6 +56,14 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
         )?;
 
     assert_eq!(plan.io.inputs.len(), 2);
+    assert_eq!(plan.params["qc_input_count"], serde_json::json!(2));
+    assert_eq!(
+        plan.params["qc_input_paths"],
+        serde_json::json!([
+            "profile_reads/qc.json",
+            "detect_adapters/adapter_report.json"
+        ])
+    );
     assert_eq!(
         plan.effective_params["aggregation_scope"],
         serde_json::json!("governed_qc_artifacts")
