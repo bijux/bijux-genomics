@@ -506,13 +506,7 @@ fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
     bench_inputs: &QcPostBenchInputs,
     out_dir: &Path,
 ) -> Result<GovernedQcInputs> {
-    let contributors = bench_governed_qc_contributor_stage_ids(bench_inputs.r2.is_some())
-        .into_iter()
-        .filter_map(|stage_id| {
-            bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&stage_id)
-                .map(|tool_id| (stage_id, tool_id))
-        })
-        .collect::<Vec<_>>();
+    let contributors = bench_governed_qc_contributor_bindings(bench_inputs.r2.is_some());
     let mut plans = Vec::with_capacity(contributors.len());
     for (stage_id, tool_id) in contributors {
         let stage_id_str = stage_id.as_str();
@@ -588,6 +582,29 @@ fn bench_governed_qc_contributor_stage_ids(paired_end: bool) -> Vec<bijux_dna_co
     bijux_dna_planner_fastq::stage_api::governed_qc_bench_contributor_stage_ids(paired_end)
 }
 
+fn bench_governed_qc_contributor_bindings(
+    paired_end: bool,
+) -> Vec<(bijux_dna_core::ids::StageId, bijux_dna_core::ids::ToolId)> {
+    let mut bindings = bench_governed_qc_contributor_stage_ids(paired_end)
+        .into_iter()
+        .flat_map(|stage_id| {
+            bijux_dna_planner_fastq::stage_api::toolset_for_stage(
+                &stage_id,
+                bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
+            )
+            .into_iter()
+            .map(move |tool_id| (stage_id.clone(), tool_id))
+        })
+        .collect::<Vec<_>>();
+    bindings.sort_by(|left, right| {
+        left.0
+            .as_str()
+            .cmp(right.0.as_str())
+            .then_with(|| left.1.as_str().cmp(right.1.as_str()))
+    });
+    bindings
+}
+
 fn plan_governed_qc_contributor(
     stage_id: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -653,6 +670,9 @@ fn plan_governed_qc_contributor(
             )?
         }
         "fastq.remove_duplicates" => {
+            if tool_spec.tool_id.as_str() == "fastuniq" && r2.is_none() {
+                return Ok(None);
+            }
             bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
                 tool_spec, r1, r2, out_dir,
             )?
@@ -719,7 +739,8 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> &'static [&'static str] {
 #[cfg(test)]
 mod tests {
     use super::{
-        bench_governed_qc_contributor_stage_ids, derive_qc_post_metrics,
+        bench_governed_qc_contributor_bindings, bench_governed_qc_contributor_stage_ids,
+        derive_qc_post_metrics,
         governed_qc_artifacts_for_plan,
         load_governed_qc_inputs_manifest, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
@@ -751,6 +772,20 @@ mod tests {
         assert!(!single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
         assert!(!single_end.contains(&StageId::from_static("fastq.extract_umis")));
+    }
+
+    #[test]
+    fn bench_qc_contributor_bindings_include_governed_nondefault_cleanup_tools() {
+        let paired = bench_governed_qc_contributor_bindings(true);
+        assert!(paired.iter().any(|(stage, tool)| {
+            stage.as_str() == "fastq.trim_reads" && tool.as_str() == "fastp"
+        }));
+        assert!(paired.iter().any(|(stage, tool)| {
+            stage.as_str() == "fastq.trim_reads" && tool.as_str() == "bbduk"
+        }));
+        assert!(paired.iter().any(|(stage, tool)| {
+            stage.as_str() == "fastq.remove_duplicates" && tool.as_str() == "clumpify"
+        }));
     }
 
     #[test]
