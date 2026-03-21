@@ -108,27 +108,36 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
 
-    let adapter_context = adapter_bank_context(
-        args.adapter_bank_preset.as_deref(),
-        args.adapter_bank.as_deref(),
-        args.adapter_bank_file.as_deref(),
-        &args.enable_adapters,
-        &args.disable_adapters,
-    )?;
-    let polyx_context = polyx_bank_context(args.polyx_preset.as_deref())?;
-    let contaminant_context = contaminant_bank_context(args.contaminant_preset.as_deref())?;
-    let adapter_context = apply_trim_bank_policy(
-        adapter_context,
+    let adapter_policy = normalized_adapter_policy(
         args.adapter_policy.as_deref(),
-        "adapter_policy",
+        adapter_bank_requested(args),
     )?;
-    let polyx_context =
-        apply_trim_bank_policy(polyx_context, args.polyx_policy.as_deref(), "polyx_policy")?;
-    let contaminant_context = apply_trim_bank_policy(
-        contaminant_context,
+    let adapter_context = if adapter_policy_uses_bank(adapter_policy.as_deref()) {
+        adapter_bank_context(
+            args.adapter_bank_preset.as_deref(),
+            args.adapter_bank.as_deref(),
+            args.adapter_bank_file.as_deref(),
+            &args.enable_adapters,
+            &args.disable_adapters,
+        )?
+    } else {
+        None
+    };
+    let polyx_policy = normalized_polyx_policy(args.polyx_policy.as_deref(), args.polyx_preset.is_some())?;
+    let polyx_context = if polyx_policy_uses_bank(polyx_policy.as_deref()) {
+        polyx_bank_context(args.polyx_preset.as_deref())?
+    } else {
+        None
+    };
+    let contaminant_policy = normalized_contaminant_policy(
         args.contaminant_policy.as_deref(),
-        "contaminant_policy",
+        args.contaminant_preset.is_some(),
     )?;
+    let contaminant_context = if contaminant_policy_uses_bank(contaminant_policy.as_deref()) {
+        contaminant_bank_context(args.contaminant_preset.as_deref())?
+    } else {
+        None
+    };
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -160,9 +169,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 min_length: args.min_length,
                 quality_cutoff: args.quality_cutoff,
                 n_policy: args.n_policy.clone(),
-                adapter_policy: args.adapter_policy.clone(),
-                polyx_policy: args.polyx_policy.clone(),
-                contaminant_policy: args.contaminant_policy.clone(),
+                adapter_policy: adapter_policy.clone(),
+                polyx_policy: polyx_policy.clone(),
+                contaminant_policy: contaminant_policy.clone(),
             },
         )?;
         let bench_params = benchmark_query_context(
@@ -353,27 +362,66 @@ fn combine_seqkit_metrics(
     }
 }
 
-fn apply_trim_bank_policy(
-    context: Option<serde_json::Value>,
-    policy: Option<&str>,
-    policy_name: &str,
-) -> Result<Option<serde_json::Value>> {
+fn adapter_bank_requested(args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs) -> bool {
+    args.adapter_bank_preset.is_some()
+        || args.adapter_bank.is_some()
+        || args.adapter_bank_file.is_some()
+        || !args.enable_adapters.is_empty()
+        || !args.disable_adapters.is_empty()
+}
+
+fn normalized_adapter_policy(policy: Option<&str>, explicit_bank_selection: bool) -> Result<Option<String>> {
     match policy {
-        None => Ok(context),
-        Some("none") => Ok(None),
-        Some("bank") => {
-            if context.is_some() {
-                Ok(context)
-            } else {
-                Err(anyhow!(
-                    "{policy_name}=bank requires a matching governed bank selection"
-                ))
-            }
-        }
+        None if explicit_bank_selection => Ok(Some("bank".to_string())),
+        None => Ok(None),
+        Some("none") => Ok(Some("none".to_string())),
+        Some("auto") => Ok(Some("auto".to_string())),
+        Some("bank") => Ok(Some("bank".to_string())),
+        Some("ancient_strict") => Ok(Some("ancient_strict".to_string())),
         Some(other) => Err(anyhow!(
-            "{policy_name} must be one of `none` or `bank`, received `{other}`"
+            "adapter_policy must be one of `none`, `auto`, `bank`, or `ancient_strict`, received `{other}`"
         )),
     }
+}
+
+fn normalized_polyx_policy(policy: Option<&str>, explicit_bank_selection: bool) -> Result<Option<String>> {
+    match policy {
+        None if explicit_bank_selection => Ok(Some("bank".to_string())),
+        None => Ok(None),
+        Some("none") => Ok(Some("none".to_string())),
+        Some("trim") => Ok(Some("trim".to_string())),
+        Some("bank") => Ok(Some("bank".to_string())),
+        Some(other) => Err(anyhow!(
+            "polyx_policy must be one of `none`, `trim`, or `bank`, received `{other}`"
+        )),
+    }
+}
+
+fn normalized_contaminant_policy(
+    policy: Option<&str>,
+    explicit_bank_selection: bool,
+) -> Result<Option<String>> {
+    match policy {
+        None if explicit_bank_selection => Ok(Some("bank".to_string())),
+        None => Ok(None),
+        Some("none") => Ok(Some("none".to_string())),
+        Some("bank") => Ok(Some("bank".to_string())),
+        Some(other) => Err(anyhow!(
+            "contaminant_policy must be one of `none` or `bank`, received `{other}`"
+        )),
+    }
+}
+
+fn adapter_policy_uses_bank(policy: Option<&str>) -> bool {
+    matches!(policy, Some("bank" | "ancient_strict"))
+}
+
+fn polyx_policy_uses_bank(policy: Option<&str>) -> bool {
+    matches!(policy, Some("bank"))
+}
+
+fn contaminant_policy_uses_bank(policy: Option<&str>) -> bool {
+    matches!(policy, Some("bank"))
 }
 
 fn benchmark_query_context(
@@ -397,7 +445,11 @@ fn benchmark_query_context(
 
 #[cfg(test)]
 mod tests {
-    use super::benchmark_query_context;
+    use super::{
+        adapter_bank_requested, adapter_policy_uses_bank, benchmark_query_context,
+        contaminant_policy_uses_bank, normalized_adapter_policy, normalized_contaminant_policy,
+        normalized_polyx_policy, polyx_policy_uses_bank,
+    };
 
     #[test]
     fn benchmark_query_context_captures_governed_trim_bank_hashes() {
@@ -428,5 +480,72 @@ mod tests {
                 .map(String::as_str),
             Some("contaminant-hash")
         );
+    }
+
+    #[test]
+    fn implicit_trim_banks_stay_disabled_without_policy_or_explicit_selection() {
+        assert_eq!(normalized_adapter_policy(None, false).unwrap(), None);
+        assert_eq!(normalized_polyx_policy(None, false).unwrap(), None);
+        assert_eq!(normalized_contaminant_policy(None, false).unwrap(), None);
+        assert!(!adapter_policy_uses_bank(None));
+        assert!(!polyx_policy_uses_bank(None));
+        assert!(!contaminant_policy_uses_bank(None));
+    }
+
+    #[test]
+    fn explicit_trim_bank_selection_promotes_missing_policy_to_bank() {
+        assert_eq!(
+            normalized_adapter_policy(None, true).unwrap().as_deref(),
+            Some("bank")
+        );
+        assert_eq!(
+            normalized_polyx_policy(None, true).unwrap().as_deref(),
+            Some("bank")
+        );
+        assert_eq!(
+            normalized_contaminant_policy(None, true).unwrap().as_deref(),
+            Some("bank")
+        );
+    }
+
+    #[test]
+    fn adapter_policy_supports_ancient_strict_without_forcing_explicit_flags() {
+        assert_eq!(
+            normalized_adapter_policy(Some("ancient_strict"), false)
+                .unwrap()
+                .as_deref(),
+            Some("ancient_strict")
+        );
+        assert!(adapter_policy_uses_bank(Some("ancient_strict")));
+    }
+
+    #[test]
+    fn adapter_bank_requested_detects_any_explicit_adapter_selection() {
+        let args = bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs {
+            sample_id: "sample".to_string(),
+            r1: "reads_R1.fastq.gz".into(),
+            r2: None,
+            out: "out".into(),
+            tools: vec!["fastp".to_string()],
+            explain: false,
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+            adapter_bank_preset: Some("illumina-default".to_string()),
+            adapter_bank: None,
+            adapter_bank_file: None,
+            enable_adapters: Vec::new(),
+            disable_adapters: Vec::new(),
+            polyx_preset: None,
+            contaminant_preset: None,
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        };
+
+        assert!(adapter_bank_requested(&args));
     }
 }
