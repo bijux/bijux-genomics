@@ -5,7 +5,6 @@ use bijux_dna_analyze::load::sqlite::query_shared::{fetch_fastq_trim_v2, insert_
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_trim_tools;
@@ -15,8 +14,6 @@ use bijux_dna_planner_fastq::stage_api::{
     polyx_bank_context, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use uuid::Uuid;
-
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 
@@ -24,6 +21,7 @@ use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, json_string, observe_fastq_stats,
     prepare_trim_bench,
 };
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_READS,
@@ -173,7 +171,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             contaminant_context.as_ref(),
         )?
         .embed_in_parameters(&plan.params);
-        let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&bench_params);
         let image_digest = tool_spec
             .image
             .digest
