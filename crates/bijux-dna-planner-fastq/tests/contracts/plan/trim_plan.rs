@@ -80,6 +80,10 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
     );
     assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
     assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
+    assert_eq!(plan.params["min_length"], serde_json::json!(30));
+    assert_eq!(plan.params["n_policy"], serde_json::json!("retain"));
+    assert_eq!(plan.effective_params["min_len"], serde_json::json!(30));
+    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
     Ok(())
 }
 

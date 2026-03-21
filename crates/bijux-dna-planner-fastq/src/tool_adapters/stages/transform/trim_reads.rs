@@ -18,6 +18,18 @@ pub struct TrimPlanOptions {
     pub n_policy: Option<String>,
 }
 
+impl TrimPlanOptions {
+    fn resolved_min_length(&self) -> u32 {
+        self.min_length.unwrap_or(30)
+    }
+
+    fn resolved_n_policy(&self) -> String {
+        self.n_policy
+            .clone()
+            .unwrap_or_else(|| "retain".to_string())
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TrimUserConfig {
     pub tool: String,
@@ -121,9 +133,9 @@ pub fn plan_with_options(
         "input_r2": r2,
         "output_r1": output_r1,
         "output_r2": output_r2,
-        "min_length": options.min_length,
+        "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
-        "n_policy": options.n_policy,
+        "n_policy": options.resolved_n_policy(),
     });
     if let Some(adapter_bank) = adapter_bank {
         if let Some(map) = params.as_object_mut() {
@@ -147,7 +159,7 @@ pub fn plan_with_options(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        min_len: options.min_length.unwrap_or(0),
+        min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
         adapter_policy: if adapter_bank.is_some() {
             "bank".to_string()
@@ -156,7 +168,7 @@ pub fn plan_with_options(
         },
         damage_mode: None,
         polyx_policy: polyx_bank.as_ref().map(|_| "bank".to_string()),
-        n_policy: options.n_policy.clone(),
+        n_policy: Some(options.resolved_n_policy()),
         contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),
     };
     let mut inputs = vec![ArtifactRef::required(

@@ -44,6 +44,7 @@
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
     "out_dir": "out",
+    "q_cutoff": null,
     "report_json": "out/validation.json",
     "tool": "fastqvalidator"
   },

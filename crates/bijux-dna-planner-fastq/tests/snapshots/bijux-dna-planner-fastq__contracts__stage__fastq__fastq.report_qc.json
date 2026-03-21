@@ -65,7 +65,8 @@
   "out_dir": "out",
   "params": {
     "out_dir": "out",
-    "qc_inputs": [
+    "qc_input_count": 3,
+    "qc_input_paths": [
       "out/detect_adapters/fastqc/adapter_report.json",
       "out/detect_adapters/fastqc/fastqc",
       "out/profile_reads/seqkit_stats/qc.json"

@@ -11,9 +11,6 @@
   "command": {
     "template": [
       "fastp",
-      "--trim_poly_g",
-      "--poly_g_min_len",
-      "10",
       "--json",
       "out/trim_polyg_tails_report.json",
       "--thread",
@@ -22,6 +19,9 @@
       "reads_R1.fastq.gz",
       "--out1",
       "out/R1.polyg.fastp.fastq.gz",
+      "--trim_poly_g",
+      "--poly_g_min_len",
+      "10",
       "--in2",
       "reads_R2.fastq.gz",
       "--out2",
@@ -78,7 +78,8 @@
     "output_r1": "out/R1.polyg.fastp.fastq.gz",
     "output_r2": "out/R2.polyg.fastp.fastq.gz",
     "report_json": "out/trim_polyg_tails_report.json",
-    "tool": "fastp"
+    "tool": "fastp",
+    "trim_polyg": true
   },
   "effective_params": {
     "min_polyg_run": 10,
