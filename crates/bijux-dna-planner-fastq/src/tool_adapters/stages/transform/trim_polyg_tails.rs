@@ -158,10 +158,11 @@ fn trim_polyg_command(
 ) -> Result<Vec<String>> {
     match tool_id {
         "fastp" => {
+            let raw_report = report.with_extension("fastp.json");
             let mut command = vec![
                 "fastp".to_string(),
                 "--json".to_string(),
-                report.display().to_string(),
+                raw_report.display().to_string(),
                 "--thread".to_string(),
                 threads.to_string(),
                 "--in1".to_string(),
@@ -180,50 +181,96 @@ fn trim_polyg_command(
                 command.push("--out2".to_string());
                 command.push(output_r2.display().to_string());
             }
-            Ok(command)
+            Ok(wrap_polyg_command_with_report(
+                tool_id,
+                command,
+                r1,
+                r2,
+                output_r1,
+                output_r2,
+                report,
+                &raw_report,
+                "fastp_json",
+                trim_polyg,
+                min_polyg_run,
+            ))
         }
         "bbduk" => {
-            let raw_stats = report.with_extension("stats.txt");
-            let mut script = format!(
-                "set -euo pipefail\nbbduk.sh in={} out={}",
-                shell_quote_arg(&format!("in={}", r1.display())),
-                shell_quote_arg(&format!("out={}", output_r1.display())),
-            );
+            let raw_report = report.with_extension("stats.txt");
+            let mut command = vec![
+                "bbduk.sh".to_string(),
+                format!("in={}", r1.display()),
+                format!("out={}", output_r1.display()),
+            ];
             if trim_polyg {
-                script.push(' ');
-                script.push_str(&shell_quote_arg(&format!("trimpolygright={min_polyg_run}")));
+                command.push(format!("trimpolygright={min_polyg_run}"));
             }
-            script.push(' ');
-            script.push_str(&shell_quote_arg(&format!("stats={}", raw_stats.display())));
+            command.push(format!("stats={}", raw_report.display()));
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-                script.push(' ');
-                script.push_str(&shell_quote_arg(&format!("in2={}", r2.display())));
-                script.push(' ');
-                script.push_str(&shell_quote_arg(&format!("out2={}", output_r2.display())));
+                command.push(format!("in2={}", r2.display()));
+                command.push(format!("out2={}", output_r2.display()));
             }
-            let report_payload = serde_json::json!({
-                "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
-                "stage_id": STAGE_ID.as_str(),
-                "tool_id": tool_id,
-                "trim_polyg": trim_polyg,
-                "input_r1": r1,
-                "input_r2": r2,
-                "output_r1": output_r1,
-                "output_r2": output_r2,
-                "min_polyg_run": min_polyg_run,
-                "raw_stats_path": raw_stats,
-            });
-            script.push_str(&format!(
-                "\nprintf '%s\\n' {} > {}\n",
-                shell_quote_str(&report_payload.to_string()),
-                shell_quote_path(report),
-            ));
-            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+            Ok(wrap_polyg_command_with_report(
+                tool_id,
+                command,
+                r1,
+                r2,
+                output_r1,
+                output_r2,
+                report,
+                &raw_report,
+                "bbduk_stats",
+                trim_polyg,
+                min_polyg_run,
+            ))
         }
         _ => Err(anyhow!(
             "unsupported trim_polyg_tails tool for stage planning: {tool_id}"
         )),
     }
+}
+
+fn wrap_polyg_command_with_report(
+    tool_id: &str,
+    command: Vec<String>,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report: &Path,
+    raw_report: &Path,
+    raw_report_format: &str,
+    trim_polyg: bool,
+    min_polyg_run: u32,
+) -> Vec<String> {
+    let payload = serde_json::json!({
+        "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "trim_polyg": trim_polyg,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2,
+        "min_polyg_run": min_polyg_run,
+        "raw_report_path": raw_report,
+        "raw_report_format": raw_report_format,
+    });
+    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
+    script.push_str(&format!(
+        "printf '%s\\n' {} > {}\n",
+        shell_quote_str(&payload.to_string()),
+        shell_quote_path(report),
+    ));
+    vec!["sh".to_string(), "-lc".to_string(), script]
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_arg(part))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn shell_quote_arg(value: &str) -> String {
