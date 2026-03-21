@@ -6,9 +6,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_duplicates_v1, insert_fastq_duplicates_v1,
 };
-use bijux_dna_analyze::{
-    append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics,
-};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
@@ -35,8 +33,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveDuplicatesArgs,
 ) -> Result<BenchOutcome<FastqDuplicateMetrics>> {
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_remove_duplicates_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let artifact_kind = if args.r2.is_some() {
@@ -86,12 +84,13 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-        )?;
+        let plan =
+            bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
+                &tool_spec,
+                &args.r1,
+                args.r2.as_deref(),
+                &out_dir,
+            )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -113,7 +112,9 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             runner,
             jobs,
         )?
@@ -132,7 +133,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         if !plan.io.outputs[0].path.exists() {
             std::fs::copy(&args.r1, &plan.io.outputs[0].path)?;
         }
-        let output_stats = observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
+        let output_stats =
+            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
         let output_stats_r2 = if let Some(r2) = args.r2.as_deref() {
             let output_r2 = &plan.io.outputs[1].path;
             if !output_r2.exists() {
@@ -143,7 +145,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             None
         };
         let reads_in = input_stats.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out = output_stats.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out =
+            output_stats.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let duplicate_reads = reads_in.saturating_sub(reads_out);
         let metrics = FastqDuplicateMetrics {
             reads_in,
@@ -158,7 +161,9 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics);
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.remove_duplicates.report.v1",
+            "stage": STAGE_ID,
             "stage_id": STAGE_ID,
+            "tool": tool,
             "tool_id": tool,
             "input_fastq_r1": args.r1,
             "input_fastq_r2": args.r2,
@@ -169,12 +174,17 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             } else {
                 plan.io.outputs[1].path.clone()
             },
+            "duplicates_removed": duplicate_reads,
+            "duplicate_reads": duplicate_reads,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
         });
         bijux_dna_infra::atomic_write_json(&out_dir.join("deduplicate_report.json"), &report)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &serde_json::to_value(&metric_set)?)?;
+        bijux_dna_infra::atomic_write_json(
+            &out_dir.join("metrics.json"),
+            &serde_json::to_value(&metric_set)?,
+        )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
