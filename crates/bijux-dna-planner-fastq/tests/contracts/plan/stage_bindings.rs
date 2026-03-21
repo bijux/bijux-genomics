@@ -59,8 +59,6 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -70,7 +68,6 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -157,8 +154,6 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
                 params: None,
             },
         ],
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -168,7 +163,6 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -234,8 +228,6 @@ fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<
                 params: None,
             },
         ],
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -245,7 +237,6 @@ fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -349,8 +340,6 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
                 params: None,
             },
         ],
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -360,7 +349,6 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
         r2: Some(r2),
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -429,8 +417,6 @@ fn graph_root_branches_do_not_inherit_previous_branch_reads() -> anyhow::Result<
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -440,7 +426,6 @@ fn graph_root_branches_do_not_inherit_previous_branch_reads() -> anyhow::Result<
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -488,8 +473,6 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -499,7 +482,6 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
         r2: None,
         reference_fasta: None,
         out_dir: PathBuf::from("out"),
-        tool_reasons: None,
         allow_planned: false,
     })
     .expect_err("duplicate stage bindings without instance ids must fail");
@@ -534,8 +516,6 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
             )),
         }],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -545,7 +525,6 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -577,8 +556,6 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
             })),
         }],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -588,7 +565,6 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -630,8 +606,6 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -641,7 +615,6 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
         r2: None,
         reference_fasta: Some(reference),
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })
     .expect_err("unsupported host retention policy must fail loudly");
@@ -683,8 +656,6 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -694,7 +665,6 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
         r2: None,
         reference_fasta: Some(reference),
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -770,8 +740,6 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -781,7 +749,6 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -868,8 +835,6 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -879,7 +844,6 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -970,8 +934,6 @@ fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -981,7 +943,6 @@ fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -1084,8 +1045,6 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1095,7 +1054,6 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })
     .expect_err("selection rejoin should require artifact-bound edges");
@@ -1162,8 +1120,6 @@ fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
                 params: None,
             },
         ],
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1173,7 +1129,6 @@ fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -1263,8 +1218,6 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1274,7 +1227,6 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
         r2: None,
         reference_fasta: Some(reference_fasta),
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -1338,8 +1290,6 @@ fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1349,7 +1299,6 @@ fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
         r2: None,
         reference_fasta: Some(reference_fasta),
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -1432,8 +1381,6 @@ fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_bindi
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1443,7 +1390,6 @@ fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_bindi
         r2: None,
         reference_fasta: Some(reference_fasta),
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })
     .expect_err("ambiguous dependency should fail");
@@ -1509,8 +1455,6 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1520,7 +1464,6 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 
@@ -1585,8 +1528,6 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
             },
         ],
         stage_toolsets: Vec::new(),
-        stages: Vec::new(),
-        tools: Vec::new(),
         aux_images: BTreeMap::new(),
         adapter_bank: None,
         polyx_bank: None,
@@ -1596,7 +1537,6 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
         r2: None,
         reference_fasta: None,
         out_dir: temp.path().join("out"),
-        tool_reasons: None,
         allow_planned: false,
     })?;
 

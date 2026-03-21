@@ -43,9 +43,9 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
 fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
     let tools = pipeline
-        .stages
+        .ordered_nodes()
         .iter()
-        .map(|stage| tool_for_stage(stage))
+        .map(|node| tool_for_stage(&node.stage_id))
         .collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-graph-snapshot")?;
     let r1 = temp.path().join("reads_R1.fastq");

@@ -321,8 +321,6 @@ fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::R
                 },
             ],
             stage_toolsets: Vec::new(),
-            stages: Vec::new(),
-            tools: Vec::new(),
             aux_images: BTreeMap::new(),
             adapter_bank: None,
             polyx_bank: None,
@@ -332,7 +330,6 @@ fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::R
             r2: None,
             reference_fasta: None,
             out_dir: temp.path().join("out"),
-            tool_reasons: None,
             allow_planned: false,
         })?;
 
