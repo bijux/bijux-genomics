@@ -19,12 +19,6 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "adapterremoval",
             "trimmomatic",
             "trim_galore",
-            "prinseq",
-            "seqkit",
-            "skewer",
-            "leehom",
-            "alientrimmer",
-            "fastx_clipper",
         ],
         "fastq.trim_terminal_damage" | "fastq.normalize_primers" => {
             vec!["cutadapt", "seqkit"]

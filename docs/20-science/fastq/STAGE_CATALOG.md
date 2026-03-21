@@ -37,7 +37,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: remove adapters and low-quality terminal sequence.
 - Inputs/Outputs: reads -> trimmed_reads.
 - Metrics: reads retained, bases retained, trimming counts.
-- Tools: fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper.
+- Tools: fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore.
 
 ### fastq.filter_reads {#fastq-filter}
 - Purpose: remove reads failing quality, length, or simple content thresholds.

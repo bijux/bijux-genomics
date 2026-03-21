@@ -297,17 +297,11 @@ stage_tool_integration:
     fastp: governed_contract
   fastq.trim_reads:
     adapterremoval: governed_contract
-    alientrimmer: governed_contract
     atropos: governed_contract
     bbduk: governed_contract
     cutadapt: governed_contract
     fastp: governed_contract
-    fastx_clipper: governed_contract
-    leehom: governed_contract
-    prinseq: governed_contract
-    seqkit: governed_contract
     seqpurge: planned_contract
-    skewer: governed_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
   fastq.trim_terminal_damage:

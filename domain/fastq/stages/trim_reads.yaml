@@ -96,12 +96,6 @@ compatible_tools:
   - adapterremoval
   - trimmomatic
   - trim_galore
-  - prinseq
-  - seqkit
-  - skewer
-  - leehom
-  - alientrimmer
-  - fastx_clipper
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "adapter, polyx, and contaminant trimming policies are explicit in effective params."
@@ -112,4 +106,10 @@ bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
+  - "alientrimmer"
+  - "fastx_clipper"
+  - "leehom"
+  - "prinseq"
+  - "seqkit"
+  - "skewer"
   - "seqpurge"
