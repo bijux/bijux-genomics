@@ -329,6 +329,9 @@ fn trim_command_template(
     if tool.tool_id.as_str() == "cutadapt" {
         return cutadapt_command_template(r1, r2, output_r1, output_r2, report_json, options);
     }
+    if tool.tool_id.as_str() == "atropos" {
+        return atropos_command_template(r1, r2, output_r1, output_r2, report_json, options);
+    }
     if tool.tool_id.as_str() == "bbduk" {
         return bbduk_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
     }
@@ -394,7 +397,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
         return Ok(());
     }
     match tool_id {
-        "fastp" | "cutadapt" | "bbduk" | "trim_galore" => Ok(()),
+        "fastp" | "cutadapt" | "atropos" | "bbduk" | "trim_galore" => Ok(()),
         _ => Err(anyhow!(
             "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
         )),
@@ -464,6 +467,51 @@ fn bbduk_trim_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "bbduk",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
+fn atropos_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec!["atropos".to_string(), "trim".to_string()];
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.extend(["-q".to_string(), quality_cutoff.to_string()]);
+    }
+    if let Some(min_length) = options.min_length {
+        command.extend(["-m".to_string(), min_length.to_string()]);
+    }
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.extend([
+            "-pe1".to_string(),
+            r1.display().to_string(),
+            "-pe2".to_string(),
+            r2.display().to_string(),
+            "-o".to_string(),
+            output_r1.display().to_string(),
+            "-p".to_string(),
+            output_r2.display().to_string(),
+        ]);
+    } else {
+        command.extend([
+            "-se".to_string(),
+            r1.display().to_string(),
+            "-o".to_string(),
+            output_r1.display().to_string(),
+        ]);
+    }
+    Ok(wrap_trim_command_with_report(
+        "atropos",
         command,
         r1,
         r2,
