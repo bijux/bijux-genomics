@@ -47,8 +47,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_READS.as_str(), &header);
 
-    let registry = load_workspace_registry()
-        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_TRIM_READS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(
         catalog,
@@ -69,7 +69,12 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -164,7 +169,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
+                &plan,
+            )],
             bench_inputs.runner,
             jobs,
         )?
@@ -195,15 +202,20 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         } else {
             None
         };
-        let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
+        let before_stats =
+            combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
         let metrics = FastqTrimMetrics {
             reads_in: before_stats.reads,
             reads_out: after_stats.reads,
             bases_in: before_stats.bases,
             bases_out: after_stats.bases,
-            pairs_in: input_stats_r2.as_ref().map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
-            pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
+            pairs_in: input_stats_r2
+                .as_ref()
+                .map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
+            pairs_out: output_stats_r2
+                .as_ref()
+                .map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
@@ -211,7 +223,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 .or_else(|| args.adapter_bank_preset.clone()),
             adapter_bank_id: json_string(adapter_context.as_ref(), "bank_id"),
             adapter_bank_hash: json_string(adapter_context.as_ref(), "bank_hash"),
-            adapter_overrides: if args.enable_adapters.is_empty() && args.disable_adapters.is_empty() {
+            adapter_overrides: if args.enable_adapters.is_empty()
+                && args.disable_adapters.is_empty()
+            {
                 None
             } else {
                 Some(
@@ -228,9 +242,13 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
 
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.trim_reads.report.v1",
+            "stage": STAGE_TRIM_READS.as_str(),
             "stage_id": STAGE_TRIM_READS.as_str(),
+            "tool": tool,
             "tool_id": tool,
+            "input_reads": metrics.reads_in,
             "reads_in": metrics.reads_in,
+            "output_reads": metrics.reads_out,
             "reads_out": metrics.reads_out,
             "bases_in": metrics.bases_in,
             "bases_out": metrics.bases_out,
@@ -282,7 +300,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn combine_seqkit_metrics(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -> SeqkitMetrics {
+fn combine_seqkit_metrics(
+    primary: &SeqkitMetrics,
+    secondary: Option<&SeqkitMetrics>,
+) -> SeqkitMetrics {
     let secondary_reads = secondary.map_or(0, |stats| stats.reads);
     let secondary_bases = secondary.map_or(0, |stats| stats.bases);
     let total_bases = primary.bases + secondary_bases;
