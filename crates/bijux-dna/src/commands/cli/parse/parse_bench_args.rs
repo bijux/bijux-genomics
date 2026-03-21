@@ -121,6 +121,12 @@ pub struct BenchFastqTrimArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
+    #[arg(long)]
+    pub min_length: Option<u32>,
+    #[arg(long)]
+    pub quality_cutoff: Option<u32>,
+    #[arg(long)]
+    pub n_policy: Option<String>,
 }
 
 #[derive(Debug, Args)]

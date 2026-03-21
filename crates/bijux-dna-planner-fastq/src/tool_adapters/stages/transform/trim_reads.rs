@@ -11,6 +11,13 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+#[derive(Debug, Clone, Default)]
+pub struct TrimPlanOptions {
+    pub min_length: Option<u32>,
+    pub quality_cutoff: Option<u32>,
+    pub n_policy: Option<String>,
+}
+
 #[derive(Debug, Clone)]
 pub struct TrimUserConfig {
     pub tool: String,
@@ -77,8 +84,31 @@ pub fn plan(
     polyx_bank: Option<&serde_json::Value>,
     contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<StagePlanV1> {
+    plan_with_options(
+        tool,
+        r1,
+        r2,
+        out_dir,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        &TrimPlanOptions::default(),
+    )
+}
+
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<StagePlanV1> {
     let output_name =
         trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
+    ensure_trim_option_support(&tool.tool_id.0, options)?;
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
@@ -90,7 +120,10 @@ pub fn plan(
         "input_r1": r1,
         "input_r2": r2,
         "output_r1": output_r1,
-        "output_r2": output_r2
+        "output_r2": output_r2,
+        "min_length": options.min_length,
+        "quality_cutoff": options.quality_cutoff,
+        "n_policy": options.n_policy,
     });
     if let Some(adapter_bank) = adapter_bank {
         if let Some(map) = params.as_object_mut() {
@@ -114,8 +147,8 @@ pub fn plan(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        min_len: 0,
-        q_cutoff: None,
+        min_len: options.min_length.unwrap_or(0),
+        q_cutoff: options.quality_cutoff,
         adapter_policy: if adapter_bank.is_some() {
             "bank".to_string()
         } else {
@@ -123,7 +156,7 @@ pub fn plan(
         },
         damage_mode: None,
         polyx_policy: polyx_bank.as_ref().map(|_| "bank".to_string()),
-        n_policy: None,
+        n_policy: options.n_policy.clone(),
         contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),
     };
     let mut inputs = vec![ArtifactRef::required(
@@ -156,8 +189,15 @@ pub fn plan(
         ArtifactRole::ReportJson,
     ));
     let report_json = out_dir.join("trim_report.json");
-    let command_template =
-        trim_command_template(tool, r1, r2, &output_r1, output_r2.as_deref(), &report_json)?;
+    let command_template = trim_command_template(
+        tool,
+        r1,
+        r2,
+        &output_r1,
+        output_r2.as_deref(),
+        &report_json,
+        options,
+    )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -208,6 +248,7 @@ fn trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     if tool.tool_id.as_str() == "fastp" {
         let mut command = vec![
@@ -221,6 +262,15 @@ fn trim_command_template(
             "--thread".to_string(),
             tool.resources.threads.to_string(),
         ];
+        if let Some(min_length) = options.min_length {
+            command.extend(["--length_required".to_string(), min_length.to_string()]);
+        }
+        if let Some(quality_cutoff) = options.quality_cutoff {
+            command.extend([
+                "--qualified_quality_phred".to_string(),
+                quality_cutoff.to_string(),
+            ]);
+        }
         if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
             command.extend([
                 "--in2".to_string(),
@@ -232,8 +282,14 @@ fn trim_command_template(
         }
         return Ok(command);
     }
+    if tool.tool_id.as_str() == "cutadapt" {
+        return cutadapt_command_template(r1, r2, output_r1, output_r2, report_json, options);
+    }
+    if tool.tool_id.as_str() == "bbduk" {
+        return bbduk_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
+    }
     if tool.tool_id.as_str() == "trim_galore" {
-        return trim_galore_command_template(r1, r2, output_r1, output_r2, report_json);
+        return trim_galore_command_template(r1, r2, output_r1, output_r2, report_json, options);
     }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
@@ -265,12 +321,105 @@ fn trim_command_template(
     ))
 }
 
+fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Result<()> {
+    if let Some(policy) = options.n_policy.as_deref() {
+        if policy != "retain" {
+            return Err(anyhow!(
+                "trim planning does not yet support n_policy={policy} for {tool_id}"
+            ));
+        }
+    }
+    let uses_length_or_quality = options.min_length.is_some() || options.quality_cutoff.is_some();
+    if !uses_length_or_quality {
+        return Ok(());
+    }
+    match tool_id {
+        "fastp" | "cutadapt" | "bbduk" | "trim_galore" => Ok(()),
+        _ => Err(anyhow!(
+            "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
+        )),
+    }
+}
+
+fn cutadapt_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec!["cutadapt".to_string()];
+    if let Some(min_length) = options.min_length {
+        command.extend(["-m".to_string(), min_length.to_string()]);
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.extend(["-q".to_string(), quality_cutoff.to_string()]);
+    }
+    command.extend(["-o".to_string(), output_r1.display().to_string()]);
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.extend([
+            "-p".to_string(),
+            output_r2.display().to_string(),
+            r1.display().to_string(),
+            r2.display().to_string(),
+        ]);
+    } else {
+        command.push(r1.display().to_string());
+    }
+    Ok(wrap_trim_command_with_report(
+        "cutadapt",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
+fn bbduk_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "bbduk.sh".to_string(),
+        format!("in={}", r1.display()),
+        format!("out={}", output_r1.display()),
+    ];
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.push(format!("in2={}", r2.display()));
+        command.push(format!("out2={}", output_r2.display()));
+    }
+    if let Some(min_length) = options.min_length {
+        command.push(format!("minlen={min_length}"));
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.push("qtrim=rl".to_string());
+        command.push(format!("trimq={quality_cutoff}"));
+    }
+    Ok(wrap_trim_command_with_report(
+        "bbduk",
+        command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+    ))
+}
+
 fn trim_galore_command_template(
     r1: &Path,
     r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let output_dir = output_r1
         .parent()
@@ -281,6 +430,12 @@ fn trim_galore_command_template(
         shell_quote_path(&working_dir),
         shell_quote_path(&working_dir),
     );
+    if let Some(min_length) = options.min_length {
+        script.push_str(&format!(" --length {min_length}"));
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        script.push_str(&format!(" -q {quality_cutoff}"));
+    }
     if r2.is_some() {
         script.push_str(" --paired");
     }
@@ -344,7 +499,12 @@ fn wrap_trim_command_with_report(
 ) -> Vec<String> {
     let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
     script.push_str(&write_trim_report_script(
-        tool_id, r1, r2, output_r1, output_r2, report_json,
+        tool_id,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
     ));
     vec!["sh".to_string(), "-lc".to_string(), script]
 }

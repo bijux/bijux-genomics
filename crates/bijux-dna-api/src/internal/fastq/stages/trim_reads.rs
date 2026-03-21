@@ -9,7 +9,7 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_trim_tools;
-use bijux_dna_planner_fastq::stage_api::fastq::trim_reads::plan;
+use bijux_dna_planner_fastq::stage_api::fastq::trim_reads::{plan_with_options, TrimPlanOptions};
 use bijux_dna_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, inspect_headers, log_header_warnings,
     polyx_bank_context, preflight_stage, FastqArtifactKind, RawFailure,
@@ -138,7 +138,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan(
+        let plan = plan_with_options(
             &tool_spec,
             &bench_inputs.r1,
             args.r2.as_deref(),
@@ -146,6 +146,11 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             adapter_context.as_ref(),
             polyx_context.as_ref(),
             contaminant_context.as_ref(),
+            &TrimPlanOptions {
+                min_length: args.min_length,
+                quality_cutoff: args.quality_cutoff,
+                n_policy: args.n_policy.clone(),
+            },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
