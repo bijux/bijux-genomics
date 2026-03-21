@@ -37,6 +37,15 @@ fn select_trim_tools_keeps_contract_even_when_opt_in_flag_is_set() {
 }
 
 #[test]
+fn select_trim_tools_rejects_backends_without_governed_runtime_support() {
+    let tools = vec!["seqkit".to_string()];
+    match select_trim_tools(&tools, false) {
+        Ok(_) => panic!("expected failure"),
+        Err(err) => assert!(err.to_string().contains("unsupported tool")),
+    }
+}
+
+#[test]
 fn select_tools_rejects_empty() {
     match select_validate_tools(&[]) {
         Ok(_) => panic!("expected empty failure"),

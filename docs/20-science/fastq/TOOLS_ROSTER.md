@@ -19,7 +19,7 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.validate_reads | fastqvalidator, fqtools, seqtk | Structural validation before any mutating read transform |
 | fastq.detect_adapters | fastqc | Report-only adapter evidence without mutating FASTQ |
 | fastq.trim_polyg_tails | fastp, bbduk | PolyG/polyX artifact trimming for sequencer-tail cleanup |
-| fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper | Adapter and quality trimming backends accepted by the current contract |
+| fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore | Adapter and quality trimming backends with governed runtime coverage and normalized stage outputs |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | Quality/length/content filtering without stage overloading |
 | fastq.filter_low_complexity | prinseq, bbduk, fastp | Dedicated low-complexity-capable backends admitted in the current runtime set |
 | fastq.profile_read_lengths | seqkit_stats, prinseq, fastp | Neutral read-length summaries |
