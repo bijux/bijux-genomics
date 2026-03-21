@@ -494,6 +494,43 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
         .collect()
 }
 
+fn validate_governed_qc_contributors(
+    contributors: &[GovernedQcContributor],
+    qc_inputs: &[ArtifactRef],
+    manifest_path: &Path,
+) -> Result<()> {
+    for contributor in contributors {
+        if contributor.contributor_id.trim().is_empty()
+            || contributor.stage_id.trim().is_empty()
+            || contributor.artifact_id.trim().is_empty()
+        {
+            return Err(anyhow!(
+                "governed QC contributor records in {} must include non-empty contributor_id, stage_id, and artifact_id",
+                manifest_path.display()
+            ));
+        }
+        if !contributor.path.exists() {
+            return Err(anyhow!(
+                "governed QC contributor artifact {} does not exist at {}",
+                contributor.contributor_id,
+                contributor.path.display()
+            ));
+        }
+        let matches_input = qc_inputs.iter().any(|artifact| {
+            artifact.path == contributor.path
+                && artifact.name.as_str().ends_with(&contributor.artifact_id)
+        });
+        if !matches_input {
+            return Err(anyhow!(
+                "governed QC contributor {} in {} does not match any qc_inputs entry",
+                contributor.contributor_id,
+                manifest_path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn paired_mode_for_bench_inputs(bench_inputs: &QcPostBenchInputs) -> PairedMode {
     if bench_inputs.r2.is_some() {
         PairedMode::PairedEnd
@@ -545,11 +582,23 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
             .then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
-    let contributors = if manifest.contributors.is_empty() {
+    let mut contributors = if manifest.contributors.is_empty() {
         governed_qc_contributors(&qc_inputs)
     } else {
         manifest.contributors
     };
+    contributors.sort_by(|left, right| {
+        left.contributor_id
+            .cmp(&right.contributor_id)
+            .then_with(|| left.artifact_id.cmp(&right.artifact_id))
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    contributors.dedup_by(|left, right| {
+        left.contributor_id == right.contributor_id
+            && left.artifact_id == right.artifact_id
+            && left.path == right.path
+    });
+    validate_governed_qc_contributors(&contributors, &qc_inputs, path)?;
     Ok(GovernedQcInputs {
         lineage_hash: manifest.lineage_hash.or_else(|| {
             derived_governed_qc_lineage_hash(&contributors, manifest.raw_fastqc_dir.as_deref())
@@ -599,7 +648,8 @@ mod tests {
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
         governed_qc_contributors, governed_qc_inputs_manifest_path,
         load_governed_qc_inputs_manifest, load_required_governed_qc_inputs_manifest,
-        parse_qc_aggregation_scope, GovernedQcContributor, GovernedQcInputs,
+        parse_qc_aggregation_scope, validate_governed_qc_contributors,
+        GovernedQcContributor, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::path::PathBuf;
@@ -892,5 +942,30 @@ mod tests {
             "fastq.validate_reads.fastqvalidator"
         );
         assert_eq!(contributors[0].artifact_id, "validation_report");
+    }
+
+    #[test]
+    fn governed_qc_contributor_validation_rejects_unmatched_records() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("report.json");
+        std::fs::write(&report_path, b"{}").expect("report");
+        let qc_inputs = vec![ArtifactRef::required(
+            ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+            report_path.clone(),
+            ArtifactRole::ReportJson,
+        )];
+        let error = validate_governed_qc_contributors(
+            &[GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                artifact_id: "validation_report".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: report_path,
+            }],
+            &qc_inputs,
+            temp.path().join("governed_qc_inputs.json").as_path(),
+        )
+        .expect_err("unmatched contributor artifact ids must fail");
+        assert!(error.to_string().contains("does not match any qc_inputs entry"));
     }
 }
