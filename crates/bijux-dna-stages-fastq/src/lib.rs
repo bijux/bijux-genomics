@@ -56,6 +56,14 @@ pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
             ToolId::from_static("fastqvalidator"),
         ),
         (
+            bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
+            ToolId::from_static("seqtk"),
+        ),
+        (
+            bijux_dna_domain_fastq::STAGE_VALIDATE_READS,
+            ToolId::from_static("fqtools"),
+        ),
+        (
             bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
             ToolId::from_static("seqkit_stats"),
         ),
@@ -157,6 +165,20 @@ mod tests {
             runtime_interpretation_for_stage_tool(
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("fastqc"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.validate_reads"),
+                &ToolId::from_static("seqtk"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.validate_reads"),
+                &ToolId::from_static("fqtools"),
             ),
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
