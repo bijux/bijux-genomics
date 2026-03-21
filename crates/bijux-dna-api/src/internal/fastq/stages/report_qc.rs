@@ -139,7 +139,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             )?
         };
         let benchmark_lineage = if provided_governed_qc.is_some() {
-            None
+            governed_qc.lineage_hash.as_deref()
         } else {
             default_governed_qc_lineage.as_deref()
         };
@@ -240,6 +240,7 @@ struct QcPostBenchInputs {
 struct GovernedQcInputs {
     qc_inputs: Vec<ArtifactRef>,
     raw_fastqc_dir: Option<PathBuf>,
+    lineage_hash: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -249,6 +250,8 @@ struct GovernedQcInputsManifest {
     qc_inputs: Vec<ArtifactRef>,
     #[serde(default)]
     raw_fastqc_dir: Option<PathBuf>,
+    #[serde(default)]
+    lineage_hash: Option<String>,
 }
 
 fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
@@ -500,6 +503,9 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     Ok(GovernedQcInputs {
+        lineage_hash: manifest.lineage_hash.or_else(|| {
+            derived_governed_qc_lineage_hash(&qc_inputs, manifest.raw_fastqc_dir.as_deref())
+        }),
         qc_inputs,
         raw_fastqc_dir: manifest.raw_fastqc_dir,
     })
@@ -581,9 +587,25 @@ fn prepare_governed_qc_inputs<S: ::std::hash::BuildHasher>(
                 .map(|artifact| artifact.path.clone())
         });
     Ok(GovernedQcInputs {
+        lineage_hash: derived_governed_qc_lineage_hash(&qc_inputs, raw_fastqc_dir.as_deref()),
         qc_inputs,
         raw_fastqc_dir,
     })
+}
+
+fn derived_governed_qc_lineage_hash(
+    qc_inputs: &[ArtifactRef],
+    raw_fastqc_dir: Option<&Path>,
+) -> Option<String> {
+    let mut lineage_parts = qc_inputs
+        .iter()
+        .map(|artifact| format!("{}={}", artifact.name.as_str(), artifact.path.display()))
+        .collect::<Vec<_>>();
+    if let Some(raw_fastqc_dir) = raw_fastqc_dir {
+        lineage_parts.push(format!("raw_fastqc_dir={}", raw_fastqc_dir.display()));
+    }
+    lineage_parts.sort();
+    (!lineage_parts.is_empty()).then(|| lineage_parts.join("|"))
 }
 
 fn bench_governed_qc_contributor_stage_ids(paired_end: bool) -> Vec<bijux_dna_core::ids::StageId> {
@@ -775,8 +797,9 @@ fn benchmark_query_context(
 mod tests {
     use super::{
         bench_governed_qc_contributor_bindings, bench_governed_qc_contributor_stage_ids,
-        derive_qc_post_metrics, governed_qc_artifacts_for_plan, governed_qc_contributor_lineage,
-        load_governed_qc_inputs_manifest, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        derive_qc_post_metrics, derived_governed_qc_lineage_hash, governed_qc_artifacts_for_plan,
+        governed_qc_contributor_lineage, load_governed_qc_inputs_manifest,
+        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -955,6 +978,10 @@ mod tests {
             "fastq.trim_reads.fastp_branch.report_json"
         );
         assert_eq!(loaded.raw_fastqc_dir.as_deref(), Some(fastqc_dir.as_path()));
+        assert!(loaded
+            .lineage_hash
+            .as_deref()
+            .is_some_and(|lineage| lineage.contains("fastq.trim_reads.fastp_branch.report_json")));
     }
 
     #[test]
@@ -985,6 +1012,33 @@ mod tests {
         assert!(error
             .to_string()
             .contains("unsupported governed QC input manifest schema"));
+    }
+
+    #[test]
+    fn derived_governed_qc_lineage_hash_is_stable_for_external_branch_sets() {
+        let inputs = vec![
+            ArtifactRef::required(
+                ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+                PathBuf::from("/tmp/fastp/report.json"),
+                ArtifactRole::ReportJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::from_static(
+                    "fastq.validate_reads.fastqvalidator.validated_reads_manifest",
+                ),
+                PathBuf::from("/tmp/validate/lineage.json"),
+                ArtifactRole::StageReport,
+            ),
+        ];
+        let raw_fastqc_dir = PathBuf::from("/tmp/raw_fastqc");
+
+        let lineage = derived_governed_qc_lineage_hash(&inputs, Some(raw_fastqc_dir.as_path()))
+            .expect("derived lineage");
+        assert!(lineage.contains("fastq.trim_reads.fastp.report_json=/tmp/fastp/report.json"));
+        assert!(lineage.contains(
+            "fastq.validate_reads.fastqvalidator.validated_reads_manifest=/tmp/validate/lineage.json"
+        ));
+        assert!(lineage.contains("raw_fastqc_dir=/tmp/raw_fastqc"));
     }
 
     #[test]
