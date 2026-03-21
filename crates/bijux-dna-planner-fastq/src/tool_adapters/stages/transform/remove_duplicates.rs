@@ -207,6 +207,15 @@ fn deduplicate_command(
         (None, None) => String::new(),
         _ => return Err(anyhow!("paired remove-duplicates IO bindings are incomplete")),
     };
+    let keep_order_args = if tool_id == "clumpify" {
+        if options.keep_order {
+            "reorder=t".to_string()
+        } else {
+            "reorder=f".to_string()
+        }
+    } else {
+        String::new()
+    };
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -221,6 +230,7 @@ fn deduplicate_command(
             ("report_json", Some(report.display().to_string())),
             ("out_dir", Some(out_dir.display().to_string())),
             ("paired_io_args", Some(paired_io_args)),
+            ("keep_order_args", Some(keep_order_args)),
         ],
     )?;
     let report_payload = serde_json::json!({
@@ -257,7 +267,7 @@ fn validate_deduplicate_options(
             "{tool_id} remove-duplicates adapter currently supports only dedup_mode=exact"
         ));
     }
-    if !options.keep_order {
+    if !options.keep_order && tool_id != "clumpify" {
         return Err(anyhow!(
             "{tool_id} remove-duplicates adapter currently supports only keep_order=true"
         ));
@@ -314,7 +324,7 @@ mod tests {
                     "clumpify" => vec![
                         "sh".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' dedupe=t > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
+                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' dedupe=t {{keep_order_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
                     ],
                     _ => vec!["unused".to_string()],
                 },
@@ -423,8 +433,8 @@ mod tests {
     }
 
     #[test]
-    fn plan_deduplicate_rejects_keep_order_false_until_backend_mapping_exists() {
-        let error = plan_deduplicate_with_options(
+    fn plan_deduplicate_clumpify_maps_keep_order_policy() {
+        let plan = plan_deduplicate_with_options(
             &dummy_tool("clumpify"),
             Path::new("reads.fastq.gz"),
             None,
@@ -434,8 +444,9 @@ mod tests {
                 keep_order: false,
             },
         )
-        .expect_err("keep_order=false must fail until backend mapping exists");
+        .expect("clumpify should map keep_order into execution");
 
-        assert!(error.to_string().contains("keep_order=true"));
+        assert!(plan.command.template[2].contains("reorder=f"));
+        assert_eq!(plan.effective_params["keep_order"], serde_json::json!(false));
     }
 }
