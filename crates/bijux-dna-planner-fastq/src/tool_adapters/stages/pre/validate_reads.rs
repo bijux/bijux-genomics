@@ -48,6 +48,7 @@ pub fn plan_with_options(
     out_dir: &Path,
     options: &ValidatePlanOptions,
 ) -> Result<StagePlanV1> {
+    validate_option_support(&tool.tool_id.0, options)?;
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
     let effective_params = ValidateEffectiveParams {
@@ -145,6 +146,15 @@ pub fn plan_from_config(
     config: &ValidateReadsEffectiveConfig,
 ) -> Result<StagePlanV1> {
     plan(tool, &config.r1, config.r2.as_deref(), &config.out_dir)
+}
+
+fn validate_option_support(tool_id: &str, options: &ValidatePlanOptions) -> Result<()> {
+    if options.q_cutoff.is_some() {
+        return Err(anyhow!(
+            "{tool_id} validate-reads adapter does not yet map q_cutoff into a governed backend-native validation contract"
+        ));
+    }
+    Ok(())
 }
 
 fn validation_command(
@@ -363,17 +373,51 @@ mod tests {
 
     #[test]
     fn plan_with_options_propagates_quality_cutoff_into_effective_params() -> Result<()> {
-        let plan = plan_with_options(
+        let error = plan_with_options(
             &dummy_tool("fastqvalidator"),
             std::path::Path::new("reads.fastq.gz"),
             None,
             std::path::Path::new("out"),
             &ValidatePlanOptions { q_cutoff: Some(25) },
-        )?;
+        )
+        .expect_err("q_cutoff must be rejected until backend-native validation support exists");
 
-        assert_eq!(plan.params["q_cutoff"], serde_json::json!(25));
-        assert_eq!(plan.effective_params["q_cutoff"], serde_json::json!(25));
+        assert!(error
+            .to_string()
+            .contains("does not yet map q_cutoff into a governed backend-native validation contract"));
         Ok(())
+    }
+
+    #[test]
+    fn validation_quality_cutoff_is_rejected_for_seqtk_until_backend_support_exists() {
+        let error = plan_with_options(
+            &dummy_tool("seqtk"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &ValidatePlanOptions { q_cutoff: Some(20) },
+        )
+        .expect_err("seqtk validate_reads should reject q_cutoff until validation semantics are real");
+
+        assert!(error.to_string().contains("seqtk"));
+        assert!(error.to_string().contains("q_cutoff"));
+    }
+
+    #[test]
+    fn validation_quality_cutoff_is_rejected_for_fqtools_until_backend_support_exists() {
+        let error = plan_with_options(
+            &dummy_tool("fqtools"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &ValidatePlanOptions { q_cutoff: Some(20) },
+        )
+        .expect_err(
+            "fqtools validate_reads should reject q_cutoff until validation semantics are real",
+        );
+
+        assert!(error.to_string().contains("fqtools"));
+        assert!(error.to_string().contains("q_cutoff"));
     }
 }
 
