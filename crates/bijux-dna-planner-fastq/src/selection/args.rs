@@ -80,6 +80,9 @@ pub struct BenchFastqValidateArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub threads: Option<u32>,
+    pub validation_mode: Option<String>,
+    pub pair_sync_policy: Option<String>,
 }
 
 #[derive(Debug, Clone)]

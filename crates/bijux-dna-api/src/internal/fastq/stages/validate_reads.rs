@@ -17,7 +17,8 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::{
-    plan_with_options as plan_validate_reads, ValidateReadsPlanOptions,
+    parse_pair_sync_policy, parse_validation_mode, plan_with_options as plan_validate_reads,
+    ValidateReadsPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
@@ -108,12 +109,13 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let plan_options = validate_plan_options(args)?;
         let plan = plan_validate_reads(
             &tool_spec,
             &bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
-            &ValidateReadsPlanOptions::default(),
+            &plan_options,
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
@@ -394,9 +396,31 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_VALIDATE_READS.as_str())
 }
 
+fn validate_plan_options(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
+) -> Result<ValidateReadsPlanOptions> {
+    Ok(ValidateReadsPlanOptions {
+        threads: args.threads,
+        validation_mode: args
+            .validation_mode
+            .as_deref()
+            .map(parse_validation_mode)
+            .transpose()?
+            .unwrap_or(bijux_dna_domain_fastq::params::validate::ValidationMode::Strict),
+        pair_sync_policy: args
+            .pair_sync_policy
+            .as_deref()
+            .map(parse_pair_sync_policy)
+            .transpose()?
+            .unwrap_or(
+                bijux_dna_domain_fastq::params::validate::PairSyncPolicy::RequireHeaderSync,
+            ),
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::required_plan_output_path;
+    use super::{required_plan_output_path, validate_plan_options};
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
@@ -488,5 +512,35 @@ mod tests {
         assert!(error
             .to_string()
             .contains("missing governed output `validated_reads_manifest`"));
+    }
+
+    #[test]
+    fn validate_plan_options_parse_governed_policy_overrides() {
+        let args = bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["fastqvalidator".to_string()],
+            explain: false,
+            strict: false,
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+            threads: Some(9),
+            validation_mode: Some("report_only".to_string()),
+            pair_sync_policy: Some("skip_header_sync".to_string()),
+        };
+
+        let options = validate_plan_options(&args).expect("options");
+        assert_eq!(options.threads, Some(9));
+        assert_eq!(
+            options.validation_mode,
+            bijux_dna_domain_fastq::params::validate::ValidationMode::ReportOnly
+        );
+        assert_eq!(
+            options.pair_sync_policy,
+            bijux_dna_domain_fastq::params::validate::PairSyncPolicy::SkipHeaderSync
+        );
     }
 }
