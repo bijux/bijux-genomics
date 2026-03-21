@@ -174,7 +174,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             args.trim_5p_bases.unwrap_or(2),
             args.trim_3p_bases.unwrap_or(2),
         )?;
-        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -394,14 +394,8 @@ fn combine_seqkit_metrics(
     }
 }
 
-fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
-    if let Some(Ok(contract_hash)) =
-        bijux_dna_domain_fastq::stage_contract_hash(STAGE_TRIM_TERMINAL_DAMAGE.as_str())
-    {
-        context = context.with_stage_contract_hash(contract_hash);
-    }
-    context
+fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_TRIM_TERMINAL_DAMAGE.as_str())
 }
 
 #[cfg(test)]

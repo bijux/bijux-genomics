@@ -129,7 +129,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
                 keep_order: args.keep_order.unwrap_or(true),
             },
         )?;
-        let bench_params = benchmark_query_context().embed_in_parameters(&plan.params);
+        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -255,10 +255,6 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn benchmark_query_context() -> bijux_dna_domain_fastq::BenchQueryContext {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
-    if let Some(Ok(contract_hash)) = bijux_dna_domain_fastq::stage_contract_hash(STAGE_ID) {
-        context = context.with_stage_contract_hash(contract_hash);
-    }
-    context
+fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_ID)
 }

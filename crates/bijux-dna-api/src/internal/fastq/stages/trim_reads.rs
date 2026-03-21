@@ -171,7 +171,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             adapter_context.as_ref(),
             polyx_context.as_ref(),
             contaminant_context.as_ref(),
-        )
+        )?
         .embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -382,13 +382,9 @@ fn benchmark_query_context(
     adapter_context: Option<&serde_json::Value>,
     polyx_context: Option<&serde_json::Value>,
     contaminant_context: Option<&serde_json::Value>,
-) -> bijux_dna_domain_fastq::BenchQueryContext {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
-    if let Some(Ok(contract_hash)) =
-        bijux_dna_domain_fastq::stage_contract_hash(STAGE_TRIM_READS.as_str())
-    {
-        context = context.with_stage_contract_hash(contract_hash);
-    }
+) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    let mut context =
+        bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_TRIM_READS.as_str())?;
     if let Some(bank_hash) = json_string(adapter_context, "bank_hash") {
         context = context.with_bank_hash("adapter_bank", bank_hash);
     }
@@ -398,7 +394,7 @@ fn benchmark_query_context(
     if let Some(bank_hash) = json_string(contaminant_context, "bank_hash") {
         context = context.with_bank_hash("contaminant_bank", bank_hash);
     }
-    context
+    Ok(context)
 }
 
 #[cfg(test)]
@@ -415,7 +411,8 @@ mod tests {
             Some(&adapter_context),
             Some(&polyx_context),
             Some(&contaminant_context),
-        );
+        )
+        .expect("query context");
 
         assert!(context.stage_contract_hash.is_some());
         assert_eq!(

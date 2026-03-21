@@ -44,7 +44,9 @@ pub use banks::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use bench_repository::{BenchQueryContext, BenchResultsRepository};
+pub use bench_repository::{
+    governed_stage_bench_query_context, BenchQueryContext, BenchResultsRepository,
+};
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
@@ -93,6 +95,10 @@ pub use pipeline_contract::{
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
+pub use stage_tool_governance::{
+    stage_benchmark_governance, stage_tool_governance_profile,
+    stage_tool_governance_profiles_for_stage, StageBenchmarkGovernance, StageToolGovernanceProfile,
+};
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
     log_header_warnings, normalize_outputs, preflight_stage, stage_contract_hash,
@@ -113,13 +119,7 @@ pub use stages::{
 pub use stages::{
     fastq_stage_is_stable, stage_criticality, stage_input_ids, stage_kind, stage_metric_classes,
     stage_metric_invariants, stage_output_ids, stage_parameter_ids, stage_semantics,
-    BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics,
-    STAGE_BOUNDARY_INVARIANTS,
-};
-pub use stage_tool_governance::{
-    stage_benchmark_governance,
-    stage_tool_governance_profile, stage_tool_governance_profiles_for_stage,
-    StageBenchmarkGovernance, StageToolGovernanceProfile,
+    BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics, STAGE_BOUNDARY_INVARIANTS,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,

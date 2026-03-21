@@ -164,7 +164,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             },
         )?;
         let bench_params =
-            benchmark_query_context(polyx_context.as_ref()).embed_in_parameters(&plan.params);
+            benchmark_query_context(polyx_context.as_ref())?.embed_in_parameters(&plan.params);
         let params_hash = params_hash(&bench_params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -331,20 +331,17 @@ fn combine_seqkit_metrics(
 
 fn benchmark_query_context(
     polyx_context: Option<&serde_json::Value>,
-) -> bijux_dna_domain_fastq::BenchQueryContext {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::new();
-    if let Some(Ok(contract_hash)) =
-        bijux_dna_domain_fastq::stage_contract_hash(STAGE_TRIM_POLYG_TAILS.as_str())
-    {
-        context = context.with_stage_contract_hash(contract_hash);
-    }
+) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
+    let mut context = bijux_dna_domain_fastq::governed_stage_bench_query_context(
+        STAGE_TRIM_POLYG_TAILS.as_str(),
+    )?;
     if let Some(bank_hash) = polyx_context
         .and_then(|value| value.get("bank_hash"))
         .and_then(serde_json::Value::as_str)
     {
         context = context.with_bank_hash("polyx_bank", bank_hash.to_string());
     }
-    context
+    Ok(context)
 }
 
 #[cfg(test)]
@@ -362,7 +359,7 @@ mod tests {
     #[test]
     fn benchmark_query_context_keeps_governed_polyg_bank_hash() {
         let polyx_context = serde_json::json!({"bank_hash": "polyx-hash"});
-        let context = benchmark_query_context(Some(&polyx_context));
+        let context = benchmark_query_context(Some(&polyx_context)).expect("query context");
 
         assert!(context.stage_contract_hash.is_some());
         assert_eq!(

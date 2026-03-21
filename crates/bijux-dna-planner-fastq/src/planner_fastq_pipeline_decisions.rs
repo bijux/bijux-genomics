@@ -1092,28 +1092,26 @@ pub fn select_preprocess_tools(
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     bench_repo: Option<&dyn BenchResultsRepository>,
 ) -> Result<Vec<ToolSelection>> {
-    Ok(select_preprocess_stage_tools(registry, pipeline, args, bench_repo)?
-        .into_iter()
-        .map(|selection| ToolSelection {
-            tool_id: selection.tool_id,
-            reason: selection.reason,
-        })
-        .collect())
+    Ok(
+        select_preprocess_stage_tools(registry, pipeline, args, bench_repo)?
+            .into_iter()
+            .map(|selection| ToolSelection {
+                tool_id: selection.tool_id,
+                reason: selection.reason,
+            })
+            .collect(),
+    )
 }
 
 fn bench_query_context_for_stage(
     stage_id: &bijux_dna_core::ids::StageId,
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
-    let mut context = bijux_dna_domain_fastq::BenchQueryContext::default();
-    if let Some(contract_hash) = bijux_dna_domain_fastq::stage_contract_hash(stage_id.as_str()) {
-        context = context.with_stage_contract_hash(contract_hash.map_err(|err| {
-            anyhow!(
-                "compute stage contract hash for {}: {err}",
-                stage_id.as_str()
-            )
-        })?);
-    }
-    Ok(context)
+    bijux_dna_domain_fastq::governed_stage_bench_query_context(stage_id.as_str()).map_err(|err| {
+        anyhow!(
+            "compute benchmark query context for {}: {err}",
+            stage_id.as_str()
+        )
+    })
 }
 
 fn bench_query_context_for_preprocess_stage(
