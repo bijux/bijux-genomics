@@ -535,4 +535,41 @@ mod tests {
 
         assert!(error.to_string().contains("genome_size"));
     }
+
+    #[test]
+    fn plan_correct_maps_explicit_kmer_size_for_musket() {
+        let plan = plan_correct_with_options(
+            &tool("musket"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                kmer_size: Some(31),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect("musket plan should accept explicit kmer size");
+
+        assert_eq!(plan.effective_params["kmer_size"], serde_json::json!(31));
+        assert!(plan.command.template[2].contains("musket -p 2 -k 31"));
+    }
+
+    #[test]
+    fn plan_correct_maps_explicit_memory_limit_for_bayeshammer() {
+        let plan = plan_correct_with_options(
+            &tool("bayeshammer"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                max_memory_gb: Some(24),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect("bayeshammer plan should accept explicit memory limit");
+
+        assert_eq!(plan.effective_params["max_memory_gb"], serde_json::json!(24));
+        assert!(plan.command.template[2].contains("spades.py --only-error-correction"));
+        assert!(plan.command.template[2].contains(" -m 24"));
+    }
 }
