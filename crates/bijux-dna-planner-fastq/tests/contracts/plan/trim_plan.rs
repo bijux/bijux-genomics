@@ -242,6 +242,40 @@ fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_options_maps_length_and_quality_for_adapterremoval() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("adapterremoval"),
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: Some(42),
+            quality_cutoff: Some(18),
+            n_policy: Some("retain".to_string()),
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    let script = &plan.command.template[2];
+    assert!(script.contains("'AdapterRemoval'"));
+    assert!(script.contains("'--file1' 'reads_R1.fastq.gz'"));
+    assert!(script.contains("'--file2' 'reads_R2.fastq.gz'"));
+    assert!(script.contains("'--output1' 'out/R1.adapterremoval.fastq.gz'"));
+    assert!(script.contains("'--output2' 'out/R2.adapterremoval.fastq.gz'"));
+    assert!(script.contains("'--minlength' '42'"));
+    assert!(script.contains("'--trimqualities'"));
+    assert!(script.contains("'--minquality' '18'"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
     let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &templated_tool("seqkit", &["seqkit", "seq", "{{reads_r1}}"]),
