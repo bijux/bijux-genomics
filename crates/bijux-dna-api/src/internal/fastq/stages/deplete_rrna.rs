@@ -14,7 +14,10 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDepleteR
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
-use bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA;
+use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
+use bijux_dna_domain_fastq::{
+    DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_rrna_tools;
@@ -170,89 +173,43 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, depletion_summary) =
-            if let Some(input_stats_r2) = &input_stats_r2 {
-                let output_r1 = plan.io.outputs[0].path.clone();
-                let output_r2 = plan.io.outputs[1].path.clone();
-                let report_tsv = plan.io.outputs[2].path.clone();
-                let report_json = plan.io.outputs[3].path.clone();
-                let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
-                let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
-                let reads_in = bench_inputs.input_stats.reads + input_stats_r2.reads;
-                let reads_out = output_stats_r1.reads + output_stats_r2.reads;
-                let bases_in = bench_inputs.input_stats.bases + input_stats_r2.bases;
-                let bases_out = output_stats_r1.bases + output_stats_r2.bases;
-                let pairs_in = bench_inputs.input_stats.reads.min(input_stats_r2.reads);
-                let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
-                (
-                    reads_in,
-                    reads_out,
-                    bases_in,
-                    bases_out,
-                    pairs_in,
-                    pairs_out,
-                    serde_json::json!({
-                        "reads_removed": reads_in.saturating_sub(reads_out),
-                        "bases_removed": bases_in.saturating_sub(bases_out),
-                        "output_r1": output_r1,
-                        "output_r2": output_r2,
-                        "report_tsv": report_tsv,
-                        "report_json": report_json,
-                    }),
-                )
-            } else {
-                let output_fastq = plan.io.outputs[0].path.clone();
-                let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
-                (
-                    bench_inputs.input_stats.reads,
-                    output_stats.reads,
-                    bench_inputs.input_stats.bases,
-                    output_stats.bases,
-                    0,
-                    0,
-                    serde_json::json!({
-                        "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
-                        "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
-                        "output_fastq": output_fastq,
-                        "report_tsv": plan.io.outputs[1].path,
-                        "report_json": plan.io.outputs[2].path,
-                    }),
-                )
-            };
-        let rrna_fraction_removed = if reads_in == 0 {
-            0.0
-        } else {
-            1.0 - (reads_out as f64 / reads_in as f64)
-        };
+        let report = build_rrna_report(
+            &plan,
+            &bench_inputs.input_stats,
+            input_stats_r2.as_ref(),
+            catalog,
+            platform,
+            runner,
+            &tool,
+            &execution,
+        )?;
+        bijux_dna_infra::atomic_write_json(
+            std::path::Path::new(&report.rrna_report_json),
+            &report,
+        )
+        .context("write rrna depletion report")?;
         let metrics = FastqDepleteRrnaMetrics {
-            reads_in,
-            reads_out,
-            bases_in,
-            bases_out,
-            pairs_in,
-            pairs_out,
-            rrna_fraction_removed: rrna_fraction_removed.clamp(0.0, 1.0),
-            depletion_summary: depletion_summary.into(),
+            reads_in: report.reads_in,
+            reads_out: report.reads_out,
+            bases_in: report.bases_in,
+            bases_out: report.bases_out,
+            pairs_in: report.pairs_in.unwrap_or(0),
+            pairs_out: report.pairs_out.unwrap_or(0),
+            rrna_fraction_removed: report.rrna_fraction_removed.clamp(0.0, 1.0),
+            depletion_summary: serde_json::json!({
+                "reads_removed": report.reads_removed,
+                "bases_removed": report.bases_removed,
+                "output_r1": report.output_r1,
+                "output_r2": report.output_r2,
+                "report_tsv": report.rrna_report_tsv,
+                "report_json": report.rrna_report_json,
+                "database_artifact_id": report.database_artifact_id,
+                "screening_engine": report.screening_engine,
+            })
+            .into(),
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
-        let stage_report = serde_json::json!({
-            "schema_version": "bijux.fastq.deplete_rrna.report.v1",
-            "stage_id": STAGE_DEPLETE_RRNA.as_str(),
-            "tool_id": tool,
-            "rrna_fraction_removed": metrics.rrna_fraction_removed,
-            "reads_in": metrics.reads_in,
-            "reads_out": metrics.reads_out,
-            "bases_in": metrics.bases_in,
-            "bases_out": metrics.bases_out,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("deplete_rrna_report.json"),
-            &stage_report,
-        )
-        .context("write rrna depletion report")?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -289,4 +246,111 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         bench_dir: bench_inputs.bench_dir,
         explain: args.explain,
     })
+}
+
+fn build_rrna_report<S: ::std::hash::BuildHasher>(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    input_stats_r2: Option<&bijux_dna_core::prelude::measure::SeqkitMetrics>,
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner: RuntimeKind,
+    tool: &str,
+    execution: &bijux_dna_runner::step_runner::StageResultV1,
+) -> Result<DepleteRrnaReportV1> {
+    let effective_params: RrnaEffectiveParams = serde_json::from_value(plan.effective_params.clone())
+        .context("decode rrna effective params")?;
+    let output_r1 = artifact_output_path(plan, "rrna_filtered_reads_r1")
+        .unwrap_or_else(|| plan.out_dir.join("rrna_filtered.fastq.gz"));
+    let output_r2 = artifact_output_path(plan, "rrna_filtered_reads_r2");
+    let rrna_report_tsv = artifact_output_path(plan, "rrna_report_tsv")
+        .unwrap_or_else(|| plan.out_dir.join("rrna_report.tsv"));
+    let rrna_report_json = artifact_output_path(plan, "rrna_report_json")
+        .unwrap_or_else(|| plan.out_dir.join("rrna_report.json"));
+    let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+    let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, path)?)
+    } else {
+        None
+    };
+    let reads_in = input_stats_r1.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let reads_out = output_stats_r1.reads + output_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = input_stats_r1.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let bases_out = output_stats_r1.bases + output_stats_r2.map_or(0, |stats| stats.bases);
+    let reads_removed = reads_in.saturating_sub(reads_out);
+    let bases_removed = bases_in.saturating_sub(bases_out);
+    let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
+    let pairs_out = output_stats_r2
+        .as_ref()
+        .map(|stats| output_stats_r1.reads.min(stats.reads));
+    let rrna_fraction_removed = if reads_in == 0 {
+        0.0
+    } else {
+        reads_removed as f64 / reads_in as f64
+    };
+
+    Ok(DepleteRrnaReportV1 {
+        schema_version: DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_DEPLETE_RRNA.as_str().to_string(),
+        stage_id: STAGE_DEPLETE_RRNA.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: effective_params.paired_mode,
+        threads: effective_params.threads,
+        rrna_db: effective_params.contaminant_db,
+        database_artifact_id: effective_params.database_artifact_id,
+        database_build_id: effective_params.database_build_id,
+        screening_engine: effective_params.screening_engine,
+        report_format: effective_params.report_format,
+        emit_removed_reads: effective_params.emit_removed_reads,
+        min_identity: plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
+        input_r1: artifact_input_path(plan, "reads_r1")
+            .unwrap_or_default()
+            .display()
+            .to_string(),
+        input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        rrna_report_tsv: rrna_report_tsv.display().to_string(),
+        rrna_report_json: rrna_report_json.display().to_string(),
+        reads_in,
+        reads_out,
+        reads_removed,
+        bases_in,
+        bases_out,
+        bases_removed,
+        pairs_in,
+        pairs_out,
+        rrna_fraction_removed,
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: Some(serde_json::json!({
+            "reads_removed": reads_removed,
+            "bases_removed": bases_removed,
+        })),
+    })
+}
+
+fn artifact_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
+}
+
+fn artifact_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
 }
