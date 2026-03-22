@@ -138,6 +138,12 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
     );
     assert_eq!(
         by_stage
+            .remove("fastq.deplete_reference_contaminants")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::ObserverSpecialized),
+    );
+    assert_eq!(
+        by_stage
             .remove("fastq.validate_reads")
             .map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
