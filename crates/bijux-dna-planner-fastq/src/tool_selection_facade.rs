@@ -66,9 +66,7 @@ pub fn select_infer_asvs_tools(tools: &[String]) -> Result<Vec<String>> {
         &bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS,
     );
     if allowlist.is_empty() {
-        return Err(anyhow!(
-            "fastq.infer_asvs is declared-only and has no admitted runtime tools"
-        ));
+        return Err(anyhow!("fastq.infer_asvs has no admitted runtime tools"));
     }
     select_tools_with_allowlist(tools, &allowlist)
 }

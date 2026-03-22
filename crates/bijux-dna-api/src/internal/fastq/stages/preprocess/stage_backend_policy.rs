@@ -193,8 +193,7 @@ pub(crate) fn parse_profile_overrepresented_metrics(
 pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("infer_asvs_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = serde_json::from_str::<bijux_dna_domain_fastq::InferAsvsReportV1>(&raw)
-        {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_infer_asvs_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.infer_asvs",

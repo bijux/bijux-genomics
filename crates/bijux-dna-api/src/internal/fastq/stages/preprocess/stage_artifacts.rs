@@ -317,7 +317,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.infer_asvs" => {
             let report_path = stage_root.join("infer_asvs_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                serde_json::from_str::<bijux_dna_domain_fastq::InferAsvsReportV1>(&raw).ok()
+                bijux_dna_stages_fastq::observer::parse_infer_asvs_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v2",

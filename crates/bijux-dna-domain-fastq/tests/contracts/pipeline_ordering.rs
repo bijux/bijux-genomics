@@ -112,7 +112,7 @@ fn canonical_amplicon_order_uses_supported_feature_stage() {
     );
     assert!(
         !stages.iter().any(|stage| stage == "fastq.infer_asvs"),
-        "canonical amplicon order must not default to planned ASV inference"
+        "canonical amplicon order must not default to optional ASV inference branches"
     );
 }
 
