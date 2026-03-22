@@ -125,7 +125,7 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
             .map(|stage| stage.as_str().to_string())
             .collect::<BTreeSet<_>>()
     };
-    if options.paired && options.enable_correct {
+    if options.enable_correct {
         selected_stages.insert(STAGE_CORRECT_ERRORS.as_str().to_string());
     }
     if options.mode == FastqPipelineMode::Shotgun && options.paired && options.enable_merge {
@@ -305,7 +305,7 @@ pub fn preprocess_decisions(
 
     let mut correct_decision = None;
     let mut enable_correct = args.enable_correct;
-    if !enable_correct && args.r2.is_some() {
+    if !enable_correct {
         let thresholds = bijux_dna_domain_fastq::thresholds_from_env();
         if let Ok(mean_q) = estimate_mean_q(&args.r1, 256) {
             if mean_q < thresholds.mean_q_warn {
