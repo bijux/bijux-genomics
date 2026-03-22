@@ -338,11 +338,32 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "bank_usage": "assets/reference contaminant bank required",
         })),
-        "fastq.deplete_rrna" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.deplete_rrna.v1",
-            "stage": stage_id,
-            "db_governance": "explicit local sortmerna db required",
-        })),
+        "fastq.deplete_rrna" => {
+            let report_path = stage_root.join("rrna_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_deplete_rrna_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "rrna_db": governed.as_ref().and_then(|report| report.rrna_db.clone()),
+                "database_artifact_id": governed.as_ref().map(|report| report.database_artifact_id.clone()),
+                "database_build_id": governed.as_ref().and_then(|report| report.database_build_id.clone()),
+                "screening_engine": governed.as_ref().map(|report| report.screening_engine.clone()),
+                "report_format": governed.as_ref().map(|report| report.report_format.clone()),
+                "min_identity": governed.as_ref().and_then(|report| report.min_identity),
+                "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "bases_removed": governed.as_ref().map(|report| report.bases_removed),
+                "rrna_fraction_removed": governed.as_ref().map(|report| report.rrna_fraction_removed),
+                "rrna_report_tsv": governed.as_ref().map(|report| report.rrna_report_tsv.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.deplete_host" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.deplete_host.v1",
             "stage": stage_id,
@@ -506,13 +527,7 @@ fn write_stage_standardized_metrics(
             "fields": ["reads_in", "reads_out", "contaminant_mapped_reads"],
             "report_json": out_dir.join("contaminant_screen_report.json"),
         }),
-        "fastq.deplete_rrna" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "rrna_hits", "rrna_fraction"],
-            "report_tsv": out_dir.join("rrna_report.tsv"),
-            "report_json": out_dir.join("rrna_report.json"),
-        }),
+        "fastq.deplete_rrna" => parse_deplete_rrna_metrics(out_dir),
         "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
         "fastq.report_qc" => parse_report_qc_metrics(out_dir),
         "fastq.normalize_primers" => parse_normalize_primers_metrics(out_dir),
