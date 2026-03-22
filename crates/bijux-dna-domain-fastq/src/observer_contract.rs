@@ -49,6 +49,16 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "qc_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.normalize_primers",
+        tool_id: "cutadapt",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.normalize_primers",
+        tool_id: "seqkit",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.report_qc",
         tool_id: "multiqc",
         semantic_surface: "multiqc_data",
@@ -253,6 +263,10 @@ mod tests {
             ToolId::from_static("lighter")
         )));
         assert!(bindings.contains(&(
+            StageId::from_static("fastq.normalize_primers"),
+            ToolId::from_static("cutadapt")
+        )));
+        assert!(bindings.contains(&(
             StageId::from_static("fastq.remove_chimeras"),
             ToolId::from_static("vsearch")
         )));
@@ -285,6 +299,13 @@ mod tests {
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.trim_reads"),
                 &ToolId::from_static("fastp"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.normalize_primers"),
+                &ToolId::from_static("cutadapt"),
             ),
             Some("report_json")
         );

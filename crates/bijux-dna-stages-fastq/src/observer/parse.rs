@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    NormalizePrimersReportV1,
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
     ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     ProfileReadsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
@@ -138,6 +139,12 @@ pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
 /// Returns an error if the governed trim-polyg report JSON cannot be parsed.
 pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
     serde_json::from_str(report_json).context("parse trim polyg report")
+}
+
+/// # Errors
+/// Returns an error if the governed normalize-primers report JSON cannot be parsed.
+pub fn parse_normalize_primers_report(report_json: &str) -> Result<NormalizePrimersReportV1> {
+    serde_json::from_str(report_json).context("parse normalize primers report")
 }
 
 /// # Errors
