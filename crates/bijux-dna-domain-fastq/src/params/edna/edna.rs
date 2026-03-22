@@ -40,8 +40,17 @@ pub struct ChimeraDetectionEffectiveParams {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AsvInferenceEffectiveParams {
+    pub schema_version: String,
+    pub paired_mode: PairedMode,
+    pub denoising_method: String,
+    pub pooling_mode: String,
+    pub chimera_policy: String,
+    pub threads: Option<u32>,
     pub requires_r_runtime: bool,
     pub output_table_kind: String,
+    pub report_artifact: String,
+    pub raw_backend_report_artifact: Option<String>,
+    pub raw_backend_report_format: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
