@@ -1,6 +1,12 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::handlers::fastq::jobs::bench_jobs;
+use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::internal::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_REPORT_QC,
+};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
@@ -18,6 +24,7 @@ use bijux_dna_domain_fastq::params::{
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_qc_post_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::report_qc::plan_qc_post_with_qc_inputs;
@@ -28,22 +35,17 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::handlers::fastq::jobs::bench_jobs;
-use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
-use crate::internal::handlers::fastq::{
-    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_REPORT_QC,
-};
-use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
 const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 
 fn parse_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope> {
     match value.unwrap_or("governed_qc_artifacts") {
         "governed_qc_artifacts" => Ok(QcAggregationScope::GovernedQcArtifacts),
-        "fastq_qc_inputs" => Ok(QcAggregationScope::FastqQcInputs),
+        "fastq_qc_inputs" => Err(anyhow!(
+            "unsupported fastq.report_qc aggregation_scope `fastq_qc_inputs`; native upstream-stage aggregation is not implemented yet, use governed_qc_artifacts"
+        )),
         other => Err(anyhow!(
-            "unsupported fastq.report_qc aggregation_scope `{other}`; expected one of: governed_qc_artifacts, fastq_qc_inputs"
+            "unsupported fastq.report_qc aggregation_scope `{other}`; expected: governed_qc_artifacts"
         )),
     }
 }
@@ -148,9 +150,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             Some(&bench_inputs.r1),
             bench_inputs.r2.as_deref(),
         )?;
-        let bench_params =
-            benchmark_query_context(governed_qc.lineage_hash.as_deref())?
-                .embed_in_parameters(&plan.params);
+        let bench_params = benchmark_query_context(governed_qc.lineage_hash.as_deref())?
+            .embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
         let image_digest = tool_spec
             .image
@@ -681,10 +682,8 @@ mod tests {
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
         governed_qc_contributors, governed_qc_inputs_manifest_path,
         load_governed_qc_inputs_manifest, load_required_qc_inputs_manifest,
-        parse_qc_aggregation_engine, parse_qc_aggregation_scope,
-        validate_governed_qc_contributors,
-        GovernedQcContributor, GovernedQcInputs,
-        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        parse_qc_aggregation_engine, parse_qc_aggregation_scope, validate_governed_qc_contributors,
+        GovernedQcContributor, GovernedQcInputs, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::path::PathBuf;
 
@@ -715,19 +714,10 @@ mod tests {
     }
 
     #[test]
-    fn fastq_qc_input_scope_uses_same_manifest_contract() {
-        let temp = tempfile::tempdir().expect("tempdir");
-        let error = load_required_qc_inputs_manifest(
-            QcAggregationScope::FastqQcInputs,
-            None,
-            temp.path(),
-            temp.path(),
-            &["multiqc".to_string()],
-        )
-        .expect_err("manifest requirement must be enforced");
-        assert!(error
-            .to_string()
-            .contains("aggregation_scope=fastq_qc_inputs"));
+    fn fastq_qc_input_scope_is_rejected_until_native_aggregation_exists() {
+        let error = parse_qc_aggregation_scope(Some("fastq_qc_inputs"))
+            .expect_err("unsupported scope must fail fast");
+        assert!(error.to_string().contains("not implemented yet"));
     }
 
     #[test]
@@ -776,9 +766,10 @@ mod tests {
             QcAggregationScope::GovernedQcArtifacts
         );
         assert_eq!(
-            parse_qc_aggregation_scope(Some("fastq_qc_inputs")).expect("explicit scope"),
-            QcAggregationScope::FastqQcInputs
+            parse_qc_aggregation_scope(Some("governed_qc_artifacts")).expect("explicit scope"),
+            QcAggregationScope::GovernedQcArtifacts
         );
+        assert!(parse_qc_aggregation_scope(Some("fastq_qc_inputs")).is_err());
     }
 
     #[test]
@@ -873,12 +864,9 @@ mod tests {
             }
         );
         assert_eq!(loaded.raw_fastqc_dir.as_deref(), Some(fastqc_dir.as_path()));
-        assert!(loaded
-            .lineage_hash
-            .as_deref()
-            .is_some_and(|lineage| {
-                lineage.contains("fastq.trim_reads.fastp_branch:report_json=")
-            }));
+        assert!(loaded.lineage_hash.as_deref().is_some_and(|lineage| {
+            lineage.contains("fastq.trim_reads.fastp_branch:report_json=")
+        }));
     }
 
     #[test]
@@ -1098,6 +1086,8 @@ mod tests {
             temp.path().join("governed_qc_inputs.json").as_path(),
         )
         .expect_err("unmatched contributor artifact ids must fail");
-        assert!(error.to_string().contains("does not match any qc_inputs entry"));
+        assert!(error
+            .to_string()
+            .contains("does not match any qc_inputs entry"));
     }
 }
