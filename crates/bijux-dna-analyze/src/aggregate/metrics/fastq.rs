@@ -73,6 +73,18 @@ pub struct FastqTrimMetrics {
     #[serde(default)]
     pub delta_metrics: FastqDeltaMetrics,
     #[serde(default)]
+    pub paired_mode: Option<String>,
+    #[serde(default)]
+    pub adapter_policy: Option<String>,
+    #[serde(default)]
+    pub polyx_policy: Option<String>,
+    #[serde(default)]
+    pub n_policy: Option<String>,
+    #[serde(default)]
+    pub contaminant_policy: Option<String>,
+    #[serde(default)]
+    pub raw_backend_report_format: Option<String>,
+    #[serde(default)]
     pub adapter_preset: Option<String>,
     #[serde(default)]
     pub adapter_bank_id: Option<String>,
