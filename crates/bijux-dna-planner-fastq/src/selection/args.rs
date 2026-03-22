@@ -374,6 +374,7 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
+    pub top_k: Option<u32>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
