@@ -38,6 +38,8 @@ pub fn plan_stats_with_threads(
     threads_override: Option<u32>,
 ) -> Result<StagePlanV1> {
     let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     let effective_params = FastqStatsParams {
         schema_version: STATS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -73,10 +75,7 @@ pub fn plan_stats_with_threads(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: bijux_dna_core::prelude::ExecutionResourcesV1 {
-            threads,
-            ..tool.resources.clone()
-        },
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
