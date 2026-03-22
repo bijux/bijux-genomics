@@ -550,6 +550,22 @@ pub struct FastqQcPostMetrics {
     pub mean_q: f64,
     pub contamination_rate: f64,
     #[serde(default)]
+    pub aggregation_engine: Option<String>,
+    #[serde(default)]
+    pub aggregation_scope: Option<String>,
+    #[serde(default)]
+    pub governed_qc_input_count: Option<u64>,
+    #[serde(default)]
+    pub governed_qc_contributor_stage_ids: JsonBlob,
+    #[serde(default)]
+    pub governed_qc_contributor_tool_ids: JsonBlob,
+    #[serde(default)]
+    pub governed_qc_lineage_hash: Option<String>,
+    #[serde(default)]
+    pub multiqc_sample_count: Option<u64>,
+    #[serde(default)]
+    pub multiqc_module_count: Option<u64>,
+    #[serde(default)]
     pub raw_fastqc_dir: Option<String>,
     #[serde(default)]
     pub trimmed_fastqc_dir: Option<String>,

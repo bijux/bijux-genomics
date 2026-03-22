@@ -401,6 +401,8 @@ fn build_qc_post_record(
         bench_inputs.input_stats_r2.as_ref(),
         out_dir,
         governed_qc.raw_fastqc_dir.as_deref(),
+        params,
+        governed_qc,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -534,6 +536,8 @@ fn derive_qc_post_metrics(
     input_stats_r2: Option<&SeqkitMetrics>,
     out_dir: &Path,
     raw_fastqc_dir: Option<&Path>,
+    params: &serde_json::Value,
+    governed_qc: &GovernedQcInputs,
 ) -> FastqQcPostMetrics {
     let multiqc_report = out_dir.join("multiqc_report.html");
     let multiqc_data = out_dir.join("multiqc_data");
@@ -556,6 +560,26 @@ fn derive_qc_post_metrics(
         pairs_out: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
         mean_q,
         contamination_rate: 0.0,
+        aggregation_engine: params
+            .get("aggregation_engine")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        aggregation_scope: params
+            .get("aggregation_scope")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        governed_qc_input_count: Some(governed_qc.qc_inputs.len() as u64),
+        governed_qc_contributor_stage_ids: serde_json::json!(
+            governed_qc_contributor_stage_ids(&governed_qc.contributors)
+        )
+        .into(),
+        governed_qc_contributor_tool_ids: serde_json::json!(
+            governed_qc_contributor_tool_ids(&governed_qc.contributors)
+        )
+        .into(),
+        governed_qc_lineage_hash: governed_qc.lineage_hash.clone(),
+        multiqc_sample_count: load_multiqc_general_stats(out_dir).map(|metrics| metrics.sample_count),
+        multiqc_module_count: load_multiqc_general_stats(out_dir).map(|metrics| metrics.module_count),
         raw_fastqc_dir: raw_fastqc_dir.and_then(path_if_exists),
         trimmed_fastqc_dir: path_if_exists(&trimmed_fastqc_dir),
         multiqc_report: path_if_exists(&multiqc_report),
@@ -951,6 +975,16 @@ mod tests {
             None,
             temp.path(),
             Some(raw_fastqc_dir.as_path()),
+            &serde_json::json!({
+                "aggregation_engine": "multiqc",
+                "aggregation_scope": "governed_qc_artifacts"
+            }),
+            &GovernedQcInputs {
+                qc_inputs: Vec::new(),
+                contributors: Vec::new(),
+                raw_fastqc_dir: Some(raw_fastqc_dir.clone()),
+                lineage_hash: None,
+            },
         );
 
         let expected_raw_fastqc_dir = raw_fastqc_dir.display().to_string();
