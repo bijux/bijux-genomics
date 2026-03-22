@@ -10,6 +10,7 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_profile_reads_report,
+    parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_remove_duplicates_provenance,
     parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
@@ -397,6 +398,35 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
     if plan.stage_id.as_str() == "fastq.validate_reads" {
         if let Some(semantics) = validate_semantic_metrics(artifacts) {
             return semantics;
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.normalize_primers" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_normalize_primers_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "primer_set_id": report.primer_set_id,
+                        "marker_id": report.marker_id,
+                        "orientation_policy": report.orientation_policy,
+                        "max_mismatch_rate": report.max_mismatch_rate,
+                        "min_overlap_bp": report.min_overlap_bp,
+                        "reads_in": report.reads_in,
+                        "reads_out": report.reads_out,
+                        "primer_trimmed_reads": report.primer_trimmed_reads,
+                        "primer_trimmed_fraction": report.primer_trimmed_fraction,
+                        "orientation_forward_fraction": report.orientation_forward_fraction,
+                        "primer_orientation_report": report.primer_orientation_report,
+                        "primer_stats_json": report.primer_stats_json,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
         }
     }
     if plan.stage_id.as_str() == "fastq.profile_reads" {
@@ -2221,6 +2251,85 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["raw_backend_report_format"],
             serde_json::json!("seqkit_stats_tsv")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_normalize_primer_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("normalize_primers_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_primers.report.v2",
+                "stage": "fastq.normalize_primers",
+                "stage_id": "fastq.normalize_primers",
+                "tool_id": "cutadapt",
+                "paired_mode": "single_end",
+                "primer_set_id": "16S_universal_v1",
+                "marker_id": "16S",
+                "primer_fasta": "assets/reference/primers/16S_universal_v1.fasta",
+                "orientation_policy": "normalize_to_forward_primer",
+                "max_mismatch_rate": 0.1,
+                "min_overlap_bp": 10,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "normalized.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "pairs_in": null,
+                "pairs_out": null,
+                "primer_trimmed_reads": 95,
+                "primer_trimmed_fraction": 0.95,
+                "orientation_forward_fraction": 0.93,
+                "primer_orientation_report": "primer_orientation.tsv",
+                "primer_stats_json": "primer_stats.json",
+                "raw_backend_report": "primer_stats.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 2.4,
+                "memory_mb": 80.0,
+                "used_fallback": false,
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write normalize report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.normalize_primers"),
+            tool_id: ToolId::from_static("cutadapt"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.normalize_primers")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["primer_set_id"],
+            serde_json::json!("16S_universal_v1")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["primer_trimmed_fraction"],
+            serde_json::json!(0.95)
         );
     }
 
