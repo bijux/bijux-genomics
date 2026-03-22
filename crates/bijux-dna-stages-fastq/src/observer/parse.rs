@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    ClusterOtusReportV1,
     CorrectErrorsReportV1,
     DepleteHostReportV1,
     DepleteReferenceContaminantsReportV1,
@@ -186,6 +187,12 @@ pub fn parse_normalize_abundance_report(report_json: &str) -> Result<NormalizeAb
 /// Returns an error if the governed infer-asvs report JSON cannot be parsed.
 pub fn parse_infer_asvs_report(report_json: &str) -> Result<InferAsvsReportV1> {
     serde_json::from_str(report_json).context("parse infer asvs report")
+}
+
+/// # Errors
+/// Returns an error if the governed cluster-otus report JSON cannot be parsed.
+pub fn parse_cluster_otus_report(report_json: &str) -> Result<ClusterOtusReportV1> {
+    serde_json::from_str(report_json).context("parse cluster otus report")
 }
 
 /// # Errors
