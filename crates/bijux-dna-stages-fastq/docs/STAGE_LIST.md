@@ -19,7 +19,7 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | fastq.remove_duplicates | Optional | FASTQ | deduplicated FASTQ + governed duplicate evidence | dedup_rate, duplicate classes, backend lineage |
 | fastq.deplete_host | Optional | FASTQ + host reference index | host-depleted FASTQ + canonical host depletion report | host_fraction_removed, reads_removed, reference lineage, raw Bowtie2 metrics provenance |
 | fastq.deplete_rrna | Optional | FASTQ | rRNA-filtered FASTQ | rrna_fraction |
-| fastq.correct_errors | Optional | paired FASTQ | corrected FASTQ | correction_rate; `rcorrector` is the closed execution backend |
+| fastq.correct_errors | Optional | single-end or paired FASTQ | corrected FASTQ + governed correction report | corrected_reads, kmer_fix_rate, correction engine, executable parameter lineage |
 | fastq.extract_umis | Optional | paired FASTQ | UMI-tagged FASTQ | umi_stats |
 | fastq.screen_taxonomy | Optional | FASTQ | governed taxonomy report + raw screen summary | contamination_rate, classified_fraction, top_taxa, database lineage |
 | fastq.profile_reads | Optional | FASTQ | stats report | read_count, base_count |
