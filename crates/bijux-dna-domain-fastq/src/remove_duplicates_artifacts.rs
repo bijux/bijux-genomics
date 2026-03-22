@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::params::processing::remove_duplicates::DedupMode;
+use crate::params::remove_duplicates::DedupMode;
 use crate::params::PairedMode;
 
 pub const REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION: &str =
@@ -76,7 +76,7 @@ mod tests {
         DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
         REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
     };
-    use crate::params::processing::remove_duplicates::DedupMode;
+    use crate::params::remove_duplicates::DedupMode;
     use crate::params::PairedMode;
 
     #[test]

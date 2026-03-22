@@ -253,7 +253,7 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
             Some(_) => bijux_dna_domain_fastq::PairedMode::PairedEnd,
             None => bijux_dna_domain_fastq::PairedMode::SingleEnd,
         },
-        dedup_mode: bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::Exact,
+        dedup_mode: bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact,
         keep_order: true,
         input_r1: String::new(),
         input_r2: None,
