@@ -824,6 +824,7 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
                 params: Some(FastqStageParameters::DepleteReferenceContaminants(
                     DepleteReferenceContaminantsStageParams {
                         decoy_mode: "phix_only".to_string(),
+                        threads: None,
                     },
                 )),
             },

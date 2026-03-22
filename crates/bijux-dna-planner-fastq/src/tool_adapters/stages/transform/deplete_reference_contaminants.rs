@@ -96,6 +96,8 @@ pub fn plan_contaminant_screen_with_index_backend(
     };
     let output_r2 = r2.map(|_| out_dir.join("contaminant_screened_R2.fastq.gz"));
     let report = out_dir.join("contaminant_screen_report.json");
+    let raw_backend_report = out_dir.join("bowtie2.contaminant.metrics.txt");
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ReferenceContaminantEffectiveParams {
         schema_version: REFERENCE_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -103,7 +105,7 @@ pub fn plan_contaminant_screen_with_index_backend(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads: effective_threads,
         reference_catalog_id: "contaminant_reference".to_string(),
         contaminant_reference: options.decoy_mode.clone(),
         index_artifact: "reference_index".to_string(),
@@ -163,8 +165,8 @@ pub fn plan_contaminant_screen_with_index_backend(
                 r2,
                 reference_index,
                 out_dir,
-                report.as_path(),
-                tool.resources.threads,
+                raw_backend_report.as_path(),
+                effective_threads,
             )?,
         },
         resources: tool.resources.clone(),
@@ -177,9 +179,12 @@ pub fn plan_contaminant_screen_with_index_backend(
             "reference_index": reference_index,
             "reference_index_backend": reference_index_backend,
             "decoy_mode": options.decoy_mode,
+            "threads": effective_threads,
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,
+            "raw_backend_report": raw_backend_report,
+            "raw_backend_report_format": "bowtie2_met_file",
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize contaminant screen effective params: {error}"))?,
@@ -194,7 +199,7 @@ fn contaminant_screen_command(
     r2: Option<&Path>,
     reference_index: &Path,
     out_dir: &Path,
-    report_json: &Path,
+    raw_backend_report: &Path,
     threads: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
@@ -231,7 +236,10 @@ fn contaminant_screen_command(
                         .to_string(),
                 ]);
             }
-            command.extend(["--met-file".to_string(), report_json.display().to_string()]);
+            command.extend([
+                "--met-file".to_string(),
+                raw_backend_report.display().to_string(),
+            ]);
             Ok(command)
         }
         _ => Err(anyhow!(
@@ -279,6 +287,35 @@ mod tests {
 
         assert_eq!(plan.effective_params["reference_index_backend"], "star");
         assert_eq!(plan.params["reference_index_backend"], "star");
+        Ok(())
+    }
+
+    #[test]
+    fn contaminant_screen_uses_governed_report_and_raw_backend_metrics_paths() -> Result<()> {
+        let plan = plan_contaminant_screen_with_options(
+            &tool("bowtie2"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("reference.index"),
+            Path::new("out"),
+            &DepleteReferenceContaminantsPlanOptions {
+                decoy_mode: "phix_only".to_string(),
+                threads: Some(6),
+            },
+        )?;
+
+        assert_eq!(plan.params["report_json"], "out/contaminant_screen_report.json");
+        assert_eq!(
+            plan.params["raw_backend_report"],
+            "out/bowtie2.contaminant.metrics.txt"
+        );
+        assert_eq!(plan.effective_params["threads"], 6);
+        assert!(
+            plan.command
+                .template
+                .iter()
+                .any(|part| part == "out/bowtie2.contaminant.metrics.txt")
+        );
         Ok(())
     }
 }

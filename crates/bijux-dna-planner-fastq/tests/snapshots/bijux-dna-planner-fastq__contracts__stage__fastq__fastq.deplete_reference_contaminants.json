@@ -24,7 +24,7 @@
       "--un-conc-gz",
       "out/contaminant_screened_R%.fastq.gz",
       "--met-file",
-      "out/contaminant_screen_report.json"
+      "out/bowtie2.contaminant.metrics.txt"
     ]
   },
   "resources": {
@@ -82,9 +82,12 @@
     "input_r2": "reads_R2.fastq.gz",
     "output_r1": "out/contaminant_screened_R1.fastq.gz",
     "output_r2": "out/contaminant_screened_R2.fastq.gz",
+    "raw_backend_report": "out/bowtie2.contaminant.metrics.txt",
+    "raw_backend_report_format": "bowtie2_met_file",
     "reference_index": "contaminant_reference_index",
     "reference_index_backend": "bowtie2_build",
     "report_json": "out/contaminant_screen_report.json",
+    "threads": 1,
     "tool": "bowtie2"
   },
   "effective_params": {

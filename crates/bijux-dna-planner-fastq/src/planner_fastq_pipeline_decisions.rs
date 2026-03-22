@@ -190,12 +190,14 @@ impl Default for DepleteHostStageParams {
 #[derive(Debug, Clone)]
 pub struct DepleteReferenceContaminantsStageParams {
     pub decoy_mode: String,
+    pub threads: Option<u32>,
 }
 
 impl Default for DepleteReferenceContaminantsStageParams {
     fn default() -> Self {
         Self {
             decoy_mode: "phix_and_spikeins".to_string(),
+            threads: None,
         }
     }
 }
