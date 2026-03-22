@@ -628,3 +628,115 @@ fn discover_screen_taxonomy_report_path(
             .find(|path| path.exists())
         })
 }
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Result;
+    use bijux_dna_runner::step_runner::StageResultV1;
+
+    use super::{emit_fastq_stage_extra_artifacts, write_stage_standardized_metrics};
+
+    fn host_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "host-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 5.0,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("host_depletion_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bowtie2".to_string(),
+        }
+    }
+
+    fn write_host_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("host_depletion_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.deplete_host.report.v2",
+                "stage": "fastq.deplete_host",
+                "stage_id": "fastq.deplete_host",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_scope": "host",
+                "reference_catalog_id": "host_reference",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:host",
+                "masking_policy": "unmasked",
+                "decoy_policy": "none",
+                "decoy_catalog_id": null,
+                "identity_threshold": 0.95,
+                "retained_read_policy": "keep_non_host_reads",
+                "emit_removed_reads": true,
+                "report_format": "bowtie2_metrics_file",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "host_depleted.fastq.gz",
+                "output_r2": null,
+                "removed_host_r1": "removed_host.fastq.gz",
+                "removed_host_r2": null,
+                "report_json": "host_depletion_report.json",
+                "reads_in": 100,
+                "reads_out": 70,
+                "reads_removed": 30,
+                "bases_in": 1000,
+                "bases_out": 680,
+                "bases_removed": 320,
+                "pairs_in": null,
+                "pairs_out": null,
+                "host_fraction_removed": 0.30,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.host.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 30}
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_host_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.deplete_host",
+            &host_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(extra["reads_removed"], serde_json::json!(30));
+        assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn host_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_host_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.deplete_host",
+            temp.path(),
+            &host_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(metrics["reads_removed"], serde_json::json!(30));
+        assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+}
