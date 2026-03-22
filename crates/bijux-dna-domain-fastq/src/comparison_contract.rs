@@ -75,6 +75,13 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "taxonomy_ready_fasta",
             "taxonomy_ready_fastq",
         ],
+        "fastq.cluster_otus" => &[
+            "report_json",
+            "otu_table",
+            "otu_representatives",
+            "taxonomy_ready_fasta",
+            "taxonomy_ready_fastq",
+        ],
         "fastq.index_reference" => &["report_json", "reference_index"],
         "fastq.detect_adapters" => &["report_json", "adapter_evidence_dir"],
         "fastq.deplete_host" => &[

@@ -92,11 +92,12 @@ stage_contracts:
     required_inputs:
       - "reads"
     expected_artifacts:
+      - "report_json"
       - "otu_table"
       - "otu_representatives"
       - "taxonomy_ready_fasta"
       - "taxonomy_ready_fastq"
-    notes: "vsearch OTU clustering emits the OTU table, representative sequences, and taxonomy-ready sequence artifacts."
+    notes: "vsearch OTU clustering emits a canonical governed report, the OTU table, representative sequences, and taxonomy-ready sequence artifacts."
 expected_artifacts:
   - "merged_reads"
   - "unmerged_reads_r1"

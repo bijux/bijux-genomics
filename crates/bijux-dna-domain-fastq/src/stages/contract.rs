@@ -76,7 +76,7 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
             "decision_semantics": "legal in amplicon mode; outputs denoised sequence variants"
         })),
         "fastq.cluster_otus" => Some(serde_json::json!({
-            "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
+            "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids and a canonical governed clustering report"
         })),
         _ => None,
     };
