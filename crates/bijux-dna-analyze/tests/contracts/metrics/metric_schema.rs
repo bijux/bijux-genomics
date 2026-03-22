@@ -183,6 +183,13 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_valid: 90,
         reads_invalid: 10,
         mean_q: 30.0,
+        validated_inputs: Some(1),
+        validated_pairs: None,
+        pair_sync_checked: Some(false),
+        pair_sync_pass: None,
+        pair_count_match: None,
+        strict_pass: Some(true),
+        failure_class: Some("none".to_string()),
     });
     assert_eq!(validate.metrics_schema, "fastq_validate_reads_v1");
 

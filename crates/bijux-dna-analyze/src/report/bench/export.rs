@@ -707,6 +707,13 @@ mod tests {
             reads_valid: 45,
             reads_invalid: 5,
             mean_q: 32.0,
+            validated_inputs: Some(2),
+            validated_pairs: Some(22),
+            pair_sync_checked: Some(true),
+            pair_sync_pass: Some(false),
+            pair_count_match: Some(false),
+            strict_pass: Some(false),
+            failure_class: Some("header_sync_mismatch".to_string()),
         };
         let summary = semantic_validate(&metrics);
         assert!(matches!(

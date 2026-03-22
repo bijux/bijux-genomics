@@ -376,6 +376,16 @@ fn derive_validate_metrics(
         reads_valid,
         reads_invalid,
         mean_q: input_stats.mean_q,
+        validated_inputs: parsed_report.as_ref().map(|report| report.validated_inputs),
+        validated_pairs: parsed_report.as_ref().and_then(|report| report.validated_pairs),
+        pair_sync_checked: parsed_report.as_ref().map(|report| report.pair_sync_checked),
+        pair_sync_pass: parsed_report.as_ref().and_then(|report| report.pair_sync_pass),
+        pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
+        strict_pass: parsed_report.as_ref().map(|report| report.strict_pass),
+        failure_class: parsed_report
+            .as_ref()
+            .and_then(|report| serde_json::to_value(&report.failure_class).ok())
+            .and_then(|value| value.as_str().map(ToOwned::to_owned)),
     }
 }
 
@@ -669,5 +679,15 @@ mod tests {
         assert_eq!(metrics.reads_total, 201);
         assert_eq!(metrics.reads_invalid, 1);
         assert_eq!(metrics.reads_valid, 200);
+        assert_eq!(metrics.validated_inputs, Some(2));
+        assert_eq!(metrics.validated_pairs, Some(100));
+        assert_eq!(metrics.pair_sync_checked, Some(true));
+        assert_eq!(metrics.pair_sync_pass, Some(false));
+        assert_eq!(metrics.pair_count_match, Some(false));
+        assert_eq!(metrics.strict_pass, Some(false));
+        assert_eq!(
+            metrics.failure_class.as_deref(),
+            Some("pair_count_mismatch")
+        );
     }
 }
