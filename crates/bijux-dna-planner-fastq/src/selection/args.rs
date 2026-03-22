@@ -47,6 +47,7 @@ pub struct BenchFastqTrimPolygArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub threads: Option<u32>,
     pub trim_polyg: Option<bool>,
     pub polyx_preset: Option<String>,
     pub min_polyg_run: Option<u32>,
