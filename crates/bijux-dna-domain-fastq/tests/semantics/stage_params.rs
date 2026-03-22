@@ -285,20 +285,28 @@ fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
 #[test]
 fn abundance_normalization_params_roundtrip_with_output_semantics() {
     let params = AbundanceNormalizationEffectiveParams {
+        schema_version: "bijux.params.edna.v1".to_string(),
         method: "relative_abundance".to_string(),
         expected_columns: vec![
             "sample_id".to_string(),
             "feature_id".to_string(),
             "abundance".to_string(),
         ],
+        input_value_column: "abundance".to_string(),
         normalized_value_column: "normalized_abundance".to_string(),
         compositional_rule: "per_sample_sum_to_one".to_string(),
+        scale_factor: None,
+        report_artifact: "report_json".to_string(),
     };
     let decoded: AbundanceNormalizationEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, "bijux.params.edna.v1");
     assert_eq!(decoded.method, "relative_abundance");
     assert_eq!(decoded.expected_columns.len(), 3);
+    assert_eq!(decoded.input_value_column, "abundance");
     assert_eq!(decoded.normalized_value_column, "normalized_abundance");
     assert_eq!(decoded.compositional_rule, "per_sample_sum_to_one");
+    assert_eq!(decoded.scale_factor, None);
+    assert_eq!(decoded.report_artifact, "report_json");
 }
 
 #[test]

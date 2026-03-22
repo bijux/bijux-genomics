@@ -1,0 +1,39 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_normalize_abundance_surface"
+
+[[datasets]]
+id = "synthetic_fastq_normalize_abundance_surface_01"
+hash = "fixture-fastq-normalize-abundance-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "amplicon_table_control"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [911, 912]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["amplicon_table_control"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.normalize_abundance"
+stage_instance_id = "fastq.normalize_abundance.abundance_table_control"
+tools = ["seqkit"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.normalize_abundance.abundance_table_control"
+[stages.param_bindings.values]
+method = "counts_per_million"
