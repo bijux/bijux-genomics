@@ -731,46 +731,49 @@ pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::
 }
 
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
-    let fastp_json = out_dir.join("fastp.json");
-    if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
-        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
-            let adapter_cut = parsed
-                .pointer("/adapter_cutting/adapter_trimmed_reads")
-                .and_then(serde_json::Value::as_u64);
-            let total = parsed
-                .pointer("/summary/before_filtering/total_reads")
-                .and_then(serde_json::Value::as_u64);
-            let fraction = match (adapter_cut, total) {
-                (Some(cut), Some(t)) if t > 0 => {
-                    let cut_f = cut.to_string().parse::<f64>().ok();
-                    let total_f = t.to_string().parse::<f64>().ok();
-                    match (cut_f, total_f) {
-                        (Some(c), Some(total_reads)) => Some(c / total_reads),
-                        _ => None,
-                    }
-                }
-                _ => None,
-            };
+    let report_path = out_dir.join("adapter_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.detect_adapters",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "inspection_mode": report.inspection_mode,
+                "report_only": report.report_only,
+                "evidence_engine": report.evidence_engine,
+                "evidence_scope": report.evidence_scope,
+                "evidence_format": report.evidence_format,
+                "candidate_adapter_count": report.candidate_adapter_count,
+                "adapter_trimmed_fraction": report.adapter_trimmed_fraction,
+                "adapter_content_max": report.adapter_content_max,
+                "adapter_content_mean": report.adapter_content_mean,
+                "duplication_rate": report.duplication_rate,
+                "n_rate": report.n_rate,
+                "kmer_warning_count": report.kmer_warning_count,
+                "overrepresented_sequence_count": report.overrepresented_sequence_count,
                 "adapter_inference": {
-                    "source": "fastp",
-                    "adapter_trimmed_reads": adapter_cut,
-                    "reads_total": total,
-                    "adapter_trimmed_fraction": fraction,
-                }
+                    "source": report.evidence_engine,
+                    "candidate_adapter_count": report.candidate_adapter_count,
+                    "adapter_trimmed_fraction": report.adapter_trimmed_fraction,
+                    "adapter_evidence_dir": report.adapter_evidence_dir,
+                },
+                "report_json": report_path,
             });
         }
     }
     serde_json::json!({
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.detect_adapters",
+        "tool": "report_missing",
+        "candidate_adapter_count": serde_json::Value::Null,
         "adapter_inference": {
             "detected": out_dir.join("fastqc").exists(),
-            "source": "stage_outputs",
+            "source": "report_missing",
             "output_dir": out_dir.join("fastqc"),
         },
+        "report_json": report_path,
     })
 }
 
@@ -2044,7 +2047,13 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "index_bytes",
             "index_file_count",
         ],
-        "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
+        "fastq.detect_adapters" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "candidate_adapter_count",
+            "adapter_inference",
+        ],
         "fastq.trim_reads" => &[
             "schema_version",
             "stage",
