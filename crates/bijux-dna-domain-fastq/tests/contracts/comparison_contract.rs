@@ -152,6 +152,16 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "primer_normalization_tool_normalization_json".to_string(),
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&normalize_primers_stage),
+        vec![
+            "report_json".to_string(),
+            "primer_orientation_report".to_string(),
+            "primer_stats_json".to_string(),
+            "normalized_reads_r1".to_string(),
+            "normalized_reads_r2".to_string(),
+        ]
+    );
 
     let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
     assert_eq!(
