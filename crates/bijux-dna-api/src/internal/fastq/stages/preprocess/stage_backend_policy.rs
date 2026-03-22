@@ -350,6 +350,45 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("normalize_primers_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.normalize_primers",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "primer_set_id": report.primer_set_id,
+                "marker_id": report.marker_id,
+                "orientation_policy": report.orientation_policy,
+                "max_mismatch_rate": report.max_mismatch_rate,
+                "min_overlap_bp": report.min_overlap_bp,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "primer_trimmed_reads": report.primer_trimmed_reads,
+                "primer_trimmed_fraction": report.primer_trimmed_fraction,
+                "orientation_forward_fraction": report.orientation_forward_fraction,
+                "primer_orientation_report": report.primer_orientation_report,
+                "primer_stats_json": report.primer_stats_json,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.normalize_primers",
+        "tool": "report_missing",
+        "primer_trimmed_fraction": serde_json::Value::Null,
+        "orientation_forward_fraction": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("remove_chimeras_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -575,6 +614,7 @@ mod tests {
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
         parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
+        parse_normalize_primers_metrics,
         parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
     };
 
@@ -1118,6 +1158,60 @@ mod tests {
         assert_eq!(
             metrics["polyx_bank_hash"],
             serde_json::json!("sha256:polyx")
+        );
+    }
+
+    #[test]
+    fn normalize_primers_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("normalize_primers_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_primers.report.v2",
+                "stage": "fastq.normalize_primers",
+                "stage_id": "fastq.normalize_primers",
+                "tool_id": "cutadapt",
+                "paired_mode": "paired_end",
+                "primer_set_id": "16S_universal_v1",
+                "marker_id": "16S",
+                "primer_fasta": "assets/reference/primers/16S_universal_v1.fasta",
+                "orientation_policy": "normalize_to_forward_primer",
+                "max_mismatch_rate": 0.1,
+                "min_overlap_bp": 10,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "normalized_R1.fastq.gz",
+                "output_r2": "normalized_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "primer_trimmed_reads": 190,
+                "primer_trimmed_fraction": 0.95,
+                "orientation_forward_fraction": 0.93,
+                "primer_orientation_report": "primer_orientation.tsv",
+                "primer_stats_json": "primer_stats.json",
+                "raw_backend_report": "primer_stats.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 2.4,
+                "memory_mb": 80.0,
+                "used_fallback": false,
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_normalize_primers_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(metrics["primer_set_id"], serde_json::json!("16S_universal_v1"));
+        assert_eq!(metrics["primer_trimmed_reads"], serde_json::json!(190));
+        assert_eq!(
+            metrics["orientation_forward_fraction"],
+            serde_json::json!(0.93)
         );
     }
 

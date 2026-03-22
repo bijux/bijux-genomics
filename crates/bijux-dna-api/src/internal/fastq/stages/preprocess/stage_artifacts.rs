@@ -216,12 +216,23 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "reference_resolution": "explicit host reference required via planned command inputs",
         })),
-        "fastq.normalize_primers" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.normalize_primers.v1",
-            "stage": stage_id,
-            "orientation_policy": "enforced_by_tool_backend",
-            "mismatch_policy": "configured_in_stage_params",
-        })),
+        "fastq.normalize_primers" => {
+            let report_path = stage_root.join("normalize_primers_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v2",
+                "stage": stage_id,
+                "primer_set_id": governed.as_ref().map(|report| report.primer_set_id.clone()),
+                "marker_id": governed.as_ref().and_then(|report| report.marker_id.clone()),
+                "orientation_policy": governed.as_ref().map(|report| report.orientation_policy.clone()),
+                "primer_orientation_report": governed.as_ref().map(|report| report.primer_orientation_report.clone()),
+                "primer_stats_json": governed.as_ref().map(|report| report.primer_stats_json.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_terminal_damage" => {
             let report_path = execution
                 .outputs
@@ -369,11 +380,7 @@ fn write_stage_standardized_metrics(
         }),
         "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
         "fastq.report_qc" => parse_report_qc_metrics(out_dir),
-        "fastq.normalize_primers" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
-        }),
+        "fastq.normalize_primers" => parse_normalize_primers_metrics(out_dir),
         "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
         "fastq.remove_chimeras" => parse_remove_chimeras_metrics(out_dir),
         "fastq.infer_asvs" => serde_json::json!({
