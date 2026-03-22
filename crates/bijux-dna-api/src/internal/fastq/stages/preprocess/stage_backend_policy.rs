@@ -1177,7 +1177,7 @@ mod tests {
         let report_path = temp.path().join("filter_report.json");
         std::fs::write(
             &report_path,
-            serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
@@ -1220,8 +1220,7 @@ mod tests {
                 "backend_metrics": {
                     "passed_filter_reads": 95
                 }
-            })
-            .to_string(),
+            }"#,
         )
         .expect("write report");
 

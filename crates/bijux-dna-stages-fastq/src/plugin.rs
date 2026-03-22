@@ -1804,37 +1804,37 @@ mod tests {
         std::fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
         std::fs::write(
             &report_path,
-            serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
-                "threads": 8_u32,
+                "threads": 8,
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "filtered.fastq.gz",
                 "output_r2": null,
                 "report_json": "filter_report.json",
-                "max_n": 0_u32,
+                "max_n": 0,
                 "max_n_fraction": 0.05,
-                "max_n_count": 3_u32,
+                "max_n_count": 3,
                 "low_complexity_threshold": 20.0,
                 "entropy_threshold": 18.0,
                 "n_policy": "drop",
                 "polyx_policy": "trim",
                 "contaminant_db": null,
-                "reads_in": 100_u64,
-                "reads_out": 95_u64,
-                "reads_dropped": 5_u64,
-                "reads_removed_by_n": 2_u64,
-                "reads_removed_by_entropy": 1_u64,
-                "reads_removed_low_complexity": 1_u64,
-                "reads_removed_by_kmer": 0_u64,
-                "reads_removed_contaminant_kmer": 0_u64,
-                "reads_removed_by_length": 1_u64,
-                "bases_in": 1000_u64,
-                "bases_out": 920_u64,
+                "reads_in": 100,
+                "reads_out": 95,
+                "reads_dropped": 5,
+                "reads_removed_by_n": 2,
+                "reads_removed_by_entropy": 1,
+                "reads_removed_low_complexity": 1,
+                "reads_removed_by_kmer": 0,
+                "reads_removed_contaminant_kmer": 0,
+                "reads_removed_by_length": 1,
+                "bases_in": 1000,
+                "bases_out": 920,
                 "pairs_in": null,
                 "pairs_out": null,
                 "mean_q_before": 28.0,
@@ -1846,12 +1846,11 @@ mod tests {
                 "raw_backend_report_format": "fastp_json",
                 "backend_metrics": {
                     "schema_version": "bijux.fastp.metrics.v1",
-                    "passed_filter_reads": 95_u64,
-                    "too_many_n_reads": 2_u64,
-                    "too_short_reads": 1_u64
+                    "passed_filter_reads": 95,
+                    "too_many_n_reads": 2,
+                    "too_short_reads": 1
                 }
-            })
-            .to_string(),
+            }"#,
         )
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
