@@ -186,6 +186,13 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage_tool(
+                &StageId::from_static("fastq.infer_asvs"),
+                &ToolId::from_static("dada2"),
+            ),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage_tool(
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("seqkit"),
             ),
@@ -217,6 +224,10 @@ mod tests {
         );
         assert_eq!(
             runtime_interpretation_for_stage(&StageId::from_static("fastq.correct_errors")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.infer_asvs")),
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
     }
