@@ -62,6 +62,33 @@ fn trim_polyg_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
 }
 
 #[test]
+fn paired_trim_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
+    for tool_id in ["atropos", "adapterremoval", "trimmomatic", "trim_galore", "prinseq"] {
+        let manifest = tool_manifest(tool_id)?;
+        let required_inputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("required_inputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} execution required_inputs"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+        let optional_inputs = manifest
+            .get("execution_contract")
+            .and_then(|value| value.get("optional_inputs"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} execution optional_inputs"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+
+        assert_eq!(required_inputs, vec!["reads_r1"]);
+        assert_eq!(optional_inputs, vec!["reads_r2"]);
+    }
+    Ok(())
+}
+
+#[test]
 fn terminal_damage_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
     for tool_id in ["cutadapt", "seqkit"] {
         let manifest = tool_manifest(tool_id)?;
@@ -149,5 +176,21 @@ fn seqpurge_manifest_declares_paired_trim_runtime_contract() -> Result<()> {
 
     assert_eq!(capabilities, vec!["PE"]);
     assert_eq!(required_inputs, vec!["reads_r1", "reads_r2"]);
+    Ok(())
+}
+
+#[test]
+fn prinseq_manifest_advertises_paired_trim_capability() -> Result<()> {
+    let manifest = tool_manifest("prinseq")?;
+    let capabilities = manifest
+        .get("capabilities")
+        .and_then(serde_json::Value::as_array)
+        .context("prinseq capabilities")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+
+    assert!(capabilities.contains(&"SE"));
+    assert!(capabilities.contains(&"PE"));
     Ok(())
 }
