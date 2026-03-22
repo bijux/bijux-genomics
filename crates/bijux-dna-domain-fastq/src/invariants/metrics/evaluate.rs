@@ -230,6 +230,15 @@ pub fn evaluate_invariants(
                 "reads_invalid".to_string(),
                 serde_json::Value::from(metrics.reads_invalid),
             );
+            key_metrics.insert(
+                "strict_pass".to_string(),
+                serde_json::to_value(metrics.strict_pass).unwrap_or(serde_json::Value::Null),
+            );
+            key_metrics.insert(
+                "failure_class".to_string(),
+                serde_json::to_value(metrics.failure_class.clone())
+                    .unwrap_or(serde_json::Value::Null),
+            );
             if metrics.reads_invalid > 0 {
                 results.push(result(
                     "validate_malformed_reads",
@@ -242,6 +251,55 @@ pub fn evaluate_invariants(
                     "validate_malformed_reads",
                     InvariantStatusV1::Pass,
                     "no malformed reads detected".to_string(),
+                    None,
+                ));
+            }
+            if matches!(metrics.pair_sync_checked, Some(true)) {
+                let pair_integrity_ok = metrics.pair_sync_pass.unwrap_or(false)
+                    && metrics.pair_count_match.unwrap_or(false);
+                if pair_integrity_ok {
+                    results.push(result(
+                        "validate_pair_integrity",
+                        InvariantStatusV1::Pass,
+                        "paired validation preserved mate synchronization".to_string(),
+                        None,
+                    ));
+                } else {
+                    results.push(result(
+                        "validate_pair_integrity",
+                        InvariantStatusV1::Fail,
+                        format!(
+                            "pair validation failed with failure_class={}",
+                            metrics
+                                .failure_class
+                                .clone()
+                                .unwrap_or_else(|| "unknown".to_string())
+                        ),
+                        Some(
+                            "inspect mate counts, header synchronization, and pair sync policy"
+                                .to_string(),
+                        ),
+                    ));
+                }
+            }
+            if matches!(metrics.strict_pass, Some(false)) {
+                results.push(result(
+                    "validate_strict_outcome",
+                    InvariantStatusV1::Fail,
+                    format!(
+                        "strict validation failed with failure_class={}",
+                        metrics
+                            .failure_class
+                            .clone()
+                            .unwrap_or_else(|| "unknown".to_string())
+                    ),
+                    Some("inspect governed validation report and input integrity".to_string()),
+                ));
+            } else if matches!(metrics.strict_pass, Some(true)) {
+                results.push(result(
+                    "validate_strict_outcome",
+                    InvariantStatusV1::Pass,
+                    "strict validation completed without governed failures".to_string(),
                     None,
                 ));
             }

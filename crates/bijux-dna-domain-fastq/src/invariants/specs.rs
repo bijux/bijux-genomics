@@ -29,6 +29,28 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             next_steps: "Inspect input FASTQ integrity and rerun validation.".to_string(),
         },
         InvariantSpecV1 {
+            id: "validate_pair_integrity".to_string(),
+            definition: "Paired validation preserves mate count and synchronization integrity."
+                .to_string(),
+            threshold_provenance:
+                "Derived from governed validation report pair_sync_* and pair_count_match fields."
+                    .to_string(),
+            severity: InvariantStatusV1::Fail,
+            next_steps: "Inspect mate layout, pairing headers, and pair-synchronization policy."
+                .to_string(),
+        },
+        InvariantSpecV1 {
+            id: "validate_strict_outcome".to_string(),
+            definition: "Strict validation completes without governed validation failure classes."
+                .to_string(),
+            threshold_provenance:
+                "Derived from governed validation report strict_pass and failure_class."
+                    .to_string(),
+            severity: InvariantStatusV1::Fail,
+            next_steps: "Inspect governed validation report and fix the failing integrity class."
+                .to_string(),
+        },
+        InvariantSpecV1 {
             id: "retention_sanity".to_string(),
             definition: "Read retention remains within expected bounds.".to_string(),
             threshold_provenance:
