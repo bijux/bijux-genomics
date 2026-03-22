@@ -271,11 +271,48 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("merge_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.merge_pairs",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "merge_engine": report.merge_engine,
+                "merge_overlap": report.merge_overlap,
+                "min_length": report.min_len,
+                "unmerged_read_policy": report.unmerged_read_policy,
+                "reads_r1": report.reads_r1,
+                "reads_r2": report.reads_r2,
+                "reads_merged": report.reads_merged,
+                "reads_unmerged": report.reads_unmerged,
+                "merge_rate": report.merge_rate,
+                "runtime_s": report.runtime_s,
+                "memory_mb": report.memory_mb,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.merge_pairs",
+        "tool": "report_missing",
+        "merge_engine": serde_json::Value::Null,
+        "reads_merged": serde_json::Value::Null,
+        "reads_unmerged": serde_json::Value::Null,
+        "merge_rate": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("deduplicate_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw)
-        {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.remove_duplicates",
@@ -353,8 +390,7 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
 pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_primers_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw)
-        {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.normalize_primers",
@@ -392,8 +428,7 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
 pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_abundance_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) =
-            bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw)
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -648,12 +683,11 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_profile_overrepresented_metrics,
+        fastq_backend_allowlist, parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
+        parse_normalize_primers_metrics, parse_profile_overrepresented_metrics,
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
-        parse_normalize_abundance_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
         parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
-        parse_normalize_primers_metrics,
         parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
     };
 
@@ -753,6 +787,22 @@ mod tests {
         assert_eq!(
             required_metrics_keys("fastq.report_qc"),
             &["schema_version", "stage", "report_html", "report_data_dir"]
+        );
+    }
+
+    #[test]
+    fn merge_pairs_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.merge_pairs"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "merge_engine",
+                "reads_merged",
+                "reads_unmerged",
+                "merge_rate",
+            ]
         );
     }
 
@@ -1163,6 +1213,56 @@ mod tests {
     }
 
     #[test]
+    fn merge_pairs_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("merge_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.merge_pairs.report.v2",
+                "stage": "fastq.merge_pairs",
+                "stage_id": "fastq.merge_pairs",
+                "tool_id": "pear",
+                "paired_mode": "paired_end",
+                "merge_engine": "pear",
+                "threads": 4,
+                "merge_overlap": 22,
+                "min_len": 120,
+                "unmerged_read_policy": "omit_unmerged_pairs",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "merged_reads": "pear.assembled.fastq",
+                "unmerged_reads_r1": null,
+                "unmerged_reads_r2": null,
+                "reads_r1": 100,
+                "reads_r2": 100,
+                "reads_merged": 88,
+                "reads_unmerged": 12,
+                "merge_rate": 0.88,
+                "runtime_s": 2.3,
+                "memory_mb": 48.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_merge_pairs_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("pear"));
+        assert_eq!(metrics["merge_engine"], serde_json::json!("pear"));
+        assert_eq!(metrics["merge_overlap"], serde_json::json!(22));
+        assert_eq!(metrics["min_length"], serde_json::json!(120));
+        assert_eq!(
+            metrics["unmerged_read_policy"],
+            serde_json::json!("omit_unmerged_pairs")
+        );
+        assert_eq!(metrics["reads_merged"], serde_json::json!(88));
+        assert_eq!(metrics["reads_unmerged"], serde_json::json!(12));
+        assert_eq!(metrics["merge_rate"], serde_json::json!(0.88));
+    }
+
+    #[test]
     fn trim_polyg_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
@@ -1262,7 +1362,10 @@ mod tests {
 
         let metrics = parse_normalize_primers_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
-        assert_eq!(metrics["primer_set_id"], serde_json::json!("16S_universal_v1"));
+        assert_eq!(
+            metrics["primer_set_id"],
+            serde_json::json!("16S_universal_v1")
+        );
         assert_eq!(metrics["primer_trimmed_reads"], serde_json::json!(190));
         assert_eq!(
             metrics["orientation_forward_fraction"],
@@ -1368,7 +1471,10 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
         assert_eq!(metrics["classifier"], serde_json::json!("kraken2"));
         assert_eq!(metrics["contamination_rate"], serde_json::json!(0.23));
-        assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("bacteria"));
+        assert_eq!(
+            metrics["top_taxa"][0]["label"],
+            serde_json::json!("bacteria")
+        );
         assert_eq!(
             metrics["database_digest"],
             serde_json::json!("sha256:taxonomy-db")
@@ -1552,8 +1658,10 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
-            "paired_input",
-            "merged_output",
+            "merge_engine",
+            "reads_merged",
+            "reads_unmerged",
+            "merge_rate",
         ],
         "fastq.remove_duplicates" => &["schema_version", "stage", "tool", "duplicates_removed"],
         "fastq.correct_errors" => &["schema_version", "stage", "tool", "corrected_reads"],
