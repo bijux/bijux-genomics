@@ -407,9 +407,12 @@ fn write_correction_report_script(
         "output_r1": output_r1,
         "output_r2": output_r2,
         "correction_engine": correction_engine,
+        "quality_encoding": options.quality_encoding,
         "kmer_size": options.kmer_size,
         "genome_size": options.genome_size,
         "max_memory_gb": options.max_memory_gb,
+        "trusted_kmer_artifact": options.trusted_kmer_artifact,
+        "conservative_mode": options.conservative_mode,
     });
     format!(
         "printf '%s\\n' {} > {}\n",
@@ -636,6 +639,28 @@ mod tests {
             .any(|artifact| artifact.name.as_str() == "trusted_kmer_artifact"
                 && artifact.role == ArtifactRole::Index));
         assert!(plan.command.template[2].contains(" -loadTrustedKmers 'trusted.kmers'"));
+        assert!(plan.command.template[2].contains("\"trusted_kmer_artifact\":\"trusted.kmers\""));
+    }
+
+    #[test]
+    fn correction_report_payload_tracks_executable_correction_settings() {
+        let plan = plan_correct_with_options(
+            &tool("bayeshammer"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                quality_encoding: QualityEncoding::Phred64,
+                max_memory_gb: Some(24),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect("bayeshammer plan should carry executable correction settings");
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("\"quality_encoding\":\"phred64\""));
+        assert!(script.contains("\"conservative_mode\":false"));
+        assert!(script.contains("\"max_memory_gb\":24"));
     }
 
     #[test]
