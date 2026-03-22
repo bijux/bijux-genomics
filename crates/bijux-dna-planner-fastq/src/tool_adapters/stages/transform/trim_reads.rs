@@ -130,6 +130,32 @@ pub fn plan(
     )
 }
 
+/// # Errors
+/// Returns an error when any selected trim backend cannot execute the requested trim surface.
+pub fn validate_trim_toolset_support(
+    tool_ids: &[String],
+    paired_layout: bool,
+    options: &TrimPlanOptions,
+) -> Result<()> {
+    let mut incompatibilities = Vec::new();
+    for tool_id in tool_ids {
+        if tool_id == "seqpurge" && !paired_layout {
+            incompatibilities.push(format!("{tool_id}: requires paired-end reads"));
+            continue;
+        }
+        if let Err(error) = ensure_trim_option_support(tool_id, options) {
+            incompatibilities.push(format!("{tool_id}: {error}"));
+        }
+    }
+    if incompatibilities.is_empty() {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "trim request is incompatible with selected tools: {}",
+        incompatibilities.join("; ")
+    ))
+}
+
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
