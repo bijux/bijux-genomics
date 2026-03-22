@@ -502,7 +502,10 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_eq!(plan.io.inputs[0].role.as_str(), "summary_tsv");
     assert_eq!(plan.io.outputs[0].name.as_str(), "normalized_abundance_tsv");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
+    assert_eq!(plan.command.template[0], "bash");
     assert_eq!(plan.effective_params["method"], "relative_abundance");
+    assert_eq!(plan.effective_params["input_value_column"], "abundance");
     assert_eq!(
         plan.effective_params["normalized_value_column"],
         "normalized_abundance"
@@ -511,5 +514,6 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         plan.effective_params["compositional_rule"],
         "per_sample_sum_to_one"
     );
+    assert_eq!(plan.effective_params["report_artifact"], "report_json");
     Ok(())
 }
