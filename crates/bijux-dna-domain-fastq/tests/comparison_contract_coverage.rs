@@ -40,6 +40,15 @@ fn deplete_rrna_exposes_stage_family_comparison_contract() {
         contract.normalization_artifact_id,
         "rrna_depletion_tool_normalization_json"
     );
+    assert_eq!(
+        contract.comparison_input_artifact_ids,
+        &[
+            "rrna_report_json",
+            "rrna_report_tsv",
+            "rrna_filtered_reads_r1",
+            "rrna_filtered_reads_r2",
+        ]
+    );
 }
 
 #[test]
