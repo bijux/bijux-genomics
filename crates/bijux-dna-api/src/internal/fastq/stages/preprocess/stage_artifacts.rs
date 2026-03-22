@@ -333,11 +333,33 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
-        "fastq.deplete_reference_contaminants" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.deplete_reference_contaminants.v1",
-            "stage": stage_id,
-            "bank_usage": "assets/reference contaminant bank required",
-        })),
+        "fastq.deplete_reference_contaminants" => {
+            let report_path = stage_root.join("contaminant_screen_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
+                    .ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_reference_contaminants.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
+                "contaminant_reference": governed.as_ref().map(|report| report.contaminant_reference.clone()),
+                "index_artifact": governed.as_ref().map(|report| report.index_artifact.clone()),
+                "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
+                "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
+                "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
+                "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "bases_removed": governed.as_ref().map(|report| report.bases_removed),
+                "contaminant_fraction_removed": governed.as_ref().map(|report| report.contaminant_fraction_removed),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.deplete_rrna" => {
             let report_path = stage_root.join("rrna_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
@@ -521,12 +543,9 @@ fn write_stage_standardized_metrics(
             "fields": ["reads_in", "reads_unmapped_out", "host_mapped_reads"],
             "report_json": out_dir.join("host_depletion_report.json"),
         }),
-        "fastq.deplete_reference_contaminants" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "contaminant_mapped_reads"],
-            "report_json": out_dir.join("contaminant_screen_report.json"),
-        }),
+        "fastq.deplete_reference_contaminants" => {
+            super::stage_backend_policy::parse_deplete_reference_contaminants_metrics(out_dir)
+        }
         "fastq.deplete_rrna" => parse_deplete_rrna_metrics(out_dir),
         "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
         "fastq.report_qc" => parse_report_qc_metrics(out_dir),
