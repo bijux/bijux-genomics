@@ -185,6 +185,7 @@ pub fn bench_args_trim_terminal_damage(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
         damage_mode: args.damage_mode.clone(),
         execution_policy: args.execution_policy.clone(),
         trim_5p_bases: args.trim_5p_bases,
@@ -731,11 +732,12 @@ pub fn bench_args_preprocess(
 #[cfg(test)]
 mod tests {
     use super::{
-        bench_args_filter, bench_args_from_validate, bench_args_trim_polyg, resolve_stage_tool,
+        bench_args_filter, bench_args_from_validate, bench_args_trim_polyg,
+        bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqTrimPolygArgs, CommonArgs, DnaCommand, FastqCommand,
-        FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
+        CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -907,6 +909,31 @@ mod tests {
         let bench = bench_args_trim_polyg(&args).expect("bench args");
         assert_eq!(bench.threads, Some(6));
         assert_eq!(bench.min_polyg_run, Some(12));
+    }
+
+    #[test]
+    fn trim_terminal_damage_bench_args_preserve_thread_override() {
+        let args = BenchFastqTrimTerminalDamageArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["cutadapt".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+            threads: Some(5),
+            damage_mode: Some("ancient".to_string()),
+            execution_policy: Some("explicit_terminal_trim".to_string()),
+            trim_5p_bases: Some(2),
+            trim_3p_bases: Some(1),
+        };
+
+        let bench = bench_args_trim_terminal_damage(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(5));
+        assert_eq!(bench.execution_policy.as_deref(), Some("explicit_terminal_trim"));
     }
 }
 

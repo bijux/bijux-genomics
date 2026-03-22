@@ -200,6 +200,8 @@ pub struct BenchFastqTrimTerminalDamageArgs {
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
+    pub threads: Option<u32>,
+    #[arg(long)]
     pub damage_mode: Option<String>,
     #[arg(
         long,
