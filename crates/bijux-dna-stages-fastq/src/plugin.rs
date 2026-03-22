@@ -9,7 +9,8 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
+    parse_multiqc_general_stats_metrics, parse_profile_reads_report,
+    parse_remove_duplicates_provenance,
     parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
     parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
     parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
@@ -395,6 +396,34 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
     if plan.stage_id.as_str() == "fastq.validate_reads" {
         if let Some(semantics) = validate_semantic_metrics(artifacts) {
             return semantics;
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.profile_reads" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "qc_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_profile_reads_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "reads_total": report.reads_total,
+                        "bases_total": report.bases_total,
+                        "mean_q": report.mean_q,
+                        "gc_percent": report.gc_percent,
+                        "length_histogram_source": report.length_histogram_source,
+                        "length_histogram_bins": report.length_histogram.len(),
+                        "mate_summary_count": report.mate_summaries.len(),
+                        "mate_summaries": report.mate_summaries,
+                        "qc_tsv": report.qc_tsv,
+                        "qc_plots_dir": report.qc_plots_dir,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
         }
     }
     if plan.stage_id.as_str() == "fastq.remove_duplicates" {
@@ -2051,6 +2080,96 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["backend_log"],
             serde_json::json!("clumpify.log")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_profile_read_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("qc.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.profile_reads.report.v2",
+                "stage": "fastq.profile_reads",
+                "stage_id": "fastq.profile_reads",
+                "tool_id": "seqkit_stats",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "qc_json": "qc.json",
+                "qc_tsv": "qc.tsv",
+                "qc_plots_dir": "plots",
+                "length_histogram_source": "seqkit_fx2tab",
+                "reads_total": 200,
+                "bases_total": 20000,
+                "mean_q": 31.2,
+                "gc_percent": 42.1,
+                "length_histogram": [
+                    {"length": 100, "count": 180},
+                    {"length": 101, "count": 20}
+                ],
+                "mate_summaries": [
+                    {"label": "reads_r1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.9},
+                    {"label": "reads_r2", "reads": 100, "bases": 10000, "mean_q": 31.4, "gc_percent": 42.3}
+                ],
+                "runtime_s": 1.5,
+                "memory_mb": 20.0,
+                "exit_code": 0,
+                "raw_backend_report": "qc.tsv",
+                "raw_backend_report_format": "seqkit_stats_tsv",
+                "backend_metrics": [
+                    {"schema_version": "bijux.seqkit.metrics.v1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.9},
+                    {"schema_version": "bijux.seqkit.metrics.v1", "reads": 100, "bases": 10000, "mean_q": 31.4, "gc_percent": 42.3}
+                ]
+            })
+            .to_string(),
+        )
+        .expect("write profile report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.profile_reads"),
+            tool_id: ToolId::from_static("seqkit_stats"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads_R1.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("qc_json"),
+                    report_path,
+                    ArtifactRole::MetricsJson,
+                )],
+            },
+            ..plan("fastq.profile_reads")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["paired_mode"],
+            serde_json::json!("paired_end")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["length_histogram_bins"],
+            serde_json::json!(2)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["mate_summary_count"],
+            serde_json::json!(2)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_backend_report_format"],
+            serde_json::json!("seqkit_stats_tsv")
         );
     }
 
