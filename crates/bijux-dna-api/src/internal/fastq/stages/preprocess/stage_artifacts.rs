@@ -568,12 +568,7 @@ fn write_stage_standardized_metrics(
         "fastq.filter_low_complexity" => parse_filter_low_complexity_metrics(out_dir),
         "fastq.trim_reads" => parse_trim_reads_metrics(out_dir),
         "fastq.filter_reads" => parse_filter_reads_metrics(out_dir),
-        "fastq.correct_errors" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "bases_corrected", "substitutions_corrected"],
-            "report_json": out_dir.join("correct_report.json"),
-        }),
+        "fastq.correct_errors" => parse_correct_errors_metrics(out_dir),
         "fastq.merge_pairs" => parse_merge_pairs_metrics(out_dir),
         "fastq.remove_duplicates" => parse_remove_duplicates_metrics(out_dir),
         "fastq.extract_umis" => parse_extract_umis_metrics(out_dir),
