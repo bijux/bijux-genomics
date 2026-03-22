@@ -127,10 +127,6 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         "single-end default pipeline must not schedule paired merge"
     );
     assert!(
-        !ordered.iter().any(|stage| stage == "fastq.correct_errors"),
-        "single-end default pipeline must not schedule paired correction"
-    );
-    assert!(
         !ordered.iter().any(|stage| stage == "fastq.extract_umis"),
         "single-end default pipeline must not schedule paired UMI extraction"
     );
@@ -185,7 +181,45 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
     ] {
         assert!(
             report_qc_inputs.contains(contributor),
-            "default preprocess graph must join {contributor} into report_qc"
+        "default preprocess graph must join {contributor} into report_qc"
         );
     }
+}
+
+#[test]
+fn single_end_default_pipeline_can_enable_error_correction() {
+    let spec = default_pipeline_spec(DefaultPipelineOptions {
+        paired: false,
+        enable_merge: false,
+        enable_correct: true,
+        enable_qc_post: true,
+        enable_screen: false,
+        mode: FastqPipelineMode::Shotgun,
+    });
+    let ordered = spec.ordered_stage_ids();
+
+    assert!(
+        ordered.iter().any(|stage| stage == "fastq.correct_errors"),
+        "single-end default pipeline must admit fastq.correct_errors when error correction is enabled"
+    );
+    assert!(
+        !ordered.iter().any(|stage| stage == "fastq.merge_pairs"),
+        "single-end default pipeline must still exclude paired-only merge"
+    );
+    assert!(
+        !ordered.iter().any(|stage| stage == "fastq.extract_umis"),
+        "single-end default pipeline must still exclude paired-only UMI extraction"
+    );
+    assert!(
+        spec.edges
+            .iter()
+            .any(|edge| edge.from == "fastq.filter_reads" && edge.to == "fastq.correct_errors"),
+        "single-end default graph must route filtered reads into error correction"
+    );
+    assert!(
+        spec.edges
+            .iter()
+            .any(|edge| edge.from == "fastq.correct_errors" && edge.to == "fastq.profile_reads"),
+        "single-end default graph must continue from error correction into downstream profiling"
+    );
 }
