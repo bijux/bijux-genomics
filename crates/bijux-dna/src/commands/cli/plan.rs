@@ -163,6 +163,7 @@ pub fn bench_args_trim_polyg(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
         trim_polyg: args.trim_polyg,
         polyx_preset: args.polyx_preset.clone(),
         min_polyg_run: args.min_polyg_run,
@@ -729,9 +730,12 @@ pub fn bench_args_preprocess(
 
 #[cfg(test)]
 mod tests {
-    use super::{bench_args_filter, bench_args_from_validate, resolve_stage_tool};
+    use super::{
+        bench_args_filter, bench_args_from_validate, bench_args_trim_polyg, resolve_stage_tool,
+    };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqTrimPolygArgs, CommonArgs, DnaCommand, FastqCommand,
+        FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -879,6 +883,30 @@ mod tests {
         assert_eq!(bench.entropy_threshold, Some(18.0));
         assert_eq!(bench.polyx_policy.as_deref(), Some("trim"));
         assert_eq!(bench.kmer_ref.as_deref(), Some(PathBuf::from("contaminants.fa").as_path()));
+    }
+
+    #[test]
+    fn trim_polyg_bench_args_preserve_thread_override() {
+        let args = BenchFastqTrimPolygArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["fastp".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+            threads: Some(6),
+            trim_polyg: Some(true),
+            polyx_preset: Some("illumina_twocolor".to_string()),
+            min_polyg_run: Some(12),
+        };
+
+        let bench = bench_args_trim_polyg(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(6));
+        assert_eq!(bench.min_polyg_run, Some(12));
     }
 }
 
