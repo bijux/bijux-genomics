@@ -18,6 +18,31 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "removed_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
         })),
+        "fastq.profile_reads" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("qc.json"))
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("qc.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.profile_reads.extra_artifacts.v2",
+                "stage": stage_id,
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "length_histogram_source": governed.as_ref().map(|report| report.length_histogram_source.clone()),
+                "length_histogram_bins": governed.as_ref().map(|report| report.length_histogram.len()),
+                "mate_summary_count": governed.as_ref().map(|report| report.mate_summaries.len()),
+                "qc_tsv": governed.as_ref().map(|report| report.qc_tsv.clone()),
+                "qc_plots_dir": governed.as_ref().and_then(|report| report.qc_plots_dir.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_polyg_tails" => {
             let report_path = execution
                 .outputs
