@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -160,24 +161,99 @@ pub fn resolve_terminal_damage_policy(
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> ResolvedTerminalDamagePolicy {
+    resolve_terminal_damage_policy_with_override(damage_mode, trim_5p_bases, trim_3p_bases, None)
+        .expect("derived terminal damage policy must always be valid")
+}
+
+/// # Errors
+/// Returns an error when an explicit execution policy conflicts with the requested damage-mode trim contract.
+pub fn resolve_terminal_damage_policy_with_override(
+    damage_mode: DamageMode,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
+    execution_policy: Option<TerminalDamageExecutionPolicy>,
+) -> Result<ResolvedTerminalDamagePolicy> {
     let preserves_udg_trimmed_ends = damage_mode == DamageMode::UdgTrimmed
         && trim_5p_bases == DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES
         && trim_3p_bases == DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES;
-    if preserves_udg_trimmed_ends {
-        return ResolvedTerminalDamagePolicy {
+    let derived = if preserves_udg_trimmed_ends {
+        ResolvedTerminalDamagePolicy {
             execution_policy: TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds,
             effective_trim_5p_bases: 0,
             effective_trim_3p_bases: 0,
             requested_trim_5p_bases: trim_5p_bases,
             requested_trim_3p_bases: trim_3p_bases,
-        };
+        }
+    } else {
+        ResolvedTerminalDamagePolicy {
+            execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
+            effective_trim_5p_bases: trim_5p_bases,
+            effective_trim_3p_bases: trim_3p_bases,
+            requested_trim_5p_bases: trim_5p_bases,
+            requested_trim_3p_bases: trim_3p_bases,
+        }
+    };
+    match execution_policy {
+        None => Ok(derived),
+        Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim) => Ok(
+            ResolvedTerminalDamagePolicy {
+                execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
+                effective_trim_5p_bases: trim_5p_bases,
+                effective_trim_3p_bases: trim_3p_bases,
+                requested_trim_5p_bases: trim_5p_bases,
+                requested_trim_3p_bases: trim_3p_bases,
+            },
+        ),
+        Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => {
+            if damage_mode != DamageMode::UdgTrimmed {
+                return Err(anyhow!(
+                    "preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"
+                ));
+            }
+            if trim_5p_bases != DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES
+                || trim_3p_bases != DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES
+            {
+                return Err(anyhow!(
+                    "preserve_udg_trimmed_ends requires the governed default trim window (5p={}, 3p={})",
+                    DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES,
+                    DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES
+                ));
+            }
+            Ok(ResolvedTerminalDamagePolicy {
+                execution_policy: TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds,
+                effective_trim_5p_bases: 0,
+                effective_trim_3p_bases: 0,
+                requested_trim_5p_bases: trim_5p_bases,
+                requested_trim_3p_bases: trim_3p_bases,
+            })
+        }
     }
-    ResolvedTerminalDamagePolicy {
-        execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
-        effective_trim_5p_bases: trim_5p_bases,
-        effective_trim_3p_bases: trim_3p_bases,
-        requested_trim_5p_bases: trim_5p_bases,
-        requested_trim_3p_bases: trim_3p_bases,
+}
+
+#[must_use]
+pub fn parse_terminal_damage_execution_policy(
+    value: &str,
+) -> Option<Option<TerminalDamageExecutionPolicy>> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "" | "policy_derived" | "auto" => Some(None),
+        "explicit_terminal_trim" => Some(Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim)),
+        "preserve_udg_trimmed_ends" => {
+            Some(Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds))
+        }
+        _ => None,
+    }
+}
+
+#[must_use]
+pub fn terminal_damage_execution_policy_label(
+    value: Option<TerminalDamageExecutionPolicy>,
+) -> &'static str {
+    match value {
+        None => "policy_derived",
+        Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim) => "explicit_terminal_trim",
+        Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => {
+            "preserve_udg_trimmed_ends"
+        }
     }
 }
 

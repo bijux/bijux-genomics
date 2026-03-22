@@ -11,9 +11,14 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_dna_domain_fastq::params::trim::TrimTerminalDamageParams;
+use bijux_dna_domain_fastq::params::trim::{
+    parse_terminal_damage_execution_policy, terminal_damage_execution_policy_label,
+    TrimTerminalDamageParams,
+};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
-use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::plan_trim_terminal_damage;
+use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::{
+    plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
@@ -166,14 +171,31 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_trim_terminal_damage(
+        let damage_mode = args
+            .damage_mode
+            .as_deref()
+            .unwrap_or("ancient")
+            .parse()
+            .with_context(|| {
+                format!(
+                    "parse fastq.trim_terminal_damage damage_mode `{}`",
+                    args.damage_mode.as_deref().unwrap_or("ancient")
+                )
+            })?;
+        let execution_policy = parse_requested_execution_policy(
+            args.execution_policy.as_deref(),
+        )?;
+        let plan = plan_trim_terminal_damage_with_options(
             &tool_spec,
             &bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
-            args.damage_mode.as_deref().unwrap_or("ancient"),
-            args.trim_5p_bases.unwrap_or(2),
-            args.trim_3p_bases.unwrap_or(2),
+            &TrimTerminalDamagePlanOptions {
+                damage_mode,
+                execution_policy,
+                trim_5p_bases: args.trim_5p_bases.unwrap_or(2),
+                trim_3p_bases: args.trim_3p_bases.unwrap_or(2),
+            },
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
@@ -247,6 +269,16 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
                 .map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
+            damage_mode: Some(governed_report.damage_mode.as_str().to_string()),
+            execution_policy: Some(
+                terminal_damage_execution_policy_label(Some(governed_report.execution_policy))
+                    .to_string(),
+            ),
+            requested_trim_5p_bases: governed_report.requested_trim_5p_bases,
+            requested_trim_3p_bases: governed_report.requested_trim_3p_bases,
+            udg_classification: Some(governed_report.udg_classification.clone()),
+            ct_ga_asymmetry_pre: governed_report.ct_ga_asymmetry_pre,
+            ct_ga_asymmetry_post: governed_report.ct_ga_asymmetry_post,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
         };
         let metric_set = metric_set(metrics.clone());
@@ -338,6 +370,19 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_TRIM_TERMINAL_DAMAGE.as_str())
 }
 
+fn parse_requested_execution_policy(
+    value: Option<&str>,
+) -> Result<Option<bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy>> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    parse_terminal_damage_execution_policy(value).ok_or_else(|| {
+        anyhow!(
+            "invalid fastq.trim_terminal_damage execution_policy `{value}`: expected policy_derived, explicit_terminal_trim, or preserve_udg_trimmed_ends"
+        )
+    })
+}
+
 fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<std::path::PathBuf> {
     plan.io
         .outputs
@@ -365,8 +410,8 @@ fn read_governed_terminal_damage_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        admitted_stage_tools, normalize_tools, read_governed_terminal_damage_report,
-        required_plan_output_path,
+        admitted_stage_tools, normalize_tools, parse_requested_execution_policy,
+        read_governed_terminal_damage_report, required_plan_output_path,
     };
     use bijux_dna_core::ids::{ArtifactId, StageVersion, ToolId};
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
@@ -381,6 +426,23 @@ mod tests {
         assert_eq!(normalize_tools(&[]), expected);
         assert_eq!(normalize_tools(&["auto".to_string()]), expected);
         assert_eq!(normalize_tools(&["all".to_string()]), expected);
+    }
+
+    #[test]
+    fn terminal_damage_execution_policy_parser_accepts_policy_derived() {
+        assert!(parse_requested_execution_policy(None).expect("default policy").is_none());
+        assert!(parse_requested_execution_policy(Some("policy_derived"))
+            .expect("policy_derived")
+            .is_none());
+    }
+
+    #[test]
+    fn terminal_damage_execution_policy_parser_rejects_unknown_policy() {
+        let error = parse_requested_execution_policy(Some("trim_whatever"))
+            .expect_err("unknown policy must fail");
+        assert!(error
+            .to_string()
+            .contains("invalid fastq.trim_terminal_damage execution_policy"));
     }
 
     #[test]

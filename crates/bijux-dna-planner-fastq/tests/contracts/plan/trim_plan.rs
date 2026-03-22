@@ -955,6 +955,52 @@ fn plan_trim_terminal_damage_udg_defaults_preserve_terminal_ends() -> Result<()>
 }
 
 #[test]
+fn plan_trim_terminal_damage_honors_explicit_execution_policy_override() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage_with_options(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::TrimTerminalDamagePlanOptions {
+            damage_mode: DamageMode::UdgTrimmed,
+            execution_policy: Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
+            trim_5p_bases: 2,
+            trim_3p_bases: 2,
+        },
+    )?;
+
+    assert_eq!(
+        serde_json::from_value::<TerminalDamageExecutionPolicy>(
+            plan.effective_params["execution_policy"].clone()
+        )?,
+        TerminalDamageExecutionPolicy::ExplicitTerminalTrim
+    );
+    assert!(plan.command.template[2].contains("cutadapt -u 2 -u -2"));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_terminal_damage_rejects_invalid_preserve_override() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage_with_options(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::TrimTerminalDamagePlanOptions {
+            damage_mode: DamageMode::Ancient,
+            execution_policy: Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds),
+            trim_5p_bases: 2,
+            trim_3p_bases: 2,
+        },
+    )
+    .expect_err("invalid preserve override must fail");
+
+    assert!(error
+        .to_string()
+        .contains("preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"));
+}
+
+#[test]
 fn plan_trim_terminal_damage_rejects_unknown_damage_mode() {
     let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::plan_trim_terminal_damage(
         &dummy_tool("cutadapt"),

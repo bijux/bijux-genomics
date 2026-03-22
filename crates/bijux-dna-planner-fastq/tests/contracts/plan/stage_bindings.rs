@@ -533,6 +533,7 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
             params: Some(FastqStageParameters::TrimTerminalDamage(
                 TrimTerminalDamageStageParams {
                     damage_mode: DamageMode::UdgTrimmed,
+                    execution_policy: None,
                     trim_5p_bases: 5,
                     trim_3p_bases: 3,
                 },
