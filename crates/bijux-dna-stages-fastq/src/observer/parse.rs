@@ -1240,6 +1240,7 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_deplete_reference_contaminants_report,
         parse_deplete_rrna_report,
         parse_detect_adapters_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
