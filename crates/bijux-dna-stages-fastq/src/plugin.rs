@@ -428,8 +428,22 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                                 .unwrap_or(serde_json::Value::Null),
                         ),
                     ]);
+                    if let Some(backend_metrics) = report
+                        .get("backend_metrics")
+                        .and_then(serde_json::Value::as_object)
+                    {
+                        for (metric_name, metric_value) in backend_metrics {
+                            if metric_name == "schema_version" {
+                                continue;
+                            }
+                            semantics.insert(metric_name.clone(), metric_value.clone());
+                        }
+                        return serde_json::Value::Object(semantics);
+                    }
                     if let (Some(raw_report_path), Some(raw_report_format)) = (
-                        report.get("raw_report_path").and_then(serde_json::Value::as_str),
+                        report
+                            .get("raw_report_path")
+                            .and_then(serde_json::Value::as_str),
                         report
                             .get("raw_report_format")
                             .and_then(serde_json::Value::as_str),
@@ -855,21 +869,21 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        let raw_report_path = temp.path().join("trim_polyg.fastp.json");
         std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
         std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        std::fs::write(
-            &raw_report_path,
-            include_str!("../tests/fixtures/tool_metrics/default/fastp.json"),
-        )
-        .expect("write raw report");
         std::fs::write(
             &report_path,
             serde_json::json!({
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
-                "raw_report_path": raw_report_path,
-                "raw_report_format": "fastp_json"
+                "raw_report_format": "fastp_json",
+                "backend_metrics": {
+                    "schema_version": "bijux.fastp.metrics.v1",
+                    "passed_filter_reads": 960_u64,
+                    "low_quality_reads": 18_u64,
+                    "too_many_n_reads": 4_u64,
+                    "too_short_reads": 12_u64
+                }
             })
             .to_string(),
         )
@@ -912,35 +926,23 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["min_polyg_run"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["min_polyg_run"],
             serde_json::json!(10_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["raw_report_format"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_report_format"],
             serde_json::json!("fastp_json")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["passed_filter_reads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["passed_filter_reads"],
             serde_json::json!(960_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["too_short_reads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["too_short_reads"],
             serde_json::json!(12_u64)
         );
     }
@@ -952,17 +954,18 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        let raw_report_path = temp.path().join("trim_polyg_tails_report.stats.txt");
         std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
         std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        std::fs::write(&raw_report_path, "Reads Removed: 137\n").expect("write raw report");
         std::fs::write(
             &report_path,
             serde_json::json!({
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
-                "raw_report_path": raw_report_path,
-                "raw_report_format": "bbduk_stats"
+                "raw_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "schema_version": "bijux.bbduk.trim_polyg.metrics.v1",
+                    "reads_removed": 137_u64
+                }
             })
             .to_string(),
         )
@@ -1001,19 +1004,13 @@ mod tests {
 
         assert!(output.warnings.is_empty());
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["raw_report_format"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_report_format"],
             serde_json::json!("bbduk_stats")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["reads_removed"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_removed"],
             serde_json::json!(137_u64)
         );
     }
