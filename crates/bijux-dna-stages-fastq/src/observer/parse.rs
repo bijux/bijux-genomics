@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    CorrectErrorsReportV1,
     DepleteHostReportV1,
     DepleteReferenceContaminantsReportV1,
     DepleteRrnaReportV1,
@@ -191,6 +192,99 @@ pub fn parse_infer_asvs_report(report_json: &str) -> Result<InferAsvsReportV1> {
 /// Returns an error if the governed merge-pairs report JSON cannot be parsed.
 pub fn parse_merge_pairs_report(report_json: &str) -> Result<MergePairsReportV1> {
     serde_json::from_str(report_json).context("parse merge pairs report")
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyCorrectErrorsReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: Option<String>,
+    tool: Option<String>,
+    correction_engine: bijux_dna_domain_fastq::params::correct::CorrectionEngine,
+    quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding,
+    input_r1: String,
+    input_r2: Option<String>,
+    output_r1: String,
+    output_r2: Option<String>,
+    kmer_size: Option<u32>,
+    genome_size: Option<u64>,
+    max_memory_gb: Option<u32>,
+    trusted_kmer_artifact: Option<std::path::PathBuf>,
+    conservative_mode: Option<bool>,
+    corrected_reads: Option<u64>,
+    reads_in: Option<u64>,
+    reads_out: Option<u64>,
+    bases_in: Option<u64>,
+    bases_out: Option<u64>,
+    pairs_in: Option<u64>,
+    pairs_out: Option<u64>,
+    mean_q_before: Option<f64>,
+    mean_q_after: Option<f64>,
+    kmer_fix_rate: Option<f64>,
+    correction_effect: Option<serde_json::Value>,
+    runtime_s: Option<f64>,
+    memory_mb: Option<f64>,
+    exit_code: Option<i32>,
+}
+
+fn parse_legacy_correct_errors_report(report_json: &str) -> Result<CorrectErrorsReportV1> {
+    let legacy: LegacyCorrectErrorsReportV1 =
+        serde_json::from_str(report_json).context("parse legacy correct errors report")?;
+    if legacy.schema_version != "bijux.fastq.correct_errors.report.v1" {
+        return Err(anyhow!(
+            "unsupported correct errors report schema {}",
+            legacy.schema_version
+        ));
+    }
+    Ok(CorrectErrorsReportV1 {
+        schema_version: bijux_dna_domain_fastq::CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy
+            .tool_id
+            .or(legacy.tool)
+            .unwrap_or_else(|| "unknown".to_string()),
+        paired_mode: PairedMode::from_has_r2(legacy.input_r2.is_some()),
+        threads: 1,
+        correction_engine: legacy.correction_engine,
+        quality_encoding: legacy.quality_encoding,
+        kmer_size: legacy.kmer_size,
+        genome_size: legacy.genome_size,
+        max_memory_gb: legacy.max_memory_gb,
+        trusted_kmer_artifact: legacy.trusted_kmer_artifact,
+        conservative_mode: legacy.conservative_mode.unwrap_or(false),
+        input_r1: legacy.input_r1,
+        input_r2: legacy.input_r2,
+        output_r1: legacy.output_r1,
+        output_r2: legacy.output_r2,
+        report_json: "correct_report.json".to_string(),
+        corrected_reads: legacy.corrected_reads.or(legacy.reads_out),
+        reads_in: legacy.reads_in,
+        reads_out: legacy.reads_out,
+        bases_in: legacy.bases_in,
+        bases_out: legacy.bases_out,
+        pairs_in: legacy.pairs_in,
+        pairs_out: legacy.pairs_out,
+        mean_q_before: legacy.mean_q_before,
+        mean_q_after: legacy.mean_q_after,
+        kmer_fix_rate: legacy.kmer_fix_rate,
+        correction_effect: legacy.correction_effect,
+        runtime_s: legacy.runtime_s,
+        memory_mb: legacy.memory_mb,
+        exit_code: legacy.exit_code,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the governed correct-errors report JSON cannot be parsed.
+pub fn parse_correct_errors_report(report_json: &str) -> Result<CorrectErrorsReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_correct_errors_report(report_json))
+        .context("parse correct errors report")
 }
 
 /// # Errors
@@ -1319,6 +1413,7 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_correct_errors_report,
         parse_deplete_host_report,
         parse_deplete_reference_contaminants_report,
         parse_deplete_rrna_report,
@@ -2438,6 +2533,108 @@ mod tests {
         assert_eq!(parsed.schema_version, "bijux.multiqc.metrics.v1");
         assert_eq!(parsed.sample_count, 2);
         assert_eq!(parsed.module_count, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_correct_errors_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_correct_errors_report(
+            r#"{
+                "schema_version": "bijux.fastq.correct_errors.report.v2",
+                "stage": "fastq.correct_errors",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "lighter",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "correction_engine": "lighter",
+                "quality_encoding": "phred33",
+                "kmer_size": 31,
+                "genome_size": 2500000,
+                "max_memory_gb": null,
+                "trusted_kmer_artifact": "trusted_kmers.fa",
+                "conservative_mode": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "corrected.fastq.gz",
+                "output_r2": null,
+                "report_json": "correct_report.json",
+                "corrected_reads": 100,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 10000,
+                "bases_out": 10000,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 30.0,
+                "mean_q_after": 31.0,
+                "kmer_fix_rate": 0.12,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "reads_delta": 0,
+                    "bases_delta": 0,
+                    "mean_q_delta": 1.0
+                },
+                "runtime_s": 1.8,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "lighter.log",
+                "raw_backend_report_format": "lighter_log",
+                "backend_metrics": {
+                    "trusted_kmers_loaded": true
+                }
+            }"#,
+        )?;
+        assert_eq!(parsed.tool_id, "lighter");
+        assert_eq!(parsed.threads, 8);
+        assert_eq!(parsed.kmer_size, Some(31));
+        assert_eq!(parsed.corrected_reads, Some(100));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_correct_errors_report_accepts_legacy_payload() -> Result<()> {
+        let parsed = parse_correct_errors_report(
+            r#"{
+                "schema_version": "bijux.fastq.correct_errors.report.v1",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "rcorrector",
+                "correction_engine": "rcorrector",
+                "quality_encoding": "phred33",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "out/reads_r1.fastq.gz",
+                "output_r2": "out/reads_r2.fastq.gz",
+                "kmer_size": null,
+                "genome_size": null,
+                "max_memory_gb": null,
+                "trusted_kmer_artifact": null,
+                "conservative_mode": false,
+                "corrected_reads": 200,
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.5,
+                "kmer_fix_rate": 0.05,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "reads_delta": 0,
+                    "bases_delta": 0,
+                    "mean_q_delta": 1.5
+                },
+                "runtime_s": 2.1,
+                "memory_mb": 128.0,
+                "exit_code": 0
+            }"#,
+        )?;
+        assert_eq!(parsed.tool_id, "rcorrector");
+        assert_eq!(parsed.stage, "fastq.correct_errors");
+        assert_eq!(parsed.report_json, "correct_report.json");
+        assert_eq!(parsed.threads, 1);
+        assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         Ok(())
     }
 
