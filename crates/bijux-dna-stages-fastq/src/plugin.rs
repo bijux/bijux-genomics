@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
+    parse_deplete_rrna_report,
     parse_fastp_metrics,
     parse_extract_umis_report,
     parse_filter_low_complexity_report,
@@ -1280,6 +1281,34 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "unclassified_fraction": report.unclassified_fraction,
                         "summary_entry_count": report.summary_entries.len(),
                         "top_taxa": report.top_taxa.iter().map(|entry| entry.label.clone()).collect::<Vec<_>>(),
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.deplete_rrna" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "rrna_report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_deplete_rrna_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "rrna_db": report.rrna_db,
+                        "database_artifact_id": report.database_artifact_id,
+                        "database_build_id": report.database_build_id,
+                        "screening_engine": report.screening_engine,
+                        "report_format": report.report_format,
+                        "min_identity": report.min_identity,
+                        "reads_removed": report.reads_removed,
+                        "bases_removed": report.bases_removed,
+                        "rrna_fraction_removed": report.rrna_fraction_removed,
+                        "rrna_report_tsv": report.rrna_report_tsv,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
                     });
                 }
             }
@@ -2668,6 +2697,109 @@ mod tests {
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["top_taxa"],
             serde_json::json!(["bacteria"])
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_deplete_rrna_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let output_path = temp.path().join("rrna_filtered.fastq.gz");
+        let report_tsv = temp.path().join("rrna_report.tsv");
+        let report_json = temp.path().join("rrna_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        std::fs::write(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
+        std::fs::write(
+            &report_json,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.report.v2",
+                "stage": "fastq.deplete_rrna",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "rrna_db": "/refs/silva",
+                "database_artifact_id": "silva_nr99",
+                "database_build_id": "2026.03",
+                "screening_engine": "sortmerna",
+                "report_format": "summary_tsv_and_json",
+                "emit_removed_reads": false,
+                "min_identity": 0.95,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "rrna_filtered.fastq.gz",
+                "output_r2": null,
+                "rrna_report_tsv": "rrna_report.tsv",
+                "rrna_report_json": "rrna_report.json",
+                "reads_in": 100_u64,
+                "reads_out": 64_u64,
+                "reads_removed": 36_u64,
+                "bases_in": 1000_u64,
+                "bases_out": 620_u64,
+                "bases_removed": 380_u64,
+                "pairs_in": null,
+                "pairs_out": null,
+                "rrna_fraction_removed": 0.36,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "backend_metrics": {"reads_removed": 36}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.deplete_rrna"),
+            tool_id: ToolId::from_static("sortmerna"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("rrna_filtered_reads_r1"),
+                        output_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("rrna_report_tsv"),
+                        report_tsv,
+                        ArtifactRole::SummaryTsv,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("rrna_report_json"),
+                        report_json,
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            ..plan("fastq.deplete_rrna")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["database_artifact_id"],
+            serde_json::json!("silva_nr99")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_removed"],
+            serde_json::json!(36_u64)
         );
     }
 
