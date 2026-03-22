@@ -677,7 +677,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
             reason: None,
             params: Some(FastqStageParameters::DepleteRrna(DepleteRrnaStageParams {
                 rrna_db: "silva_nr99".to_string(),
-                min_identity: 0.99,
+                min_identity: 0.95,
             })),
         }],
         stage_toolsets: Vec::new(),
@@ -695,7 +695,50 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.deplete_rrna.sortmerna.custom");
+    assert!(step.command.template.iter().any(|part| part == "--ref"));
+    assert!(step.command.template.iter().any(|part| part == "silva_nr99"));
     assert!(step.command.template.iter().any(|part| part == "--report"));
+    Ok(())
+}
+
+#[test]
+fn planner_rejects_unsupported_rrna_identity_override_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-deplete-rrna-unsupported-identity")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__deplete_rrna__identity_guard__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.deplete_rrna".to_string(),
+            stage_instance_id: None,
+            tool: tool("sortmerna"),
+            reason: None,
+            params: Some(FastqStageParameters::DepleteRrna(DepleteRrnaStageParams {
+                rrna_db: "silva_nr99".to_string(),
+                min_identity: 0.99,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })
+    .expect_err("unsupported rrna min_identity override must fail");
+
+    assert!(error
+        .to_string()
+        .contains("does not support governed min_identity overrides"));
     Ok(())
 }
 
