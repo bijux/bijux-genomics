@@ -225,12 +225,7 @@ fn write_stage_standardized_metrics(
             "fields": ["pairs_in", "pairs_merged", "pairs_unmerged"],
             "report_json": out_dir.join("merge_report.json"),
         }),
-        "fastq.remove_duplicates" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "duplicate_reads"],
-            "report_json": out_dir.join("deduplicate_report.json"),
-        }),
+        "fastq.remove_duplicates" => parse_remove_duplicates_metrics(out_dir),
         "fastq.extract_umis" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,

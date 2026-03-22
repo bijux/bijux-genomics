@@ -163,6 +163,44 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("deduplicate_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.remove_duplicates",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "dedup_mode": report.dedup_mode,
+                "keep_order": report.keep_order,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_in_r2": report.reads_in_r2,
+                "reads_out_r2": report.reads_out_r2,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "pair_count_match": report.pair_count_match,
+                "duplicates_removed": report.duplicates_removed,
+                "dedup_rate": report.dedup_rate,
+                "duplicate_class_count": report.duplicate_classes.len(),
+                "duplicate_classes_tsv": report.duplicate_classes_tsv,
+                "duplicate_provenance_json": report.duplicate_provenance_json,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.remove_duplicates",
+        "tool": "report_missing",
+        "duplicates_removed": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_polyg_tails_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -394,9 +432,10 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
-        parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
-        parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
+        fastq_backend_allowlist, parse_remove_duplicates_metrics, parse_report_qc_metrics,
+        parse_screen_taxonomy_metrics, parse_trim_polyg_metrics, parse_trim_reads_metrics,
+        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
+        workspace_root_path,
     };
 
     fn env_lock() -> &'static Mutex<()> {
@@ -854,6 +893,54 @@ mod tests {
         assert_eq!(metrics["aggregation_engine"], serde_json::json!("multiqc"));
         assert_eq!(metrics["governed_qc_input_count"], serde_json::json!(3));
         assert_eq!(metrics["multiqc_module_count"], serde_json::json!(5));
+    }
+
+    #[test]
+    fn remove_duplicates_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 84,
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 16,
+                "dedup_rate": 0.16,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 16, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_remove_duplicates_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("clumpify"));
+        assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
+        assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
+        assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
     }
 }
 
