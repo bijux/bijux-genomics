@@ -15,7 +15,6 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_index_reference_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::index_reference::plan;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
@@ -87,7 +86,14 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan(&tool_spec, &reference_fasta, &out_dir)?;
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::index_reference::plan_with_options(
+            &tool_spec,
+            &reference_fasta,
+            &out_dir,
+            &bijux_dna_planner_fastq::IndexReferenceStageParams {
+                threads: args.threads,
+            },
+        )?;
         let params_hash = stable_params_hash(&plan.params);
         let image_digest = tool_spec
             .image

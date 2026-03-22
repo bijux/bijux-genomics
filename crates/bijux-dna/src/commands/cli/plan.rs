@@ -504,6 +504,7 @@ pub fn bench_args_index_reference(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
     })
 }
 
