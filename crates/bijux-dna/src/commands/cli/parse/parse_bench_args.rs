@@ -311,6 +311,8 @@ pub struct BenchFastqProfileReadLengthsArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
     #[arg(long)]
     pub histogram_bins: Option<u32>,
 }

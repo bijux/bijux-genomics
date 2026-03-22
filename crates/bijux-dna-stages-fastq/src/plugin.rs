@@ -613,6 +613,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                 if let Ok(report) = parse_profile_read_lengths_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
+                        "threads": report.threads,
                         "histogram_bins": report.histogram_bins,
                         "read_count": report.read_count,
                         "mean_read_length": report.mean_read_length,

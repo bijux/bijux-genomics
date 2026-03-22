@@ -21,6 +21,10 @@ outputs:
     data_type: "json"
     cardinality: "One"
 parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "2"
+    meaning: "Worker threads for the governed read-length profiling invocation and resource envelope"
   - name: "histogram_bins"
     param_type: "int"
     default: "100"

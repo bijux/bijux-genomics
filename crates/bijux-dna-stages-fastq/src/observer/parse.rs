@@ -951,6 +951,11 @@ fn parse_legacy_profile_read_lengths_report(
             Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
             _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
         },
+        threads: json
+            .get("threads")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         histogram_bins: u32::try_from(histogram.len()).unwrap_or(u32::MAX).max(1),
         input_r1: String::new(),
         input_r2: None,
@@ -2278,6 +2283,7 @@ mod tests {
                 "stage_id": "fastq.profile_read_lengths",
                 "tool_id": "seqkit_stats",
                 "paired_mode": "paired_end",
+                "threads": 2,
                 "histogram_bins": 64,
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
@@ -2298,6 +2304,7 @@ mod tests {
             .to_string(),
         )?;
         assert_eq!(parsed.tool_id, "seqkit_stats");
+        assert_eq!(parsed.threads, 2);
         assert_eq!(parsed.histogram_bins, 64);
         assert_eq!(parsed.read_count, 200);
         assert_eq!(parsed.histogram.len(), 1);

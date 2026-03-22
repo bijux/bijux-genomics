@@ -24,7 +24,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, None)
+    plan_with_options(tool, r1, r2, out_dir, None, None)
 }
 
 /// Build a pre-trim length distribution plan with governed histogram options.
@@ -36,12 +36,14 @@ pub fn plan_with_options(
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
+    threads_override: Option<u32>,
     histogram_bins_override: Option<u32>,
 ) -> Result<StagePlanV1> {
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
     let report_json = out_dir.join("profile_read_lengths_report.json");
-    let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2);
+    let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
+    let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2, threads);
     let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
     let effective_params = FastqReadLengthProfileParams {
         schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
@@ -50,8 +52,11 @@ pub fn plan_with_options(
         } else {
             PairedMode::SingleEnd
         },
+        threads,
         histogram_bins,
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -77,7 +82,7 @@ pub fn plan_with_options(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
@@ -103,6 +108,7 @@ pub fn plan_with_options(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "threads": threads,
             "histogram_bins": histogram_bins,
             "report_json": report_json,
             "output_tsv": dist_tsv,
@@ -117,13 +123,15 @@ pub fn plan_with_options(
     })
 }
 
-fn profile_lengths_command(tool_id: &str, r1: &Path, r2: Option<&Path>) -> Vec<String> {
+fn profile_lengths_command(tool_id: &str, r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
     let mut command = match tool_id {
         "seqkit_stats" => vec![
             "seqkit".to_string(),
             "stats".to_string(),
             "-a".to_string(),
             "-T".to_string(),
+            "-j".to_string(),
+            threads.to_string(),
             r1.display().to_string(),
         ],
         other => vec![other.to_string(), r1.display().to_string()],
