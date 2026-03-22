@@ -526,11 +526,36 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
-        "fastq.cluster_otus" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.cluster_otus.v1",
-            "stage": stage_id,
-            "applicability": "edna_pollen_only",
-        })),
+        "fastq.cluster_otus" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("cluster_otus_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("cluster_otus_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_cluster_otus_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "otu_identity": governed.as_ref().map(|report| report.otu_identity),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "otu_table": governed.as_ref().map(|report| report.otu_table.clone()),
+                "otu_representatives": governed.as_ref().map(|report| report.otu_representatives.clone()),
+                "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
+                "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "output_table_kind": governed.as_ref().map(|report| report.output_table_kind.clone()),
+                "used_fallback": governed.as_ref().map(|report| report.used_fallback),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.infer_asvs" => {
             let report_path = stage_root.join("infer_asvs_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {

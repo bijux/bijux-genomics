@@ -430,10 +430,12 @@ fn write_edna_report_summary(
             }
         }
         if stage.plan.step_id.as_str() == "fastq.cluster_otus" {
-            let table = stage.plan.out_dir.join("otu_abundance.tsv");
-            if let Ok(raw) = std::fs::read_to_string(table) {
-                otu_rows =
-                    Some(raw.lines().skip(1).filter(|l| !l.trim().is_empty()).count() as u64);
+            let report_path = stage.plan.out_dir.join("cluster_otus_report.json");
+            if let Ok(raw) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = bijux_dna_stages_fastq::observer::parse_cluster_otus_report(&raw)
+                {
+                    otu_rows = Some(report.otu_count);
+                }
             }
         }
         if stage.plan.step_id.as_str() == "fastq.normalize_abundance" {
