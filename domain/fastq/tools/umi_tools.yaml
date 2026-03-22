@@ -22,7 +22,7 @@ command_template:
   - "--bc-pattern"
   - "{{umi_pattern}}"
   - "--log"
-  - "{{report_json}}"
+  - "{{raw_backend_report}}"
 outputs:
   - name: "umi_reads_r1"
     data_type: "fastq"
