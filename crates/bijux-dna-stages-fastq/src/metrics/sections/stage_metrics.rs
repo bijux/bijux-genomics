@@ -192,7 +192,10 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input_r1 = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let input_r2 = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let pairs_in = inputs
+                .get(1)
+                .map(|_| input_r1.reads.min(input_r2.reads));
+            let pairs_out = pairs_in;
             let reads_in = input_r1.reads + inputs.get(1).map_or(0, |_| input_r2.reads);
             let bases_in = input_r1.bases + inputs.get(1).map_or(0, |_| input_r2.bases);
             let mean_q = if inputs.get(1).is_some() {
