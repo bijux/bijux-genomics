@@ -146,9 +146,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&correction_stage),
         vec![
+            "report_json".to_string(),
             "corrected_reads_r1".to_string(),
             "corrected_reads_r2".to_string(),
-            "report_json".to_string()
         ]
     );
 
