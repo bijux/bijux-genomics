@@ -441,6 +441,12 @@ fn materialize_amplicon_stage_outputs(
             let asv_fasta = out_dir.join("asv_sequences.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
             let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
+            let input_r2 = planned
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "reads_r2")
+                .map(|artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
                 .find(|artifact| artifact.name.as_str() == "report_json")
@@ -503,9 +509,7 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                     b"@ASV_0001\nACGTACGTACGA\n+\nIIIIIIIIIIII\n",
                 )?;
             }
-            let effective_params: bijux_dna_domain_fastq::AsvInferenceEffectiveParams =
-                serde_json::from_value(planned.effective_params.clone())
-                    .context("parse infer_asvs effective params")?;
+            let effective_params = infer_asvs_effective_params(planned, input_r2.is_some());
             let table_metrics =
                 crate::internal::fastq::stages::infer_asvs::read_infer_asvs_table_metrics(
                     &asv_table,
@@ -514,7 +518,7 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                 crate::internal::fastq::stages::infer_asvs::count_fasta_records(&asv_fasta)?;
             let used_fallback = !infer_ok;
             let report = crate::internal::fastq::stages::infer_asvs::canonical_infer_asvs_report(
-                planned.tool_id.as_str(),
+                infer_asvs_tool_id(planned),
                 &input,
                 input_r2.as_deref(),
                 &asv_table,
@@ -696,6 +700,49 @@ fn normalize_abundance_method(planned: &ExecutionStep) -> &'static str {
         "counts_per_million"
     } else {
         "relative_abundance"
+    }
+}
+
+fn infer_asvs_tool_id(planned: &ExecutionStep) -> &'static str {
+    if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("dada2"))
+    {
+        "dada2"
+    } else {
+        "unknown"
+    }
+}
+
+fn infer_asvs_effective_params(
+    planned: &ExecutionStep,
+    has_r2: bool,
+) -> bijux_dna_domain_fastq::params::edna::AsvInferenceEffectiveParams {
+    let flag_value = |flag: &str| -> Option<String> {
+        planned
+            .command
+            .template
+            .windows(2)
+            .find_map(|window| (window[0] == flag).then(|| window[1].clone()))
+    };
+    let threads = flag_value("--threads").and_then(|value| value.parse::<u32>().ok());
+    bijux_dna_domain_fastq::params::edna::AsvInferenceEffectiveParams {
+        schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
+        paired_mode: bijux_dna_domain_fastq::PairedMode::from_has_r2(has_r2),
+        denoising_method: flag_value("--denoising-method")
+            .unwrap_or_else(|| "dada2".to_string()),
+        pooling_mode: flag_value("--pooling-mode")
+            .unwrap_or_else(|| "independent".to_string()),
+        chimera_policy: flag_value("--chimera-policy")
+            .unwrap_or_else(|| "remove_bimera_denovo".to_string()),
+        threads,
+        requires_r_runtime: true,
+        output_table_kind: "asv_abundance_table".to_string(),
+        report_artifact: "report_json".to_string(),
+        raw_backend_report_artifact: Some("report_json".to_string()),
+        raw_backend_report_format: Some("infer_asvs_governed_report_json".to_string()),
     }
 }
 
