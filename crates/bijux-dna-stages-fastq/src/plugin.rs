@@ -10,9 +10,9 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
-    parse_remove_duplicates_report, parse_report_qc_report, parse_screen_taxonomy_report,
-    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
-    parse_validated_reads_manifest, parse_validation_report,
+    parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
+    parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
+    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
 };
 
 #[allow(dead_code)]
@@ -423,6 +423,33 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                         "backend_log": provenance.as_ref().and_then(|value| value.backend_log.clone()),
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.remove_chimeras" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_remove_chimeras_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "method": report.method,
+                        "detection_scope": report.detection_scope,
+                        "reads_in": report.reads_in,
+                        "reads_out": report.reads_out,
+                        "chimeras_removed": report.chimeras_removed,
+                        "chimera_fraction": report.chimera_fraction,
+                        "used_fallback": report.used_fallback,
+                        "chimeras_fasta": report.chimeras_fasta,
+                        "uchime_report_tsv": report.uchime_report_tsv,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                        "backend_metrics": report.backend_metrics,
                     });
                 }
             }
@@ -2024,6 +2051,85 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["backend_log"],
             serde_json::json!("clumpify.log")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_remove_chimeras_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("remove_chimeras_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_chimeras.report.v2",
+                "stage": "fastq.remove_chimeras",
+                "stage_id": "fastq.remove_chimeras",
+                "tool_id": "vsearch",
+                "paired_mode": "single_end",
+                "method": "vsearch_uchime_denovo",
+                "detection_scope": "denovo",
+                "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
+                "input_reads": "merged.fastq.gz",
+                "output_reads": "nonchimeras.fastq.gz",
+                "chimera_metrics_json": "chimera_metrics.json",
+                "chimeras_fasta": "chimeras.fasta",
+                "uchime_report_tsv": "uchime.tsv",
+                "reads_in": 100,
+                "reads_out": 92,
+                "chimeras_removed": 8,
+                "chimera_fraction": 0.08,
+                "used_fallback": false,
+                "raw_backend_report": "uchime.tsv",
+                "raw_backend_report_format": "vsearch_uchime_tsv",
+                "runtime_s": 1.4,
+                "memory_mb": 24.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "parsed_records": 100,
+                    "flagged_records": 8
+                }
+            })
+            .to_string(),
+        )
+        .expect("write chimera report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.remove_chimeras"),
+            tool_id: ToolId::from_static("vsearch"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads"),
+                    temp.path().join("merged.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.remove_chimeras")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["method"],
+            serde_json::json!("vsearch_uchime_denovo")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["chimera_fraction"],
+            serde_json::json!(0.08)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_backend_report_format"],
+            serde_json::json!("vsearch_uchime_tsv")
         );
     }
 }
