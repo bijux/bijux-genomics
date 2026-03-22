@@ -17,8 +17,8 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::{
-    parse_pair_sync_policy, parse_validation_mode, plan_with_options as plan_validate_reads,
-    ValidateReadsPlanOptions,
+    default_plan_options_for_layout, parse_pair_sync_policy, parse_validation_mode,
+    plan_with_options as plan_validate_reads, ValidateReadsPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
@@ -28,13 +28,13 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_VALIDATE_READS,
 };
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
 use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
@@ -399,6 +399,7 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 fn validate_plan_options(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
 ) -> Result<ValidateReadsPlanOptions> {
+    let default_options = default_plan_options_for_layout(args.r2.as_deref());
     Ok(ValidateReadsPlanOptions {
         threads: args.threads,
         validation_mode: args
@@ -406,15 +407,13 @@ fn validate_plan_options(
             .as_deref()
             .map(parse_validation_mode)
             .transpose()?
-            .unwrap_or(bijux_dna_domain_fastq::params::validate::ValidationMode::Strict),
+            .unwrap_or(default_options.validation_mode),
         pair_sync_policy: args
             .pair_sync_policy
             .as_deref()
             .map(parse_pair_sync_policy)
             .transpose()?
-            .unwrap_or(
-                bijux_dna_domain_fastq::params::validate::PairSyncPolicy::RequireHeaderSync,
-            ),
+            .unwrap_or(default_options.pair_sync_policy),
     })
 }
 
@@ -541,6 +540,31 @@ mod tests {
         assert_eq!(
             options.pair_sync_policy,
             bijux_dna_domain_fastq::params::validate::PairSyncPolicy::SkipHeaderSync
+        );
+    }
+
+    #[test]
+    fn validate_plan_options_default_single_end_policy_is_not_applicable() {
+        let args = bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads.fastq.gz"),
+            r2: None,
+            out: PathBuf::from("out"),
+            tools: vec!["fastqvalidator".to_string()],
+            explain: false,
+            strict: false,
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+            threads: None,
+            validation_mode: None,
+            pair_sync_policy: None,
+        };
+
+        let options = validate_plan_options(&args).expect("options");
+        assert_eq!(
+            options.pair_sync_policy,
+            bijux_dna_domain_fastq::params::validate::PairSyncPolicy::NotApplicable
         );
     }
 }
